@@ -11,7 +11,8 @@ import matplotlib.ticker as mtick
 import seaborn as sns
 import time
 import io
-
+from ml.macro_regime import get_current_regime, model_is_trained
+from ml.surrogate.predict import SurrogatePredictor
 from simulation.vectorized_simulation import (
     run_vectorized_simulation_full,
     SimulationParams,
@@ -22,6 +23,7 @@ from lbo_engine.model import LBOParams, run_lbo
 from lbo_engine.capital_structure import build_simple_two_tranche_structure
 from lbo_engine.returns import compute_exit_sensitivity, print_sensitivity_table
 from pages.settings import init_cfg, get_cfg, build_corr_matrix
+from ml.anomaly_detector import check_deal, detector_is_trained, train_detector
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -826,7 +828,7 @@ def page_deal_inputs():
         f'</div>',
         unsafe_allow_html=True,
     )
-
+    
     st.markdown("---")
     _, col_next = st.columns([3, 1])
     with col_next:
@@ -836,6 +838,72 @@ def page_deal_inputs():
             st.session_state.mode = "deal"
             st.rerun()
 
+# At bottom of page_deal_inputs(), before the Next button:
+# Auto-train on first use
+if not detector_is_trained():
+    train_detector()
+
+# Compute leverage from session state
+entry_ev_check = s.d_ebitda * s.d_entry_mult
+total_debt_check = entry_ev_check * s.d_debt_pct / 100
+leverage_check = total_debt_check / max(s.d_ebitda, 1)
+ebitda_margin_check = (s.d_gross_margin - s.d_opex + s.d_da)
+
+anomaly = check_deal(
+    entry_mult=s.d_entry_mult,
+    leverage=leverage_check,
+    growth_pct=s.d_growth,
+    ebitda_margin=ebitda_margin_check * 100,
+    interest_rate=s.d_base_rate,
+)
+
+# Risk score display — always visible
+risk_color = ("#40c080" if anomaly.risk_score < 4
+              else "#c0a040" if anomaly.risk_score < 7
+              else "#c06060")
+st.markdown(
+    f'<div style="background:#0e0e1c;border:0.5px solid {risk_color};'
+    f'border-radius:6px;padding:10px 14px;margin-top:12px;'
+    f'font-family:IBM Plex Mono,monospace">'
+    f'<div style="display:flex;justify-content:space-between;align-items:center">'
+    f'<div style="font-size:{_sz(11)}px;color:{risk_color};font-weight:500">'
+    f'ML Risk Score: {anomaly.risk_score:.1f} / 10</div>'
+    f'<div style="font-size:{_sz(9)}px;color:#44445a">'
+    f'Based on {len([w for w in anomaly.warnings])} risk flags · '
+    f'Anomaly score: {anomaly.anomaly_score:.3f}</div>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
+
+if anomaly.warnings:
+    for w in anomaly.warnings:
+        st.markdown(
+            f'<div style="background:#1a0a0a;border-left:2px solid #c06060;'
+            f'border-radius:4px;padding:6px 10px;margin-top:4px;'
+            f'font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#c09090">⚠ {w}</div>',
+            unsafe_allow_html=True,
+        )
+
+# Nearest comparable deals
+if anomaly.nearest_deals:
+    st.markdown(
+        f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+        f'color:#44445a;margin-top:8px">Most similar historical deals:</div>',
+        unsafe_allow_html=True,
+    )
+    for d in anomaly.nearest_deals:
+        outcome_icon = "✓" if d['success'] else "✗"
+        outcome_color= "#40c080" if d['success'] else "#c06060"
+        st.markdown(
+            f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#5a5a72;padding:3px 0">'
+            f'<span style="color:{outcome_color}">{outcome_icon}</span> '
+            f'{d["name"]} — {d["entry_mult"]:.1f}x entry · '
+            f'{d["leverage"]:.1f}x lev · {d["growth"]:+.1f}% growth</div>',
+            unsafe_allow_html=True,
+        )
+st.markdown("</div>", unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # PAGE 2 — Debt & Cash Flow
 # ---------------------------------------------------------------------------
@@ -1403,9 +1471,142 @@ def page_monte_carlo():
         s.mc_gm_std = st.number_input(" ", value=float(s.mc_gm_std),
                                        min_value=0.1, step=0.5, key="mc_fi_gms",
                                        label_visibility="collapsed")
+# Inside page_monte_carlo(), add a live mode section:
+surrogate = SurrogatePredictor.get_instance()
+
+if surrogate:
+    st.markdown("---")
+    section_hdr("Live sensitivity mode (surrogate model)", "#40c080")
+    live_mode = st.toggle("Enable real-time sliders (< 1ms per update)", 
+                           value=False, key="mc_live_mode")
+
+    if live_mode:
+        st.markdown(
+            f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#44445a">Surrogate model active — drag sliders to update '
+            f'distribution instantly. Results are ML approximations '
+            f'(±0.5pp accuracy).</div>',
+            unsafe_allow_html=True,
+        )
+        col_l1, col_l2 = st.columns(2, gap="medium")
+        with col_l1:
+            live_growth  = st.slider("Revenue growth mean (%)", 
+                                      -5.0, 20.0, float(s.mc_growth_mean), 0.1) / 100
+            live_exit    = st.slider("Exit multiple mean (x)",  
+                                      4.0, 20.0, float(s.mc_exit_mean), 0.1)
+            live_interest= st.slider("Interest rate mean (%)",  
+                                      1.0, 15.0, float(s.mc_rate_mean), 0.1) / 100
+        with col_l2:
+            live_margin  = st.slider("Gross margin mean (%)",   
+                                      10.0, 80.0, float(s.mc_gm_mean), 0.5) / 100
+            live_debt    = st.slider("Debt / EV (%)",           
+                                      20.0, 90.0, float(s.d_debt_pct), 1.0) / 100
+            live_exit_std= st.slider("Exit multiple uncertainty (std)", 
+                                      0.3, 5.0, float(s.mc_exit_std), 0.1)
+
+        pred = surrogate.predict(
+            growth_mean=live_growth, growth_std=s.mc_growth_std/100,
+            exit_mean=live_exit, exit_std=live_exit_std,
+            interest_mean=live_interest,
+            gross_margin_mean=live_margin, gross_margin_std=s.mc_gm_std/100,
+            da_pct=s.d_da/100, capex_pct=s.d_capex/100,
+            nwc_pct=s.d_nwc/100, debt_pct=live_debt,
+        )
+
+        lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
+        lv1.metric("Median IRR",       f"{pred.irr_p50*100:.1f}%")
+        lv2.metric("Mean IRR",         f"{pred.irr_mean*100:.1f}%")
+        lv3.metric("5th percentile",   f"{pred.irr_p5*100:.1f}%")
+        lv4.metric("95th percentile",  f"{pred.irr_p95*100:.1f}%")
+        lv5.metric("P(IRR > 20%)",     f"{pred.p_above_20*100:.1f}%")
+        lv6.metric("Wipeout risk",     f"{pred.p_wipeout*100:.1f}%")
+
+        # Live distribution chart
+        fig_live, ax_live = plt.subplots(figsize=(10, 3))
+        pcts = [pred.irr_p5, pred.irr_p10, pred.irr_p25, pred.irr_p50,
+                pred.irr_p75, pred.irr_p90, pred.irr_p95]
+        x_vals = [5, 10, 25, 50, 75, 90, 95]
+        ax_live.fill_betweenx([0, 1], 
+                               [pred.irr_p5*100]*2,
+                               [pred.irr_p95*100]*2, 
+                               color=A1, alpha=0.15, label="5-95% range")
+        ax_live.fill_betweenx([0, 1], 
+                               [pred.irr_p25*100]*2,
+                               [pred.irr_p75*100]*2, 
+                               color=A1, alpha=0.35, label="25-75% range")
+        ax_live.axvline(pred.irr_p50*100, color=A1, lw=2.5, label=f"Median {pred.irr_p50*100:.1f}%")
+        ax_live.axvline(s.mc_hurdle, color=A3, lw=1.5, linestyle=':', label=f"Hurdle {s.mc_hurdle:.0f}%")
+        ax_live.set_xlim(-30, 80)
+        ax_live.set_xlabel("IRR (%)")
+        ax_live.set_title("Live IRR Distribution (Surrogate Model — Updates Instantly)")
+        ax_live.legend(fontsize=8)
+        ax_live.set_yticks([])
+        ax_live.grid(axis='x')
+        st.pyplot(fig_live, use_container_width=True)
+        plt.close(fig_live)
 
     st.markdown("---")
-    section_hdr("Scenario presets", "#44445a")
+    if model_is_trained():
+    regime_col1, regime_col2 = st.columns([2, 3], gap="medium")
+    with regime_col1:
+        if st.button("🌐 Detect Current Macro Regime",
+                      use_container_width=True, key="detect_regime"):
+            with st.spinner("Classifying current macro regime from FRED data..."):
+                regime_info = get_current_regime()
+                st.session_state['current_regime_info'] = regime_info
+
+    if 'current_regime_info' in st.session_state:
+        ri = st.session_state['current_regime_info']
+        regime_colors = {
+            'bull':        '#40c080',
+            'base':        '#85b7eb',
+            'recession':   '#c06060',
+            'stagflation': '#c0a040',
+        }
+        rc = regime_colors.get(ri['regime'], '#888')
+        with regime_col2:
+            st.markdown(
+                f'<div style="background:#0e0e1c;border:0.5px solid {rc};'
+                f'border-radius:6px;padding:8px 14px;'
+                f'font-family:IBM Plex Mono,monospace">'
+                f'<div style="font-size:{_sz(10)}px;color:{rc};font-weight:500">'
+                f'Current regime: {ri["regime"].upper()} '
+                f'({ri["confidence"]:.0%} confidence) '
+                f'· Data as of {ri["data_as_of"]}</div>'
+                f'<div style="font-size:{_sz(9)}px;color:#5a5a72;margin-top:4px">'
+                f'Recession: {ri["label_probabilities"].get("recession",0):.0%} · '
+                f'Expansion: {ri["label_probabilities"].get("bull",0):.0%} · '
+                f'Late cycle: {ri["label_probabilities"].get("base",0):.0%} · '
+                f'Stagflation: {ri["label_probabilities"].get("stagflation",0):.0%}'
+                f'</div></div>',
+                unsafe_allow_html=True,
+            )
+
+# Existing scenario preset buttons, but add auto-apply:
+sc1, sc2, sc3, sc4, sc5 = st.columns(5, gap="small")
+with sc1:
+    if st.button("RECESSION",   use_container_width=True, key="sc_rec"):
+        scenario_override = "recession"
+with sc2:
+    if st.button("BASE",        use_container_width=True, key="sc_base"):
+        scenario_override = "base"
+with sc3:
+    if st.button("BULL",        use_container_width=True, key="sc_bull"):
+        scenario_override = "bull"
+with sc4:
+    if st.button("STAGFLATION", use_container_width=True, key="sc_stag"):
+        scenario_override = "stagflation"
+with sc5:
+    run_mc = st.button("▶ RUN SIMULATION", type="primary",
+                        use_container_width=True, key="sc_run")
+
+# Auto-apply detected regime as preset
+if 'current_regime_info' in st.session_state and scenario_override is None:
+    auto_regime = st.session_state['current_regime_info']['regime']
+    if st.checkbox(f"Auto-apply detected regime ({auto_regime.upper()}) to simulation",
+                    value=False, key="auto_apply_regime"):
+        scenario_override = auto_regime
+        st.info(f"Applying {auto_regime.upper()} preset based on ML regime detection")
     sc1, sc2, sc3, sc4, sc5 = st.columns(5, gap="small")
     scenario_override = None
     with sc1:

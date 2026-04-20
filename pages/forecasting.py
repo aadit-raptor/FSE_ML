@@ -59,7 +59,7 @@ import matplotlib.ticker as mtick
 import io
 from dataclasses import dataclass, field
 from typing import List, Optional
-
+from ml.edgar_extractor import fetch_financials, financials_to_session_state
 try:
     from simulation.vectorized_simulation import (
         run_vectorized_simulation_full, SimulationParams
@@ -1064,39 +1064,90 @@ def render_forecasting():
         f'deterministic projections.</div>',
         unsafe_allow_html=True,
     )
+   
 
-    # ── Company info ──────────────────────────────────────────────────────
-    _section("Company information", "#85b7eb")
-    ci1, ci2, ci3, ci4 = st.columns(4, gap="medium")
-    with ci1:
-        _lbl("Company name")
-        company = st.text_input(" ", value="",
-                                placeholder="e.g. Apple Inc.",
-                                key="fc2_company",
-                                label_visibility="collapsed")
-    with ci2:
-        _lbl("Ticker / Sector")
-        sector = st.text_input(" ", value="",
-                               placeholder="e.g. AAPL / Technology",
-                               key="fc2_sector",
-                               label_visibility="collapsed")
-    with ci3:
-        _lbl("Currency / unit")
-        currency = st.selectbox(" ",
-                                ["$ (Millions)", "₹ (Crores)",
-                                 "€ (Millions)", "£ (Millions)"],
-                                key="fc2_currency",
-                                label_visibility="collapsed")
-        unit = currency.split("(")[0].strip()
-    with ci4:
-        _lbl("Forecast horizon (years)")
-        n_fwd = int(st.number_input(" ", value=5.0, min_value=1.0,
-                                    max_value=10.0, step=1.0,
-                                    key="fc2_nfwd",
-                                    label_visibility="collapsed"))
+# Inside render_forecasting(), add this block before _section("Company information"):
+    st.markdown(
+        f'<div style="background:#061a10;border:0.5px solid #1d9e75;border-radius:6px;'
+        f'padding:10px 14px;margin-bottom:16px;font-family:IBM Plex Mono,monospace;">'
+        f'<div style="font-size:{_sz(11)}px;color:#5dcaa5;font-weight:500;margin-bottom:6px">'
+        f'⚡ Auto-fill from SEC EDGAR</div>'
+        f'<div style="font-size:{_sz(9)}px;color:#3a6a50">For any US public company — '
+        f'downloads last 5 years of audited financials automatically (free, no API key)</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
-    company = company if company else "Company"
-    n_hist = 3
+    ec1, ec2, ec3 = st.columns([2, 1, 2], gap="small")
+    with ec1:
+        edgar_ticker = st.text_input(
+            " ", placeholder="Ticker (e.g. MCD, KO, MSFT, AAPL)",
+            key="edgar_ticker", label_visibility="collapsed"
+        )
+    with ec2:
+        edgar_fetch = st.button("⬇ Fetch from EDGAR", 
+                                type="primary", key="edgar_fetch",
+                                use_container_width=True)
+    with ec3:
+        if 'edgar_company_name' in st.session_state:
+            st.markdown(
+                f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(10)}px;'
+                f'color:#5dcaa5;padding-top:10px">✓ Loaded: {st.session_state.edgar_company_name}</div>',
+                unsafe_allow_html=True,
+            )
+
+    if edgar_fetch and edgar_ticker:
+        with st.spinner(f"Fetching financials for {edgar_ticker.upper()} from SEC EDGAR..."):
+            try:
+                extracted = fetch_financials(edgar_ticker.upper(), n_years=3)
+                session_vals = financials_to_session_state(extracted)
+                for key, val in session_vals.items():
+                    st.session_state[key] = val
+                st.session_state['edgar_company_name'] = extracted.company_name
+                st.session_state['fc2_company'] = extracted.company_name
+                if extracted.warnings:
+                    st.warning("Data loaded with warnings:\n" + 
+                            "\n".join(f"• {w}" for w in extracted.warnings))
+                else:
+                    st.success(
+                        f"✓ Loaded {len(extracted.data)} financial line items "
+                        f"for {extracted.company_name} "
+                        f"({', '.join(str(y) for y in extracted.years)})"
+                    )
+            except Exception as e:
+                st.error(f"Could not fetch data for '{edgar_ticker}': {e}")
+        # ── Company info ──────────────────────────────────────────────────────
+        _section("Company information", "#85b7eb")
+        ci1, ci2, ci3, ci4 = st.columns(4, gap="medium")
+        with ci1:
+            _lbl("Company name")
+            company = st.text_input(" ", value="",
+                                    placeholder="e.g. Apple Inc.",
+                                    key="fc2_company",
+                                    label_visibility="collapsed")
+        with ci2:
+            _lbl("Ticker / Sector")
+            sector = st.text_input(" ", value="",
+                                placeholder="e.g. AAPL / Technology",
+                                key="fc2_sector",
+                                label_visibility="collapsed")
+        with ci3:
+            _lbl("Currency / unit")
+            currency = st.selectbox(" ",
+                                    ["$ (Millions)", "₹ (Crores)",
+                                    "€ (Millions)", "£ (Millions)"],
+                                    key="fc2_currency",
+                                    label_visibility="collapsed")
+            unit = currency.split("(")[0].strip()
+        with ci4:
+            _lbl("Forecast horizon (years)")
+            n_fwd = int(st.number_input(" ", value=5.0, min_value=1.0,
+                                        max_value=10.0, step=1.0,
+                                        key="fc2_nfwd",
+                                        label_visibility="collapsed"))
+
+        company = company if company else "Company"
+        n_hist = 3
 
     # ── Historical data input ─────────────────────────────────────────────
     _section("Step 1 — Historical data input ", "#5dcaa5")
