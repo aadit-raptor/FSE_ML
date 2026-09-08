@@ -2,10 +2,10 @@
 
 Run directly (`python test_simulation.py`) or under pytest.
 
-Note: this previously imported simulation.monte_carlo.run_simulation, which is
-a superseded scalar-loop implementation that no longer matches the run_lbo()
-signature. The app runs simulation.vectorized_simulation, so the test now
-covers that path instead.
+Note: this previously imported simulation.monte_carlo.run_simulation, a
+superseded scalar-loop implementation that no longer matched the run_lbo()
+signature. That module had no other callers and has since been removed; the
+app runs simulation.vectorized_simulation, which is what this test covers.
 """
 
 from simulation.vectorized_simulation import (
