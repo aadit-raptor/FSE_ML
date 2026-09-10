@@ -16,12 +16,14 @@ EDGAR_BASE   = "https://data.sec.gov"
 COMPANY_URL  = f"{EDGAR_BASE}/submissions/CIK{{cik}}.json"
 FACTS_URL    = f"{EDGAR_BASE}/api/xbrl/companyfacts/CIK{{cik}}.json"
 SEARCH_URL   = "https://efts.sec.gov/LATEST/search-index"
-TICKER_URL   = f"{EDGAR_BASE}/files/company_tickers.json"
+# company_tickers.json is served from www.sec.gov, not data.sec.gov
+TICKER_URL   = "https://www.sec.gov/files/company_tickers.json"
 
 HEADERS = {
     "User-Agent": "SimulationModel research@simulationmodel.com",
     "Accept-Encoding": "gzip, deflate",
-    "Host": "data.sec.gov"
+    # No hardcoded Host: requests derives it per-URL. Pinning it to
+    # data.sec.gov routed the www.sec.gov ticker lookup to the wrong vhost.
 }
 
 
