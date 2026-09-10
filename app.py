@@ -528,6 +528,26 @@ def sens_dataframe(sens):
 # ---------------------------------------------------------------------------
 def run_deal():
     s = st.session_state
+
+    # WSP mode: the engine has no days-based working-capital input, and it
+    # reads nwc_pct as the *change* in NWC as a share of that year's revenue
+    # (cashflow_model: delta_nwc[t] = revenue[t] * nwc_pct[t]).
+    #
+    # wc_from_days() with cogs = revenue * (1 - gross_margin) collapses to
+    #     NWC(t) = revenue(t) * k,
+    #     k = [ar_days + (1 - gm) * (inv_days - ap_days)] / 365
+    # so the implied change is
+    #     dNWC(t) = k * revenue(t) * g / (1 + g).
+    # That makes the conversion below exact under the model's own assumptions
+    # (constant days, constant gross margin, constant growth), not an estimate.
+    if s.get("d_wsp_mode", False):
+        g  = s.d_growth / 100
+        gm = s.d_gross_margin / 100
+        k  = (s.d_ar_days + (1 - gm) * (s.d_inv_days - s.d_ap_days)) / 365
+        nwc_pct_eff = k * g / (1 + g) if (1 + g) != 0 else 0.0
+    else:
+        nwc_pct_eff = s.d_nwc / 100
+
     params = LBOParams(
         entry_ebitda=s.d_ebitda, entry_multiple=s.d_entry_mult,
         exit_multiple=s.d_exit_mult, holding_period=int(s.d_hold),
@@ -535,7 +555,7 @@ def run_deal():
         mezz_spread=s.d_mezz_spread/100, interest_rate=s.d_base_rate/100,
         revenue_growth=s.d_growth/100, gross_margin=s.d_gross_margin/100,
         opex_pct=s.d_opex/100, da_pct=s.d_da/100, tax_rate=s.d_tax/100,
-        capex_pct=s.d_capex/100, nwc_pct=s.d_nwc/100,
+        capex_pct=s.d_capex/100, nwc_pct=nwc_pct_eff,
         minimum_cash=s.d_mincash, n_iterations=3,
     )
     with st.spinner("Running deal model..."):
@@ -1403,19 +1423,23 @@ def page_monte_carlo():
                                        min_value=0.1, step=0.5, key="mc_fi_gms",
                                        label_visibility="collapsed")
     sc1, sc2, sc3, sc4, sc5 = st.columns(5, gap="small")
-    scenario_override = None
+    # Persisted in session state, not a local: a Streamlit button is only True
+    # on the rerun its own click triggers, so a local would always be None by
+    # the time RUN SIMULATION is pressed. "base" is a no-op preset, so the
+    # BASE button doubles as the reset.
+    st.session_state.setdefault("mc_scenario", None)
     with sc1:
         if st.button("RECESSION",   use_container_width=True, key="sc_rec"):
-            scenario_override = "recession"
+            st.session_state.mc_scenario = "recession"
     with sc2:
         if st.button("BASE",        use_container_width=True, key="sc_base"):
-            scenario_override = "base"
+            st.session_state.mc_scenario = "base"
     with sc3:
         if st.button("BULL",        use_container_width=True, key="sc_bull"):
-            scenario_override = "bull"
+            st.session_state.mc_scenario = "bull"
     with sc4:
         if st.button("STAGFLATION", use_container_width=True, key="sc_stag"):
-            scenario_override = "stagflation"
+            st.session_state.mc_scenario = "stagflation"
     with sc5:
         run_mc = st.button("▶ RUN SIMULATION", type="primary",
                            use_container_width=True, key="sc_run")
@@ -1434,6 +1458,7 @@ def page_monte_carlo():
         n_interest_passes=int(get_cfg('mc_n_passes')),
         corr_matrix=build_corr_matrix(),
     )
+    scenario_override = st.session_state.mc_scenario
     if scenario_override:
         params = _get_scenario_params_cfg(scenario_override, params)
         st.info(f"Scenario preset applied: {scenario_override.upper()}")
