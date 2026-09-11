@@ -1,0 +1,9 @@
+# Optional ML layer (ml/). The core app runs without these; each feature is
+# behind a guarded import and switches on when its dependencies and trained
+# model files are present.
+-r requirements.txt
+scikit-learn>=1.8,<1.9  # 1.8: the committed anomaly-detector models were saved with 1.8.0
+joblib>=1.3           # model persistence
+torch>=2.2            # surrogate live-slider model
+hmmlearn>=0.3         # macro regime model
+fredapi>=0.5          # macro regime data (needs FRED_API_KEY)

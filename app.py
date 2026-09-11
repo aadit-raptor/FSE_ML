@@ -22,6 +22,26 @@ from lbo_engine.capital_structure import build_simple_two_tranche_structure
 from lbo_engine.returns import compute_exit_sensitivity, print_sensitivity_table
 from pages.settings import init_cfg, get_cfg, build_corr_matrix
 
+import importlib.util
+
+
+def _installed(*pkgs):
+    """True if every package can be imported, checked without importing it."""
+    try:
+        return all(importlib.util.find_spec(p) is not None for p in pkgs)
+    except (ImportError, ValueError):
+        return False
+
+
+# Optional ML layer (ml/, requirements-ml.txt); the core app never depends on
+# it. Availability is checked without importing because torch and scikit-learn
+# each take several seconds to import: every feature imports its module only
+# when it renders, so startup is unaffected and a broken install (ImportError,
+# or OSError from a bad native library) disables just that feature.
+_ANOMALY_AVAILABLE = _installed("sklearn", "joblib")
+_SURROGATE_AVAILABLE = _installed("torch", "joblib")
+_REGIME_AVAILABLE = _installed("sklearn", "joblib", "hmmlearn", "fredapi")
+
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
@@ -526,6 +546,214 @@ def sens_dataframe(sens):
 # ---------------------------------------------------------------------------
 # Run deal model
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Optional ML panels
+# ---------------------------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def _check_deal_cached(entry_mult, leverage, growth_pct, ebitda_margin, rate):
+    from ml.anomaly_detector import check_deal
+    return check_deal(entry_mult=entry_mult, leverage=leverage,
+                      growth_pct=growth_pct, ebitda_margin=ebitda_margin,
+                      interest_rate=rate)
+
+
+def render_deal_risk(entry_mult, leverage, growth_pct, ebitda_margin, rate):
+    """ML risk panel on the deal inputs page (anomaly detector)."""
+    if not _ANOMALY_AVAILABLE:
+        return
+    try:
+        from ml.anomaly_detector import detector_is_trained
+    except (ImportError, OSError):
+        return
+    if not detector_is_trained():
+        return
+    r = _check_deal_cached(round(entry_mult, 4), round(leverage, 4),
+                           round(growth_pct, 4), round(ebitda_margin, 4),
+                           round(rate, 4))
+    color = ("#40c080" if r.risk_score < 4
+             else "#c0a040" if r.risk_score < 7 else "#c06060")
+    verdict = ("unusual versus historical LBOs" if r.is_anomalous
+               else "in line with historical LBOs")
+    n = len(r.warnings)
+    st.markdown(
+        f'<div style="background:#0e0e1c;border:0.5px solid {color};'
+        f'border-radius:6px;padding:10px 14px;margin-top:12px;'
+        f'font-family:IBM Plex Mono,monospace;display:flex;'
+        f'justify-content:space-between;align-items:center">'
+        f'<div style="font-size:{_sz(11)}px;color:{color};font-weight:500">'
+        f'ML risk score: {r.risk_score:.1f} / 10</div>'
+        f'<div style="font-size:{_sz(9)}px;color:#44445a">'
+        f'{n} risk flag{"" if n == 1 else "s"} · {verdict}</div></div>',
+        unsafe_allow_html=True,
+    )
+    for w in r.warnings:
+        st.markdown(
+            f'<div style="background:#1a0a0a;border-left:2px solid #c06060;'
+            f'border-radius:4px;padding:6px 10px;margin-top:4px;'
+            f'font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#c09090">⚠ {w}</div>',
+            unsafe_allow_html=True,
+        )
+    if r.nearest_deals:
+        st.markdown(
+            f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#44445a;margin-top:8px">Most similar historical deals:</div>',
+            unsafe_allow_html=True,
+        )
+        for d in r.nearest_deals:
+            icon, icolor = ("✓", "#40c080") if d["success"] else ("✗", "#c06060")
+            st.markdown(
+                f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+                f'color:#5a5a72;padding:3px 0">'
+                f'<span style="color:{icolor}">{icon}</span> '
+                f'{d["name"]} — {d["entry_mult"]:.1f}x entry · '
+                f'{d["leverage"]:.1f}x lev · {d["growth"]:+.1f}% growth</div>',
+                unsafe_allow_html=True,
+            )
+
+
+def render_macro_regime():
+    """Classify the current macro regime from FRED data (Monte Carlo page)."""
+    if not _REGIME_AVAILABLE:
+        return
+    try:
+        from ml.macro_regime import get_current_regime
+        from ml.macro_regime import model_is_trained as regime_model_is_trained
+    except (ImportError, OSError):
+        return
+    if not regime_model_is_trained():
+        st.caption("Macro regime detection is installed but not trained: set "
+                   "FRED_API_KEY and run `python -m ml.macro_regime`.")
+        return
+    st.markdown("---")
+    rc1, rc2 = st.columns([2, 3], gap="medium")
+    with rc1:
+        if st.button("🌐 Detect current macro regime", width="stretch",
+                     key="detect_regime"):
+            with st.spinner("Classifying current macro regime from FRED data..."):
+                try:
+                    st.session_state["current_regime_info"] = get_current_regime()
+                except Exception as e:   # network / API-key failures
+                    st.error(f"Could not classify the current regime: {e}")
+    ri = st.session_state.get("current_regime_info")
+    if ri:
+        rcolor = {"bull": "#40c080", "base": "#85b7eb", "recession": "#c06060",
+                  "stagflation": "#c0a040"}.get(ri["regime"], "#888")
+        lp = ri["label_probabilities"]
+        with rc2:
+            st.markdown(
+                f'<div style="background:#0e0e1c;border:0.5px solid {rcolor};'
+                f'border-radius:6px;padding:8px 14px;'
+                f'font-family:IBM Plex Mono,monospace">'
+                f'<div style="font-size:{_sz(10)}px;color:{rcolor};font-weight:500">'
+                f'Current regime: {ri["regime"].upper()} '
+                f'({ri["confidence"]:.0%} confidence) · Data as of {ri["data_as_of"]}</div>'
+                f'<div style="font-size:{_sz(9)}px;color:#5a5a72;margin-top:4px">'
+                f'Recession: {lp.get("recession", 0):.0%} · '
+                f'Expansion: {lp.get("bull", 0):.0%} · '
+                f'Late cycle: {lp.get("base", 0):.0%} · '
+                f'Stagflation: {lp.get("stagflation", 0):.0%}</div></div>',
+                unsafe_allow_html=True,
+            )
+
+
+def render_surrogate_live(s, mc_emult, mc_hold):
+    """Real-time IRR sliders backed by the trained surrogate network."""
+    if not _SURROGATE_AVAILABLE:
+        return
+    st.markdown("---")
+    section_hdr("Live sensitivity mode (surrogate model)", "#40c080")
+    if not st.toggle("Enable real-time sliders", value=False, key="mc_live_mode"):
+        return
+    try:
+        # torch loads here, only once live mode is switched on
+        from ml.surrogate.predict import SurrogatePredictor
+        from ml.surrogate.generate_data import TRAINING_FIXED as fx
+    except (ImportError, OSError) as e:
+        st.error(f"Live mode is unavailable: {e}")
+        return
+    surrogate = SurrogatePredictor.get_instance()
+    if surrogate is None:
+        st.info("The surrogate model is not trained yet. Run "
+                "`python -m ml.surrogate.generate_data && "
+                "python -m ml.surrogate.train`, then reload.")
+        return
+
+    # The surrogate learned 11 inputs on a fixed deal; say where this one differs
+    terms = [
+        ("entry multiple", mc_emult, fx["entry_multiple"], lambda v: f"{v:.1f}x"),
+        ("holding period", mc_hold, fx["holding_period"], lambda v: f"{v:.0f} yrs"),
+        ("opex / revenue", s.d_opex / 100, fx["opex_pct"], lambda v: f"{v:.1%}"),
+        ("tax rate", s.d_tax / 100, fx["tax_rate"], lambda v: f"{v:.1%}"),
+        ("senior / total debt", s.d_senior_pct / 100, fx["senior_pct"],
+         lambda v: f"{v:.0%}"),
+        ("mezz spread", s.d_mezz_spread / 100, fx["mezz_spread"], lambda v: f"{v:.2%}"),
+        ("interest rate std dev", s.mc_rate_std / 100, fx["interest_std"],
+         lambda v: f"{v:.2%}"),
+        ("transaction fees", get_cfg("tx_fee_pct") / 100, fx["transaction_fees_pct"],
+         lambda v: f"{v:.1%}"),
+        ("financing fees", get_cfg("fin_fee_pct") / 100, fx["financing_fees_pct"],
+         lambda v: f"{v:.1%}"),
+        ("other uses", get_cfg("other_uses"), fx["other_uses"], lambda v: f"${v:,.0f}M"),
+    ]
+    diffs = [f"{name} {fmt(yours)} (model {fmt(model)})"
+             for name, yours, model, fmt in terms
+             if abs(float(yours) - float(model)) > 1e-6]
+    if diffs:
+        st.warning("The surrogate was trained on a fixed deal, and this one differs "
+                   "in: " + "; ".join(diffs) + ". Treat the live figures as "
+                   "directional and use RUN SIMULATION for exact results.")
+    else:
+        st.caption("Deal terms match the surrogate's training deal; live figures "
+                   "are an ML approximation of the full simulation.")
+
+    col_l1, col_l2 = st.columns(2, gap="medium")
+    with col_l1:
+        live_growth = st.slider("Revenue growth mean (%)", -5.0, 20.0,
+                                float(s.mc_growth_mean), 0.1, key="live_growth") / 100
+        live_exit = st.slider("Exit multiple mean (x)", 4.0, 20.0,
+                              float(s.mc_exit_mean), 0.1, key="live_exit")
+        live_interest = st.slider("Interest rate mean (%)", 1.0, 15.0,
+                                  float(s.mc_rate_mean), 0.1, key="live_rate") / 100
+    with col_l2:
+        live_margin = st.slider("Gross margin mean (%)", 10.0, 80.0,
+                                float(s.mc_gm_mean), 0.5, key="live_gm") / 100
+        live_debt = st.slider("Debt / EV (%)", 20.0, 90.0,
+                              float(s.d_debt_pct), 1.0, key="live_debt") / 100
+        live_exit_std = st.slider("Exit multiple uncertainty (std)", 0.3, 5.0,
+                                  float(s.mc_exit_std), 0.1, key="live_exit_std")
+
+    pred = surrogate.predict(
+        growth_mean=live_growth, growth_std=s.mc_growth_std / 100,
+        exit_mean=live_exit, exit_std=live_exit_std,
+        interest_mean=live_interest,
+        gross_margin_mean=live_margin, gross_margin_std=s.mc_gm_std / 100,
+        da_pct=s.d_da / 100, capex_pct=s.d_capex / 100,
+        nwc_pct=s.d_nwc / 100, debt_pct=live_debt,
+    )
+    lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
+    lv1.metric("Median IRR",      f"{pred.irr_p50 * 100:.1f}%")
+    lv2.metric("Mean IRR",        f"{pred.irr_mean * 100:.1f}%")
+    lv3.metric("5th percentile",  f"{pred.irr_p5 * 100:.1f}%")
+    lv4.metric("95th percentile", f"{pred.irr_p95 * 100:.1f}%")
+    lv5.metric("P(IRR > 20%)",    f"{pred.p_above_20 * 100:.1f}%")
+    lv6.metric("Wipeout risk",    f"{pred.p_wipeout * 100:.1f}%")
+
+    fig, ax = plt.subplots(figsize=(10, 3))
+    ax.fill_betweenx([0, 1], [pred.irr_p5 * 100] * 2, [pred.irr_p95 * 100] * 2,
+                     color=A1, alpha=0.15, label="5-95% range")
+    ax.fill_betweenx([0, 1], [pred.irr_p25 * 100] * 2, [pred.irr_p75 * 100] * 2,
+                     color=A1, alpha=0.35, label="25-75% range")
+    ax.axvline(pred.irr_p50 * 100, color=A1, lw=2.5,
+               label=f"Median {pred.irr_p50 * 100:.1f}%")
+    ax.axvline(s.mc_hurdle, color=A3, lw=1.5, linestyle=":",
+               label=f"Hurdle {s.mc_hurdle:.0f}%")
+    ax.set_xlim(-30, 80); ax.set_xlabel("IRR (%)"); ax.set_yticks([])
+    ax.set_title("Live IRR distribution (surrogate model)")
+    ax.legend(fontsize=8); ax.grid(axis="x")
+    st.pyplot(fig, width="stretch"); plt.close(fig)
+
+
 def _entry_costs(entry_ev, total_debt):
     """Fees and other uses funded by sponsor equity at close ($M)."""
     return (entry_ev * get_cfg('tx_fee_pct') / 100
@@ -910,6 +1138,20 @@ def page_deal_inputs():
         unsafe_allow_html=True,
     )
     
+    # Optional ML risk panel. The detector expects the all-in debt rate, so
+    # blend senior and mezz by amount rather than passing the senior rate.
+    total_x = senior_x + mezz_x
+    blended_rate = ((senior_x * s.d_base_rate
+                     + mezz_x * (s.d_base_rate + s.d_mezz_spread)) / total_x
+                    if total_x > 0 else s.d_base_rate)
+    render_deal_risk(
+        entry_mult=s.d_entry_mult,
+        leverage=total_debt_abs / max(s.d_ebitda, 1e-9),
+        growth_pct=s.d_growth,
+        ebitda_margin=s.d_gross_margin - s.d_opex + s.d_da,   # already in %
+        rate=blended_rate,
+    )
+
     st.markdown("---")
     _, col_next = st.columns([3, 1])
     with col_next:
@@ -1440,6 +1682,9 @@ def page_monte_carlo():
         s.mc_gm_std = st.number_input(" ", value=float(s.mc_gm_std),
                                        min_value=0.1, step=0.5, key="mc_fi_gms",
                                        label_visibility="collapsed")
+    render_surrogate_live(s, mc_emult, mc_hold)
+    render_macro_regime()
+
     sc1, sc2, sc3, sc4, sc5 = st.columns(5, gap="small")
     # Persisted in session state, not a local: a Streamlit button is only True
     # on the rerun its own click triggers, so a local would always be None by
@@ -1480,6 +1725,13 @@ def page_monte_carlo():
         corr_matrix=build_corr_matrix(),
     )
     scenario_override = st.session_state.mc_scenario
+    # A detected macro regime can drive the preset when none is chosen. The
+    # checkbox is a widget, so unlike a local it survives until RUN is pressed.
+    ri = st.session_state.get("current_regime_info")
+    if ri and scenario_override is None:
+        if st.checkbox(f"Apply detected regime ({ri['regime'].upper()}) "
+                       f"to the simulation", key="auto_apply_regime"):
+            scenario_override = ri["regime"]
     if scenario_override:
         params = _get_scenario_params_cfg(scenario_override, params)
         st.info(f"Scenario preset applied: {scenario_override.upper()}")

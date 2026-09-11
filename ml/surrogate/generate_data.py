@@ -12,6 +12,26 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from simulation.vectorized_simulation import run_vectorized_simulation_full, SimulationParams
+from pages.settings import DEFAULTS
+
+# Deal terms held fixed across the training set: the surrogate only learns the
+# 11 sampled inputs below, so its predictions are exact only for a deal with
+# these terms. The Monte Carlo page compares the user's deal against this and
+# warns when they differ. Fees use the app's default settings so the surrogate
+# matches the fee-inclusive simulation engine.
+TRAINING_FIXED = dict(
+    entry_ebitda=100.0,
+    entry_multiple=10.0,
+    holding_period=5,
+    opex_pct=0.18,
+    tax_rate=0.25,
+    senior_pct=0.70,
+    mezz_spread=0.04,
+    interest_std=0.015,
+    transaction_fees_pct=DEFAULTS["tx_fee_pct"] / 100,
+    financing_fees_pct=DEFAULTS["fin_fee_pct"] / 100,
+    other_uses=DEFAULTS["other_uses"],
+)
 
 def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42):
     """
@@ -39,9 +59,7 @@ def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42):
 
         params = SimulationParams(
             n=n_per_call,
-            entry_ebitda=100.0,
-            entry_multiple=10.0,
-            holding_period=5,
+            **TRAINING_FIXED,
             growth_mean=float(row[0]),
             growth_std=float(row[1]),
             exit_mean=float(row[2]),
@@ -49,14 +67,10 @@ def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42):
             interest_mean=float(row[4]),
             gross_margin_mean=float(row[5]),
             gross_margin_std=float(row[6]),
-            opex_pct=0.18,
             da_pct=float(row[7]),
-            tax_rate=0.25,
             capex_pct=float(row[8]),
             nwc_pct=float(row[9]),
             debt_pct=float(row[10]),
-            senior_pct=0.70,
-            mezz_spread=0.04,
             n_interest_passes=2,
         )
 
