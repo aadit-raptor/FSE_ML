@@ -187,6 +187,12 @@ class HistoricalYear:
     common_stock:  float
     retained_earnings: float
     oci:           float
+    # Deferred tax, lease, pension and other non-current liabilities. Held
+    # flat in the forecast: no revenue driver, so no cash flow of its own.
+    other_ncl:     float = 0.0
+    # Goodwill, intangibles, long-term investments, lease assets. Held flat for
+    # the same reason: they do not scale with revenue or consume cash as it grows.
+    other_lta:     float = 0.0
 
 @dataclass
 class ForecastAssumptions:
@@ -250,6 +256,8 @@ class ForecastYear:
     ap:           float = 0
     other_cl:     float = 0
     deferred_rev: float = 0
+    other_ncl:    float = 0
+    other_lta:    float = 0
     revolver:     float = 0
     ltd:          float = 0
     total_liab:   float = 0
@@ -394,6 +402,8 @@ def run_3_statement_model(
         yr.ltd         = prev.ltd + a.ltd_change
         yr.common_stock= prev.common_stock + yr.sbc  # SBC vesting adds to APIC (WSP)
         yr.oci         = prev.oci                   # assume static
+        yr.other_ncl   = prev.other_ncl             # held flat, like OCI
+        yr.other_lta   = prev.other_lta             # held flat
 
         # ── Cash flow statement ───────────────────────────────────────────
         delta_other_cur = yr.other_current - prev_other_cur
@@ -438,11 +448,11 @@ def run_3_statement_model(
 
         # ── Balance sheet ─────────────────────────────────────────────────
         yr.total_assets = (yr.cash + yr.ar + yr.inventory + yr.other_current
-                           + yr.ppe_net + yr.other_nca)
+                           + yr.ppe_net + yr.other_nca + yr.other_lta)
 
         yr.ap_abs    = abs(yr.ap)   # store as positive for display
         yr.total_liab= (yr.ap_abs + yr.other_cl + yr.deferred_rev
-                        + yr.revolver + yr.ltd)
+                        + yr.revolver + yr.ltd + yr.other_ncl)
 
         yr.total_equity = yr.common_stock + yr.retained_earn + yr.oci
         yr.balance_check= yr.total_assets - yr.total_liab - yr.total_equity
@@ -517,10 +527,12 @@ def _hist_input_block(n_hist, unit):
         ("h_ocurr",     f"Other current assets ({unit})",      37.9,  2.0),
         ("h_ppe",       f"PP&E net ({unit})",                  41.3,  2.0),
         ("h_nca",       f"Other non-current assets ({unit})",  22.3,  2.0),
+        ("h_lta",       f"Goodwill & other long-term assets ({unit})", 0.0, 5.0),
         ("h_ap",        f"Accounts payable ({unit})",          55.9,  2.0),
         ("h_ocl",       f"Other current liabilities ({unit})", 32.7,  2.0),
         ("h_def",       f"Deferred revenue ({unit})",          10.3,  1.0),
         ("h_ltd",       f"Long-term debt ({unit})",           102.5,  5.0),
+        ("h_ncl",       f"Other non-current liabilities ({unit})", 0.0, 5.0),
         ("h_cs",        f"Common stock ({unit})",              40.2,  2.0),
         ("h_re",        f"Retained earnings ({unit})",        127.6,  5.0),
         ("h_oci",       f"Other comprehensive income ({unit})", -3.5, 0.5),
@@ -621,6 +633,8 @@ def _hist_input_block(n_hist, unit):
         common_stock=last("h_cs"),
         retained_earnings=last("h_re"),
         oci=last("h_oci"),
+        other_ncl=last("h_ncl"),
+        other_lta=last("h_lta"),
     )
     return ltm, pd.DataFrame(hist_rows_display).set_index("Year")
 
@@ -636,6 +650,12 @@ def _assumption_inputs(n_fwd, ltm, unit):
         "Blue = input you set.  "
         "Enter one value per forecast year or use flat assumptions across all years."
     )
+
+    # Set by the EDGAR fetch. Deleting the widget keys is not enough: a keyed
+    # widget keeps its identity, so the browser sends its old value back on the
+    # next interaction. Assigning the new defaults through session state is
+    # what updates the browser too.
+    reseed = st.session_state.pop("_fc2_reseed_grid", False)
 
     # Compute historical averages for smart defaults
     rev     = ltm.revenue if ltm.revenue > 0 else 1
@@ -728,10 +748,12 @@ def _assumption_inputs(n_fwd, ltm, unit):
             )
 
         for j in range(n_fwd):
+            wkey = f"fwd_{key}_{j}"
+            if reseed or wkey not in st.session_state:
+                st.session_state[wkey] = float(default)
             with row_cols[j+1]:
                 val = st.number_input(
-                    " ", value=float(default), step=float(step),
-                    key=f"fwd_{key}_{j}",
+                    " ", step=float(step), key=wkey,
                     label_visibility="collapsed",
                 )
             collected[key].append(val)
@@ -827,8 +849,8 @@ def _make_is_df(ltm, fwd, unit):
 def _opening_bs_gap(ltm):
     """Assets - liabilities - equity on the LTM (opening) balance sheet."""
     assets = (ltm.cash + ltm.ar + ltm.inventory + ltm.other_current
-              + ltm.ppe_net + ltm.other_nca)
-    liab   = ltm.ap + ltm.other_cl + ltm.deferred_rev + ltm.ltd
+              + ltm.ppe_net + ltm.other_nca + ltm.other_lta)
+    liab   = ltm.ap + ltm.other_cl + ltm.deferred_rev + ltm.ltd + ltm.other_ncl
     equity = ltm.common_stock + ltm.retained_earnings + ltm.oci
     gap = assets - liab - equity
     return 0.0 if abs(gap) < 1e-9 else gap   # float noise, not a gap
@@ -846,14 +868,16 @@ def _make_bs_df(ltm, fwd):
         r("Other current",      [ltm.other_current]+ [y.other_current for y in fwd]),
         r("PP&E net",           [ltm.ppe_net]  + [y.ppe_net      for y in fwd]),
         r("Other non-current",  [ltm.other_nca]+ [y.other_nca   for y in fwd]),
-        r("TOTAL ASSETS",       [ltm.cash+ltm.ar+ltm.inventory+ltm.other_current+ltm.ppe_net+ltm.other_nca]
+        r("Goodwill & other LT",[ltm.other_lta]+ [y.other_lta   for y in fwd]),
+        r("TOTAL ASSETS",       [ltm.cash+ltm.ar+ltm.inventory+ltm.other_current+ltm.ppe_net+ltm.other_nca+ltm.other_lta]
                                 + [y.total_assets for y in fwd]),
         r("Accounts payable",   [ltm.ap]       + [y.ap_abs       for y in fwd]),
         r("Other curr liab",    [ltm.other_cl] + [y.other_cl     for y in fwd]),
         r("Deferred revenue",   [ltm.deferred_rev]+ [y.deferred_rev for y in fwd]),
         r("Revolver",           [0.0]          + [y.revolver     for y in fwd]),
         r("Long-term debt",     [ltm.ltd]      + [y.ltd          for y in fwd]),
-        r("TOTAL LIABILITIES",  [ltm.ap+ltm.other_cl+ltm.deferred_rev+ltm.ltd]
+        r("Other non-curr liab",[ltm.other_ncl]+ [y.other_ncl    for y in fwd]),
+        r("TOTAL LIABILITIES",  [ltm.ap+ltm.other_cl+ltm.deferred_rev+ltm.ltd+ltm.other_ncl]
                                 + [y.total_liab for y in fwd]),
         r("Common stock",       [ltm.common_stock]+ [y.common_stock for y in fwd]),
         r("Retained earnings",  [ltm.retained_earnings]+ [y.retained_earn for y in fwd]),
@@ -1135,6 +1159,12 @@ def render_forecasting():
                     st.session_state[key] = val
                 st.session_state['edgar_company_name'] = extracted.company_name
                 st.session_state['fc2_company'] = extracted.company_name
+                # Re-seed the forecast grid from the fetched company; without
+                # this it kept assumptions derived from the previous
+                # historicals (e.g. the placeholder 38.5% gross margin for
+                # MSFT). See _assumption_inputs() for why this is a flag.
+                st.session_state["_fc2_reseed_grid"] = True
+                st.session_state.pop("fc2_result", None)
                 if extracted.warnings:
                     st.warning("Data loaded with warnings:\n" + 
                             "\n".join(f"• {w}" for w in extracted.warnings))

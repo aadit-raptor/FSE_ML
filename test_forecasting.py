@@ -55,7 +55,9 @@ def test_forecast_adds_no_balance_sheet_gap():
     rng = random.Random(7)
     for _ in range(200):
         ltm = build_ltm(retained_earnings=rng.uniform(0, 300),
-                        other_current=rng.uniform(0, 80))
+                        other_current=rng.uniform(0, 80),
+                        other_ncl=rng.uniform(0, 200),
+                        other_lta=rng.uniform(0, 400))
         gap0 = _opening_bs_gap(ltm)
         years = [random_assumptions(rng) for _ in range(rng.randint(1, 10))]
         for y in run_3_statement_model(ltm, years):
