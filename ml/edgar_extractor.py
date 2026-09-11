@@ -49,18 +49,23 @@ TAG_MAP = {
     ],
     'selling_general_admin': [
         'SellingGeneralAndAdministrativeExpense',
-        'GeneralAndAdministrativeExpense',
     ],
+    # Filers that tag the two halves separately (MSFT); summed into SG&A
+    'selling_marketing': ['SellingAndMarketingExpense'],
+    'general_admin': ['GeneralAndAdministrativeExpense'],
     'operating_income': [
         'OperatingIncomeLoss',
     ],
     'interest_expense': [
         'InterestExpense',
         'InterestAndDebtExpense',
+        'InterestExpenseNonoperating',
+        'InterestExpenseDebt',
     ],
     'interest_income': [
         'InterestAndDividendIncomeOperating',
         'InvestmentIncomeInterest',
+        'InvestmentIncomeInterestAndDividend',
     ],
     'income_tax_expense': [
         'IncomeTaxExpenseBenefit',
@@ -72,6 +77,7 @@ TAG_MAP = {
     'depreciation_amortization': [
         'DepreciationDepletionAndAmortization',
         'DepreciationAndAmortization',
+        'DepreciationAmortizationAndAccretionNet',
         'Depreciation',
     ],
     'stock_based_compensation': [
@@ -89,6 +95,7 @@ TAG_MAP = {
     'accounts_receivable': [
         'AccountsReceivableNetCurrent',
         'ReceivablesNetCurrent',
+        'AccountsNotesAndLoansReceivableNetCurrent',
     ],
     'inventories': [
         'InventoryNet',
@@ -107,6 +114,8 @@ TAG_MAP = {
     ],
     'accounts_payable': [
         'AccountsPayableCurrent',
+        'AccountsPayableTradeCurrent',
+        'AccountsPayableAndAccruedLiabilitiesCurrent',
     ],
     'other_current_liabilities': [
         'OtherLiabilitiesCurrent',
@@ -116,10 +125,18 @@ TAG_MAP = {
         'DeferredRevenueCurrent',
         'ContractWithCustomerLiabilityCurrent',
     ],
-    'long_term_debt': [
+    'debt_total': [                      # includes current maturities
         'LongTermDebt',
+        'LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities',
+    ],
+    'debt_noncurrent': [
         'LongTermDebtNoncurrent',
-        'SeniorNotes',
+        'LongTermDebtAndCapitalLeaseObligations',
+    ],
+    'debt_current': [
+        'LongTermDebtCurrent',
+        'LongTermDebtAndCapitalLeaseObligationsCurrent',
+        'DebtCurrent',
     ],
     'common_stock_equity': [
         'StockholdersEquity',
@@ -135,6 +152,27 @@ TAG_MAP = {
     'share_repurchases': [
         'PaymentsForRepurchaseOfCommonStock',
     ],
+    # Reported totals: the balance sheet is reconciled to these
+    'total_assets': ['Assets'],
+    'total_liabilities': ['Liabilities'],
+    'total_current_liabilities': ['LiabilitiesCurrent'],
+    'total_liabilities_and_equity': ['LiabilitiesAndStockholdersEquity'],
+    'equity_incl_nci': [
+        'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest',
+    ],
+    'aoci': ['AccumulatedOtherComprehensiveIncomeLossNetOfTax'],
+    # For filers with no cost-of-revenue concept (e.g. restaurants)
+    'costs_and_expenses': ['CostsAndExpenses'],
+}
+
+# Helper / derivation inputs whose absence is normal for many filers, so a
+# missing tag is not reported to the user as a data gap.
+SUPPORT_FIELDS = {
+    'gross_profit', 'operating_income', 'net_income',
+    'debt_total', 'debt_noncurrent', 'debt_current',
+    'total_liabilities', 'total_current_liabilities',
+    'total_liabilities_and_equity', 'equity_incl_nci', 'aoci',
+    'costs_and_expenses', 'selling_marketing', 'general_admin',
 }
 
 
@@ -213,6 +251,113 @@ def _get_annual_values(facts_data: dict, tag: str,
     return result
 
 
+def _latest_fiscal_year(facts_data: dict) -> Optional[int]:
+    """Latest fiscal year (by period-end year) with a 10-K balance sheet."""
+    us_gaap = facts_data.get('facts', {}).get('us-gaap', {})
+    for tag in ('Assets', 'LiabilitiesAndStockholdersEquity'):
+        rows = [e for e in us_gaap.get(tag, {}).get('units', {}).get('USD', [])
+                if e.get('form') in ('10-K', '10-K/A')
+                and e.get('fp') == 'FY' and 'end' in e]
+        if rows:
+            return max(int(e['end'][:4]) for e in rows)
+    return None
+
+
+def _reconcile_balance_sheet(x: dict, n: int, warnings: List[str]) -> None:
+    """
+    Rebuild the balance sheet around the filer's reported totals, in place.
+
+    Tagged line items alone never cover a real balance sheet -- goodwill,
+    intangibles, lease and deferred-tax balances have no line in the model --
+    and the old equity split, max(equity - retained earnings, 0), clamped away
+    treasury stock. So:
+
+      goodwill & other LT assets = total assets - the tagged asset lines
+                                  (other non-current assets keeps its own tag,
+                                  because the forecast grows it with revenue)
+      long-term debt            = all funded debt, current maturities included
+                                  (so it bears interest in the forecast)
+      other current liabilities = current liabilities - AP - deferred revenue
+                                  - current debt
+      other non-current liab.   = total liabilities - everything above
+      common stock              = total equity - retained earnings - AOCI
+                                  (negative when treasury stock is large)
+
+    Assets then equal liabilities plus equity exactly, and each total matches
+    the 10-K.
+    """
+    ltd = [0.0] * n
+    lta = [0.0] * n
+    ocl = list(x['other_current_liabilities'])
+    ncl = [0.0] * n
+    cs = [0.0] * n
+    negatives = set()
+
+    for j in range(n):
+        total_debt, cur_debt = x['debt_total'][j], x['debt_current'][j]
+        noncur_debt = x['debt_noncurrent'][j]
+        if total_debt:
+            if cur_debt and noncur_debt and abs(total_debt - noncur_debt) < 0.5:
+                # Some filers' "total" tag equals the non-current figure, i.e.
+                # it excludes current maturities (MCD); add them back.
+                ltd[j] = total_debt + cur_debt
+            else:
+                if not cur_debt and noncur_debt:
+                    cur_debt = max(total_debt - noncur_debt, 0.0)
+                ltd[j] = total_debt
+        else:
+            ltd[j] = x['debt_noncurrent'][j] + cur_debt
+
+        equity_tag = x['equity_incl_nci'][j] or x['common_stock_equity'][j]
+        re, aoci = x['retained_earnings'][j], x['aoci'][j]
+        assets = x['total_assets'][j]
+        if not assets:
+            # No reported total for this year: keep the tagged lines as-is
+            cs[j] = equity_tag - re - aoci
+            continue
+
+        total_liab = (x['total_liabilities'][j]
+                      or (x['total_liabilities_and_equity'][j] or assets) - equity_tag)
+        equity = assets - total_liab     # includes NCI / temporary equity
+
+        lta[j] = assets - (x['cash_and_equivalents'][j] + x['accounts_receivable'][j]
+                           + x['inventories'][j] + x['other_current_assets'][j]
+                           + x['property_plant_equipment'][j]
+                           + x['other_noncurrent_assets'][j])
+        ap, dr = x['accounts_payable'][j], x['deferred_revenue'][j]
+        cur_liab = x['total_current_liabilities'][j]
+        if cur_liab:
+            ocl[j] = cur_liab - ap - dr - cur_debt
+        ncl[j] = total_liab - (ap + ocl[j] + dr + ltd[j])
+        cs[j] = equity - re - aoci
+
+        for name, v in (("goodwill & other long-term assets", lta[j]),
+                        ("other current liabilities", ocl[j]),
+                        ("other non-current liabilities", ncl[j])):
+            if v < -0.5:
+                negatives.add(name)
+
+    x['long_term_debt'] = ltd
+    x['other_longterm_assets'] = lta
+    x['other_current_liabilities'] = ocl
+    x['other_noncurrent_liabilities'] = ncl
+    x['common_stock'] = cs
+
+    if any(x['total_assets']):
+        # These lines are now residuals of reported totals, not missing data
+        for f in ('other_noncurrent_assets', 'other_current_liabilities'):
+            warnings[:] = [w for w in warnings if f"'{f}'" not in w]
+    else:
+        warnings.append("No total-assets tag reported: balance sheet lines are "
+                        "used as tagged and may not balance")
+    if not any(ltd):
+        warnings.append("Could not extract 'long_term_debt' — will show as 0")
+    if negatives:
+        warnings.append(f"Derived {', '.join(sorted(negatives))} came out "
+                        f"negative; a tag may be double counted — check the "
+                        f"balance sheet inputs")
+
+
 def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     """
     Main function: fetch and return the last n_years of annual financials
@@ -243,11 +388,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     company_info = resp.json()
     company_name = company_info.get('name', ticker)
 
-    # Step 3: Determine fiscal years to fetch
-    current_year = pd.Timestamp.now().year
-    years_wanted = list(range(current_year - n_years, current_year))
-
-    # Step 4: Fetch all financial facts
+    # Step 3: Fetch all financial facts
     print(f"Fetching XBRL data for {company_name} (CIK: {cik})...")
     time.sleep(0.1)
     facts_url = FACTS_URL.format(cik=cik)
@@ -255,16 +396,32 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     resp.raise_for_status()
     facts_data = resp.json()
 
+    # Step 4: Fiscal years to fetch, ending at the latest 10-K actually filed.
+    # A calendar window (previous n years) missed fiscal years that end
+    # mid-year (MSFT's FY ending June 2026 in September 2026) and, early in a
+    # year, would request a year not yet filed.
+    latest_fy = _latest_fiscal_year(facts_data) or (pd.Timestamp.now().year - 1)
+    years_wanted = list(range(latest_fy - n_years + 1, latest_fy + 1))
+
     # Step 5: Extract each field using TAG_MAP priority order
+    # Each year takes the highest-priority tag with a value for THAT year.
+    # Taking the first tag with any value in the window gave zeros for recent
+    # years whenever a filer switched tags mid-window (KO's debt moved off
+    # LongTermDebt after 2023).
     extracted = {}
     for field_name, tags in TAG_MAP.items():
+        merged = [None] * n_years
         for tag in tags:
             values = _get_annual_values(facts_data, tag, years_wanted)
-            if values and any(v is not None for v in values):
-                extracted[field_name] = values
+            if values:
+                merged = [m if m is not None else v for m, v in zip(merged, values)]
+            if all(m is not None for m in merged):
                 break
+        if any(m is not None for m in merged):
+            extracted[field_name] = merged
         if field_name not in extracted:
-            warnings.append(f"Could not extract '{field_name}' — will show as 0")
+            if field_name not in SUPPORT_FIELDS:
+                warnings.append(f"Could not extract '{field_name}' — will show as 0")
             extracted[field_name] = [0.0] * n_years
 
     # Step 6: Fill None values with 0 and validate
@@ -275,6 +432,52 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
         ]
 
     # Step 7: Derived calculations where direct tags unavailable
+    # SG&A: some filers tag selling & marketing and G&A separately instead of
+    # a combined line. Taking G&A alone understated MSFT's costs by $26.7B.
+    combined_sga = [sm + ga for sm, ga in zip(extracted['selling_marketing'],
+                                              extracted['general_admin'])]
+    if any(v == 0 and c != 0 for v, c in zip(extracted['selling_general_admin'],
+                                             combined_sga)):
+        extracted['selling_general_admin'] = [
+            v or c for v, c in zip(extracted['selling_general_admin'], combined_sga)]
+        warnings = [w for w in warnings if "'selling_general_admin'" not in w]
+
+    # Filers with no cost-of-revenue concept (e.g. restaurants) report only
+    # total costs and expenses. Derive COGS so that revenue - COGS - R&D - SG&A
+    # equals reported operating income.
+    if (all(v == 0 for v in extracted['cost_of_revenue'])
+            and any(v != 0 for v in extracted['costs_and_expenses'])):
+        extracted['cost_of_revenue'] = [
+            max(c - sga - rd, 0.0) for c, sga, rd in zip(
+                extracted['costs_and_expenses'],
+                extracted['selling_general_admin'],
+                extracted['research_and_development'])
+        ]
+        warnings = [w for w in warnings if "'cost_of_revenue'" not in w]
+        warnings.append("Cost of revenue derived from total costs and expenses "
+                        "less SG&A and R&D (no COGS tag reported): operating "
+                        "income is preserved, gross margin is approximate")
+
+    # Reconcile to reported operating income. Operating costs the tags miss
+    # (KO's other operating charges, impairments, restructuring) are folded
+    # into SG&A so revenue - COGS - R&D - SG&A matches the 10-K.
+    folded = []
+    for j in range(n_years):
+        rev, op_inc = extracted['revenue'][j], extracted['operating_income'][j]
+        if not rev or not op_inc:
+            continue
+        gap = (rev - extracted['cost_of_revenue'][j]
+               - extracted['research_and_development'][j]
+               - extracted['selling_general_admin'][j]) - op_inc
+        if abs(gap) > 0.5 and extracted['selling_general_admin'][j] + gap >= 0:
+            extracted['selling_general_admin'][j] += gap
+            folded.append((years_wanted[j], gap))
+    if folded:
+        fy, amt = folded[-1]
+        warnings.append(f"Operating costs not separately tagged (${amt:,.0f}M in "
+                        f"FY{fy}) folded into SG&A so operating income matches "
+                        f"the 10-K")
+
     # Compute gross profit from revenue - COGS if not available directly
     if all(v == 0 for v in extracted.get('gross_profit', [0]*n_years)):
         if any(v != 0 for v in extracted.get('revenue', [0]*n_years)):
@@ -285,16 +488,8 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
                 )
             ]
 
-    # Step 8: Validate balance sheet roughly balances (sanity check)
-    latest_assets = (
-        extracted.get('cash_and_equivalents', [0]*n_years)[-1] +
-        extracted.get('accounts_receivable', [0]*n_years)[-1] +
-        extracted.get('inventories', [0]*n_years)[-1] +
-        extracted.get('property_plant_equipment', [0]*n_years)[-1]
-    )
-    latest_equity = extracted.get('common_stock_equity', [0]*n_years)[-1]
-    if latest_assets > 0 and latest_equity > latest_assets * 2:
-        warnings.append("Balance sheet check: equity exceeds total assets — verify data")
+    # Step 8: Reconcile the balance sheet to the reported totals
+    _reconcile_balance_sheet(extracted, n_years, warnings)
 
     print(f"Successfully extracted {len(extracted)} fields for {company_name}")
     if warnings:
@@ -347,15 +542,15 @@ def financials_to_session_state(extracted: ExtractedFinancials) -> dict:
         mapping[f'hist_h_ocurr_{j}']     = safe('other_current_assets')[j]
         mapping[f'hist_h_ppe_{j}']       = safe('property_plant_equipment')[j]
         mapping[f'hist_h_nca_{j}']       = safe('other_noncurrent_assets')[j]
+        mapping[f'hist_h_lta_{j}']       = safe('other_longterm_assets')[j]
         mapping[f'hist_h_ap_{j}']        = safe('accounts_payable')[j]
         mapping[f'hist_h_ocl_{j}']       = safe('other_current_liabilities')[j]
         mapping[f'hist_h_def_{j}']       = safe('deferred_revenue')[j]
         mapping[f'hist_h_ltd_{j}']       = safe('long_term_debt')[j]
-        mapping[f'hist_h_cs_{j}']        = max(
-            safe('common_stock_equity')[j] - safe('retained_earnings')[j], 0
-        )
+        mapping[f'hist_h_ncl_{j}']       = safe('other_noncurrent_liabilities')[j]
+        mapping[f'hist_h_cs_{j}']        = safe('common_stock')[j]
         mapping[f'hist_h_re_{j}']        = safe('retained_earnings')[j]
-        mapping[f'hist_h_oci_{j}']       = 0.0
+        mapping[f'hist_h_oci_{j}']       = safe('aoci')[j]
         mapping[f'hist_h_capex_{j}']     = safe('capital_expenditures')[j]
         mapping[f'hist_h_divs_{j}']      = safe('dividends_paid')[j]
         mapping[f'hist_h_buybacks_{j}']  = safe('share_repurchases')[j]
