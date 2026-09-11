@@ -731,13 +731,25 @@ def render_surrogate_live(s, mc_emult, mc_hold):
         da_pct=s.d_da / 100, capex_pct=s.d_capex / 100,
         nwc_pct=s.d_nwc / 100, debt_pct=live_debt,
     )
+    # Near the wipeout cliff the true 5th percentile falls steeply toward the
+    # -100% floor and the network smooths over it. Measured on 400 random
+    # deals: 5th-percentile error was 0.2pp median below 1% wipeout, but up to
+    # 23pp around 5%. The surrogate's own wipeout prediction is accurate, and
+    # flagging at >= 2% caught every error above 3pp while flagging 12% of deals.
+    tail_unreliable = pred.p_wipeout >= 0.02
+
     lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
     lv1.metric("Median IRR",      f"{pred.irr_p50 * 100:.1f}%")
     lv2.metric("Mean IRR",        f"{pred.irr_mean * 100:.1f}%")
-    lv3.metric("5th percentile",  f"{pred.irr_p5 * 100:.1f}%")
+    lv3.metric("5th percentile",
+               "—" if tail_unreliable else f"{pred.irr_p5 * 100:.1f}%")
     lv4.metric("95th percentile", f"{pred.irr_p95 * 100:.1f}%")
     lv5.metric("P(IRR > 20%)",    f"{pred.p_above_20 * 100:.1f}%")
     lv6.metric("Wipeout risk",    f"{pred.p_wipeout * 100:.1f}%")
+    if tail_unreliable:
+        st.warning("With this much wipeout risk the downside tail sits near the "
+                   "-100% floor, where the surrogate's 5th percentile is "
+                   "unreliable. Use RUN SIMULATION for the downside.")
 
     fig, ax = plt.subplots(figsize=(10, 3))
     ax.fill_betweenx([0, 1], [pred.irr_p5 * 100] * 2, [pred.irr_p95 * 100] * 2,
