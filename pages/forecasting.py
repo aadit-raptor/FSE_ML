@@ -302,7 +302,8 @@ def run_3_statement_model(
       AP               = COGS × ap_days / 365
       NWC              = AR + Inventory - AP
 
-      CFO  = NI + DA + SBC - ΔNWC + Δother_cl + Δdeferred_rev + Δother_nca
+      CFO  = NI + DA + SBC - ΔNWC - Δother_current + Δother_cl
+             + Δdeferred_rev - Δother_nca
       CFI  = -Capex
       CFF  = LTD_change - Dividends - Repurchases + Revolver_draw
       ΔCash = CFO + CFI + CFF
@@ -310,7 +311,9 @@ def run_3_statement_model(
       Revolver (plug): if cash_end < min_cash → draw revolver to fill gap
                         if cash_end > 0 → pay down revolver first
 
-      Balance check: Total assets - Total liabilities - Total equity = 0
+      Balance check: Total assets - Total liabilities - Total equity.
+      The forecast adds no gap of its own, so each year's check equals the
+      opening (LTM) gap -- zero when the historical balance sheet balances.
     """
     results = []
     prev = last_hist
@@ -321,9 +324,14 @@ def run_3_statement_model(
     prev_ap  = prev.ap
     prev_nwc = prev_ar + prev_inv - prev_ap
 
+    prev_other_cur = prev.other_current
     prev_other_cl  = prev.other_cl
     prev_def_rev   = prev.deferred_rev
     prev_other_nca = prev.other_nca
+    # Other current assets have no forecast driver, so hold the company's own
+    # LTM ratio to revenue (previously a hard-coded 12%, which ignored the
+    # historical input entirely).
+    other_cur_pct  = (prev.other_current / prev.revenue) if prev.revenue else 0.0
     prev_cash      = prev.cash
     prev_revolver  = 0.0   # assume no revolver at start
 
@@ -372,7 +380,7 @@ def run_3_statement_model(
         yr.delta_nwc = yr.nwc - prev_nwc                # + = cash use
 
         # ── Other balance sheet items ─────────────────────────────────────
-        yr.other_current = yr.revenue * 0.12    # flat ratio — user can extend
+        yr.other_current = yr.revenue * other_cur_pct
         yr.other_nca     = yr.revenue * a.other_nca_pct
         yr.other_cl      = yr.revenue * a.other_cl_pct
         yr.deferred_rev  = yr.revenue * a.deferred_rev_pct
@@ -388,6 +396,7 @@ def run_3_statement_model(
         yr.oci         = prev.oci                   # assume static
 
         # ── Cash flow statement ───────────────────────────────────────────
+        delta_other_cur = yr.other_current - prev_other_cur
         delta_other_cl  = yr.other_cl  - prev_other_cl
         delta_def_rev   = yr.deferred_rev - prev_def_rev
         delta_other_nca = yr.other_nca - prev_other_nca
@@ -396,6 +405,7 @@ def run_3_statement_model(
                   + yr.da
                   + yr.sbc
                   - yr.delta_nwc
+                  - delta_other_cur
                   + delta_other_cl
                   + delta_def_rev
                   - delta_other_nca)
@@ -436,6 +446,8 @@ def run_3_statement_model(
 
         yr.total_equity = yr.common_stock + yr.retained_earn + yr.oci
         yr.balance_check= yr.total_assets - yr.total_liab - yr.total_equity
+        if abs(yr.balance_check) < 1e-9:   # float noise, not a gap; avoids "$-0.0"
+            yr.balance_check = 0.0
 
         results.append(yr)
 
@@ -448,6 +460,7 @@ def run_3_statement_model(
         prev.common_stock = yr.common_stock
         prev.oci       = yr.oci
         prev_nwc       = yr.nwc
+        prev_other_cur = yr.other_current
         prev_other_cl  = yr.other_cl
         prev_def_rev   = yr.deferred_rev
         prev_other_nca = yr.other_nca
@@ -509,7 +522,7 @@ def _hist_input_block(n_hist, unit):
         ("h_def",       f"Deferred revenue ({unit})",          10.3,  1.0),
         ("h_ltd",       f"Long-term debt ({unit})",           102.5,  5.0),
         ("h_cs",        f"Common stock ({unit})",              40.2,  2.0),
-        ("h_re",        f"Retained earnings ({unit})",         70.4,  5.0),
+        ("h_re",        f"Retained earnings ({unit})",        127.6,  5.0),
         ("h_oci",       f"Other comprehensive income ({unit})", -3.5, 0.5),
         # ── Additional data ───────────────────────────────────
         ("__hdr_ad__",  "── ADDITIONAL DATA ──", None, None),
@@ -811,6 +824,16 @@ def _make_is_df(ltm, fwd, unit):
     return df.set_index("Line item")
 
 
+def _opening_bs_gap(ltm):
+    """Assets - liabilities - equity on the LTM (opening) balance sheet."""
+    assets = (ltm.cash + ltm.ar + ltm.inventory + ltm.other_current
+              + ltm.ppe_net + ltm.other_nca)
+    liab   = ltm.ap + ltm.other_cl + ltm.deferred_rev + ltm.ltd
+    equity = ltm.common_stock + ltm.retained_earnings + ltm.oci
+    gap = assets - liab - equity
+    return 0.0 if abs(gap) < 1e-9 else gap   # float noise, not a gap
+
+
 def _make_bs_df(ltm, fwd):
     cols = ["LTM"] + [y.year for y in fwd]
     def r(label, vals):
@@ -837,7 +860,7 @@ def _make_bs_df(ltm, fwd):
         r("OCI",                [ltm.oci]      + [y.oci          for y in fwd]),
         r("TOTAL EQUITY",       [ltm.common_stock+ltm.retained_earnings+ltm.oci]
                                 + [y.total_equity for y in fwd]),
-        r("Balance check",      [0.0]          + [y.balance_check for y in fwd]),
+        r("Balance check",      [_opening_bs_gap(ltm)] + [y.balance_check for y in fwd]),
     ]
     df = pd.DataFrame(rows, columns=["Line item"] + cols)
     return df.set_index("Line item")
@@ -1270,13 +1293,24 @@ def render_forecasting():
         bs_df = _make_bs_df(ltm, fwd)
         st.dataframe(bs_df, use_container_width=True)
 
-        # Highlight balance check
+        # Separate an unbalanced *input* from a gap the *forecast* introduces.
+        # The model carries the opening gap forward unchanged, so blaming the
+        # forecast assumptions for it would send the user to the wrong place.
+        opening_gap = _opening_bs_gap(ltm)
+        if abs(opening_gap) > 0.5:
+            st.warning(
+                f"The historical (LTM) balance sheet does not balance: "
+                f"assets exceed liabilities + equity by ${opening_gap:,.1f}. "
+                f"The forecast carries this gap forward unchanged. Check the "
+                f"balance sheet inputs above -- with EDGAR data, lines the "
+                f"extractor could not map (and so left at 0) are a common cause."
+            )
         for y in fwd:
-            if abs(y.balance_check) > 0.5:
+            model_gap = y.balance_check - opening_gap
+            if abs(model_gap) > 0.5:
                 st.warning(
-                    f"Balance sheet does not balance in {y.year}: "
-                    f"${y.balance_check:.1f} gap. "
-                    f"Check revolver / other assumptions."
+                    f"The forecast introduced a ${model_gap:,.1f} balance sheet "
+                    f"gap by {y.year}. Check revolver / other assumptions."
                 )
 
         _dl("Download balance sheet",
