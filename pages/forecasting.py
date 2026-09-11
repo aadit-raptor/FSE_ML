@@ -154,7 +154,7 @@ def _to_excel(sheets: dict) -> bytes:
 def _dl(label, data, fname, key):
     st.download_button(f"⬇ {label}", data=data, file_name=fname,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key=key, use_container_width=True)
+        key=key, width="stretch")
 
 # ── 3-Statement Model Engine ──────────────────────────────────────────────────
 
@@ -1138,7 +1138,7 @@ def render_forecasting():
     with ec2:
         edgar_fetch = st.button("⬇ Fetch from EDGAR", 
                                 type="primary", key="edgar_fetch",
-                                use_container_width=True)
+                                width="stretch")
     with ec3:
         if 'edgar_company_name' in st.session_state:
             st.markdown(
@@ -1223,7 +1223,7 @@ def render_forecasting():
 
     # Show computed historical ratios
     _section("Historical metrics (auto-computed)", "#44445a")
-    st.dataframe(hist_summary, use_container_width=True)
+    st.dataframe(hist_summary, width="stretch")
 
     # ── Forecast assumptions ──────────────────────────────────────────────
     _section("Step 2 — Forecast assumptions (one column per year)", "#afa9ec")
@@ -1243,7 +1243,7 @@ def render_forecasting():
     with col_run:
         run_model = st.button("▶  Run 3-statement model",
                               type="primary", key="fc2_run",
-                              use_container_width=True)
+                              width="stretch")
     with col_sim:
         run_sim = st.checkbox("Also run Monte Carlo simulation",
                               value=True, key="fc2_run_sim")
@@ -1312,7 +1312,7 @@ def render_forecasting():
     with tabs[0]:
         _section("Income statement — LTM + forecast", "#85b7eb")
         is_df = _make_is_df(ltm, fwd, unit)
-        st.dataframe(is_df, use_container_width=True)
+        st.dataframe(is_df, width="stretch")
         _dl("Download income statement",
             _to_excel({"Income Statement": is_df.reset_index()}),
             "income_statement.xlsx", "dl_fc_is")
@@ -1321,7 +1321,7 @@ def render_forecasting():
     with tabs[1]:
         _section("Balance sheet", "#5dcaa5")
         bs_df = _make_bs_df(ltm, fwd)
-        st.dataframe(bs_df, use_container_width=True)
+        st.dataframe(bs_df, width="stretch")
 
         # Separate an unbalanced *input* from a gap the *forecast* introduces.
         # The model carries the opening gap forward unchanged, so blaming the
@@ -1351,7 +1351,7 @@ def render_forecasting():
     with tabs[2]:
         _section("Cash flow statement", "#ef9f27")
         cf_df = _make_cf_df(fwd)
-        st.dataframe(cf_df, use_container_width=True)
+        st.dataframe(cf_df, width="stretch")
         _dl("Download cash flow",
             _to_excel({"Cash Flow": cf_df.reset_index()}),
             "cash_flow.xlsx", "dl_fc_cf")
@@ -1361,12 +1361,12 @@ def render_forecasting():
         _section("PP&E roll-forward", "#5dcaa5")
         _note("Beginning + Capex − Depreciation = Ending.")
         ppe_df = _make_ppe_df(ltm, fwd)
-        st.dataframe(ppe_df, use_container_width=True)
+        st.dataframe(ppe_df, width="stretch")
 
         _section("Retained earnings roll-forward", "#85b7eb")
         _note("Beginning + Net income − Dividends − Repurchases = Ending.")
         re_df = _make_re_df(ltm, fwd)
-        st.dataframe(re_df, use_container_width=True)
+        st.dataframe(re_df, width="stretch")
 
         _section("Working capital schedule (AR/Inventory/AP days)", "#afa9ec")
         wc_rows = []
@@ -1383,7 +1383,7 @@ def render_forecasting():
                     f"{(assumptions[fwd.index(y)].ar_days + assumptions[fwd.index(y)].inv_days - assumptions[fwd.index(y)].ap_days):.0f} days",
             })
         wc_df = pd.DataFrame(wc_rows).set_index("Year")
-        st.dataframe(wc_df, use_container_width=True)
+        st.dataframe(wc_df, width="stretch")
 
         _section("Interest schedule", "#40a0c0")
         int_rows = []
@@ -1399,7 +1399,7 @@ def render_forecasting():
                 "Interest exp":  f"(${abs(y.interest_exp):,.1f})",
             })
         int_df = pd.DataFrame(int_rows).set_index("Year")
-        st.dataframe(int_df, use_container_width=True)
+        st.dataframe(int_df, width="stretch")
 
         _section("Revolver (model plug)", "#f0997b")
         _note("The revolver draws when ending cash would fall below the minimum cash balance.")
@@ -1412,7 +1412,7 @@ def render_forecasting():
                 "Ending cash":    f"${y.cash:,.1f}",
             })
         rev_df = pd.DataFrame(rev_rows).set_index("Year")
-        st.dataframe(rev_df, use_container_width=True)
+        st.dataframe(rev_df, width="stretch")
 
         # Combined Excel download
         _dl("Download all schedules",
@@ -1429,7 +1429,7 @@ def render_forecasting():
     with tabs[4]:
         _section("Financial charts", "#c4c4d4")
         fig_is = _plot_is_charts(ltm, fwd, company, unit)
-        st.pyplot(fig_is, use_container_width=True)
+        st.pyplot(fig_is, width="stretch")
         plt.close(fig_is)
 
         # Waterfall: EBITDA to Net income bridge (last forecast year)
@@ -1455,7 +1455,7 @@ def render_forecasting():
         ax_br.set_xticklabels([b[0] for b in bridge_items], fontsize=8)
         ax_br.set_title(f"EBITDA to Net income bridge — {fwd[-1].year}")
         ax_br.grid(axis="y")
-        st.pyplot(fig_br, use_container_width=True)
+        st.pyplot(fig_br, width="stretch")
         plt.close(fig_br)
 
     # ── Tab 6: Simulation overlay ─────────────────────────────────────────
@@ -1467,7 +1467,7 @@ def render_forecasting():
 
             fig_sim = _plot_simulation_charts(fwd, sim_paths, company, unit)
             if fig_sim:
-                st.pyplot(fig_sim, use_container_width=True)
+                st.pyplot(fig_sim, width="stretch")
                 plt.close(fig_sim)
 
             _section("Simulation summary statistics", "#c4c4d4")
@@ -1487,7 +1487,7 @@ def render_forecasting():
                     "Deterministic": f"${([fwd[-1].revenue,fwd[-1].ebitda][stats_rows.__len__()]):,.0f}",
                 })
             st.dataframe(pd.DataFrame(stats_rows).set_index("Metric"),
-                         use_container_width=True)
+                         width="stretch")
 
             # Probability of hitting EBITDA targets
             _section("Probability analysis", "#40c080")
@@ -1506,7 +1506,7 @@ def render_forecasting():
                     "Scenario": ("Bear" if t > det_ebitda_final else
                                  "Bull" if t < det_ebitda_final else "Base"),
                 })
-            st.dataframe(pd.DataFrame(prob_rows), use_container_width=True)
+            st.dataframe(pd.DataFrame(prob_rows), width="stretch")
 
             # Download simulation data
             sim_sample = pd.DataFrame({

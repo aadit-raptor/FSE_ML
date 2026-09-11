@@ -680,7 +680,7 @@ def render_sidebar():
     # that caused the click reliability problem.
     def _nav(label, page_id, mode_id, key, green=False):
         active = (cur_page == page_id and cur_mode == mode_id)
-        clicked = st.sidebar.button(label, key=key, use_container_width=True)
+        clicked = st.sidebar.button(label, key=key, width="stretch")
         if clicked:
             s["page"] = page_id
             s["mode"] = mode_id
@@ -767,7 +767,7 @@ def render_sidebar():
                 unsafe_allow_html=True,
             )
         else:
-            if col.button(lbl_fs, key=f"fs_{lbl_fs}", use_container_width=True):
+            if col.button(lbl_fs, key=f"fs_{lbl_fs}", width="stretch"):
                 s["font_scale"] = sc
                 st.rerun()
 
@@ -914,7 +914,7 @@ def page_deal_inputs():
     _, col_next = st.columns([3, 1])
     with col_next:
         if st.button("Next: Debt & cash flow →", type="primary",
-                     use_container_width=True, key="p1_next"):
+                     width="stretch", key="p1_next"):
             st.session_state.page = 2
             st.session_state.mode = "deal"
             st.rerun()
@@ -1015,7 +1015,7 @@ def page_debt_cashflow():
     col_run, col_hint = st.columns([1, 2])
     with col_run:
         run_clicked = st.button("▶  Run deal model", type="primary",
-                                use_container_width=True, key="p2_run")
+                                width="stretch", key="p2_run")
     with col_hint:
         st.markdown(
             f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
@@ -1036,7 +1036,7 @@ def page_debt_cashflow():
     if result and result.debt_schedule:
         st.markdown("## Debt schedule — ending balances")
         ds_df = debt_dataframe(result.debt_schedule)
-        st.dataframe(ds_df, use_container_width=True)
+        st.dataframe(ds_df, width="stretch")
         dl_btn("Download debt schedule", _df_to_excel(ds_df),
                "debt_schedule.xlsx", "dl_debt")
 
@@ -1067,17 +1067,17 @@ def page_debt_cashflow():
                              f"${v:,.0f}", ha="center", fontsize=7,
                              color=A4 if v>=0 else A3)
         plt.tight_layout(pad=1.2)
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width="stretch")
         plt.close(fig)
 
     st.markdown("---")
     col_back, _, col_next = st.columns([1, 2, 1])
     with col_back:
-        if st.button("← Deal inputs", use_container_width=True, key="p2_back"):
+        if st.button("← Deal inputs", width="stretch", key="p2_back"):
             st.session_state.page = 1; st.session_state.mode = "deal"; st.rerun()
     with col_next:
         if st.button("Next: Returns & exit →", type="primary",
-                     use_container_width=True, key="p2_next"):
+                     width="stretch", key="p2_next"):
             st.session_state.page = 3; st.session_state.mode = "deal"; st.rerun()
 
 # ---------------------------------------------------------------------------
@@ -1134,12 +1134,12 @@ def page_returns():
             plot_bridge(ax, br, annotate=True)
             ax.set_ylabel("$M"); ax.set_title("Value attribution waterfall")
             ax.grid(axis="y")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
 
         with col_table:
             bridge_df = bridge_dataframe(br)
             st.dataframe(bridge_df.set_index("Component"),
-                         use_container_width=True)
+                         width="stretch")
 
     _sens_em_range = f"{get_cfg('sens_em_min'):.1f}x–{get_cfg('sens_em_max'):.1f}x"
     _sens_hp_range = f"{int(get_cfg('sens_hp_min'))}–{int(get_cfg('sens_hp_max'))}yr"
@@ -1150,7 +1150,7 @@ def page_returns():
         col_tbl, col_heat = st.columns(2, gap="medium")
         with col_tbl:
             sens_df = sens_dataframe(sens)
-            st.dataframe(sens_df, use_container_width=True)
+            st.dataframe(sens_df, width="stretch")
             dl_btn("Download sensitivity", _df_to_excel(sens_df),
                    "irr_sensitivity.xlsx", "dl_sens")
         with col_heat:
@@ -1168,16 +1168,16 @@ def page_returns():
                     v = raw[i, j]
                     ax.text(j, i, f"{v:.0f}%", ha="center", va="center",
                             fontsize=8, color="black" if 10<v<40 else "white")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
 
     st.markdown("---")
     col_back, _, col_next = st.columns([1, 2, 1])
     with col_back:
-        if st.button("← Debt & CF", use_container_width=True, key="p3_back"):
+        if st.button("← Debt & CF", width="stretch", key="p3_back"):
             st.session_state.page = 2; st.session_state.mode = "deal"; st.rerun()
     with col_next:
         if st.button("Next: Summary →", type="primary",
-                     use_container_width=True, key="p3_next"):
+                     width="stretch", key="p3_next"):
             st.session_state.page = 4; st.session_state.mode = "deal"; st.rerun()
 
 # ---------------------------------------------------------------------------
@@ -1211,17 +1211,17 @@ def page_summary():
 
     with tabs[0]:
         pl_df = pl_dataframe(result.operating_model)
-        st.dataframe(pl_df, use_container_width=True)
+        st.dataframe(pl_df, width="stretch")
         dl_btn("Download P&L", _df_to_excel(pl_df), "pl.xlsx", "dl_pl")
 
     with tabs[1]:
         cf_df = fcf_dataframe(result.cash_flow)
-        st.dataframe(cf_df, use_container_width=True)
+        st.dataframe(cf_df, width="stretch")
         dl_btn("Download cash flow", _df_to_excel(cf_df), "cashflow.xlsx", "dl_cf")
 
     with tabs[2]:
         ds_df = debt_dataframe(result.debt_schedule)
-        st.dataframe(ds_df, use_container_width=True)
+        st.dataframe(ds_df, width="stretch")
         for tn, records in result.debt_schedule.schedule.items():
             with st.expander(f"▸ {tn}"):
                 rows = {
@@ -1233,7 +1233,7 @@ def page_summary():
                 }
                 yrs_lbl = [f"Year {r.year}" for r in records]
                 st.dataframe(pd.DataFrame(rows, index=yrs_lbl).T,
-                             use_container_width=True)
+                             width="stretch")
         dl_btn("Download debt schedule", _df_to_excel(ds_df),
                "debt_schedule.xlsx", "dl_ds")
 
@@ -1261,7 +1261,7 @@ def page_summary():
                 curr_ppe = ppe_roll(curr_ppe, capex_abs[i], dep)
                 ppe_rows["Ending PP&E"].append(f"${curr_ppe:,.0f}M")
             ppe_df = pd.DataFrame(ppe_rows, index=yrs_bs).T
-            st.dataframe(ppe_df, use_container_width=True)
+            st.dataframe(ppe_df, width="stretch")
             dl_btn("Download PP&E schedule", _df_to_excel(ppe_df), "ppe_schedule.xlsx", "dl_ppe")
 
             st.markdown("---")
@@ -1281,7 +1281,7 @@ def page_summary():
                                              for rev, cogs in zip(op_bs.revenue, cogs_bs)],
                 }
                 wc_df = pd.DataFrame(wc_rows, index=yrs_bs).T
-                st.dataframe(wc_df, use_container_width=True)
+                st.dataframe(wc_df, width="stretch")
                 dl_btn("Download WC schedule", _df_to_excel(wc_df), "wc_schedule.xlsx", "dl_wc")
             else:
                 st.info("Enable 'Use AR/AP/Inventory days' on Page 2 to see the WSP working capital schedule.")
@@ -1298,7 +1298,7 @@ def page_summary():
                 "Adj EBITDA margin":     [f"{v/r:.1%}" for v, r in zip(adj_ebitda, op_bs.revenue)],
             }
             adj_df = pd.DataFrame(adj_rows, index=yrs_bs).T
-            st.dataframe(adj_df, use_container_width=True)
+            st.dataframe(adj_df, width="stretch")
             dl_btn("Download Adj EBITDA", _df_to_excel(adj_df), "adj_ebitda.xlsx", "dl_adj")
         else:
             st.info("Run the deal model on Page 2 first.")
@@ -1310,14 +1310,14 @@ def page_summary():
             with c_l:
                 bridge_df = bridge_dataframe(br)
                 st.dataframe(bridge_df.set_index("Component"),
-                             use_container_width=True)
+                             width="stretch")
                 dl_btn("Download equity bridge",
                        _df_to_excel(bridge_df), "equity_bridge.xlsx", "dl_br")
             with c_r:
                 fig, ax = plt.subplots(figsize=(6, 3.5))
                 plot_bridge(ax, br)
                 ax.set_ylabel("$M"); ax.grid(axis="y")
-                st.pyplot(fig, use_container_width=True); plt.close(fig)
+                st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[5]:
         op = result.operating_model; cf = result.cash_flow; ds = result.debt_schedule
@@ -1347,7 +1347,7 @@ def page_summary():
         axes[1,1].set_title("Debt balance ($M)")
         axes[1,1].legend(fontsize=7); axes[1,1].grid(axis="y")
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
     sheets = {
         "P&L":           pl_dataframe(result.operating_model),
@@ -1360,11 +1360,11 @@ def page_summary():
     st.markdown("---")
     col_back, _, col_mc = st.columns([1, 2, 1])
     with col_back:
-        if st.button("← Returns", use_container_width=True, key="p4_back"):
+        if st.button("← Returns", width="stretch", key="p4_back"):
             st.session_state.page = 3; st.session_state.mode = "deal"; st.rerun()
     with col_mc:
         if st.button("→ Monte Carlo", type="primary",
-                     use_container_width=True, key="p4_mc"):
+                     width="stretch", key="p4_mc"):
             st.session_state.page = 5; st.session_state.mode = "mc"; st.rerun()
 
 # ---------------------------------------------------------------------------
@@ -1447,20 +1447,20 @@ def page_monte_carlo():
     # BASE button doubles as the reset.
     st.session_state.setdefault("mc_scenario", None)
     with sc1:
-        if st.button("RECESSION",   use_container_width=True, key="sc_rec"):
+        if st.button("RECESSION",   width="stretch", key="sc_rec"):
             st.session_state.mc_scenario = "recession"
     with sc2:
-        if st.button("BASE",        use_container_width=True, key="sc_base"):
+        if st.button("BASE",        width="stretch", key="sc_base"):
             st.session_state.mc_scenario = "base"
     with sc3:
-        if st.button("BULL",        use_container_width=True, key="sc_bull"):
+        if st.button("BULL",        width="stretch", key="sc_bull"):
             st.session_state.mc_scenario = "bull"
     with sc4:
-        if st.button("STAGFLATION", use_container_width=True, key="sc_stag"):
+        if st.button("STAGFLATION", width="stretch", key="sc_stag"):
             st.session_state.mc_scenario = "stagflation"
     with sc5:
         run_mc = st.button("▶ RUN SIMULATION", type="primary",
-                           use_container_width=True, key="sc_run")
+                           width="stretch", key="sc_run")
 
     params = SimulationParams(
         n=int(s.mc_n), entry_ebitda=mc_ebitda, entry_multiple=mc_emult,
@@ -1547,7 +1547,7 @@ def page_monte_carlo():
         axes[2].set_title(f"CDF — P(IRR>{target:.0%}) = {p_hit:.1%}")
         axes[2].legend(fontsize=7); axes[2].grid()
         plt.tight_layout(pad=1.2)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
         # Download — limit to 10k rows to keep file size manageable
         n_dl = min(10000, len(irr))
@@ -1578,7 +1578,7 @@ def page_monte_carlo():
             axes[i].set_xlabel(col); axes[i].set_ylabel("IRR (%)")
             axes[i].set_title(f"IRR vs {col}"); axes[i].grid()
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[2]:
         cl, cr = st.columns(2, gap="medium")
@@ -1591,7 +1591,7 @@ def page_monte_carlo():
                         vmin=-1, vmax=1, ax=ax, linewidths=0.5,
                         linecolor="#16162a", annot_kws={"size": 9})
             ax.set_title("Empirical correlations")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
         with cr:
             section_hdr("Driver tornado (Spearman rho)")
             from scipy.stats import spearmanr
@@ -1613,7 +1613,7 @@ def page_monte_carlo():
             for bar, v in zip(bars, vals):
                 ax.text(v+0.01*np.sign(v), bar.get_y()+bar.get_height()/2,
                         f"{v:.2f}", va="center", fontsize=9, color="#c4c4d4")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[3]:
         section_hdr("IRR heatmap — growth × exit multiple")
@@ -1650,7 +1650,7 @@ def page_monte_carlo():
                 v = irr_grid[i2, j2] * 100
                 ax.text(j2, i2, f"{v:.0f}%", ha="center", va="center",
                         fontsize=8, color="black" if 10<v<40 else "white")
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[4]:
         section_hdr("All four scenarios")
@@ -1686,7 +1686,7 @@ def page_monte_carlo():
             if ax_i == 0:
                 axes[ax_i].axhline(target*100, color=A3, lw=1, linestyle=":")
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
         comp = []
         for sc in ["recession","base","bull","stagflation"]:
@@ -1702,7 +1702,7 @@ def page_monte_carlo():
                 "Wipeout":         pf(float(sr.wipeout_rate) * 100),
             })
         comp_df = pd.DataFrame(comp).set_index("Scenario")
-        st.dataframe(comp_df, use_container_width=True)
+        st.dataframe(comp_df, width="stretch")
         dl_btn("Download scenario comparison",
                _df_to_excel(comp_df), "scenario_comparison.xlsx", "dl_sc")
 
