@@ -526,6 +526,65 @@ def sens_dataframe(sens):
 # ---------------------------------------------------------------------------
 # Run deal model
 # ---------------------------------------------------------------------------
+def _entry_costs(entry_ev, total_debt):
+    """Fees and other uses funded by sponsor equity at close ($M)."""
+    return (entry_ev * get_cfg('tx_fee_pct') / 100
+            + total_debt * get_cfg('fin_fee_pct') / 100
+            + get_cfg('other_uses'))
+
+
+def _bridge_steps(br):
+    """(axis label, table label, value, is_total, pct_key) per bridge step.
+
+    Fees at entry are shown only when non-zero, so a fee-free deal keeps the
+    original five-step waterfall.
+    """
+    steps = [("Entry", "Entry equity", br["entry_equity"], True, None)]
+    if abs(br["entry_costs"]) > 0.005:
+        steps.append(("Fees", "Fees at entry", br["entry_costs"], False,
+                      "entry_costs_pct"))
+    steps += [
+        ("EBITDA\ngrowth", "EBITDA growth", br["ebitda_growth"], False,
+         "ebitda_growth_pct"),
+        ("Multiple", "Multiple expansion", br["multiple_expansion"], False,
+         "multiple_expansion_pct"),
+        ("Deleverage", "Deleveraging", br["deleveraging"], False,
+         "deleveraging_pct"),
+        ("Exit", "Exit equity", br["exit_equity"], True, None),
+    ]
+    return steps
+
+
+def bridge_dataframe(br):
+    rows = _bridge_steps(br)
+    return pd.DataFrame({
+        "Component":  [r[1] for r in rows],
+        "Value ($M)": [f"{v:,.0f}" if total else f"{v:+,.0f}"
+                       for _, _, v, total, _ in rows],
+        "% of gain":  ["—" if total else f"{br[k]:.1f}%"
+                       for _, _, _, total, k in rows],
+    })
+
+
+def plot_bridge(ax, br, annotate=False):
+    """Draw the equity value waterfall; flow steps stack from entry equity."""
+    rows = _bridge_steps(br)
+    colors = {"Entry": A1, "Fees": A3, "EBITDA\ngrowth": A4,
+              "Multiple": A2, "Deleverage": A2, "Exit": A4}
+    running = 0.0
+    for i, (label, _, v, total, _) in enumerate(rows):
+        bottom = 0.0 if total else running
+        ax.bar(i, v, bottom=bottom, color=colors[label], alpha=0.8, width=0.5,
+               edgecolor="#16162a", linewidth=0.5)
+        if annotate:
+            txt = f"${v:,.0f}" if total else f"{v:+,.0f}"
+            ax.text(i, max(bottom, bottom + v) + 20, txt,
+                    ha="center", fontsize=8, color="#c4c4d4")
+        running = v if total else running + v
+    ax.set_xticks(range(len(rows)))
+    ax.set_xticklabels([r[0] for r in rows], fontsize=8)
+
+
 def run_deal():
     s = st.session_state
 
@@ -556,6 +615,9 @@ def run_deal():
         revenue_growth=s.d_growth/100, gross_margin=s.d_gross_margin/100,
         opex_pct=s.d_opex/100, da_pct=s.d_da/100, tax_rate=s.d_tax/100,
         capex_pct=s.d_capex/100, nwc_pct=nwc_pct_eff,
+        transaction_fees_pct=get_cfg('tx_fee_pct')/100,
+        financing_fees_pct=get_cfg('fin_fee_pct')/100,
+        other_uses=get_cfg('other_uses'),
         minimum_cash=s.d_mincash, n_iterations=3,
     )
     with st.spinner("Running deal model..."):
@@ -791,7 +853,8 @@ def page_deal_inputs():
             s.d_debt_pct   = min((total_debt_abs / entry_ev) * 100, 99.0)
             s.d_senior_pct = (senior_x / (senior_x + mezz_x)) * 100 \
                              if (senior_x + mezz_x) > 0 else 70.0
-        sponsor_eq = max(entry_ev - total_debt_abs, 0)
+        sponsor_eq = max(entry_ev + _entry_costs(entry_ev, total_debt_abs)
+                         - total_debt_abs, 0)
         lbl("Sponsor equity (plug)")
         chip(mf(sponsor_eq))
 
@@ -799,10 +862,11 @@ def page_deal_inputs():
     st.markdown("## Sources & uses of funds")
     entry_ev       = s.d_ebitda * s.d_entry_mult
     total_debt_abs = (senior_x + mezz_x) * s.d_ebitda
-    sponsor_eq     = max(entry_ev - total_debt_abs, 0)
     tx_fees        = entry_ev * get_cfg('tx_fee_pct') / 100
     fin_fees       = total_debt_abs * get_cfg('fin_fee_pct') / 100
     total_uses     = entry_ev + tx_fees + fin_fees + get_cfg('other_uses')
+    # Equity is the plug that balances Sources against Uses, fees included
+    sponsor_eq     = max(total_uses - total_debt_abs, 0)
     total_sources  = total_debt_abs + sponsor_eq
     check          = total_sources - total_uses
 
@@ -1067,37 +1131,13 @@ def page_returns():
         col_chart, col_table = st.columns([3, 2], gap="medium")
         with col_chart:
             fig, ax = plt.subplots(figsize=(7, 3.5))
-            labels  = ["Entry","EBITDA\ngrowth","Multiple","Deleverage","Exit"]
-            heights = [br["entry_equity"], br["ebitda_growth"],
-                       br["multiple_expansion"], br["deleveraging"], br["exit_equity"]]
-            bottoms = [0, br["entry_equity"],
-                       br["entry_equity"]+br["ebitda_growth"],
-                       br["entry_equity"]+br["ebitda_growth"]+br["multiple_expansion"], 0]
-            for i in range(5):
-                ax.bar(i, heights[i], bottom=bottoms[i],
-                       color=[A1,A4,A2,A2,A4][i], alpha=0.8, width=0.5,
-                       edgecolor="#16162a", linewidth=0.5)
-                ax.text(i, bottoms[i]+heights[i]+20, f"${heights[i]:,.0f}",
-                        ha="center", fontsize=8, color="#c4c4d4")
-            ax.set_xticks(range(5)); ax.set_xticklabels(labels, fontsize=8)
+            plot_bridge(ax, br, annotate=True)
             ax.set_ylabel("$M"); ax.set_title("Value attribution waterfall")
             ax.grid(axis="y")
             st.pyplot(fig, use_container_width=True); plt.close(fig)
 
         with col_table:
-            bridge_df = pd.DataFrame({
-                "Component": ["Entry equity","EBITDA growth","Multiple expansion",
-                               "Deleveraging","Exit equity"],
-                "Value ($M)": [f"{br['entry_equity']:,.0f}",
-                                f"+{br['ebitda_growth']:,.0f}",
-                                f"+{br['multiple_expansion']:,.0f}",
-                                f"+{br['deleveraging']:,.0f}",
-                                f"{br['exit_equity']:,.0f}"],
-                "% of gain":  ["—",
-                                f"{br['ebitda_growth_pct']:.1f}%",
-                                f"{br['multiple_expansion_pct']:.1f}%",
-                                f"{br['deleveraging_pct']:.1f}%","—"],
-            })
+            bridge_df = bridge_dataframe(br)
             st.dataframe(bridge_df.set_index("Component"),
                          use_container_width=True)
 
@@ -1268,36 +1308,14 @@ def page_summary():
             br = result.equity_bridge
             c_l, c_r = st.columns(2, gap="medium")
             with c_l:
-                bridge_df = pd.DataFrame({
-                    "Component": ["Entry equity","EBITDA growth",
-                                   "Multiple expansion","Deleveraging","Exit equity"],
-                    "Value ($M)": [f"{br['entry_equity']:,.0f}",
-                                    f"+{br['ebitda_growth']:,.0f}",
-                                    f"+{br['multiple_expansion']:,.0f}",
-                                    f"+{br['deleveraging']:,.0f}",
-                                    f"{br['exit_equity']:,.0f}"],
-                    "% of gain":  ["—",f"{br['ebitda_growth_pct']:.1f}%",
-                                    f"{br['multiple_expansion_pct']:.1f}%",
-                                    f"{br['deleveraging_pct']:.1f}%","—"],
-                })
+                bridge_df = bridge_dataframe(br)
                 st.dataframe(bridge_df.set_index("Component"),
                              use_container_width=True)
                 dl_btn("Download equity bridge",
                        _df_to_excel(bridge_df), "equity_bridge.xlsx", "dl_br")
             with c_r:
                 fig, ax = plt.subplots(figsize=(6, 3.5))
-                heights = [br["entry_equity"],br["ebitda_growth"],
-                           br["multiple_expansion"],br["deleveraging"],br["exit_equity"]]
-                bottoms = [0,br["entry_equity"],
-                           br["entry_equity"]+br["ebitda_growth"],
-                           br["entry_equity"]+br["ebitda_growth"]+br["multiple_expansion"],0]
-                for i in range(5):
-                    ax.bar(i, heights[i], bottom=bottoms[i],
-                           color=[A1,A4,A2,A2,A4][i], alpha=0.8, width=0.5,
-                           edgecolor="#16162a", linewidth=0.5)
-                ax.set_xticks(range(5))
-                ax.set_xticklabels(["Entry","EBITDA\ngrowth","Multiple",
-                                     "Deleverage","Exit"], fontsize=8)
+                plot_bridge(ax, br)
                 ax.set_ylabel("$M"); ax.grid(axis="y")
                 st.pyplot(fig, use_container_width=True); plt.close(fig)
 
@@ -1455,6 +1473,9 @@ def page_monte_carlo():
         capex_pct=s.d_capex/100, nwc_pct=s.d_nwc/100,
         debt_pct=s.d_debt_pct/100, senior_pct=s.d_senior_pct/100,
         mezz_spread=s.d_mezz_spread/100,
+        transaction_fees_pct=get_cfg('tx_fee_pct')/100,
+        financing_fees_pct=get_cfg('fin_fee_pct')/100,
+        other_uses=get_cfg('other_uses'),
         n_interest_passes=int(get_cfg('mc_n_passes')),
         corr_matrix=build_corr_matrix(),
     )

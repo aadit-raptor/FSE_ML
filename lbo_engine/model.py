@@ -140,6 +140,12 @@ class LBOParams:
 
     Transaction details
     -------------------
+    transaction_fees_pct : float [OPTIONAL]  default 0.0  (% of entry EV)
+    financing_fees_pct : float   [OPTIONAL]  default 0.0  (% of total debt)
+    other_uses : float           [OPTIONAL]  default 0.0  ($M)
+        Funded by sponsor equity at close, so they raise the equity check
+        without buying enterprise value. Defaults of 0 reproduce the
+        fee-free behaviour.
     minimum_cash : float        [OPTIONAL]  default 0.0
     company_name : str          [OPTIONAL]  default "Target"
     pure_sweep_mode : bool      [OPTIONAL]  default False
@@ -179,6 +185,9 @@ class LBOParams:
     nwc_pct: float = 0.01
 
     # --- Transaction ---
+    transaction_fees_pct: float = 0.0   # % of entry EV
+    financing_fees_pct: float = 0.0     # % of total debt
+    other_uses: float = 0.0             # $M
     minimum_cash: float = 0.0
     company_name: str = "Target"
     pure_sweep_mode: bool = False
@@ -307,7 +316,14 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # ------------------------------------------------------------------
     entry_ev = params.entry_ebitda * params.entry_multiple
     total_debt = cs.total_debt
-    equity = entry_ev - total_debt
+    # Sponsor equity is the plug that balances Sources and Uses, and Uses
+    # include fees -- the same definition as solve_sponsor_equity() in the
+    # full-deal path below. Omitting fees understates the equity check and
+    # overstates IRR and MOIC.
+    entry_costs = (entry_ev * params.transaction_fees_pct
+                   + total_debt * params.financing_fees_pct
+                   + params.other_uses)
+    equity = entry_ev + entry_costs - total_debt
 
     # For generic deals we skip the full transaction module
     # and just compute equity directly. The full transaction module
@@ -459,6 +475,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
         exit_multiple=params.exit_multiple,
         net_debt_at_exit=final_debt_result.net_debt_at_exit,
         management_option_pool_pct=params.management_option_pool_pct,
+        entry_costs=entry_costs,
     )
 
     # ------------------------------------------------------------------
@@ -640,6 +657,9 @@ def run_lbo_full_deal(
         exit_multiple=exit_multiple,
         net_debt_at_exit=final_debt_result.net_debt_at_exit,
         management_option_pool_pct=management_option_pool_pct,
+        entry_costs=(transaction_result.sources_and_uses.transaction_fees
+                     + transaction_result.sources_and_uses.financing_fees
+                     + transaction_result.sources_and_uses.other_uses),
     )
 
     # --- Exit sensitivity ---

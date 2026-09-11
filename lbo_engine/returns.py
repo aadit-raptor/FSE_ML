@@ -379,6 +379,7 @@ def compute_equity_bridge(
     exit_multiple: float,
     net_debt_at_exit: float,
     management_option_pool_pct: float = 0.0,
+    entry_costs: float = 0.0,
 ) -> dict:
     """
     Full 3-factor equity value bridge.
@@ -413,7 +414,13 @@ def compute_equity_bridge(
             delever_contrib = exit_equity - hypo_equity_no_delever
                             = net_debt_at_entry - net_debt_at_exit
 
+        Entry costs: transaction fees, financing fees and other uses are
+        funded by sponsor equity at close but buy no enterprise value, so
+        they appear as a negative step (value leakage):
+            entry_costs_contrib = -entry_costs
+
         Check: ebitda_contrib + multiple_contrib + delever_contrib
+               + entry_costs_contrib
                = exit_equity - entry_equity  (should be exact)
 
     Returns
@@ -446,7 +453,10 @@ def compute_equity_bridge(
     # --- Factor 3: Deleveraging ---
     deleveraging = net_debt_at_entry - net_debt_at_exit
 
-    check = ebitda_growth + multiple_expansion + deleveraging
+    # --- Entry costs (fees funded by equity at close) ---
+    entry_costs_contrib = -entry_costs
+
+    check = ebitda_growth + multiple_expansion + deleveraging + entry_costs_contrib
     residual = total_gain - check   # should be near 0
 
     pct = lambda x: round(x / total_gain * 100, 1) if total_gain != 0 else 0.0
@@ -458,10 +468,12 @@ def compute_equity_bridge(
         "ebitda_growth": round(ebitda_growth, 2),
         "multiple_expansion": round(multiple_expansion, 2),
         "deleveraging": round(deleveraging, 2),
+        "entry_costs": round(entry_costs_contrib, 2),
         "residual": round(residual, 2),
         "ebitda_growth_pct": pct(ebitda_growth),
         "multiple_expansion_pct": pct(multiple_expansion),
         "deleveraging_pct": pct(deleveraging),
+        "entry_costs_pct": pct(entry_costs_contrib),
     }
 
 

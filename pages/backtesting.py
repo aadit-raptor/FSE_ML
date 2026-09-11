@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib.patches as mpatches
 from simulation.vectorized_simulation import run_vectorized_simulation_full, SimulationParams
+from pages.settings import get_cfg
 
 # ─── Pre-loaded deal data ─────────────────────────────────────────────────
 
@@ -309,6 +310,12 @@ def _run_prediction_sim(entry, n=30000):
         debt_pct=entry["debt_pct"] / 100,
         senior_pct=entry["senior_pct"] / 100,
         mezz_spread=entry["mezz_spread"] / 100,
+        # Same fee assumptions as the deal wizard and Monte Carlo pages, so
+        # predictions are fee-inclusive like the actual results they are
+        # compared against.
+        transaction_fees_pct=get_cfg('tx_fee_pct') / 100,
+        financing_fees_pct=get_cfg('fin_fee_pct') / 100,
+        other_uses=get_cfg('other_uses'),
         n_interest_passes=2,
     )
     sim = run_vectorized_simulation_full(params, seed=42)
@@ -528,7 +535,11 @@ def render_backtesting():
     entry_ev = entry_ebitda * entry_mult
     pred_exit_ev = pred_ebitda[-1] * exit_mult if pred_ebitda else 0
     pred_net_debt = entry_ev * debt_pct / 100 * 0.75
-    pred_equity_entry = entry_ev * (1 - debt_pct / 100)
+    entry_debt = entry_ev * debt_pct / 100
+    entry_costs = (entry_ev * get_cfg('tx_fee_pct') / 100
+                   + entry_debt * get_cfg('fin_fee_pct') / 100
+                   + get_cfg('other_uses'))
+    pred_equity_entry = entry_ev + entry_costs - entry_debt   # fee-inclusive, as in the sim
     pred_exit_equity = max(pred_exit_ev - pred_net_debt, 0)
     pred_moic = pred_exit_equity / pred_equity_entry if pred_equity_entry > 0 else 0
     pred_irr_mean = float(np.mean(pred_irr_dist)) * 100
