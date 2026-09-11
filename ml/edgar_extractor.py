@@ -336,23 +336,26 @@ def financials_to_session_state(extracted: ExtractedFinancials) -> dict:
         mapping[f'hist_h_tax_{j}']       = -abs(safe('income_tax_expense')[j])
         mapping[f'hist_h_da_{j}']        = safe('depreciation_amortization')[j]
         mapping[f'hist_h_sbc_{j}']       = safe('stock_based_compensation')[j]
-        # Balance sheet — only use most recent year (j == n-1)
-        if j == n - 1:
-            mapping['hist_h_cash_0']     = safe('cash_and_equivalents')[j]
-            mapping['hist_h_ar_0']       = safe('accounts_receivable')[j]
-            mapping['hist_h_inv_0']      = safe('inventories')[j]
-            mapping['hist_h_ocurr_0']    = safe('other_current_assets')[j]
-            mapping['hist_h_ppe_0']      = safe('property_plant_equipment')[j]
-            mapping['hist_h_nca_0']      = safe('other_noncurrent_assets')[j]
-            mapping['hist_h_ap_0']       = safe('accounts_payable')[j]
-            mapping['hist_h_ocl_0']      = safe('other_current_liabilities')[j]
-            mapping['hist_h_def_0']      = safe('deferred_revenue')[j]
-            mapping['hist_h_ltd_0']      = safe('long_term_debt')[j]
-            mapping['hist_h_cs_0']       = max(
-                safe('common_stock_equity')[j] - safe('retained_earnings')[j], 0
-            )
-            mapping['hist_h_re_0']       = safe('retained_earnings')[j]
-            mapping['hist_h_oci_0']      = 0.0
+        # Balance sheet — one column per year, like the income statement.
+        # These were previously written only to the _0 (oldest) column even
+        # though the values came from the most recent year, while the model
+        # reads its opening balances from the last column -- so forecasts ran
+        # on the page's placeholder balance sheet, not the company's.
+        mapping[f'hist_h_cash_{j}']      = safe('cash_and_equivalents')[j]
+        mapping[f'hist_h_ar_{j}']        = safe('accounts_receivable')[j]
+        mapping[f'hist_h_inv_{j}']       = safe('inventories')[j]
+        mapping[f'hist_h_ocurr_{j}']     = safe('other_current_assets')[j]
+        mapping[f'hist_h_ppe_{j}']       = safe('property_plant_equipment')[j]
+        mapping[f'hist_h_nca_{j}']       = safe('other_noncurrent_assets')[j]
+        mapping[f'hist_h_ap_{j}']        = safe('accounts_payable')[j]
+        mapping[f'hist_h_ocl_{j}']       = safe('other_current_liabilities')[j]
+        mapping[f'hist_h_def_{j}']       = safe('deferred_revenue')[j]
+        mapping[f'hist_h_ltd_{j}']       = safe('long_term_debt')[j]
+        mapping[f'hist_h_cs_{j}']        = max(
+            safe('common_stock_equity')[j] - safe('retained_earnings')[j], 0
+        )
+        mapping[f'hist_h_re_{j}']        = safe('retained_earnings')[j]
+        mapping[f'hist_h_oci_{j}']       = 0.0
         mapping[f'hist_h_capex_{j}']     = safe('capital_expenditures')[j]
         mapping[f'hist_h_divs_{j}']      = safe('dividends_paid')[j]
         mapping[f'hist_h_buybacks_{j}']  = safe('share_repurchases')[j]
