@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib.patches as mpatches
 from simulation.vectorized_simulation import run_vectorized_simulation_full, SimulationParams
+from pages.settings import get_cfg
 
 # ─── Pre-loaded deal data ─────────────────────────────────────────────────
 
@@ -309,6 +310,12 @@ def _run_prediction_sim(entry, n=30000):
         debt_pct=entry["debt_pct"] / 100,
         senior_pct=entry["senior_pct"] / 100,
         mezz_spread=entry["mezz_spread"] / 100,
+        # Same fee assumptions as the deal wizard and Monte Carlo pages, so
+        # predictions are fee-inclusive like the actual results they are
+        # compared against.
+        transaction_fees_pct=get_cfg('tx_fee_pct') / 100,
+        financing_fees_pct=get_cfg('fin_fee_pct') / 100,
+        other_uses=get_cfg('other_uses'),
         n_interest_passes=2,
     )
     sim = run_vectorized_simulation_full(params, seed=42)
@@ -515,7 +522,7 @@ def render_backtesting():
     # ── Run button ────────────────────────────────────────────────────────
     st.markdown("---")
     run_bt = st.button("▶  RUN BACKTEST", type="primary",
-                       use_container_width=False, key="bt_run")
+                       width="content", key="bt_run")
 
     if not run_bt:
         return
@@ -528,7 +535,11 @@ def render_backtesting():
     entry_ev = entry_ebitda * entry_mult
     pred_exit_ev = pred_ebitda[-1] * exit_mult if pred_ebitda else 0
     pred_net_debt = entry_ev * debt_pct / 100 * 0.75
-    pred_equity_entry = entry_ev * (1 - debt_pct / 100)
+    entry_debt = entry_ev * debt_pct / 100
+    entry_costs = (entry_ev * get_cfg('tx_fee_pct') / 100
+                   + entry_debt * get_cfg('fin_fee_pct') / 100
+                   + get_cfg('other_uses'))
+    pred_equity_entry = entry_ev + entry_costs - entry_debt   # fee-inclusive, as in the sim
     pred_exit_equity = max(pred_exit_ev - pred_net_debt, 0)
     pred_moic = pred_exit_equity / pred_equity_entry if pred_equity_entry > 0 else 0
     pred_irr_mean = float(np.mean(pred_irr_dist)) * 100
@@ -588,7 +599,7 @@ def render_backtesting():
                          ha="center", fontsize=8, color=A_ACT if v >= 0 else A_MISS)
 
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width="stretch")
         plt.close(fig)
 
     # Tab 2: IRR distribution with actual overlaid
@@ -614,7 +625,7 @@ def render_backtesting():
         ax.set_title("Predicted IRR Distribution — Where did the Actual IRR land?")
         ax.legend(); ax.grid(axis="y")
         plt.tight_layout()
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width="stretch")
         plt.close(fig)
 
         p_rank = float(np.mean(pred_irr_dist * 100 < act_irr)) * 100
@@ -639,7 +650,7 @@ def render_backtesting():
             }
             comparison_rows.append(row)
         df_comp = pd.DataFrame(comparison_rows).set_index("Year")
-        st.dataframe(df_comp, use_container_width=True)
+        st.dataframe(df_comp, width="stretch")
 
         # Summary row
         summary_data = {
@@ -658,7 +669,7 @@ def render_backtesting():
             ],
         }
         st.markdown("**Returns summary**")
-        st.dataframe(pd.DataFrame(summary_data).set_index("Metric"), use_container_width=True)
+        st.dataframe(pd.DataFrame(summary_data).set_index("Metric"), width="stretch")
 
     # Tab 4: Error attribution
     with tabs[3]:
@@ -690,7 +701,7 @@ def render_backtesting():
             ax.set_xlabel("$M impact on exit equity (approximate)")
             ax.set_title("Error attribution — approximate drivers")
             ax.grid(axis="x")
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width="stretch")
             plt.close(fig)
 
         with col_b:

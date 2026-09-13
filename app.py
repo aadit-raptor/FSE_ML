@@ -11,8 +11,6 @@ import matplotlib.ticker as mtick
 import seaborn as sns
 import time
 import io
-from ml.macro_regime import get_current_regime, model_is_trained
-from ml.surrogate.predict import SurrogatePredictor
 from simulation.vectorized_simulation import (
     run_vectorized_simulation_full,
     SimulationParams,
@@ -23,7 +21,26 @@ from lbo_engine.model import LBOParams, run_lbo
 from lbo_engine.capital_structure import build_simple_two_tranche_structure
 from lbo_engine.returns import compute_exit_sensitivity, print_sensitivity_table
 from pages.settings import init_cfg, get_cfg, build_corr_matrix
-from ml.anomaly_detector import check_deal, detector_is_trained, train_detector
+
+import importlib.util
+
+
+def _installed(*pkgs):
+    """True if every package can be imported, checked without importing it."""
+    try:
+        return all(importlib.util.find_spec(p) is not None for p in pkgs)
+    except (ImportError, ValueError):
+        return False
+
+
+# Optional ML layer (ml/, requirements-ml.txt); the core app never depends on
+# it. Availability is checked without importing because torch and scikit-learn
+# each take several seconds to import: every feature imports its module only
+# when it renders, so startup is unaffected and a broken install (ImportError,
+# or OSError from a bad native library) disables just that feature.
+_ANOMALY_AVAILABLE = _installed("sklearn", "joblib")
+_SURROGATE_AVAILABLE = _installed("torch", "joblib")
+_REGIME_AVAILABLE = _installed("sklearn", "joblib", "hmmlearn", "fredapi")
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -529,8 +546,307 @@ def sens_dataframe(sens):
 # ---------------------------------------------------------------------------
 # Run deal model
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Optional ML panels
+# ---------------------------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def _check_deal_cached(entry_mult, leverage, growth_pct, ebitda_margin, rate):
+    from ml.anomaly_detector import check_deal
+    return check_deal(entry_mult=entry_mult, leverage=leverage,
+                      growth_pct=growth_pct, ebitda_margin=ebitda_margin,
+                      interest_rate=rate)
+
+
+def render_deal_risk(entry_mult, leverage, growth_pct, ebitda_margin, rate):
+    """ML risk panel on the deal inputs page (anomaly detector)."""
+    if not _ANOMALY_AVAILABLE:
+        return
+    try:
+        from ml.anomaly_detector import detector_is_trained
+    except (ImportError, OSError):
+        return
+    if not detector_is_trained():
+        return
+    r = _check_deal_cached(round(entry_mult, 4), round(leverage, 4),
+                           round(growth_pct, 4), round(ebitda_margin, 4),
+                           round(rate, 4))
+    color = ("#40c080" if r.risk_score < 4
+             else "#c0a040" if r.risk_score < 7 else "#c06060")
+    verdict = ("unusual versus historical LBOs" if r.is_anomalous
+               else "in line with historical LBOs")
+    n = len(r.warnings)
+    st.markdown(
+        f'<div style="background:#0e0e1c;border:0.5px solid {color};'
+        f'border-radius:6px;padding:10px 14px;margin-top:12px;'
+        f'font-family:IBM Plex Mono,monospace;display:flex;'
+        f'justify-content:space-between;align-items:center">'
+        f'<div style="font-size:{_sz(11)}px;color:{color};font-weight:500">'
+        f'ML risk score: {r.risk_score:.1f} / 10</div>'
+        f'<div style="font-size:{_sz(9)}px;color:#44445a">'
+        f'{n} risk flag{"" if n == 1 else "s"} · {verdict}</div></div>',
+        unsafe_allow_html=True,
+    )
+    for w in r.warnings:
+        st.markdown(
+            f'<div style="background:#1a0a0a;border-left:2px solid #c06060;'
+            f'border-radius:4px;padding:6px 10px;margin-top:4px;'
+            f'font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#c09090">⚠ {w}</div>',
+            unsafe_allow_html=True,
+        )
+    if r.nearest_deals:
+        st.markdown(
+            f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+            f'color:#44445a;margin-top:8px">Most similar historical deals:</div>',
+            unsafe_allow_html=True,
+        )
+        for d in r.nearest_deals:
+            icon, icolor = ("✓", "#40c080") if d["success"] else ("✗", "#c06060")
+            st.markdown(
+                f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
+                f'color:#5a5a72;padding:3px 0">'
+                f'<span style="color:{icolor}">{icon}</span> '
+                f'{d["name"]} — {d["entry_mult"]:.1f}x entry · '
+                f'{d["leverage"]:.1f}x lev · {d["growth"]:+.1f}% growth</div>',
+                unsafe_allow_html=True,
+            )
+
+
+def render_macro_regime():
+    """Classify the current macro regime from FRED data (Monte Carlo page)."""
+    if not _REGIME_AVAILABLE:
+        return
+    try:
+        from ml.macro_regime import get_current_regime
+        from ml.macro_regime import model_is_trained as regime_model_is_trained
+    except (ImportError, OSError):
+        return
+    if not regime_model_is_trained():
+        st.caption("Macro regime detection is installed but not trained: set "
+                   "FRED_API_KEY and run `python -m ml.macro_regime`.")
+        return
+    st.markdown("---")
+    rc1, rc2 = st.columns([2, 3], gap="medium")
+    with rc1:
+        if st.button("🌐 Detect current macro regime", width="stretch",
+                     key="detect_regime"):
+            with st.spinner("Classifying current macro regime from FRED data..."):
+                try:
+                    st.session_state["current_regime_info"] = get_current_regime()
+                except Exception as e:   # network / API-key failures
+                    st.error(f"Could not classify the current regime: {e}")
+    ri = st.session_state.get("current_regime_info")
+    if ri:
+        rcolor = {"bull": "#40c080", "base": "#85b7eb", "recession": "#c06060",
+                  "stagflation": "#c0a040"}.get(ri["regime"], "#888")
+        lp = ri["label_probabilities"]
+        with rc2:
+            st.markdown(
+                f'<div style="background:#0e0e1c;border:0.5px solid {rcolor};'
+                f'border-radius:6px;padding:8px 14px;'
+                f'font-family:IBM Plex Mono,monospace">'
+                f'<div style="font-size:{_sz(10)}px;color:{rcolor};font-weight:500">'
+                f'Current regime: {ri["regime"].upper()} '
+                f'({ri["confidence"]:.0%} confidence) · Data as of {ri["data_as_of"]}</div>'
+                f'<div style="font-size:{_sz(9)}px;color:#5a5a72;margin-top:4px">'
+                f'Recession: {lp.get("recession", 0):.0%} · '
+                f'Expansion: {lp.get("bull", 0):.0%} · '
+                f'Late cycle: {lp.get("base", 0):.0%} · '
+                f'Stagflation: {lp.get("stagflation", 0):.0%}</div></div>',
+                unsafe_allow_html=True,
+            )
+
+
+def render_surrogate_live(s, mc_emult, mc_hold):
+    """Real-time IRR sliders backed by the trained surrogate network."""
+    if not _SURROGATE_AVAILABLE:
+        return
+    st.markdown("---")
+    section_hdr("Live sensitivity mode (surrogate model)", "#40c080")
+    if not st.toggle("Enable real-time sliders", value=False, key="mc_live_mode"):
+        return
+    try:
+        # torch loads here, only once live mode is switched on
+        from ml.surrogate.predict import SurrogatePredictor
+        from ml.surrogate.generate_data import TRAINING_FIXED as fx
+    except (ImportError, OSError) as e:
+        st.error(f"Live mode is unavailable: {e}")
+        return
+    surrogate = SurrogatePredictor.get_instance()
+    if surrogate is None:
+        st.info("The surrogate model is not trained yet. Run "
+                "`python -m ml.surrogate.generate_data && "
+                "python -m ml.surrogate.train`, then reload.")
+        return
+
+    # The surrogate learned 11 inputs on a fixed deal; say where this one differs
+    terms = [
+        ("entry multiple", mc_emult, fx["entry_multiple"], lambda v: f"{v:.1f}x"),
+        ("holding period", mc_hold, fx["holding_period"], lambda v: f"{v:.0f} yrs"),
+        ("opex / revenue", s.d_opex / 100, fx["opex_pct"], lambda v: f"{v:.1%}"),
+        ("tax rate", s.d_tax / 100, fx["tax_rate"], lambda v: f"{v:.1%}"),
+        ("senior / total debt", s.d_senior_pct / 100, fx["senior_pct"],
+         lambda v: f"{v:.0%}"),
+        ("mezz spread", s.d_mezz_spread / 100, fx["mezz_spread"], lambda v: f"{v:.2%}"),
+        ("interest rate std dev", s.mc_rate_std / 100, fx["interest_std"],
+         lambda v: f"{v:.2%}"),
+        ("transaction fees", get_cfg("tx_fee_pct") / 100, fx["transaction_fees_pct"],
+         lambda v: f"{v:.1%}"),
+        ("financing fees", get_cfg("fin_fee_pct") / 100, fx["financing_fees_pct"],
+         lambda v: f"{v:.1%}"),
+        ("other uses", get_cfg("other_uses"), fx["other_uses"], lambda v: f"${v:,.0f}M"),
+    ]
+    diffs = [f"{name} {fmt(yours)} (model {fmt(model)})"
+             for name, yours, model, fmt in terms
+             if abs(float(yours) - float(model)) > 1e-6]
+    if diffs:
+        st.warning("The surrogate was trained on a fixed deal, and this one differs "
+                   "in: " + "; ".join(diffs) + ". Treat the live figures as "
+                   "directional and use RUN SIMULATION for exact results.")
+    else:
+        st.caption("Deal terms match the surrogate's training deal; live figures "
+                   "are an ML approximation of the full simulation.")
+
+    col_l1, col_l2 = st.columns(2, gap="medium")
+    with col_l1:
+        live_growth = st.slider("Revenue growth mean (%)", -5.0, 20.0,
+                                float(s.mc_growth_mean), 0.1, key="live_growth") / 100
+        live_exit = st.slider("Exit multiple mean (x)", 4.0, 20.0,
+                              float(s.mc_exit_mean), 0.1, key="live_exit")
+        live_interest = st.slider("Interest rate mean (%)", 1.0, 15.0,
+                                  float(s.mc_rate_mean), 0.1, key="live_rate") / 100
+    with col_l2:
+        live_margin = st.slider("Gross margin mean (%)", 10.0, 80.0,
+                                float(s.mc_gm_mean), 0.5, key="live_gm") / 100
+        live_debt = st.slider("Debt / EV (%)", 20.0, 90.0,
+                              float(s.d_debt_pct), 1.0, key="live_debt") / 100
+        live_exit_std = st.slider("Exit multiple uncertainty (std)", 0.3, 5.0,
+                                  float(s.mc_exit_std), 0.1, key="live_exit_std")
+
+    pred = surrogate.predict(
+        growth_mean=live_growth, growth_std=s.mc_growth_std / 100,
+        exit_mean=live_exit, exit_std=live_exit_std,
+        interest_mean=live_interest,
+        gross_margin_mean=live_margin, gross_margin_std=s.mc_gm_std / 100,
+        da_pct=s.d_da / 100, capex_pct=s.d_capex / 100,
+        nwc_pct=s.d_nwc / 100, debt_pct=live_debt,
+    )
+    # Near the wipeout cliff the true 5th percentile falls steeply toward the
+    # -100% floor and the network smooths over it. Measured on 400 random
+    # deals: 5th-percentile error was 0.2pp median below 1% wipeout, but up to
+    # 23pp around 5%. The surrogate's own wipeout prediction is accurate, and
+    # flagging at >= 2% caught every error above 3pp while flagging 12% of deals.
+    tail_unreliable = pred.p_wipeout >= 0.02
+
+    lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
+    lv1.metric("Median IRR",      f"{pred.irr_p50 * 100:.1f}%")
+    lv2.metric("Mean IRR",        f"{pred.irr_mean * 100:.1f}%")
+    lv3.metric("5th percentile",
+               "—" if tail_unreliable else f"{pred.irr_p5 * 100:.1f}%")
+    lv4.metric("95th percentile", f"{pred.irr_p95 * 100:.1f}%")
+    lv5.metric("P(IRR > 20%)",    f"{pred.p_above_20 * 100:.1f}%")
+    lv6.metric("Wipeout risk",    f"{pred.p_wipeout * 100:.1f}%")
+    if tail_unreliable:
+        st.warning("With this much wipeout risk the downside tail sits near the "
+                   "-100% floor, where the surrogate's 5th percentile is "
+                   "unreliable. Use RUN SIMULATION for the downside.")
+
+    fig, ax = plt.subplots(figsize=(10, 3))
+    ax.fill_betweenx([0, 1], [pred.irr_p5 * 100] * 2, [pred.irr_p95 * 100] * 2,
+                     color=A1, alpha=0.15, label="5-95% range")
+    ax.fill_betweenx([0, 1], [pred.irr_p25 * 100] * 2, [pred.irr_p75 * 100] * 2,
+                     color=A1, alpha=0.35, label="25-75% range")
+    ax.axvline(pred.irr_p50 * 100, color=A1, lw=2.5,
+               label=f"Median {pred.irr_p50 * 100:.1f}%")
+    ax.axvline(s.mc_hurdle, color=A3, lw=1.5, linestyle=":",
+               label=f"Hurdle {s.mc_hurdle:.0f}%")
+    ax.set_xlim(-30, 80); ax.set_xlabel("IRR (%)"); ax.set_yticks([])
+    ax.set_title("Live IRR distribution (surrogate model)")
+    ax.legend(fontsize=8); ax.grid(axis="x")
+    st.pyplot(fig, width="stretch"); plt.close(fig)
+
+
+def _entry_costs(entry_ev, total_debt):
+    """Fees and other uses funded by sponsor equity at close ($M)."""
+    return (entry_ev * get_cfg('tx_fee_pct') / 100
+            + total_debt * get_cfg('fin_fee_pct') / 100
+            + get_cfg('other_uses'))
+
+
+def _bridge_steps(br):
+    """(axis label, table label, value, is_total, pct_key) per bridge step.
+
+    Fees at entry are shown only when non-zero, so a fee-free deal keeps the
+    original five-step waterfall.
+    """
+    steps = [("Entry", "Entry equity", br["entry_equity"], True, None)]
+    if abs(br["entry_costs"]) > 0.005:
+        steps.append(("Fees", "Fees at entry", br["entry_costs"], False,
+                      "entry_costs_pct"))
+    steps += [
+        ("EBITDA\ngrowth", "EBITDA growth", br["ebitda_growth"], False,
+         "ebitda_growth_pct"),
+        ("Multiple", "Multiple expansion", br["multiple_expansion"], False,
+         "multiple_expansion_pct"),
+        ("Deleverage", "Deleveraging", br["deleveraging"], False,
+         "deleveraging_pct"),
+        ("Exit", "Exit equity", br["exit_equity"], True, None),
+    ]
+    return steps
+
+
+def bridge_dataframe(br):
+    rows = _bridge_steps(br)
+    return pd.DataFrame({
+        "Component":  [r[1] for r in rows],
+        "Value ($M)": [f"{v:,.0f}" if total else f"{v:+,.0f}"
+                       for _, _, v, total, _ in rows],
+        "% of gain":  ["—" if total else f"{br[k]:.1f}%"
+                       for _, _, _, total, k in rows],
+    })
+
+
+def plot_bridge(ax, br, annotate=False):
+    """Draw the equity value waterfall; flow steps stack from entry equity."""
+    rows = _bridge_steps(br)
+    colors = {"Entry": A1, "Fees": A3, "EBITDA\ngrowth": A4,
+              "Multiple": A2, "Deleverage": A2, "Exit": A4}
+    running = 0.0
+    for i, (label, _, v, total, _) in enumerate(rows):
+        bottom = 0.0 if total else running
+        ax.bar(i, v, bottom=bottom, color=colors[label], alpha=0.8, width=0.5,
+               edgecolor="#16162a", linewidth=0.5)
+        if annotate:
+            txt = f"${v:,.0f}" if total else f"{v:+,.0f}"
+            ax.text(i, max(bottom, bottom + v) + 20, txt,
+                    ha="center", fontsize=8, color="#c4c4d4")
+        running = v if total else running + v
+    ax.set_xticks(range(len(rows)))
+    ax.set_xticklabels([r[0] for r in rows], fontsize=8)
+
+
 def run_deal():
     s = st.session_state
+
+    # WSP mode: the engine has no days-based working-capital input, and it
+    # reads nwc_pct as the *change* in NWC as a share of that year's revenue
+    # (cashflow_model: delta_nwc[t] = revenue[t] * nwc_pct[t]).
+    #
+    # wc_from_days() with cogs = revenue * (1 - gross_margin) collapses to
+    #     NWC(t) = revenue(t) * k,
+    #     k = [ar_days + (1 - gm) * (inv_days - ap_days)] / 365
+    # so the implied change is
+    #     dNWC(t) = k * revenue(t) * g / (1 + g).
+    # That makes the conversion below exact under the model's own assumptions
+    # (constant days, constant gross margin, constant growth), not an estimate.
+    if s.get("d_wsp_mode", False):
+        g  = s.d_growth / 100
+        gm = s.d_gross_margin / 100
+        k  = (s.d_ar_days + (1 - gm) * (s.d_inv_days - s.d_ap_days)) / 365
+        nwc_pct_eff = k * g / (1 + g) if (1 + g) != 0 else 0.0
+    else:
+        nwc_pct_eff = s.d_nwc / 100
+
     params = LBOParams(
         entry_ebitda=s.d_ebitda, entry_multiple=s.d_entry_mult,
         exit_multiple=s.d_exit_mult, holding_period=int(s.d_hold),
@@ -538,7 +854,10 @@ def run_deal():
         mezz_spread=s.d_mezz_spread/100, interest_rate=s.d_base_rate/100,
         revenue_growth=s.d_growth/100, gross_margin=s.d_gross_margin/100,
         opex_pct=s.d_opex/100, da_pct=s.d_da/100, tax_rate=s.d_tax/100,
-        capex_pct=s.d_capex/100, nwc_pct=s.d_nwc/100,
+        capex_pct=s.d_capex/100, nwc_pct=nwc_pct_eff,
+        transaction_fees_pct=get_cfg('tx_fee_pct')/100,
+        financing_fees_pct=get_cfg('fin_fee_pct')/100,
+        other_uses=get_cfg('other_uses'),
         minimum_cash=s.d_mincash, n_iterations=3,
     )
     with st.spinner("Running deal model..."):
@@ -601,7 +920,7 @@ def render_sidebar():
     # that caused the click reliability problem.
     def _nav(label, page_id, mode_id, key, green=False):
         active = (cur_page == page_id and cur_mode == mode_id)
-        clicked = st.sidebar.button(label, key=key, use_container_width=True)
+        clicked = st.sidebar.button(label, key=key, width="stretch")
         if clicked:
             s["page"] = page_id
             s["mode"] = mode_id
@@ -688,7 +1007,7 @@ def render_sidebar():
                 unsafe_allow_html=True,
             )
         else:
-            if col.button(lbl_fs, key=f"fs_{lbl_fs}", use_container_width=True):
+            if col.button(lbl_fs, key=f"fs_{lbl_fs}", width="stretch"):
                 s["font_scale"] = sc
                 st.rerun()
 
@@ -774,7 +1093,8 @@ def page_deal_inputs():
             s.d_debt_pct   = min((total_debt_abs / entry_ev) * 100, 99.0)
             s.d_senior_pct = (senior_x / (senior_x + mezz_x)) * 100 \
                              if (senior_x + mezz_x) > 0 else 70.0
-        sponsor_eq = max(entry_ev - total_debt_abs, 0)
+        sponsor_eq = max(entry_ev + _entry_costs(entry_ev, total_debt_abs)
+                         - total_debt_abs, 0)
         lbl("Sponsor equity (plug)")
         chip(mf(sponsor_eq))
 
@@ -782,10 +1102,11 @@ def page_deal_inputs():
     st.markdown("## Sources & uses of funds")
     entry_ev       = s.d_ebitda * s.d_entry_mult
     total_debt_abs = (senior_x + mezz_x) * s.d_ebitda
-    sponsor_eq     = max(entry_ev - total_debt_abs, 0)
     tx_fees        = entry_ev * get_cfg('tx_fee_pct') / 100
     fin_fees       = total_debt_abs * get_cfg('fin_fee_pct') / 100
     total_uses     = entry_ev + tx_fees + fin_fees + get_cfg('other_uses')
+    # Equity is the plug that balances Sources against Uses, fees included
+    sponsor_eq     = max(total_uses - total_debt_abs, 0)
     total_sources  = total_debt_abs + sponsor_eq
     check          = total_sources - total_uses
 
@@ -829,81 +1150,29 @@ def page_deal_inputs():
         unsafe_allow_html=True,
     )
     
+    # Optional ML risk panel. The detector expects the all-in debt rate, so
+    # blend senior and mezz by amount rather than passing the senior rate.
+    total_x = senior_x + mezz_x
+    blended_rate = ((senior_x * s.d_base_rate
+                     + mezz_x * (s.d_base_rate + s.d_mezz_spread)) / total_x
+                    if total_x > 0 else s.d_base_rate)
+    render_deal_risk(
+        entry_mult=s.d_entry_mult,
+        leverage=total_debt_abs / max(s.d_ebitda, 1e-9),
+        growth_pct=s.d_growth,
+        ebitda_margin=s.d_gross_margin - s.d_opex + s.d_da,   # already in %
+        rate=blended_rate,
+    )
+
     st.markdown("---")
     _, col_next = st.columns([3, 1])
     with col_next:
         if st.button("Next: Debt & cash flow →", type="primary",
-                     use_container_width=True, key="p1_next"):
+                     width="stretch", key="p1_next"):
             st.session_state.page = 2
             st.session_state.mode = "deal"
             st.rerun()
 
-# At bottom of page_deal_inputs(), before the Next button:
-# Auto-train on first use
-if not detector_is_trained():
-    train_detector()
-
-# Compute leverage from session state
-entry_ev_check = s.d_ebitda * s.d_entry_mult
-total_debt_check = entry_ev_check * s.d_debt_pct / 100
-leverage_check = total_debt_check / max(s.d_ebitda, 1)
-ebitda_margin_check = (s.d_gross_margin - s.d_opex + s.d_da)
-
-anomaly = check_deal(
-    entry_mult=s.d_entry_mult,
-    leverage=leverage_check,
-    growth_pct=s.d_growth,
-    ebitda_margin=ebitda_margin_check * 100,
-    interest_rate=s.d_base_rate,
-)
-
-# Risk score display — always visible
-risk_color = ("#40c080" if anomaly.risk_score < 4
-              else "#c0a040" if anomaly.risk_score < 7
-              else "#c06060")
-st.markdown(
-    f'<div style="background:#0e0e1c;border:0.5px solid {risk_color};'
-    f'border-radius:6px;padding:10px 14px;margin-top:12px;'
-    f'font-family:IBM Plex Mono,monospace">'
-    f'<div style="display:flex;justify-content:space-between;align-items:center">'
-    f'<div style="font-size:{_sz(11)}px;color:{risk_color};font-weight:500">'
-    f'ML Risk Score: {anomaly.risk_score:.1f} / 10</div>'
-    f'<div style="font-size:{_sz(9)}px;color:#44445a">'
-    f'Based on {len([w for w in anomaly.warnings])} risk flags · '
-    f'Anomaly score: {anomaly.anomaly_score:.3f}</div>'
-    f'</div>',
-    unsafe_allow_html=True,
-)
-
-if anomaly.warnings:
-    for w in anomaly.warnings:
-        st.markdown(
-            f'<div style="background:#1a0a0a;border-left:2px solid #c06060;'
-            f'border-radius:4px;padding:6px 10px;margin-top:4px;'
-            f'font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
-            f'color:#c09090">⚠ {w}</div>',
-            unsafe_allow_html=True,
-        )
-
-# Nearest comparable deals
-if anomaly.nearest_deals:
-    st.markdown(
-        f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
-        f'color:#44445a;margin-top:8px">Most similar historical deals:</div>',
-        unsafe_allow_html=True,
-    )
-    for d in anomaly.nearest_deals:
-        outcome_icon = "✓" if d['success'] else "✗"
-        outcome_color= "#40c080" if d['success'] else "#c06060"
-        st.markdown(
-            f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
-            f'color:#5a5a72;padding:3px 0">'
-            f'<span style="color:{outcome_color}">{outcome_icon}</span> '
-            f'{d["name"]} — {d["entry_mult"]:.1f}x entry · '
-            f'{d["leverage"]:.1f}x lev · {d["growth"]:+.1f}% growth</div>',
-            unsafe_allow_html=True,
-        )
-st.markdown("</div>", unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # PAGE 2 — Debt & Cash Flow
 # ---------------------------------------------------------------------------
@@ -1000,7 +1269,7 @@ def page_debt_cashflow():
     col_run, col_hint = st.columns([1, 2])
     with col_run:
         run_clicked = st.button("▶  Run deal model", type="primary",
-                                use_container_width=True, key="p2_run")
+                                width="stretch", key="p2_run")
     with col_hint:
         st.markdown(
             f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
@@ -1021,7 +1290,7 @@ def page_debt_cashflow():
     if result and result.debt_schedule:
         st.markdown("## Debt schedule — ending balances")
         ds_df = debt_dataframe(result.debt_schedule)
-        st.dataframe(ds_df, use_container_width=True)
+        st.dataframe(ds_df, width="stretch")
         dl_btn("Download debt schedule", _df_to_excel(ds_df),
                "debt_schedule.xlsx", "dl_debt")
 
@@ -1052,17 +1321,17 @@ def page_debt_cashflow():
                              f"${v:,.0f}", ha="center", fontsize=7,
                              color=A4 if v>=0 else A3)
         plt.tight_layout(pad=1.2)
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width="stretch")
         plt.close(fig)
 
     st.markdown("---")
     col_back, _, col_next = st.columns([1, 2, 1])
     with col_back:
-        if st.button("← Deal inputs", use_container_width=True, key="p2_back"):
+        if st.button("← Deal inputs", width="stretch", key="p2_back"):
             st.session_state.page = 1; st.session_state.mode = "deal"; st.rerun()
     with col_next:
         if st.button("Next: Returns & exit →", type="primary",
-                     use_container_width=True, key="p2_next"):
+                     width="stretch", key="p2_next"):
             st.session_state.page = 3; st.session_state.mode = "deal"; st.rerun()
 
 # ---------------------------------------------------------------------------
@@ -1109,46 +1378,22 @@ def page_returns():
         lbl("Entry equity");  chip(mf(r.entry_equity))
         lbl("Exit equity");   chip(mf(r.net_exit_equity), "green")
         lbl("MOIC");          chip(xf(r.moic), "positive")
-        lbl("IRR");           chip(pf(r.irr),  "positive")
+        lbl("IRR");           chip(pf(r.irr * 100),  "positive")
 
     if br:
         st.markdown("## Equity value bridge")
         col_chart, col_table = st.columns([3, 2], gap="medium")
         with col_chart:
             fig, ax = plt.subplots(figsize=(7, 3.5))
-            labels  = ["Entry","EBITDA\ngrowth","Multiple","Deleverage","Exit"]
-            heights = [br["entry_equity"], br["ebitda_growth"],
-                       br["multiple_expansion"], br["deleveraging"], br["exit_equity"]]
-            bottoms = [0, br["entry_equity"],
-                       br["entry_equity"]+br["ebitda_growth"],
-                       br["entry_equity"]+br["ebitda_growth"]+br["multiple_expansion"], 0]
-            for i in range(5):
-                ax.bar(i, heights[i], bottom=bottoms[i],
-                       color=[A1,A4,A2,A2,A4][i], alpha=0.8, width=0.5,
-                       edgecolor="#16162a", linewidth=0.5)
-                ax.text(i, bottoms[i]+heights[i]+20, f"${heights[i]:,.0f}",
-                        ha="center", fontsize=8, color="#c4c4d4")
-            ax.set_xticks(range(5)); ax.set_xticklabels(labels, fontsize=8)
+            plot_bridge(ax, br, annotate=True)
             ax.set_ylabel("$M"); ax.set_title("Value attribution waterfall")
             ax.grid(axis="y")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
 
         with col_table:
-            bridge_df = pd.DataFrame({
-                "Component": ["Entry equity","EBITDA growth","Multiple expansion",
-                               "Deleveraging","Exit equity"],
-                "Value ($M)": [f"{br['entry_equity']:,.0f}",
-                                f"+{br['ebitda_growth']:,.0f}",
-                                f"+{br['multiple_expansion']:,.0f}",
-                                f"+{br['deleveraging']:,.0f}",
-                                f"{br['exit_equity']:,.0f}"],
-                "% of gain":  ["—",
-                                f"{br['ebitda_growth_pct']:.1f}%",
-                                f"{br['multiple_expansion_pct']:.1f}%",
-                                f"{br['deleveraging_pct']:.1f}%","—"],
-            })
+            bridge_df = bridge_dataframe(br)
             st.dataframe(bridge_df.set_index("Component"),
-                         use_container_width=True)
+                         width="stretch")
 
     _sens_em_range = f"{get_cfg('sens_em_min'):.1f}x–{get_cfg('sens_em_max'):.1f}x"
     _sens_hp_range = f"{int(get_cfg('sens_hp_min'))}–{int(get_cfg('sens_hp_max'))}yr"
@@ -1159,7 +1404,7 @@ def page_returns():
         col_tbl, col_heat = st.columns(2, gap="medium")
         with col_tbl:
             sens_df = sens_dataframe(sens)
-            st.dataframe(sens_df, use_container_width=True)
+            st.dataframe(sens_df, width="stretch")
             dl_btn("Download sensitivity", _df_to_excel(sens_df),
                    "irr_sensitivity.xlsx", "dl_sens")
         with col_heat:
@@ -1177,16 +1422,16 @@ def page_returns():
                     v = raw[i, j]
                     ax.text(j, i, f"{v:.0f}%", ha="center", va="center",
                             fontsize=8, color="black" if 10<v<40 else "white")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
 
     st.markdown("---")
     col_back, _, col_next = st.columns([1, 2, 1])
     with col_back:
-        if st.button("← Debt & CF", use_container_width=True, key="p3_back"):
+        if st.button("← Debt & CF", width="stretch", key="p3_back"):
             st.session_state.page = 2; st.session_state.mode = "deal"; st.rerun()
     with col_next:
         if st.button("Next: Summary →", type="primary",
-                     use_container_width=True, key="p3_next"):
+                     width="stretch", key="p3_next"):
             st.session_state.page = 4; st.session_state.mode = "deal"; st.rerun()
 
 # ---------------------------------------------------------------------------
@@ -1210,7 +1455,7 @@ def page_summary():
 
     r = result.returns
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("IRR",           pf(r.irr))
+    c1.metric("IRR",           pf(r.irr * 100))
     c2.metric("MOIC",          xf(r.moic))
     c3.metric("Entry equity",  mf(r.entry_equity))
     c4.metric("Exit equity",   mf(r.net_exit_equity))
@@ -1220,17 +1465,17 @@ def page_summary():
 
     with tabs[0]:
         pl_df = pl_dataframe(result.operating_model)
-        st.dataframe(pl_df, use_container_width=True)
+        st.dataframe(pl_df, width="stretch")
         dl_btn("Download P&L", _df_to_excel(pl_df), "pl.xlsx", "dl_pl")
 
     with tabs[1]:
         cf_df = fcf_dataframe(result.cash_flow)
-        st.dataframe(cf_df, use_container_width=True)
+        st.dataframe(cf_df, width="stretch")
         dl_btn("Download cash flow", _df_to_excel(cf_df), "cashflow.xlsx", "dl_cf")
 
     with tabs[2]:
         ds_df = debt_dataframe(result.debt_schedule)
-        st.dataframe(ds_df, use_container_width=True)
+        st.dataframe(ds_df, width="stretch")
         for tn, records in result.debt_schedule.schedule.items():
             with st.expander(f"▸ {tn}"):
                 rows = {
@@ -1242,7 +1487,7 @@ def page_summary():
                 }
                 yrs_lbl = [f"Year {r.year}" for r in records]
                 st.dataframe(pd.DataFrame(rows, index=yrs_lbl).T,
-                             use_container_width=True)
+                             width="stretch")
         dl_btn("Download debt schedule", _df_to_excel(ds_df),
                "debt_schedule.xlsx", "dl_ds")
 
@@ -1270,7 +1515,7 @@ def page_summary():
                 curr_ppe = ppe_roll(curr_ppe, capex_abs[i], dep)
                 ppe_rows["Ending PP&E"].append(f"${curr_ppe:,.0f}M")
             ppe_df = pd.DataFrame(ppe_rows, index=yrs_bs).T
-            st.dataframe(ppe_df, use_container_width=True)
+            st.dataframe(ppe_df, width="stretch")
             dl_btn("Download PP&E schedule", _df_to_excel(ppe_df), "ppe_schedule.xlsx", "dl_ppe")
 
             st.markdown("---")
@@ -1290,7 +1535,7 @@ def page_summary():
                                              for rev, cogs in zip(op_bs.revenue, cogs_bs)],
                 }
                 wc_df = pd.DataFrame(wc_rows, index=yrs_bs).T
-                st.dataframe(wc_df, use_container_width=True)
+                st.dataframe(wc_df, width="stretch")
                 dl_btn("Download WC schedule", _df_to_excel(wc_df), "wc_schedule.xlsx", "dl_wc")
             else:
                 st.info("Enable 'Use AR/AP/Inventory days' on Page 2 to see the WSP working capital schedule.")
@@ -1307,7 +1552,7 @@ def page_summary():
                 "Adj EBITDA margin":     [f"{v/r:.1%}" for v, r in zip(adj_ebitda, op_bs.revenue)],
             }
             adj_df = pd.DataFrame(adj_rows, index=yrs_bs).T
-            st.dataframe(adj_df, use_container_width=True)
+            st.dataframe(adj_df, width="stretch")
             dl_btn("Download Adj EBITDA", _df_to_excel(adj_df), "adj_ebitda.xlsx", "dl_adj")
         else:
             st.info("Run the deal model on Page 2 first.")
@@ -1317,38 +1562,16 @@ def page_summary():
             br = result.equity_bridge
             c_l, c_r = st.columns(2, gap="medium")
             with c_l:
-                bridge_df = pd.DataFrame({
-                    "Component": ["Entry equity","EBITDA growth",
-                                   "Multiple expansion","Deleveraging","Exit equity"],
-                    "Value ($M)": [f"{br['entry_equity']:,.0f}",
-                                    f"+{br['ebitda_growth']:,.0f}",
-                                    f"+{br['multiple_expansion']:,.0f}",
-                                    f"+{br['deleveraging']:,.0f}",
-                                    f"{br['exit_equity']:,.0f}"],
-                    "% of gain":  ["—",f"{br['ebitda_growth_pct']:.1f}%",
-                                    f"{br['multiple_expansion_pct']:.1f}%",
-                                    f"{br['deleveraging_pct']:.1f}%","—"],
-                })
+                bridge_df = bridge_dataframe(br)
                 st.dataframe(bridge_df.set_index("Component"),
-                             use_container_width=True)
+                             width="stretch")
                 dl_btn("Download equity bridge",
                        _df_to_excel(bridge_df), "equity_bridge.xlsx", "dl_br")
             with c_r:
                 fig, ax = plt.subplots(figsize=(6, 3.5))
-                heights = [br["entry_equity"],br["ebitda_growth"],
-                           br["multiple_expansion"],br["deleveraging"],br["exit_equity"]]
-                bottoms = [0,br["entry_equity"],
-                           br["entry_equity"]+br["ebitda_growth"],
-                           br["entry_equity"]+br["ebitda_growth"]+br["multiple_expansion"],0]
-                for i in range(5):
-                    ax.bar(i, heights[i], bottom=bottoms[i],
-                           color=[A1,A4,A2,A2,A4][i], alpha=0.8, width=0.5,
-                           edgecolor="#16162a", linewidth=0.5)
-                ax.set_xticks(range(5))
-                ax.set_xticklabels(["Entry","EBITDA\ngrowth","Multiple",
-                                     "Deleverage","Exit"], fontsize=8)
+                plot_bridge(ax, br)
                 ax.set_ylabel("$M"); ax.grid(axis="y")
-                st.pyplot(fig, use_container_width=True); plt.close(fig)
+                st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[5]:
         op = result.operating_model; cf = result.cash_flow; ds = result.debt_schedule
@@ -1378,7 +1601,7 @@ def page_summary():
         axes[1,1].set_title("Debt balance ($M)")
         axes[1,1].legend(fontsize=7); axes[1,1].grid(axis="y")
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
     sheets = {
         "P&L":           pl_dataframe(result.operating_model),
@@ -1391,11 +1614,11 @@ def page_summary():
     st.markdown("---")
     col_back, _, col_mc = st.columns([1, 2, 1])
     with col_back:
-        if st.button("← Returns", use_container_width=True, key="p4_back"):
+        if st.button("← Returns", width="stretch", key="p4_back"):
             st.session_state.page = 3; st.session_state.mode = "deal"; st.rerun()
     with col_mc:
         if st.button("→ Monte Carlo", type="primary",
-                     use_container_width=True, key="p4_mc"):
+                     width="stretch", key="p4_mc"):
             st.session_state.page = 5; st.session_state.mode = "mc"; st.rerun()
 
 # ---------------------------------------------------------------------------
@@ -1471,159 +1694,30 @@ def page_monte_carlo():
         s.mc_gm_std = st.number_input(" ", value=float(s.mc_gm_std),
                                        min_value=0.1, step=0.5, key="mc_fi_gms",
                                        label_visibility="collapsed")
-# Inside page_monte_carlo(), add a live mode section:
-surrogate = SurrogatePredictor.get_instance()
+    render_surrogate_live(s, mc_emult, mc_hold)
+    render_macro_regime()
 
-if surrogate:
-    st.markdown("---")
-    section_hdr("Live sensitivity mode (surrogate model)", "#40c080")
-    live_mode = st.toggle("Enable real-time sliders (< 1ms per update)", 
-                           value=False, key="mc_live_mode")
-
-    if live_mode:
-        st.markdown(
-            f'<div style="font-family:IBM Plex Mono,monospace;font-size:{_sz(9)}px;'
-            f'color:#44445a">Surrogate model active — drag sliders to update '
-            f'distribution instantly. Results are ML approximations '
-            f'(±0.5pp accuracy).</div>',
-            unsafe_allow_html=True,
-        )
-        col_l1, col_l2 = st.columns(2, gap="medium")
-        with col_l1:
-            live_growth  = st.slider("Revenue growth mean (%)", 
-                                      -5.0, 20.0, float(s.mc_growth_mean), 0.1) / 100
-            live_exit    = st.slider("Exit multiple mean (x)",  
-                                      4.0, 20.0, float(s.mc_exit_mean), 0.1)
-            live_interest= st.slider("Interest rate mean (%)",  
-                                      1.0, 15.0, float(s.mc_rate_mean), 0.1) / 100
-        with col_l2:
-            live_margin  = st.slider("Gross margin mean (%)",   
-                                      10.0, 80.0, float(s.mc_gm_mean), 0.5) / 100
-            live_debt    = st.slider("Debt / EV (%)",           
-                                      20.0, 90.0, float(s.d_debt_pct), 1.0) / 100
-            live_exit_std= st.slider("Exit multiple uncertainty (std)", 
-                                      0.3, 5.0, float(s.mc_exit_std), 0.1)
-
-        pred = surrogate.predict(
-            growth_mean=live_growth, growth_std=s.mc_growth_std/100,
-            exit_mean=live_exit, exit_std=live_exit_std,
-            interest_mean=live_interest,
-            gross_margin_mean=live_margin, gross_margin_std=s.mc_gm_std/100,
-            da_pct=s.d_da/100, capex_pct=s.d_capex/100,
-            nwc_pct=s.d_nwc/100, debt_pct=live_debt,
-        )
-
-        lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
-        lv1.metric("Median IRR",       f"{pred.irr_p50*100:.1f}%")
-        lv2.metric("Mean IRR",         f"{pred.irr_mean*100:.1f}%")
-        lv3.metric("5th percentile",   f"{pred.irr_p5*100:.1f}%")
-        lv4.metric("95th percentile",  f"{pred.irr_p95*100:.1f}%")
-        lv5.metric("P(IRR > 20%)",     f"{pred.p_above_20*100:.1f}%")
-        lv6.metric("Wipeout risk",     f"{pred.p_wipeout*100:.1f}%")
-
-        # Live distribution chart
-        fig_live, ax_live = plt.subplots(figsize=(10, 3))
-        pcts = [pred.irr_p5, pred.irr_p10, pred.irr_p25, pred.irr_p50,
-                pred.irr_p75, pred.irr_p90, pred.irr_p95]
-        x_vals = [5, 10, 25, 50, 75, 90, 95]
-        ax_live.fill_betweenx([0, 1], 
-                               [pred.irr_p5*100]*2,
-                               [pred.irr_p95*100]*2, 
-                               color=A1, alpha=0.15, label="5-95% range")
-        ax_live.fill_betweenx([0, 1], 
-                               [pred.irr_p25*100]*2,
-                               [pred.irr_p75*100]*2, 
-                               color=A1, alpha=0.35, label="25-75% range")
-        ax_live.axvline(pred.irr_p50*100, color=A1, lw=2.5, label=f"Median {pred.irr_p50*100:.1f}%")
-        ax_live.axvline(s.mc_hurdle, color=A3, lw=1.5, linestyle=':', label=f"Hurdle {s.mc_hurdle:.0f}%")
-        ax_live.set_xlim(-30, 80)
-        ax_live.set_xlabel("IRR (%)")
-        ax_live.set_title("Live IRR Distribution (Surrogate Model — Updates Instantly)")
-        ax_live.legend(fontsize=8)
-        ax_live.set_yticks([])
-        ax_live.grid(axis='x')
-        st.pyplot(fig_live, use_container_width=True)
-        plt.close(fig_live)
-
-    st.markdown("---")
-    if model_is_trained():
-    regime_col1, regime_col2 = st.columns([2, 3], gap="medium")
-    with regime_col1:
-        if st.button("🌐 Detect Current Macro Regime",
-                      use_container_width=True, key="detect_regime"):
-            with st.spinner("Classifying current macro regime from FRED data..."):
-                regime_info = get_current_regime()
-                st.session_state['current_regime_info'] = regime_info
-
-    if 'current_regime_info' in st.session_state:
-        ri = st.session_state['current_regime_info']
-        regime_colors = {
-            'bull':        '#40c080',
-            'base':        '#85b7eb',
-            'recession':   '#c06060',
-            'stagflation': '#c0a040',
-        }
-        rc = regime_colors.get(ri['regime'], '#888')
-        with regime_col2:
-            st.markdown(
-                f'<div style="background:#0e0e1c;border:0.5px solid {rc};'
-                f'border-radius:6px;padding:8px 14px;'
-                f'font-family:IBM Plex Mono,monospace">'
-                f'<div style="font-size:{_sz(10)}px;color:{rc};font-weight:500">'
-                f'Current regime: {ri["regime"].upper()} '
-                f'({ri["confidence"]:.0%} confidence) '
-                f'· Data as of {ri["data_as_of"]}</div>'
-                f'<div style="font-size:{_sz(9)}px;color:#5a5a72;margin-top:4px">'
-                f'Recession: {ri["label_probabilities"].get("recession",0):.0%} · '
-                f'Expansion: {ri["label_probabilities"].get("bull",0):.0%} · '
-                f'Late cycle: {ri["label_probabilities"].get("base",0):.0%} · '
-                f'Stagflation: {ri["label_probabilities"].get("stagflation",0):.0%}'
-                f'</div></div>',
-                unsafe_allow_html=True,
-            )
-
-# Existing scenario preset buttons, but add auto-apply:
-sc1, sc2, sc3, sc4, sc5 = st.columns(5, gap="small")
-with sc1:
-    if st.button("RECESSION",   use_container_width=True, key="sc_rec"):
-        scenario_override = "recession"
-with sc2:
-    if st.button("BASE",        use_container_width=True, key="sc_base"):
-        scenario_override = "base"
-with sc3:
-    if st.button("BULL",        use_container_width=True, key="sc_bull"):
-        scenario_override = "bull"
-with sc4:
-    if st.button("STAGFLATION", use_container_width=True, key="sc_stag"):
-        scenario_override = "stagflation"
-with sc5:
-    run_mc = st.button("▶ RUN SIMULATION", type="primary",
-                        use_container_width=True, key="sc_run")
-
-# Auto-apply detected regime as preset
-if 'current_regime_info' in st.session_state and scenario_override is None:
-    auto_regime = st.session_state['current_regime_info']['regime']
-    if st.checkbox(f"Auto-apply detected regime ({auto_regime.upper()}) to simulation",
-                    value=False, key="auto_apply_regime"):
-        scenario_override = auto_regime
-        st.info(f"Applying {auto_regime.upper()} preset based on ML regime detection")
     sc1, sc2, sc3, sc4, sc5 = st.columns(5, gap="small")
-    scenario_override = None
+    # Persisted in session state, not a local: a Streamlit button is only True
+    # on the rerun its own click triggers, so a local would always be None by
+    # the time RUN SIMULATION is pressed. "base" is a no-op preset, so the
+    # BASE button doubles as the reset.
+    st.session_state.setdefault("mc_scenario", None)
     with sc1:
-        if st.button("RECESSION",   use_container_width=True, key="sc_rec"):
-            scenario_override = "recession"
+        if st.button("RECESSION",   width="stretch", key="sc_rec"):
+            st.session_state.mc_scenario = "recession"
     with sc2:
-        if st.button("BASE",        use_container_width=True, key="sc_base"):
-            scenario_override = "base"
+        if st.button("BASE",        width="stretch", key="sc_base"):
+            st.session_state.mc_scenario = "base"
     with sc3:
-        if st.button("BULL",        use_container_width=True, key="sc_bull"):
-            scenario_override = "bull"
+        if st.button("BULL",        width="stretch", key="sc_bull"):
+            st.session_state.mc_scenario = "bull"
     with sc4:
-        if st.button("STAGFLATION", use_container_width=True, key="sc_stag"):
-            scenario_override = "stagflation"
+        if st.button("STAGFLATION", width="stretch", key="sc_stag"):
+            st.session_state.mc_scenario = "stagflation"
     with sc5:
         run_mc = st.button("▶ RUN SIMULATION", type="primary",
-                           use_container_width=True, key="sc_run")
+                           width="stretch", key="sc_run")
 
     params = SimulationParams(
         n=int(s.mc_n), entry_ebitda=mc_ebitda, entry_multiple=mc_emult,
@@ -1636,9 +1730,20 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
         capex_pct=s.d_capex/100, nwc_pct=s.d_nwc/100,
         debt_pct=s.d_debt_pct/100, senior_pct=s.d_senior_pct/100,
         mezz_spread=s.d_mezz_spread/100,
+        transaction_fees_pct=get_cfg('tx_fee_pct')/100,
+        financing_fees_pct=get_cfg('fin_fee_pct')/100,
+        other_uses=get_cfg('other_uses'),
         n_interest_passes=int(get_cfg('mc_n_passes')),
         corr_matrix=build_corr_matrix(),
     )
+    scenario_override = st.session_state.mc_scenario
+    # A detected macro regime can drive the preset when none is chosen. The
+    # checkbox is a widget, so unlike a local it survives until RUN is pressed.
+    ri = st.session_state.get("current_regime_info")
+    if ri and scenario_override is None:
+        if st.checkbox(f"Apply detected regime ({ri['regime'].upper()}) "
+                       f"to the simulation", key="auto_apply_regime"):
+            scenario_override = ri["regime"]
     if scenario_override:
         params = _get_scenario_params_cfg(scenario_override, params)
         st.info(f"Scenario preset applied: {scenario_override.upper()}")
@@ -1706,7 +1811,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
         axes[2].set_title(f"CDF — P(IRR>{target:.0%}) = {p_hit:.1%}")
         axes[2].legend(fontsize=7); axes[2].grid()
         plt.tight_layout(pad=1.2)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
         # Download — limit to 10k rows to keep file size manageable
         n_dl = min(10000, len(irr))
@@ -1737,7 +1842,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
             axes[i].set_xlabel(col); axes[i].set_ylabel("IRR (%)")
             axes[i].set_title(f"IRR vs {col}"); axes[i].grid()
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[2]:
         cl, cr = st.columns(2, gap="medium")
@@ -1750,7 +1855,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
                         vmin=-1, vmax=1, ax=ax, linewidths=0.5,
                         linecolor="#16162a", annot_kws={"size": 9})
             ax.set_title("Empirical correlations")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
         with cr:
             section_hdr("Driver tornado (Spearman rho)")
             from scipy.stats import spearmanr
@@ -1772,7 +1877,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
             for bar, v in zip(bars, vals):
                 ax.text(v+0.01*np.sign(v), bar.get_y()+bar.get_height()/2,
                         f"{v:.2f}", va="center", fontsize=9, color="#c4c4d4")
-            st.pyplot(fig, use_container_width=True); plt.close(fig)
+            st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[3]:
         section_hdr("IRR heatmap — growth × exit multiple")
@@ -1809,7 +1914,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
                 v = irr_grid[i2, j2] * 100
                 ax.text(j2, i2, f"{v:.0f}%", ha="center", va="center",
                         fontsize=8, color="black" if 10<v<40 else "white")
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
     with tabs[4]:
         section_hdr("All four scenarios")
@@ -1831,7 +1936,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
             (moic_data, "MOIC by scenario", "x"),
         ]):
             bp = axes[ax_i].boxplot(
-                data, labels=slabels, patch_artist=True,
+                data, tick_labels=slabels, patch_artist=True,
                 medianprops=dict(color="#ffffff", lw=2),
                 whiskerprops=dict(color="#5a5a72"),
                 capprops=dict(color="#5a5a72"),
@@ -1845,7 +1950,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
             if ax_i == 0:
                 axes[ax_i].axhline(target*100, color=A3, lw=1, linestyle=":")
         plt.tight_layout(pad=1.5)
-        st.pyplot(fig, use_container_width=True); plt.close(fig)
+        st.pyplot(fig, width="stretch"); plt.close(fig)
 
         comp = []
         for sc in ["recession","base","bull","stagflation"]:
@@ -1861,7 +1966,7 @@ if 'current_regime_info' in st.session_state and scenario_override is None:
                 "Wipeout":         pf(float(sr.wipeout_rate) * 100),
             })
         comp_df = pd.DataFrame(comp).set_index("Scenario")
-        st.dataframe(comp_df, use_container_width=True)
+        st.dataframe(comp_df, width="stretch")
         dl_btn("Download scenario comparison",
                _df_to_excel(comp_df), "scenario_comparison.xlsx", "dl_sc")
 

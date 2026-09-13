@@ -158,8 +158,14 @@ def check_deal(entry_mult:   float,
     x_scaled = scaler.transform(x)
 
     raw_score  = float(detector.score_samples(x_scaled)[0])
-    is_anomaly = raw_score < -0.1  # threshold
-    severity   = float(np.clip((-raw_score - 0.1) / 0.4, 0, 1))
+    # Use the fitted model's own threshold. The previous hard-coded -0.1 sat
+    # above every historical score (-0.74 .. -0.38), so it flagged 100% of
+    # deals, successful and failed alike; offset_ flags 5% of the successes
+    # and all of the failures.
+    is_anomaly = raw_score < detector.offset_
+    # 0 at the threshold, 1 at the most anomalous historical failure
+    # (about 0.2 below offset_).
+    severity   = float(np.clip((detector.offset_ - raw_score) / 0.2, 0, 1))
 
     # Find nearest historical deals
     distances, indices = nn_model.kneighbors(x_scaled)
@@ -172,7 +178,11 @@ def check_deal(entry_mult:   float,
 
     # Generate specific warnings using domain rules
     warnings = []
-    interest_coverage = ebitda_margin / max(leverage * interest_rate, 0.1)
+    # EBITDA / interest. Leverage is debt / EBITDA, so interest is
+    # leverage * EBITDA * rate and coverage reduces to 100 / (leverage * rate%).
+    # (It previously divided the EBITDA *margin* by leverage * rate, scaling
+    # coverage down by margin/100 -- so nearly every deal breached 1.5x.)
+    interest_coverage = 100.0 / max(leverage * interest_rate, 0.1)
 
     if leverage > 8.0:
         warnings.append(

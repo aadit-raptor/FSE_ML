@@ -1,0 +1,54 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MPLBACKEND: Agg   # no display on CI runners
+
+jobs:
+  core:
+    # Core install only: proves the app and its tests work without the
+    # optional ML layer (test_ml.py skips here).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -rs
+
+  ml:
+    # Optional ML layer: runs the anomaly-detector and surrogate tests.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      # CPU-only torch first: the default Linux wheel pulls several GB of CUDA
+      # libraries. requirements-ml.txt then sees torch already satisfied.
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements-ml.txt pytest
+      - name: Run all tests, failing if any ML test skips
+        # shell: bash adds pipefail, so a pytest failure isn't masked by tee
+        shell: bash
+        run: |
+          pytest -rs | tee pytest.log
+          if grep -q SKIPPED pytest.log; then
+            echo "::error::ML tests skipped -- dependencies or model files missing"
+            exit 1
+          fi

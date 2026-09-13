@@ -146,6 +146,17 @@ class SimulationParams:
     minimum_cash_pct : float
         Minimum cash as % of entry EV retained post-close.
 
+    --- Transaction costs ---
+
+    transaction_fees_pct / financing_fees_pct : float
+        Fees as % of entry EV / % of total debt. Default 0.
+
+    other_uses : float
+        Other uses of funds at close ($M). Default 0.
+
+        All three are funded by sponsor equity at close, raising the equity
+        check without buying enterprise value -- matching lbo_engine.run_lbo.
+
     --- Correlation matrix ---
 
     corr_matrix : np.ndarray, shape (5, 5)
@@ -195,6 +206,11 @@ class SimulationParams:
     mezz_spread: float = 0.04
     senior_amort_pct: float = 0.05
     minimum_cash_pct: float = 0.0
+
+    # Transaction costs (funded by sponsor equity at close)
+    transaction_fees_pct: float = 0.0   # % of entry EV
+    financing_fees_pct: float = 0.0     # % of total debt
+    other_uses: float = 0.0             # $M
 
     # Correlation (None = use default)
     corr_matrix: Optional[np.ndarray] = None
@@ -412,7 +428,10 @@ def _run_vectorized_core(
     total_debt   = entry_ev * p.debt_pct                              # scalar
     senior_debt  = total_debt * p.senior_pct                          # scalar
     mezz_debt    = total_debt * (1.0 - p.senior_pct)                  # scalar
-    entry_equity = entry_ev - total_debt                              # scalar
+    entry_costs  = (entry_ev * p.transaction_fees_pct                 # scalar
+                    + total_debt * p.financing_fees_pct
+                    + p.other_uses)
+    entry_equity = entry_ev + entry_costs - total_debt                # scalar
     minimum_cash = entry_ev * p.minimum_cash_pct                      # scalar
 
     senior_rate  = interest                                           # (N,)

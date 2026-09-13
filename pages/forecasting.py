@@ -59,7 +59,11 @@ import matplotlib.ticker as mtick
 import io
 from dataclasses import dataclass, field
 from typing import List, Optional
-from ml.edgar_extractor import fetch_financials, financials_to_session_state
+try:
+    from ml.edgar_extractor import fetch_financials, financials_to_session_state
+    _EDGAR_AVAILABLE = True
+except ImportError:
+    _EDGAR_AVAILABLE = False
 try:
     from simulation.vectorized_simulation import (
         run_vectorized_simulation_full, SimulationParams
@@ -150,7 +154,7 @@ def _to_excel(sheets: dict) -> bytes:
 def _dl(label, data, fname, key):
     st.download_button(f"⬇ {label}", data=data, file_name=fname,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key=key, use_container_width=True)
+        key=key, width="stretch")
 
 # ── 3-Statement Model Engine ──────────────────────────────────────────────────
 
@@ -183,6 +187,12 @@ class HistoricalYear:
     common_stock:  float
     retained_earnings: float
     oci:           float
+    # Deferred tax, lease, pension and other non-current liabilities. Held
+    # flat in the forecast: no revenue driver, so no cash flow of its own.
+    other_ncl:     float = 0.0
+    # Goodwill, intangibles, long-term investments, lease assets. Held flat for
+    # the same reason: they do not scale with revenue or consume cash as it grows.
+    other_lta:     float = 0.0
 
 @dataclass
 class ForecastAssumptions:
@@ -246,6 +256,8 @@ class ForecastYear:
     ap:           float = 0
     other_cl:     float = 0
     deferred_rev: float = 0
+    other_ncl:    float = 0
+    other_lta:    float = 0
     revolver:     float = 0
     ltd:          float = 0
     total_liab:   float = 0
@@ -298,7 +310,8 @@ def run_3_statement_model(
       AP               = COGS × ap_days / 365
       NWC              = AR + Inventory - AP
 
-      CFO  = NI + DA + SBC - ΔNWC + Δother_cl + Δdeferred_rev + Δother_nca
+      CFO  = NI + DA + SBC - ΔNWC - Δother_current + Δother_cl
+             + Δdeferred_rev - Δother_nca
       CFI  = -Capex
       CFF  = LTD_change - Dividends - Repurchases + Revolver_draw
       ΔCash = CFO + CFI + CFF
@@ -306,7 +319,9 @@ def run_3_statement_model(
       Revolver (plug): if cash_end < min_cash → draw revolver to fill gap
                         if cash_end > 0 → pay down revolver first
 
-      Balance check: Total assets - Total liabilities - Total equity = 0
+      Balance check: Total assets - Total liabilities - Total equity.
+      The forecast adds no gap of its own, so each year's check equals the
+      opening (LTM) gap -- zero when the historical balance sheet balances.
     """
     results = []
     prev = last_hist
@@ -317,9 +332,14 @@ def run_3_statement_model(
     prev_ap  = prev.ap
     prev_nwc = prev_ar + prev_inv - prev_ap
 
+    prev_other_cur = prev.other_current
     prev_other_cl  = prev.other_cl
     prev_def_rev   = prev.deferred_rev
     prev_other_nca = prev.other_nca
+    # Other current assets have no forecast driver, so hold the company's own
+    # LTM ratio to revenue (previously a hard-coded 12%, which ignored the
+    # historical input entirely).
+    other_cur_pct  = (prev.other_current / prev.revenue) if prev.revenue else 0.0
     prev_cash      = prev.cash
     prev_revolver  = 0.0   # assume no revolver at start
 
@@ -368,7 +388,7 @@ def run_3_statement_model(
         yr.delta_nwc = yr.nwc - prev_nwc                # + = cash use
 
         # ── Other balance sheet items ─────────────────────────────────────
-        yr.other_current = yr.revenue * 0.12    # flat ratio — user can extend
+        yr.other_current = yr.revenue * other_cur_pct
         yr.other_nca     = yr.revenue * a.other_nca_pct
         yr.other_cl      = yr.revenue * a.other_cl_pct
         yr.deferred_rev  = yr.revenue * a.deferred_rev_pct
@@ -382,8 +402,11 @@ def run_3_statement_model(
         yr.ltd         = prev.ltd + a.ltd_change
         yr.common_stock= prev.common_stock + yr.sbc  # SBC vesting adds to APIC (WSP)
         yr.oci         = prev.oci                   # assume static
+        yr.other_ncl   = prev.other_ncl             # held flat, like OCI
+        yr.other_lta   = prev.other_lta             # held flat
 
         # ── Cash flow statement ───────────────────────────────────────────
+        delta_other_cur = yr.other_current - prev_other_cur
         delta_other_cl  = yr.other_cl  - prev_other_cl
         delta_def_rev   = yr.deferred_rev - prev_def_rev
         delta_other_nca = yr.other_nca - prev_other_nca
@@ -392,6 +415,7 @@ def run_3_statement_model(
                   + yr.da
                   + yr.sbc
                   - yr.delta_nwc
+                  - delta_other_cur
                   + delta_other_cl
                   + delta_def_rev
                   - delta_other_nca)
@@ -424,14 +448,16 @@ def run_3_statement_model(
 
         # ── Balance sheet ─────────────────────────────────────────────────
         yr.total_assets = (yr.cash + yr.ar + yr.inventory + yr.other_current
-                           + yr.ppe_net + yr.other_nca)
+                           + yr.ppe_net + yr.other_nca + yr.other_lta)
 
         yr.ap_abs    = abs(yr.ap)   # store as positive for display
         yr.total_liab= (yr.ap_abs + yr.other_cl + yr.deferred_rev
-                        + yr.revolver + yr.ltd)
+                        + yr.revolver + yr.ltd + yr.other_ncl)
 
         yr.total_equity = yr.common_stock + yr.retained_earn + yr.oci
         yr.balance_check= yr.total_assets - yr.total_liab - yr.total_equity
+        if abs(yr.balance_check) < 1e-9:   # float noise, not a gap; avoids "$-0.0"
+            yr.balance_check = 0.0
 
         results.append(yr)
 
@@ -444,6 +470,7 @@ def run_3_statement_model(
         prev.common_stock = yr.common_stock
         prev.oci       = yr.oci
         prev_nwc       = yr.nwc
+        prev_other_cur = yr.other_current
         prev_other_cl  = yr.other_cl
         prev_def_rev   = yr.deferred_rev
         prev_other_nca = yr.other_nca
@@ -500,12 +527,14 @@ def _hist_input_block(n_hist, unit):
         ("h_ocurr",     f"Other current assets ({unit})",      37.9,  2.0),
         ("h_ppe",       f"PP&E net ({unit})",                  41.3,  2.0),
         ("h_nca",       f"Other non-current assets ({unit})",  22.3,  2.0),
+        ("h_lta",       f"Goodwill & other long-term assets ({unit})", 0.0, 5.0),
         ("h_ap",        f"Accounts payable ({unit})",          55.9,  2.0),
         ("h_ocl",       f"Other current liabilities ({unit})", 32.7,  2.0),
         ("h_def",       f"Deferred revenue ({unit})",          10.3,  1.0),
         ("h_ltd",       f"Long-term debt ({unit})",           102.5,  5.0),
+        ("h_ncl",       f"Other non-current liabilities ({unit})", 0.0, 5.0),
         ("h_cs",        f"Common stock ({unit})",              40.2,  2.0),
-        ("h_re",        f"Retained earnings ({unit})",         70.4,  5.0),
+        ("h_re",        f"Retained earnings ({unit})",        127.6,  5.0),
         ("h_oci",       f"Other comprehensive income ({unit})", -3.5, 0.5),
         # ── Additional data ───────────────────────────────────
         ("__hdr_ad__",  "── ADDITIONAL DATA ──", None, None),
@@ -604,6 +633,8 @@ def _hist_input_block(n_hist, unit):
         common_stock=last("h_cs"),
         retained_earnings=last("h_re"),
         oci=last("h_oci"),
+        other_ncl=last("h_ncl"),
+        other_lta=last("h_lta"),
     )
     return ltm, pd.DataFrame(hist_rows_display).set_index("Year")
 
@@ -619,6 +650,12 @@ def _assumption_inputs(n_fwd, ltm, unit):
         "Blue = input you set.  "
         "Enter one value per forecast year or use flat assumptions across all years."
     )
+
+    # Set by the EDGAR fetch. Deleting the widget keys is not enough: a keyed
+    # widget keeps its identity, so the browser sends its old value back on the
+    # next interaction. Assigning the new defaults through session state is
+    # what updates the browser too.
+    reseed = st.session_state.pop("_fc2_reseed_grid", False)
 
     # Compute historical averages for smart defaults
     rev     = ltm.revenue if ltm.revenue > 0 else 1
@@ -711,10 +748,12 @@ def _assumption_inputs(n_fwd, ltm, unit):
             )
 
         for j in range(n_fwd):
+            wkey = f"fwd_{key}_{j}"
+            if reseed or wkey not in st.session_state:
+                st.session_state[wkey] = float(default)
             with row_cols[j+1]:
                 val = st.number_input(
-                    " ", value=float(default), step=float(step),
-                    key=f"fwd_{key}_{j}",
+                    " ", step=float(step), key=wkey,
                     label_visibility="collapsed",
                 )
             collected[key].append(val)
@@ -807,6 +846,16 @@ def _make_is_df(ltm, fwd, unit):
     return df.set_index("Line item")
 
 
+def _opening_bs_gap(ltm):
+    """Assets - liabilities - equity on the LTM (opening) balance sheet."""
+    assets = (ltm.cash + ltm.ar + ltm.inventory + ltm.other_current
+              + ltm.ppe_net + ltm.other_nca + ltm.other_lta)
+    liab   = ltm.ap + ltm.other_cl + ltm.deferred_rev + ltm.ltd + ltm.other_ncl
+    equity = ltm.common_stock + ltm.retained_earnings + ltm.oci
+    gap = assets - liab - equity
+    return 0.0 if abs(gap) < 1e-9 else gap   # float noise, not a gap
+
+
 def _make_bs_df(ltm, fwd):
     cols = ["LTM"] + [y.year for y in fwd]
     def r(label, vals):
@@ -819,21 +868,23 @@ def _make_bs_df(ltm, fwd):
         r("Other current",      [ltm.other_current]+ [y.other_current for y in fwd]),
         r("PP&E net",           [ltm.ppe_net]  + [y.ppe_net      for y in fwd]),
         r("Other non-current",  [ltm.other_nca]+ [y.other_nca   for y in fwd]),
-        r("TOTAL ASSETS",       [ltm.cash+ltm.ar+ltm.inventory+ltm.other_current+ltm.ppe_net+ltm.other_nca]
+        r("Goodwill & other LT",[ltm.other_lta]+ [y.other_lta   for y in fwd]),
+        r("TOTAL ASSETS",       [ltm.cash+ltm.ar+ltm.inventory+ltm.other_current+ltm.ppe_net+ltm.other_nca+ltm.other_lta]
                                 + [y.total_assets for y in fwd]),
         r("Accounts payable",   [ltm.ap]       + [y.ap_abs       for y in fwd]),
         r("Other curr liab",    [ltm.other_cl] + [y.other_cl     for y in fwd]),
         r("Deferred revenue",   [ltm.deferred_rev]+ [y.deferred_rev for y in fwd]),
         r("Revolver",           [0.0]          + [y.revolver     for y in fwd]),
         r("Long-term debt",     [ltm.ltd]      + [y.ltd          for y in fwd]),
-        r("TOTAL LIABILITIES",  [ltm.ap+ltm.other_cl+ltm.deferred_rev+ltm.ltd]
+        r("Other non-curr liab",[ltm.other_ncl]+ [y.other_ncl    for y in fwd]),
+        r("TOTAL LIABILITIES",  [ltm.ap+ltm.other_cl+ltm.deferred_rev+ltm.ltd+ltm.other_ncl]
                                 + [y.total_liab for y in fwd]),
         r("Common stock",       [ltm.common_stock]+ [y.common_stock for y in fwd]),
         r("Retained earnings",  [ltm.retained_earnings]+ [y.retained_earn for y in fwd]),
         r("OCI",                [ltm.oci]      + [y.oci          for y in fwd]),
         r("TOTAL EQUITY",       [ltm.common_stock+ltm.retained_earnings+ltm.oci]
                                 + [y.total_equity for y in fwd]),
-        r("Balance check",      [0.0]          + [y.balance_check for y in fwd]),
+        r("Balance check",      [_opening_bs_gap(ltm)] + [y.balance_check for y in fwd]),
     ]
     df = pd.DataFrame(rows, columns=["Line item"] + cols)
     return df.set_index("Line item")
@@ -1087,7 +1138,7 @@ def render_forecasting():
     with ec2:
         edgar_fetch = st.button("⬇ Fetch from EDGAR", 
                                 type="primary", key="edgar_fetch",
-                                use_container_width=True)
+                                width="stretch")
     with ec3:
         if 'edgar_company_name' in st.session_state:
             st.markdown(
@@ -1096,7 +1147,10 @@ def render_forecasting():
                 unsafe_allow_html=True,
             )
 
-    if edgar_fetch and edgar_ticker:
+    if edgar_fetch and edgar_ticker and not _EDGAR_AVAILABLE:
+        st.error("EDGAR autofill is unavailable — the optional `ml` "
+                 "package is not installed. Enter figures manually below.")
+    if edgar_fetch and edgar_ticker and _EDGAR_AVAILABLE:
         with st.spinner(f"Fetching financials for {edgar_ticker.upper()} from SEC EDGAR..."):
             try:
                 extracted = fetch_financials(edgar_ticker.upper(), n_years=3)
@@ -1105,6 +1159,12 @@ def render_forecasting():
                     st.session_state[key] = val
                 st.session_state['edgar_company_name'] = extracted.company_name
                 st.session_state['fc2_company'] = extracted.company_name
+                # Re-seed the forecast grid from the fetched company; without
+                # this it kept assumptions derived from the previous
+                # historicals (e.g. the placeholder 38.5% gross margin for
+                # MSFT). See _assumption_inputs() for why this is a flag.
+                st.session_state["_fc2_reseed_grid"] = True
+                st.session_state.pop("fc2_result", None)
                 if extracted.warnings:
                     st.warning("Data loaded with warnings:\n" + 
                             "\n".join(f"• {w}" for w in extracted.warnings))
@@ -1116,38 +1176,38 @@ def render_forecasting():
                     )
             except Exception as e:
                 st.error(f"Could not fetch data for '{edgar_ticker}': {e}")
-        # ── Company info ──────────────────────────────────────────────────────
-        _section("Company information", "#85b7eb")
-        ci1, ci2, ci3, ci4 = st.columns(4, gap="medium")
-        with ci1:
-            _lbl("Company name")
-            company = st.text_input(" ", value="",
-                                    placeholder="e.g. Apple Inc.",
-                                    key="fc2_company",
-                                    label_visibility="collapsed")
-        with ci2:
-            _lbl("Ticker / Sector")
-            sector = st.text_input(" ", value="",
-                                placeholder="e.g. AAPL / Technology",
-                                key="fc2_sector",
+    # ── Company info ──────────────────────────────────────────────────────
+    _section("Company information", "#85b7eb")
+    ci1, ci2, ci3, ci4 = st.columns(4, gap="medium")
+    with ci1:
+        _lbl("Company name")
+        company = st.text_input(" ", value="",
+                                placeholder="e.g. Apple Inc.",
+                                key="fc2_company",
                                 label_visibility="collapsed")
-        with ci3:
-            _lbl("Currency / unit")
-            currency = st.selectbox(" ",
-                                    ["$ (Millions)", "₹ (Crores)",
-                                    "€ (Millions)", "£ (Millions)"],
-                                    key="fc2_currency",
-                                    label_visibility="collapsed")
-            unit = currency.split("(")[0].strip()
-        with ci4:
-            _lbl("Forecast horizon (years)")
-            n_fwd = int(st.number_input(" ", value=5.0, min_value=1.0,
-                                        max_value=10.0, step=1.0,
-                                        key="fc2_nfwd",
-                                        label_visibility="collapsed"))
+    with ci2:
+        _lbl("Ticker / Sector")
+        sector = st.text_input(" ", value="",
+                            placeholder="e.g. AAPL / Technology",
+                            key="fc2_sector",
+                            label_visibility="collapsed")
+    with ci3:
+        _lbl("Currency / unit")
+        currency = st.selectbox(" ",
+                                ["$ (Millions)", "₹ (Crores)",
+                                "€ (Millions)", "£ (Millions)"],
+                                key="fc2_currency",
+                                label_visibility="collapsed")
+        unit = currency.split("(")[0].strip()
+    with ci4:
+        _lbl("Forecast horizon (years)")
+        n_fwd = int(st.number_input(" ", value=5.0, min_value=1.0,
+                                    max_value=10.0, step=1.0,
+                                    key="fc2_nfwd",
+                                    label_visibility="collapsed"))
 
-        company = company if company else "Company"
-        n_hist = 3
+    company = company if company else "Company"
+    n_hist = 3
 
     # ── Historical data input ─────────────────────────────────────────────
     _section("Step 1 — Historical data input ", "#5dcaa5")
@@ -1163,7 +1223,7 @@ def render_forecasting():
 
     # Show computed historical ratios
     _section("Historical metrics (auto-computed)", "#44445a")
-    st.dataframe(hist_summary, use_container_width=True)
+    st.dataframe(hist_summary, width="stretch")
 
     # ── Forecast assumptions ──────────────────────────────────────────────
     _section("Step 2 — Forecast assumptions (one column per year)", "#afa9ec")
@@ -1183,7 +1243,7 @@ def render_forecasting():
     with col_run:
         run_model = st.button("▶  Run 3-statement model",
                               type="primary", key="fc2_run",
-                              use_container_width=True)
+                              width="stretch")
     with col_sim:
         run_sim = st.checkbox("Also run Monte Carlo simulation",
                               value=True, key="fc2_run_sim")
@@ -1252,7 +1312,7 @@ def render_forecasting():
     with tabs[0]:
         _section("Income statement — LTM + forecast", "#85b7eb")
         is_df = _make_is_df(ltm, fwd, unit)
-        st.dataframe(is_df, use_container_width=True)
+        st.dataframe(is_df, width="stretch")
         _dl("Download income statement",
             _to_excel({"Income Statement": is_df.reset_index()}),
             "income_statement.xlsx", "dl_fc_is")
@@ -1261,15 +1321,26 @@ def render_forecasting():
     with tabs[1]:
         _section("Balance sheet", "#5dcaa5")
         bs_df = _make_bs_df(ltm, fwd)
-        st.dataframe(bs_df, use_container_width=True)
+        st.dataframe(bs_df, width="stretch")
 
-        # Highlight balance check
+        # Separate an unbalanced *input* from a gap the *forecast* introduces.
+        # The model carries the opening gap forward unchanged, so blaming the
+        # forecast assumptions for it would send the user to the wrong place.
+        opening_gap = _opening_bs_gap(ltm)
+        if abs(opening_gap) > 0.5:
+            st.warning(
+                f"The historical (LTM) balance sheet does not balance: "
+                f"assets exceed liabilities + equity by ${opening_gap:,.1f}. "
+                f"The forecast carries this gap forward unchanged. Check the "
+                f"balance sheet inputs above -- with EDGAR data, lines the "
+                f"extractor could not map (and so left at 0) are a common cause."
+            )
         for y in fwd:
-            if abs(y.balance_check) > 0.5:
+            model_gap = y.balance_check - opening_gap
+            if abs(model_gap) > 0.5:
                 st.warning(
-                    f"Balance sheet does not balance in {y.year}: "
-                    f"${y.balance_check:.1f} gap. "
-                    f"Check revolver / other assumptions."
+                    f"The forecast introduced a ${model_gap:,.1f} balance sheet "
+                    f"gap by {y.year}. Check revolver / other assumptions."
                 )
 
         _dl("Download balance sheet",
@@ -1280,7 +1351,7 @@ def render_forecasting():
     with tabs[2]:
         _section("Cash flow statement", "#ef9f27")
         cf_df = _make_cf_df(fwd)
-        st.dataframe(cf_df, use_container_width=True)
+        st.dataframe(cf_df, width="stretch")
         _dl("Download cash flow",
             _to_excel({"Cash Flow": cf_df.reset_index()}),
             "cash_flow.xlsx", "dl_fc_cf")
@@ -1290,12 +1361,12 @@ def render_forecasting():
         _section("PP&E roll-forward", "#5dcaa5")
         _note("Beginning + Capex − Depreciation = Ending.")
         ppe_df = _make_ppe_df(ltm, fwd)
-        st.dataframe(ppe_df, use_container_width=True)
+        st.dataframe(ppe_df, width="stretch")
 
         _section("Retained earnings roll-forward", "#85b7eb")
         _note("Beginning + Net income − Dividends − Repurchases = Ending.")
         re_df = _make_re_df(ltm, fwd)
-        st.dataframe(re_df, use_container_width=True)
+        st.dataframe(re_df, width="stretch")
 
         _section("Working capital schedule (AR/Inventory/AP days)", "#afa9ec")
         wc_rows = []
@@ -1312,7 +1383,7 @@ def render_forecasting():
                     f"{(assumptions[fwd.index(y)].ar_days + assumptions[fwd.index(y)].inv_days - assumptions[fwd.index(y)].ap_days):.0f} days",
             })
         wc_df = pd.DataFrame(wc_rows).set_index("Year")
-        st.dataframe(wc_df, use_container_width=True)
+        st.dataframe(wc_df, width="stretch")
 
         _section("Interest schedule", "#40a0c0")
         int_rows = []
@@ -1328,7 +1399,7 @@ def render_forecasting():
                 "Interest exp":  f"(${abs(y.interest_exp):,.1f})",
             })
         int_df = pd.DataFrame(int_rows).set_index("Year")
-        st.dataframe(int_df, use_container_width=True)
+        st.dataframe(int_df, width="stretch")
 
         _section("Revolver (model plug)", "#f0997b")
         _note("The revolver draws when ending cash would fall below the minimum cash balance.")
@@ -1341,7 +1412,7 @@ def render_forecasting():
                 "Ending cash":    f"${y.cash:,.1f}",
             })
         rev_df = pd.DataFrame(rev_rows).set_index("Year")
-        st.dataframe(rev_df, use_container_width=True)
+        st.dataframe(rev_df, width="stretch")
 
         # Combined Excel download
         _dl("Download all schedules",
@@ -1358,7 +1429,7 @@ def render_forecasting():
     with tabs[4]:
         _section("Financial charts", "#c4c4d4")
         fig_is = _plot_is_charts(ltm, fwd, company, unit)
-        st.pyplot(fig_is, use_container_width=True)
+        st.pyplot(fig_is, width="stretch")
         plt.close(fig_is)
 
         # Waterfall: EBITDA to Net income bridge (last forecast year)
@@ -1384,7 +1455,7 @@ def render_forecasting():
         ax_br.set_xticklabels([b[0] for b in bridge_items], fontsize=8)
         ax_br.set_title(f"EBITDA to Net income bridge — {fwd[-1].year}")
         ax_br.grid(axis="y")
-        st.pyplot(fig_br, use_container_width=True)
+        st.pyplot(fig_br, width="stretch")
         plt.close(fig_br)
 
     # ── Tab 6: Simulation overlay ─────────────────────────────────────────
@@ -1396,7 +1467,7 @@ def render_forecasting():
 
             fig_sim = _plot_simulation_charts(fwd, sim_paths, company, unit)
             if fig_sim:
-                st.pyplot(fig_sim, use_container_width=True)
+                st.pyplot(fig_sim, width="stretch")
                 plt.close(fig_sim)
 
             _section("Simulation summary statistics", "#c4c4d4")
@@ -1416,7 +1487,7 @@ def render_forecasting():
                     "Deterministic": f"${([fwd[-1].revenue,fwd[-1].ebitda][stats_rows.__len__()]):,.0f}",
                 })
             st.dataframe(pd.DataFrame(stats_rows).set_index("Metric"),
-                         use_container_width=True)
+                         width="stretch")
 
             # Probability of hitting EBITDA targets
             _section("Probability analysis", "#40c080")
@@ -1435,7 +1506,7 @@ def render_forecasting():
                     "Scenario": ("Bear" if t > det_ebitda_final else
                                  "Bull" if t < det_ebitda_final else "Base"),
                 })
-            st.dataframe(pd.DataFrame(prob_rows), use_container_width=True)
+            st.dataframe(pd.DataFrame(prob_rows), width="stretch")
 
             # Download simulation data
             sim_sample = pd.DataFrame({
