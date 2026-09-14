@@ -68,6 +68,7 @@ from core.forecasting import run_forecast_simulation
 from core.forecasting import (
     HISTORICAL_FIELDS, assumptions_from_grid, default_history_value,
     historical_metrics, ltm_from_history, revenue_cagr, seed_assumptions,
+    simulation_summary,
 )
 try:
     from ml.edgar_extractor import fetch_financials, financials_to_session_state
@@ -1030,40 +1031,33 @@ def render_forecasting():
                 plt.close(fig_sim)
 
             _section("Simulation summary statistics", "#c4c4d4")
+            summary = simulation_summary(fwd, sim_paths)
             rev_final = sim_paths["revenue"][:, -1]
             ebd_final = sim_paths["ebitda"][:, -1]
             stats_rows = []
-            for name, arr in [(f"Revenue Yr+{len(fwd)}", rev_final),
-                               (f"EBITDA Yr+{len(fwd)}",  ebd_final)]:
+            for name, stats in [(f"Revenue Yr+{len(fwd)}", summary["revenue_final"]),
+                                (f"EBITDA Yr+{len(fwd)}",  summary["ebitda_final"])]:
                 stats_rows.append({
                     "Metric":  name,
-                    "Mean":    f"${np.mean(arr):,.0f}",
-                    "Median":  f"${np.median(arr):,.0f}",
-                    "5th pct": f"${np.percentile(arr,5):,.0f}",
-                    "25th pct":f"${np.percentile(arr,25):,.0f}",
-                    "75th pct":f"${np.percentile(arr,75):,.0f}",
-                    "95th pct":f"${np.percentile(arr,95):,.0f}",
-                    "Deterministic": f"${([fwd[-1].revenue,fwd[-1].ebitda][stats_rows.__len__()]):,.0f}",
+                    "Mean":    f"${stats['mean']:,.0f}",
+                    "Median":  f"${stats['median']:,.0f}",
+                    "5th pct": f"${stats['p5']:,.0f}",
+                    "25th pct":f"${stats['p25']:,.0f}",
+                    "75th pct":f"${stats['p75']:,.0f}",
+                    "95th pct":f"${stats['p95']:,.0f}",
+                    "Deterministic": f"${stats['deterministic']:,.0f}",
                 })
             st.dataframe(pd.DataFrame(stats_rows).set_index("Metric"),
                          width="stretch")
 
             # Probability of hitting EBITDA targets
             _section("Probability analysis", "#40c080")
-            det_ebitda_final = fwd[-1].ebitda
-            targets = [det_ebitda_final * 0.80,
-                       det_ebitda_final * 0.90,
-                       det_ebitda_final,
-                       det_ebitda_final * 1.10,
-                       det_ebitda_final * 1.20]
             prob_rows = []
-            for t in targets:
-                p = (ebd_final >= t).mean()
+            for row in summary["target_probabilities"]:
                 prob_rows.append({
-                    f"EBITDA target ({unit})": f"${t:,.0f}",
-                    "P(≥ target)": f"{p:.1%}",
-                    "Scenario": ("Bear" if t > det_ebitda_final else
-                                 "Bull" if t < det_ebitda_final else "Base"),
+                    f"EBITDA target ({unit})": f"${row['target']:,.0f}",
+                    "P(≥ target)": f"{row['probability']:.1%}",
+                    "Scenario": row["scenario"],
                 })
             st.dataframe(pd.DataFrame(prob_rows), width="stretch")
 

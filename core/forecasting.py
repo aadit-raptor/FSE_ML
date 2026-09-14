@@ -584,3 +584,51 @@ def assumptions_from_grid(collected, n_fwd):
 
 def revenue_cagr(ltm, fwd):
     return (fwd[-1].revenue / ltm.revenue) ** (1/len(fwd)) - 1
+
+
+def simulation_summary(fwd, sim_paths):
+    """Statistics shown on the forecasting page's simulation overlay.
+
+    Moved from render_forecasting and _plot_simulation_charts. Target labels
+    are kept as the page shows them: a target above the deterministic EBITDA
+    is labelled "Bear" and one below it "Bull".
+    """
+    rev_paths = sim_paths["revenue"]     # shape (n_scenarios, n_fwd)
+    ebitda_paths = sim_paths["ebitda"]
+    rev_final = rev_paths[:, -1]
+    ebd_final = ebitda_paths[:, -1]
+
+    def bands(paths):
+        return {q: np.percentile(paths, int(q[1:]), axis=0)
+                for q in ("p5", "p25", "p50", "p75", "p95")}
+
+    def final_stats(arr, deterministic):
+        return {"mean": np.mean(arr), "median": np.median(arr),
+                "p5": np.percentile(arr, 5), "p25": np.percentile(arr, 25),
+                "p75": np.percentile(arr, 75), "p95": np.percentile(arr, 95),
+                "deterministic": deterministic}
+
+    det_ebitda_final = fwd[-1].ebitda
+    targets = [det_ebitda_final * 0.80,
+               det_ebitda_final * 0.90,
+               det_ebitda_final,
+               det_ebitda_final * 1.10,
+               det_ebitda_final * 1.20]
+    target_probabilities = [{
+        "target": t,
+        "probability": (ebd_final >= t).mean(),
+        "scenario": ("Bear" if t > det_ebitda_final else
+                     "Bull" if t < det_ebitda_final else "Base"),
+    } for t in targets]
+
+    growth_final = (rev_paths[:, -1] / rev_paths[:, 0]) ** (1/len(fwd)) - 1
+
+    return {
+        "revenue_bands": bands(rev_paths),
+        "ebitda_bands": bands(ebitda_paths),
+        "revenue_final": final_stats(rev_final, fwd[-1].revenue),
+        "ebitda_final": final_stats(ebd_final, fwd[-1].ebitda),
+        "ebitda_final_median": np.percentile(ebitda_paths[:, -1], 50),
+        "target_probabilities": target_probabilities,
+        "growth_final_mean": np.mean(growth_final),
+    }
