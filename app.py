@@ -20,7 +20,19 @@ from analytics.risk_metrics import calculate_risk_metrics
 from lbo_engine.model import LBOParams, run_lbo
 from lbo_engine.capital_structure import build_simple_two_tranche_structure
 from lbo_engine.returns import compute_exit_sensitivity, print_sensitivity_table
-from pages.settings import init_cfg, get_cfg, build_corr_matrix
+from pages.settings import init_cfg, get_cfg, build_corr_matrix, current_cfg
+from core.deal import (
+    DealInputs, bridge_steps as _core_bridge_steps,
+    capital_structure_from_multiples, entry_costs as _core_entry_costs,
+    risk_model_inputs, run_deal as _core_run_deal, sources_and_uses,
+)
+from core.surrogate import surrogate_features, training_term_differences
+from core.surrogate import tail_unreliable as surrogate_tail_unreliable
+from core.montecarlo import (
+    SCENARIOS, MCInputs, analysis_sample, apply_scenario, build_sim_params,
+    driver_fits, driver_sensitivity, empirical_correlations, growth_exit_heatmap,
+    risk_summary, run_scenarios, scenario_stats,
+)
 
 import importlib.util
 
@@ -680,25 +692,18 @@ def render_surrogate_live(s, mc_emult, mc_hold):
         return
 
     # The surrogate learned 11 inputs on a fixed deal; say where this one differs
-    terms = [
-        ("entry multiple", mc_emult, fx["entry_multiple"], lambda v: f"{v:.1f}x"),
-        ("holding period", mc_hold, fx["holding_period"], lambda v: f"{v:.0f} yrs"),
-        ("opex / revenue", s.d_opex / 100, fx["opex_pct"], lambda v: f"{v:.1%}"),
-        ("tax rate", s.d_tax / 100, fx["tax_rate"], lambda v: f"{v:.1%}"),
-        ("senior / total debt", s.d_senior_pct / 100, fx["senior_pct"],
-         lambda v: f"{v:.0%}"),
-        ("mezz spread", s.d_mezz_spread / 100, fx["mezz_spread"], lambda v: f"{v:.2%}"),
-        ("interest rate std dev", s.mc_rate_std / 100, fx["interest_std"],
-         lambda v: f"{v:.2%}"),
-        ("transaction fees", get_cfg("tx_fee_pct") / 100, fx["transaction_fees_pct"],
-         lambda v: f"{v:.1%}"),
-        ("financing fees", get_cfg("fin_fee_pct") / 100, fx["financing_fees_pct"],
-         lambda v: f"{v:.1%}"),
-        ("other uses", get_cfg("other_uses"), fx["other_uses"], lambda v: f"${v:,.0f}M"),
-    ]
-    diffs = [f"{name} {fmt(yours)} (model {fmt(model)})"
-             for name, yours, model, fmt in terms
-             if abs(float(yours) - float(model)) > 1e-6]
+    mc = MCInputs(n=s.mc_n, ebitda=s.d_ebitda, entry_mult=mc_emult, hold=mc_hold,
+                  hurdle=s.mc_hurdle, growth_mean=s.mc_growth_mean,
+                  growth_std=s.mc_growth_std, exit_mean=s.mc_exit_mean,
+                  exit_std=s.mc_exit_std, rate_mean=s.mc_rate_mean,
+                  rate_std=s.mc_rate_std, gm_mean=s.mc_gm_mean, gm_std=s.mc_gm_std)
+    deal = _deal_inputs(s)
+    fmt = {("multiple", 1): lambda v: f"{v:.1f}x", ("years", 0): lambda v: f"{v:.0f} yrs",
+           ("percent", 0): lambda v: f"{v:.0%}", ("percent", 1): lambda v: f"{v:.1%}",
+           ("percent", 2): lambda v: f"{v:.2%}", ("usd_millions", 0): lambda v: f"${v:,.0f}M"}
+    diffs = [f"{d['term']} {fmt[d['unit'], d['decimals']](d['value'])} "
+             f"(model {fmt[d['unit'], d['decimals']](d['model_value'])})"
+             for d in training_term_differences(mc, deal, current_cfg(), fx)]
     if diffs:
         st.warning("The surrogate was trained on a fixed deal, and this one differs "
                    "in: " + "; ".join(diffs) + ". Treat the live figures as "
@@ -710,33 +715,24 @@ def render_surrogate_live(s, mc_emult, mc_hold):
     col_l1, col_l2 = st.columns(2, gap="medium")
     with col_l1:
         live_growth = st.slider("Revenue growth mean (%)", -5.0, 20.0,
-                                float(s.mc_growth_mean), 0.1, key="live_growth") / 100
+                                float(s.mc_growth_mean), 0.1, key="live_growth")
         live_exit = st.slider("Exit multiple mean (x)", 4.0, 20.0,
                               float(s.mc_exit_mean), 0.1, key="live_exit")
         live_interest = st.slider("Interest rate mean (%)", 1.0, 15.0,
-                                  float(s.mc_rate_mean), 0.1, key="live_rate") / 100
+                                  float(s.mc_rate_mean), 0.1, key="live_rate")
     with col_l2:
         live_margin = st.slider("Gross margin mean (%)", 10.0, 80.0,
-                                float(s.mc_gm_mean), 0.5, key="live_gm") / 100
+                                float(s.mc_gm_mean), 0.5, key="live_gm")
         live_debt = st.slider("Debt / EV (%)", 20.0, 90.0,
-                              float(s.d_debt_pct), 1.0, key="live_debt") / 100
+                              float(s.d_debt_pct), 1.0, key="live_debt")
         live_exit_std = st.slider("Exit multiple uncertainty (std)", 0.3, 5.0,
                                   float(s.mc_exit_std), 0.1, key="live_exit_std")
 
-    pred = surrogate.predict(
-        growth_mean=live_growth, growth_std=s.mc_growth_std / 100,
-        exit_mean=live_exit, exit_std=live_exit_std,
-        interest_mean=live_interest,
-        gross_margin_mean=live_margin, gross_margin_std=s.mc_gm_std / 100,
-        da_pct=s.d_da / 100, capex_pct=s.d_capex / 100,
-        nwc_pct=s.d_nwc / 100, debt_pct=live_debt,
-    )
-    # Near the wipeout cliff the true 5th percentile falls steeply toward the
-    # -100% floor and the network smooths over it. Measured on 400 random
-    # deals: 5th-percentile error was 0.2pp median below 1% wipeout, but up to
-    # 23pp around 5%. The surrogate's own wipeout prediction is accurate, and
-    # flagging at >= 2% caught every error above 3pp while flagging 12% of deals.
-    tail_unreliable = pred.p_wipeout >= 0.02
+    pred = surrogate.predict(**surrogate_features(
+        mc, deal, growth_mean=live_growth, exit_mean=live_exit,
+        interest_mean=live_interest, gross_margin_mean=live_margin,
+        debt_pct=live_debt, exit_std=live_exit_std))
+    tail_unreliable = surrogate_tail_unreliable(pred.p_wipeout)
 
     lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
     lv1.metric("Median IRR",      f"{pred.irr_p50 * 100:.1f}%")
@@ -766,33 +762,27 @@ def render_surrogate_live(s, mc_emult, mc_hold):
     st.pyplot(fig, width="stretch"); plt.close(fig)
 
 
+def _deal_inputs(s) -> DealInputs:
+    """The deal wizard's current inputs, from session state."""
+    return DealInputs(
+        ebitda=s.d_ebitda, entry_mult=s.d_entry_mult, exit_mult=s.d_exit_mult,
+        hold=s.d_hold, growth=s.d_growth, gross_margin=s.d_gross_margin,
+        opex=s.d_opex, tax=s.d_tax, da=s.d_da, debt_pct=s.d_debt_pct,
+        senior_pct=s.d_senior_pct, base_rate=s.d_base_rate,
+        mezz_spread=s.d_mezz_spread, capex=s.d_capex, nwc=s.d_nwc,
+        mincash=s.d_mincash, wsp_mode=s.get("d_wsp_mode", False),
+        ar_days=s.get("d_ar_days", 45.0), inv_days=s.get("d_inv_days", 30.0),
+        ap_days=s.get("d_ap_days", 60.0),
+    )
+
+
 def _entry_costs(entry_ev, total_debt):
     """Fees and other uses funded by sponsor equity at close ($M)."""
-    return (entry_ev * get_cfg('tx_fee_pct') / 100
-            + total_debt * get_cfg('fin_fee_pct') / 100
-            + get_cfg('other_uses'))
+    return _core_entry_costs(entry_ev, total_debt, current_cfg())
 
 
 def _bridge_steps(br):
-    """(axis label, table label, value, is_total, pct_key) per bridge step.
-
-    Fees at entry are shown only when non-zero, so a fee-free deal keeps the
-    original five-step waterfall.
-    """
-    steps = [("Entry", "Entry equity", br["entry_equity"], True, None)]
-    if abs(br["entry_costs"]) > 0.005:
-        steps.append(("Fees", "Fees at entry", br["entry_costs"], False,
-                      "entry_costs_pct"))
-    steps += [
-        ("EBITDA\ngrowth", "EBITDA growth", br["ebitda_growth"], False,
-         "ebitda_growth_pct"),
-        ("Multiple", "Multiple expansion", br["multiple_expansion"], False,
-         "multiple_expansion_pct"),
-        ("Deleverage", "Deleveraging", br["deleveraging"], False,
-         "deleveraging_pct"),
-        ("Exit", "Exit equity", br["exit_equity"], True, None),
-    ]
-    return steps
+    return _core_bridge_steps(br)
 
 
 def bridge_dataframe(br):
@@ -827,41 +817,8 @@ def plot_bridge(ax, br, annotate=False):
 
 def run_deal():
     s = st.session_state
-
-    # WSP mode: the engine has no days-based working-capital input, and it
-    # reads nwc_pct as the *change* in NWC as a share of that year's revenue
-    # (cashflow_model: delta_nwc[t] = revenue[t] * nwc_pct[t]).
-    #
-    # wc_from_days() with cogs = revenue * (1 - gross_margin) collapses to
-    #     NWC(t) = revenue(t) * k,
-    #     k = [ar_days + (1 - gm) * (inv_days - ap_days)] / 365
-    # so the implied change is
-    #     dNWC(t) = k * revenue(t) * g / (1 + g).
-    # That makes the conversion below exact under the model's own assumptions
-    # (constant days, constant gross margin, constant growth), not an estimate.
-    if s.get("d_wsp_mode", False):
-        g  = s.d_growth / 100
-        gm = s.d_gross_margin / 100
-        k  = (s.d_ar_days + (1 - gm) * (s.d_inv_days - s.d_ap_days)) / 365
-        nwc_pct_eff = k * g / (1 + g) if (1 + g) != 0 else 0.0
-    else:
-        nwc_pct_eff = s.d_nwc / 100
-
-    params = LBOParams(
-        entry_ebitda=s.d_ebitda, entry_multiple=s.d_entry_mult,
-        exit_multiple=s.d_exit_mult, holding_period=int(s.d_hold),
-        debt_pct=s.d_debt_pct/100, senior_pct=s.d_senior_pct/100,
-        mezz_spread=s.d_mezz_spread/100, interest_rate=s.d_base_rate/100,
-        revenue_growth=s.d_growth/100, gross_margin=s.d_gross_margin/100,
-        opex_pct=s.d_opex/100, da_pct=s.d_da/100, tax_rate=s.d_tax/100,
-        capex_pct=s.d_capex/100, nwc_pct=nwc_pct_eff,
-        transaction_fees_pct=get_cfg('tx_fee_pct')/100,
-        financing_fees_pct=get_cfg('fin_fee_pct')/100,
-        other_uses=get_cfg('other_uses'),
-        minimum_cash=s.d_mincash, n_iterations=3,
-    )
     with st.spinner("Running deal model..."):
-        result = run_lbo(params)
+        result = _core_run_deal(_deal_inputs(s), current_cfg())
     st.session_state.lbo_result = result
     return result
 
@@ -869,32 +826,8 @@ def run_deal():
 # SIDEBAR
 # ---------------------------------------------------------------------------
 def _get_scenario_params_cfg(scenario: str, base_params: SimulationParams) -> SimulationParams:
-    """
-    Like get_scenario_params() but reads multipliers from settings (get_cfg).
-    Falls back to original hardcoded values if not changed by user.
-    """
-    import copy
-    p = copy.deepcopy(base_params)
-    if scenario == "bull":
-        p.growth_mean       *= get_cfg("bull_growth_mult")
-        p.exit_mean         *= get_cfg("bull_exit_mult")
-        p.interest_mean     *= get_cfg("bull_rate_mult")
-        p.gross_margin_mean *= get_cfg("bull_margin_mult")
-    elif scenario == "base":
-        pass
-    elif scenario == "recession":
-        p.growth_mean        = max(p.growth_mean + get_cfg("rec_growth_adj")/100,
-                                   get_cfg("rec_growth_floor")/100)
-        p.exit_mean         *= get_cfg("rec_exit_mult")
-        p.interest_mean     *= get_cfg("rec_rate_mult")
-        p.gross_margin_mean *= get_cfg("rec_margin_mult")
-    elif scenario == "stagflation":
-        p.growth_mean        = max(p.growth_mean + get_cfg("stag_growth_adj")/100,
-                                   get_cfg("stag_growth_floor")/100)
-        p.exit_mean         *= get_cfg("stag_exit_mult")
-        p.interest_mean     *= get_cfg("stag_rate_mult")
-        p.gross_margin_mean *= get_cfg("stag_margin_mult")
-    return p
+    """Scenario preset applied with this session's settings."""
+    return apply_scenario(scenario, base_params, current_cfg())
 
 
 def render_sidebar():
@@ -1089,10 +1022,10 @@ def page_deal_inputs():
                                            label_visibility="collapsed")
         entry_ev = s.d_ebitda * s.d_entry_mult
         total_debt_abs = (senior_x + mezz_x) * s.d_ebitda
-        if entry_ev > 0:
-            s.d_debt_pct   = min((total_debt_abs / entry_ev) * 100, 99.0)
-            s.d_senior_pct = (senior_x / (senior_x + mezz_x)) * 100 \
-                             if (senior_x + mezz_x) > 0 else 70.0
+        debt_pct, senior_pct = capital_structure_from_multiples(
+            s.d_ebitda, s.d_entry_mult, senior_x, mezz_x)
+        if debt_pct is not None:
+            s.d_debt_pct, s.d_senior_pct = debt_pct, senior_pct
         sponsor_eq = max(entry_ev + _entry_costs(entry_ev, total_debt_abs)
                          - total_debt_abs, 0)
         lbl("Sponsor equity (plug)")
@@ -1100,15 +1033,14 @@ def page_deal_inputs():
 
     # Sources & Uses
     st.markdown("## Sources & uses of funds")
-    entry_ev       = s.d_ebitda * s.d_entry_mult
-    total_debt_abs = (senior_x + mezz_x) * s.d_ebitda
-    tx_fees        = entry_ev * get_cfg('tx_fee_pct') / 100
-    fin_fees       = total_debt_abs * get_cfg('fin_fee_pct') / 100
-    total_uses     = entry_ev + tx_fees + fin_fees + get_cfg('other_uses')
-    # Equity is the plug that balances Sources against Uses, fees included
-    sponsor_eq     = max(total_uses - total_debt_abs, 0)
-    total_sources  = total_debt_abs + sponsor_eq
-    check          = total_sources - total_uses
+    su = sources_and_uses(s.d_ebitda, s.d_entry_mult, senior_x, mezz_x, current_cfg())
+    entry_ev       = su["equity_purchase_price"]
+    tx_fees        = su["transaction_fees"]
+    fin_fees       = su["financing_fees"]
+    total_uses     = su["total_uses"]
+    sponsor_eq     = su["sponsor_equity"]
+    total_sources  = su["total_sources"]
+    check          = su["check"]
 
     col_s, col_u = st.columns(2, gap="medium")
     with col_s:
@@ -1150,19 +1082,8 @@ def page_deal_inputs():
         unsafe_allow_html=True,
     )
     
-    # Optional ML risk panel. The detector expects the all-in debt rate, so
-    # blend senior and mezz by amount rather than passing the senior rate.
-    total_x = senior_x + mezz_x
-    blended_rate = ((senior_x * s.d_base_rate
-                     + mezz_x * (s.d_base_rate + s.d_mezz_spread)) / total_x
-                    if total_x > 0 else s.d_base_rate)
-    render_deal_risk(
-        entry_mult=s.d_entry_mult,
-        leverage=total_debt_abs / max(s.d_ebitda, 1e-9),
-        growth_pct=s.d_growth,
-        ebitda_margin=s.d_gross_margin - s.d_opex + s.d_da,   # already in %
-        rate=blended_rate,
-    )
+    # Optional ML risk panel
+    render_deal_risk(**risk_model_inputs(_deal_inputs(s), senior_x, mezz_x))
 
     st.markdown("---")
     _, col_next = st.columns([3, 1])
@@ -1719,23 +1640,14 @@ def page_monte_carlo():
         run_mc = st.button("▶ RUN SIMULATION", type="primary",
                            width="stretch", key="sc_run")
 
-    params = SimulationParams(
-        n=int(s.mc_n), entry_ebitda=mc_ebitda, entry_multiple=mc_emult,
-        holding_period=int(mc_hold),
-        growth_mean=s.mc_growth_mean/100, growth_std=s.mc_growth_std/100,
-        exit_mean=s.mc_exit_mean, exit_std=s.mc_exit_std,
-        interest_mean=s.mc_rate_mean/100, interest_std=s.mc_rate_std/100,
-        gross_margin_mean=s.mc_gm_mean/100, gross_margin_std=s.mc_gm_std/100,
-        opex_pct=s.d_opex/100, da_pct=s.d_da/100, tax_rate=s.d_tax/100,
-        capex_pct=s.d_capex/100, nwc_pct=s.d_nwc/100,
-        debt_pct=s.d_debt_pct/100, senior_pct=s.d_senior_pct/100,
-        mezz_spread=s.d_mezz_spread/100,
-        transaction_fees_pct=get_cfg('tx_fee_pct')/100,
-        financing_fees_pct=get_cfg('fin_fee_pct')/100,
-        other_uses=get_cfg('other_uses'),
-        n_interest_passes=int(get_cfg('mc_n_passes')),
-        corr_matrix=build_corr_matrix(),
+    mc = MCInputs(
+        n=s.mc_n, ebitda=mc_ebitda, entry_mult=mc_emult, hold=mc_hold,
+        hurdle=s.mc_hurdle, growth_mean=s.mc_growth_mean,
+        growth_std=s.mc_growth_std, exit_mean=s.mc_exit_mean,
+        exit_std=s.mc_exit_std, rate_mean=s.mc_rate_mean,
+        rate_std=s.mc_rate_std, gm_mean=s.mc_gm_mean, gm_std=s.mc_gm_std,
     )
+    params = build_sim_params(mc, _deal_inputs(s), current_cfg())
     scenario_override = st.session_state.mc_scenario
     # A detected macro regime can drive the preset when none is chosen. The
     # checkbox is a widget, so unlike a local it survives until RUN is pressed.
@@ -1765,18 +1677,18 @@ def page_monte_carlo():
     irr    = df["IRR"].values
     moic   = df["MOIC"].values
     target = s.mc_hurdle / 100
-    metrics = calculate_risk_metrics(df, target)
+    summary = risk_summary(sim, s.mc_hurdle)
 
     section_hdr("Risk metrics")
     m1,m2,m3,m4,m5,m6 = st.columns(6)
-    m1.metric("Mean IRR",        pf(metrics["Mean IRR"] * 100))
-    m2.metric("Median IRR",      pf(metrics["Median IRR"] * 100))
-    m3.metric("5th pct",         pf(metrics["5% Downside IRR"] * 100))
-    m4.metric("95th pct",        pf(metrics["95% Upside IRR"] * 100))
-    m5.metric(f"P(>{pf(target * 100)})",pf(metrics["Probability IRR > Target"] * 100))
-    m6.metric("Wipeout rate",    pf(sim.wipeout_rate * 100))
+    m1.metric("Mean IRR",        pf(summary["mean_irr"] * 100))
+    m2.metric("Median IRR",      pf(summary["median_irr"] * 100))
+    m3.metric("5th pct",         pf(summary["p5_irr"] * 100))
+    m4.metric("95th pct",        pf(summary["p95_irr"] * 100))
+    m5.metric(f"P(>{pf(target * 100)})",pf(summary["p_above_hurdle"] * 100))
+    m6.metric("Wipeout rate",    pf(summary["wipeout_rate"] * 100))
 
-    sample = df.sample(min(50_000, len(df)), random_state=42)
+    sample = analysis_sample(sim)
     tabs = st.tabs(["Distributions","Scatter plots","Correlations",
                     "Sensitivity","Scenario comparison"])
 
@@ -1824,17 +1736,17 @@ def page_monte_carlo():
                "mc_distributions.xlsx", "dl_dist")
 
     with tabs[1]:
-        drivers = ["Growth","Exit Multiple","Interest","Gross Margin"]
+        fits = driver_fits(sample)
         fig, axes = plt.subplots(2, 2, figsize=(12, 7))
         axes = axes.flatten()
-        for i, col in enumerate(drivers):
+        for i, col in enumerate(fits):
             x = sample[col].values; y = sample["IRR"].values * 100
             axes[i].hexbin(x, y, gridsize=50, cmap="Blues",
                            mincnt=1, linewidths=0.1)
-            m_fit, b_fit = np.polyfit(x, y, 1)
+            m_fit, b_fit = fits[col]["slope"], fits[col]["intercept"]
             xr = np.linspace(x.min(), x.max(), 100)
             axes[i].plot(xr, m_fit*xr+b_fit, color=A2, lw=1.2, linestyle="--")
-            corr = np.corrcoef(x, y)[0, 1]
+            corr = fits[col]["r"]
             axes[i].text(0.04, 0.92, f"r = {corr:.2f}",
                          transform=axes[i].transAxes, fontsize=9, color=A2,
                          bbox=dict(boxstyle="round,pad=0.2",
@@ -1848,8 +1760,7 @@ def page_monte_carlo():
         cl, cr = st.columns(2, gap="medium")
         with cl:
             section_hdr("Correlation matrix")
-            corr_cols = ["IRR","MOIC","Growth","Exit Multiple","Interest","Gross Margin"]
-            emp = sample[corr_cols].corr()
+            emp = empirical_correlations(sample)
             fig, ax = plt.subplots(figsize=(6, 5))
             sns.heatmap(emp, annot=True, fmt=".2f", cmap="RdBu_r",
                         vmin=-1, vmax=1, ax=ax, linewidths=0.5,
@@ -1858,14 +1769,7 @@ def page_monte_carlo():
             st.pyplot(fig, width="stretch"); plt.close(fig)
         with cr:
             section_hdr("Driver tornado (Spearman rho)")
-            from scipy.stats import spearmanr
-            drv = ["Growth","Exit Multiple","Interest","Gross Margin","EBITDA Shock"]
-            rhos = []
-            for d in drv:
-                if d in sample.columns:
-                    rho, _ = spearmanr(sample[d], sample["IRR"])
-                    rhos.append((d, rho))
-            rhos.sort(key=lambda x: abs(x[1]), reverse=True)
+            rhos = driver_sensitivity(sample)
             lbls = [r[0] for r in rhos]; vals = [r[1] for r in rhos]
             bcolors_t = [A4 if v > 0 else A3 for v in vals]
             fig, ax = plt.subplots(figsize=(6, 4))
@@ -1881,24 +1785,7 @@ def page_monte_carlo():
 
     with tabs[3]:
         section_hdr("IRR heatmap — growth × exit multiple")
-        entry_ev_mc = mc_ebitda * mc_emult
-        total_debt_mc = entry_ev_mc * s.d_debt_pct / 100
-        eq_in_mc = entry_ev_mc - total_debt_mc
-        g_vals = np.linspace(
-            max(params.growth_mean - 3*params.growth_std, -0.10),
-            params.growth_mean + 3*params.growth_std, 8)
-        em_vals = np.linspace(
-            max(params.exit_mean - 2*params.exit_std, 2.0),
-            params.exit_mean + 2*params.exit_std, 7)
-        irr_grid = np.zeros((len(em_vals), len(g_vals)))
-        em_base = (params.gross_margin_mean - params.opex_pct + params.da_pct)
-        for i, em in enumerate(em_vals):
-            for j, g in enumerate(g_vals):
-                base_r = mc_ebitda / max(em_base, 0.01)
-                rev = base_r * (1+g)**int(mc_hold)
-                exit_eq = max(rev * em_base * em - total_debt_mc * 0.70, 0.0)
-                irr_grid[i, j] = ((exit_eq/eq_in_mc)**(1/int(mc_hold))-1
-                                   if eq_in_mc > 0 else 0)
+        g_vals, em_vals, irr_grid = growth_exit_heatmap(params, mc, _deal_inputs(s))
         fig, ax = plt.subplots(figsize=(12, 5))
         im = ax.imshow(irr_grid*100, aspect="auto", cmap="RdYlGn",
                        vmin=0, vmax=50, interpolation="nearest")
@@ -1918,11 +1805,7 @@ def page_monte_carlo():
 
     with tabs[4]:
         section_hdr("All four scenarios")
-        scenario_results = {}
-        for sc in ["recession","base","bull","stagflation"]:
-            sp = _get_scenario_params_cfg(sc, params)
-            sr = run_vectorized_simulation_full(sp)
-            scenario_results[sc] = sr
+        scenario_results = run_scenarios(params, current_cfg())
 
         fig, axes = plt.subplots(1, 2, figsize=(12, 4))
         slabels = ["Recession","Base","Bull","Stagflation"]
@@ -1953,17 +1836,15 @@ def page_monte_carlo():
         st.pyplot(fig, width="stretch"); plt.close(fig)
 
         comp = []
-        for sc in ["recession","base","bull","stagflation"]:
-            sr = scenario_results[sc]
-            irr_s = sr.irr
+        for sc, st_ in scenario_stats(scenario_results, s.mc_hurdle).items():
             comp.append({
                 "Scenario":        sc.capitalize(),
-                "Mean IRR":        pf(float(irr_s.mean()) * 100),
-                "Median":          pf(float(np.median(irr_s)) * 100),
-                "5th pct":         pf(float(np.percentile(irr_s, 5)) * 100),
-                "95th pct":        pf(float(np.percentile(irr_s, 95)) * 100),
-                f"P(>{pf(target*100)})":pf(float((irr_s > target).mean()) * 100),
-                "Wipeout":         pf(float(sr.wipeout_rate) * 100),
+                "Mean IRR":        pf(st_["mean_irr"] * 100),
+                "Median":          pf(st_["median_irr"] * 100),
+                "5th pct":         pf(st_["p5_irr"] * 100),
+                "95th pct":        pf(st_["p95_irr"] * 100),
+                f"P(>{pf(target*100)})":pf(st_["p_above_hurdle"] * 100),
+                "Wipeout":         pf(st_["wipeout_rate"] * 100),
             })
         comp_df = pd.DataFrame(comp).set_index("Scenario")
         st.dataframe(comp_df, width="stretch")

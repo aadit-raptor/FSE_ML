@@ -19,6 +19,34 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## API
+
+The model is also served over HTTP for the new web frontend. The logic lives
+in `core/` (shared with the Streamlit app, no Streamlit dependency) and
+`api/` exposes it:
+
+```bash
+uvicorn api.main:app --reload --port 8000
+```
+
+Interactive docs: http://localhost:8000/api/docs. The OpenAPI schema at
+`/api/openapi.json` is what the frontend's typed client is generated from.
+Allowed browser origins come from `FSE_CORS_ORIGINS` (comma-separated,
+default `http://localhost:3000`).
+
+| Area | Endpoints |
+|---|---|
+| Deal | `POST /api/deal/run`, `POST /api/deal/sources-and-uses` |
+| Monte Carlo | `POST /api/montecarlo/run`, `POST /api/montecarlo/scenarios` |
+| Forecasting | `GET /api/forecasting/defaults`, `POST /api/forecasting/seed`, `POST /api/forecasting/run` |
+| Backtesting | `GET /api/backtesting/deals`, `POST /api/backtesting/run` |
+| Settings | `GET /api/settings/defaults`, `POST /api/settings/validate` |
+| Optional | `GET /api/capabilities`, `POST /api/ml/deal-risk`, `POST /api/ml/surrogate`, `POST /api/ml/macro-regime`, `GET /api/edgar/{ticker}` |
+
+Inputs use the model's units: percentages as numbers like `60.0`, money in $M.
+Optional features return `503` with the reason when they are not installed or
+trained.
+
 ## Tests
 
 ```bash
