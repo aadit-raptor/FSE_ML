@@ -193,6 +193,18 @@ def summarize_paths(paths):
     return out
 
 
+def capture_forecast_inputs():
+    """Default historical input grid (every year) and the metrics table under it."""
+    at = new_app()
+    goto(at, "forecast")
+    assert_clean(at, "forecast/inputs")
+    hist = {k: at.session_state[k] for k in at.session_state.filtered_state
+            if isinstance(k, str) and k.startswith("hist_")}
+    metrics = next(df.value.reset_index().astype(str).to_dict(orient="records")
+                   for df in at.dataframe if "Gross margin" in df.value.columns)
+    return {"history_widgets": plain(hist), "metrics_table": metrics}
+
+
 def capture_forecast(name, case):
     at = new_app()
     goto(at, "forecast")
@@ -258,6 +270,7 @@ if __name__ == "__main__":
         "deal": {n: capture_deal(n, c) for n, c in DEAL_CASES.items()},
         "montecarlo": {n: capture_mc(n, c) for n, c in MC_CASES.items()},
         "forecasting": {n: capture_forecast(n, c) for n, c in FORECAST_CASES.items()},
+        "forecasting_inputs": capture_forecast_inputs(),
         "backtesting": capture_backtests(),
     }
     with open(out_path, "w", encoding="utf-8") as f:

@@ -59,6 +59,16 @@ import matplotlib.ticker as mtick
 import io
 from dataclasses import dataclass, field
 from typing import List, Optional
+
+from core.forecasting import (  # noqa: F401  (re-exported)
+    ForecastAssumptions, ForecastYear, HistoricalYear, run_3_statement_model,
+)
+from core.forecasting import opening_bs_gap as _opening_bs_gap
+from core.forecasting import run_forecast_simulation
+from core.forecasting import (
+    HISTORICAL_FIELDS, assumptions_from_grid, default_history_value,
+    historical_metrics, ltm_from_history, revenue_cagr, seed_assumptions,
+)
 try:
     from ml.edgar_extractor import fetch_financials, financials_to_session_state
     _EDGAR_AVAILABLE = True
@@ -158,329 +168,17 @@ def _dl(label, data, fname, key):
 
 # ── 3-Statement Model Engine ──────────────────────────────────────────────────
 
-@dataclass
-class HistoricalYear:
-    year:          str
-    revenue:       float
-    cogs:          float          # negative
-    rd:            float          # negative, 0 if N/A
-    sga:           float          # negative
-    other_income:  float          # flat, can be negative
-    interest_exp:  float          # negative
-    interest_inc:  float          # positive
-    da:            float          # positive (add-back)
-    sbc:           float          # positive (add-back)
-    tax:           float          # negative
-    capex:         float          # positive (cash out)
-    dividends:     float          # positive (cash out)
-    repurchases:   float          # positive (cash out)
-    cash:          float          # balance sheet
-    ar:            float
-    inventory:     float
-    other_current: float
-    ppe_net:       float
-    other_nca:     float
-    ap:            float
-    other_cl:      float
-    deferred_rev:  float
-    ltd:           float          # long-term debt
-    common_stock:  float
-    retained_earnings: float
-    oci:           float
-    # Deferred tax, lease, pension and other non-current liabilities. Held
-    # flat in the forecast: no revenue driver, so no cash flow of its own.
-    other_ncl:     float = 0.0
-    # Goodwill, intangibles, long-term investments, lease assets. Held flat for
-    # the same reason: they do not scale with revenue or consume cash as it grows.
-    other_lta:     float = 0.0
-
-@dataclass
-class ForecastAssumptions:
-    """Per-year forecast driver assumptions """
-    revenue_growth:   float   # decimal e.g. 0.06
-    gross_margin:     float   # decimal e.g. 0.38
-    rd_pct:           float   # decimal e.g. 0.06
-    sga_pct:          float   # decimal e.g. 0.07
-    tax_rate:         float   # decimal e.g. 0.167
-    da_pct:           float   # decimal e.g. 0.04  (of revenue)
-    sbc_pct:          float   # decimal e.g. 0.02
-    capex_pct:        float   # decimal e.g. 0.05
-    ar_days:          float   # e.g. 45
-    inv_days:         float   # e.g. 30
-    ap_days:          float   # e.g. 60
-    other_cl_pct:     float   # other current liabilities % of revenue
-    deferred_rev_pct: float   # deferred revenue % of revenue
-    other_nca_pct:    float   # other non-current assets % of revenue
-    other_income:     float   # flat $M
-    dividends:        float   # flat $M
-    repurchases:      float   # flat $M
-    ltd_change:       float   # net new borrowing (+ = draw, − = repay)
-    interest_rate_cash: float # rate earned on cash balance
-    interest_rate_debt: float # rate paid on debt balance
-    min_cash:         float   # revolver plug floor
 
 
-@dataclass
-class ForecastYear:
-    year: str
-    # Income statement
-    revenue:      float = 0
-    cogs:         float = 0
-    gross_profit: float = 0
-    gross_margin: float = 0
-    rd:           float = 0
-    sga:          float = 0
-    ebit:         float = 0
-    ebit_margin:  float = 0
-    interest_inc: float = 0
-    interest_exp: float = 0
-    other_income: float = 0
-    pretax:       float = 0
-    taxes:        float = 0
-    net_income:   float = 0
-    net_margin:   float = 0
-    da:           float = 0
-    ebitda:       float = 0
-    ebitda_margin:float = 0
-    sbc:          float = 0
-    adj_ebitda:   float = 0
-    adj_ebitda_margin: float = 0
-    # Balance sheet
-    cash:         float = 0
-    ar:           float = 0
-    inventory:    float = 0
-    other_current:float = 0
-    ppe_net:      float = 0
-    other_nca:    float = 0
-    total_assets: float = 0
-    ap:           float = 0
-    other_cl:     float = 0
-    deferred_rev: float = 0
-    other_ncl:    float = 0
-    other_lta:    float = 0
-    revolver:     float = 0
-    ltd:          float = 0
-    total_liab:   float = 0
-    common_stock: float = 0
-    retained_earn:float = 0
-    oci:          float = 0
-    total_equity: float = 0
-    balance_check:float = 0
-    # Cash flow
-    cfo:          float = 0
-    cfi:          float = 0
-    cff:          float = 0
-    net_cash_chg: float = 0
-    # Schedules
-    ppe_beg:      float = 0
-    ppe_end:      float = 0
-    re_beg:       float = 0
-    re_end:       float = 0
-    nwc:          float = 0
-    delta_nwc:    float = 0
-    revolver_draw:float = 0
 
 
-def run_3_statement_model(
-    last_hist: HistoricalYear,
-    assumptions: List[ForecastAssumptions],
-) -> List[ForecastYear]:
-    """
-    
 
-    Key formulas:
-      Revenue_t        = Revenue_{t-1} × (1 + growth_t)
-      COGS_t           = Revenue_t × (1 - gross_margin_t)
-      Gross Profit_t   = Revenue_t × gross_margin_t
-      R&D_t            = Revenue_t × rd_pct_t
-      SGA_t            = Revenue_t × sga_pct_t
-      EBIT_t           = Gross Profit - R&D - SG&A
-      Interest income  = Cash_{t-1} × interest_rate_cash_t   [avg balance approximation]
-      Interest expense = (LTD_{t-1} + Revolver_{t-1}) × interest_rate_debt_t
-      Pretax           = EBIT + interest_inc - interest_exp + other_income
-      Taxes            = Pretax × tax_rate_t  (if pretax > 0, else 0)
-      Net income       = Pretax - Taxes
-      EBITDA           = EBIT + DA
-      Adj EBITDA       = EBITDA + SBC
-
-      PP&E_end         = PP&E_beg + Capex - DA_t
-      RE_end           = RE_beg + NI - Dividends - Repurchases
-      AR               = Revenue × ar_days / 365
-      Inventory        = COGS × inv_days / 365
-      AP               = COGS × ap_days / 365
-      NWC              = AR + Inventory - AP
-
-      CFO  = NI + DA + SBC - ΔNWC - Δother_current + Δother_cl
-             + Δdeferred_rev - Δother_nca
-      CFI  = -Capex
-      CFF  = LTD_change - Dividends - Repurchases + Revolver_draw
-      ΔCash = CFO + CFI + CFF
-
-      Revolver (plug): if cash_end < min_cash → draw revolver to fill gap
-                        if cash_end > 0 → pay down revolver first
-
-      Balance check: Total assets - Total liabilities - Total equity.
-      The forecast adds no gap of its own, so each year's check equals the
-      opening (LTM) gap -- zero when the historical balance sheet balances.
-    """
-    results = []
-    prev = last_hist
-
-    # Track prior-year NWC for delta calculation
-    prev_ar  = prev.ar
-    prev_inv = prev.inventory
-    prev_ap  = prev.ap
-    prev_nwc = prev_ar + prev_inv - prev_ap
-
-    prev_other_cur = prev.other_current
-    prev_other_cl  = prev.other_cl
-    prev_def_rev   = prev.deferred_rev
-    prev_other_nca = prev.other_nca
-    # Other current assets have no forecast driver, so hold the company's own
-    # LTM ratio to revenue (previously a hard-coded 12%, which ignored the
-    # historical input entirely).
-    other_cur_pct  = (prev.other_current / prev.revenue) if prev.revenue else 0.0
-    prev_cash      = prev.cash
-    prev_revolver  = 0.0   # assume no revolver at start
-
-    for i, a in enumerate(assumptions):
-        yr = ForecastYear(year=f"F+{i+1}")
-
-        # ── Income statement ──────────────────────────────────────────────
-        yr.revenue      = prev.revenue * (1 + a.revenue_growth)
-        yr.cogs         = -yr.revenue * (1 - a.gross_margin)
-        yr.gross_profit = yr.revenue + yr.cogs           # revenue - |COGS|
-        yr.gross_margin = yr.gross_profit / yr.revenue
-        yr.rd           = -yr.revenue * a.rd_pct
-        yr.sga          = -yr.revenue * a.sga_pct
-        yr.ebit         = yr.gross_profit + yr.rd + yr.sga
-        yr.ebit_margin  = yr.ebit / yr.revenue
-
-        # Interest — based on PRIOR period balances (WSP convention)
-        yr.interest_inc = prev_cash * a.interest_rate_cash
-        yr.interest_exp = -(prev.ltd + prev_revolver) * a.interest_rate_debt
-        yr.other_income = a.other_income
-        yr.pretax       = yr.ebit + yr.interest_inc + yr.interest_exp + yr.other_income
-        yr.taxes        = -(max(yr.pretax, 0) * a.tax_rate)
-        yr.net_income   = yr.pretax + yr.taxes
-        yr.net_margin   = yr.net_income / yr.revenue
-
-        # EBITDA reconciliation
-        yr.da           = yr.revenue * a.da_pct
-        yr.ebitda       = yr.ebit + yr.da
-        yr.ebitda_margin= yr.ebitda / yr.revenue
-        yr.sbc          = yr.revenue * a.sbc_pct
-        yr.adj_ebitda   = yr.ebitda + yr.sbc
-        yr.adj_ebitda_margin = yr.adj_ebitda / yr.revenue
-
-        # ── PP&E schedule ─────────────────────────────────────────────────
-        yr.ppe_beg   = prev.ppe_net
-        capex_abs    = yr.revenue * a.capex_pct
-        yr.ppe_end   = yr.ppe_beg + capex_abs - yr.da
-        yr.ppe_net   = yr.ppe_end
-
-        # ── Working capital (AR/Inv/AP days method) ───────────────────────
-        cogs_abs     = abs(yr.cogs)
-        yr.ar        = yr.revenue * a.ar_days  / 365
-        yr.inventory = cogs_abs   * a.inv_days / 365
-        yr.ap        = -(cogs_abs * a.ap_days  / 365)   # liability
-        yr.nwc       = yr.ar + yr.inventory + yr.ap     # net (AP is negative)
-        yr.delta_nwc = yr.nwc - prev_nwc                # + = cash use
-
-        # ── Other balance sheet items ─────────────────────────────────────
-        yr.other_current = yr.revenue * other_cur_pct
-        yr.other_nca     = yr.revenue * a.other_nca_pct
-        yr.other_cl      = yr.revenue * a.other_cl_pct
-        yr.deferred_rev  = yr.revenue * a.deferred_rev_pct
-
-        # ── Retained earnings roll ────────────────────────────────────────
-        yr.re_beg      = prev.retained_earnings
-        yr.retained_earn = yr.re_beg + yr.net_income - a.dividends - a.repurchases
-        yr.re_end      = yr.retained_earn
-
-        # ── LTD and common stock ──────────────────────────────────────────
-        yr.ltd         = prev.ltd + a.ltd_change
-        yr.common_stock= prev.common_stock + yr.sbc  # SBC vesting adds to APIC (WSP)
-        yr.oci         = prev.oci                   # assume static
-        yr.other_ncl   = prev.other_ncl             # held flat, like OCI
-        yr.other_lta   = prev.other_lta             # held flat
-
-        # ── Cash flow statement ───────────────────────────────────────────
-        delta_other_cur = yr.other_current - prev_other_cur
-        delta_other_cl  = yr.other_cl  - prev_other_cl
-        delta_def_rev   = yr.deferred_rev - prev_def_rev
-        delta_other_nca = yr.other_nca - prev_other_nca
-
-        yr.cfo = (yr.net_income
-                  + yr.da
-                  + yr.sbc
-                  - yr.delta_nwc
-                  - delta_other_cur
-                  + delta_other_cl
-                  + delta_def_rev
-                  - delta_other_nca)
-
-        yr.cfi = -capex_abs
-
-        yr.cff = (a.ltd_change
-                  - a.dividends
-                  - a.repurchases)    # revolver added below after plug
-
-        # ── Revolver plug (minimum cash) ──────────────────────────────────
-        # Pre-revolver ending cash
-        cash_pre  = prev_cash + yr.cfo + yr.cfi + yr.cff
-        shortage  = a.min_cash - cash_pre          # > 0 means need to draw
-
-        if shortage > 0:
-            yr.revolver_draw = shortage            # draw revolver
-        else:
-            # Can we pay down existing revolver?
-            yr.revolver_draw = max(-prev_revolver, cash_pre - a.min_cash) * 0
-            # Pay down revolver if excess cash
-            excess = cash_pre - a.min_cash
-            paydown = min(excess, prev_revolver)
-            yr.revolver_draw = -paydown
-
-        yr.revolver = prev_revolver + yr.revolver_draw
-        yr.cff     += yr.revolver_draw
-        yr.net_cash_chg = yr.cfo + yr.cfi + yr.cff
-        yr.cash     = prev_cash + yr.net_cash_chg
-
-        # ── Balance sheet ─────────────────────────────────────────────────
-        yr.total_assets = (yr.cash + yr.ar + yr.inventory + yr.other_current
-                           + yr.ppe_net + yr.other_nca + yr.other_lta)
-
-        yr.ap_abs    = abs(yr.ap)   # store as positive for display
-        yr.total_liab= (yr.ap_abs + yr.other_cl + yr.deferred_rev
-                        + yr.revolver + yr.ltd + yr.other_ncl)
-
-        yr.total_equity = yr.common_stock + yr.retained_earn + yr.oci
-        yr.balance_check= yr.total_assets - yr.total_liab - yr.total_equity
-        if abs(yr.balance_check) < 1e-9:   # float noise, not a gap; avoids "$-0.0"
-            yr.balance_check = 0.0
-
-        results.append(yr)
-
-        # ── Update prior-period references ────────────────────────────────
-        prev           = yr
-        prev.revenue   = yr.revenue
-        prev.ltd       = yr.ltd
-        prev.ppe_net   = yr.ppe_net
-        prev.retained_earnings = yr.retained_earn
-        prev.common_stock = yr.common_stock
-        prev.oci       = yr.oci
-        prev_nwc       = yr.nwc
-        prev_other_cur = yr.other_current
-        prev_other_cl  = yr.other_cl
-        prev_def_rev   = yr.deferred_rev
-        prev_other_nca = yr.other_nca
-        prev_cash      = yr.cash
-        prev_revolver  = yr.revolver
-
-    return results
 
 
 # ── Historical input table ────────────────────────────────────────────────────
+
+_HIST_DEFAULTS = {k: (d, st) for k, d, st in HISTORICAL_FIELDS}
+
 
 def _hist_input_block(n_hist, unit):
     """
@@ -509,38 +207,38 @@ def _hist_input_block(n_hist, unit):
     rows = [
         # ── Income statement ──────────────────────────────────
         ("__hdr_is__",  "── INCOME STATEMENT ──", None, None),
-        ("h_rev",       f"Revenue ({unit})",          265.0,   10.0),
-        ("h_cogs",      f"Cost of sales ({unit}, negative)", -163.0, 5.0),
-        ("h_rd",        f"R&D ({unit}, 0 if N/A, negative)",  -14.0,  1.0),
-        ("h_sga",       f"SG&A ({unit}, negative)",           -17.0,  1.0),
-        ("h_int_inc",   f"Interest income ({unit})",           5.7,   0.5),
-        ("h_int_exp",   f"Interest expense ({unit}, negative)",-3.2,  0.5),
-        ("h_other",     f"Other income/expense ({unit})",      -0.4,  0.1),
-        ("h_tax",       f"Taxes ({unit}, negative)",          -13.4,  1.0),
-        ("h_da",        f"D&A ({unit}, positive add-back)",    10.9,  0.5),
-        ("h_sbc",       f"SBC ({unit}, positive add-back)",     5.3,  0.5),
+        ("h_rev",       f"Revenue ({unit})", *_HIST_DEFAULTS["h_rev"]),
+        ("h_cogs",      f"Cost of sales ({unit}, negative)", *_HIST_DEFAULTS["h_cogs"]),
+        ("h_rd",        f"R&D ({unit}, 0 if N/A, negative)", *_HIST_DEFAULTS["h_rd"]),
+        ("h_sga",       f"SG&A ({unit}, negative)", *_HIST_DEFAULTS["h_sga"]),
+        ("h_int_inc",   f"Interest income ({unit})", *_HIST_DEFAULTS["h_int_inc"]),
+        ("h_int_exp",   f"Interest expense ({unit}, negative)", *_HIST_DEFAULTS["h_int_exp"]),
+        ("h_other",     f"Other income/expense ({unit})", *_HIST_DEFAULTS["h_other"]),
+        ("h_tax",       f"Taxes ({unit}, negative)", *_HIST_DEFAULTS["h_tax"]),
+        ("h_da",        f"D&A ({unit}, positive add-back)", *_HIST_DEFAULTS["h_da"]),
+        ("h_sbc",       f"SBC ({unit}, positive add-back)", *_HIST_DEFAULTS["h_sbc"]),
         # ── Balance sheet ─────────────────────────────────────
         ("__hdr_bs__",  "── BALANCE SHEET (latest year) ──", None, None),
-        ("h_cash",      f"Cash & equivalents ({unit})",       237.0, 10.0),
-        ("h_ar",        f"Accounts receivable ({unit})",       23.2,  1.0),
-        ("h_inv",       f"Inventories ({unit})",                4.0,  0.5),
-        ("h_ocurr",     f"Other current assets ({unit})",      37.9,  2.0),
-        ("h_ppe",       f"PP&E net ({unit})",                  41.3,  2.0),
-        ("h_nca",       f"Other non-current assets ({unit})",  22.3,  2.0),
-        ("h_lta",       f"Goodwill & other long-term assets ({unit})", 0.0, 5.0),
-        ("h_ap",        f"Accounts payable ({unit})",          55.9,  2.0),
-        ("h_ocl",       f"Other current liabilities ({unit})", 32.7,  2.0),
-        ("h_def",       f"Deferred revenue ({unit})",          10.3,  1.0),
-        ("h_ltd",       f"Long-term debt ({unit})",           102.5,  5.0),
-        ("h_ncl",       f"Other non-current liabilities ({unit})", 0.0, 5.0),
-        ("h_cs",        f"Common stock ({unit})",              40.2,  2.0),
-        ("h_re",        f"Retained earnings ({unit})",        127.6,  5.0),
-        ("h_oci",       f"Other comprehensive income ({unit})", -3.5, 0.5),
+        ("h_cash",      f"Cash & equivalents ({unit})", *_HIST_DEFAULTS["h_cash"]),
+        ("h_ar",        f"Accounts receivable ({unit})", *_HIST_DEFAULTS["h_ar"]),
+        ("h_inv",       f"Inventories ({unit})", *_HIST_DEFAULTS["h_inv"]),
+        ("h_ocurr",     f"Other current assets ({unit})", *_HIST_DEFAULTS["h_ocurr"]),
+        ("h_ppe",       f"PP&E net ({unit})", *_HIST_DEFAULTS["h_ppe"]),
+        ("h_nca",       f"Other non-current assets ({unit})", *_HIST_DEFAULTS["h_nca"]),
+        ("h_lta",       f"Goodwill & other long-term assets ({unit})", *_HIST_DEFAULTS["h_lta"]),
+        ("h_ap",        f"Accounts payable ({unit})", *_HIST_DEFAULTS["h_ap"]),
+        ("h_ocl",       f"Other current liabilities ({unit})", *_HIST_DEFAULTS["h_ocl"]),
+        ("h_def",       f"Deferred revenue ({unit})", *_HIST_DEFAULTS["h_def"]),
+        ("h_ltd",       f"Long-term debt ({unit})", *_HIST_DEFAULTS["h_ltd"]),
+        ("h_ncl",       f"Other non-current liabilities ({unit})", *_HIST_DEFAULTS["h_ncl"]),
+        ("h_cs",        f"Common stock ({unit})", *_HIST_DEFAULTS["h_cs"]),
+        ("h_re",        f"Retained earnings ({unit})", *_HIST_DEFAULTS["h_re"]),
+        ("h_oci",       f"Other comprehensive income ({unit})", *_HIST_DEFAULTS["h_oci"]),
         # ── Additional data ───────────────────────────────────
         ("__hdr_ad__",  "── ADDITIONAL DATA ──", None, None),
-        ("h_capex",     f"Capital expenditures ({unit})",      13.3,  1.0),
-        ("h_divs",      f"Dividends ({unit})",                 13.7,  1.0),
-        ("h_buybacks",  f"Buybacks / repurchases ({unit})",    73.1,  5.0),
+        ("h_capex",     f"Capital expenditures ({unit})", *_HIST_DEFAULTS["h_capex"]),
+        ("h_divs",      f"Dividends ({unit})", *_HIST_DEFAULTS["h_divs"]),
+        ("h_buybacks",  f"Buybacks / repurchases ({unit})", *_HIST_DEFAULTS["h_buybacks"]),
     ]
 
     data = {}
@@ -567,9 +265,7 @@ def _hist_input_block(n_hist, unit):
 
         year_vals = []
         for j in range(n_hist):
-            # Scale default: earlier years are somewhat smaller
-            scale = 0.85 ** (n_hist - 1 - j)
-            default_j = round(default_latest * scale, 1)
+            default_j = default_history_value(default_latest, j, n_hist)
             with row_cols[j+1]:
                 v = st.number_input(
                     " ", value=default_j, step=float(step),
@@ -579,63 +275,21 @@ def _hist_input_block(n_hist, unit):
             year_vals.append(v)
         data[key] = year_vals
 
-    # Build HistoricalYear from the LAST year (most recent / LTM)
-    def last(k):
-        return data[k][-1] if k in data else 0.0
+    def _pct(v):
+        return "—" if v is None else f"{v:.1%}"
 
-    # Also compute historical ratios for display
-    hist_rows_display = []
-    rev_vals = data.get("h_rev", [1.0]*n_hist)
-    for j in range(n_hist):
-        rev = rev_vals[j]
-        cogs = data.get("h_cogs", [0]*n_hist)[j]
-        gp = rev + cogs
-        ebit_j = gp + data.get("h_rd", [0]*n_hist)[j] + data.get("h_sga", [0]*n_hist)[j]
-        da_j = data.get("h_da", [0]*n_hist)[j]
-        ebitda_j = ebit_j + da_j
-        sbc_j = data.get("h_sbc", [0]*n_hist)[j]
-        hist_rows_display.append({
-            "Year": yr_labels[j],
-            f"Revenue ({unit})": f"${rev:,.1f}",
-            "Revenue growth": f"{(rev/rev_vals[j-1]-1):.1%}" if j > 0 and rev_vals[j-1] > 0 else "—",
-            "Gross margin": f"{gp/rev:.1%}" if rev > 0 else "—",
-            "R&D %": f"{abs(data.get('h_rd',[0]*n_hist)[j])/rev:.1%}" if rev > 0 else "—",
-            "SG&A %": f"{abs(data.get('h_sga',[0]*n_hist)[j])/rev:.1%}" if rev > 0 else "—",
-            "EBITDA margin": f"{ebitda_j/rev:.1%}" if rev > 0 else "—",
-            "Adj EBITDA margin": f"{(ebitda_j+sbc_j)/rev:.1%}" if rev > 0 else "—",
-        })
+    hist_rows_display = [{
+        "Year": yr_labels[j],
+        f"Revenue ({unit})": f"${m['revenue']:,.1f}",
+        "Revenue growth": _pct(m["revenue_growth"]),
+        "Gross margin": _pct(m["gross_margin"]),
+        "R&D %": _pct(m["rd_pct"]),
+        "SG&A %": _pct(m["sga_pct"]),
+        "EBITDA margin": _pct(m["ebitda_margin"]),
+        "Adj EBITDA margin": _pct(m["adj_ebitda_margin"]),
+    } for j, m in enumerate(historical_metrics(data, n_hist))]
 
-    ltm = HistoricalYear(
-        year="LTM",
-        revenue=last("h_rev"),
-        cogs=last("h_cogs"),
-        rd=last("h_rd"),
-        sga=last("h_sga"),
-        other_income=last("h_other"),
-        interest_exp=last("h_int_exp"),
-        interest_inc=last("h_int_inc"),
-        da=last("h_da"),
-        sbc=last("h_sbc"),
-        tax=last("h_tax"),
-        capex=last("h_capex"),
-        dividends=last("h_divs"),
-        repurchases=last("h_buybacks"),
-        cash=last("h_cash"),
-        ar=last("h_ar"),
-        inventory=last("h_inv"),
-        other_current=last("h_ocurr"),
-        ppe_net=last("h_ppe"),
-        other_nca=last("h_nca"),
-        ap=last("h_ap"),
-        other_cl=last("h_ocl"),
-        deferred_rev=last("h_def"),
-        ltd=last("h_ltd"),
-        common_stock=last("h_cs"),
-        retained_earnings=last("h_re"),
-        oci=last("h_oci"),
-        other_ncl=last("h_ncl"),
-        other_lta=last("h_lta"),
-    )
+    ltm = ltm_from_history(data)
     return ltm, pd.DataFrame(hist_rows_display).set_index("Year")
 
 
@@ -657,25 +311,7 @@ def _assumption_inputs(n_fwd, ltm, unit):
     # what updates the browser too.
     reseed = st.session_state.pop("_fc2_reseed_grid", False)
 
-    # Compute historical averages for smart defaults
-    rev     = ltm.revenue if ltm.revenue > 0 else 1
-    cogs    = abs(ltm.cogs)
-    gp_m    = (rev + ltm.cogs) / rev
-    rd_pct  = abs(ltm.rd)  / rev
-    sga_pct = abs(ltm.sga) / rev
-    da_pct  = ltm.da / rev
-    sbc_pct = ltm.sbc / rev
-    capex_pct = ltm.capex / rev
-    tax_rate  = abs(ltm.tax) / max(
-        (rev + ltm.cogs + ltm.rd + ltm.sga +
-         ltm.interest_inc + ltm.interest_exp + ltm.other_income), 0.01
-    )
-    ar_days  = ltm.ar  / rev * 365 if ltm.ar > 0 else 45
-    inv_days = ltm.inventory / max(cogs, 1) * 365 if ltm.inventory > 0 else 30
-    ap_days  = ltm.ap  / max(cogs, 1) * 365 if ltm.ap > 0 else 60
-    other_cl_pct = ltm.other_cl / rev if rev > 0 else 0.12
-    def_rev_pct  = ltm.deferred_rev / rev if rev > 0 else 0.04
-    other_nca_pct= ltm.other_nca / rev if rev > 0 else 0.08
+    seeds = seed_assumptions(ltm)
 
     yr_cols = [""] + [f"F+{i+1}" for i in range(n_fwd)]
     header_cols = st.columns([2] + [1]*n_fwd, gap="small")
@@ -696,31 +332,31 @@ def _assumption_inputs(n_fwd, ltm, unit):
     assumption_rows = [
         # (key, label, default, step, color, section)
         ("__is__",    "── INCOME STATEMENT DRIVERS ──", None, None, None, True),
-        ("rev_g",     "Revenue growth (%)",        6.0,   0.5,  "#5dcaa5", False),
-        ("gm",        "Gross profit margin (%)",  round(gp_m*100,1), 0.5, "#85b7eb", False),
-        ("rd",        "R&D % of sales",           round(rd_pct*100,1), 0.25,"#afa9ec", False),
-        ("sga",       "SG&A % of sales",          round(sga_pct*100,1),0.25,"#afa9ec", False),
-        ("tax",       "Tax rate (%)",             round(min(max(tax_rate*100,5),40),1),0.5,"#ef9f27", False),
+        ("rev_g",     "Revenue growth (%)", seeds["rev_g"],   0.5,  "#5dcaa5", False),
+        ("gm",        "Gross profit margin (%)", seeds["gm"], 0.5, "#85b7eb", False),
+        ("rd",        "R&D % of sales", seeds["rd"], 0.25,"#afa9ec", False),
+        ("sga",       "SG&A % of sales", seeds["sga"],0.25,"#afa9ec", False),
+        ("tax",       "Tax rate (%)", seeds["tax"],0.5,"#ef9f27", False),
         ("__da__",    "── D&A & CAPEX ──",        None, None, None, True),
-        ("da",        "D&A % of revenue",         round(da_pct*100,1), 0.25, "#5dcaa5", False),
-        ("sbc",       "SBC % of revenue",         round(sbc_pct*100,1),0.25, "#5dcaa5", False),
-        ("capex",     "Capex % of revenue",       round(capex_pct*100,1),0.25,"#ef9f27", False),
+        ("da",        "D&A % of revenue", seeds["da"], 0.25, "#5dcaa5", False),
+        ("sbc",       "SBC % of revenue", seeds["sbc"],0.25, "#5dcaa5", False),
+        ("capex",     "Capex % of revenue", seeds["capex"],0.25,"#ef9f27", False),
         ("__wc__",    "── WORKING CAPITAL (days) ──", None, None, None, True),
-        ("ar_d",      "AR days (Revenue÷365)",    round(ar_days,0),  1.0, "#85b7eb", False),
-        ("inv_d",     "Inventory days (COGS÷365)",round(inv_days,0), 1.0, "#85b7eb", False),
-        ("ap_d",      "AP days (COGS÷365)",       round(ap_days,0),  1.0, "#85b7eb", False),
+        ("ar_d",      "AR days (Revenue÷365)", seeds["ar_d"],  1.0, "#85b7eb", False),
+        ("inv_d",     "Inventory days (COGS÷365)", seeds["inv_d"], 1.0, "#85b7eb", False),
+        ("ap_d",      "AP days (COGS÷365)", seeds["ap_d"],  1.0, "#85b7eb", False),
         ("__bs__",    "── OTHER B/S ASSUMPTIONS ──", None, None, None, True),
-        ("ocl_pct",   "Other current liab % rev", round(other_cl_pct*100,1),0.25,"#afa9ec", False),
-        ("def_pct",   "Deferred rev % of revenue",round(def_rev_pct*100,1), 0.25,"#afa9ec", False),
-        ("nca_pct",   "Other NCA % of revenue",   round(other_nca_pct*100,1),0.25,"#afa9ec", False),
+        ("ocl_pct",   "Other current liab % rev", seeds["ocl_pct"],0.25,"#afa9ec", False),
+        ("def_pct",   "Deferred rev % of revenue", seeds["def_pct"], 0.25,"#afa9ec", False),
+        ("nca_pct",   "Other NCA % of revenue", seeds["nca_pct"],0.25,"#afa9ec", False),
         ("__other__", "── FINANCING & OTHER ──", None, None, None, True),
-        ("other_inc", f"Other income ({unit}, flat)", round(ltm.other_income,1),0.1,"#c4c4d4", False),
-        ("divs",      f"Dividends ({unit}, flat)",    round(ltm.dividends,1),  1.0,"#f0997b", False),
-        ("buybacks",  f"Buybacks ({unit}, flat)",     round(ltm.repurchases,1),5.0,"#f0997b", False),
-        ("ltd_chg",   f"LTD net change ({unit})",     0.0,  5.0, "#f0997b", False),
-        ("r_cash",    "Interest rate on cash (%)",  2.2,  0.1, "#40a0c0", False),
-        ("r_debt",    "Interest rate on debt (%)",  2.8,  0.1, "#c06060", False),
-        ("min_cash",  f"Minimum cash ({unit})",     round(ltm.cash * 0.20, 0), 5.0,"#44445a", False),
+        ("other_inc", f"Other income ({unit}, flat)", seeds["other_inc"],0.1,"#c4c4d4", False),
+        ("divs",      f"Dividends ({unit}, flat)", seeds["divs"],  1.0,"#f0997b", False),
+        ("buybacks",  f"Buybacks ({unit}, flat)", seeds["buybacks"],5.0,"#f0997b", False),
+        ("ltd_chg",   f"LTD net change ({unit})", seeds["ltd_chg"],  5.0, "#f0997b", False),
+        ("r_cash",    "Interest rate on cash (%)", seeds["r_cash"],  0.1, "#40a0c0", False),
+        ("r_debt",    "Interest rate on debt (%)", seeds["r_debt"],  0.1, "#c06060", False),
+        ("min_cash",  f"Minimum cash ({unit})", seeds["min_cash"], 5.0,"#44445a", False),
     ]
 
     collected = {k: [] for k, *_ in assumption_rows if not k.startswith("__")}
@@ -758,33 +394,7 @@ def _assumption_inputs(n_fwd, ltm, unit):
                 )
             collected[key].append(val)
 
-    # Build ForecastAssumptions per year
-    assumptions = []
-    for j in range(n_fwd):
-        def g(k): return collected[k][j]
-        assumptions.append(ForecastAssumptions(
-            revenue_growth   = g("rev_g") / 100,
-            gross_margin     = g("gm")    / 100,
-            rd_pct           = g("rd")    / 100,
-            sga_pct          = g("sga")   / 100,
-            tax_rate         = g("tax")   / 100,
-            da_pct           = g("da")    / 100,
-            sbc_pct          = g("sbc")   / 100,
-            capex_pct        = g("capex") / 100,
-            ar_days          = g("ar_d"),
-            inv_days         = g("inv_d"),
-            ap_days          = g("ap_d"),
-            other_cl_pct     = g("ocl_pct") / 100,
-            deferred_rev_pct = g("def_pct") / 100,
-            other_nca_pct    = g("nca_pct") / 100,
-            other_income     = g("other_inc"),
-            dividends        = g("divs"),
-            repurchases      = g("buybacks"),
-            ltd_change       = g("ltd_chg"),
-            interest_rate_cash = g("r_cash") / 100,
-            interest_rate_debt = g("r_debt") / 100,
-            min_cash         = g("min_cash"),
-        ))
+    assumptions = assumptions_from_grid(collected, n_fwd)
     return assumptions
 
 
@@ -846,14 +456,6 @@ def _make_is_df(ltm, fwd, unit):
     return df.set_index("Line item")
 
 
-def _opening_bs_gap(ltm):
-    """Assets - liabilities - equity on the LTM (opening) balance sheet."""
-    assets = (ltm.cash + ltm.ar + ltm.inventory + ltm.other_current
-              + ltm.ppe_net + ltm.other_nca + ltm.other_lta)
-    liab   = ltm.ap + ltm.other_cl + ltm.deferred_rev + ltm.ltd + ltm.other_ncl
-    equity = ltm.common_stock + ltm.retained_earnings + ltm.oci
-    gap = assets - liab - equity
-    return 0.0 if abs(gap) < 1e-9 else gap   # float noise, not a gap
 
 
 def _make_bs_df(ltm, fwd):
@@ -1051,49 +653,6 @@ def _plot_simulation_charts(fwd, sim_paths, company, unit):
 
 # ── Monte Carlo runner for forecasting ───────────────────────────────────────
 
-def _run_forecast_simulation(ltm, assumptions, n=30000):
-    """
-    Run Monte Carlo simulation varying growth and margin assumptions.
-    Returns dict with revenue paths and ebitda paths.
-    """
-    if not _SIM_AVAILABLE:
-        return None
-
-    rng = np.random.default_rng(42)
-    n_fwd = len(assumptions)
-
-    # Derive distribution parameters from assumption spread
-    g_means  = np.array([a.revenue_growth for a in assumptions])
-    em_means = np.array([a.gross_margin - a.rd_pct - a.sga_pct + a.da_pct for a in assumptions])
-
-    g_std  = max(np.std(g_means), 0.02)
-    em_std = max(np.std(em_means), 0.01)
-
-    g_mean  = np.mean(g_means)
-    em_mean = np.mean(em_means)
-
-    # Correlated draws (growth and margin positively correlated)
-    corr = 0.40
-    L = np.array([[1, 0], [corr, np.sqrt(1-corr**2)]])
-    Z = rng.standard_normal((2, n))
-    C = L @ Z
-    growth_draws = g_mean  + C[0] * g_std
-    margin_draws = em_mean + C[1] * em_std
-    margin_draws = np.clip(margin_draws, 0.01, 0.80)
-
-    # Simulate revenue and EBITDA paths
-    rev_paths    = np.zeros((n, n_fwd))
-    ebitda_paths = np.zeros((n, n_fwd))
-
-    rev = np.full(n, ltm.revenue)
-    for t, a in enumerate(assumptions):
-        rev = rev * (1 + growth_draws)
-        ebitda = rev * margin_draws
-        rev_paths[:, t]    = rev
-        ebitda_paths[:, t] = ebitda
-
-    return {"revenue": rev_paths, "ebitda": ebitda_paths,
-            "g_draws": growth_draws, "m_draws": margin_draws}
 
 
 # ── Main render ───────────────────────────────────────────────────────────────
@@ -1265,7 +824,7 @@ def render_forecasting():
             fwd = run_3_statement_model(ltm, assumptions)
             sim_paths = None
             if run_sim and _SIM_AVAILABLE:
-                sim_paths = _run_forecast_simulation(ltm, assumptions, n=30000)
+                sim_paths = run_forecast_simulation(ltm, assumptions, n=30000)
         st.session_state["fc2_result"] = {
             "fwd": fwd, "ltm": ltm,
             "assumptions": assumptions,
@@ -1288,7 +847,7 @@ def render_forecasting():
     _section("Key output metrics", "#40c080")
     last = fwd[-1]
     first = fwd[0]
-    rev_cagr = (last.revenue / ltm.revenue) ** (1/len(fwd)) - 1
+    rev_cagr = revenue_cagr(ltm, fwd)
     m1,m2,m3,m4,m5,m6 = st.columns(6)
     m1.metric("Revenue CAGR",   f"{rev_cagr:.1%}")
     m2.metric(f"Yr+{len(fwd)} Revenue", f"${last.revenue:,.0f}")

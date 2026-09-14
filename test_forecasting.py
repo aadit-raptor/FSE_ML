@@ -5,10 +5,10 @@ Run directly (`python test_forecasting.py`) or under pytest.
 
 import random
 
-from pages.forecasting import (
+from core.forecasting import (
     ForecastAssumptions,
     HistoricalYear,
-    _opening_bs_gap,
+    opening_bs_gap as _opening_bs_gap,
     run_3_statement_model,
 )
 
