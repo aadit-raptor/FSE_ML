@@ -19,8 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -33,8 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -42,7 +42,8 @@ jobs:
       # CPU-only torch first: the default Linux wheel pulls several GB of CUDA
       # libraries. requirements-ml.txt then sees torch already satisfied.
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - run: pip install -r requirements-ml.txt pytest
+      # requirements-dev.txt brings pytest and httpx (the FastAPI test client)
+      - run: pip install -r requirements-ml.txt -r requirements-dev.txt
       - name: Run all tests, failing if any ML test skips
         # shell: bash adds pipefail, so a pytest failure isn't masked by tee
         shell: bash
