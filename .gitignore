@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 # Regenerable surrogate training data (python -m ml.surrogate.generate_data)
 ml/surrogate/training_data.parquet
+# Playwright CLI snapshots and screenshots
+.playwright-cli/
