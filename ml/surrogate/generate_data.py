@@ -12,7 +12,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from simulation.vectorized_simulation import run_vectorized_simulation_full, SimulationParams
-from pages.settings import DEFAULTS
+from core.config import DEFAULTS
 
 # Deal terms held fixed across the training set: the surrogate only learns the
 # 11 sampled inputs below, so its predictions are exact only for a deal with

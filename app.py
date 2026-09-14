@@ -26,6 +26,8 @@ from core.deal import (
     capital_structure_from_multiples, entry_costs as _core_entry_costs,
     risk_model_inputs, run_deal as _core_run_deal, sources_and_uses,
 )
+from core.surrogate import surrogate_features, training_term_differences
+from core.surrogate import tail_unreliable as surrogate_tail_unreliable
 from core.montecarlo import (
     SCENARIOS, MCInputs, analysis_sample, apply_scenario, build_sim_params,
     driver_fits, driver_sensitivity, empirical_correlations, growth_exit_heatmap,
@@ -690,25 +692,18 @@ def render_surrogate_live(s, mc_emult, mc_hold):
         return
 
     # The surrogate learned 11 inputs on a fixed deal; say where this one differs
-    terms = [
-        ("entry multiple", mc_emult, fx["entry_multiple"], lambda v: f"{v:.1f}x"),
-        ("holding period", mc_hold, fx["holding_period"], lambda v: f"{v:.0f} yrs"),
-        ("opex / revenue", s.d_opex / 100, fx["opex_pct"], lambda v: f"{v:.1%}"),
-        ("tax rate", s.d_tax / 100, fx["tax_rate"], lambda v: f"{v:.1%}"),
-        ("senior / total debt", s.d_senior_pct / 100, fx["senior_pct"],
-         lambda v: f"{v:.0%}"),
-        ("mezz spread", s.d_mezz_spread / 100, fx["mezz_spread"], lambda v: f"{v:.2%}"),
-        ("interest rate std dev", s.mc_rate_std / 100, fx["interest_std"],
-         lambda v: f"{v:.2%}"),
-        ("transaction fees", get_cfg("tx_fee_pct") / 100, fx["transaction_fees_pct"],
-         lambda v: f"{v:.1%}"),
-        ("financing fees", get_cfg("fin_fee_pct") / 100, fx["financing_fees_pct"],
-         lambda v: f"{v:.1%}"),
-        ("other uses", get_cfg("other_uses"), fx["other_uses"], lambda v: f"${v:,.0f}M"),
-    ]
-    diffs = [f"{name} {fmt(yours)} (model {fmt(model)})"
-             for name, yours, model, fmt in terms
-             if abs(float(yours) - float(model)) > 1e-6]
+    mc = MCInputs(n=s.mc_n, ebitda=s.d_ebitda, entry_mult=mc_emult, hold=mc_hold,
+                  hurdle=s.mc_hurdle, growth_mean=s.mc_growth_mean,
+                  growth_std=s.mc_growth_std, exit_mean=s.mc_exit_mean,
+                  exit_std=s.mc_exit_std, rate_mean=s.mc_rate_mean,
+                  rate_std=s.mc_rate_std, gm_mean=s.mc_gm_mean, gm_std=s.mc_gm_std)
+    deal = _deal_inputs(s)
+    fmt = {("multiple", 1): lambda v: f"{v:.1f}x", ("years", 0): lambda v: f"{v:.0f} yrs",
+           ("percent", 0): lambda v: f"{v:.0%}", ("percent", 1): lambda v: f"{v:.1%}",
+           ("percent", 2): lambda v: f"{v:.2%}", ("usd_millions", 0): lambda v: f"${v:,.0f}M"}
+    diffs = [f"{d['term']} {fmt[d['unit'], d['decimals']](d['value'])} "
+             f"(model {fmt[d['unit'], d['decimals']](d['model_value'])})"
+             for d in training_term_differences(mc, deal, current_cfg(), fx)]
     if diffs:
         st.warning("The surrogate was trained on a fixed deal, and this one differs "
                    "in: " + "; ".join(diffs) + ". Treat the live figures as "
@@ -720,33 +715,24 @@ def render_surrogate_live(s, mc_emult, mc_hold):
     col_l1, col_l2 = st.columns(2, gap="medium")
     with col_l1:
         live_growth = st.slider("Revenue growth mean (%)", -5.0, 20.0,
-                                float(s.mc_growth_mean), 0.1, key="live_growth") / 100
+                                float(s.mc_growth_mean), 0.1, key="live_growth")
         live_exit = st.slider("Exit multiple mean (x)", 4.0, 20.0,
                               float(s.mc_exit_mean), 0.1, key="live_exit")
         live_interest = st.slider("Interest rate mean (%)", 1.0, 15.0,
-                                  float(s.mc_rate_mean), 0.1, key="live_rate") / 100
+                                  float(s.mc_rate_mean), 0.1, key="live_rate")
     with col_l2:
         live_margin = st.slider("Gross margin mean (%)", 10.0, 80.0,
-                                float(s.mc_gm_mean), 0.5, key="live_gm") / 100
+                                float(s.mc_gm_mean), 0.5, key="live_gm")
         live_debt = st.slider("Debt / EV (%)", 20.0, 90.0,
-                              float(s.d_debt_pct), 1.0, key="live_debt") / 100
+                              float(s.d_debt_pct), 1.0, key="live_debt")
         live_exit_std = st.slider("Exit multiple uncertainty (std)", 0.3, 5.0,
                                   float(s.mc_exit_std), 0.1, key="live_exit_std")
 
-    pred = surrogate.predict(
-        growth_mean=live_growth, growth_std=s.mc_growth_std / 100,
-        exit_mean=live_exit, exit_std=live_exit_std,
-        interest_mean=live_interest,
-        gross_margin_mean=live_margin, gross_margin_std=s.mc_gm_std / 100,
-        da_pct=s.d_da / 100, capex_pct=s.d_capex / 100,
-        nwc_pct=s.d_nwc / 100, debt_pct=live_debt,
-    )
-    # Near the wipeout cliff the true 5th percentile falls steeply toward the
-    # -100% floor and the network smooths over it. Measured on 400 random
-    # deals: 5th-percentile error was 0.2pp median below 1% wipeout, but up to
-    # 23pp around 5%. The surrogate's own wipeout prediction is accurate, and
-    # flagging at >= 2% caught every error above 3pp while flagging 12% of deals.
-    tail_unreliable = pred.p_wipeout >= 0.02
+    pred = surrogate.predict(**surrogate_features(
+        mc, deal, growth_mean=live_growth, exit_mean=live_exit,
+        interest_mean=live_interest, gross_margin_mean=live_margin,
+        debt_pct=live_debt, exit_std=live_exit_std))
+    tail_unreliable = surrogate_tail_unreliable(pred.p_wipeout)
 
     lv1, lv2, lv3, lv4, lv5, lv6 = st.columns(6)
     lv1.metric("Median IRR",      f"{pred.irr_p50 * 100:.1f}%")
