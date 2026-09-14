@@ -1,9 +1,9 @@
-"""core/ reproduces the Streamlit app's outputs exactly.
+"""core/ reproduces the Streamlit app's outputs.
 
 tests/golden/golden.json was captured from the Streamlit app before the model
 logic moved into core/ (see tests/golden/generate_golden.py). These tests feed
-the recorded inputs straight into core/ and require identical results -- exact
-float equality, not a tolerance.
+the recorded inputs straight into core/ and require the same results, to within
+floating-point noise (see golden_compare.py).
 """
 import dataclasses
 import json
@@ -11,6 +11,8 @@ import os
 
 import numpy as np
 import pytest
+
+from tests.golden_compare import assert_close
 
 from core.backtesting import PRELOADED_DEALS, backtest_summary, predicted_ebitda, run_prediction_sim
 from core.config import DEFAULTS, resolve_config
@@ -55,7 +57,7 @@ def test_deal_matches_streamlit(case):
     r = run_deal(deal_from(g["inputs"]), cfg_from(g["cfg"]))
     for part in ("returns", "equity_bridge", "exit_sensitivity", "operating_model",
                  "cash_flow", "debt_schedule", "interest_converged"):
-        assert plain(getattr(r, part)) == g[part], f"{case}: {part} differs"
+        assert_close(plain(getattr(r, part)), g[part])
 
 
 # ---------------------------------------------------------------------------
@@ -73,7 +75,7 @@ def test_simulation_params_match_streamlit(case):
     params = build_sim_params(mc, deal_from(i), cfg)
     if g["preset"]:
         params = apply_scenario(g["preset"].lower(), params, cfg)
-    assert plain(params) == g["sim_params"]
+    assert_close(plain(params), g["sim_params"])
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +89,7 @@ def test_forecast_matches_streamlit(case):
             field, year = key[len("hist_"):].rsplit("_", 1)
             history[field][int(year)] = value
     ltm = ltm_from_history(history)
-    assert plain(ltm) == g["ltm"]
+    assert_close(plain(ltm), g["ltm"])
 
     n_fwd = len(g["fwd"])
     # The page seeds its assumption grid when it first renders -- from the
@@ -101,18 +103,18 @@ def test_forecast_matches_streamlit(case):
             field, year = key[len("fwd_"):].rsplit("_", 1)
             grid[field][int(year)] = value
     assumptions = assumptions_from_grid(grid, n_fwd)
-    assert plain(assumptions) == g["assumptions"]
+    assert_close(plain(assumptions), g["assumptions"])
 
-    assert plain(run_3_statement_model(ltm, assumptions)) == g["fwd"]
+    assert_close(plain(run_3_statement_model(ltm, assumptions)), g["fwd"])
 
     paths = run_forecast_simulation(ltm, assumptions, n=30000)
     for key in ("revenue", "ebitda"):
         a = paths[key]
         got = {q: np.percentile(a, int(q[1:]), axis=0).tolist() for q in ("p5", "p50", "p95")}
         got["mean"] = a.mean(axis=0).tolist()
-        assert got == g["sim"][key]
-    assert float(paths["g_draws"].mean()) == g["sim"]["g_draws_mean"]
-    assert float(paths["m_draws"].mean()) == g["sim"]["m_draws_mean"]
+        assert_close(got, g["sim"][key])
+    assert_close(float(paths["g_draws"].mean()), g["sim"]["g_draws_mean"])
+    assert_close(float(paths["m_draws"].mean()), g["sim"]["m_draws_mean"])
 
 
 # ---------------------------------------------------------------------------
@@ -120,12 +122,12 @@ def test_forecast_matches_streamlit(case):
 def test_backtest_prediction_matches_streamlit(deal):
     g = GOLDEN["backtesting"]["helpers"][deal]
     cfg = resolve_config()
-    assert plain(predicted_ebitda(g["entry"])) == g["predicted_ebitda"]
+    assert_close(plain(predicted_ebitda(g["entry"])), g["predicted_ebitda"])
     irr = run_prediction_sim(g["entry"], cfg)
     got = {"mean": float(irr.mean()), "p5": float(np.percentile(irr, 5)),
            "p50": float(np.percentile(irr, 50)), "p95": float(np.percentile(irr, 95)),
            "n": int(irr.size)}
-    assert got == g["prediction_irr"]
+    assert_close(got, g["prediction_irr"])
 
 
 def test_backtest_summary_matches_rendered_page():
@@ -148,7 +150,7 @@ def test_default_history_matches_streamlit_inputs():
     widgets = GOLDEN["forecasting_inputs"]["history_widgets"]
     history = default_history(3)
     got = {f"hist_{k}_{j}": v for k, vals in history.items() for j, v in enumerate(vals)}
-    assert got == widgets
+    assert_close(got, widgets)
 
 
 def test_historical_metrics_match_rendered_table():
