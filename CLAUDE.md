@@ -23,12 +23,20 @@ sign in.
 
 ### What's next: PLAN.md
 
-The rebuild is done. **PLAN.md** turns every recommended product gap, ML
-improvement and revenue idea into numbered tasks (phases 0-11) with
-dependencies, what the user must do first, and a "done when" test. Work one
-task per session and per PR, lowest open number first, and tick it in PLAN.md's
-status table in the same PR. Start with 0.1 (put the app online) and 0.2
-(decisions).
+The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
+aside market research, customers, company, legal and pricing), **global and
+universal by design** (any country, currency and deal; no dependence on the
+four inception-era US deals), and **free first**. Phases 0-11 use only free
+plans and free data (Vercel Hobby, Render free web, Neon, Upstash, GitHub
+Actions for scheduled jobs, Supabase Storage, Clerk, Sentry, Better Stack,
+Resend, PostHog, Stripe test mode, recorded or free-tier AI on public documents
+only). Phase 12 switches on paid tiers once the product is functional. The
+user's phase order puts data, ML, AI and features before scaling work, with
+background jobs moved into foundations. Tasks carry dependencies, what the
+user must do first (outside accounts and keys only) and a "done when" test;
+the appendix lists every US-specific and deal-dependent assumption in the
+code. Work one task per session and per PR, lowest open number first, tick it
+in PLAN.md in the same PR. Start with 0.1, then 2.1.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 

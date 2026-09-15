@@ -1,890 +1,918 @@
-# PLAN.md — from calculator to product
+# PLAN.md — making the software full-scale, global and universal (free first)
 
-Everything recommended so far, turned into tasks that Claude can do one at a
-time. It covers:
-- the product gaps: accounts, saving, security, scale, monitoring, trust, data,
-  legal, teams, billing, help, devices;
-- the ML layer;
-- the new features;
-- the revenue and go-to-market steps.
+Scope (agreed with the user, 2026-09-15): **the software only**. That means
+everything needed to turn the current app into a scalable, secure,
+production-grade tool that works for **any country, currency and deal**, with
+the ML and feature ideas built in.
 
-Written 2026-09-15. The PDF explainer is deliberately left out for now.
+Out of scope for now: market research, customer interviews, company name,
+legal work, pricing decisions, marketing and sales.
+
+## Guiding principles
+
+These apply to every task; a task isn't done if it breaks one.
+
+1. **Free until the product is functional.** Phases 0–11 use only free plans
+   and free data, with no card required. Anything that needs a paid plan is
+   built so it can be switched on later, and listed in phase 12. If part of a
+   task can't be done free, Claude splits it and moves that part to phase 12.
+2. **Global, not US by default.** Every money figure has a currency. Rates,
+   tax rules, accounting conventions and data sources are chosen by region.
+   English first, built for other languages.
+3. **A real-world tool, not a demo built on a few famous deals.** The app must
+   be fully useful with only the user's own deal. The four inception deals
+   (Burger King, Hilton, Dell, Freescale) become optional examples, never an
+   input to calculations, defaults or models.
+4. **Every default has a source**, showing where it came from, how many
+   companies it's based on, and when it was updated. Users can always override.
+   Until then, defaults are labelled "illustrative".
+5. **Estimates are labelled as estimates.** ML and AI outputs appear only if
+   they pass accuracy tests.
+6. **The calculations are proven correct by hand-checked cases**, not by
+   history.
+7. **Built to scale without rewrites.** Free-tier shortcuts, such as running
+   long jobs inside the API, sit behind interfaces, so moving to paid
+   infrastructure in phase 12 is configuration, not new code.
 
 ---
 
 ## How to use this plan with Claude
 
-**One task per session, one pull request per task.** Tasks are sized so one
-session can finish one, including tests.
+**One task per session, one pull request per task.**
 
 Start each session with this prompt (swap in the task number):
 
 > Read CLAUDE.md and PLAN.md. Do task **1.3** only. Check its "Needs" are done
 > and its "You first" items are in place; if not, stop and tell me what's
-> missing. Follow the working rules in CLAUDE.md (branch, tests that check
-> real output, mutation-check new tests, PR, CI green, merge). When done, tick
-> the task in PLAN.md's status table in the same PR and tell me what to check.
+> missing. Follow PLAN.md's guiding principles (free plans only) and
+> CLAUDE.md's working rules (branch, tests that check real output,
+> mutation-check new tests, PR, CI green, merge). When done, tick the task in
+> PLAN.md's status table in the same PR and tell me what to check.
 
-**Rules for every task**
-- Check the table below; do the lowest-numbered open task whose "Needs" are
-  done. Tasks in the same phase with no link between them can run in any
-  order.
-- **"You first"** lists what only you can do. Claude can't do these: creating
-  accounts, entering passwords or card details, accepting terms, signing
-  contracts, choosing vendors, legal sign-off. Do them before starting the
-  task and hand Claude the result, e.g. "the Clerk project exists; keys are
-  set in Render and Vercel".
-- **Secrets never go in chat or in the code.** Put API keys in the hosting
-  dashboards (Render, Vercel) and in a local `.env` that git ignores. Tell
-  Claude the variable *name*, not the value.
-- **"Done when"** is the acceptance test. Claude must show evidence for each
-  line: test output, a screenshot, a number.
-- If a task turns out bigger than one session, Claude splits it into lettered
-  parts (e.g. 3.1a, 3.1b), adds them to this table, and finishes 'a' first.
+**Rules**
+- Do the lowest-numbered open task whose "Needs" are done.
+- **"You first"** is only what Claude can't do: creating accounts on outside
+  services, entering passwords, and copying secret keys into the hosting
+  dashboards and GitHub secrets.
+- **Secrets never go in chat or code.** Keys go in Render, Vercel and GitHub
+  Actions secrets (and a git-ignored `.env` locally). Tell Claude the variable
+  *name*.
+- **"Done when"** is the acceptance test; Claude shows evidence for each line.
+- A task too big for one session is split into lettered parts (3.1a, 3.1b).
+- **Stay inside free limits.** Each task notes the limits that matter. Claude
+  adds a check or alert when usage approaches a limit.
 
-**Recommended vendors.** These are defaults so work can start; override any in
-task 0.2.
+## Free services this plan uses (no card required)
 
-| Need | Default | Why this one | Alternatives |
-|---|---|---|---|
-| Web hosting | Vercel | Already set up | Netlify |
-| API and workers | Render | Already set up; runs Docker, background workers, Redis, cron | Fly.io, Railway |
-| Database | Render Postgres | Same dashboard as the API | Neon, Supabase |
-| Queue / cache | Render Key Value (Redis-compatible) | Same dashboard | Upstash |
-| Accounts and login | Clerk | Next.js and FastAPI support, organizations (teams) and company logins built in | Auth0, Supabase Auth |
-| Payments | Stripe | Subscriptions, invoices, trials, tax | Paddle (handles sales tax for you) |
-| Error tracking | Sentry | Web and API in one place | Honeybadger |
-| Uptime alerts | Better Stack | Free tier, status page | UptimeRobot |
-| Product analytics | PostHog | Usage funnels, feature flags, self-host option | Mixpanel |
-| Email | Resend | Simple API for sign-up and alert emails | Postmark |
-| File storage (uploads) | Cloudflare R2 | S3-compatible, no download fees | AWS S3 |
-| AI (documents, memos) | Anthropic API (`claude-sonnet-5`) | Already used by `ml/nlp_extractor.py` | — |
-| Economic data | FRED (free key) | Already used | — |
+| Need | Free service | Free limits that shape the design |
+|---|---|---|
+| Website | **Vercel Hobby** | Non-commercial use only: fine while building (phase 12 moves to Pro before charging anyone) |
+| Engine (API) | **Render free web service** | Sleeps after 15 min idle (about a minute to wake); 750 instance hours a month shared across services; small memory; no background workers or scheduled jobs |
+| Database | **Neon free** | 0.5 GB per project; 100 compute-hours a month; scales to zero when idle; never expires |
+| Cache and rate limits | **Upstash Redis free** | 500,000 commands a month; 256 MB |
+| Scheduled jobs (data refresh, retraining, backups) | **GitHub Actions** | Free and unlimited on this public repository; schedules pause after 60 days without a commit (task 11.3 handles this) |
+| Long user jobs (simulations, AI, imports) | **Inside the API**, with a job table in Neon | Moves to dedicated workers in phase 12 without code changes |
+| Accounts and login | **Clerk free** | Limited monthly active users |
+| Errors and uptime | **Sentry free**, **Better Stack free** | Limited events and monitors |
+| Emails | **Resend free** | Limited sends per day and month |
+| File storage | **Supabase Storage free** | 1 GB; project pauses after a week without activity (a daily health check keeps it awake) |
+| Usage analytics | **PostHog free** | Generous monthly event allowance |
+| Payments | **Stripe test mode** | No real charges until phase 12 |
+| AI | **Recorded responses** for development and tests; **Gemini API free tier** for trials on **public documents only** | Google may use free-tier inputs to improve its products, and humans may review them, so never send confidential deals. Confidential documents wait for a paid provider (phase 12) |
+
+**Free data sources**
+
+| Data | Sources |
+|---|---|
+| Company filings | SEC EDGAR (US), UK Companies House (free key), ESEF filings for EU and UK listed companies (filings.xbrl.org), Japan EDINET (free key), plus document upload for anywhere else |
+| Economic data by country | IMF, World Bank, OECD, BIS, ECB Data Portal, FRED (free key) |
+| Exchange rates | ECB euro reference rates |
+| Sector benchmarks by region | Damodaran Online datasets, plus figures computed from the filings above |
+| Default and recovery base rates | Published annual rating-agency default studies, cited by year |
 
 ---
 
 ## Status
 
-Tick a box in the same PR that finishes the task.
+Phases run in number order. The earlier "Handling many users" phase is now
+phase 8, after the data, ML, AI and feature work, except background jobs,
+which moved into Foundations (1.9) because later phases need them.
 
 | # | Task | Needs | Status |
 |---|---|---|---|
-| **0** | **Decisions and launch** | | |
-| 0.1 | Put the current app online (Render + Vercel) | — | ☐ |
-| 0.2 | Decisions: niche, vendors, budget | — | ☐ |
-| 0.3 | Customer interviews kit | 0.1 | ☐ |
+| **0** | **Online** | | |
+| 0.1 | Put the current app online (free) | — | ☐ |
 | **1** | **Foundations** | | |
-| 1.1 | Environments: staging and production | 0.1, 0.2 | ☐ |
+| 1.1 | Test copy (staging) and production | 0.1 | ☐ |
 | 1.2 | Monitoring, error tracking, logs | 1.1 | ☐ |
-| 1.3 | Database | 1.1 | ☐ |
+| 1.3 | Database (Neon) | 1.1 | ☐ |
 | 1.4 | Accounts and login | 1.3 | ☐ |
 | 1.5 | Saved deals, versions and settings | 1.4 | ☐ |
 | 1.6 | Usage limits and abuse protection | 1.4 | ☐ |
 | 1.7 | Security hardening | 1.4 | ☐ |
 | 1.8 | Backups and recovery | 1.3 | ☐ |
-| 1.9 | Legal pages and disclaimers | 0.2 | ☐ |
-| **2** | **Trust in the numbers** | | |
-| 2.1 | Model version on every result | 1.5 | ☐ |
-| 2.2 | Written methodology | — | ☐ |
-| 2.3 | Audit history | 1.5 | ☐ |
-| 2.4 | Independent expert review | 2.2 | ☐ |
-| **3** | **Handling many users** | | |
-| 3.1 | Job queue and workers for heavy runs | 1.3, 1.6 | ☐ |
-| 3.2 | Result caching | 3.1 | ☐ |
-| 3.3 | Load testing and autoscaling | 3.1, 1.2 | ☐ |
-| **4** | **Data platform** | | |
-| 4.1 | Company data store (SEC filings cached) | 1.3, 3.1 | ☐ |
-| 4.2 | Historical deal database | 4.1 | ☐ |
-| 4.3 | Backtests over the deal database | 4.2 | ☐ |
-| 4.4 | Data sources and licences | 0.2 | ☐ |
+| 1.9 | Background jobs and scheduled jobs | 1.3, 1.6 | ☐ |
+| **2** | **Universal by design** | | |
+| 2.1 | Honest labels on inception-era parts (do early) | — | ☐ |
+| 2.2 | Currency and money units everywhere | 1.5 | ☐ |
+| 2.3 | Locale: numbers, dates, fiscal years, languages | 2.2 | ☐ |
+| 2.4 | Global debt structures and interest rates | 2.2 | ☐ |
+| 2.5 | Global tax rules | 2.2 | ☐ |
+| 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
+| 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☐ |
+| 2.8 | Risk warnings computed, not written in | 2.1 | ☐ |
+| **3** | **Trust in the numbers** | | |
+| 3.1 | Model version on every result | 1.5 | ☐ |
+| 3.2 | Written methodology | — | ☐ |
+| 3.3 | Audit history | 1.5 | ☐ |
+| 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4, 2.5 | ☐ |
+| **4** | **Global market data platform** | | |
+| 4.1 | Company filings from many countries | 1.9, 2.6 | ☐ |
+| 4.2 | Economic data by country, and exchange rates | 1.9 | ☐ |
+| 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☐ |
+| 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☐ |
+| 4.5 | Optional reference library (deals and base rates) | 4.1 | ☐ |
+| 4.6 | Model validation framework | 4.3, 4.5, 2.7 | ☐ |
 | **5** | **ML done properly** | | |
-| 5.1 | ML evaluation harness and model cards | 4.2 | ☐ |
-| 5.2 | Deal risk score retrained on real data | 5.1 | ☐ |
+| 5.1 | ML evaluation harness and model cards | 4.6 | ☐ |
+| 5.2 | Deal risk score from market data | 5.1, 2.8 | ☐ |
 | 5.3 | Distress predictor | 5.1 | ☐ |
-| 5.4 | Multiple predictor | 5.1 | ☐ |
-| 5.5 | Growth calibrator | 5.1, 4.1 | ☐ |
+| 5.4 | Multiple predictor by region | 5.1, 4.3 | ☐ |
+| 5.5 | Growth calibrator by region | 5.1, 4.3 | ☐ |
 | 5.6 | Driver explanations | 5.1 | ☐ |
-| 5.7 | Macro regime and correlation updater, scheduled | 5.1, 3.1 | ☐ |
-| 5.8 | Live sliders for any deal shape | 5.1 | ☐ |
-| 5.9 | Personalization | 1.5, 5.1 | ☐ |
+| 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☐ |
+| 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☐ |
+| 5.9 | Personalized defaults | 1.5, 5.1 | ☐ |
 | **6** | **AI features** | | |
-| 6.1 | File uploads | 1.4, 3.1 | ☐ |
-| 6.2 | Upload a document, get a deal | 6.1, 2.1 | ☐ |
-| 6.3 | Investment memo writer | 2.1, 1.5 | ☐ |
-| 6.4 | Plain-English explanations on screens | 2.1 | ☐ |
+| 6.1 | File uploads | 1.4, 1.9 | ☐ |
+| 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☐ |
+| 6.3 | Investment memo writer | 3.1, 1.5 | ☐ |
+| 6.4 | Plain-English explanations on screens | 3.1 | ☐ |
 | **7** | **Product features** | | |
-| 7.1 | Onboarding and help | 1.5 | ☐ |
-| 7.2 | Teams: sharing, permissions, comments | 1.5, 2.3 | ☐ |
-| 7.3 | Excel: live-linked workbooks, then add-in | 1.5 | ☐ |
-| 7.4 | Portfolio tracking (actuals vs plan) | 1.5, 3.1 | ☐ |
-| 7.5 | Lender view (loan terms, default risk) | 5.3 | ☐ |
-| 7.6 | Smaller screens and accessibility | — | ☐ |
-| **8** | **Revenue** | | |
-| 8.1 | Plans and billing | 1.4, 1.9 | ☐ |
-| 8.2 | Plan limits and usage metering | 8.1, 1.6 | ☐ |
-| 8.3 | Product analytics | 1.4 | ☐ |
-| 8.4 | Marketing site and public docs | 1.9 | ☐ |
-| 8.5 | Support and feedback | 1.4 | ☐ |
-| 8.6 | Education licences | 8.1, 7.2 | ☐ |
-| **9** | **Go to market** | | |
-| 9.1 | Private beta | 1.5, 1.2, 1.9 | ☐ |
-| 9.2 | Pricing test and paid launch | 9.1, 8.1 | ☐ |
-| 9.3 | Content and partnerships | 8.4 | ☐ |
-| **10** | **Enterprise** | | |
-| 10.1 | Company logins (SSO) and admin controls | 7.2 | ☐ |
-| 10.2 | Security certification readiness (SOC 2) | 1.7, 1.8, 2.3 | ☐ |
-| 10.3 | Penetration test and fixes | 1.7 | ☐ |
-| 10.4 | Data retention, deletion and privacy tools | 1.5 | ☐ |
-| **11** | **People and process** | | |
-| 11.1 | Human code owner and review | — | ☐ |
-| 11.2 | Release, incident and support routines | 1.2, 1.1 | ☐ |
+| 7.1 | Onboarding and in-app help | 1.5 | ☐ |
+| 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☐ |
+| 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3 | ☐ |
+| 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
+| 7.5 | Lender view with regional conventions | 2.4, 5.3 | ☐ |
+| 7.6 | Phones, tablets and accessibility | — | ☐ |
+| 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
+| 7.8 | More languages | 2.3 | ☐ |
+| **8** | **Ready to scale** | | |
+| 8.1 | Result caching | 1.9 | ☐ |
+| 8.2 | Speed budgets (web and API) | 1.2 | ☐ |
+| 8.3 | Load testing and a scaling plan | 8.1, 8.2 | ☐ |
+| **9** | **Subscriptions machinery (test mode)** | | |
+| 9.1 | Subscription billing (multi-currency, test mode) | 1.4 | ☐ |
+| 9.2 | Plan limits and usage metering | 9.1, 1.6 | ☐ |
+| 9.3 | Usage analytics and feature flags | 1.4 | ☐ |
+| 9.4 | In-app support and feedback | 1.2, 1.4 | ☐ |
+| **10** | **Enterprise-grade (free parts)** | | |
+| 10.1 | Data export and account deletion | 1.5, 6.1 | ☐ |
+| 10.2 | Automated security testing | 1.7, 1.1 | ☐ |
+| 10.3 | Region-ready data model and recovery rehearsal | 1.8, 8.3 | ☐ |
+| **11** | **Running it day to day** | | |
+| 11.1 | Release routine and rollback | 1.1, 3.1 | ☐ |
+| 11.2 | Incident routine and runbooks | 1.2 | ☐ |
+| 11.3 | Free-limit, data-freshness and dependency upkeep | 1.9, 4.3 | ☐ |
+| **12** | **Paid tiers (only once the product is functional)** | | |
+| 12.1 | Always-on hosting and dedicated workers with autoscaling | 8.3 | ☐ |
+| 12.2 | Paid database with longer backups | 12.1 | ☐ |
+| 12.3 | Commercial web hosting (Vercel Pro) | — | ☐ |
+| 12.4 | Paid AI provider for confidential documents | 6.2 | ☐ |
+| 12.5 | Live payments | 9.2, 12.3 | ☐ |
+| 12.6 | Company logins (SSO) and admin console | 7.2 | ☐ |
+| 12.7 | Regional hosting and data residency | 10.3, 12.1 | ☐ |
+| 12.8 | Higher service limits as usage grows | 11.3 | ☐ |
 
-### The order, in short
-1. **Get it online** (0.1) and **decide who it's for** (0.2). Start **talking to
-   customers** (0.3) while building; don't wait.
-2. **Foundations** (phase 1): nothing else is safe to launch without them.
-3. **Trust** (phase 2) runs alongside; 2.2 can start on day one.
-4. **Private beta** (9.1) as soon as 1.5, 1.2 and 1.9 are done: real users
-   early.
-5. **Scale** (3) and **data** (4), then **ML** (5), which needs the data.
-6. **AI and product features** (6, 7): build what beta users ask for first;
-   reorder within these phases freely.
-7. **Revenue** (8) before the paid launch (9.2).
-8. **Enterprise** (10) when a larger firm asks for it.
+**Order:** 0.1 → 2.1 (small, do early) → 1 → 2 → 3 → 4 → 5 → 6 and 7 (any
+order) → 8 → 9 → 10 → 11 → 12. Task 3.2 can start any time; 11.1 and 11.2
+any time after phase 1.
 
 ---
 
-## Phase 0 — Decisions and launch
+## Phase 0 — Online
 
-### 0.1 Put the current app online
-- **Why:** real users can't try it on your laptop.
-- **You first:** follow DEPLOY.md. Create the Render blueprint and the Vercel
-  project and set `FSE_API_URL`. Send Claude both URLs.
-- **Claude does:** checks both sites respond, runs the browser tests against
-  the live URLs (a Playwright config pointed at production, read-only
-  checks), records the URLs in CLAUDE.md.
-- **Done when:** the live status bar shows "API ok"; the default deal shows
-  21.2% IRR; Monte Carlo seed 42 shows 18.0% mean; URLs are in CLAUDE.md.
-
-### 0.2 Decisions: niche, vendors, budget
-- **Why:** later tasks depend on these choices.
-- **You first:** decide, and write the answers into this section:
-  1. First customer group: search funds / independent sponsors, small PE
-     funds, private-credit lenders, M&A boutiques, or business schools.
-  2. Vendors: accept the table above or change it.
-  3. Monthly budget for hosting and tools.
-  4. Company name and domain.
-  5. Whether you'll hire or contract a human engineer (see 11.1).
-- **Claude does:** prepares a one-page comparison for any vendor you're unsure
-  about (features, limits, lock-in), and updates this plan with your choices.
-- **Done when:** the five answers are written here and CLAUDE.md links to them.
-
-### 0.3 Customer interviews kit
-- **Why:** build what people will pay for, not what we guess.
-- **You first:** find 20–30 people in the chosen group (LinkedIn, alumni
-  networks, search-fund communities) and book calls.
-- **Claude does:** writes
-  - an interview script (problems, current tools, what they pay, deal-breakers);
-  - a demo walkthrough of the live app;
-  - a notes template.
-
-  After each batch of notes you paste in, Claude summarises patterns and
-  proposes reordering phases 6–7.
-- **Done when:** the kit is in `docs/research/`; after interviews, a summary
-  with the top 5 requests and price signals, and the plan reordered.
+### 0.1 Put the current app online (free)
+- **You first:** follow DEPLOY.md: Render blueprint on the free plan, and a
+  Vercel Hobby project with `FSE_API_URL`. Send Claude both URLs.
+- **Claude does:** verifies both sites; adds a read-only browser test against
+  the live URLs; records the URLs in CLAUDE.md; notes the free-plan sleep on
+  the status page.
+- **Done when:** the live status bar shows "API ok" (after wake-up); the default
+  deal shows 21.2% IRR; URLs are in CLAUDE.md.
 
 ---
 
 ## Phase 1 — Foundations
 
-### 1.1 Environments: staging and production
-- **Why:** try every change on a copy before customers see it; roll back in
-  one click.
-- **You first:** in Render and Vercel, allow a second (staging) service or
-  project if your plan needs it.
+### 1.1 Test copy (staging) and production
+- **You first:** create a second free Render web service for staging.
 - **Claude does:**
-  - a `staging` branch that auto-deploys to a staging API and web app;
-  - `main` deploys to production;
-  - environment variables documented per environment;
+  - Vercel preview deployments serve as the staging web app;
+  - the `staging` branch deploys the staging API, `main` deploys production;
+  - variables documented per environment;
+  - browser tests run against staging after each deploy;
   - a written rollback procedure;
-  - CI runs the browser tests against staging after each deploy.
-- **Done when:** a PR merged to `staging` appears on the staging URL, not
-  production; rolling back production to the previous version is documented
-  and tried once.
+  - both environments fit inside Render's shared free hours (staging sleeps
+    when unused).
+- **Done when:** a staging merge appears only on staging; one production
+  rollback is done on purpose and documented.
 
 ### 1.2 Monitoring, error tracking, logs
-- **Why:** find out about problems before customers do.
-- **You first:** create Sentry and Better Stack accounts; set `SENTRY_DSN`
-  (web and API) in Render and Vercel.
+- **You first:** create free Sentry and Better Stack accounts; set `SENTRY_DSN`.
 - **Claude does:**
-  - Sentry in the web app and API: errors with context, no personal data;
-  - structured request logs with a request ID shared by web and API;
-  - a timing log for model runs;
-  - an uptime check on `/api/health` with alerts;
-  - a public status page;
-  - a runbook: what each alert means and what to do.
-- **Done when:** a deliberate test error shows in Sentry with its request ID;
-  stopping staging triggers an alert within 5 minutes; the runbook exists.
+  - error tracking in web and API (no deal contents or personal data);
+  - structured logs with a shared request ID;
+  - model-run timings;
+  - uptime checks, with alerts that ignore expected free-plan wake-ups but
+    catch real failures;
+  - a status page;
+  - UTC storage, shown in the viewer's time zone.
+- **Done when:** a test error appears with its request ID; a broken deploy on
+  staging alerts within 5 minutes.
 
-### 1.3 Database
-- **Why:** everything that must be remembered needs somewhere to live.
-- **You first:** create a Render Postgres database (staging and production);
-  set `DATABASE_URL`.
+### 1.3 Database (Neon)
+- **You first:** create a free Neon project, with a `staging` branch; set
+  `DATABASE_URL` for each environment.
 - **Claude does:**
-  - database layer in `api/` (SQLAlchemy and Alembic migrations);
-  - a tested migration workflow;
-  - a local development database;
-  - a CI job that runs migrations and the tests against a real Postgres.
-
-  No features yet, just the foundation.
-- **Done when:** migrations run up and down cleanly in CI; the API reports
-  database health in `/api/health`; CLAUDE.md documents how to add a table.
+  - database layer (SQLAlchemy and Alembic);
+  - handling for Neon waking from idle (connection retries);
+  - local dev database;
+  - CI with a real Postgres;
+  - database status in `/api/health`;
+  - money columns always next to a currency code, times in UTC;
+  - a storage-usage check that warns at 80% of the 0.5 GB free limit.
+- **Done when:** migrations run forwards and backwards in CI; the API recovers
+  cleanly after Neon scales to zero (test); CLAUDE.md explains how to add a
+  table.
 
 ### 1.4 Accounts and login
-- **Why:** know who users are, keep their work private, and charge them.
-- **You first:** create a Clerk application (staging and production); enable
-  email and Google login; set keys in Vercel and Render.
-- **Claude does:**
-  - sign-up, sign-in, sign-out and password reset in the web app;
-  - every API request except health and public docs requires a valid login
-    token;
-  - a `users` table linked to Clerk IDs;
-  - an account page;
-  - browser tests with a test user.
-- **Done when:** logged-out visitors can't call the API (a test proves 401);
-  a new user can sign up and reach Deal; the e2e suite runs as a test user.
+- **You first:** create a free Clerk application; enable email and Google
+  sign-in; set keys.
+- **Claude does:** sign-up, sign-in, reset; every API call except health needs a
+  login; `users` table with country, preferred currency, locale and time zone
+  (asked at sign-up); account page; e2e as a test user.
+- **Done when:** a logged-out call gets 401 (test); sign-up reaches Deal; e2e
+  passes logged in.
 
 ### 1.5 Saved deals, versions and settings
-- **Why:** today a refresh loses everything, and settings live only in one
-  browser.
-- **Claude does:**
-  - tables for deals, deal versions (inputs and settings snapshot, created by,
-    time) and user settings;
-  - API endpoints to create, list, open, rename, duplicate, archive and delete
-    deals, and to save and restore versions;
-  - web: a deal list page, a Save button with autosave, a version history
-    panel, and "restore this version";
-  - settings move from browser storage to the account; the existing browser
-    settings are imported once.
-- **Done when:** a saved deal reopens with identical results on another
-  browser; restoring an old version brings back its IRR exactly; one user
-  can't open another's deal (a test proves 404).
+- **Claude does:** deals, versions and settings in the database; create, list,
+  open, rename, duplicate, archive, delete, save and restore; deal list,
+  autosave, version history; settings move from the browser to the account;
+  versions stored compactly so the free 0.5 GB lasts.
+- **Done when:** a saved deal reopens identically elsewhere; restoring a version
+  brings back its exact IRR; users can't open each other's deals (test).
 
 ### 1.6 Usage limits and abuse protection
-- **Why:** one person must not be able to slow the service for everyone.
+- **You first:** create a free Upstash Redis database; set its URL and token.
 - **Claude does:**
-  - per-user and per-IP request limits (Redis-backed);
-  - maximum simulation size per request, set by plan later (8.2), with a
-    safe default;
-  - request body size limits;
-  - timeouts on model runs;
-  - clear "limit reached" messages in the web app.
-- **Done when:** tests show the 429 response after the limit; a 1,000,000-path
-  request from a basic user is refused with a clear message; normal use in
-  the e2e suite never hits a limit.
+  - per-user and per-address limits;
+  - maximum simulation size, sized so a run fits the free server's memory;
+  - request size limits and run timeouts;
+  - clear messages;
+  - counters batched so Redis stays well under 500,000 commands a month
+    (falling back to database counters if Redis is unavailable).
+- **Done when:** a test gets 429 after the limit; an oversized simulation is
+  refused clearly; a usage estimate shows the monthly Redis command budget
+  holds at the target traffic.
 
 ### 1.7 Security hardening
-- **Why:** real deals are confidential; a leak ends the business.
 - **Claude does:**
-  - security headers and a content security policy on the web app;
-  - CORS locked to the web domains;
-  - secrets only from environment variables, with a check that fails CI if a
-    key appears in code;
-  - dependency vulnerability scanning in CI (npm audit, pip-audit) and
-    automatic update PRs;
-  - database encryption and TLS confirmed;
-  - least-privilege database user;
-  - a `SECURITY.md` for reporting issues;
-  - a threat model: what could go wrong and how each risk is handled.
-- **Done when:** a security-header scan passes; CI fails on a planted fake
-  secret and passes after removal; the threat model is written; dependency
-  scans run on every PR.
+  - security headers and a content security policy;
+  - CORS locked to app domains;
+  - CI blocks committed secrets;
+  - free dependency scanning (Dependabot, pip-audit, npm audit);
+  - free code scanning (CodeQL, free for public repositories);
+  - least-privilege database role;
+  - encrypted connections;
+  - `SECURITY.md` and a threat model;
+  - a review of what's visible in this **public** repository (no data, keys or
+    internal notes).
+- **Done when:** a header scan passes; CI fails on a planted fake key; CodeQL runs
+  on every PR; the threat model is in `docs/security/`.
 
 ### 1.8 Backups and recovery
-- **Why:** databases fail; customers expect their work to survive.
-- **You first:** confirm the Render Postgres plan includes daily backups and
-  point-in-time recovery.
-- **Claude does:** documents the backup schedule; writes and tests a restore
-  procedure into staging; adds a monthly restore drill to the runbook.
-- **Done when:** a real restore into staging succeeds and a saved deal reappears
-  with identical results; the procedure is written.
-
-### 1.9 Legal pages and disclaimers
-- **Why:** liability, and larger clients won't sign up without them.
-- **You first:** a lawyer reviews and approves the drafts. Claude drafts;
-  it doesn't give legal sign-off.
-- **Claude does:** drafts terms of service, a privacy policy, a cookie notice
-  and an acceptable use policy; adds "not investment advice" disclaimers on
-  results and exports; a consent step at sign-up; the pages linked in the
-  footer.
-- **Done when:** the pages are live on staging; sign-up records acceptance
-  with date and version; exports carry the disclaimer; lawyer approval noted
-  here.
-
----
-
-## Phase 2 — Trust in the numbers
-
-### 2.1 Model version on every result
-- **Why:** when numbers change, you must be able to say why and which version
-  produced a result.
 - **Claude does:**
-  - a model version (engine version, git commit, settings hash) returned with
-    every API result;
-  - the version is stored with saved deal versions and printed in Excel
-    exports;
-  - a "results changed since this was saved" notice when reopening an old
-    deal on a newer model;
-  - a changelog of model changes, starting from the nine fixed findings.
-- **Done when:** every export shows the model version; reopening a deal saved
-  under an older version shows the notice; `MODEL_CHANGELOG.md` exists.
+  - a nightly scheduled GitHub Actions job that exports the database,
+    **encrypts it** with a key kept in GitHub secrets, and stores it in
+    Supabase Storage (1.9 sets up storage access) with rotation to stay under
+    1 GB;
+  - Neon's built-in restore window used for recent mistakes;
+  - a documented restore procedure;
+  - a monthly restore drill.
+- **Done when:** a real restore from an encrypted backup into the Neon staging
+  branch brings back a saved deal with identical results; old backups rotate
+  out.
 
-### 2.2 Written methodology
-- **Why:** professionals won't rely on numbers they can't inspect.
-- **Claude does:** writes `docs/methodology.md` covering every calculation:
-  - deal model: sources and uses, operating model, cash sweep, interest
-    loop, returns, equity bridge, sensitivity;
-  - simulation: distributions, correlations, clipping;
-  - scenarios, backtest attribution, the forecast's three statements, and each
-    ML model's limits.
-
-  Every formula links to the code and to the test that pins it.
-- **Done when:** every public function in `core/` and `lbo_engine/` that
-  affects a number is covered; a reviewer can trace any screen number to a
-  section.
-
-### 2.3 Audit history
-- **Why:** teams, lenders and auditors need "who changed what, when".
-- **Claude does:** an append-only audit log covering deal created, edited,
-  version saved, shared, exported, deleted, and settings changes; a history
-  view per deal; retention rules.
-- **Done when:** each action above creates exactly one audit entry (tests);
-  entries can't be edited through the API; the per-deal history view shows
-  them.
-
-### 2.4 Independent expert review
-- **Why:** a finance professional's sign-off is what customers trust.
-- **You first:** hire a reviewer, such as a former PE or credit analyst or a
-  valuation professional, and give them the methodology and the live app.
-- **Claude does:** prepares a review pack: the methodology, test deals with
-  hand-checkable answers, and a findings template. It then fixes each accepted
-  finding as its own task, with a test, as findings 1–9 were done.
-- **Done when:** the reviewer's report is in `docs/review/`; every finding is
-  fixed or explained; a "reviewed by" note is on the methodology.
-
----
-
-## Phase 3 — Handling many users
-
-### 3.1 Job queue and workers for heavy runs
-- **Why:** Monte Carlo, scenarios, backtests and exports currently run while
-  the user waits on the web server; many users at once would queue and stall.
-- **You first:** create a Render Key Value (Redis) instance and a background
-  worker service; set `REDIS_URL`.
+### 1.9 Background jobs and scheduled jobs
+- **Why:** data refreshes, model retraining, AI document reading and big
+  simulations take too long to run while the user waits, and the free engine
+  has no separate worker machines.
+- **You first:** create a free Supabase project (for file storage later) and
+  set its keys; add the needed secrets to GitHub Actions.
 - **Claude does:**
-  - heavy endpoints become jobs: submit, get a job ID, watch progress, fetch
-    the result;
-  - worker service in the same Docker image;
-  - the web app shows progress and lets the user keep working;
-  - failed jobs retry once, then report the error;
-  - quick deal runs stay instant (no queue).
+  - **User-started jobs:** a job table in Neon and a small job runner inside
+    the API. Submit, get a job ID, watch progress, fetch the result. Jobs
+    survive a restart (resumed or marked failed with a clear message). The web
+    app shows progress and stays usable.
+  - **Scheduled jobs:** GitHub Actions scheduled workflows call protected job
+    endpoints or run scripts directly (data refresh, retraining, backups,
+    keep-alive for Supabase).
+  - A **job queue interface**, so phase 12 can swap in dedicated workers by
+    configuration.
+  - Quick deal runs stay instant.
 - **Done when:**
-  - 20 simultaneous Monte Carlo requests in a test all finish;
-  - the web server stays responsive during them (health check under 200 ms);
-  - seeded results are identical to before;
-  - e2e tests pass.
-
-### 3.2 Result caching
-- **Why:** the same question shouldn't be computed twice.
-- **Claude does:** cache results keyed by the exact inputs, settings, seed and
-  model version; skip the cache for unseeded runs; invalidate on model
-  version change; show "from cache" timing in dev.
-- **Done when:** a repeated seeded run returns from cache in under 100 ms with
-  identical numbers; a model version bump misses the cache (test).
-
-### 3.3 Load testing and autoscaling
-- **Why:** know the breaking point before customers find it.
-- **You first:** move the API and workers to paid plans that allow scaling.
-- **Claude does:** load test scripts (k6 or Locust) for realistic mixes of deal
-  runs, simulations and exports; run against staging; worker autoscaling
-  rules; a capacity note (users per worker) and a cost estimate per 100
-  active users.
-- **Done when:** staging handles the target load (set in 0.2, e.g. 200
-  concurrent users) with 95% of deal runs under 1 s and simulations queued
-  without errors; the report is in `docs/capacity.md`.
+  - 10 simultaneous simulations on staging all finish, and the API still
+    answers health checks during them;
+  - seeded results are unchanged;
+  - a scheduled workflow runs on staging and records its run;
+  - swapping the queue implementation in a test needs no endpoint changes.
 
 ---
 
-## Phase 4 — Data platform
+## Phase 2 — Universal by design
 
-### 4.1 Company data store
-- **Why:** fetching SEC data live on every request is slow and fragile.
-- **Claude does:** tables for companies and their yearly filings data; a
-  scheduled worker job refreshes followed companies from SEC EDGAR, respecting
-  its rate limits and User-Agent rule; the forecast's autofill reads the store
-  first and falls back to live; each number shows its source and filing date.
-- **Done when:** a second DELL autofill is served from the store; the refresh
-  job runs on a schedule in staging; each autofilled number links to its
-  filing.
+### 2.1 Honest labels on inception-era parts (do early)
+- **Claude does:** label Settings defaults, Monte Carlo ranges, correlations and
+  scenario presets "illustrative defaults — not market data"; Backtest says "4
+  example deals from the 2006–2013 US market; not a validation of the model";
+  the risk score says "early estimate based on 30 historical deals"; Live
+  repeats its fixed training deal; correct the "~100 deals" claim in
+  `ml/anomaly_detector.py`; note `macro_regime.py`'s discontinued ISM PMI
+  series (ended 2022).
+- **Done when:** every label is visible (e2e checks the text); no screen presents
+  inception-era numbers as market facts.
 
-### 4.2 Historical deal database
-- **Why:** the risk score, multiple suggestions and backtests are only as good
-  as their data. Today there are 30, 25 and 4 deals.
-- **You first:** approve data sources (4.4). Budget time for someone to check
-  entries by hand. A finance-literate contractor is ideal.
+### 2.2 Currency and money units everywhere
+- **Why:** everything is in US dollars; "$M" is written into the code in 177
+  places.
+- **Claude does:** each deal has a currency (ISO code) and a display unit
+  (thousands, millions or billions); the model stays currency-neutral while
+  every response and export carries the currency; web inputs, tiles, charts
+  and tables show the deal's symbol and unit; forecast companies carry their
+  reporting currency; remove every hardcoded "$M", with a CI check against new
+  ones.
+- **Done when:** a EUR deal in thousands shows € and "k" everywhere (e2e); the
+  same inputs give identical results in any currency (test); CI fails on a new
+  hardcoded "$".
+
+### 2.3 Locale: numbers, dates, fiscal years, languages
+- **Why:** formats are fixed to `en-US` in 11 places; fiscal years are assumed
+  to follow US filings.
+- **Claude does:** number and date formats follow the user's locale (including
+  lakh and crore grouping as an option); fiscal year-end per deal and company;
+  all interface text in translation files (`next-intl`), English complete,
+  right-to-left layout checked; Excel exports with per-cell formats.
+- **Done when:** e2e passes in `en-US`, `de-DE` and `en-IN`; a March year-end
+  company labels correctly; no visible text outside translation files (CI
+  check).
+
+### 2.4 Global debt structures and interest rates
+- **Why:** today there's one fixed-rate senior loan plus one mezzanine tranche.
 - **Claude does:**
-  - schema for deals: entry and exit terms, sector, year, leverage, outcome,
-    sources;
-  - an import pipeline from public filings (S-4, 8-K, 10-K for public
-    targets, bond prospectuses);
-  - an admin screen to review, correct and approve entries;
-  - data-quality checks (ranges, missing fields, duplicates);
-  - migrate the existing 30 anomaly deals, 39 distress cases, 25 multiples
-    rows and 4 backtest deals, all labelled with their source.
-- **Done when:** the database holds the migrated data with sources; the review
-  screen works; quality checks run on import; the count and coverage per
-  sector are shown on an admin page. The target size is set with the
-  reviewer; aim for hundreds.
+  - any number of tranches of these types: amortising term loan, institutional
+    term loan, unitranche, second lien, senior notes / high-yield bond, PIK
+    notes, vendor loan, revolving credit facility, and shareholder loan;
+  - per tranche: currency, size, fixed or floating, reference rate (SOFR,
+    SONIA, €STR/EURIBOR, TONA, SARON, BBSY, MIBOR, or custom), margin, floor,
+    yearly rate path, upfront and commitment fees, amortisation, sweep share,
+    PIK and maturity;
+  - rate paths default from market data (4.2) once available;
+  - simulated rate uncertainty applies to floating tranches.
+- **Done when:** hand-checked cases (3.4) pass for a floating SONIA loan with a
+  floor, a PIK note and a unitranche; the current two-tranche deal reproduces
+  today's results exactly; the UI adds and removes tranches (e2e).
 
-### 4.3 Backtests over the deal database
-- **Why:** four hard-coded deals can't prove the model works.
-- **Claude does:** backtest mode reads approved deals from the database; a
-  summary across all deals (how often the actual IRR fell inside the predicted
-  P5–P95, and the average error); filters by sector and year; the four
-  existing deals keep their current results.
-- **Done when:** the four current deals give identical numbers from the
-  database; the across-deals summary is on screen and in an export.
+### 2.5 Global tax rules
+- **Claude does:** per-deal corporate rate; interest deductibility limit (none,
+  a share of EBITDA, or a fixed amount) with carry-forward; tax losses carried
+  forward with an optional yearly cap; optional minimum tax; editable country
+  presets with source and date, marked "check with a tax adviser".
+- **Done when:** hand-checked cases pass for a 30%-of-EBITDA interest cap and for
+  losses carried forward; changing preset changes results as predicted (test).
 
-### 4.4 Data sources and licences
-- **Why:** selling a product built on data you're not allowed to use is a
-  legal risk.
-- **You first:** decide on paid data (e.g. PitchBook, Capital IQ, Preqin) versus
-  public-only; sign any licences.
-- **Claude does:** a register in `docs/data-sources.md` with each source, what
-  it's used for, licence terms, and whether its data can be shown to
-  customers or used for training; license checks in the import pipeline (4.2).
-- **Done when:** every dataset in the app appears in the register; nothing
-  from a source marked "internal only" is visible to customers (test).
+### 2.6 Accounting standards (IFRS and US GAAP)
+- **Claude does:** accounting standard per company and deal; mapping from each
+  standard's line items to model inputs; IFRS 16 lease setting (EBITDA before
+  or after leases; leases as debt or not); adaptable labels.
+- **Done when:** a real IFRS filing maps to model inputs (test); the lease
+  setting changes EBITDA and net debt as a hand-checked case predicts.
+
+### 2.7 Backtest becomes "plan vs actual" for any deal
+- **Claude does:** pick any saved deal as the plan; enter or upload actual yearly
+  results and exit; compare with the exact attribution (EBITDA, multiple and
+  net debt) in the deal's currency; the 4 historical deals move to the optional
+  example library (4.5); the screen works with no library.
+- **Done when:** a user's own saved deal is backtested end to end (e2e); with the
+  library off the screen still works (test); attribution still adds up.
+
+### 2.8 Risk warnings computed, not written in
+- **Claude does:** replace fixed statistics ("38% historical distress rate",
+  "Only 2 of 9…") with figures computed from sourced data: cited rating-agency
+  base rates and the deal's own ratios. Each warning shows its source and
+  sample; warnings with no data behind them are removed.
+- **Done when:** a test fails if a warning contains a number not computed from
+  data; each warning shows its source.
+
+---
+
+## Phase 3 — Trust in the numbers
+
+### 3.1 Model version on every result
+- **Claude does:** every result carries engine version, git commit, settings
+  fingerprint and data vintage; saved versions and exports store them;
+  reopening an old deal shows "results changed since saved";
+  `MODEL_CHANGELOG.md`.
+- **Done when:** exports show version and data vintage; the change notice
+  appears for an old version (test).
+
+### 3.2 Written methodology
+- **Claude does:** `docs/methodology.md` covering every calculation, with
+  regional differences called out and links to code and tests.
+- **Done when:** every function affecting a number is covered.
+
+### 3.3 Audit history
+- **Claude does:** append-only log of deal created, edited, versioned, shared,
+  exported, deleted, and settings changes; history view per deal; old entries
+  compacted to respect free storage.
+- **Done when:** each action creates exactly one entry (tests); entries can't be
+  changed through the API.
+
+### 3.4 Hand-checked reference cases (incl. non-US)
+- **Claude does:** 20+ small deals solved by hand in a committed spreadsheet (no
+  leverage; single tranche; fees only; zero growth; floating with floor; PIK;
+  unitranche; interest cap; tax losses; IFRS 16; non-USD; March year-end),
+  with tests requiring the engine to match.
+- **Done when:** all match to 0.01; workbook and reasoning in `tests/reference/`.
+
+---
+
+## Phase 4 — Global market data platform
+
+### 4.1 Company filings from many countries
+- **You first:** get free API keys for UK Companies House and Japan EDINET; set
+  them as secrets.
+- **Claude does:**
+  - one company-data interface with connectors for SEC EDGAR, Companies House,
+    ESEF filings (filings.xbrl.org) and EDINET;
+  - document-upload fallback (6.2) for everywhere else;
+  - figures stored with currency, accounting standard, fiscal year-end, source
+    link and filing date;
+  - scheduled refresh via GitHub Actions within each source's rules;
+  - search by name, LEI, ISIN, ticker or company number;
+  - storage kept compact (summary figures, not whole filings) to fit the free
+    database.
+- **Done when:** a US, UK, EU and Japanese company each load with correct
+  currency and standard (tests with recorded responses); figures link to
+  filings; storage use stays within the free budget set in the task.
+
+### 4.2 Economic data by country, and exchange rates
+- **You first:** get a free FRED key; set `FRED_API_KEY`.
+- **Claude does:** connectors for IMF, World Bank, OECD, BIS, ECB and FRED; per
+  country GDP growth, inflation, policy rate, bond yields and credit spreads
+  where available; current reference rates for 2.4; ECB exchange rates; stored
+  with dates and sources; scheduled refresh.
+- **Done when:** at least 20 major economies have current, sourced data; a SONIA
+  tranche picks up the current rate by default (test); exchange rates refresh
+  daily on staging.
+
+### 4.3 Sourced defaults by region, sector and size
+- **Claude does:**
+  - starting assumptions from broad data (thousands of companies, never a few
+    deals) per region, sector and size band: growth, margins, capex, working
+    capital, tax, EV/EBITDA and typical leverage where public;
+  - calculated by scheduled jobs; results stored as compact summary tables;
+  - each shows source, sample size and date; users can override;
+  - thin data falls back from country to region to global, with a message;
+  - new deals start by asking region, sector, size and currency.
+- **Done when:** a German industrials deal gets sourced defaults with sample sizes;
+  a thin-data case shows the fallback; no unsourced default remains (CI check
+  on the defaults registry).
+
+### 4.4 Risk ranges, correlations and scenarios by region
+- **Claude does:** uncertainty ranges per region, sector and size from real
+  year-to-year variation; correlations per region; scenario presets built from
+  each region's own past recessions and inflation spells (dates listed); all
+  sourced.
+- **Done when:** UK and India deals get different sourced ranges; each scenario
+  lists its historical periods; all correlation matrices pass validity (test).
+
+### 4.5 Optional reference library (deals and base rates)
+- **Claude does:** reference transactions with inclusion rules for balanced
+  coverage (regions, sizes, sectors, eras, successes and failures), every
+  figure sourced, review screen with two-person approval; the 4 inception deals
+  as examples; cited rating-agency default and recovery base rates by region,
+  rating band and year; coverage page; an admin switch that hides the library
+  without breaking anything.
+- **Done when:** with the library off, every screen and model still works (e2e);
+  base rates show citations; the coverage page reports counts.
+
+### 4.6 Model validation framework
+- **Claude does:** reports on calibration (outcomes inside predicted ranges as
+  often as claimed) and bias, split by region, sector, size and era; uses the
+  library plus opt-in anonymised plan-vs-actual results, always tested on newer
+  data; published in the methodology; deal results always show IRR, MOIC,
+  probability of loss, downside case, coverage and default risk together.
+  Report generation runs as a scheduled job.
+- **Done when:** a report is generated on staging with all splits; anonymisation
+  is tested; the deal summary shows the full metric set.
 
 ---
 
 ## Phase 5 — ML done properly
 
-**Rule for this whole phase:** a model reaches customers only if it beats a
-simple baseline on held-out data and has a model card. Otherwise it stays
-behind a flag. The screens say clearly when something is an estimate.
+**Rule:** models learn from global market data (4.1–4.4), are tested on newer
+data split by region, work without the reference library, and appear only
+where they beat a simple baseline. Elsewhere the app shows "not enough data".
+**Training runs in GitHub Actions** (free); what the API loads must be small
+enough for the free server.
 
 ### 5.1 ML evaluation harness and model cards
-- **Claude does:**
-  - one harness that splits data by time (train on older deals, test on
-    newer), compares each model against a simple baseline, and reports
-    accuracy and calibration;
-  - a model card template: what it does, training data and size, accuracy,
-    known failures, last trained;
-  - a model registry table with the version, metrics and approval of each
-    trained model;
-  - a CI job that fails if a registered model's metrics drop.
-- **Done when:** the harness runs on the current anomaly detector and surrogate
-  and writes their cards; the surrogate's card reproduces its 0.19pp median
-  error.
+- **Claude does:** one harness (time-based splits, per-region results, baseline
+  comparison); model card template; model registry; CI fails if a model gets
+  worse; training and evaluation run as GitHub Actions jobs.
+- **Done when:** the surrogate and anomaly detector have cards with per-region
+  results.
 
-### 5.2 Deal risk score retrained on real data
-- **Claude does:** retrain `ml/anomaly_detector.py` on the deal database
-  instead of 30 deals padded with synthetic ones; fix its "~100 deals" claim;
-  show "based on N comparable deals" on screen; nearest deals come from the
-  database with links.
-- **Done when:** the card shows real training size and held-out results; the
-  risk flags are backed by counts from the database (tests check a flagged
-  statistic against a query).
+### 5.2 Deal risk score from market data
+- **Claude does:** rebuild `ml/anomaly_detector.py` to compare a deal with
+  companies and deals like it in the same region, sector and size (4.3, 4.4,
+  plus the library when on); "based on N companies in [region, sector]"; off
+  where N is too small.
+- **Done when:** it works with the library off; each region has its own
+  comparison group (test); thin regions show "not enough data".
 
 ### 5.3 Distress predictor
-- **Claude does:** retrain `ml/distress_model.py` (currently 39 examples) on
-  database outcomes; expose year-by-year distress probability on Deal → Debt
-  and in Monte Carlo (share of paths breaching coverage); model card.
-- **Done when:** it beats a leverage-only baseline on held-out deals; the
-  probability appears on screen with its card link; a test checks higher
-  leverage raises it.
+- **Claude does:** rebuild `ml/distress_model.py` from coverage and leverage
+  paths, calibrated to cited default base rates by region and rating band;
+  yearly distress probability on Debt and in Monte Carlo; model card.
+- **Done when:** implied default rates match base rates for comparable bands
+  within the card's tolerance; higher leverage raises risk (test).
 
-### 5.4 Multiple predictor
-- **Claude does:** retrain `ml/multiple_predictor.py` (currently 25 rows) on
-  the deal database; suggest an entry and exit multiple range for a sector and
-  size on Deal inputs, with comparable deals listed; "use suggestion" buttons.
-- **Done when:** its range contains the actual multiple for most held-out deals
-  (target set in the card); the suggestion and comparables show on screen.
+### 5.4 Multiple predictor by region
+- **Claude does:** rebuild `ml/multiple_predictor.py` on regional listed-company
+  multiples (4.3); ranges with comparables and "use suggestion".
+- **Done when:** ranges contain actual multiples for most held-out companies per
+  region (card); it works with the library off.
 
-### 5.5 Growth calibrator
-- **Claude does:** calibrate growth distributions in `ml/growth_calibrator.py`
-  from the company data store (4.1) and sector data instead of fixed Damodaran
-  averages; offer "calibrate from sector" on Monte Carlo; show the source.
-- **Done when:** calibrated ranges match observed sector growth on held-out
-  years (card); the button changes the simulation inputs and the results.
+### 5.5 Growth calibrator by region
+- **Claude does:** rebuild `ml/growth_calibrator.py` on the filings store and
+  regional data (replacing US-only SimFin and fixed averages); "calibrate from
+  sector and region" on Monte Carlo.
+- **Done when:** ranges match observed growth on held-out years per region
+  (card); using them changes the simulation.
 
 ### 5.6 Driver explanations
-- **Claude does:**
-  - decide whether `ml/shap_attribution.py` (XGBoost and SHAP) adds anything
-    beyond the existing rank-correlation drivers;
-  - if it does, per-deal explanations on Drivers ("exit multiple adds +4.1
-    points versus average");
-  - add `xgboost`, `shap` and matplotlib to the ML requirements or remove the
-    plotting;
-  - model card.
-- **Done when:** a written comparison with the current drivers view exists; if
-  shipped, explanations sum to the prediction (test) and appear on screen.
+- **Claude does:** compare `ml/shap_attribution.py` with the current drivers
+  view; ship per-deal explanations if they add value, precomputed or light
+  enough for free hosting; otherwise remove with a note.
+- **Done when:** written comparison; if shipped, explanations add up to the
+  prediction (test).
 
-### 5.7 Macro regime and correlation updater, scheduled
-- **You first:** get a free FRED API key and set `FRED_API_KEY` on Render.
-- **Claude does:**
-  - scheduled worker jobs that retrain `ml/macro_regime.py` and recompute
-    correlations with `ml/correlation_updater.py` monthly;
-  - results stored with dates;
-  - Scenarios shows the current regime;
-  - Settings offers "use current market correlations" with a before and after
-    comparison;
-  - model cards.
-- **Done when:** the jobs run in staging on schedule; the regime shows on
-  screen with its data date; accepting market correlations passes the validity
-  check and changes simulation results (test).
+### 5.7 Economic regime by region, scheduled
+- **Claude does:** rebuild `ml/macro_regime.py` on 4.2's country data (replacing
+  US-only series, including one discontinued in 2022) for the US, eurozone, UK,
+  Japan, China, India and global; monthly retraining in GitHub Actions;
+  Scenarios shows the deal region's current regime; correlations refresh from
+  the same data.
+- **Done when:** each region shows a dated regime; an India deal shows India's
+  regime (test).
 
-### 5.8 Live sliders for any deal shape
-- **Why:** the surrogate only learned one fixed deal (10x entry, 5-year hold),
-  so the screen warns on most real deals.
-- **Claude does:** regenerate training data across entry multiples, holds,
-  fees and leverage (`ml/surrogate/generate_data.py`), run as a worker job
-  since it takes a long time; retrain; update the card; remove the "fixed deal"
-  warning where accuracy holds.
-- **Done when:** median-IRR error stays under 0.5pp across a held-out set of
-  varied deals (card); the warning appears only outside the trained range.
+### 5.8 Live sliders for any deal, lightweight enough for free hosting
+- **Why:** the surrogate learned one fixed deal, and its runtime (PyTorch) is
+  too large for the free server's memory.
+- **Claude does:** regenerate training data across multiples, holds, fees, debt
+  types, rates and tax settings in GitHub Actions; retrain; export to a
+  lightweight format (ONNX) that runs without PyTorch; warn only outside the
+  trained range.
+- **Done when:** median-IRR error stays under 0.5pp on varied held-out deals from
+  several regions (card); the live sliders run on the free Render service
+  within its memory (staging check).
 
-### 5.9 Personalization
-- **Claude does:** move `ml/personalization.py` from a local SQLite file to the
-  database; learn each user's typical assumptions from their saved deals;
-  suggest defaults for a new deal ("your usual 5.5x leverage"); an off switch
-  in account settings.
-- **Done when:** suggestions come from the user's own deals only (test with two
-  users); turning it off stops suggestions.
+### 5.9 Personalized defaults
+- **Claude does:** move `ml/personalization.py` into the database; learn each
+  user's usual assumptions per region and sector; suggest them alongside
+  sourced defaults; off switch.
+- **Done when:** suggestions use only that user's deals (test); off stops them.
 
 ---
 
 ## Phase 6 — AI features
 
 ### 6.1 File uploads
-- **You first:** create a Cloudflare R2 bucket; set its keys on Render.
-- **Claude does:**
-  - uploads for PDFs, Excel and Word, with size and type checks;
-  - virus scanning;
-  - files stored privately per user or team, with signed download links;
-  - automatic deletion rules;
-  - uploads listed on the deal.
-- **Done when:** a user can upload and re-download a PDF; another user can't
-  (test); an oversized or wrong-type file is refused.
+- **Claude does:** PDF, Excel and Word uploads to Supabase Storage with size and
+  type checks; malware scanning using a free open-source scanner in the job
+  runner; private per user or team; signed links; deletion rules; per-user
+  quotas to stay within 1 GB.
+- **Done when:** upload and download work; others can't access (test); bad or
+  oversized files are refused; a quota message appears near the limit.
 
-### 6.2 Upload a document, get a deal
-- **You first:** create an Anthropic API key; set `ANTHROPIC_API_KEY` on
-  Render; agree a monthly AI spend limit.
+### 6.2 Upload a document (any language), get a deal
+- **You first:** create a free Gemini API key for trials with public documents;
+  set `AI_PROVIDER` and its key.
 - **Claude does:**
-  - rebuild `ml/nlp_extractor.py` with the current model ID (it uses an
-    outdated one), running as a worker job;
-  - read an uploaded information pack or annual report, fill in the deal
-    inputs, and cite the page and quote for every number;
-  - a review screen where the user accepts or edits each value before it
-    goes in;
-  - per-user AI cost tracking;
-  - an evaluation set of real documents with known answers.
-- **Done when:** on the evaluation set, most extracted values match (target in
-  its card) and every value has a citation; nothing enters a deal without user
-  acceptance; cost per document is logged.
+  - rebuild `ml/nlp_extractor.py` behind a provider switch (Gemini free tier
+    now; a paid provider in phase 12);
+  - run as a background job;
+  - read annual reports and information packs in major languages, and detect
+    currency, units, accounting standard and fiscal year;
+  - cite page and quote for each number;
+  - a review screen where the user accepts each value;
+  - **a clear warning, blocking upload on the free provider unless the user
+    confirms the document is public**;
+  - development and CI use recorded responses (no AI cost, no data sent);
+  - an evaluation set of public reports from several countries and languages.
+- **Done when:** extraction accuracy meets its card target on the public
+  evaluation set; nothing enters a deal without acceptance; CI runs on recorded
+  responses; the confidentiality warning blocks non-public uploads on the free
+  provider (e2e).
 
 ### 6.3 Investment memo writer
-- **Claude does:**
-  - generate an investment committee memo draft from a saved deal version:
-    summary, returns and ranges, key risks from the simulation and risk
-    score, drivers, scenarios, and backtest context;
-  - export to Word and PDF;
-  - every number in the memo pulled from the model run, not written by the AI
-    (the AI writes the words around fixed values);
-  - model version and disclaimer on the cover.
-- **Done when:** a test checks every figure in a generated memo against the run
-  it came from; export works; the memo is stored as part of the deal version.
+- **Claude does:** memo drafts from a saved version (summary, full metric set,
+  risks, drivers, scenarios, plan vs actual), exported to Word and PDF, in the
+  user's language. Every number comes from the model run. The same free-provider
+  confidentiality rule applies: on the free tier the AI receives only
+  anonymised, non-identifying text, and every figure is filled in afterwards
+  by the app.
+- **Done when:** a test checks every figure against its run; a test proves no
+  company names or identifiers are sent on the free provider.
 
 ### 6.4 Plain-English explanations on screens
-- **Claude does:** an "explain" button on key tiles (IRR, bridge, distribution,
-  scenarios, attribution) that describes what the chart says for *this* deal,
-  in plain words, using the numbers on screen; a glossary on hover for terms
-  like MOIC or cash sweep.
-- **Done when:** explanations quote the displayed numbers exactly (test); the
-  glossary covers every term used in labels.
+- **Claude does:** "explain" on key tiles built mainly from **templates that use
+  the on-screen numbers** (free, instant, no data leaves the app), with optional
+  AI wording later; glossary on hover including regional terms; translated
+  where available.
+- **Done when:** explanations quote displayed numbers exactly (test); the
+  glossary covers every label term.
 
 ---
 
 ## Phase 7 — Product features
 
-### 7.1 Onboarding and help
-- **Claude does:**
-  - a guided first deal for new users;
-  - sample deals to open;
-  - an empty-state guide on each screen;
-  - a help centre (articles from the methodology in plain language);
-  - hover tips on inputs;
-  - a "what's new" panel tied to the changelog.
-- **Done when:** a new test user completes the guided deal in the e2e suite;
-  every input has a tip; help articles are linked from each screen.
+### 7.1 Onboarding and in-app help
+- **Claude does:** guided first deal (region, sector, size, currency, then
+  sourced defaults); sample deals from several regions; empty-screen guides;
+  input tips; help articles from the methodology; "what's new".
+- **Done when:** a new test user completes the guided deal (e2e); every input has
+  a tip.
 
 ### 7.2 Teams: sharing, permissions, comments
-- **You first:** enable Clerk organizations.
-- **Claude does:**
-  - teams (organizations) with roles: owner, editor, viewer;
-  - share a deal with a team or person;
-  - comments on deals and on specific results;
-  - @mentions with email notifications (Resend);
-  - activity from the audit log (2.3).
-- **Done when:** tests prove a viewer can't edit, a non-member can't see, and
-  an editor's change appears in history; comments notify mentioned users.
+- **You first:** enable Clerk organizations (free tier); create a free Resend
+  account; set its key.
+- **Claude does:** teams with owner, editor and viewer roles; sharing; comments
+  and @mentions emailed in the recipient's time zone and language (batched to
+  stay inside free send limits); activity from audit history.
+- **Done when:** permission tests pass; mentions email correctly.
 
-### 7.3 Excel: live-linked workbooks, then add-in
-- **Why:** deal teams live in Excel.
+### 7.3 Excel: live-formula workbooks, then add-in
 - **Claude does:**
-  - **Part a:** exports that keep formulas, so the operating model, debt
-    schedule and returns recalculate in Excel when inputs change, and match
-    the app's numbers.
-  - **Part b:** an Excel add-in (Office.js) that signs in, pulls a saved deal,
-    runs the model or a simulation on the server, and writes results into
-    sheets.
+  - **Part a:** exports with working formulas (all debt types, tax rules,
+    currency formats);
+  - **Part b:** an Excel add-in (free to build and sideload) that signs in,
+    opens a saved deal, runs the model and writes results.
 - **Done when:**
-  - (a) a test recalculates the exported workbook and matches the app's IRR
-    to 0.01pp;
-  - (b) the add-in loads a saved deal and refreshes results in Excel (manual
-    check with screenshots, plus API tests).
+  - (a) the recalculated workbook matches the app's IRR to 0.01pp for a
+    non-USD floating-rate deal;
+  - (b) the sideloaded add-in refreshes a saved deal.
 
-### 7.4 Portfolio tracking
-- **Why:** firms pay monthly to watch deals after they buy, not just once per
-  deal.
-- **Claude does:**
-  - mark a deal as "owned";
-  - enter or upload quarterly actuals;
-  - compare against the plan (reusing backtest logic);
-  - early-warning alerts when results drift beyond thresholds;
-  - a portfolio dashboard;
-  - scheduled reforecast of the exit return with updated actuals.
-- **Done when:** entering actuals below plan triggers the alert (test); the
-  dashboard totals match individual deals; reforecast changes the expected IRR.
+### 7.4 Portfolio tracking in any currency
+- **Claude does:** mark deals as owned; quarterly actuals (reusing 2.7); drift
+  alerts; portfolio dashboard converted to a reporting currency at dated ECB
+  rates, with local figures alongside; reforecast from actuals as a job.
+- **Done when:** a GBP and EUR portfolio totals correctly in USD at stated rates
+  (test); below-plan actuals trigger an alert.
 
-### 7.5 Lender view
-- **Why:** private-credit lenders are a strong customer group and care about
-  downside, not upside.
-- **Claude does:**
-  - loan terms per tranche (covenants: maximum leverage, minimum interest
-    coverage);
-  - covenant tests by year in the deal model;
-  - share of simulated paths that breach each covenant;
-  - distress probability (5.3);
-  - expected loss and recovery view;
-  - a lender-focused summary and export.
-- **Done when:** a deal built to breach a covenant in year 2 is flagged in year
-  2 (test); breach probabilities come from the simulation; the lender export
-  works.
+### 7.5 Lender view with regional conventions
+- **Claude does:** covenants per tranche (leverage, interest cover, fixed-charge
+  cover, minimum liquidity) with definitions selectable by market convention;
+  yearly tests; breach odds from simulation; distress probability (5.3);
+  expected loss and recovery with regional base rates; lender export.
+- **Done when:** a deal built to breach in year 2 is flagged in year 2 (test);
+  breach odds come from the simulation.
 
-### 7.6 Smaller screens and accessibility
-- **Claude does:**
-  - a readable layout on tablets and phones (inputs collapse into a drawer,
-    tiles stack);
-  - a full accessibility audit (keyboard use, screen readers, contrast,
-    reduced motion);
-  - fixes, with automated accessibility checks (axe) in the e2e suite.
-- **Done when:** the e2e suite runs on a phone-sized viewport for key journeys;
-  axe reports no serious issues; the design system's look is preserved.
+### 7.6 Phones, tablets and accessibility
+- **Claude does:** smaller-screen layouts; accessibility audit and fixes;
+  automated accessibility checks in e2e; right-to-left check.
+- **Done when:** key journeys pass at phone size; no serious accessibility issues.
+
+### 7.7 Public API and webhooks
+- **Claude does:** API keys per user; versioned v1 endpoints (deal runs,
+  simulations, saved deals, market defaults by region); docs; webhooks for
+  finished jobs; per-key limits sized for free hosting.
+- **Done when:** a script with a key runs a deal and receives a webhook (test);
+  revoked keys stop immediately.
+
+### 7.8 More languages
+- **Claude does:** full translations for a first set chosen when the task
+  starts (e.g. Spanish, French, German, Japanese, Hindi, Arabic); translated
+  help and glossary; CI fails on missing translation keys.
+- **Done when:** e2e key journeys pass in each added language.
 
 ---
 
-## Phase 8 — Revenue
+## Phase 8 — Ready to scale
 
-### 8.1 Plans and billing
-- **You first:** create a Stripe account (business details, bank, tax
-  settings); decide initial plan names and prices from the interviews (0.3);
-  approve the terms (1.9).
+### 8.1 Result caching
+- **Claude does:** cache by inputs, settings, seed, model version and data
+  vintage (Upstash, with a database fallback); unseeded runs skip it; version or
+  data changes clear it; cache writes budgeted against the free command limit.
+- **Done when:** a repeated seeded run returns in under 100 ms identically; a
+  version bump misses (test); command usage stays in budget in the load test.
+
+### 8.2 Speed budgets (web and API)
+- **Claude does:** page-load and interaction budgets (Lighthouse in CI);
+  response-time budgets per endpoint (CI); fixes for anything over budget.
+- **Done when:** CI fails over budget; all pages and endpoints pass.
+
+### 8.3 Load testing and a scaling plan
+- **Why:** free hosting can't autoscale, but we must know the limits and have the
+  paid switch-over ready.
 - **Claude does:**
-  - plans in Stripe: Free, Pro, Team, Enterprise contact;
-  - checkout, trials, upgrade, downgrade, cancel;
-  - customer billing portal;
-  - invoices;
-  - webhooks that keep plan status in the database;
-  - a pricing page;
-  - failed-payment handling.
-- **Done when:** in Stripe test mode, a user can start a trial, upgrade, cancel
-  and lose Pro features at period end (e2e test); webhooks are verified and
-  replay-safe.
-
-### 8.2 Plan limits and usage metering
-- **Claude does:**
-  - one place that defines what each plan gets, for example:
-    - **Free:** single unsaved deal, deterministic model only;
-    - **Pro:** saving, Monte Carlo, exports, AI memo credits;
-    - **Team:** collaboration and portfolio tracking;
-    - **add-ons:** document credits, deal database access;
-  - enforcement in the API, not just hidden buttons;
-  - usage counters (simulations, AI documents) with monthly reset;
-  - upgrade prompts at limits.
-- **Done when:** API tests prove a Free user can't run Monte Carlo even by
-  calling the API directly; counters reset monthly; limits match the pricing
-  page.
-
-### 8.3 Product analytics
-- **You first:** create a PostHog project; set its key.
-- **Claude does:**
-  - events for key actions: sign-up, first deal, first simulation, save,
-    export, upgrade;
-  - funnels: sign-up to first result, trial to paid;
-  - feature flags to roll features out gradually;
-  - no deal contents or personal financial data sent;
-  - cookie consent respected.
-- **Done when:** the funnels show in PostHog from staging traffic; a test
-  confirms no deal inputs appear in event payloads; a feature flag gates one
-  feature.
-
-### 8.4 Marketing site and public docs
-- **You first:** buy the domain (0.2); approve the messaging.
-- **Claude does:** a marketing site (home, product tour, pricing, customer
-  groups, security page, blog) on the main domain with the app on a
-  subdomain; SEO basics; public methodology summary; screenshots from the real
-  app.
-- **Done when:** the site is live on the domain; pricing matches Stripe; the
-  security page matches what 1.7, 1.8 and 10.x actually deliver.
-
-### 8.5 Support and feedback
-- **You first:** choose a support tool (e.g. Crisp, Intercom, or plain email).
-- **Claude does:** in-app help widget; "report a problem" that attaches the
-  deal ID and request ID (no deal contents without consent); feedback voting
-  on features; a support runbook with common answers.
-- **Done when:** a test report arrives with the request ID linked to Sentry; the
-  feedback board collects votes.
-
-### 8.6 Education licences
-- **You first:** approach one or two business schools or training firms.
-- **Claude does:** a class workspace (a team of students plus instructors);
-  assignments with a set deal and scenario; instructor view of submissions;
-  bulk seat billing; case library from the deal database.
-- **Done when:** an instructor creates an assignment, students submit, the
-  instructor sees results (e2e test); seat billing works in Stripe test mode.
+  - load tests (k6, free) against staging to find how many simultaneous users
+    the free setup handles;
+  - fixes for anything that fails early;
+  - `docs/capacity.md` with the measured limits, the first thing to break, and
+    for each paid step in phase 12, the expected capacity and monthly cost;
+  - autoscaling rules written and tested locally, ready for 12.1.
+- **Done when:** the free setup's limits are measured and documented; nothing
+  fails with errors below that limit (it slows down, clearly); the phase 12
+  configuration is ready.
 
 ---
 
-## Phase 9 — Go to market
+## Phase 9 — Subscriptions machinery (test mode)
 
-### 9.1 Private beta
-- **You first:** invite 10–20 people from the interviews.
-- **Claude does:** invite-only sign-up, a beta feedback prompt after key
-  actions, a weekly usage and feedback summary for you, and fixes prioritised
-  from what beta users hit.
-- **Done when:** the beta group is active; weekly summaries exist; the top
-  issues are logged as tasks in this plan.
+(Built and tested free in Stripe test mode. Real charges start in 12.5.)
 
-### 9.2 Pricing test and paid launch
-- **You first:** decide prices after the beta; go live in Stripe.
-- **Claude does:** pricing page variants behind a feature flag; conversion
-  tracking; switch Stripe to live mode with a checklist (webhooks, tax,
-  emails, refunds); launch announcement assets.
-- **Done when:** the first paying customer completes checkout in live mode; the
-  launch checklist is fully ticked.
+### 9.1 Subscription billing (multi-currency, test mode)
+- **You first:** create a Stripe account (test mode only, no card).
+- **Claude does:** placeholder plans in several currencies; checkout, trial,
+  upgrade, downgrade, cancel; billing portal; invoices; webhooks keeping plan
+  status; failed-payment handling. All in test mode.
+- **Done when:** in test mode a user can trial, upgrade and cancel in EUR and USD
+  (e2e); webhooks are verified and safe to replay.
 
-### 9.3 Content and partnerships
-- **Claude does:** a content plan and drafts (plain-English LBO guides, deal
-  breakdowns from the backtest set, "what the simulation says" posts); partner
-  pitch materials for search-fund communities, business schools and lender
-  networks; a referral programme.
-- **Done when:** a content calendar and first 5 pieces exist; the referral
-  programme works end to end.
+### 9.2 Plan limits and usage metering
+- **Claude does:** one configuration defining plan contents; enforcement in the
+  API; monthly counters; upgrade prompts.
+- **Done when:** a lower plan can't use a higher plan's feature via the API
+  (test); counters reset monthly.
 
----
+### 9.3 Usage analytics and feature flags
+- **You first:** create a free PostHog project (EU hosting if preferred); set
+  its key.
+- **Claude does:** key-action events and funnels; feature flags; no deal contents
+  sent; consent respected.
+- **Done when:** funnels show staging traffic; a test proves no deal inputs in
+  events.
 
-## Phase 10 — Enterprise
-
-### 10.1 Company logins (SSO) and admin controls
-- **You first:** enable Clerk's enterprise SSO (a paid feature).
-- **Claude does:** SAML and OIDC login per company; automatic team membership
-  by email domain; admin console (users, roles, seats, audit export); enforced
-  login policies.
-- **Done when:** a test identity provider logs a user into the right team;
-  admins can remove access and it takes effect immediately (test).
-
-### 10.2 Security certification readiness (SOC 2)
-- **You first:** choose a compliance platform (e.g. Vanta, Drata) and an
-  auditor; budget for the audit.
-- **Claude does:** written policies (access, change management, incident
-  response, vendor management, data classification); evidence collection
-  wired up (CI logs, access reviews, backups); gap list closed task by task.
-- **Done when:** the compliance platform shows readiness; the auditor's
-  engagement starts. The certificate itself is issued by the auditor.
-
-### 10.3 Penetration test and fixes
-- **You first:** hire a penetration-testing firm.
-- **Claude does:** prepares the scope and test accounts on staging; fixes each
-  finding with a regression test.
-- **Done when:** every high and medium finding is fixed and retested; the
-  report is summarised on the security page.
-
-### 10.4 Data retention, deletion and privacy tools
-- **Claude does:** user data export (all their deals and files); account and
-  team deletion that really removes data, backups aged out on schedule;
-  retention settings per team; a data processing agreement template for
-  customers.
-- **Done when:** a deleted test account leaves no rows or files (test); export
-  produces a complete archive.
+### 9.4 In-app support and feedback
+- **Claude does:** "report a problem" with request ID (no deal contents without
+  consent); feedback board with votes; admin view.
+- **Done when:** a test report links to its Sentry request; votes recorded.
 
 ---
 
-## Phase 11 — People and process
+## Phase 10 — Enterprise-grade (free parts)
 
-### 11.1 Human code owner and review
-- **Why:** a product that holds client data needs a person who understands and
-  answers for the code, not only AI.
-- **You first:** hire or contract an engineer, part-time at first.
+### 10.1 Data export and account deletion
+- **Claude does:** full export of a user's or team's deals, versions and files;
+  real deletion of rows and files, including from backups on rotation;
+  retention settings per team.
+- **Done when:** a deleted account leaves nothing (test); exports are complete.
+
+### 10.2 Automated security testing
+- **Claude does:** OWASP ZAP scans of staging on each release (free); CodeQL and
+  dependency scans; container image scanning (free tools); a permission test for
+  every endpoint and role; fixes with regression tests.
+- **Done when:** scans run automatically; the permission matrix covers every
+  endpoint; no high findings open.
+
+### 10.3 Region-ready data model and recovery rehearsal
+- **Why:** regional hosting costs money (12.7), but the software can be made
+  ready for it now.
 - **Claude does:**
-  - onboarding pack: architecture tour, CLAUDE.md, this plan;
-  - make pull requests need the engineer's approval (a CODEOWNERS file plus
-    branch protection);
-  - a review checklist;
-  - continued work under their review.
-- **Done when:** branch protection requires the owner's review; the engineer
-  has merged a change independently.
-
-### 11.2 Release, incident and support routines
-- **Claude does:**
-  - a release checklist (staging checks, changelog, model version bump,
-    rollback plan);
-  - an incident process (severity levels, who's on call, customer
-    communication templates, post-incident review);
-  - support response targets per plan.
-- **Done when:** one staged release and one simulated incident follow the
-  documents, with notes filed.
+  - every team has a data region field;
+  - storage, backups and requests go through a region lookup, which is a
+    single region for now;
+  - infrastructure described as code (Render blueprint, Neon and Supabase
+    setup scripts, Vercel config);
+  - a full rebuild rehearsal of staging from code plus an encrypted backup.
+- **Done when:** a test proves all data access goes through the region lookup;
+  staging is rebuilt from scratch from code and backup, and saved deals give
+  identical results.
 
 ---
 
-## Where each recommendation lives
+## Phase 11 — Running it day to day
 
-| Recommendation | Tasks |
-|---|---|
-| Accounts and login | 1.4, 10.1 |
-| Saving work, versions | 1.5 |
-| Security | 1.6, 1.7, 10.2, 10.3 |
-| Many users | 3.1, 3.2, 3.3 |
-| Monitoring | 1.2, 11.2 |
-| Staging copy, rollback | 1.1 |
-| Trust in numbers | 2.1–2.4, 4.3 |
-| Data | 4.1–4.4 |
-| Legal | 1.9, 10.4 |
-| Teams | 7.2 |
-| Billing | 8.1, 8.2 |
-| Help and onboarding | 7.1, 6.4, 8.5 |
-| Devices and accessibility | 7.6 |
-| People and process | 11.1, 11.2 |
-| Backups | 1.8 |
-| ML: risk score, live sliders, macro regime | 5.2, 5.8, 5.7 |
-| ML: distress, multiples, growth, drivers, documents, correlations, personalization | 5.3, 5.4, 5.5, 5.6, 6.2, 5.7, 5.9 |
-| Idea: upload a document, get a model | 6.1, 6.2 |
-| Idea: investment memo writer | 6.3 |
-| Idea: Excel connection | 7.3 |
-| Idea: deal database | 4.2 |
-| Idea: portfolio tracking | 7.4 |
-| Idea: lender view | 7.5 |
-| Idea: collaboration | 7.2 |
-| Revenue: plans, add-ons, education | 8.1, 8.2, 8.6 |
-| Go to market: niche, interviews, beta, charge, content, data advantage | 0.2, 0.3, 9.1, 9.2, 9.3, 4.2 |
+### 11.1 Release routine and rollback
+- **Claude does:** release checklist (staging checks, changelog, model version,
+  data vintage, rollback plan); release notes from merged PRs; tagged versions.
+- **Done when:** one release follows the checklist end to end.
+
+### 11.2 Incident routine and runbooks
+- **Claude does:** severity levels; runbook per alert (including free-limit
+  alerts); status updates; post-incident review template.
+- **Done when:** a simulated incident on staging is handled with the runbook.
+
+### 11.3 Free-limit, data-freshness and dependency upkeep
+- **Claude does:**
+  - a dashboard of usage against every free limit: Render hours, Neon storage
+    and compute, Upstash commands, Supabase storage, Clerk users, Sentry
+    events, Resend sends, PostHog events, AI free quota;
+  - alerts at 80%;
+  - a check that scheduled GitHub workflows are still enabled, since they
+    pause after 60 days without a commit, with a monthly maintenance commit
+    that also merges dependency updates;
+  - alerts when a data source hasn't refreshed on time.
+- **Done when:** the dashboard covers every free service; a simulated 80% usage
+  alert fires; a deliberately broken data connector raises an alert.
+
+---
+
+## Phase 12 — Paid tiers (only once the product is functional)
+
+Each task is a switch-over prepared by the free phases. Do them one at a time,
+when a limit is actually reached or before charging customers.
+
+### 12.1 Always-on hosting and dedicated workers with autoscaling
+- **You first:** upgrade the Render API to an always-on plan; add background
+  worker services.
+- **Claude does:** switch the job queue from in-API to dedicated workers
+  (configuration from 1.9); apply the autoscaling rules from 8.3; move scheduled
+  jobs from GitHub Actions to Render cron where better; allow the ML runtime to
+  use full PyTorch if needed.
+- **Done when:** the 8.3 load test passes at the new target with no sleep
+  delays.
+
+### 12.2 Paid database with longer backups
+- **You first:** upgrade Neon (or move to another managed Postgres).
+- **Claude does:** longer point-in-time recovery, higher storage, connection
+  pooling, read replica if needed; update the backup job.
+- **Done when:** restore to any point within the new window is rehearsed.
+
+### 12.3 Commercial web hosting (Vercel Pro)
+- **You first:** upgrade to Vercel Pro before any commercial use (charging users
+  or paid development).
+- **Claude does:** confirm settings, analytics and limits on Pro.
+- **Done when:** the production project runs on Pro.
+
+### 12.4 Paid AI provider for confidential documents
+- **You first:** create a paid AI account (e.g. Anthropic) whose terms don't use
+  your data for training; set a spending cap.
+- **Claude does:** switch `AI_PROVIDER`; lift the "public documents only"
+  restriction for that provider; per-user cost tracking.
+- **Done when:** a confidential test document is processed on the paid provider;
+  costs are logged; the free-provider restriction still applies if switched
+  back.
+
+### 12.5 Live payments
+- **You first:** activate Stripe live mode (business details, bank).
+- **Claude does:** live keys, webhooks, tax settings and a launch checklist.
+- **Done when:** a real test purchase and refund succeed.
+
+### 12.6 Company logins (SSO) and admin console
+- **You first:** enable Clerk's enterprise SSO (paid).
+- **Claude does:** company sign-in per team; joining by email domain; admin
+  console (users, roles, seats, audit export); enforced login rules.
+- **Done when:** a test identity provider signs into the right team; removing
+  access is immediate (test).
+
+### 12.7 Regional hosting and data residency
+- **You first:** create API, worker, database and storage in the added regions
+  (start with the US and Frankfurt, then Singapore).
+- **Claude does:** turn on multiple regions in the region lookup from 10.3;
+  teams choose their region; data, files and backups stay in it; shared
+  market data replicated; residency test.
+- **Done when:** an EU team's data exists only in the EU region (test).
+
+### 12.8 Higher service limits as usage grows
+- **You first:** upgrade whichever service the 11.3 dashboard shows nearing its
+  limit (Clerk, Sentry, Upstash, Supabase, Resend, PostHog, GitHub).
+- **Claude does:** adjust configuration and alerts for the new limits; consider
+  making the repository private once paid GitHub Actions minutes are available.
+- **Done when:** the dashboard shows healthy headroom on every service.
+
+---
+
+## Appendix — US and inception-deal assumptions found in the code (2026-09-15)
+
+| Where | Assumption | Fixed by |
+|---|---|---|
+| 177 places across `core/`, `api/`, `lbo_engine/`, `ml/`, `web/src` | Money shown as "$M" | 2.2 |
+| 11 places in `web/src` | Number formats fixed to `en-US` | 2.3 |
+| `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
+| `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4 |
+| `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |
+| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source | 2.1, 4.3, 4.4 |
+| `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in | 4.4 |
+| `core/backtesting.py` `PRELOADED_DEALS` | Backtest limited to 4 US mega-deals (2006–2013), unsourced actuals, fixed ranges | 2.7, 4.5 |
+| `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8, 5.2 |
+| `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
+| `ml/multiple_predictor.py` | 25 rows | 5.4 |
+| `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 |
+| `ml/macro_regime.py`, `ml/correlation_updater.py` | US-only FRED series (incl. ISM PMI, discontinued 2022) | 4.2, 5.7 |
+| `ml/surrogate/` | One fixed training deal; PyTorch runtime too large for free hosting | 5.8 |
+| `web/src` Backtest screens | Only the preloaded deals can be tested | 2.7 |
+| `render.yaml` and DEPLOY.md | Render free database would expire after 30 days; not used (Neon instead) | 1.3 |
