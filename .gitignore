@@ -7,3 +7,5 @@ ml/surrogate/training_data.parquet
 .playwright-cli/
 # Machine-specific preview server config (absolute paths)
 .claude/launch.json
+# Local development database (python -m db.local)
+.localdb/

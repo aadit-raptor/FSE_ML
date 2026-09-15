@@ -7,3 +7,6 @@ fastapi>=0.141       # HTTP API (api/)
 uvicorn>=0.30        # serves the API
 requests>=2.31        # optional: SEC EDGAR autofill in forecasting mode
 sentry-sdk>=2.0          # error tracking, on when SENTRY_DSN is set (api/observability.py)
+sqlalchemy>=2.0,<2.1     # database layer (db/), Postgres on Neon
+alembic>=1.13            # schema migrations (db/migrations)
+psycopg[binary]>=3.2     # Postgres driver

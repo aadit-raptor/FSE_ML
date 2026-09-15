@@ -4998,6 +4998,26 @@
         ]
       }
     },
+    "/api/health/database": {
+      "get": {
+        "description": "Connect to the database (waiting for it to wake), apply pending\nmigrations and report storage use against the free limit. 503 when\nthe database can't be reached.",
+        "operationId": "health_database_api_health_database_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Database",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
     "/api/ml/deal-risk": {
       "post": {
         "description": "Anomaly detector risk score, flags and the most similar historical deals.",

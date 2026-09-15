@@ -243,6 +243,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health/database": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Database
+         * @description Connect to the database (waiting for it to wake), apply pending
+         *     migrations and report storage use against the free limit. 503 when
+         *     the database can't be reached.
+         */
+        get: operations["health_database_api_health_database_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ml/deal-risk": {
         parameters: {
             query?: never;
@@ -2260,6 +2282,26 @@ export interface operations {
         };
     };
     health_api_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    health_database_api_health_database_get: {
         parameters: {
             query?: never;
             header?: never;

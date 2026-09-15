@@ -15,6 +15,20 @@ jobs:
     # optional ML layer (test_ml.py skips here).
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Real Postgres for tests/test_database.py (migrations both ways, the
+    # health check, recovery after the database drops every connection).
+    # Neon runs Postgres 17. FSE_REQUIRE_DB turns a skipped database test into a failure.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      FSE_REQUIRE_DB: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -97,6 +111,18 @@ jobs:
     # Optional ML layer: runs the anomaly-detector and surrogate tests.
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Same database as the core job
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      FSE_REQUIRE_DB: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -124,11 +150,22 @@ jobs:
     # it serves real model output, not just a health check.
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # A database for the container, as Neon is for Render
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 20
     steps:
       - uses: actions/checkout@v7
       - run: docker build -t fse-api .
       - name: Start the container on the port a host would assign
-        run: docker run -d --name api -e PORT=9100 -p 9100:9100 fse-api
+        run: |
+          docker run -d --name api -e PORT=9100 -p 9100:9100 --add-host=host.docker.internal:host-gateway \
+            -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/postgres fse-api
       - name: Wait for the health check
         run: |
           for i in $(seq 1 30); do
@@ -153,5 +190,11 @@ jobs:
           grep -i '^x-request-id: docker-check-0001' headers.txt
           docker logs api 2>&1 | grep '"request_id": "docker-check-0001"' > logs.txt
           python3 -c "import json; lines = [json.loads(l) for l in open('logs.txt')]; req = next(l for l in lines if l['event'] == 'request'); assert any(l['event'] == 'model_run' for l in lines), lines; assert req['route'] == '/api/deal/run' and req['status'] == 200 and req['ts'].endswith('Z'), req; print(req)"
+      - name: The image migrates its database on first use and reports storage
+        run: |
+          curl -fsS http://127.0.0.1:9100/api/health | python3 -c "import sys, json; d = json.load(sys.stdin)['database']; assert d['configured'] and d['status'] == 'unchecked', d"
+          curl -fsS http://127.0.0.1:9100/api/health/database | tee db.json
+          python3 -c "import json; d = json.load(open('db.json')); assert d['status'] == 'ok' and d['migrations']['status'] == 'current' and d['storage']['database_bytes'] > 0, d"
+          docker exec "${{ job.services.postgres.id }}" psql -U postgres -tAc "select count(*) from storage_checks" | grep -qx 1
       - if: failure()
         run: docker logs api || true

@@ -1,0 +1,27 @@
+"""${message}
+
+Revision ID: ${up_revision}
+Revises: ${down_revision | comma,n}
+Created: ${create_date}
+
+Review before committing: autogenerate misses renames, check constraints and
+data changes. Every migration needs a working downgrade (CI runs both ways).
+"""
+from typing import Sequence, Union
+
+import sqlalchemy as sa
+from alembic import op
+${imports if imports else ""}
+
+revision: str = ${repr(up_revision)}
+down_revision: Union[str, None] = ${repr(down_revision)}
+branch_labels: Union[str, Sequence[str], None] = ${repr(branch_labels)}
+depends_on: Union[str, Sequence[str], None] = ${repr(depends_on)}
+
+
+def upgrade() -> None:
+    ${upgrades if upgrades else "pass"}
+
+
+def downgrade() -> None:
+    ${downgrades if downgrades else "pass"}

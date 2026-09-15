@@ -8,14 +8,17 @@ the frontend's typed client is generated from.
 import os
 import time
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 
 from api.observability import (
     REQUEST_ID_HEADER, RequestContextMiddleware, configure_logging, init_sentry, utc_now_iso,
 )
 from api.routers import backtesting, deal, export, forecasting, integrations, montecarlo
+from db import DatabaseUnavailable
+from db import health as db_health
 
 API_VERSION = "0.1.0"
 
@@ -75,7 +78,24 @@ def create_app() -> FastAPI:
         return {"status": "ok", "version": API_VERSION,
                 "environment": deploy_environment(),
                 "commit": os.environ.get("RENDER_GIT_COMMIT") or None,
-                "time": utc_now_iso()}
+                "time": utc_now_iso(),
+                # last known state only: querying here would keep Neon awake
+                "database": db_health.summary()}
+
+    @app.get("/api/health/database", tags=["meta"])
+    def health_database(response: Response):
+        """Connect to the database (waiting for it to wake), apply pending
+        migrations and report storage use against the free limit. 503 when
+        the database can't be reached."""
+        result = db_health.check(deploy_environment())
+        if result["status"] == "error":
+            response.status_code = 503
+        return result
+
+    @app.exception_handler(DatabaseUnavailable)
+    async def database_unavailable(request: Request, exc: DatabaseUnavailable):
+        return JSONResponse({"detail": "The database is unavailable; try again shortly."},
+                            status_code=503)
 
     @app.get("/api/debug/error", include_in_schema=False)
     def debug_error():
