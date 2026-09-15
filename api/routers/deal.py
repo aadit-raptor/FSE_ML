@@ -28,8 +28,6 @@ def post_sources_and_uses(req: SourcesUsesRequest):
 def post_run(req: DealRunRequest):
     """Run the full LBO model: operating model, cash flow, debt, returns."""
     cfg = resolve_settings(req.settings)
-    # ALERT DRILL (PLAN.md 1.2): deliberately broken on staging, reverted next commit
-    raise RuntimeError("Alert drill: deal model deliberately broken on staging")
     with model_timer("deal.run"):
         result = run_deal(DealInputs(**req.inputs.model_dump()), cfg)
     br = result.equity_bridge
