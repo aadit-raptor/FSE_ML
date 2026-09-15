@@ -27,6 +27,7 @@ RUN pip install -r requirements.txt \
 COPY analytics ./analytics
 COPY api ./api
 COPY core ./core
+COPY db ./db
 COPY lbo_engine ./lbo_engine
 COPY ml ./ml
 COPY simulation ./simulation

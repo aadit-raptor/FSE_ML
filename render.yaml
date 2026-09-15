@@ -26,6 +26,7 @@ services:
         - analytics/**
         - api/**
         - core/**
+        - db/**
         - lbo_engine/**
         - ml/**
         - simulation/**
@@ -33,6 +34,10 @@ services:
       # Browser origins allowed to call the API directly. The web app goes
       # through Vercel's proxy, so this only matters for direct API use.
       - key: FSE_CORS_ORIGINS
+        sync: false
+      # Neon pooled connection string, production branch (staging's service
+      # uses the staging branch). Unset = the API runs without a database.
+      - key: DATABASE_URL
         sync: false
       # Only with INSTALL_ML=true images: enables macro regime detection
       - key: FRED_API_KEY

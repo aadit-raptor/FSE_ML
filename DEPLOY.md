@@ -38,6 +38,8 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | GitHub Actions secret | — | lets `staging.yml` open the protected preview | — |
 | `SENTRY_DSN` | both Render services, and Vercel (Production + Preview) | set | set | unset (no Sentry) |
+| `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string | Neon branch `staging`, pooled | optional: `python -m db.local` prints one; unset = no database |
+| `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 17 service) | — | — | optional: tests create and drop their own databases through it |
 | `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
 
 **Moving a change through staging**
@@ -204,12 +206,72 @@ secret to every host the page called, which leaked it to Sentry and broke
 the browser's error reports; `web/e2e/live.spec.ts` now sends it to the site
 only and fails if it reaches any other host.
 
+## Database
+
+Set up in PLAN.md 1.3, on Neon's free plan.
+
+| | Production | Staging |
+|---|---|---|
+| Neon | project `fse-ml`, region AWS us-east-2 (Ohio), branch `production` (the default branch) | branch `staging` of the same project (never auto-deletes) |
+| Render variable | `DATABASE_URL` on `fse-api` | `DATABASE_URL` on `fse-api-staging` |
+| Checked by | `live.yml`, daily (`ops/check_database.py`) | `staging.yml`, after each deploy |
+
+`DATABASE_URL` is the **pooled** connection string (host contains `-pooler`).
+Migrations switch to the direct host by themselves (`db.engine.direct_url`).
+
+**Schema changes deploy themselves.** Render's free plan has no pre-deploy
+command, so the API applies pending migrations the first time a request needs
+the database in each process (`db/migrate.py`, under a Postgres advisory
+lock). The first request after a deploy (normally `staging.yml`'s or
+`live.yml`'s database check) pays for it. Every migration must work with the
+code before it too, because the old deploy keeps serving until the new one is
+live: add columns and tables first, remove them in a later release.
+
+**Free compute hours.** Neon's free plan gives 100 compute hours a month and
+suspends the compute after 5 minutes idle; the next connection wakes it (under
+a few seconds). The API is built so that only real use wakes it:
+
+- `/api/health` (called by Render every few seconds and by the uptime monitor)
+  never queries the database. Its `database` block is the last state this
+  process saw: `unchecked`, `ok` or `error`, plus the migration state.
+- `/api/health/database` connects, applies migrations if needed, measures the
+  database size and stores the reading in `storage_checks`. It reuses its
+  result for 10 minutes, so calling it repeatedly doesn't keep the compute
+  awake. The workflows call it once a day (production) and per staging deploy.
+- The API opens no connection at start-up, so a free Render instance waking
+  up doesn't wake Neon.
+
+**Waking from idle.** Connections cut when the compute suspends are detected
+before use and replaced; opening a connection retries with backoff for about
+15 seconds. If the database stays unreachable, endpoints that need it answer
+`503` ("The database is unavailable; try again shortly") and the model
+endpoints keep working. `tests/test_database.py` proves both with a proxy that
+cuts connections the way a suspend does.
+
+**Storage.** The free plan has 0.5 GB per project. The check warns at 80%
+(410 MB): the response carries `"warning": true`, the API logs
+`database_storage_warning` and sends one Sentry warning a day, and the
+workflow fails and raises a Better Stack incident. The size is this branch's
+`pg_database_size`; branches share unchanged data, so production's reading is
+the one that matters. Readings older than 90 days are pruned.
+
+**Latency.** The API runs in Render's Oregon region and the database in Ohio,
+roughly 50–70 ms per round trip. Keep each request to a few queries (load a
+deal in one query, not one per row). Moving both to one region means a new
+Render service or Neon project; PLAN.md 12.7 covers regions.
+
+**Backups and restore** come in PLAN.md 1.8. Until then, Neon's free plan can
+restore a branch to a recent point in time from its console (**Branches →
+branch → Restore**).
+
 ## Checking a deploy
 
 The CI `docker` job builds this same image, starts it with a host-assigned
 `PORT`, and checks the default deal IRR (21.16%), a seeded Monte Carlo run
 and an Excel export. The `e2e` job runs the browser tests against the API and
-a production build of the web app.
+a production build of the web app. It also starts the image with a Postgres
+17 database and checks that `/api/health/database` migrates it and reports
+storage.
 
 `/api/health` returns `environment` (production, staging or local) and
 `commit` (the git SHA Render built, `null` locally).
