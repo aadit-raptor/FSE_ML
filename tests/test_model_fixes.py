@@ -48,3 +48,28 @@ def test_local_generator_keeps_the_legacy_seeded_stream():
     legacy = np.random.standard_normal((5, 1000))
     local = np.random.RandomState(42).standard_normal((5, 1000))
     np.testing.assert_array_equal(legacy, local)
+
+
+# ---------------------------------------------------------------------------
+# Finding 4: forecast target labels were inverted
+# ---------------------------------------------------------------------------
+def test_forecast_targets_above_plan_are_bull_and_below_are_bear():
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    d = client.get("/api/forecasting/defaults").json()
+    body = client.post("/api/forecasting/run", json={
+        "history": d["history"],
+        "assumptions": {k: [v] * d["n_fwd"] for k, v in d["seeded_assumptions"].items()},
+        "simulate": True, "n_sim": 5000,
+    }).json()
+    plan = body["simulation"]["ebitda_final"]["deterministic"]
+    targets = body["simulation"]["target_probabilities"]
+    assert [t["scenario"] for t in targets] == ["Bear", "Bear", "Base", "Bull", "Bull"]
+    for t in targets:
+        if t["scenario"] == "Bull":
+            assert t["target"] > plan and t["probability"] < 0.5
+        if t["scenario"] == "Bear":
+            assert t["target"] < plan and t["probability"] > 0.5
