@@ -101,7 +101,7 @@ which moved into Foundations (1.9) because later phases need them.
 | # | Task | Needs | Status |
 |---|---|---|---|
 | **0** | **Online** | | |
-| 0.1 | Put the current app online (free) | — | ☐ |
+| 0.1 | Put the current app online (free) | — | ☑ |
 | **1** | **Foundations** | | |
 | 1.1 | Test copy (staging) and production | 0.1 | ☐ |
 | 1.2 | Monitoring, error tracking, logs | 1.1 | ☐ |
