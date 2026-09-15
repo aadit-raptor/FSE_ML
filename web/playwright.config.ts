@@ -12,8 +12,6 @@ import { defineConfig, devices } from "@playwright/test";
  *
  *   npm run test:live                       # https://fse-ml.vercel.app
  *   E2E_BASE_URL=https://… npm run test:live
- *   E2E_EXPECT_ENV=staging                  # the environment /api/health must report
- *   VERCEL_AUTOMATION_BYPASS_SECRET=…       # to open Vercel preview (staging) URLs
  *
  * Uses `next start`, not `next dev`: the dev server compiles on demand (slow)
  * and blocks its client scripts for hosts other than localhost.
@@ -23,9 +21,6 @@ import { defineConfig, devices } from "@playwright/test";
 const isCI = !!process.env.CI;
 const live = process.env.E2E_LIVE === "1";
 const liveUrl = process.env.E2E_BASE_URL ?? "https://fse-ml.vercel.app";
-// Vercel previews sit behind Vercel login; this header (Protection Bypass for
-// Automation) lets the staging checks in. Production needs no header.
-const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 // Resolved from the repo root (the API server's cwd)
 const python = process.env.PYTHON ?? (process.platform === "win32" ? ".venv\\Scripts\\python.exe" : "python");
 
@@ -45,9 +40,6 @@ export default defineConfig({
     baseURL: live ? liveUrl : "http://localhost:3000",
     viewport: { width: 1440, height: 900 },
     trace: "retain-on-failure",
-    ...(live && bypass
-      ? { extraHTTPHeaders: { "x-vercel-protection-bypass": bypass, "x-vercel-set-bypass-cookie": "true" } }
-      : {}),
     ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } }],

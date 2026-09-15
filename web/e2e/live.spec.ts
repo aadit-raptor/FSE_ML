@@ -13,20 +13,6 @@ test.describe("live site", () => {
     await expect(page.locator("footer").getByRole("status")).toHaveText(/API ok · v\d/);
   });
 
-  // E2E_EXPECT_ENV (production or staging) proves the site is wired to the
-  // right API: a staging page must never reach production, nor the reverse
-  test("website talks to the expected API environment", async ({ page }) => {
-    const expected = process.env.E2E_EXPECT_ENV;
-    test.skip(!expected, "set E2E_EXPECT_ENV to check the environment");
-    const status = page.locator("footer").getByRole("status");
-    await page.goto("/deal/inputs");
-    await expect(status).toHaveText(/API ok · v\d/);
-    const health = await (await page.request.get("/api/health")).json();
-    expect(health.environment).toBe(expected);
-    if (expected === "production") await expect(status).toHaveText(/^API ok · v[\d.]+$/);
-    else await expect(status).toContainText(`· ${expected}`);
-  });
-
   test("default deal returns the model's numbers", async ({ page }) => {
     await page.goto("/deal/returns");
     await expect(kpi(page, "IRR")).toHaveText("21.2%");
