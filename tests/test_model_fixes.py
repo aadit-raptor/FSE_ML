@@ -171,3 +171,27 @@ def test_interest_converges_and_the_income_statement_matches_the_debt_schedule(i
     schedule = body["debt_schedule"]["total_interest_expense"]
     # The engine rounds each year's interest to cents
     assert max(abs(a - b) for a, b in zip(pl, schedule)) <= 0.011
+
+
+# ---------------------------------------------------------------------------
+# Finding 3: the Monte Carlo heatmap is the deal model, not a fee-free shortcut
+# ---------------------------------------------------------------------------
+def test_heatmap_cells_equal_deal_model_runs_with_fees():
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    body = client.post("/api/montecarlo/run", json={"mc": {"n": 2000}, "seed": 1}).json()
+    h = body["heatmap"]
+    p = body["params"]
+    for i, j in [(0, 0), (3, 4), (6, 7)]:
+        g, em = h["growth"][j], h["exit_multiple"][i]
+        deal = _deal(ebitda=p["entry_ebitda"], entry_mult=p["entry_multiple"],
+                     exit_mult=em, hold=p["holding_period"], growth=g * 100,
+                     gross_margin=p["gross_margin_mean"] * 100, base_rate=p["interest_mean"] * 100)
+        assert h["irr"][i][j] == pytest.approx(deal["returns"]["irr"], abs=1e-6), (g, em)
+    # Fees are charged: doubling transaction fees lowers every cell
+    dearer = client.post("/api/montecarlo/run", json={"mc": {"n": 2000}, "seed": 1,
+                                                      "settings": {"tx_fee_pct": 4.6}}).json()["heatmap"]["irr"]
+    assert all(a < b for ra, rb in zip(dearer, h["irr"]) for a, b in zip(ra, rb))

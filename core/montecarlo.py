@@ -136,13 +136,14 @@ def driver_fits(sample):
 def growth_exit_heatmap(params: SimulationParams, mc: MCInputs, deal: DealInputs):
     """IRR grid over growth x exit multiple, as on the Sensitivity tab.
 
-    A closed-form approximation, not the simulation engine: fee-free entry
-    equity, and debt at exit assumed to be 70% of entry debt.
+    Each cell is a full deterministic deal-model run (fees, debt paydown and
+    the interest loop included) at the simulation's mean assumptions for
+    that growth and exit multiple. The Streamlit version was a fee-free
+    closed form with exit debt assumed at 70% of entry debt (finding 3).
     """
-    mc_ebitda, mc_emult, mc_hold = mc.ebitda, mc.entry_mult, mc.hold
-    entry_ev_mc = mc_ebitda * mc_emult
-    total_debt_mc = entry_ev_mc * deal.debt_pct / 100
-    eq_in_mc = entry_ev_mc - total_debt_mc
+    from core.deal import INTEREST_TOLERANCE, MAX_INTEREST_PASSES
+    from lbo_engine.model import LBOParams, run_lbo
+
     g_vals = np.linspace(
         max(params.growth_mean - 3*params.growth_std, -0.10),
         params.growth_mean + 3*params.growth_std, 8)
@@ -150,14 +151,24 @@ def growth_exit_heatmap(params: SimulationParams, mc: MCInputs, deal: DealInputs
         max(params.exit_mean - 2*params.exit_std, 2.0),
         params.exit_mean + 2*params.exit_std, 7)
     irr_grid = np.zeros((len(em_vals), len(g_vals)))
-    em_base = (params.gross_margin_mean - params.opex_pct + params.da_pct)
     for i, em in enumerate(em_vals):
         for j, g in enumerate(g_vals):
-            base_r = mc_ebitda / max(em_base, 0.01)
-            rev = base_r * (1+g)**int(mc_hold)
-            exit_eq = max(rev * em_base * em - total_debt_mc * 0.70, 0.0)
-            irr_grid[i, j] = ((exit_eq/eq_in_mc)**(1/int(mc_hold))-1
-                               if eq_in_mc > 0 else 0)
+            r = run_lbo(LBOParams(
+                entry_ebitda=params.entry_ebitda, entry_multiple=params.entry_multiple,
+                exit_multiple=float(em), holding_period=int(params.holding_period),
+                debt_pct=params.debt_pct, senior_pct=params.senior_pct,
+                mezz_spread=params.mezz_spread, interest_rate=params.interest_mean,
+                senior_amort_pct=params.senior_amort_pct,
+                revenue_growth=float(g), gross_margin=params.gross_margin_mean,
+                opex_pct=params.opex_pct, da_pct=params.da_pct, tax_rate=params.tax_rate,
+                capex_pct=params.capex_pct, nwc_pct=params.nwc_pct,
+                transaction_fees_pct=params.transaction_fees_pct,
+                financing_fees_pct=params.financing_fees_pct,
+                other_uses=params.other_uses,
+                n_iterations=MAX_INTEREST_PASSES, interest_tolerance=INTEREST_TOLERANCE,
+                compute_sensitivity=False,
+            ))
+            irr_grid[i, j] = r.returns.irr
     return g_vals, em_vals, irr_grid
 
 
