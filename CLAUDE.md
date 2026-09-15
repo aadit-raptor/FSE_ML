@@ -48,7 +48,9 @@ background jobs moved into foundations. Tasks carry dependencies, what the
 user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
-in PLAN.md in the same PR. 0.1 is done (live site above); next is 2.1, then phase 1.
+in PLAN.md in the same PR. 0.1 is done (live site above); next is 2.1, then phase 1. End every task session with the handoff described in PLAN.md: tell the
+user to start a new session and give the ready-to-paste prompt for the next
+task.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 

@@ -47,7 +47,10 @@ Start each session with this prompt (swap in the task number):
 > missing. Follow PLAN.md's guiding principles (free plans only) and
 > CLAUDE.md's working rules (branch, tests that check real output,
 > mutation-check new tests, PR, CI green, merge). When done, tick the task in
-> PLAN.md's status table in the same PR and tell me what to check.
+> PLAN.md's status table in the same PR and tell me what to check. Then tell
+> me to start a new session, and give me the ready-to-paste prompt for the
+> next task (this same prompt with the next task number), plus anything I must
+> do first for it.
 
 **Rules**
 - Do the lowest-numbered open task whose "Needs" are done.
@@ -59,6 +62,10 @@ Start each session with this prompt (swap in the task number):
   *name*.
 - **"Done when"** is the acceptance test; Claude shows evidence for each line.
 - A task too big for one session is split into lettered parts (3.1a, 3.1b).
+- **Every session ends with a handoff:** once the PR is merged and PLAN.md is
+  ticked, Claude tells the user to start a new session and gives the exact
+  prompt for the next open task (lowest number whose "Needs" are done),
+  including that task's "You first" items so the user can prepare them.
 - **Stay inside free limits.** Each task notes the limits that matter. Claude
   adds a check or alert when usage approaches a limit.
 
