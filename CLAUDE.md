@@ -28,7 +28,7 @@ The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
 | 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built (`feat/web-shell`) |
 | 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built and verified by output in the browser (`feat/deal-screens`, `feat/remaining-screens`). Not yet merged |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | **Next.** The manual checks in the step 4 commit messages are the test plan |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (24 tests, CI job `e2e`), on `feat/e2e-tests`. Mutation-checked |
 | 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
@@ -140,7 +140,18 @@ npm --prefix web run build
 npm --prefix web run api:types
 ```
 
-CI (`.github/workflows/tests.yml`) runs `core`, `ml` and `web` jobs.
+Browser tests (`web/e2e/`, Playwright). They start uvicorn and `next start`
+themselves, so build first. No bundled browser on this machine: use Edge.
+
+```bash
+npm --prefix web run build
+PW_CHANNEL=msedge npm --prefix web run test:e2e          # PowerShell: $env:PW_CHANNEL="msedge"
+```
+
+Tests assert real model output (IRR, MOIC, golden backtest values), not just
+rendering. Add one for every new control, and mutation-check it.
+
+CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web` and `e2e` jobs.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
 `web` job fails when `schema.d.ts` doesn't match the snapshot.
 
@@ -150,7 +161,7 @@ Setup on a fresh machine: Python 3.12, then
 
 ## Working rules
 
-- **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web` jobs)
+- **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
   The GitHub CLI is not installed; open and merge PRs through the browser.
 - **Keep model logic as is** unless the user approves a change. Record findings
@@ -204,6 +215,10 @@ Skills load when a session starts: install first, then open a new session.
   step 4 (npm cache, `.next`, an old scratch venv were cleared, leaving ~1 GB).
   Check `Get-PSDrive C` before builds; "No space left on device" / npm
   `nospc` errors mean this, not a code problem.
+- Playwright: open the app at `localhost`, not `127.0.0.1` (Next's dev server
+  blocks its client scripts for other hosts; the page never hydrates). Next.js
+  renders a hidden `role="alert"` route announcer, so scope alert locators to
+  `#content`. `.next/dev` grows to ~400 MB; delete it when disk is tight.
 - The Browser pane's screenshots time out when the Claude window isn't drawn;
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
