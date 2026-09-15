@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { StepPending } from "@/components/StepPending";
-import { findStep, MODES } from "@/lib/nav";
+import { findStep, PENDING_MODES } from "@/lib/nav";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return MODES.flatMap((m) => m.steps.map((s) => ({ mode: m.slug, step: s.slug })));
+  return PENDING_MODES.flatMap((m) => m.steps.map((s) => ({ mode: m.slug, step: s.slug })));
 }
 
 export async function generateMetadata(props: PageProps<"/[mode]/[step]">): Promise<Metadata> {

@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 
-import { findMode, MODES, stepHref } from "@/lib/nav";
+import { findMode, PENDING_MODES, stepHref } from "@/lib/nav";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return MODES.map((m) => ({ mode: m.slug }));
+  return PENDING_MODES.map((m) => ({ mode: m.slug }));
 }
 
 /** /deal goes to the mode's first step. */

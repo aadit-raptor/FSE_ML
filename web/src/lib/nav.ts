@@ -16,12 +16,15 @@ export type Mode = {
   slug: string;
   label: string;
   steps: Step[];
+  /** Has its own routes under src/app/<slug>/; otherwise served by the pending [mode]/[step] route. */
+  built?: boolean;
 };
 
 export const MODES: Mode[] = [
   {
     slug: "deal",
     label: "Deal",
+    built: true,
     steps: [
       {
         slug: "inputs",
@@ -172,6 +175,8 @@ export const MODES: Mode[] = [
 ];
 
 export const DEFAULT_HREF = stepHref("deal", "inputs");
+
+export const PENDING_MODES = MODES.filter((m) => !m.built);
 
 export function stepHref(mode: string, step: string): string {
   return `/${mode}/${step}`;

@@ -1,3 +1,5 @@
+import { DealProvider } from "@/components/deal/DealProvider";
+
 import { CommandSearch } from "./CommandSearch";
 import { Shortcuts } from "./Shortcuts";
 import { StatusBar } from "./StatusBar";
@@ -9,6 +11,8 @@ import { WorkspaceProvider } from "./workspace";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceProvider>
+      {/* Deal state lives above the routes so it survives switching modes */}
+      <DealProvider>
       <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
         <TopBar />
         <StepBar />
@@ -19,6 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <CommandSearch />
       <Shortcuts />
+      </DealProvider>
     </WorkspaceProvider>
   );
 }

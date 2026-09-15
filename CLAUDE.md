@@ -13,8 +13,8 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15, step 1 agreed and step 3 (web shell) in PR on
-`feat/web-shell`.
+Last updated: 2026-09-15. Step 3 (web shell) pushed on `feat/web-shell`;
+step 4 Deal screens on `feat/deal-screens` (branched from it).
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
@@ -25,8 +25,8 @@ The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
 |---|---|
 | 1. Design direction — mockups of key screens for user approval | ✅ Agreed — see "Design system" below |
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
-| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built on `feat/web-shell` (PR open). Every step route exists and says "Not built yet" |
-| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | **Next.** Replace `StepPending` per step, matching the final-look mockup |
+| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built on `feat/web-shell` (pushed; PR to open and merge). Unbuilt steps say "Not built yet" |
+| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | **In progress.** Deal ✅ (`feat/deal-screens`). Next: Monte Carlo, then Backtest, Forecast, Settings. A built mode gets `built: true` in `nav.ts` and its own `src/app/<mode>/` routes |
 | 5. Browser tests in CI proving every control changes its output (Playwright) | Not started |
 | 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
 
@@ -79,10 +79,17 @@ Earlier rounds: directions, navigation options, mixes, type weights.
 6. **Streamlit backtesting page only ever runs Burger King's inputs** (keyed
    widgets keep the first deal's values). Not worth fixing — the page is being
    replaced; the API is unaffected.
+7. **Exit sensitivity grid is only exact in the chosen hold's column.**
+   Other holding-period columns reuse that hold's exit value and only change
+   the discounting years. E.g. 12.0x exit: a real 6-year run gives IRR 21.3%,
+   the 5-year run's grid shows 19.4% for 6y. The Returns screen marks it.
+8. **Interest circularity doesn't always converge** (3 passes, $0.5M
+   tolerance, `lbo_engine/model.py`). Default deal: not converged, P&L interest
+   up to $0.62M off the debt schedule. Minor; the Debt screen shows the gap.
 
 ### Waiting on the user
 
-- Whether to fix finding 1 (minimum cash) before or during step 4.
+- Whether to fix findings 1 (minimum cash) and 7 (sensitivity grid).
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -100,7 +107,7 @@ Earlier rounds: directions, navigation options, mixes, type weights.
 | `simulation/vectorized_simulation.py` | Vectorized Monte Carlo engine |
 | `analytics/` | Risk metrics |
 | `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
-| `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (drives tabs, steps, search, routes); `src/components/shell/` is the Guided shell; `src/app/[mode]/[step]/` the screens; `src/lib/api/` the typed client |
+| `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (drives tabs, steps, search, routes); `src/components/shell/` is the Guided shell; `src/app/deal/` the built Deal screens, `src/app/[mode]/[step]/` placeholders for unbuilt modes; `src/components/deal/DealProvider.tsx` holds deal inputs and the debounced auto-run (mounted in the shell, so it survives mode switches); `src/components/charts/` and `ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `app.py`, `pages/` | Streamlit app (to be retired). Pages call `core/` |
 | `tests/golden/` | Snapshot of the Streamlit app's outputs taken **before** logic moved into `core/`; the parity baseline |
@@ -184,6 +191,12 @@ Skills load when a session starts: install first, then open a new session.
   re-created by `next dev`; keep it committed.
 - Components that use context or Motion (`MotionConfig`, `motion.*`) must be
   client components; the shell keeps them in `workspace.tsx` and the bars.
+- **Drive C: on the original machine is nearly full.** It hit 0 bytes during
+  step 4 (npm cache, `.next`, an old scratch venv were cleared, leaving ~1 GB).
+  Check `Get-PSDrive C` before builds; "No space left on device" / npm
+  `nospc` errors mean this, not a code problem.
+- The Browser pane's screenshots time out when the Claude window isn't drawn;
+  verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
   `bracketright`, or shortcuts appear broken when they aren't.
 - Deal defaults differ: the API uses stored 60% debt / 70% senior; the
