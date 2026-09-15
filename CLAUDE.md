@@ -13,10 +13,9 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15. Work is on stacked branches, each containing the
-previous: `feat/remaining-screens` (steps 3–4, PR #4 open) →
-`feat/e2e-tests` (step 5) → `feat/model-fixes` (findings fixed).
-`feat/model-fixes` holds everything; merging it covers all of them.
+Last updated: 2026-09-15. Steps 1–5 and the model finding fixes are merged
+into `main` (PR #5, which also closed #4; CI green including `e2e`). Next is
+step 6, which needs the user's hosting choice.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
@@ -28,8 +27,8 @@ below). Streamlit is retired at the end.
 |---|---|
 | 1. Design direction — mockups of key screens for user approval | ✅ Agreed — see "Design system" below |
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
-| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built (`feat/web-shell`) |
-| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built and verified by output in the browser (`feat/deal-screens`, `feat/remaining-screens`). Not yet merged |
+| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Merged (PR #5) |
+| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built, verified by output, merged (PR #5) |
 | 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (27 tests, CI job `e2e`). Mutation-checked |
 | 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
 
@@ -63,11 +62,12 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   model reruns automatically on edit; Monte Carlo is marked **stale** (tab
   chip + dimmed tiles) and rerun from a changes bar above the results.
   Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
-- Screens show open model findings as visible markers rather than hiding them.
+- Screens show open model findings as visible markers rather than hiding them
+  (none are open in the web app now).
 
 ### Model findings
 
-Fixed on `feat/model-fixes` (user said "you do it all", 2026-09-15). Each fix
+Fixed and merged in PR #5 (user said "you do it all", 2026-09-15). Each fix
 has a test in `tests/test_model_fixes.py` that fails on the old code; the
 golden snapshot is untouched and parity tests explain every departure.
 
