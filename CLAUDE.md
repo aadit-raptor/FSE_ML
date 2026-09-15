@@ -23,12 +23,14 @@ sign in.
 
 ### What's next: PLAN.md
 
-The rebuild is done. **PLAN.md** turns every recommended product gap, ML
-improvement and revenue idea into numbered tasks (phases 0-11) with
-dependencies, what the user must do first, and a "done when" test. Work one
-task per session and per PR, lowest open number first, and tick it in PLAN.md's
-status table in the same PR. Start with 0.1 (put the app online) and 0.2
-(decisions).
+The rebuild is done. **PLAN.md** is the software-only roadmap (the user
+excluded market research, customers, company, legal and pricing for now):
+foundations, trust, scale, data, ML, AI, features, subscriptions machinery,
+enterprise-grade and operations, as numbered tasks (phases 0-10) with
+dependencies, what the user must do first (outside accounts and keys only),
+and a "done when" test. Work one task per session and per PR, lowest open
+number first, and tick it in PLAN.md's status table in the same PR. Start
+with 0.1 (put the app online).
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
