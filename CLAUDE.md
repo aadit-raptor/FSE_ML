@@ -21,6 +21,15 @@ choice of **Vercel (web) + Render (API)**. The user must create the accounts
 and connect the repo themselves (DEPLOY.md); Claude can't create accounts or
 sign in.
 
+### What's next: PLAN.md
+
+The rebuild is done. **PLAN.md** turns every recommended product gap, ML
+improvement and revenue idea into numbered tasks (phases 0-11) with
+dependencies, what the user must do first, and a "done when" test. Work one
+task per session and per PR, lowest open number first, and tick it in PLAN.md's
+status table in the same PR. Start with 0.1 (put the app online) and 0.2
+(decisions).
+
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
 The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
