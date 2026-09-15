@@ -6,6 +6,7 @@ import { DealField } from "@/components/deal/DealScreen";
 import { NumberField } from "@/components/ui/NumberField";
 import { EmptyState, LoadingTiles, Notice, PrimaryButton, RailGroup, Screen, Switch } from "@/components/ui/Screen";
 import type { FieldSpec } from "@/lib/fields";
+import { ILLUSTRATIVE } from "@/lib/provenance";
 
 import { SCENARIOS, SIM_FIELDS, type SimKey, useMonteCarlo } from "./MonteCarloProvider";
 
@@ -50,6 +51,10 @@ function Rail() {
         </div>
         <p className="type-body pt-1.5 text-[9px]">Applies Settings multipliers to the distributions below. The Scenarios step always shows all four.</p>
       </RailGroup>
+      <div className="grid gap-1 border-b border-line px-3.5 py-2.5" role="note">
+        <p className="type-alert text-[9px]">{ILLUSTRATIVE}</p>
+        <p className="type-body text-[9px]">Applies to the ranges below, the driver correlations and the scenario presets.</p>
+      </div>
       <RailGroup title="Revenue growth">
         <SimField name="growth_mean" />
         <SimField name="growth_std" />

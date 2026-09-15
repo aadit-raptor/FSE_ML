@@ -120,7 +120,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 1.8 | Backups and recovery | 1.3 | ☐ |
 | 1.9 | Background jobs and scheduled jobs | 1.3, 1.6 | ☐ |
 | **2** | **Universal by design** | | |
-| 2.1 | Honest labels on inception-era parts (do early) | — | ☐ |
+| 2.1 | Honest labels on inception-era parts (do early) | — | ☑ |
 | 2.2 | Currency and money units everywhere | 1.5 | ☐ |
 | 2.3 | Locale: numbers, dates, fiscal years, languages | 2.2 | ☐ |
 | 2.4 | Global debt structures and interest rates | 2.2 | ☐ |

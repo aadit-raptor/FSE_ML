@@ -1812,6 +1812,11 @@ export interface components {
             tail_unreliable: boolean;
             /** Term Differences */
             term_differences: components["schemas"]["TermDifference"][];
+            /**
+             * Training Deal
+             * @description Every term held fixed in training (model_value), beside this deal's value
+             */
+            training_deal: components["schemas"]["TermDifference"][];
         };
         /** SurrogateSliders */
         SurrogateSliders: {

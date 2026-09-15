@@ -1,8 +1,11 @@
 """
 Anomaly detection for LBO deal assumptions.
 Trains on historical deal data. Flags unusual parameter combinations.
-Seed dataset: ~100 deals from public sources + academic papers.
-Grows automatically as more deals are added to the database.
+Dataset: the 30 hand-entered, mostly US LBOs in HISTORICAL_DEALS (1989-2016;
+20 successes, 10 distressed), plus 500 synthetic "normal" deals jittered
+around the successes. The figures are unsourced approximations, so the score
+is an early estimate, not a validated model (PLAN.md 2.8 and 5.2 replace it).
+Nothing adds deals automatically; retrain after editing the list.
 """
 
 import numpy as np
@@ -233,6 +236,19 @@ def check_deal(entry_mult:   float,
         nearest_deals=nearest,
         risk_score=risk_score,
     )
+
+
+def historical_sample() -> dict:
+    """Size and year span of the real deals the trained detector learned from.
+
+    Read from the trained deal file, so labels follow a retrain.
+    """
+    with open(os.path.join(BASE, 'anomaly_deals.json')) as f:
+        names = [d['name'] for d in json.load(f)]
+    years = [int(n.rsplit(' ', 1)[-1]) for n in names if n.rsplit(' ', 1)[-1].isdigit()]
+    return {'deals': len(names),
+            'first_year': min(years) if years else None,
+            'last_year': max(years) if years else None}
 
 
 def detector_is_trained() -> bool:

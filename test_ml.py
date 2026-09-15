@@ -40,6 +40,15 @@ def test_anomaly_flag_separates_historical_outcomes():
         "no more than 10% of historical successes should be flagged")
 
 
+def test_anomaly_docstring_states_the_real_sample():
+    # It once claimed "~100 deals"; the trained file and the docstring must agree
+    sample = ad.historical_sample()
+    assert sample["deals"] == len(ad.HISTORICAL_DEALS) == 30
+    assert "~100" not in ad.__doc__
+    assert f"{sample['deals']} hand-entered" in ad.__doc__
+    assert f"{sample['first_year']}-{sample['last_year']}" in ad.__doc__
+
+
 def test_surrogate_tracks_the_simulation():
     # Checks what the Monte Carlo page relies on: the median, the 5th
     # percentile wherever the page shows it (predicted wipeout < 2%), and

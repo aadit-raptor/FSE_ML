@@ -16,8 +16,8 @@ from core.montecarlo import MCInputs
 TAIL_UNRELIABLE_WIPEOUT = 0.02
 
 
-def training_term_differences(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping):
-    """Deal terms that differ from the fixed deal the surrogate was trained on.
+def training_terms(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping):
+    """Every term held fixed while the surrogate was trained, beside this deal's value.
 
     Each item: term, value, model_value, unit ("multiple", "years", "percent",
     "usd_millions") and decimals -- rates as fractions, so 0.25 is 25%.
@@ -36,8 +36,13 @@ def training_term_differences(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixe
     ]
     return [{"term": name, "value": yours, "model_value": model, "unit": unit,
              "decimals": decimals}
-            for name, yours, model, unit, decimals in terms
-            if abs(float(yours) - float(model)) > 1e-6]
+            for name, yours, model, unit, decimals in terms]
+
+
+def training_term_differences(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping):
+    """Deal terms that differ from the fixed deal the surrogate was trained on."""
+    return [t for t in training_terms(mc, deal, cfg, fixed)
+            if abs(float(t["value"]) - float(t["model_value"])) > 1e-6]
 
 
 def surrogate_features(mc: MCInputs, deal: DealInputs, *, growth_mean, exit_mean,

@@ -48,7 +48,8 @@ background jobs moved into foundations. Tasks carry dependencies, what the
 user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
-in PLAN.md in the same PR. 0.1 is done (live site above); next is 2.1, then phase 1. End every task session with the handoff described in PLAN.md: tell the
+in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
+below); next is 1.1. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -64,7 +65,7 @@ below). Streamlit is retired (removed in step 6).
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
 | 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Merged (PR #5) |
 | 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built, verified by output, merged (PR #5) |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (33 tests, CI job `e2e`). Mutation-checked |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (38 tests, CI job `e2e`). Mutation-checked |
 | 6. Deploy (frontend + API) and retire Streamlit | Config done on `feat/deploy` (root `Dockerfile`, `render.yaml`, Vercel via `FSE_API_URL`, CI `docker` job). Streamlit removed. **Waiting on the user** to connect Render and Vercel (DEPLOY.md) |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
@@ -99,6 +100,17 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
 - Screens show open model findings as visible markers rather than hiding them
   (none are open in the web app now).
+- **Honest labels (PLAN.md 2.1):** unsourced inception-era numbers carry a
+  visible label until sourced data replaces them. Wording lives in
+  `web/src/lib/provenance.ts`: Settings (every step) and the Monte Carlo rail say
+  "Illustrative defaults — not market data"; Backtest counts its example deals
+  from the deal list; the risk score's sample size comes from
+  `historical_sample` in `/api/ml/deal-risk`; Live lists the surrogate's fixed
+  training deal from `training_deal` in `/api/ml/surrogate`. Keep these when
+  editing those screens; `web/e2e/provenance.spec.ts` checks them (risk and
+  Live replay `web/e2e/fixtures/ml-responses.json`, recorded from a real ML
+  server, because CI's e2e job has no ML layer — re-record it if those
+  responses change).
 
 ### Model findings
 
@@ -154,7 +166,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
 | `DEPLOY.md` | Vercel + Render setup steps |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (88 tests); `tests/test_model_fixes.py` pins each finding fix |
+| `tests/`, `test_*.py` | Test suite (90 tests); `tests/test_model_fixes.py` pins each finding fix |
 
 ## Commands (Windows, from the repo root)
 

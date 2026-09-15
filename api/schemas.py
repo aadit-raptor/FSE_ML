@@ -505,6 +505,8 @@ class SurrogateResponse(BaseModel):
     prediction: Dict[str, Optional[float]]
     tail_unreliable: bool
     term_differences: List[TermDifference]
+    training_deal: List[TermDifference] = Field(
+        description="Every term held fixed in training (model_value), beside this deal's value")
 
 
 class EdgarResponse(BaseModel):

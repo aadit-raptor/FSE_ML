@@ -11,6 +11,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import type { DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput, fmtMoney, fmtRate } from "@/lib/format";
+import { ILLUSTRATIVE, ILLUSTRATIVE_DETAIL } from "@/lib/provenance";
 
 import { useSettings } from "./SettingsProvider";
 
@@ -149,7 +150,14 @@ function Rail() {
 function SettingsScreen({ children }: { children: ReactNode }) {
   const { defaults, error } = useSettings();
   return (
-    <Screen rail={<Rail />}>
+    <Screen
+      rail={<Rail />}
+      bar={
+        <Notice tone="attention" title={ILLUSTRATIVE} role="note">
+          {ILLUSTRATIVE_DETAIL}
+        </Notice>
+      }
+    >
       {defaults ? children : error ? <EmptyState title="Settings unavailable">{error}</EmptyState> : <LoadingTiles />}
     </Screen>
   );

@@ -2,6 +2,11 @@
 Macro regime detection using Hidden Markov Model on FRED data.
 Trains on data from 1980-present. Classifies into 4 regimes.
 Update the FRED_KEY with your free API key from fred.stlouisfed.org
+
+US data only. The ISM Manufacturing PMI series (NAPM) was discontinued on
+FRED in 2022: it is still requested below but no longer returns data, and it
+is not among the model's features. PLAN.md 4.2 and 5.7 replace this with
+regional series.
 """
 
 import numpy as np
@@ -25,7 +30,7 @@ FRED_SERIES = {
     'yield_curve':    'T10Y2Y',      # 10yr - 2yr spread (daily -> quarterly)
     'hy_spread':      'BAMLH0A0HYM2', # HY credit spread (daily -> quarterly)
     'fed_funds':      'FEDFUNDS',    # Fed funds rate (monthly)
-    'pmi':            'NAPM',        # ISM Manufacturing PMI (monthly, ends 2022)
+    'pmi':            'NAPM',        # ISM Manufacturing PMI: discontinued on FRED in 2022, unused
 }
 
 
