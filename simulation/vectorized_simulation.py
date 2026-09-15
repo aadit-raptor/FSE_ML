@@ -338,8 +338,12 @@ def _draw_correlated_inputs(
 
     Returns dict of np.ndarray, each shape (N,).
     """
-    if seed is not None:
-        np.random.seed(seed)
+    # A generator local to this call, not numpy's global one: concurrent
+    # simulations (FastAPI runs sync endpoints in a thread pool) would
+    # otherwise interleave draws and break seeded reproducibility.
+    # RandomState(seed) yields exactly the stream np.random.seed(seed) did,
+    # so seeded results are unchanged.
+    rng = np.random.RandomState(seed)
 
     corr = params.corr_matrix if params.corr_matrix is not None else DEFAULT_CORR
 
@@ -352,7 +356,7 @@ def _draw_correlated_inputs(
         L = np.linalg.cholesky(corr_reg)
 
     # Independent standard normal draws: shape (5, N)
-    Z = np.random.standard_normal((5, params.n))
+    Z = rng.standard_normal((5, params.n))
 
     # Correlated standard normal draws: shape (5, N)
     C = L @ Z
