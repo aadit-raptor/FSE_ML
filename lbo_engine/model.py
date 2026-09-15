@@ -50,6 +50,7 @@ LBOResult contains every output from every module, making it easy
 to extract just what you need (IRR for simulation, full P&L for dashboard).
 """
 
+import dataclasses
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
 import numpy as np
@@ -87,6 +88,7 @@ from lbo_engine.returns import (
     compute_returns,
     compute_equity_bridge,
     compute_exit_sensitivity,
+    compute_exit_sensitivity_by_hold,
     print_returns_summary,
     print_sensitivity_table,
 )
@@ -201,6 +203,13 @@ class LBOParams:
 
     # --- Iteration control ---
     n_iterations: int = 2   # number of interest convergence passes
+
+    # --- Exit sensitivity grid ---
+    # None keeps the defaults: exit multiples at 0.6x-1.4x of the deal's and
+    # holds of 3-7 years. Each hold column is a full model run for that hold.
+    sensitivity_exit_multiples: Optional[List[float]] = None
+    sensitivity_holding_periods: Optional[List[int]] = None
+    compute_sensitivity: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -481,19 +490,37 @@ def run_lbo(params: LBOParams) -> LBOResult:
     )
 
     # ------------------------------------------------------------------
-    # Step 8: Exit sensitivity (5x5 table)
+    # Step 8: Exit sensitivity (exit multiple x holding period)
     # ------------------------------------------------------------------
-    sensitivity = compute_exit_sensitivity(
-        entry_equity=entry_equity,
-        exit_ebitda=final_op_result.exit_ebitda,
-        net_debt_at_exit=final_debt_result.net_debt_at_exit,
-        holding_periods=[3, 4, 5, 6, 7],
-        exit_multiples=[
+    # Each holding period needs its own exit EBITDA and exit net debt, so
+    # every hold other than this run's is a full model run for that hold.
+    # (Reusing this run's exit values for every column made only the
+    # chosen hold's column correct -- finding 7.)
+    sensitivity = None
+    if params.compute_sensitivity:
+        holds = params.sensitivity_holding_periods or [3, 4, 5, 6, 7]
+        exit_multiples = params.sensitivity_exit_multiples or [
             round(params.exit_multiple * m, 1)
             for m in [0.6, 0.75, 0.9, 1.0, 1.1, 1.25, 1.4]
-        ],
-        metric="irr",
-    )
+        ]
+        exits_by_hold = {}
+        for hp in holds:
+            if hp == params.holding_period:
+                exits_by_hold[hp] = (entry_equity, final_op_result.exit_ebitda,
+                                     final_debt_result.net_debt_at_exit)
+            else:
+                other = run_lbo(dataclasses.replace(
+                    params, holding_period=hp, compute_sensitivity=False))
+                # Entry equity doesn't depend on the hold
+                exits_by_hold[hp] = (entry_equity,
+                                     other.operating_model.exit_ebitda,
+                                     other.debt_schedule.net_debt_at_exit)
+        sensitivity = compute_exit_sensitivity_by_hold(
+            exits_by_hold=exits_by_hold,
+            holding_periods=holds,
+            exit_multiples=exit_multiples,
+            metric="irr",
+        )
 
     # ------------------------------------------------------------------
     # Populate result

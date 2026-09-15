@@ -61,7 +61,8 @@ def test_deal_run_matches_streamlit_snapshot(case):
     body = ok(client.post("/api/deal/run", json=req))
     assert_close(body["returns"], g["returns"])
     assert_close(body["equity_bridge"], {k: g["equity_bridge"][k] for k in body["equity_bridge"]})
-    assert_close(body["exit_sensitivity"], g["exit_sensitivity"])
+    # exit_sensitivity deliberately differs from the snapshot (finding 7, fixed);
+    # see test_model_fixes.py
     assert_close(body["operating_model"], g["operating_model"])
     assert_close(body["cash_flow"], g["cash_flow"])
     tranches = {k: v for k, v in g["debt_schedule"].items() if k != "schedule"}

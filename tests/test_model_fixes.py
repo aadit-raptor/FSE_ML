@@ -111,3 +111,27 @@ def test_clip_irr_setting_reaches_the_simulation():
     clipped = run_vectorized_simulation_full(SimulationParams(**extreme, clip_irr=True), seed=1).df["IRR"]
     raw = run_vectorized_simulation_full(SimulationParams(**extreme, clip_irr=False), seed=1).df["IRR"]
     assert raw.max() > 5.0 and clipped.max() <= 5.0
+
+
+# ---------------------------------------------------------------------------
+# Finding 7: every sensitivity cell must be a real run for that hold and exit
+# Finding 2 (part 2): the grid's ranges come from settings
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize("inputs", [{}, {"exit_mult": 12.0, "growth": 8.0, "mincash": 15.0}])
+def test_every_sensitivity_cell_equals_a_full_run(inputs):
+    body = _deal(**inputs)
+    s = body["exit_sensitivity"]
+    assert s["exit_multiples"] == [6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0]   # sens_em_* defaults
+    assert s["holding_periods"] == [3, 4, 5, 6, 7]                          # sens_hp_* defaults
+    for i, em in enumerate(s["exit_multiples"]):
+        for j, hp in enumerate(s["holding_periods"]):
+            full = _deal(**{**inputs, "exit_mult": em, "hold": hp})
+            assert s["table"][i][j] == pytest.approx(full["returns"]["irr"], abs=6e-5), (em, hp)
+
+
+def test_sensitivity_ranges_follow_settings():
+    s = _deal({"sens_em_min": 8.0, "sens_em_max": 14.0, "sens_em_steps": 4,
+               "sens_hp_min": 4, "sens_hp_max": 6})["exit_sensitivity"]
+    assert s["exit_multiples"] == [8.0, 10.0, 12.0, 14.0]
+    assert s["holding_periods"] == [4, 5, 6]
+    assert len(s["table"]) == 4 and all(len(r) == 3 for r in s["table"])

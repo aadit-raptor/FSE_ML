@@ -141,7 +141,21 @@ def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
         other_uses=cfg['other_uses'],
         senior_amort_pct=cfg['def_senior_amort']/100,
         minimum_cash=d.mincash, n_iterations=3,
+        sensitivity_exit_multiples=sensitivity_exit_multiples(cfg),
+        sensitivity_holding_periods=sensitivity_holding_periods(cfg),
     )
+
+
+def sensitivity_exit_multiples(cfg: Mapping) -> list:
+    """Exit multiple rows for the sensitivity grid, from settings (sens_em_*)."""
+    lo, hi, steps = float(cfg['sens_em_min']), float(cfg['sens_em_max']), max(int(cfg['sens_em_steps']), 2)
+    return [round(lo + (hi - lo) * i / (steps - 1), 2) for i in range(steps)]
+
+
+def sensitivity_holding_periods(cfg: Mapping) -> list:
+    """Holding period columns for the sensitivity grid, from settings (sens_hp_*)."""
+    lo, hi = int(cfg['sens_hp_min']), int(cfg['sens_hp_max'])
+    return list(range(max(lo, 1), max(hi, lo) + 1))
 
 
 def run_deal(d: DealInputs, cfg: Mapping):

@@ -55,7 +55,10 @@ def deal_from(inputs):
 def test_deal_matches_streamlit(case):
     g = GOLDEN["deal"][case]
     r = run_deal(deal_from(g["inputs"]), cfg_from(g["cfg"]))
-    for part in ("returns", "equity_bridge", "exit_sensitivity", "operating_model",
+    # exit_sensitivity is left out on purpose: the Streamlit grid reused one
+    # hold's exit values for every column (finding 7). The corrected grid is
+    # checked cell by cell in test_model_fixes.py.
+    for part in ("returns", "equity_bridge", "operating_model",
                  "cash_flow", "debt_schedule", "interest_converged"):
         assert_close(plain(getattr(r, part)), g[part])
 

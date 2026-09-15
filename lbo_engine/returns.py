@@ -548,6 +548,41 @@ def compute_exit_sensitivity(
     }
 
 
+def compute_exit_sensitivity_by_hold(
+    exits_by_hold: dict,
+    holding_periods: List[int],
+    exit_multiples: List[float],
+    metric: str = "irr",
+) -> dict:
+    """
+    Sensitivity table where each holding period has its own exit values.
+
+    exits_by_hold maps holding period -> (entry_equity, exit_ebitda,
+    net_debt_at_exit) from a model run for that hold. Rows = exit multiples,
+    columns = holding periods, same shape as compute_exit_sensitivity().
+    """
+    table = []
+    for em in exit_multiples:
+        row = []
+        for hp in holding_periods:
+            entry_equity, exit_ebitda, net_debt_at_exit = exits_by_hold[hp]
+            r = compute_returns(ReturnAssumptions(
+                exit_multiple=em,
+                holding_period=hp,
+                entry_equity=entry_equity,
+                exit_ebitda=exit_ebitda,
+                net_debt_at_exit=net_debt_at_exit,
+            ))
+            row.append(round(r.irr if metric == "irr" else r.moic, 4))
+        table.append(row)
+    return {
+        "table": table,
+        "exit_multiples": list(exit_multiples),
+        "holding_periods": list(holding_periods),
+        "metric": metric,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Display
 # ---------------------------------------------------------------------------
