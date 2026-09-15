@@ -29,6 +29,23 @@ def test_health_and_openapi():
     assert "/api/deal/run" in schema["paths"] and "/api/montecarlo/run" in schema["paths"]
 
 
+@pytest.mark.parametrize("env, expected", [
+    ({}, "local"),
+    ({"RENDER_SERVICE_NAME": "fse-api"}, "production"),
+    ({"RENDER_SERVICE_NAME": "fse-api-staging"}, "staging"),
+    ({"RENDER_SERVICE_NAME": "fse-api", "FSE_ENV": "Staging"}, "staging"),
+])
+def test_health_reports_environment_and_commit(monkeypatch, env, expected):
+    for key in ("FSE_ENV", "RENDER_SERVICE_NAME", "RENDER_GIT_COMMIT"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    body = ok(client.get("/api/health"))
+    assert body["environment"] == expected and body["commit"] is None
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "f2c7eac5dbbb7bb611a29a1c4e8d20513873112f")
+    assert ok(client.get("/api/health"))["commit"] == "f2c7eac5dbbb7bb611a29a1c4e8d20513873112f"
+
+
 def test_settings_defaults_and_validation():
     body = ok(client.get("/api/settings/defaults"))
     assert body["defaults"]["tx_fee_pct"] == 2.3 and body["correlation_valid"]
