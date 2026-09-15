@@ -21,6 +21,18 @@ choice of **Vercel (web) + Render (API)**. The user must create the accounts
 and connect the repo themselves (DEPLOY.md); Claude can't create accounts or
 sign in.
 
+### Live site
+
+| What | URL | Host (free plan) |
+|---|---|---|
+| Web app | https://fse-ml.vercel.app | Vercel Hobby, project `fse-ml`, root directory `web`, `FSE_API_URL` set |
+| API | https://fse-api.onrender.com (health: `/api/health`) | Render free web service `fse-api` from `render.yaml` |
+
+Both deploy automatically from `main`. The free API sleeps after 15 minutes
+idle and takes about a minute to wake. Read-only checks against the live site:
+`E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
+also run daily by `.github/workflows/live.yml`.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -36,7 +48,7 @@ background jobs moved into foundations. Tasks carry dependencies, what the
 user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
-in PLAN.md in the same PR. Start with 0.1, then 2.1.
+in PLAN.md in the same PR. 0.1 is done (live site above); next is 2.1, then phase 1.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 

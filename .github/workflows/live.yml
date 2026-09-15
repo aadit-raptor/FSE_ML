@@ -1,0 +1,29 @@
+name: live
+
+# Read-only browser checks against the deployed site (web/e2e/live.spec.ts).
+# Runs daily and on demand. Separate from `tests` so a sleeping or redeploying
+# free-tier host never blocks a pull request.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:live
+        env:
+          E2E_LIVE: "1"
