@@ -1,4 +1,5 @@
 import type { Schemas } from "@/lib/api/client";
+import { changedKeys, type FieldSpec, validate } from "@/lib/fields";
 
 export type DealInputs = Required<Schemas["DealInputsIn"]>;
 export type DealRun = Schemas["DealRunResponse"];
@@ -28,17 +29,7 @@ export const DEFAULT_INPUTS: DealInputs = {
   ap_days: 60,
 };
 
-export type FieldSpec = {
-  label: string;
-  unit: string;
-  step: number;
-  decimals: number;
-  min?: number;
-  max?: number;
-  /** The API requires strictly greater than min */
-  exclusiveMin?: boolean;
-  integer?: boolean;
-};
+export type { FieldSpec };
 
 /** Bounds mirror DealInputsIn in api/schemas.py. */
 export const FIELDS: Record<NumericDealKey, FieldSpec> = {
@@ -63,17 +54,4 @@ export const FIELDS: Record<NumericDealKey, FieldSpec> = {
   ap_days: { label: "Payable days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
 };
 
-/** Why a value is rejected, or null if the API will accept it. */
-export function validate(spec: FieldSpec, v: number): string | null {
-  if (!Number.isFinite(v)) return "Enter a number";
-  if (spec.integer && !Number.isInteger(v)) return "Whole years only";
-  if (spec.min !== undefined && (spec.exclusiveMin ? v <= spec.min : v < spec.min)) {
-    return spec.exclusiveMin ? `Must be above ${spec.min}` : `At least ${spec.min}`;
-  }
-  if (spec.max !== undefined && v > spec.max) return `At most ${spec.max}`;
-  return null;
-}
-
-export function changedKeys(a: DealInputs, b: DealInputs): (keyof DealInputs)[] {
-  return (Object.keys(a) as (keyof DealInputs)[]).filter((k) => a[k] !== b[k]);
-}
+export { changedKeys, validate };

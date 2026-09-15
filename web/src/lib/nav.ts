@@ -55,6 +55,7 @@ export const MODES: Mode[] = [
   {
     slug: "monte-carlo",
     label: "Monte Carlo",
+    built: true,
     steps: [
       {
         slug: "distribution",

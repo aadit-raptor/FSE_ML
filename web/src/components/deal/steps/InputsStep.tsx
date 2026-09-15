@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { multiplesFromPct } from "@/lib/deal/capital";
@@ -15,13 +16,14 @@ import { hurdleSub } from "./shared";
 type SourcesUses = Schemas["SourcesUsesResponse"];
 
 function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number) {
+  const { overrides } = useSettings();
   const [su, setSu] = useState<SourcesUses | null>(null);
   useEffect(() => {
     const ctrl = new AbortController();
     const id = setTimeout(() => {
       api
         .POST("/api/deal/sources-and-uses", {
-          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, settings: {} },
+          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, settings: overrides },
           signal: ctrl.signal,
         })
         .then(({ data }) => data && setSu(data))
@@ -31,7 +33,7 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [ebitda, entryMult, seniorX, mezzX]);
+  }, [ebitda, entryMult, seniorX, mezzX, overrides]);
   return su;
 }
 

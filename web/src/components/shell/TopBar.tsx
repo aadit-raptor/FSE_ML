@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
 import { MODES, parsePath, stepHref } from "@/lib/nav";
 
 import { useWorkspace } from "./workspace";
@@ -12,7 +13,9 @@ import { useWorkspace } from "./workspace";
 export function TopBar() {
   const pathname = usePathname();
   const { mode: current } = parsePath(pathname);
-  const { staleModes, setSearchOpen } = useWorkspace();
+  const { setSearchOpen } = useWorkspace();
+  // Modes whose results no longer match their inputs
+  const staleModes = new Set(useMonteCarlo().stale ? ["monte-carlo"] : []);
 
   return (
     <header className="flex min-h-[42px] flex-none items-stretch border-b border-line bg-panel">

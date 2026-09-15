@@ -1,4 +1,6 @@
 import { DealProvider } from "@/components/deal/DealProvider";
+import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
+import { SettingsProvider } from "@/components/settings/SettingsProvider";
 
 import { CommandSearch } from "./CommandSearch";
 import { Shortcuts } from "./Shortcuts";
@@ -11,19 +13,23 @@ import { WorkspaceProvider } from "./workspace";
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceProvider>
-      {/* Deal state lives above the routes so it survives switching modes */}
-      <DealProvider>
-      <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-        <TopBar />
-        <StepBar />
-        <main id="content" className="min-h-0 flex-1 overflow-auto">
-          {children}
-        </main>
-        <StatusBar />
-      </div>
-      <CommandSearch />
-      <Shortcuts />
-      </DealProvider>
+      {/* Model state lives above the routes so it survives switching modes */}
+      <SettingsProvider>
+        <DealProvider>
+          <MonteCarloProvider>
+            <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+              <TopBar />
+              <StepBar />
+              <main id="content" className="min-h-0 flex-1 overflow-auto">
+                {children}
+              </main>
+              <StatusBar />
+            </div>
+            <CommandSearch />
+            <Shortcuts />
+          </MonteCarloProvider>
+        </DealProvider>
+      </SettingsProvider>
     </WorkspaceProvider>
   );
 }

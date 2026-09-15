@@ -3,7 +3,7 @@
 import { useId, useRef, useState } from "react";
 
 import { fmtInput } from "@/lib/format";
-import { validate, type FieldSpec } from "@/lib/deal/fields";
+import { validate, type FieldSpec } from "@/lib/fields";
 
 type Props = {
   spec: FieldSpec;

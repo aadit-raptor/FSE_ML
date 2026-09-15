@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "@/lib/api/client";
+import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import { changedKeys, DEFAULT_INPUTS, type DealInputs, type DealRun } from "@/lib/deal/fields";
 
 /** Debounce between the last edit and an automatic rerun. */
@@ -13,6 +14,8 @@ type RunState = {
   result?: DealRun;
   /** Inputs the current result was computed from */
   ranFor?: DealInputs;
+  /** JSON of the settings overrides it was computed with */
+  ranSettings?: string;
   ms?: number;
   error?: string;
 };
@@ -26,6 +29,8 @@ type DealContext = {
   run: RunState;
   /** Inputs edited since the result was computed */
   pending: (keyof DealInputs)[];
+  /** Settings changed since the result was computed */
+  settingsChanged: boolean;
   runNow: () => void;
   discard: () => void;
   /** Hurdle IRR from settings, as a fraction */
@@ -45,13 +50,16 @@ function describeError(err: unknown): string {
 }
 
 export function DealProvider({ children }: { children: React.ReactNode }) {
+  const { overrides, effective, defaults } = useSettings();
   const [inputs, setInputs] = useState<DealInputs>(DEFAULT_INPUTS);
   const [autoUpdate, setAutoUpdate] = useState(true);
   const [run, setRun] = useState<RunState>({ status: "idle" });
-  const [hurdle, setHurdle] = useState(0.2);
   const inflight = useRef<AbortController | null>(null);
+  const settingsKey = JSON.stringify(overrides);
+  // Hurdle comes from settings so Returns and Monte Carlo agree
+  const hurdle = num(effective, "mc_hurdle", 20) / 100;
 
-  const execute = useCallback(async (snapshot: DealInputs) => {
+  const execute = useCallback(async (snapshot: DealInputs, settings: Settings) => {
     inflight.current?.abort();
     const ctrl = new AbortController();
     inflight.current = ctrl;
@@ -59,12 +67,12 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     const t0 = performance.now();
     try {
       const { data, error } = await api.POST("/api/deal/run", {
-        body: { inputs: snapshot, settings: {} },
+        body: { inputs: snapshot, settings },
         signal: ctrl.signal,
       });
       if (ctrl.signal.aborted) return;
       if (data) {
-        setRun({ status: "ok", result: data, ranFor: snapshot, ms: performance.now() - t0 });
+        setRun({ status: "ok", result: data, ranFor: snapshot, ranSettings: JSON.stringify(settings), ms: performance.now() - t0 });
       } else {
         setRun((r) => ({ ...r, status: "error", error: describeError(error) }));
       }
@@ -74,27 +82,12 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Automatic rerun after edits (and the first run on load)
+  // Automatic rerun after edits or settings changes (and the first run once settings load)
   useEffect(() => {
-    if (!autoUpdate) return;
-    const id = setTimeout(() => void execute(inputs), AUTO_RUN_DELAY_MS);
+    if (!autoUpdate || !defaults) return;
+    const id = setTimeout(() => void execute(inputs, overrides), AUTO_RUN_DELAY_MS);
     return () => clearTimeout(id);
-  }, [inputs, autoUpdate, execute]);
-
-  // Hurdle rate comes from settings so the returns screen matches Monte Carlo
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .GET("/api/settings/defaults")
-      .then(({ data }) => {
-        const h = data?.defaults?.mc_hurdle;
-        if (!cancelled && typeof h === "number") setHurdle(h / 100);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }, [inputs, overrides, defaults, autoUpdate, execute]);
 
   const setField = useCallback(<K extends keyof DealInputs>(key: K, value: DealInputs[K]) => {
     setInputs((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
@@ -104,14 +97,15 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const pending = useMemo(() => (run.ranFor ? changedKeys(run.ranFor, inputs) : []), [run.ranFor, inputs]);
-  const runNow = useCallback(() => void execute(inputs), [execute, inputs]);
+  const settingsChanged = run.ranSettings !== undefined && run.ranSettings !== settingsKey;
+  const runNow = useCallback(() => void execute(inputs, overrides), [execute, inputs, overrides]);
   const discard = useCallback(() => {
     if (run.ranFor) setInputs(run.ranFor);
   }, [run.ranFor]);
 
   const value = useMemo(
-    () => ({ inputs, setField, setFields, autoUpdate, setAutoUpdate, run, pending, runNow, discard, hurdle }),
-    [inputs, setField, setFields, autoUpdate, run, pending, runNow, discard, hurdle],
+    () => ({ inputs, setField, setFields, autoUpdate, setAutoUpdate, run, pending, settingsChanged, runNow, discard, hurdle }),
+    [inputs, setField, setFields, autoUpdate, run, pending, settingsChanged, runNow, discard, hurdle],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

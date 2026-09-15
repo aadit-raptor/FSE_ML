@@ -86,6 +86,12 @@ Earlier rounds: directions, navigation options, mixes, type weights.
 8. **Interest circularity doesn't always converge** (3 passes, $0.5M
    tolerance, `lbo_engine/model.py`). Default deal: not converged, P&L interest
    up to $0.62M off the debt schedule. Minor; the Debt screen shows the gap.
+9. **A fixed Monte Carlo seed isn't reproducible under concurrent requests.**
+   `simulation/vectorized_simulation.py` calls `np.random.seed()` on numpy's
+   global RNG, and FastAPI runs sync endpoints in a thread pool, so two
+   simulations at once interleave draws. The web app runs its own MC calls
+   sequentially; multiple users on one server would still collide. A fix
+   (a local `np.random.default_rng(seed)`) changes golden numbers.
 
 ### Waiting on the user
 
