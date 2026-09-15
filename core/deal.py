@@ -139,6 +139,7 @@ def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
         transaction_fees_pct=cfg['tx_fee_pct']/100,
         financing_fees_pct=cfg['fin_fee_pct']/100,
         other_uses=cfg['other_uses'],
+        senior_amort_pct=cfg['def_senior_amort']/100,
         minimum_cash=d.mincash, n_iterations=3,
     )
 

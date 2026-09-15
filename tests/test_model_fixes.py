@@ -7,6 +7,7 @@ departure from it is explained here.
 import threading
 
 import numpy as np
+import pytest
 
 from simulation.vectorized_simulation import SimulationParams, run_vectorized_simulation_full
 
@@ -73,3 +74,40 @@ def test_forecast_targets_above_plan_are_bull_and_below_are_bear():
             assert t["target"] > plan and t["probability"] < 0.5
         if t["scenario"] == "Bear":
             assert t["target"] < plan and t["probability"] > 0.5
+
+
+# ---------------------------------------------------------------------------
+# Finding 2: settings the model ignored
+# ---------------------------------------------------------------------------
+def _deal(settings=None, **inputs):
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    r = TestClient(app).post("/api/deal/run", json={"inputs": inputs, "settings": settings or {}})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_senior_amortisation_setting_drives_mandatory_repayments():
+    base = _deal()
+    senior0 = base["tranches"]["Senior Term Loan"][0]["beginning_balance"]
+    assert base["tranches"]["Senior Term Loan"][0]["mandatory_repayment"] == pytest.approx(senior0 * 0.05, abs=0.01)
+    faster = _deal({"def_senior_amort": 12.0})
+    assert faster["tranches"]["Senior Term Loan"][0]["mandatory_repayment"] == pytest.approx(senior0 * 0.12, abs=0.01)
+    assert faster["returns"]["irr"] != base["returns"]["irr"]
+
+
+def test_clip_irr_setting_reaches_the_simulation():
+    from core.config import resolve_config
+    from core.deal import DealInputs
+    from core.montecarlo import MCInputs, build_sim_params
+
+    on = build_sim_params(MCInputs(), DealInputs(), resolve_config({}))
+    off = build_sim_params(MCInputs(), DealInputs(), resolve_config({"mc_clip_irr": False}))
+    assert on.clip_irr is True and off.clip_irr is False
+    # An extreme upside deal: clipping caps IRR at 500%
+    extreme = dict(n=4000, holding_period=1, debt_pct=0.95, exit_mean=40.0, exit_std=5.0, growth_mean=0.4)
+    clipped = run_vectorized_simulation_full(SimulationParams(**extreme, clip_irr=True), seed=1).df["IRR"]
+    raw = run_vectorized_simulation_full(SimulationParams(**extreme, clip_irr=False), seed=1).df["IRR"]
+    assert raw.max() > 5.0 and clipped.max() <= 5.0

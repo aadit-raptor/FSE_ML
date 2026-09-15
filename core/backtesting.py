@@ -229,6 +229,8 @@ def run_prediction_sim(entry, cfg, n=30000):
         transaction_fees_pct=cfg['tx_fee_pct'] / 100,
         financing_fees_pct=cfg['fin_fee_pct'] / 100,
         other_uses=cfg['other_uses'],
+        senior_amort_pct=cfg['def_senior_amort'] / 100,
+        clip_irr=bool(cfg['mc_clip_irr']),
         n_interest_passes=2,
     )
     sim = run_vectorized_simulation_full(params, seed=42)

@@ -172,6 +172,7 @@ class LBOParams:
 
     # --- Capital structure (full deal mode) ---
     capital_structure: Optional[CapitalStructure] = None
+    senior_amort_pct: float = 0.05      # senior mandatory amortisation, % of principal a year
 
     # --- Operating model ---
     revenue_growth: float = 0.05
@@ -307,6 +308,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
             senior_rate=params.interest_rate,
             mezz_rate=params.interest_rate + params.mezz_spread,
             holding_period=params.holding_period,
+            senior_amort_pct=params.senior_amort_pct,
         )
 
     result.capital_structure = cs
