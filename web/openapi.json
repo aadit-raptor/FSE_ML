@@ -3990,6 +3990,13 @@
             "title": "Mezz X",
             "type": "number"
           },
+          "mincash": {
+            "default": 0.0,
+            "description": "Minimum cash left on the balance sheet ($M)",
+            "minimum": 0.0,
+            "title": "Mincash",
+            "type": "number"
+          },
           "senior_x": {
             "default": 3.4,
             "description": "Senior debt (x EBITDA)",
@@ -4024,6 +4031,10 @@
           "balanced": {
             "title": "Balanced",
             "type": "boolean"
+          },
+          "cash_to_balance_sheet": {
+            "title": "Cash To Balance Sheet",
+            "type": "number"
           },
           "check": {
             "title": "Check",
@@ -4099,6 +4110,7 @@
           "transaction_fees",
           "financing_fees",
           "other_uses",
+          "cash_to_balance_sheet",
           "total_uses",
           "check",
           "balanced"

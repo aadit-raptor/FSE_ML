@@ -58,13 +58,17 @@ def entry_costs(entry_ev, total_debt, cfg: Mapping):
             + cfg['other_uses'])
 
 
-def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping) -> dict:
-    """Sources & uses of funds for a deal financed with senior + mezz multiples."""
+def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash: float = 0.0) -> dict:
+    """Sources & uses of funds for a deal financed with senior + mezz multiples.
+
+    Minimum cash left on the balance sheet at close is a use of funds, as in
+    the engine (finding 1).
+    """
     entry_ev       = ebitda * entry_mult
     total_debt_abs = (senior_x + mezz_x) * ebitda
     tx_fees        = entry_ev * cfg['tx_fee_pct'] / 100
     fin_fees       = total_debt_abs * cfg['fin_fee_pct'] / 100
-    total_uses     = entry_ev + tx_fees + fin_fees + cfg['other_uses']
+    total_uses     = entry_ev + tx_fees + fin_fees + cfg['other_uses'] + mincash
     # Equity is the plug that balances Sources against Uses, fees included
     sponsor_eq     = max(total_uses - total_debt_abs, 0)
     total_sources  = total_debt_abs + sponsor_eq
@@ -78,6 +82,7 @@ def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping) -> dict
         "transaction_fees": tx_fees,
         "financing_fees": fin_fees,
         "other_uses": cfg['other_uses'],
+        "cash_to_balance_sheet": mincash,
         "total_uses": total_uses,
         "check": check,
         "balanced": abs(check) < 1,

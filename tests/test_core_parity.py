@@ -12,7 +12,7 @@ import os
 import numpy as np
 import pytest
 
-from tests.golden_compare import assert_close
+from tests.golden_compare import assert_close, assert_min_cash_funded
 
 from core.backtesting import PRELOADED_DEALS, backtest_summary, predicted_ebitda, run_prediction_sim
 from core.config import DEFAULTS, resolve_config
@@ -54,12 +54,18 @@ def deal_from(inputs):
 @pytest.mark.parametrize("case", sorted(GOLDEN["deal"]))
 def test_deal_matches_streamlit(case):
     g = GOLDEN["deal"][case]
-    r = run_deal(deal_from(g["inputs"]), cfg_from(g["cfg"]))
+    d = deal_from(g["inputs"])
+    r = run_deal(d, cfg_from(g["cfg"]))
     # exit_sensitivity is left out on purpose: the Streamlit grid reused one
     # hold's exit values for every column (finding 7). The corrected grid is
     # checked cell by cell in test_model_fixes.py.
-    for part in ("returns", "equity_bridge", "operating_model",
-                 "cash_flow", "debt_schedule", "interest_converged"):
+    parts = ["operating_model", "cash_flow", "debt_schedule", "interest_converged"]
+    if d.mincash:
+        # Sponsor equity now funds the minimum cash (finding 1)
+        assert_min_cash_funded(plain(r.returns), plain(r.equity_bridge), g, d.mincash)
+    else:
+        parts += ["returns", "equity_bridge"]
+    for part in parts:
         assert_close(plain(getattr(r, part)), g[part])
 
 

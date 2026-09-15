@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
-from tests.golden_compare import assert_close
+from tests.golden_compare import assert_close, assert_min_cash_funded
 
 client = TestClient(app)
 GOLDEN = json.load(open(os.path.join(os.path.dirname(__file__), "golden", "golden.json"),
@@ -59,8 +59,13 @@ def _golden_deal_request(case):
 def test_deal_run_matches_streamlit_snapshot(case):
     req, g = _golden_deal_request(case)
     body = ok(client.post("/api/deal/run", json=req))
-    assert_close(body["returns"], g["returns"])
-    assert_close(body["equity_bridge"], {k: g["equity_bridge"][k] for k in body["equity_bridge"]})
+    mincash = req["inputs"]["mincash"]
+    if mincash:
+        # Sponsor equity now funds the minimum cash (finding 1)
+        assert_min_cash_funded(body["returns"], body["equity_bridge"], g, mincash)
+    else:
+        assert_close(body["returns"], g["returns"])
+        assert_close(body["equity_bridge"], {k: g["equity_bridge"][k] for k in body["equity_bridge"]})
     # exit_sensitivity deliberately differs from the snapshot (finding 7, fixed);
     # see test_model_fixes.py
     assert_close(body["operating_model"], g["operating_model"])
@@ -70,13 +75,11 @@ def test_deal_run_matches_streamlit_snapshot(case):
     assert_close(body["tranches"], g["debt_schedule"]["schedule"])
     steps = body["bridge_steps"]
     assert steps[0]["is_total"] and steps[-1]["is_total"]
-    # The waterfall steps close to the equity gain except for the bridge's
-    # residual. Known engine behaviour, kept as is: the debt model opens with
-    # cash equal to the minimum cash balance, but sponsor equity does not fund
-    # it, so the residual equals the minimum cash.
-    gain = g["equity_bridge"]["exit_equity"] - g["equity_bridge"]["entry_equity"]
-    assert sum(s["value"] for s in steps[1:-1]) + body["equity_bridge"]["residual"] == pytest.approx(gain, abs=0.02)
-    assert body["equity_bridge"]["residual"] == pytest.approx(req["inputs"]["mincash"], abs=0.02)
+    # The waterfall steps close exactly to the equity gain. (Before finding 1
+    # was fixed the residual equalled the minimum cash.)
+    gain = body["equity_bridge"]["exit_equity"] - body["equity_bridge"]["entry_equity"]
+    assert sum(s["value"] for s in steps[1:-1]) == pytest.approx(gain, abs=0.02)
+    assert body["equity_bridge"]["residual"] == pytest.approx(0.0, abs=0.011)
 
 
 def test_sources_and_uses():

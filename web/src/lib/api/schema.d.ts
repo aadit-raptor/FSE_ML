@@ -1633,6 +1633,12 @@ export interface components {
              */
             mezz_x: number;
             /**
+             * Mincash
+             * @description Minimum cash left on the balance sheet ($M)
+             * @default 0
+             */
+            mincash: number;
+            /**
              * Senior X
              * @description Senior debt (x EBITDA)
              * @default 3.4
@@ -1650,6 +1656,8 @@ export interface components {
         SourcesUsesResponse: {
             /** Balanced */
             balanced: boolean;
+            /** Cash To Balance Sheet */
+            cash_to_balance_sheet: number;
             /** Check */
             check: number;
             /**

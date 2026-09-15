@@ -135,3 +135,26 @@ def test_sensitivity_ranges_follow_settings():
     assert s["exit_multiples"] == [8.0, 10.0, 12.0, 14.0]
     assert s["holding_periods"] == [4, 5, 6]
     assert len(s["table"]) == 4 and all(len(r) == 3 for r in s["table"])
+
+
+# ---------------------------------------------------------------------------
+# Finding 1: sponsor equity funds the minimum cash
+# ---------------------------------------------------------------------------
+def test_minimum_cash_is_funded_by_equity_and_the_bridge_closes():
+    base, with_cash = _deal(), _deal(mincash=20.0)
+    assert with_cash["returns"]["entry_equity"] == pytest.approx(base["returns"]["entry_equity"] + 20.0)
+    assert with_cash["equity_bridge"]["residual"] == pytest.approx(0.0, abs=0.011)
+    # More equity for the same business can't raise the return
+    assert with_cash["returns"]["irr"] < base["returns"]["irr"]
+
+
+def test_sources_and_uses_include_minimum_cash_and_match_the_engine():
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    su = client.post("/api/deal/sources-and-uses", json={"mincash": 20.0, "senior_x": 4.2, "mezz_x": 1.8}).json()
+    assert su["cash_to_balance_sheet"] == 20.0 and su["balanced"]
+    run = _deal(mincash=20.0)
+    assert su["sponsor_equity"] == pytest.approx(run["returns"]["entry_equity"], abs=1e-6)

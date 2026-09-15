@@ -334,7 +334,10 @@ def run_lbo(params: LBOParams) -> LBOResult:
     entry_costs = (entry_ev * params.transaction_fees_pct
                    + total_debt * params.financing_fees_pct
                    + params.other_uses)
-    equity = entry_ev + entry_costs - total_debt
+    # The business keeps minimum_cash from day one (the debt model opens with
+    # it), so sponsor equity funds it too. Leaving it out overstated IRR and
+    # MOIC and left a bridge residual equal to the minimum cash (finding 1).
+    equity = entry_ev + entry_costs + params.minimum_cash - total_debt
 
     # For generic deals we skip the full transaction module
     # and just compute equity directly. The full transaction module
