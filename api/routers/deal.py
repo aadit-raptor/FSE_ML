@@ -17,7 +17,7 @@ router = APIRouter(prefix="/deal", tags=["deal"])
 def post_sources_and_uses(req: SourcesUsesRequest):
     """Sources & uses for a deal financed with senior and mezz debt multiples."""
     cfg = resolve_settings(req.settings)
-    su = sources_and_uses(req.ebitda, req.entry_mult, req.senior_x, req.mezz_x, cfg)
+    su = sources_and_uses(req.ebitda, req.entry_mult, req.senior_x, req.mezz_x, cfg, mincash=req.mincash)
     debt_pct, senior_pct = capital_structure_from_multiples(
         req.ebitda, req.entry_mult, req.senior_x, req.mezz_x)
     return {**to_json(su), "debt_pct": debt_pct, "senior_pct": senior_pct}

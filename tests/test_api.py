@@ -59,23 +59,29 @@ def _golden_deal_request(case):
 def test_deal_run_matches_streamlit_snapshot(case):
     req, g = _golden_deal_request(case)
     body = ok(client.post("/api/deal/run", json=req))
-    assert_close(body["returns"], g["returns"])
-    assert_close(body["equity_bridge"], {k: g["equity_bridge"][k] for k in body["equity_bridge"]})
-    assert_close(body["exit_sensitivity"], g["exit_sensitivity"])
-    assert_close(body["operating_model"], g["operating_model"])
-    assert_close(body["cash_flow"], g["cash_flow"])
-    tranches = {k: v for k, v in g["debt_schedule"].items() if k != "schedule"}
-    assert_close(body["debt_schedule"], tranches)
-    assert_close(body["tranches"], g["debt_schedule"]["schedule"])
+    # The API iterates interest to convergence (finding 8); the snapshot
+    # stopped after three passes, so the numbers can't match it exactly.
+    # test_core_parity.py pins the engine to the snapshot with three passes;
+    # here the API must match the converged core/ run exactly.
+    from core.config import resolve_config
+    from core.deal import DealInputs, run_deal
+    from tests.test_core_parity import plain
+    r = run_deal(DealInputs(**req["inputs"]), resolve_config(req["settings"]))
+    assert body["interest_converged"] and r.interest_converged
+    for part in ("returns", "equity_bridge", "operating_model", "cash_flow"):
+        assert_close(body[part], plain(getattr(r, part)), part)
+    debt = plain(r.debt_schedule)
+    assert_close(body["debt_schedule"], {k: debt[k] for k in body["debt_schedule"]}, "debt_schedule")
+    assert_close(body["tranches"], debt["schedule"], "tranches")
+    # Shape still matches the snapshot
+    assert set(body["tranches"]) == set(g["debt_schedule"]["schedule"])
     steps = body["bridge_steps"]
     assert steps[0]["is_total"] and steps[-1]["is_total"]
-    # The waterfall steps close to the equity gain except for the bridge's
-    # residual. Known engine behaviour, kept as is: the debt model opens with
-    # cash equal to the minimum cash balance, but sponsor equity does not fund
-    # it, so the residual equals the minimum cash.
-    gain = g["equity_bridge"]["exit_equity"] - g["equity_bridge"]["entry_equity"]
-    assert sum(s["value"] for s in steps[1:-1]) + body["equity_bridge"]["residual"] == pytest.approx(gain, abs=0.02)
-    assert body["equity_bridge"]["residual"] == pytest.approx(req["inputs"]["mincash"], abs=0.02)
+    # The waterfall steps close exactly to the equity gain. (Before finding 1
+    # was fixed the residual equalled the minimum cash.)
+    gain = body["equity_bridge"]["exit_equity"] - body["equity_bridge"]["entry_equity"]
+    assert sum(s["value"] for s in steps[1:-1]) == pytest.approx(gain, abs=0.02)
+    assert body["equity_bridge"]["residual"] == pytest.approx(0.0, abs=0.011)
 
 
 def test_sources_and_uses():
@@ -221,7 +227,13 @@ def test_backtesting_matches_rendered_streamlit_page():
     }))
     m = rendered["metrics"]
     assert f"{body['predicted_irr_mean']:.1f}%" == m["Predicted IRR (mean)"]
-    assert f"{body['predicted_moic']:.2f}x" == m["Predicted MOIC (base)"]
+    # Predicted MOIC now comes from a deal-model run, not exit debt at 75% of
+    # entry debt (finding 5), so it differs from the rendered page's 1.64x.
+    from core.backtesting import prediction_lbo_params
+    from core.config import resolve_config
+    from lbo_engine.model import run_lbo
+    run = run_lbo(prediction_lbo_params(d["entry"], resolve_config()))
+    assert body["predicted_moic"] == pytest.approx(run.returns.moic, abs=1e-9)
     assert f"${body['predicted_ebitda'][-1]:,.0f}M" == m["Predicted exit EBITDA"]
     assert len(body["years"]) == hold and len(body["irr_histogram"]["density"]) == 80
 

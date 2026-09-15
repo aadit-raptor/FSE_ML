@@ -589,9 +589,9 @@ def revenue_cagr(ltm, fwd):
 def simulation_summary(fwd, sim_paths):
     """Statistics shown on the forecasting page's simulation overlay.
 
-    Moved from render_forecasting and _plot_simulation_charts. Target labels
-    are kept as the page shows them: a target above the deterministic EBITDA
-    is labelled "Bear" and one below it "Bull".
+    Moved from render_forecasting and _plot_simulation_charts. A target above
+    the deterministic EBITDA is an upside case ("Bull"), one below it a
+    downside case ("Bear"). The Streamlit page had these swapped (finding 4).
     """
     rev_paths = sim_paths["revenue"]     # shape (n_scenarios, n_fwd)
     ebitda_paths = sim_paths["ebitda"]
@@ -617,8 +617,8 @@ def simulation_summary(fwd, sim_paths):
     target_probabilities = [{
         "target": t,
         "probability": (ebd_final >= t).mean(),
-        "scenario": ("Bear" if t > det_ebitda_final else
-                     "Bull" if t < det_ebitda_final else "Base"),
+        "scenario": ("Bull" if t > det_ebitda_final else
+                     "Bear" if t < det_ebitda_final else "Base"),
     } for t in targets]
 
     growth_final = (rev_paths[:, -1] / rev_paths[:, 0]) ** (1/len(fwd)) - 1

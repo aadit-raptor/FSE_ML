@@ -57,8 +57,8 @@ def post_run(req: MonteCarloRequest):
         "scatter": {col: to_json(scatter[col].values) for col in SCATTER_COLUMNS},
         "heatmap": {
             "growth": to_json(g_vals), "exit_multiple": to_json(em_vals), "irr": to_json(grid),
-            "note": "Closed-form approximation, not the simulation: fee-free entry "
-                    "equity and exit debt at 70% of entry debt.",
+            "note": "Each cell is a full deal-model run at the simulation's mean "
+                    "assumptions for that growth and exit multiple.",
         },
     }
 

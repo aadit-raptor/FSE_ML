@@ -5,3 +5,5 @@ __pycache__/
 ml/surrogate/training_data.parquet
 # Playwright CLI snapshots and screenshots
 .playwright-cli/
+# Machine-specific preview server config (absolute paths)
+.claude/launch.json

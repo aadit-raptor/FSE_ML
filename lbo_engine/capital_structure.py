@@ -401,6 +401,7 @@ def build_simple_two_tranche_structure(
     senior_rate: float = 0.06,
     mezz_rate: float = 0.10,
     holding_period: int = 5,
+    senior_amort_pct: float = 0.05,
 ) -> CapitalStructure:
     """
     Build a simple two-tranche structure (senior + mezz) for generic deals.
@@ -424,6 +425,8 @@ def build_simple_two_tranche_structure(
         Mezz interest rate.
     holding_period : int
         Holding period in years.
+    senior_amort_pct : float
+        Senior mandatory amortisation, share of original principal per year.
 
     Returns
     -------
@@ -439,7 +442,7 @@ def build_simple_two_tranche_structure(
         interest_rate=senior_rate,
         maturity_years=holding_period,
         amort_type="amortizing",
-        amort_pct=0.05,            # 5% annual amortization
+        amort_pct=senior_amort_pct,
         fee_pct=0.02,
         is_cash_sweep=True,
         sweep_priority=1,

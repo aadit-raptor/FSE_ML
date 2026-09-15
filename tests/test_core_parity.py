@@ -12,11 +12,12 @@ import os
 import numpy as np
 import pytest
 
-from tests.golden_compare import assert_close
+from tests.golden_compare import assert_close, assert_min_cash_funded
 
 from core.backtesting import PRELOADED_DEALS, backtest_summary, predicted_ebitda, run_prediction_sim
 from core.config import DEFAULTS, resolve_config
-from core.deal import DealInputs, run_deal
+from core.deal import DealInputs, build_lbo_params
+from lbo_engine.model import run_lbo
 from core.forecasting import (
     ASSUMPTION_KEYS, assumptions_from_grid, default_history, ltm_from_history,
     run_3_statement_model, run_forecast_simulation, seed_assumptions,
@@ -54,9 +55,22 @@ def deal_from(inputs):
 @pytest.mark.parametrize("case", sorted(GOLDEN["deal"]))
 def test_deal_matches_streamlit(case):
     g = GOLDEN["deal"][case]
-    r = run_deal(deal_from(g["inputs"]), cfg_from(g["cfg"]))
-    for part in ("returns", "equity_bridge", "exit_sensitivity", "operating_model",
-                 "cash_flow", "debt_schedule", "interest_converged"):
+    d = deal_from(g["inputs"])
+    # The snapshot ran three interest passes with a $0.5M tolerance; run the
+    # engine the same way so its maths stays pinned exactly. The converged
+    # default (finding 8) is checked in test_api.py and test_model_fixes.py.
+    params = dataclasses.replace(build_lbo_params(d, cfg_from(g["cfg"])), n_iterations=3, interest_tolerance=0.5)
+    r = run_lbo(params)
+    # exit_sensitivity is left out on purpose: the Streamlit grid reused one
+    # hold's exit values for every column (finding 7). The corrected grid is
+    # checked cell by cell in test_model_fixes.py.
+    parts = ["operating_model", "cash_flow", "debt_schedule", "interest_converged"]
+    if d.mincash:
+        # Sponsor equity now funds the minimum cash (finding 1)
+        assert_min_cash_funded(plain(r.returns), plain(r.equity_bridge), g, d.mincash)
+    else:
+        parts += ["returns", "equity_bridge"]
+    for part in parts:
         assert_close(plain(getattr(r, part)), g[part])
 
 
@@ -138,11 +152,11 @@ def test_backtest_summary_matches_rendered_page():
     bt = backtest_summary(d["entry"], actual, d["actual_exit"], resolve_config())
     m = rendered["metrics"]
     assert f"{bt['predicted_irr_mean']:.1f}%" == m["Predicted IRR (mean)"]
-    assert f"{bt['predicted_moic']:.2f}x" == m["Predicted MOIC (base)"]
     assert f"${bt['predicted_ebitda'][-1]:,.0f}M" == m["Predicted exit EBITDA"]
     summary = {row["Metric"]: row for row in rendered["tables"][1]}
     assert f"${bt['predicted_equity_entry']:,.0f}M" == summary["Entry equity ($M)"]["Predicted"]
-    assert f"${bt['predicted_exit_equity']:,.0f}M" == summary["Exit equity ($M)"]["Predicted"]
+    # Predicted exit equity and MOIC now come from a deal-model run instead of
+    # exit debt at 75% of entry debt (finding 5); see test_model_fixes.py.
 
 
 # ---------------------------------------------------------------------------

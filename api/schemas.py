@@ -95,6 +95,7 @@ class SourcesUsesRequest(Strict):
     entry_mult: float = Field(10.0, gt=0)
     senior_x: float = Field(3.4, ge=0, description="Senior debt (x EBITDA)")
     mezz_x: float = Field(0.8, ge=0, description="Mezz debt (x EBITDA)")
+    mincash: float = Field(0.0, ge=0, description="Minimum cash left on the balance sheet ($M)")
     settings: Dict[str, SettingValue] = {}
 
 
@@ -107,6 +108,7 @@ class SourcesUsesResponse(BaseModel):
     transaction_fees: float
     financing_fees: float
     other_uses: float
+    cash_to_balance_sheet: float
     total_uses: float
     check: float
     balanced: bool
@@ -433,7 +435,10 @@ class BacktestResponse(BaseModel):
     actual_percentile: float
     actual_ebitda_margin: List[float]
     predicted_ebitda_margin: float
-    attribution: Dict[str, float]
+    predicted_net_debt_at_exit: float
+    actual_exit_multiple: float
+    attribution: Dict[str, float] = Field(
+        description="Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt")
     irr_histogram: Histogram
     years: List[BacktestYear]
 

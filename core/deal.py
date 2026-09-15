@@ -58,13 +58,17 @@ def entry_costs(entry_ev, total_debt, cfg: Mapping):
             + cfg['other_uses'])
 
 
-def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping) -> dict:
-    """Sources & uses of funds for a deal financed with senior + mezz multiples."""
+def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash: float = 0.0) -> dict:
+    """Sources & uses of funds for a deal financed with senior + mezz multiples.
+
+    Minimum cash left on the balance sheet at close is a use of funds, as in
+    the engine (finding 1).
+    """
     entry_ev       = ebitda * entry_mult
     total_debt_abs = (senior_x + mezz_x) * ebitda
     tx_fees        = entry_ev * cfg['tx_fee_pct'] / 100
     fin_fees       = total_debt_abs * cfg['fin_fee_pct'] / 100
-    total_uses     = entry_ev + tx_fees + fin_fees + cfg['other_uses']
+    total_uses     = entry_ev + tx_fees + fin_fees + cfg['other_uses'] + mincash
     # Equity is the plug that balances Sources against Uses, fees included
     sponsor_eq     = max(total_uses - total_debt_abs, 0)
     total_sources  = total_debt_abs + sponsor_eq
@@ -78,6 +82,7 @@ def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping) -> dict
         "transaction_fees": tx_fees,
         "financing_fees": fin_fees,
         "other_uses": cfg['other_uses'],
+        "cash_to_balance_sheet": mincash,
         "total_uses": total_uses,
         "check": check,
         "balanced": abs(check) < 1,
@@ -127,6 +132,10 @@ def effective_nwc_pct(d: DealInputs) -> float:
     return d.nwc / 100
 
 
+MAX_INTEREST_PASSES = 50
+INTEREST_TOLERANCE = 0.001   # $M
+
+
 def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
     return LBOParams(
         entry_ebitda=d.ebitda, entry_multiple=d.entry_mult,
@@ -139,8 +148,27 @@ def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
         transaction_fees_pct=cfg['tx_fee_pct']/100,
         financing_fees_pct=cfg['fin_fee_pct']/100,
         other_uses=cfg['other_uses'],
-        minimum_cash=d.mincash, n_iterations=3,
+        senior_amort_pct=cfg['def_senior_amort']/100,
+        # Iterate the interest circularity until it settles to $1k. Three
+        # fixed passes left P&L interest up to $0.6M off the debt schedule
+        # on the default deal (finding 8).
+        minimum_cash=d.mincash, n_iterations=MAX_INTEREST_PASSES,
+        interest_tolerance=INTEREST_TOLERANCE,
+        sensitivity_exit_multiples=sensitivity_exit_multiples(cfg),
+        sensitivity_holding_periods=sensitivity_holding_periods(cfg),
     )
+
+
+def sensitivity_exit_multiples(cfg: Mapping) -> list:
+    """Exit multiple rows for the sensitivity grid, from settings (sens_em_*)."""
+    lo, hi, steps = float(cfg['sens_em_min']), float(cfg['sens_em_max']), max(int(cfg['sens_em_steps']), 2)
+    return [round(lo + (hi - lo) * i / (steps - 1), 2) for i in range(steps)]
+
+
+def sensitivity_holding_periods(cfg: Mapping) -> list:
+    """Holding period columns for the sensitivity grid, from settings (sens_hp_*)."""
+    lo, hi = int(cfg['sens_hp_min']), int(cfg['sens_hp_max'])
+    return list(range(max(lo, 1), max(hi, lo) + 1))
 
 
 def run_deal(d: DealInputs, cfg: Mapping):

@@ -50,6 +50,7 @@ LBOResult contains every output from every module, making it easy
 to extract just what you need (IRR for simulation, full P&L for dashboard).
 """
 
+import dataclasses
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
 import numpy as np
@@ -87,6 +88,7 @@ from lbo_engine.returns import (
     compute_returns,
     compute_equity_bridge,
     compute_exit_sensitivity,
+    compute_exit_sensitivity_by_hold,
     print_returns_summary,
     print_sensitivity_table,
 )
@@ -172,6 +174,7 @@ class LBOParams:
 
     # --- Capital structure (full deal mode) ---
     capital_structure: Optional[CapitalStructure] = None
+    senior_amort_pct: float = 0.05      # senior mandatory amortisation, % of principal a year
 
     # --- Operating model ---
     revenue_growth: float = 0.05
@@ -199,7 +202,15 @@ class LBOParams:
     management_option_pool_pct: float = 0.0
 
     # --- Iteration control ---
-    n_iterations: int = 2   # number of interest convergence passes
+    n_iterations: int = 2   # maximum interest convergence passes
+    interest_tolerance: float = 0.5   # $M; stop when interest moves less than this
+
+    # --- Exit sensitivity grid ---
+    # None keeps the defaults: exit multiples at 0.6x-1.4x of the deal's and
+    # holds of 3-7 years. Each hold column is a full model run for that hold.
+    sensitivity_exit_multiples: Optional[List[float]] = None
+    sensitivity_holding_periods: Optional[List[int]] = None
+    compute_sensitivity: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -307,6 +318,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
             senior_rate=params.interest_rate,
             mezz_rate=params.interest_rate + params.mezz_spread,
             holding_period=params.holding_period,
+            senior_amort_pct=params.senior_amort_pct,
         )
 
     result.capital_structure = cs
@@ -323,7 +335,10 @@ def run_lbo(params: LBOParams) -> LBOResult:
     entry_costs = (entry_ev * params.transaction_fees_pct
                    + total_debt * params.financing_fees_pct
                    + params.other_uses)
-    equity = entry_ev + entry_costs - total_debt
+    # The business keeps minimum_cash from day one (the debt model opens with
+    # it), so sponsor equity funds it too. Leaving it out overstated IRR and
+    # MOIC and left a bridge residual equal to the minimum cash (finding 1).
+    equity = entry_ev + entry_costs + params.minimum_cash - total_debt
 
     # For generic deals we skip the full transaction module
     # and just compute equity directly. The full transaction module
@@ -439,7 +454,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
         final_cf_result = cf_iter
         final_debt_result = debt_iter
 
-        if max_delta < 0.5:   # converged within $0.5M
+        if max_delta < params.interest_tolerance:
             result.interest_converged = True
             break
 
@@ -479,19 +494,37 @@ def run_lbo(params: LBOParams) -> LBOResult:
     )
 
     # ------------------------------------------------------------------
-    # Step 8: Exit sensitivity (5x5 table)
+    # Step 8: Exit sensitivity (exit multiple x holding period)
     # ------------------------------------------------------------------
-    sensitivity = compute_exit_sensitivity(
-        entry_equity=entry_equity,
-        exit_ebitda=final_op_result.exit_ebitda,
-        net_debt_at_exit=final_debt_result.net_debt_at_exit,
-        holding_periods=[3, 4, 5, 6, 7],
-        exit_multiples=[
+    # Each holding period needs its own exit EBITDA and exit net debt, so
+    # every hold other than this run's is a full model run for that hold.
+    # (Reusing this run's exit values for every column made only the
+    # chosen hold's column correct -- finding 7.)
+    sensitivity = None
+    if params.compute_sensitivity:
+        holds = params.sensitivity_holding_periods or [3, 4, 5, 6, 7]
+        exit_multiples = params.sensitivity_exit_multiples or [
             round(params.exit_multiple * m, 1)
             for m in [0.6, 0.75, 0.9, 1.0, 1.1, 1.25, 1.4]
-        ],
-        metric="irr",
-    )
+        ]
+        exits_by_hold = {}
+        for hp in holds:
+            if hp == params.holding_period:
+                exits_by_hold[hp] = (entry_equity, final_op_result.exit_ebitda,
+                                     final_debt_result.net_debt_at_exit)
+            else:
+                other = run_lbo(dataclasses.replace(
+                    params, holding_period=hp, compute_sensitivity=False))
+                # Entry equity doesn't depend on the hold
+                exits_by_hold[hp] = (entry_equity,
+                                     other.operating_model.exit_ebitda,
+                                     other.debt_schedule.net_debt_at_exit)
+        sensitivity = compute_exit_sensitivity_by_hold(
+            exits_by_hold=exits_by_hold,
+            holding_periods=holds,
+            exit_multiples=exit_multiples,
+            metric="irr",
+        )
 
     # ------------------------------------------------------------------
     # Populate result
