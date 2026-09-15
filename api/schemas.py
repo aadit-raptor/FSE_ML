@@ -444,6 +444,23 @@ class BacktestResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Export
+# ---------------------------------------------------------------------------
+Cell = Union[float, int, str, bool, None]
+
+
+class WorkbookSheet(Strict):
+    name: str = Field(min_length=1, max_length=100)
+    columns: List[str] = Field(min_length=1, max_length=200)
+    rows: List[List[Cell]] = Field(max_length=50_000)
+
+
+class WorkbookRequest(Strict):
+    filename: str = Field("export.xlsx", max_length=120)
+    sheets: List[WorkbookSheet] = Field(min_length=1, max_length=30)
+
+
+# ---------------------------------------------------------------------------
 # ML and EDGAR
 # ---------------------------------------------------------------------------
 class Capabilities(BaseModel):

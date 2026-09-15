@@ -4,7 +4,9 @@ import { DataTable } from "@/components/charts/DataTable";
 import { SensitivityTable } from "@/components/charts/HeatTable";
 import { StackedBars } from "@/components/charts/StackedBars";
 import { Waterfall } from "@/components/charts/Waterfall";
+import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtMultiple } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
@@ -68,7 +70,24 @@ function ReturnsResults() {
           steps={res.bridge_steps.map((s) => ({ label: s.key, value: s.value ?? 0, isTotal: s.is_total }))}
         />
       </Tile>
-      <Tile span={6} title="IRR sensitivity" unit="exit multiple / hold">
+      <Tile
+        span={6}
+        title="IRR sensitivity"
+        unit="exit multiple / hold"
+        action={
+          <DownloadButton
+            onDownload={() =>
+              downloadWorkbook("irr_sensitivity.xlsx", [
+                sheet(
+                  "IRR sensitivity (%)",
+                  ["Exit multiple", ...res.exit_sensitivity.holding_periods.map((h) => `${h}y`)],
+                  res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => (v == null ? null : v * 100))]),
+                ),
+              ])
+            }
+          />
+        }
+      >
         <SensitivityTable
           exitMultiples={res.exit_sensitivity.exit_multiples}
           holds={res.exit_sensitivity.holding_periods}

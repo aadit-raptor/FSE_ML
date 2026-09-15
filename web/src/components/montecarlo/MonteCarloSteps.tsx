@@ -6,9 +6,12 @@ import { DivergingBars, RangeRows, Scatter } from "@/components/charts/Bars";
 import { heat } from "@/components/charts/HeatTable";
 import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
+import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { downloadMonteCarloSample, downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
 
+import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
 
@@ -54,7 +57,26 @@ function Distribution() {
         <Kpi title="Wipeout" value={fmtRate(s.wipeout_rate, 3)} sub={`${count(s.wipeout_rate, r.n)} paths`} tone={(s.wipeout_rate ?? 0) > 0.05 ? "loss" : undefined} />
         <Kpi title="Run time" value={`${Math.round(r.elapsed_ms)} ms`} sub={`${ranFor.seed === null ? "random seed" : `seed ${ranFor.seed}`} · ${r.scenario ?? "no preset"}`} />
 
-        <Tile span={7} title="IRR distribution" unit={`${r.n.toLocaleString("en-US")} paths`}>
+        <Tile
+          span={7}
+          title="IRR distribution"
+          unit={`${r.n.toLocaleString("en-US")} paths`}
+          action={
+            <DownloadButton
+              label="10k paths"
+              title={ranFor.seed === null ? "Random seed: the file is a fresh draw with the same inputs" : "The paths behind these results"}
+              onDownload={() =>
+                downloadMonteCarloSample({
+                  mc: { ...ranFor.sim, ebitda: ranFor.deal.ebitda, entry_mult: ranFor.deal.entry_mult, hold: ranFor.deal.hold },
+                  deal: ranFor.deal,
+                  settings: ranFor.settings,
+                  scenario: ranFor.scenario,
+                  seed: ranFor.seed,
+                })
+              }
+            />
+          }
+        >
           <Histogram
             label="Simulated IRR distribution"
             edges={r.irr_histogram.edges}
@@ -128,6 +150,7 @@ function Scenarios() {
         ))}
         <Kpi title="Paths each" value={r.n.toLocaleString("en-US")} sub="same seed for all four" />
         <Kpi title="Hurdle" value={pct0(scen.hurdle)} sub="from the rail" />
+        <MacroRegime />
 
         <Tile span={7} title="IRR range by scenario" unit="P5 to P95, mean · share above hurdle">
           <RangeRows
@@ -143,7 +166,28 @@ function Scenarios() {
             }))}
           />
         </Tile>
-        <Tile span={5} title="Scenario table" unit="IRR unless noted">
+        <Tile
+          span={5}
+          title="Scenario table"
+          unit="IRR unless noted"
+          action={
+            <DownloadButton
+              onDownload={() =>
+                downloadWorkbook("scenario_comparison.xlsx", [
+                  sheet(
+                    "Scenarios (%)",
+                    ["Scenario", "Mean IRR", "Median IRR", "P5 IRR", "P95 IRR", "P(IRR > hurdle)", "Wipeout", "MOIC P50 (x)"],
+                    rows.map(({ label, st }) => [
+                      label,
+                      ...[st.mean_irr, st.median_irr, st.p5_irr, st.p95_irr, st.p_above_hurdle, st.wipeout_rate].map((v) => (v == null ? null : v * 100)),
+                      st.moic_box.p50,
+                    ]),
+                  ),
+                ])
+              }
+            />
+          }
+        >
           <table className="w-full border-collapse font-mono text-[11px]">
             <thead>
               <tr className="text-muted">

@@ -4482,6 +4482,85 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WorkbookRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "filename": {
+            "default": "export.xlsx",
+            "maxLength": 120,
+            "title": "Filename",
+            "type": "string"
+          },
+          "sheets": {
+            "items": {
+              "$ref": "#/components/schemas/WorkbookSheet"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Sheets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sheets"
+        ],
+        "title": "WorkbookRequest",
+        "type": "object"
+      },
+      "WorkbookSheet": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Columns",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "maxItems": 50000,
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "columns",
+          "rows"
+        ],
+        "title": "WorkbookSheet",
+        "type": "object"
       }
     }
   },
@@ -4706,6 +4785,82 @@
         "summary": "Get Edgar",
         "tags": [
           "settings & integrations"
+        ]
+      }
+    },
+    "/api/export/montecarlo-sample": {
+      "post": {
+        "description": "Simulate with the same inputs as /montecarlo/run and export up to 10,000 paths.\n\nWith a fixed seed the paths are exactly those behind the on-screen results.",
+        "operationId": "post_montecarlo_sample_api_export_montecarlo_sample_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonteCarloRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "Excel workbook"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Montecarlo Sample",
+        "tags": [
+          "export"
+        ]
+      }
+    },
+    "/api/export/workbook": {
+      "post": {
+        "description": "Write the given tables to an Excel workbook, one sheet per table.",
+        "operationId": "post_workbook_api_export_workbook_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkbookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "Excel workbook"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Workbook",
+        "tags": [
+          "export"
         ]
       }
     },

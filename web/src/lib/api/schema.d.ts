@@ -124,6 +124,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/export/montecarlo-sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Montecarlo Sample
+         * @description Simulate with the same inputs as /montecarlo/run and export up to 10,000 paths.
+         *
+         *     With a fixed seed the paths are exactly those behind the on-screen results.
+         */
+        post: operations["post_montecarlo_sample_api_export_montecarlo_sample_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/workbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Workbook
+         * @description Write the given tables to an Excel workbook, one sheet per table.
+         */
+        post: operations["post_workbook_api_export_workbook_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/forecasting/defaults": {
         parameters: {
             query?: never;
@@ -1862,6 +1904,25 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** WorkbookRequest */
+        WorkbookRequest: {
+            /**
+             * Filename
+             * @default export.xlsx
+             */
+            filename: string;
+            /** Sheets */
+            sheets: components["schemas"]["WorkbookSheet"][];
+        };
+        /** WorkbookSheet */
+        WorkbookSheet: {
+            /** Columns */
+            columns: string[];
+            /** Name */
+            name: string;
+            /** Rows */
+            rows: (number | string | boolean | null)[][];
+        };
     };
     responses: never;
     parameters: never;
@@ -2028,6 +2089,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EdgarResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_montecarlo_sample_api_export_montecarlo_sample_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonteCarloRequest"];
+            };
+        };
+        responses: {
+            /** @description Excel workbook */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_workbook_api_export_workbook_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkbookRequest"];
+            };
+        };
+        responses: {
+            /** @description Excel workbook */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
                 };
             };
             /** @description Validation Error */

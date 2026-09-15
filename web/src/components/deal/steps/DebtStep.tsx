@@ -2,7 +2,9 @@
 
 import { DataTable } from "@/components/charts/DataTable";
 import { StackedBars } from "@/components/charts/StackedBars";
+import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtPct } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
@@ -97,7 +99,25 @@ function DebtResults() {
       </Tile>
 
       {Object.entries(res.tranches).map(([name, rows]) => (
-        <Tile key={name} span={6} title={name} unit={`${fmtPct((rows[0]?.interest_rate ?? NaN) * 100, 2)} rate, $M`}>
+        <Tile
+          key={name}
+          span={6}
+          title={name}
+          unit={`${fmtPct((rows[0]?.interest_rate ?? NaN) * 100, 2)} rate, $M`}
+          action={
+            <DownloadButton
+              onDownload={() =>
+                downloadWorkbook("debt_schedule.xlsx", [
+                  sheet(
+                    name,
+                    ["Year", "Opening", "Mandatory", "Cash sweep", "Closing", "Interest"],
+                    rows.map((t) => [t.year, t.beginning_balance ?? null, t.mandatory_repayment ?? null, t.cash_sweep ?? null, t.ending_balance ?? null, t.interest_expense ?? null]),
+                  ),
+                ])
+              }
+            />
+          }
+        >
           <DataTable
             caption={`${name} schedule`}
             columns={rows.map((r) => `Y${r.year}`)}
