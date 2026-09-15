@@ -1,4 +1,6 @@
+import { BacktestProvider } from "@/components/backtest/BacktestProvider";
 import { DealProvider } from "@/components/deal/DealProvider";
+import { ForecastProvider } from "@/components/forecast/ForecastProvider";
 import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 
@@ -17,6 +19,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SettingsProvider>
         <DealProvider>
           <MonteCarloProvider>
+          <BacktestProvider>
+          <ForecastProvider>
             <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
               <TopBar />
               <StepBar />
@@ -27,6 +31,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <CommandSearch />
             <Shortcuts />
+          </ForecastProvider>
+          </BacktestProvider>
           </MonteCarloProvider>
         </DealProvider>
       </SettingsProvider>

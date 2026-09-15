@@ -13,8 +13,9 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15. Step 3 (web shell) pushed on `feat/web-shell`;
-step 4 Deal screens on `feat/deal-screens` (branched from it).
+Last updated: 2026-09-15. Stacked branches, all pushed, PRs to open and
+merge in order: `feat/web-shell` (step 3) → `feat/deal-screens` (Deal) →
+`feat/remaining-screens` (Monte Carlo, Backtest, Forecast, Settings).
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
@@ -25,9 +26,9 @@ The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
 |---|---|
 | 1. Design direction — mockups of key screens for user approval | ✅ Agreed — see "Design system" below |
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
-| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built on `feat/web-shell` (pushed; PR to open and merge). Unbuilt steps say "Not built yet" |
-| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | **In progress.** Deal ✅ (`feat/deal-screens`). Next: Monte Carlo, then Backtest, Forecast, Settings. A built mode gets `built: true` in `nav.ts` and its own `src/app/<mode>/` routes |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | Not started |
+| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built (`feat/web-shell`) |
+| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built and verified by output in the browser (`feat/deal-screens`, `feat/remaining-screens`). Not yet merged |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | **Next.** The manual checks in the step 4 commit messages are the test plan |
 | 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
@@ -69,16 +70,18 @@ Earlier rounds: directions, navigation options, mixes, type weights.
    equals the minimum cash and IRR is overstated when it is > 0. Most important.
    `tests/test_api.py::test_deal_run_matches_streamlit_snapshot` documents this;
    a fix must update that test deliberately.
-2. **Settings that do nothing:** `mc_*` defaults, `def_senior_amort`,
-   `mc_clip_irr`, sensitivity ranges (`sens_*`).
+2. **Settings the model doesn't read:** `def_senior_amort`, `mc_clip_irr`,
+   sensitivity ranges (`sens_*`). The web app marks them "no effect". (The
+   `mc_*` defaults and `def_*` values now seed the web app's Monte Carlo and
+   deal inputs, so they do something in the UI; the engine still ignores them.)
 3. **Monte Carlo heatmap** (`core/montecarlo.py::growth_exit_heatmap`) is a
    fee-free closed-form approximation, not the simulation.
 4. **Forecast target labels look inverted** (above deterministic EBITDA is
    labelled "Bear") — `core/forecasting.py::simulation_summary`.
 5. **Backtest error attribution** uses arbitrary factors (0.3, 0.1, 0.05, 0.75).
 6. **Streamlit backtesting page only ever runs Burger King's inputs** (keyed
-   widgets keep the first deal's values). Not worth fixing — the page is being
-   replaced; the API is unaffected.
+   widgets keep the first deal's values). Streamlit-only; the web Backtest
+   runs each deal's own inputs (Dell verified against golden).
 7. **Exit sensitivity grid is only exact in the chosen hold's column.**
    Other holding-period columns reuse that hold's exit value and only change
    the discounting years. E.g. 12.0x exit: a real 6-year run gives IRR 21.3%,
@@ -113,7 +116,7 @@ Earlier rounds: directions, navigation options, mixes, type weights.
 | `simulation/vectorized_simulation.py` | Vectorized Monte Carlo engine |
 | `analytics/` | Risk metrics |
 | `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
-| `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (drives tabs, steps, search, routes); `src/components/shell/` is the Guided shell; `src/app/deal/` the built Deal screens, `src/app/[mode]/[step]/` placeholders for unbuilt modes; `src/components/deal/DealProvider.tsx` holds deal inputs and the debounced auto-run (mounted in the shell, so it survives mode switches); `src/components/charts/` and `ui/` are shared; `src/lib/api/` the typed client |
+| `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides persist in localStorage and go into every run. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `app.py`, `pages/` | Streamlit app (to be retired). Pages call `core/` |
 | `tests/golden/` | Snapshot of the Streamlit app's outputs taken **before** logic moved into `core/`; the parity baseline |
