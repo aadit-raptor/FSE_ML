@@ -58,7 +58,7 @@ user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
-below); next is 1.1. End every task session with the handoff described in PLAN.md: tell the
+below); 1.1 is done (staging, rollback drill in DEPLOY.md); next is 1.2. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -151,8 +151,9 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
-- Create Render and Vercel projects from the repo (DEPLOY.md), then share the
-  URLs so they can be recorded here.
+- Add the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel →
+  fse-ml → Settings → Deployment Protection → Protection Bypass for
+  Automation) so `staging.yml` can open the protected staging preview.
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,

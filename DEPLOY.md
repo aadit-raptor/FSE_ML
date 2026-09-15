@@ -142,6 +142,7 @@ the live site agree.
 
 | Date | What | How | Result |
 |---|---|---|---|
+| 2026-09-15 | Drill for PLAN.md 1.1: rolled production back from PR #13 (53a68f2) to the code before it | Route A: PR #14 reverted the merge; merged 17:53 UTC | Render deployed 17:54 UTC, Vercel 17:54 UTC. `/api/health` went from `{"environment":"production","commit":"53a68f2…"}` to the old `{"status":"ok","version":"0.1.0"}`; the deal still showed 21.2% IRR / 2.61x; the live environment check failed as expected (old code). Restored by reverting the revert (PR #15) |
 
 ## Checking a deploy
 
