@@ -155,7 +155,7 @@ Set up in PLAN.md 1.2, all on free plans.
 
 | What | Where | Notes |
 |---|---|---|
-| Errors (API and web) | Sentry, `SENTRY_DSN` | API: `api/observability.py`; web: `web/src/lib/monitoring.ts`. Environment `production`, `staging` or `local`; release = git commit |
+| Errors (API and web) | Sentry organization `aadit-xc`, project `fse-api`; `SENTRY_DSN` holds that project's DSN on both Render services and in Vercel | API: `api/observability.py`; web: `web/src/lib/monitoring.ts`. Browser reports are titled `API <status> on <path>` and tagged `api_path`. Environment `production`, `staging` or `local`; release = git commit |
 | Logs | Render → service → **Logs** | One JSON line per request: `ts` (UTC), `request_id`, `method`, `route` (template, e.g. `/api/edgar/{ticker}`), `status`, `duration_ms`, `model_ms`; plus a `model_run` line per model run. Health checks aren't logged |
 | Uptime and status page | Better Stack, kept in `ops/betterstack.py` | Synced by `.github/workflows/monitoring.yml` when that file changes on `main` or `staging` (or run it by hand). Status page: `https://fse-ml.betteruptime.com` |
 | Staging alerts | `.github/workflows/staging.yml` | Staging has no scheduled check; each deploy is checked as soon as it is live and a failure raises a Better Stack incident |
@@ -196,7 +196,13 @@ deliberate error (at most one a minute) and returns its request ID:
 
 | Date | What | Result |
 |---|---|---|
-| | | |
+| 2026-09-15 | Test error for PLAN.md 1.2: `GET /api/debug/error` on staging with `X-Request-ID: drill-1-2-sentry-2` (20:02 UTC) | Sentry issue FSE-API-1, tags `request_id=drill-1-2-sentry-2`, `environment=staging`, `release=af4315c`; request section only method and URL |
+| 2026-09-15 | Broken-deploy drill for PLAN.md 1.2: commit 33c54f4 made `/api/deal/run` raise; pushed to `staging` 20:07:45 UTC | Live on staging 20:08:30 UTC; `staging.yml` quick API check failed and raised Better Stack incident 1015977762 ("Staging API broken"); alert email arrived 20:09 UTC (**under 1 minute**). The browser checks' failed call reached Sentry from the browser (FSE-API-4) and from the API (FSE-API-2) with the same `request_id` `f46a243bbd804a0eb63deda53969c8a9`. Restored by reverting 33c54f4 |
+
+The drill also found that the live browser checks sent the Vercel bypass
+secret to every host the page called, which leaked it to Sentry and broke
+the browser's error reports; `web/e2e/live.spec.ts` now sends it to the site
+only and fails if it reaches any other host.
 
 ## Checking a deploy
 

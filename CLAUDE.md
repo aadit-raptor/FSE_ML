@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15. Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-16. Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -66,7 +66,7 @@ user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
-below); 1.1 is done (staging, rollback drill in DEPLOY.md); next is 1.2. End every task session with the handoff described in PLAN.md: tell the
+below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); next is 1.3. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -292,5 +292,13 @@ Skills load when a session starts: install first, then open a new session.
 - Deal defaults: the API uses stored 60% debt / 70% senior; the retired
   Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
   what the golden `defaults` case records.
+- Never put secrets in Playwright `extraHTTPHeaders`: they go to every host
+  the page calls (Sentry included). `web/e2e/live.spec.ts` scopes the Vercel
+  bypass header to the site's own origin.
+- Vercel's Environment Variables page is in the project's main left menu,
+  not under Settings. `NEXT_PUBLIC_*` values (e.g. the Sentry DSN) are baked
+  in at build time, so a changed `SENTRY_DSN` needs a new deploy.
+- Unauthenticated GitHub API calls allow 60 an hour; poll workflow runs
+  sparingly (or read the run page in the browser).
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.
