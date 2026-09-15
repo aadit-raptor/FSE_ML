@@ -27,8 +27,17 @@ sign in.
 |---|---|---|
 | Web app | https://fse-ml.vercel.app | Vercel Hobby, project `fse-ml`, root directory `web`, `FSE_API_URL` set |
 | API | https://fse-api.onrender.com (health: `/api/health`) | Render free web service `fse-api` from `render.yaml` |
+| Staging web | Vercel preview of the `staging` branch (behind Vercel login) | same Vercel project; previews always use the staging API (`web/next.config.ts`) |
+| Staging API | https://fse-api-staging.onrender.com | Render free web service `fse-api-staging`, made by hand, deploys from `staging` |
 
-Both deploy automatically from `main`. The free API sleeps after 15 minutes
+Production deploys automatically from `main`, staging from `staging` (PLAN.md
+1.1, DEPLOY.md "Environments"). `/api/health` reports `environment` and
+`commit`, and the status bar says `· staging` on staging. After a push to
+`staging`, `.github/workflows/staging.yml` waits for both staging copies to run
+that commit and runs the live browser checks there (needs the GitHub secret
+`VERCEL_AUTOMATION_BYPASS_SECRET`). After merging to `main`, bring staging
+level: `git push origin main:staging`. Rollback: DEPLOY.md "Rollback" (default
+is a git revert PR). The free API sleeps after 15 minutes
 idle and takes about a minute to wake. Read-only checks against the live site:
 `E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
 also run daily by `.github/workflows/live.yml`.
@@ -49,7 +58,7 @@ user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
-below); next is 1.1. End every task session with the handoff described in PLAN.md: tell the
+below); 1.1 is done (staging, rollback drill in DEPLOY.md); next is 1.2. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -142,8 +151,9 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
-- Create Render and Vercel projects from the repo (DEPLOY.md), then share the
-  URLs so they can be recorded here.
+- Add the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel →
+  fse-ml → Settings → Deployment Protection → Protection Bypass for
+  Automation) so `staging.yml` can open the protected staging preview.
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,

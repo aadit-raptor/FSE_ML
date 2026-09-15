@@ -1,8 +1,9 @@
 name: live
 
-# Read-only browser checks against the deployed site (web/e2e/live.spec.ts).
+# Read-only browser checks against the production site (web/e2e/live.spec.ts).
 # Runs daily and on demand. Separate from `tests` so a sleeping or redeploying
-# free-tier host never blocks a pull request.
+# free-tier host never blocks a pull request. Staging has its own workflow
+# (staging.yml), run after each push to the staging branch.
 on:
   workflow_dispatch:
   schedule:
@@ -27,3 +28,4 @@ jobs:
       - run: npm run test:live
         env:
           E2E_LIVE: "1"
+          E2E_EXPECT_ENV: production

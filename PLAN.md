@@ -110,7 +110,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **0** | **Online** | | |
 | 0.1 | Put the current app online (free) | — | ☑ |
 | **1** | **Foundations** | | |
-| 1.1 | Test copy (staging) and production | 0.1 | ☐ |
+| 1.1 | Test copy (staging) and production | 0.1 | ☑ |
 | 1.2 | Monitoring, error tracking, logs | 1.1 | ☐ |
 | 1.3 | Database (Neon) | 1.1 | ☐ |
 | 1.4 | Accounts and login | 1.3 | ☐ |
