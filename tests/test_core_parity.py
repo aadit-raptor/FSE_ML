@@ -16,7 +16,8 @@ from tests.golden_compare import assert_close, assert_min_cash_funded
 
 from core.backtesting import PRELOADED_DEALS, backtest_summary, predicted_ebitda, run_prediction_sim
 from core.config import DEFAULTS, resolve_config
-from core.deal import DealInputs, run_deal
+from core.deal import DealInputs, build_lbo_params
+from lbo_engine.model import run_lbo
 from core.forecasting import (
     ASSUMPTION_KEYS, assumptions_from_grid, default_history, ltm_from_history,
     run_3_statement_model, run_forecast_simulation, seed_assumptions,
@@ -55,7 +56,11 @@ def deal_from(inputs):
 def test_deal_matches_streamlit(case):
     g = GOLDEN["deal"][case]
     d = deal_from(g["inputs"])
-    r = run_deal(d, cfg_from(g["cfg"]))
+    # The snapshot ran three interest passes with a $0.5M tolerance; run the
+    # engine the same way so its maths stays pinned exactly. The converged
+    # default (finding 8) is checked in test_api.py and test_model_fixes.py.
+    params = dataclasses.replace(build_lbo_params(d, cfg_from(g["cfg"])), n_iterations=3, interest_tolerance=0.5)
+    r = run_lbo(params)
     # exit_sensitivity is left out on purpose: the Streamlit grid reused one
     # hold's exit values for every column (finding 7). The corrected grid is
     # checked cell by cell in test_model_fixes.py.

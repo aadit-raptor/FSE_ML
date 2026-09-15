@@ -132,6 +132,10 @@ def effective_nwc_pct(d: DealInputs) -> float:
     return d.nwc / 100
 
 
+MAX_INTEREST_PASSES = 50
+INTEREST_TOLERANCE = 0.001   # $M
+
+
 def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
     return LBOParams(
         entry_ebitda=d.ebitda, entry_multiple=d.entry_mult,
@@ -145,7 +149,11 @@ def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
         financing_fees_pct=cfg['fin_fee_pct']/100,
         other_uses=cfg['other_uses'],
         senior_amort_pct=cfg['def_senior_amort']/100,
-        minimum_cash=d.mincash, n_iterations=3,
+        # Iterate the interest circularity until it settles to $1k. Three
+        # fixed passes left P&L interest up to $0.6M off the debt schedule
+        # on the default deal (finding 8).
+        minimum_cash=d.mincash, n_iterations=MAX_INTEREST_PASSES,
+        interest_tolerance=INTEREST_TOLERANCE,
         sensitivity_exit_multiples=sensitivity_exit_multiples(cfg),
         sensitivity_holding_periods=sensitivity_holding_periods(cfg),
     )

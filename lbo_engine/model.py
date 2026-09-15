@@ -202,7 +202,8 @@ class LBOParams:
     management_option_pool_pct: float = 0.0
 
     # --- Iteration control ---
-    n_iterations: int = 2   # number of interest convergence passes
+    n_iterations: int = 2   # maximum interest convergence passes
+    interest_tolerance: float = 0.5   # $M; stop when interest moves less than this
 
     # --- Exit sensitivity grid ---
     # None keeps the defaults: exit multiples at 0.6x-1.4x of the deal's and
@@ -453,7 +454,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
         final_cf_result = cf_iter
         final_debt_result = debt_iter
 
-        if max_delta < 0.5:   # converged within $0.5M
+        if max_delta < params.interest_tolerance:
             result.interest_converged = True
             break
 

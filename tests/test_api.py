@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
-from tests.golden_compare import assert_close, assert_min_cash_funded
+from tests.golden_compare import assert_close
 
 client = TestClient(app)
 GOLDEN = json.load(open(os.path.join(os.path.dirname(__file__), "golden", "golden.json"),
@@ -59,20 +59,22 @@ def _golden_deal_request(case):
 def test_deal_run_matches_streamlit_snapshot(case):
     req, g = _golden_deal_request(case)
     body = ok(client.post("/api/deal/run", json=req))
-    mincash = req["inputs"]["mincash"]
-    if mincash:
-        # Sponsor equity now funds the minimum cash (finding 1)
-        assert_min_cash_funded(body["returns"], body["equity_bridge"], g, mincash)
-    else:
-        assert_close(body["returns"], g["returns"])
-        assert_close(body["equity_bridge"], {k: g["equity_bridge"][k] for k in body["equity_bridge"]})
-    # exit_sensitivity deliberately differs from the snapshot (finding 7, fixed);
-    # see test_model_fixes.py
-    assert_close(body["operating_model"], g["operating_model"])
-    assert_close(body["cash_flow"], g["cash_flow"])
-    tranches = {k: v for k, v in g["debt_schedule"].items() if k != "schedule"}
-    assert_close(body["debt_schedule"], tranches)
-    assert_close(body["tranches"], g["debt_schedule"]["schedule"])
+    # The API iterates interest to convergence (finding 8); the snapshot
+    # stopped after three passes, so the numbers can't match it exactly.
+    # test_core_parity.py pins the engine to the snapshot with three passes;
+    # here the API must match the converged core/ run exactly.
+    from core.config import resolve_config
+    from core.deal import DealInputs, run_deal
+    from tests.test_core_parity import plain
+    r = run_deal(DealInputs(**req["inputs"]), resolve_config(req["settings"]))
+    assert body["interest_converged"] and r.interest_converged
+    for part in ("returns", "equity_bridge", "operating_model", "cash_flow"):
+        assert_close(body[part], plain(getattr(r, part)), part)
+    debt = plain(r.debt_schedule)
+    assert_close(body["debt_schedule"], {k: debt[k] for k in body["debt_schedule"]}, "debt_schedule")
+    assert_close(body["tranches"], debt["schedule"], "tranches")
+    # Shape still matches the snapshot
+    assert set(body["tranches"]) == set(g["debt_schedule"]["schedule"])
     steps = body["bridge_steps"]
     assert steps[0]["is_total"] and steps[-1]["is_total"]
     # The waterfall steps close exactly to the equity gain. (Before finding 1

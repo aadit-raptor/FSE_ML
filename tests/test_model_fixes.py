@@ -158,3 +158,16 @@ def test_sources_and_uses_include_minimum_cash_and_match_the_engine():
     assert su["cash_to_balance_sheet"] == 20.0 and su["balanced"]
     run = _deal(mincash=20.0)
     assert su["sponsor_equity"] == pytest.approx(run["returns"]["entry_equity"], abs=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# Finding 8: the interest circularity converges
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize("inputs", [{}, {"exit_mult": 12.0}, {"debt_pct": 90.0, "base_rate": 12.0}, {"hold": 7, "mincash": 15.0}])
+def test_interest_converges_and_the_income_statement_matches_the_debt_schedule(inputs):
+    body = _deal(**inputs)
+    assert body["interest_converged"]
+    pl = body["operating_model"]["interest_expense"]
+    schedule = body["debt_schedule"]["total_interest_expense"]
+    # The engine rounds each year's interest to cents
+    assert max(abs(a - b) for a, b in zip(pl, schedule)) <= 0.011
