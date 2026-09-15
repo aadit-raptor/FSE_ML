@@ -195,3 +195,34 @@ def test_heatmap_cells_equal_deal_model_runs_with_fees():
     dearer = client.post("/api/montecarlo/run", json={"mc": {"n": 2000}, "seed": 1,
                                                       "settings": {"tx_fee_pct": 4.6}}).json()["heatmap"]["irr"]
     assert all(a < b for ra, rb in zip(dearer, h["irr"]) for a, b in zip(ra, rb))
+
+
+# ---------------------------------------------------------------------------
+# Finding 5: backtest prediction and attribution without arbitrary factors
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize("name", ["Burger King (3G Capital, 2010)", "Dell (Silver Lake, 2013)"])
+def test_backtest_attribution_splits_the_exit_equity_gap_exactly(name):
+    from core.backtesting import PRELOADED_DEALS, backtest_summary, prediction_lbo_params
+    from core.config import resolve_config
+    from lbo_engine.model import run_lbo
+
+    key = next(k for k in PRELOADED_DEALS if k.startswith(name.split(" (")[0]))
+    d = PRELOADED_DEALS[key]
+    hold = int(d["entry"]["holding_period"])
+    actual = {k: [float(v) for v in d["actual"][k][:hold]] for k in d["actual"]}
+    cfg = resolve_config()
+    bt = backtest_summary(d["entry"], actual, d["actual_exit"], cfg, n=2000)
+    run = run_lbo(prediction_lbo_params(d["entry"], cfg))
+
+    # Predictions are the deal model's, not a 75%-of-entry-debt rule
+    assert bt["predicted_net_debt_at_exit"] == pytest.approx(run.debt_schedule.net_debt_at_exit)
+    assert bt["predicted_exit_equity"] == pytest.approx(run.returns.net_exit_equity)
+    assert bt["predicted_ebitda"][-1] == pytest.approx(run.operating_model.exit_ebitda, abs=0.06)
+    rule = d["entry"]["entry_ebitda"] * d["entry"]["entry_multiple"] * d["entry"]["debt_pct"] / 100 * 0.75
+    assert bt["predicted_net_debt_at_exit"] != pytest.approx(rule, rel=0.01)
+
+    # The three parts add up to the exit equity gap
+    gap = bt["actual_exit_equity"] - (run.returns.exit_ev - run.debt_schedule.net_debt_at_exit)
+    # (the engine rounds exit EV to the cent)
+    assert sum(bt["attribution"].values()) == pytest.approx(gap, abs=0.05)
+    assert set(bt["attribution"]) == {"exit_ebitda", "exit_multiple", "net_debt"}

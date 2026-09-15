@@ -266,6 +266,10 @@
             "title": "Actual Exit Equity",
             "type": "number"
           },
+          "actual_exit_multiple": {
+            "title": "Actual Exit Multiple",
+            "type": "number"
+          },
           "actual_irr": {
             "title": "Actual Irr",
             "type": "number"
@@ -282,6 +286,7 @@
             "additionalProperties": {
               "type": "number"
             },
+            "description": "Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt",
             "title": "Attribution",
             "type": "object"
           },
@@ -323,6 +328,10 @@
             "title": "Predicted Moic",
             "type": "number"
           },
+          "predicted_net_debt_at_exit": {
+            "title": "Predicted Net Debt At Exit",
+            "type": "number"
+          },
           "years": {
             "items": {
               "$ref": "#/components/schemas/BacktestYear"
@@ -346,6 +355,8 @@
           "actual_percentile",
           "actual_ebitda_margin",
           "predicted_ebitda_margin",
+          "predicted_net_debt_at_exit",
+          "actual_exit_multiple",
           "attribution",
           "irr_histogram",
           "years"

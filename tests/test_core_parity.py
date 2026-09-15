@@ -152,11 +152,11 @@ def test_backtest_summary_matches_rendered_page():
     bt = backtest_summary(d["entry"], actual, d["actual_exit"], resolve_config())
     m = rendered["metrics"]
     assert f"{bt['predicted_irr_mean']:.1f}%" == m["Predicted IRR (mean)"]
-    assert f"{bt['predicted_moic']:.2f}x" == m["Predicted MOIC (base)"]
     assert f"${bt['predicted_ebitda'][-1]:,.0f}M" == m["Predicted exit EBITDA"]
     summary = {row["Metric"]: row for row in rendered["tables"][1]}
     assert f"${bt['predicted_equity_entry']:,.0f}M" == summary["Entry equity ($M)"]["Predicted"]
-    assert f"${bt['predicted_exit_equity']:,.0f}M" == summary["Exit equity ($M)"]["Predicted"]
+    # Predicted exit equity and MOIC now come from a deal-model run instead of
+    # exit debt at 75% of entry debt (finding 5); see test_model_fixes.py.
 
 
 # ---------------------------------------------------------------------------

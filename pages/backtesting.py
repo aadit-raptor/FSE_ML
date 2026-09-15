@@ -452,13 +452,13 @@ def render_backtesting():
 
         with col_a:
             fig, ax = plt.subplots(figsize=(6, 4))
-            categories = ["EBITDA\ngrowth miss", "Margin\ndifference", "FCF\nconversion", "Debt\npaydown"]
+            categories = ["Exit\nEBITDA", "Exit\nmultiple", "Net debt\nat exit"]
             values = list(bt["attribution"].values())
             bar_c = [A_ACT if v >= 0 else A_MISS for v in values]
             ax.barh(categories, values, color=bar_c, alpha=0.8, height=0.5)
             ax.axvline(0, color="#2a2a42", lw=1)
-            ax.set_xlabel("$M impact on exit equity (approximate)")
-            ax.set_title("Error attribution — approximate drivers")
+            ax.set_xlabel("$M impact on exit equity")
+            ax.set_title("Error attribution — exit equity gap")
             ax.grid(axis="x")
             st.pyplot(fig, width="stretch")
             plt.close(fig)

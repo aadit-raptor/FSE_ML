@@ -5,6 +5,7 @@ are passed in explicitly instead of read from session state.
 """
 import numpy as np
 
+from lbo_engine.model import LBOParams, run_lbo
 from simulation.vectorized_simulation import SimulationParams, run_vectorized_simulation_full
 
 
@@ -250,6 +251,27 @@ def predicted_ebitda(entry):
     return result
 
 
+def prediction_lbo_params(entry, cfg):
+    """Deal-model inputs for a backtest's entry assumptions (percentages as numbers)."""
+    from core.deal import INTEREST_TOLERANCE, MAX_INTEREST_PASSES
+    return LBOParams(
+        entry_ebitda=entry["entry_ebitda"], entry_multiple=entry["entry_multiple"],
+        exit_multiple=entry["exit_multiple"], holding_period=int(entry["holding_period"]),
+        debt_pct=entry["debt_pct"] / 100, senior_pct=entry["senior_pct"] / 100,
+        mezz_spread=entry["mezz_spread"] / 100, interest_rate=entry["base_rate"] / 100,
+        revenue_growth=entry["revenue_growth"] / 100, gross_margin=entry["gross_margin"] / 100,
+        opex_pct=entry["opex_pct"] / 100, da_pct=entry["da_pct"] / 100,
+        tax_rate=entry["tax_rate"] / 100, capex_pct=entry["capex_pct"] / 100,
+        nwc_pct=entry["nwc_pct"] / 100,
+        transaction_fees_pct=cfg['tx_fee_pct'] / 100,
+        financing_fees_pct=cfg['fin_fee_pct'] / 100,
+        other_uses=cfg['other_uses'],
+        senior_amort_pct=cfg['def_senior_amort'] / 100,
+        n_iterations=MAX_INTEREST_PASSES, interest_tolerance=INTEREST_TOLERANCE,
+        compute_sensitivity=False,
+    )
+
+
 def backtest_summary(entry, actual_results, actual_exit, cfg, n=30000):
     """Predicted vs actual comparison for a deal, as on the backtesting page.
 
@@ -271,37 +293,40 @@ def backtest_summary(entry, actual_results, actual_exit, cfg, n=30000):
     pred_ebitda = predicted_ebitda(entry)[:hold]
     pred_irr_dist = run_prediction_sim(entry, cfg, n=n)
 
-    entry_ev = entry_ebitda * entry_mult
-    pred_exit_ev = pred_ebitda[-1] * exit_mult if pred_ebitda else 0
-    pred_net_debt = entry_ev * debt_pct / 100 * 0.75
-    entry_debt = entry_ev * debt_pct / 100
-    entry_costs = (entry_ev * cfg['tx_fee_pct'] / 100
-                   + entry_debt * cfg['fin_fee_pct'] / 100
-                   + cfg['other_uses'])
-    pred_equity_entry = entry_ev + entry_costs - entry_debt   # fee-inclusive, as in the sim
-    pred_exit_equity = max(pred_exit_ev - pred_net_debt, 0)
-    pred_moic = pred_exit_equity / pred_equity_entry if pred_equity_entry > 0 else 0
+    # Predicted exit values from a deterministic deal-model run on the entry
+    # assumptions (fees, amortisation, sweep, converged interest). The
+    # Streamlit page assumed exit net debt at 75% of entry debt (finding 5).
+    run = run_lbo(prediction_lbo_params(entry, cfg))
+    pred_net_debt = run.debt_schedule.net_debt_at_exit
+    pred_exit_ev = run.returns.exit_ev
+    pred_equity_entry = run.returns.entry_equity
+    pred_exit_equity = run.returns.net_exit_equity
+    pred_moic = run.returns.moic
     pred_irr_mean = float(np.mean(pred_irr_dist)) * 100
 
     # Where the actual IRR landed in the predicted distribution
     pct_rank = float(np.mean(pred_irr_dist * 100 < act_irr)) * 100
 
-    # Error attribution (approximate drivers)
     actual_ebitda_margin = [
         actual_results["ebitda"][i] / actual_results["revenue"][i] * 100
         if actual_results["revenue"][i] > 0 else 0
         for i in range(hold)
     ]
     pred_ebitda_margin = (gross_margin - opex_pct + da_pct)
-    ebitda_growth_miss = actual_results["ebitda"][-1] - pred_ebitda[-1]
-    margin_diff = (np.mean(actual_ebitda_margin) - pred_ebitda_margin) * (sum(actual_results["revenue"]) / hold) / 100
-    fcf_diff = sum(actual_results["fcf"]) - sum(pred_ebitda) * 0.3
-    debt_diff = actual_results["total_debt"][-1] - entry_ev * debt_pct / 100 * 0.75
+
+    # Error attribution: an exact split of the exit equity gap,
+    #   (actual EV - actual net debt) - (predicted EV - predicted net debt)
+    # = (actual EBITDA - predicted EBITDA) x predicted multiple
+    # + (actual multiple - predicted multiple) x actual EBITDA
+    # + (predicted net debt - actual net debt)
+    # The Streamlit page used arbitrary weights instead (finding 5).
+    act_exit_ebitda = actual_results["ebitda"][-1]
+    pred_exit_ebitda = run.operating_model.exit_ebitda
+    act_mult = act_exit_ev / act_exit_ebitda if act_exit_ebitda else exit_mult
     attribution = {
-        "ebitda_growth_miss": ebitda_growth_miss,
-        "margin_difference": margin_diff,
-        "fcf_conversion": fcf_diff * 0.1,
-        "debt_paydown": -debt_diff * 0.05,
+        "exit_ebitda": (act_exit_ebitda - pred_exit_ebitda) * exit_mult,
+        "exit_multiple": (act_mult - exit_mult) * act_exit_ebitda if act_exit_ebitda else 0.0,
+        "net_debt": pred_net_debt - act_net_debt,
     }
 
     return {
@@ -319,4 +344,6 @@ def backtest_summary(entry, actual_results, actual_exit, cfg, n=30000):
         "actual_ebitda_margin": actual_ebitda_margin,
         "predicted_ebitda_margin": pred_ebitda_margin,
         "attribution": attribution,
+        "predicted_net_debt_at_exit": pred_net_debt,
+        "actual_exit_multiple": act_mult,
     }

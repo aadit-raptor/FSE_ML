@@ -435,7 +435,10 @@ class BacktestResponse(BaseModel):
     actual_percentile: float
     actual_ebitda_margin: List[float]
     predicted_ebitda_margin: float
-    attribution: Dict[str, float]
+    predicted_net_debt_at_exit: float
+    actual_exit_multiple: float
+    attribution: Dict[str, float] = Field(
+        description="Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt")
     irr_histogram: Histogram
     years: List[BacktestYear]
 

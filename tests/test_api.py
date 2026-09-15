@@ -227,7 +227,13 @@ def test_backtesting_matches_rendered_streamlit_page():
     }))
     m = rendered["metrics"]
     assert f"{body['predicted_irr_mean']:.1f}%" == m["Predicted IRR (mean)"]
-    assert f"{body['predicted_moic']:.2f}x" == m["Predicted MOIC (base)"]
+    # Predicted MOIC now comes from a deal-model run, not exit debt at 75% of
+    # entry debt (finding 5), so it differs from the rendered page's 1.64x.
+    from core.backtesting import prediction_lbo_params
+    from core.config import resolve_config
+    from lbo_engine.model import run_lbo
+    run = run_lbo(prediction_lbo_params(d["entry"], resolve_config()))
+    assert body["predicted_moic"] == pytest.approx(run.returns.moic, abs=1e-9)
     assert f"${body['predicted_ebitda'][-1]:,.0f}M" == m["Predicted exit EBITDA"]
     assert len(body["years"]) == hold and len(body["irr_histogram"]["density"]) == 80
 
