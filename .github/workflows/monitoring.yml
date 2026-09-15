@@ -1,10 +1,13 @@
 name: monitoring
 
 # Keeps Better Stack (uptime monitors, status page) in step with
-# ops/betterstack.py. Runs when that file changes on main or staging, and on
-# demand. Needs the GitHub secret BETTERSTACK_API_TOKEN. See DEPLOY.md
-# "Monitoring".
+# ops/betterstack.py. Runs when that file changes on main or staging, weekly
+# (undoes hand edits in the Better Stack dashboard, and a run of the workflow
+# counts as repository activity), and on demand. Needs the GitHub secret
+# BETTERSTACK_API_TOKEN. See DEPLOY.md "Monitoring".
 on:
+  schedule:
+    - cron: "41 5 * * 1"
   push:
     branches: [main, staging]
     paths:
