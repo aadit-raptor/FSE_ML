@@ -42,6 +42,14 @@ idle and takes about a minute to wake. Read-only checks against the live site:
 `E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
 also run daily by `.github/workflows/live.yml`.
 
+Monitoring (PLAN.md 1.2, DEPLOY.md "Monitoring"): Sentry in the API and the
+web app (`SENTRY_DSN`), a shared `X-Request-ID` per API call, JSON request
+logs in UTC with model-run timings, Better Stack uptime monitors and status
+page as code in `ops/betterstack.py` (GitHub secret `BETTERSTACK_API_TOKEN`).
+Staging alerts come from `staging.yml`, not a scheduled check, to keep the
+free service asleep. **Never log or send deal contents**: no request bodies,
+query strings or local variables in logs or Sentry events (tests check it).
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -151,9 +159,6 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
-- Add the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel →
-  fse-ml → Settings → Deployment Protection → Protection Bypass for
-  Automation) so `staging.yml` can open the protected staging preview.
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -174,9 +179,11 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides persist in localStorage and go into every run. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
-| `DEPLOY.md` | Vercel + Render setup steps |
+| `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
+| `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
+| `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (90 tests); `tests/test_model_fixes.py` pins each finding fix |
+| `tests/`, `test_*.py` | Test suite (113 tests); `tests/test_model_fixes.py` pins each finding fix |
 
 ## Commands (Windows, from the repo root)
 
