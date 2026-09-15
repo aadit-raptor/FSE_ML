@@ -27,8 +27,17 @@ sign in.
 |---|---|---|
 | Web app | https://fse-ml.vercel.app | Vercel Hobby, project `fse-ml`, root directory `web`, `FSE_API_URL` set |
 | API | https://fse-api.onrender.com (health: `/api/health`) | Render free web service `fse-api` from `render.yaml` |
+| Staging web | Vercel preview of the `staging` branch (behind Vercel login) | same Vercel project; previews always use the staging API (`web/next.config.ts`) |
+| Staging API | https://fse-api-staging.onrender.com | Render free web service `fse-api-staging`, made by hand, deploys from `staging` |
 
-Both deploy automatically from `main`. The free API sleeps after 15 minutes
+Production deploys automatically from `main`, staging from `staging` (PLAN.md
+1.1, DEPLOY.md "Environments"). `/api/health` reports `environment` and
+`commit`, and the status bar says `· staging` on staging. After a push to
+`staging`, `.github/workflows/staging.yml` waits for both staging copies to run
+that commit and runs the live browser checks there (needs the GitHub secret
+`VERCEL_AUTOMATION_BYPASS_SECRET`). After merging to `main`, bring staging
+level: `git push origin main:staging`. Rollback: DEPLOY.md "Rollback" (default
+is a git revert PR). The free API sleeps after 15 minutes
 idle and takes about a minute to wake. Read-only checks against the live site:
 `E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
 also run daily by `.github/workflows/live.yml`.
