@@ -156,7 +156,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
       }
     } catch (e) {
       if (ctrl.signal.aborted || (e as Error)?.name === "AbortError") return;
-      setRun((r) => ({ ...r, status: "error", error: "Can't reach the API. Is uvicorn running on port 8000?" }));
+      setRun((r) => ({ ...r, status: "error", error: "Can't reach the API. If it was idle it may still be starting; try again shortly." }));
     }
   }, [snapshot]);
 

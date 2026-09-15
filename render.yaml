@@ -1,0 +1,33 @@
+# Render Blueprint for the API. In Render: New > Blueprint > pick this repo.
+# The web app is on Vercel and proxies /api here (see DEPLOY.md).
+services:
+  - type: web
+    name: fse-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # free sleeps after ~15 min idle (first request then waits for a cold
+    # start); starter stays awake
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # Rebuild only when the API or model code changes, not for web/ or docs
+    buildFilter:
+      paths:
+        - Dockerfile
+        - requirements*.txt
+        - analytics/**
+        - api/**
+        - core/**
+        - lbo_engine/**
+        - ml/**
+        - simulation/**
+    envVars:
+      # Browser origins allowed to call the API directly. The web app goes
+      # through Vercel's proxy, so this only matters for direct API use.
+      - key: FSE_CORS_ORIGINS
+        sync: false
+      # Only with INSTALL_ML=true images: enables macro regime detection
+      - key: FRED_API_KEY
+        sync: false

@@ -1,7 +1,8 @@
 """core/ reproduces the Streamlit app's outputs.
 
 tests/golden/golden.json was captured from the Streamlit app before the model
-logic moved into core/ (see tests/golden/generate_golden.py). These tests feed
+logic moved into core/ (the generator drove the since-retired Streamlit app; see
+git history). These tests feed
 the recorded inputs straight into core/ and require the same results, to within
 floating-point noise (see golden_compare.py).
 """

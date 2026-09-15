@@ -1,0 +1,14 @@
+# Only the Python packages the API needs go into the image (see Dockerfile)
+.git
+.github
+.venv
+.claude
+.playwright-cli
+**/__pycache__
+**/*.pyc
+web
+tests
+test_*.py
+*.md
+*.xlsx
+ml/surrogate/training_data.parquet

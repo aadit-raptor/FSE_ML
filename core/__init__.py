@@ -1,5 +1,5 @@
-"""Model logic shared by the Streamlit app and the API.
+"""Model logic served by the API.
 
-Nothing in this package imports Streamlit: functions take their inputs and
+Nothing in this package imports a web framework: functions take their inputs and
 settings explicitly.
 """

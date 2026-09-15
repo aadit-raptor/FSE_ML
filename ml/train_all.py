@@ -58,7 +58,7 @@ def main():
 
     print("\n" + "="*60)
     print("ALL MODELS TRAINED SUCCESSFULLY")
-    print("You can now restart the Streamlit dashboard.")
+    print("Restart the API to load the new models.")
     print("="*60)
 
 
