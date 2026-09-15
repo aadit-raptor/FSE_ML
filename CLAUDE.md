@@ -2,7 +2,8 @@
 
 LBO modelling platform: deal wizard, Monte Carlo simulation, backtesting against
 historical deals, 3-statement forecasting (with SEC EDGAR autofill) and settings.
-Currently a Streamlit app being rebuilt as a FastAPI backend + Next.js frontend.
+A FastAPI backend (`api/`) and a Next.js frontend (`web/`); the original
+Streamlit app is retired. Deployed on Render (API) and Vercel (web): see DEPLOY.md.
 
 **Keep this file current.** It is how a new session (or a new device) knows where
 the project stands. When you finish a step, fix a finding, or make a decision
@@ -14,14 +15,17 @@ PR** as the work.
 ## Current status — read this first
 
 Last updated: 2026-09-15. Steps 1–5 and the model finding fixes are merged
-into `main` (PR #5, which also closed #4; CI green including `e2e`). Next is
-step 6, which needs the user's hosting choice.
+(PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
+schedules, ML panels), Streamlit removed, and deploy config for the user's
+choice of **Vercel (web) + Render (API)**. The user must create the accounts
+and connect the repo themselves (DEPLOY.md); Claude can't create accounts or
+sign in.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
 The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
 the model's logic kept as is (the user later approved fixing the findings
-below). Streamlit is retired at the end.
+below). Streamlit is retired (removed in step 6).
 
 | Step | Status |
 |---|---|
@@ -29,8 +33,8 @@ below). Streamlit is retired at the end.
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
 | 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Merged (PR #5) |
 | 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built, verified by output, merged (PR #5) |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (27 tests, CI job `e2e`). Mutation-checked |
-| 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (33 tests, CI job `e2e`). Mutation-checked |
+| 6. Deploy (frontend + API) and retire Streamlit | Config done on `feat/deploy` (root `Dockerfile`, `render.yaml`, Vercel via `FSE_API_URL`, CI `docker` job). Streamlit removed. **Waiting on the user** to connect Render and Vercel (DEPLOY.md) |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
 for `web/`; FastAPI for `api/`; one repo.
@@ -95,6 +99,8 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- Create Render and Vercel projects from the repo (DEPLOY.md), then share the
+  URLs so they can be recorded here.
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -106,24 +112,24 @@ golden snapshot is untouched and parity tests explain every departure.
 
 | Path | What |
 |---|---|
-| `core/` | **All model logic**, no Streamlit dependency. Functions take inputs and settings explicitly. Shared by Streamlit and the API |
-| `api/` | FastAPI app (`api/main.py`), routers per mode, schemas generated from engine dataclasses |
+| `core/` | **All model logic**, no web framework dependency. Functions take inputs and settings explicitly |
+| `api/` | FastAPI app (`api/main.py`), routers per mode (plus `export.py` for Excel downloads), schemas generated from engine dataclasses |
 | `lbo_engine/` | Deterministic LBO engine (operating model, cash flow, debt, returns) |
 | `simulation/vectorized_simulation.py` | Vectorized Monte Carlo engine |
 | `analytics/` | Risk metrics |
 | `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
 | `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides persist in localStorage and go into every run. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
-| `app.py`, `pages/` | Streamlit app (to be retired). Pages call `core/` |
-| `tests/golden/` | Snapshot of the Streamlit app's outputs taken **before** logic moved into `core/`; the parity baseline |
-| `tests/`, `test_*.py` | Test suite (85 tests); `tests/test_model_fixes.py` pins each finding fix |
+| `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
+| `DEPLOY.md` | Vercel + Render setup steps |
+| `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
+| `tests/`, `test_*.py` | Test suite (88 tests); `tests/test_model_fixes.py` pins each finding fix |
 
 ## Commands (Windows, from the repo root)
 
 ```bash
 .venv/Scripts/python.exe -m pytest                       # all tests
 .venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
-.venv/Scripts/python.exe -m streamlit run app.py         # legacy Streamlit app
 
 # web/ (run the API too; Next proxies /api to FSE_API_URL, default 127.0.0.1:8000)
 npm --prefix web run dev                                 # http://localhost:3000
@@ -147,7 +153,9 @@ PW_CHANNEL=msedge npm --prefix web run test:e2e          # PowerShell: $env:PW_C
 Tests assert real model output (IRR, MOIC, golden backtest values), not just
 rendering. Add one for every new control, and mutation-check it.
 
-CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web` and `e2e` jobs.
+CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web`, `e2e` and `docker`
+jobs. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
+and checks the default deal IRR (0.2116), Monte Carlo and an Excel export.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
 `web` job fails when `schema.d.ts` doesn't match the snapshot.
 
@@ -157,7 +165,7 @@ Setup on a fresh machine: Python 3.12, then
 
 ## Working rules
 
-- **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e` jobs)
+- **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e`, `docker` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
   The GitHub CLI is not installed; open and merge PRs through the browser.
 - **Keep model logic as is** unless the user approves a change. Record new
@@ -198,10 +206,8 @@ Skills load when a session starts: install first, then open a new session.
   it lives at `C:\Program Files\nodejs`.
 - The Windows console is cp1252 — printing `≥`, `→` etc. from Python fails;
   write to a file or use ASCII.
-- Streamlit keyed widgets keep their value when their `value=` changes; to
-  re-seed, assign through `st.session_state`.
-- `tests/golden/generate_golden.py` drives the Streamlit app headlessly; run it
-  against `main` in a separate worktree, never to "fix" a failing test.
+- The golden snapshot can't be regenerated any more (Streamlit is gone). Pin
+  deliberate model changes with explicit tests instead.
 - **Next.js 16 differs from older versions.** Read `web/node_modules/next/dist/docs/`
   before using an API (e.g. `params` is a Promise; `PageProps`/`LayoutProps`
   are global types generated by `next typegen`). `web/AGENTS.md` is
@@ -216,9 +222,15 @@ Skills load when a session starts: install first, then open a new session.
   blocks its client scripts for other hosts; the page never hydrates). Next.js
   renders a hidden `role="alert"` route announcer, so scope alert locators to
   `#content`. `.next/dev` grows to ~400 MB; delete it when disk is tight.
+  Playwright reuses servers already on ports 3000/8000 locally: stop any
+  preview or stray uvicorn first, or tests hit stale code (a 404 on a new
+  endpoint means this).
 - The Browser pane's screenshots time out when the Claude window isn't drawn;
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
   `bracketright`, or shortcuts appear broken when they aren't.
-- Deal defaults differ: the API uses stored 60% debt / 70% senior; the
-  Streamlit wizard derives 42% / ~81% from its 3.4x + 0.8x debt multiples.
+- Deal defaults: the API uses stored 60% debt / 70% senior; the retired
+  Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
+  what the golden `defaults` case records.
+- Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
+  redeploy. `next.config.ts` fails the Vercel build if it's unset.

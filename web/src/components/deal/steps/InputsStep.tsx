@@ -10,6 +10,7 @@ import { multiplesFromPct } from "@/lib/deal/capital";
 import { fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
+import { DealRisk } from "../DealRisk";
 import { DealField, DealScreen, DebtMultipleField, LoadingTiles, RailGroup } from "../DealScreen";
 import { hurdleSub } from "./shared";
 
@@ -102,6 +103,7 @@ export function InputsStep() {
               total={["Total uses", su?.total_uses]}
             />
           </Tile>
+          <DealRisk />
           <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-3">
             <p className="type-body">Debt is sized as a multiple of EBITDA here and as a share of EV on the next step. Both edit the same deal.</p>
             <Link href="/deal/debt" className="type-action-secondary px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">

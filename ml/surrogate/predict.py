@@ -1,6 +1,6 @@
 """
 Inference module. Loads the trained model once at import time.
-predict() runs in < 1ms, enabling real-time Streamlit updates.
+predict() runs in < 1ms, enabling the web app's live sliders.
 """
 
 import torch

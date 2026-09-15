@@ -1,8 +1,8 @@
 """Model settings: defaults, resolution and the simulation correlation matrix.
 
 Moved from pages/settings.py. Functions take settings explicitly (a mapping of
-setting key -> value) instead of reading Streamlit session state, so the same
-code serves the Streamlit app and the API.
+setting key -> value) instead of reading global state, so every request can
+carry its own settings.
 """
 from typing import Mapping, Optional
 

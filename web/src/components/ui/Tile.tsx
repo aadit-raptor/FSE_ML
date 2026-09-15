@@ -22,18 +22,24 @@ export function Tile({
   unit,
   children,
   aside,
+  action,
 }: {
   span: keyof typeof SPAN;
   title: string;
   unit?: string;
   children: ReactNode;
   aside?: ReactNode;
+  /** Shown after the unit, e.g. a download button */
+  action?: ReactNode;
 }) {
   return (
     <section className={`${SPAN[span]} grid min-w-0 content-start gap-2 bg-canvas px-3 py-2.5`} aria-label={title}>
       <header className="flex min-h-4 items-center justify-between gap-2">
         <h2 className="type-result-title">{title}</h2>
-        {aside ?? (unit && <span className="font-mono text-[10px] text-dim">{unit}</span>)}
+        <span className="flex items-center gap-2.5">
+          {aside ?? (unit && <span className="font-mono text-[10px] text-dim">{unit}</span>)}
+          {action}
+        </span>
       </header>
       {children}
     </section>

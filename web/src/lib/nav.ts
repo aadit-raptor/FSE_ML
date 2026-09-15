@@ -67,6 +67,11 @@ export const MODES: Mode[] = [
         label: "Heatmap",
         summary: "IRR across growth and exit multiple.",
       },
+      {
+        slug: "live",
+        label: "Live",
+        summary: "Instant IRR estimates from a neural network trained on the simulation, as you drag the assumptions.",
+      },
     ],
   },
   {
@@ -108,6 +113,11 @@ export const MODES: Mode[] = [
         slug: "statements",
         label: "Statements",
         summary: "Income statement, balance sheet and cash flow, with the balance check.",
+      },
+      {
+        slug: "schedules",
+        label: "Schedules",
+        summary: "PP&E, retained earnings, working capital, interest and revolver schedules, and the EBITDA to net income bridge.",
       },
       {
         slug: "simulation",

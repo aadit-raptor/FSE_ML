@@ -9,6 +9,9 @@ import { parsePath } from "@/lib/nav";
 type Health = { state: "checking" } | { state: "ok"; version: string } | { state: "down" };
 
 const POLL_MS = 30_000;
+// Retry sooner while the API is down: a sleeping host can take ~a minute to start
+const RETRY_MS = 5_000;
+const DOWN_HINT = process.env.NODE_ENV === "development" ? "start it with uvicorn api.main:app --port 8000" : "it may be starting up, retrying";
 
 export function StatusBar() {
   const { mode, step } = parsePath(usePathname());
@@ -19,18 +22,25 @@ export function StatusBar() {
     const check = async () => {
       try {
         const { data, response } = await api.GET("/api/health");
-        if (cancelled) return;
+        if (cancelled) return false;
         const version = (data as { version?: string } | undefined)?.version;
-        setHealth(response.ok && version ? { state: "ok", version } : { state: "down" });
+        const ok = !!(response.ok && version);
+        setHealth(ok ? { state: "ok", version: version! } : { state: "down" });
+        return ok;
       } catch {
         if (!cancelled) setHealth({ state: "down" });
+        return false;
       }
     };
-    check();
-    const id = setInterval(check, POLL_MS);
+    let id: ReturnType<typeof setTimeout>;
+    const loop = async () => {
+      const ok = await check();
+      if (!cancelled) id = setTimeout(loop, ok ? POLL_MS : RETRY_MS);
+    };
+    void loop();
     return () => {
       cancelled = true;
-      clearInterval(id);
+      clearTimeout(id);
     };
   }, []);
 
@@ -42,7 +52,7 @@ export function StatusBar() {
         {health.state === "checking" && <b className="font-medium text-dim">checking</b>}
         {health.state === "down" && (
           <b className="font-medium text-loss">
-            unreachable · start it with uvicorn api.main:app --port 8000
+            unreachable · {DOWN_HINT}
           </b>
         )}
       </span>

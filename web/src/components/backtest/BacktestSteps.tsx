@@ -7,7 +7,9 @@ import { DataTable } from "@/components/charts/DataTable";
 import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
 import { EmptyState, LoadingTiles, Notice, RailGroup, Screen } from "@/components/ui/Screen";
+import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtDelta, fmtMoney, fmtMultiple, isNum } from "@/lib/format";
 
 import { BACKTEST_PATHS, splitDealName, useBacktest } from "./BacktestProvider";
@@ -237,7 +239,35 @@ function Years() {
   return (
     <Tiles>
       <Headline />
-      <Tile span={12} title="Year by year" unit="$M">
+      <Tile
+        span={12}
+        title="Year by year"
+        unit="$M"
+        action={
+          <DownloadButton
+            onDownload={() =>
+              downloadWorkbook("backtest.xlsx", [
+                sheet(
+                  "Year by year",
+                  ["Year", "Predicted EBITDA", "Actual EBITDA", "Variance", "Actual revenue", "Actual FCF", "Actual total debt"],
+                  r.years.map((y, i) => [years[i] ?? y.year_index, y.predicted_ebitda, y.actual_ebitda, y.ebitda_variance, y.actual_revenue, y.actual_fcf, y.actual_total_debt]),
+                ),
+                sheet(
+                  "Returns",
+                  ["Metric", "Predicted", "Actual"],
+                  [
+                    ["IRR (%)", r.predicted_irr_mean, r.actual_irr],
+                    ["MOIC (x)", r.predicted_moic, r.actual_moic],
+                    ["Entry equity ($M)", r.predicted_equity_entry, r.actual_equity_entry],
+                    ["Exit equity ($M)", r.predicted_exit_equity, r.actual_exit_equity],
+                  ],
+                ),
+                sheet("Attribution", ["Part", "$M"], Object.entries(r.attribution).map(([k, v]) => [k, v])),
+              ])
+            }
+          />
+        }
+      >
         <DataTable
           caption="Predicted and actual results by year"
           columns={years}

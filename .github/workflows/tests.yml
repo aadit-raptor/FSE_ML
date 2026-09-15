@@ -9,9 +9,6 @@ concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  MPLBACKEND: Agg   # no display on CI runners
-
 jobs:
   core:
     # Core install only: proves the app and its tests work without the
@@ -115,3 +112,34 @@ jobs:
             echo "::error::ML tests skipped -- dependencies or model files missing"
             exit 1
           fi
+
+  docker:
+    # The API image Render deploys (Dockerfile): build it, start it, and check
+    # it serves real model output, not just a health check.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t fse-api .
+      - name: Start the container on the port a host would assign
+        run: docker run -d --name api -e PORT=9100 -p 9100:9100 fse-api
+      - name: Wait for the health check
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:9100/api/health && exit 0
+            sleep 2
+          done
+          docker logs api; exit 1
+      - name: Deal, Monte Carlo and export respond with model output
+        run: |
+          irr=$(curl -fsS -X POST http://127.0.0.1:9100/api/deal/run -H 'Content-Type: application/json' -d '{}' \
+            | python3 -c "import sys, json; print(round(json.load(sys.stdin)['returns']['irr'], 4))")
+          echo "default deal IRR $irr"; test "$irr" = "0.2116"
+          curl -fsS -X POST http://127.0.0.1:9100/api/montecarlo/run -H 'Content-Type: application/json' \
+            -d '{"mc": {"n": 5000}, "seed": 1}' | python3 -c "import sys, json; d = json.load(sys.stdin); assert d['n'] == 5000, d"
+          curl -fsS -X POST http://127.0.0.1:9100/api/export/workbook -H 'Content-Type: application/json' \
+            -d '{"sheets": [{"name": "t", "columns": ["a"], "rows": [[1]]}]}' -o out.xlsx
+          test "$(head -c 2 out.xlsx)" = "PK"
+          docker inspect --format '{{.Config.User}}' api | grep -qx app
+      - if: failure()
+        run: docker logs api || true

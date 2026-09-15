@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from api.routers import backtesting, deal, forecasting, integrations, montecarlo
+from api.routers import backtesting, deal, export, forecasting, integrations, montecarlo
 
 API_VERSION = "0.1.0"
 
@@ -31,7 +31,8 @@ def create_app() -> FastAPI:
     origins = [o.strip() for o in os.environ.get(
         "FSE_CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
     app.add_middleware(CORSMiddleware, allow_origins=origins,
-                       allow_methods=["GET", "POST"], allow_headers=["*"])
+                       allow_methods=["GET", "POST"], allow_headers=["*"],
+                       expose_headers=["Content-Disposition"])
     # Simulation responses carry chart data (histograms, scatter samples)
     app.add_middleware(GZipMiddleware, minimum_size=1024)
 
@@ -39,7 +40,7 @@ def create_app() -> FastAPI:
     def health():
         return {"status": "ok", "version": API_VERSION}
 
-    for module in (deal, montecarlo, forecasting, backtesting, integrations):
+    for module in (deal, montecarlo, forecasting, backtesting, integrations, export):
         app.include_router(module.router, prefix="/api")
     return app
 

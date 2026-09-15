@@ -4,9 +4,12 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { DataTable, type Row } from "@/components/charts/DataTable";
 import { LineChart } from "@/components/charts/LineChart";
+import { Waterfall } from "@/components/charts/Waterfall";
 import { CellInput } from "@/components/ui/CellInput";
+import { DownloadButton } from "@/components/ui/DownloadButton";
 import { EmptyState, LoadingTiles, Notice, RailGroup, Screen, SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { downloadWorkbook, sheet, tableSheet } from "@/lib/export";
 import { ASSUMPTION_GROUPS, HISTORY_GROUPS } from "@/lib/forecast";
 import { fmtInput, fmtMoney, fmtRate, isNum } from "@/lib/format";
 
@@ -245,6 +248,94 @@ function statementRows(res: ForecastRun, keys: [string, string, Row["kind"]?, bo
   }));
 }
 
+/** Rows for a forecast-years-only schedule. */
+const fwdRow = (label: string, values: number[], kind?: Row["kind"], total?: boolean): Row => ({ label, values, kind, total });
+
+function statementTables(res: ForecastRun) {
+  return {
+    income: statementRows(res, [
+      ["revenue", "Revenue"],
+      ["gross_profit", "Gross profit"],
+      ["rd", "R&D"],
+      ["sga", "SG&A"],
+      ["ebit", "EBIT", undefined, true],
+      ["interest_inc", "Interest income"],
+      ["interest_exp", "Interest expense"],
+      ["pretax", "Pre-tax income"],
+      ["taxes", "Taxes"],
+      ["net_income", "Net income", undefined, true],
+      ["ebitda", "EBITDA"],
+      ["ebitda_margin", "EBITDA margin", "rate"],
+    ]),
+    balance: statementRows(res, [
+      ["cash", "Cash"],
+      ["ar", "Receivables"],
+      ["inventory", "Inventory"],
+      ["ppe_net", "PP&E, net"],
+      ["total_assets", "Total assets", undefined, true],
+      ["ap", "Payables"],
+      ["revolver", "Revolver"],
+      ["ltd", "Long-term debt"],
+      ["total_liab", "Total liabilities"],
+      ["total_equity", "Total equity"],
+      ["balance_check", "Balance check"],
+    ]),
+    cash: statementRows(res, [
+      ["cfo", "Operating cash flow"],
+      ["cfi", "Investing cash flow"],
+      ["cff", "Financing cash flow"],
+      ["net_cash_chg", "Net change in cash", undefined, true],
+      ["delta_nwc", "Change in NWC"],
+      ["revolver_draw", "Revolver draw"],
+    ]),
+  };
+}
+
+/** Supporting schedules, derived exactly from the three statements. */
+function scheduleTables(res: ForecastRun, assumptions: Record<string, number[]>) {
+  const y = res.years;
+  const ltm = res.ltm;
+  const at = (key: string, i: number) => assumptions[key]?.[i] ?? NaN;
+  const prevCash = y.map((_, i) => (i === 0 ? ltm.cash : y[i - 1].cash) ?? 0);
+  const prevDebt = y.map((_, i) => (i === 0 ? ltm.ltd : y[i - 1].ltd) ?? 0);
+  return {
+    ppe: [
+      fwdRow("Opening PP&E", y.map((r) => r.ppe_beg ?? 0)),
+      // Capex isn't reported separately: the roll-forward implies it exactly
+      fwdRow("Capex", y.map((r) => (r.ppe_end ?? 0) - (r.ppe_beg ?? 0) + (r.da ?? 0))),
+      fwdRow("Depreciation", y.map((r) => r.da ?? 0), "outflow"),
+      fwdRow("Closing PP&E", y.map((r) => r.ppe_end ?? 0), undefined, true),
+    ],
+    retained: [
+      fwdRow("Opening retained earnings", y.map((r) => r.re_beg ?? 0)),
+      fwdRow("Net income", y.map((r) => r.net_income ?? 0)),
+      fwdRow("Dividends and buybacks", y.map((r) => (r.re_beg ?? 0) + (r.net_income ?? 0) - (r.re_end ?? 0)), "outflow"),
+      fwdRow("Closing retained earnings", y.map((r) => r.re_end ?? 0), undefined, true),
+    ],
+    workingCapital: [
+      fwdRow("Receivables", y.map((r) => r.ar ?? 0)),
+      fwdRow("Inventory", y.map((r) => r.inventory ?? 0)),
+      fwdRow("Payables", y.map((r) => r.ap ?? 0), "outflow"),
+      fwdRow("Net working capital", y.map((r) => r.nwc ?? 0), undefined, true),
+      fwdRow("Change in NWC", y.map((r) => r.delta_nwc ?? 0)),
+    ],
+    cycleDays: y.map((_, i) => at("ar_d", i) + at("inv_d", i) - at("ap_d", i)),
+    interest: [
+      fwdRow("Opening cash", prevCash),
+      fwdRow("Rate on cash", y.map((_, i) => at("r_cash", i) / 100), "rate"),
+      fwdRow("Interest income", y.map((r) => r.interest_inc ?? 0)),
+      fwdRow("Opening debt", prevDebt),
+      fwdRow("Rate on debt", y.map((_, i) => at("r_debt", i) / 100), "rate"),
+      fwdRow("Interest expense", y.map((r) => r.interest_exp ?? 0), "outflow", true),
+    ],
+    revolver: [
+      fwdRow("Draw / (repay)", y.map((r) => r.revolver_draw ?? 0)),
+      fwdRow("Closing revolver", y.map((r) => r.revolver ?? 0), undefined, true),
+      fwdRow("Closing cash", y.map((r) => r.cash ?? 0)),
+    ],
+  };
+}
+
 export function StatementsStep() {
   return (
     <ForecastScreen>
@@ -254,11 +345,25 @@ export function StatementsStep() {
 }
 
 function Statements() {
-  const { result: res, nFwd } = useForecast();
+  const { result: res, nFwd, assumptions, source } = useForecast();
   if (!res) return null;
   const cols = ["LTM", ...FWD(nFwd)];
   const last = res.years.at(-1);
   const maxGap = Math.max(0, ...res.forecast_balance_gaps.map(Math.abs));
+  const t = statementTables(res);
+  const s = scheduleTables(res, assumptions);
+  const fwd = FWD(nFwd);
+  const company = source.kind === "edgar" ? source.ticker : "sample";
+  const everything = () => [
+    tableSheet("Income statement", cols, t.income),
+    tableSheet("Balance sheet", cols, t.balance),
+    tableSheet("Cash flow", cols, t.cash),
+    tableSheet("PP&E", fwd, s.ppe),
+    tableSheet("Retained earnings", fwd, s.retained),
+    tableSheet("Working capital", fwd, s.workingCapital),
+    tableSheet("Interest", fwd, s.interest),
+    tableSheet("Revolver", fwd, s.revolver),
+  ];
   return (
     <Tiles>
       <Kpi title={`Revenue ${cols.at(-1)}`} value={fmtMoney(last?.revenue)} sub={`CAGR ${fmtRate(res.revenue_cagr)}`} lead />
@@ -267,58 +372,82 @@ function Statements() {
       <Kpi title={`Cash ${cols.at(-1)}`} value={fmtMoney(last?.cash)} sub="$M" />
       <Kpi title="Balance sheet" value={res.balanced ? "Balances" : "Doesn't balance"} sub={`largest gap ${fmtMoney(maxGap)} $M`} tone={res.balanced ? "gain" : "loss"} />
       <Kpi title="Opening gap" value={fmtMoney(res.opening_balance_gap)} sub="in the historicals, $M" tone={Math.abs(res.opening_balance_gap) > 0.5 ? "attention" : undefined} />
-      <Tile span={12} title="Income statement" unit="$M">
-        <DataTable
-          caption="Forecast income statement"
-          columns={cols}
-          rows={statementRows(res, [
-            ["revenue", "Revenue"],
-            ["gross_profit", "Gross profit"],
-            ["rd", "R&D"],
-            ["sga", "SG&A"],
-            ["ebit", "EBIT", undefined, true],
-            ["interest_inc", "Interest income"],
-            ["interest_exp", "Interest expense"],
-            ["pretax", "Pre-tax income"],
-            ["taxes", "Taxes"],
-            ["net_income", "Net income", undefined, true],
-            ["ebitda", "EBITDA"],
-            ["ebitda_margin", "EBITDA margin", "rate"],
-          ])}
-        />
+      <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
+        <p className="type-body">The three statements and every supporting schedule in one workbook.</p>
+        <DownloadButton label="3-statement model" onDownload={() => downloadWorkbook(`${company}_3statement_model.xlsx`, everything())} />
+      </div>
+      <Tile span={12} title="Income statement" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("income_statement.xlsx", [tableSheet("Income statement", cols, t.income)])} />}>
+        <DataTable caption="Forecast income statement" columns={cols} rows={t.income} />
       </Tile>
-      <Tile span={6} title="Balance sheet" unit="$M">
-        <DataTable
-          caption="Forecast balance sheet"
-          columns={cols}
-          rows={statementRows(res, [
-            ["cash", "Cash"],
-            ["ar", "Receivables"],
-            ["inventory", "Inventory"],
-            ["ppe_net", "PP&E, net"],
-            ["total_assets", "Total assets", undefined, true],
-            ["ap", "Payables"],
-            ["revolver", "Revolver"],
-            ["ltd", "Long-term debt"],
-            ["total_liab", "Total liabilities"],
-            ["total_equity", "Total equity"],
-            ["balance_check", "Balance check"],
-          ])}
-        />
+      <Tile span={6} title="Balance sheet" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("balance_sheet.xlsx", [tableSheet("Balance sheet", cols, t.balance)])} />}>
+        <DataTable caption="Forecast balance sheet" columns={cols} rows={t.balance} />
       </Tile>
-      <Tile span={6} title="Cash flow" unit="$M">
-        <DataTable
-          caption="Forecast cash flow"
-          columns={cols}
-          rows={statementRows(res, [
-            ["cfo", "Operating cash flow"],
-            ["cfi", "Investing cash flow"],
-            ["cff", "Financing cash flow"],
-            ["net_cash_chg", "Net change in cash", undefined, true],
-            ["delta_nwc", "Change in NWC"],
-            ["revolver_draw", "Revolver draw"],
-          ])}
-        />
+      <Tile span={6} title="Cash flow" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("cash_flow.xlsx", [tableSheet("Cash flow", cols, t.cash)])} />}>
+        <DataTable caption="Forecast cash flow" columns={cols} rows={t.cash} />
+      </Tile>
+    </Tiles>
+  );
+}
+
+export function SchedulesStep() {
+  return (
+    <ForecastScreen>
+      <Schedules />
+    </ForecastScreen>
+  );
+}
+
+function Schedules() {
+  const { result: res, nFwd, assumptions } = useForecast();
+  if (!res) return null;
+  const fwd = FWD(nFwd);
+  const s = scheduleTables(res, assumptions);
+  const y = res.years.at(-1);
+  const bridge = y
+    ? [
+        { label: "EBITDA", value: y.ebitda ?? 0, isTotal: true },
+        { label: "D&A", value: (y.ebit ?? 0) - (y.ebitda ?? 0), isTotal: false },
+        { label: "Int. income", value: y.interest_inc ?? 0, isTotal: false },
+        { label: "Int. expense", value: y.interest_exp ?? 0, isTotal: false },
+        { label: "Other", value: (y.pretax ?? 0) - (y.ebit ?? 0) - (y.interest_inc ?? 0) - (y.interest_exp ?? 0), isTotal: false },
+        { label: "Taxes", value: (y.net_income ?? 0) - (y.pretax ?? 0), isTotal: false },
+        { label: "Net income", value: y.net_income ?? 0, isTotal: true },
+      ]
+    : [];
+  const all = () => [
+    tableSheet("PP&E", fwd, s.ppe),
+    tableSheet("Retained earnings", fwd, s.retained),
+    tableSheet("Working capital", fwd, s.workingCapital),
+    tableSheet("Interest", fwd, s.interest),
+    tableSheet("Revolver", fwd, s.revolver),
+  ];
+  return (
+    <Tiles>
+      <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
+        <p className="type-body">Each schedule is derived from the statements, so it ties to them exactly.</p>
+        <DownloadButton label="All schedules" onDownload={() => downloadWorkbook("supporting_schedules.xlsx", all())} />
+      </div>
+      <Tile span={6} title="PP&E roll-forward" unit="$M">
+        <DataTable caption="PP&E roll-forward" columns={fwd} rows={s.ppe} />
+      </Tile>
+      <Tile span={6} title="Retained earnings" unit="$M">
+        <DataTable caption="Retained earnings roll-forward" columns={fwd} rows={s.retained} />
+      </Tile>
+      <Tile span={6} title="Working capital" unit="$M">
+        <DataTable caption="Working capital schedule" columns={fwd} rows={s.workingCapital} />
+        <p className="font-mono text-[10.5px] text-muted">
+          Cash conversion cycle {s.cycleDays.map((d) => (Number.isFinite(d) ? `${d.toFixed(0)}d` : "n/a")).join(" · ")}
+        </p>
+      </Tile>
+      <Tile span={6} title="Interest" unit="$M">
+        <DataTable caption="Interest schedule" columns={fwd} rows={s.interest} />
+      </Tile>
+      <Tile span={6} title="Revolver" unit="model plug, $M">
+        <DataTable caption="Revolver schedule" columns={fwd} rows={s.revolver} />
+        <p className="type-body text-[9px]">The revolver draws when closing cash would fall below the minimum cash balance.</p>
+      </Tile>
+      <Tile span={6} title={`EBITDA to net income, ${fwd.at(-1)}`} unit="$M">
+        <Waterfall label={`EBITDA to net income bridge for ${fwd.at(-1)}`} steps={bridge} />
       </Tile>
     </Tiles>
   );
@@ -360,6 +489,18 @@ function Simulation() {
       <Kpi title="EBITDA P5 / P95" value={fmtMoney(sim.ebitda_final.p5)} sub={`to ${fmtMoney(sim.ebitda_final.p95)} $M`} />
       <Kpi title="Simulated growth" value={fmtRate(sim.growth_final_mean)} sub="mean, final year" />
       <Kpi title="Paths" value={sim.n.toLocaleString("en-US")} sub={`requested ${simPaths.toLocaleString("en-US")}`} />
+      <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
+        <p className="type-body">Percentile bands for revenue and EBITDA each year, and the target probabilities.</p>
+        <DownloadButton
+          onDownload={() =>
+            downloadWorkbook("simulation_results.xlsx", [
+              sheet("Revenue bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.revenue_bands[q]])),
+              sheet("EBITDA bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.ebitda_bands[q]])),
+              sheet("Targets", ["EBITDA target ($M)", "Probability (%)", "Case"], sim.target_probabilities.map((t) => [t.target, t.probability * 100, t.scenario])),
+            ])
+          }
+        />
+      </div>
       <Tile span={6} title="Revenue fan" unit="$M · P5-P95, P25-P75, median, plan">
         {fan(sim.revenue_bands, res.years.map((y) => y.revenue ?? NaN), "Revenue")}
       </Tile>

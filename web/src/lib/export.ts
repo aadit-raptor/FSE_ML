@@ -1,0 +1,52 @@
+import type { Row } from "@/components/charts/DataTable";
+import type { Schemas } from "@/lib/api/client";
+
+export type Sheet = Schemas["WorkbookSheet"];
+type Cell = string | number | boolean | null;
+
+/** A DataTable's rows as a sheet: money as $M numbers, rates as percentages. */
+export function tableSheet(name: string, columns: string[], rows: Row[]): Sheet {
+  return {
+    name,
+    columns: ["", ...columns],
+    rows: rows.map((r) => [
+      r.kind === "rate" ? `${r.label} (%)` : r.label,
+      ...r.values.map((v) => (typeof v === "number" && Number.isFinite(v) ? (r.kind === "rate" ? v * 100 : r.kind === "outflow" ? -Math.abs(v) : v) : null)),
+    ]),
+  };
+}
+
+/** Plain sheet from a header row and cells. */
+export function sheet(name: string, columns: string[], rows: Cell[][]): Sheet {
+  return { name, columns, rows: rows.map((r) => r.map((c) => (typeof c === "number" && !Number.isFinite(c) ? null : c))) };
+}
+
+function save(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function postForFile(path: string, body: unknown, filename: string) {
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const detail = await res.json().then((j) => (typeof j?.detail === "string" ? j.detail : null)).catch(() => null);
+    throw new Error(detail ?? `Download failed (${res.status})`);
+  }
+  save(await res.blob(), filename);
+}
+
+/** Ask the API to write the sheets to .xlsx and save it. */
+export function downloadWorkbook(filename: string, sheets: Sheet[]) {
+  return postForFile("/api/export/workbook", { filename, sheets }, filename);
+}
+
+/** Up to 10,000 simulated paths for the given Monte Carlo request. */
+export function downloadMonteCarloSample(body: unknown) {
+  return postForFile("/api/export/montecarlo-sample", body, "mc_simulation.xlsx");
+}
