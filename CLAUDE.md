@@ -23,14 +23,16 @@ sign in.
 
 ### What's next: PLAN.md
 
-The rebuild is done. **PLAN.md** is the software-only roadmap (the user
-excluded market research, customers, company, legal and pricing for now):
-foundations, trust, scale, data, ML, AI, features, subscriptions machinery,
-enterprise-grade and operations, as numbered tasks (phases 0-10) with
+The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
+aside market research, customers, company, legal and pricing), and **global
+and universal by design**. The tool must work for any country, currency and
+deal, and must not depend on the four inception-era US deals. Its guiding
+principles apply to every task. It has numbered tasks (phases 0-11) with
 dependencies, what the user must do first (outside accounts and keys only),
-and a "done when" test. Work one task per session and per PR, lowest open
-number first, and tick it in PLAN.md's status table in the same PR. Start
-with 0.1 (put the app online).
+and a "done when" test; its appendix lists every US-specific and
+deal-dependent assumption found in the code. Work one task per session and
+per PR, lowest open number first, and tick it in PLAN.md in the same PR.
+Start with 0.1, then 2.1.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
