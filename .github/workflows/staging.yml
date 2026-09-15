@@ -5,6 +5,13 @@ name: staging
 # the Vercel preview built from it. Staging = Render service fse-api-staging
 # (deploys from `staging`) + the Vercel preview of the same commit, which
 # next.config.ts points at the staging API. See DEPLOY.md.
+#
+# Alerts (PLAN.md 1.2): staging has no scheduled uptime check (that would
+# keep the free service awake), so this workflow is its monitor. A quick API
+# check runs as soon as the new commit is live; if it fails, a Better Stack
+# incident (email) is raised straight away, and the browser checks still run
+# so the failure is also reported from the browser. Any other failure raises
+# an incident at the end.
 on:
   push:
     branches: [staging]
@@ -64,6 +71,22 @@ jobs:
           done
           echo "::error::The staging API did not deploy $GITHUB_SHA within 20 minutes"; exit 1
 
+      - name: Quick API check (deal model, request ID)
+        id: smoke
+        continue-on-error: true
+        run: |
+          curl -fsS -m 120 -D headers.txt -o deal.json -X POST "$STAGING_API/api/deal/run" -H 'Content-Type: application/json' -H "X-Request-ID: staging-$GITHUB_RUN_ID" -d '{}'
+          grep -i "^x-request-id: staging-$GITHUB_RUN_ID" headers.txt
+          irr=$(python3 -c "import json; print(round(json.load(open('deal.json'))['returns']['irr'], 4))")
+          echo "default deal IRR $irr"; test "$irr" = "0.2116"
+
+      - name: Alert now if the API check failed
+        if: steps.smoke.outcome == 'failure'
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Staging API broken" --summary "Staging API check failed for ${GITHUB_SHA::7} (request ID staging-$GITHUB_RUN_ID): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
       - name: Wait for the Vercel preview of this commit
         id: preview
         env:
@@ -100,3 +123,14 @@ jobs:
           E2E_BASE_URL: ${{ steps.preview.outputs.url }}
           E2E_EXPECT_ENV: staging
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      - name: Fail the run if the API check failed
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1
+
+      - name: Alert on any other failure
+        if: failure() && steps.smoke.outcome != 'failure'
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Staging checks failed" --summary "Staging checks failed for ${GITHUB_SHA::7}: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

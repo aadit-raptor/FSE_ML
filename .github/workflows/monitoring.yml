@@ -1,0 +1,40 @@
+name: monitoring
+
+# Keeps Better Stack (uptime monitors, status page) in step with
+# ops/betterstack.py. Runs when that file changes on main or staging, and on
+# demand. Needs the GitHub secret BETTERSTACK_API_TOKEN. See DEPLOY.md
+# "Monitoring".
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - ops/betterstack.py
+      - .github/workflows/monitoring.yml
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Show the changes without making them
+        type: boolean
+        default: false
+
+concurrency:
+  group: monitoring
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Monitor plan fits the free limits
+        run: python ops/betterstack.py check
+      - name: Sync monitors and status page
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: python ops/betterstack.py sync ${{ inputs.dry_run && '--dry-run' || '' }}

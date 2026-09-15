@@ -4,9 +4,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api/client";
+import { formatForViewer } from "@/lib/monitoring";
 import { parsePath } from "@/lib/nav";
 
-type Health = { state: "checking" } | { state: "ok"; version: string; environment?: string } | { state: "down" };
+type Health = { state: "checking" } | { state: "ok"; version: string; environment?: string; time?: string } | { state: "down" };
 
 const POLL_MS = 30_000;
 // Retry sooner while the API is down: a sleeping host can take ~a minute to start
@@ -23,9 +24,9 @@ export function StatusBar() {
       try {
         const { data, response } = await api.GET("/api/health");
         if (cancelled) return false;
-        const { version, environment } = (data as { version?: string; environment?: string } | undefined) ?? {};
+        const { version, environment, time } = (data as { version?: string; environment?: string; time?: string } | undefined) ?? {};
         const ok = !!(response.ok && version);
-        setHealth(ok ? { state: "ok", version: version!, environment } : { state: "down" });
+        setHealth(ok ? { state: "ok", version: version!, environment, time } : { state: "down" });
         return ok;
       } catch {
         if (!cancelled) setHealth({ state: "down" });
@@ -46,7 +47,12 @@ export function StatusBar() {
 
   return (
     <footer className="flex min-h-7 flex-none items-stretch border-t border-line bg-panel font-mono text-[10.5px] text-muted">
-      <span className="flex items-center gap-1.5 border-r border-line px-3" role="status">
+      {/* The API reports its clock in UTC; show it in the viewer's time zone */}
+      <span
+        className="flex items-center gap-1.5 border-r border-line px-3"
+        role="status"
+        title={health.state === "ok" && health.time ? `API checked ${formatForViewer(health.time)}` : undefined}
+      >
         API{" "}
         {health.state === "ok" && <b className="font-medium text-ink">ok · v{health.version}</b>}
         {/* Name any copy that isn't production, so staging is never mistaken for it */}

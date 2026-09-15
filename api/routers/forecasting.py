@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from api.schemas import (
     ForecastDefaultsResponse, ForecastRunRequest, ForecastRunResponse, HistoryRequest, SeedResponse,
 )
+from api.observability import model_timer
 from api.serialize import to_json
 from core.forecasting import (
     ASSUMPTION_KEYS, HISTORICAL_FIELDS, assumptions_from_grid, default_history,
@@ -71,13 +72,15 @@ def post_run(req: ForecastRunRequest):
 
     ltm = ltm_from_history(history)
     assumptions = assumptions_from_grid(req.assumptions, n_fwd)
-    fwd = run_3_statement_model(ltm, assumptions)
+    with model_timer("forecast.run"):
+        fwd = run_3_statement_model(ltm, assumptions)
     gap0 = opening_bs_gap(ltm)
     model_gaps = [y.balance_check - gap0 for y in fwd]
 
     simulation = None
     if req.simulate:
-        paths = run_forecast_simulation(ltm, assumptions, n=req.n_sim)
+        with model_timer("forecast.simulation"):
+            paths = run_forecast_simulation(ltm, assumptions, n=req.n_sim)
         simulation = {"n": req.n_sim, **to_json(simulation_summary(fwd, paths))}
         simulation.pop("ebitda_final_median", None)
 

@@ -1,5 +1,7 @@
 import createClient from "openapi-fetch";
 
+import { newRequestId, reportApiError, REQUEST_ID_HEADER } from "@/lib/monitoring";
+
 import type { components, paths } from "./schema";
 
 /**
@@ -8,5 +10,20 @@ import type { components, paths } from "./schema";
  * proxies /api to the Python server.
  */
 export const api = createClient<paths>({ baseUrl: "" });
+
+// Each call gets its own request ID; API failures go to error tracking with it
+api.use({
+  onRequest({ request }) {
+    request.headers.set(REQUEST_ID_HEADER, newRequestId());
+    return request;
+  },
+  onResponse({ request, response, schemaPath }) {
+    if (response.status >= 500) reportApiError(schemaPath, response.status, request.headers.get(REQUEST_ID_HEADER) ?? "");
+    return response;
+  },
+  onError({ request, schemaPath }) {
+    reportApiError(schemaPath, "network", request.headers.get(REQUEST_ID_HEADER) ?? "");
+  },
+});
 
 export type Schemas = components["schemas"];
