@@ -37,6 +37,8 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `FSE_ENV` | Render service, optional | derived: `production` | derived from the `-staging` service name | `local` |
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | GitHub Actions secret | — | lets `staging.yml` open the protected preview | — |
+| `SENTRY_DSN` | both Render services, and Vercel (Production + Preview) | set | set | unset (no Sentry) |
+| `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
 
 **Moving a change through staging**
 
@@ -50,8 +52,11 @@ talks to the production API: `web/next.config.ts` picks the API by
 
 **Free hours:** Render gives 750 instance hours a month across all free
 services. Both services sleep after 15 minutes idle, so staging costs only
-the time it's being used (a daily production check wakes production for about
-15 minutes). Don't add a scheduled job that keeps staging awake.
+the time it's being used. Production's uptime check runs every 30 minutes and
+keeps it awake roughly half the time (about 400 h a month; see "Monitoring").
+Don't add a scheduled job that keeps staging awake, and don't check the API
+more often than every 16 minutes: `tests/test_betterstack.py` fails if the
+monitor plan leaves less than 250 h for everything else.
 
 Creating the staging API (done once, 2026-09-15): Render → **New → Web
 Service**, this repo, branch `staging`, runtime Docker, free plan, health
@@ -143,6 +148,61 @@ the live site agree.
 | Date | What | How | Result |
 |---|---|---|---|
 | 2026-09-15 | Drill for PLAN.md 1.1: rolled production back from PR #13 (53a68f2) to the code before it | Route A: PR #14 reverted the merge; merged 17:53 UTC | Render deployed 17:54 UTC, Vercel 17:54 UTC. `/api/health` went from `{"environment":"production","commit":"53a68f2…"}` to the old `{"status":"ok","version":"0.1.0"}`; the deal still showed 21.2% IRR / 2.61x; the live environment check failed as expected (old code). Restored by reverting the revert (PR #15) |
+
+## Monitoring
+
+Set up in PLAN.md 1.2, all on free plans.
+
+| What | Where | Notes |
+|---|---|---|
+| Errors (API and web) | Sentry organization `aadit-xc`, project `fse-api`; `SENTRY_DSN` holds that project's DSN on both Render services and in Vercel | API: `api/observability.py`; web: `web/src/lib/monitoring.ts`. Browser reports are titled `API <status> on <path>` and tagged `api_path`. Environment `production`, `staging` or `local`; release = git commit |
+| Logs | Render → service → **Logs** | One JSON line per request: `ts` (UTC), `request_id`, `method`, `route` (template, e.g. `/api/edgar/{ticker}`), `status`, `duration_ms`, `model_ms`; plus a `model_run` line per model run. Health checks aren't logged |
+| Uptime and status page | Better Stack, kept in `ops/betterstack.py` | Synced by `.github/workflows/monitoring.yml` when that file changes on `main` or `staging` (or run it by hand). Status page: `https://fse-ml.betteruptime.com` |
+| Staging alerts | `.github/workflows/staging.yml` | Staging has no scheduled check; each deploy is checked as soon as it is live and a failure raises a Better Stack incident |
+| Wrong answers in production | `.github/workflows/live.yml` (daily) | Raises a Better Stack incident when the browser checks fail |
+
+**What is never sent.** Sentry events carry the error, the route and the
+request ID. Request and response bodies, query strings, cookies, headers,
+local variables, IP addresses, user details, clicks and console output are
+stripped (`scrub_event` and `beforeSend`), so no deal contents leave the app.
+Logs have no bodies or query strings either.
+
+**Following one request.** The web app sends a fresh `X-Request-ID` with each
+API call; the API returns it, logs it and tags its Sentry events with it, and
+the browser tags its own Sentry event for a failed call with the same ID. In
+Sentry search `request_id:<id>`; in Render's logs search for the ID.
+
+**Times.** Everything is stored and logged in UTC (ISO 8601 with `Z`).
+Screens show times in the viewer's time zone (`formatForViewer` in
+`web/src/lib/monitoring.ts`; the status bar's tooltip shows the API's clock).
+
+**Uptime checks and free-plan wake-ups.**
+
+| Monitor | URL | Every | Alerts after |
+|---|---|---|---|
+| Website | `https://fse-ml.vercel.app/deal/inputs` (keyword `FSE/ML`) | 3 min | 2 min failing |
+| Model API | `https://fse-api.onrender.com/api/health` (keyword `"status":"ok"`) | 30 min | 60 s timeout + 4 min rechecking |
+
+A check that reaches a sleeping API waits while it wakes (about a minute);
+Better Stack only opens an incident if it is still failing after the
+confirmation period, so a normal wake-up never alerts but an API that stays
+down does. Checking every 30 minutes lets the free API sleep between checks.
+
+**Test error.** Outside production, `GET /api/debug/error` raises a
+deliberate error (at most one a minute) and returns its request ID:
+`curl -H "X-Request-ID: test-error-0001" https://fse-api-staging.onrender.com/api/debug/error`.
+
+**Alert drill log**
+
+| Date | What | Result |
+|---|---|---|
+| 2026-09-15 | Test error for PLAN.md 1.2: `GET /api/debug/error` on staging with `X-Request-ID: drill-1-2-sentry-2` (20:02 UTC) | Sentry issue FSE-API-1, tags `request_id=drill-1-2-sentry-2`, `environment=staging`, `release=af4315c`; request section only method and URL |
+| 2026-09-15 | Broken-deploy drill for PLAN.md 1.2: commit 33c54f4 made `/api/deal/run` raise; pushed to `staging` 20:07:45 UTC | Live on staging 20:08:30 UTC; `staging.yml` quick API check failed and raised Better Stack incident 1015977762 ("Staging API broken"); alert email arrived 20:09 UTC (**under 1 minute**). The browser checks' failed call reached Sentry from the browser (FSE-API-4) and from the API (FSE-API-2) with the same `request_id` `f46a243bbd804a0eb63deda53969c8a9`. Restored by reverting 33c54f4 |
+
+The drill also found that the live browser checks sent the Vercel bypass
+secret to every host the page called, which leaked it to Sentry and broke
+the browser's error reports; `web/e2e/live.spec.ts` now sends it to the site
+only and fails if it reaches any other host.
 
 ## Checking a deploy
 

@@ -71,13 +71,19 @@ jobs:
         working-directory: web
       - run: npx playwright install --with-deps chromium
         working-directory: web
+      # A local Sentry DSN that e2e/monitoring.spec.ts intercepts: proves the
+      # browser reports API failures with their request ID, without sending
+      # anything to Sentry
       - run: npm run build
         working-directory: web
+        env:
+          SENTRY_DSN: http://e2e@localhost:3999/1
       - run: npx playwright test
         working-directory: web
         env:
           CI: "1"
           PYTHON: python
+          E2E_SENTRY_DSN: http://e2e@localhost:3999/1
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -141,5 +147,11 @@ jobs:
             -d '{"sheets": [{"name": "t", "columns": ["a"], "rows": [[1]]}]}' -o out.xlsx
           test "$(head -c 2 out.xlsx)" = "PK"
           docker inspect --format '{{.Config.User}}' api | grep -qx app
+      - name: Request IDs come back and logs are JSON lines carrying them
+        run: |
+          curl -fsS -o /dev/null -D headers.txt -X POST http://127.0.0.1:9100/api/deal/run -H 'Content-Type: application/json' -H 'X-Request-ID: docker-check-0001' -d '{}'
+          grep -i '^x-request-id: docker-check-0001' headers.txt
+          docker logs api 2>&1 | grep '"request_id": "docker-check-0001"' > logs.txt
+          python3 -c "import json; lines = [json.loads(l) for l in open('logs.txt')]; req = next(l for l in lines if l['event'] == 'request'); assert any(l['event'] == 'model_run' for l in lines), lines; assert req['route'] == '/api/deal/run' and req['status'] == 200 and req['ts'].endswith('Z'), req; print(req)"
       - if: failure()
         run: docker logs api || true

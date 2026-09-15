@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15. Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-16. Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -42,6 +42,14 @@ idle and takes about a minute to wake. Read-only checks against the live site:
 `E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
 also run daily by `.github/workflows/live.yml`.
 
+Monitoring (PLAN.md 1.2, DEPLOY.md "Monitoring"): Sentry in the API and the
+web app (`SENTRY_DSN`), a shared `X-Request-ID` per API call, JSON request
+logs in UTC with model-run timings, Better Stack uptime monitors and status
+page as code in `ops/betterstack.py` (GitHub secret `BETTERSTACK_API_TOKEN`).
+Staging alerts come from `staging.yml`, not a scheduled check, to keep the
+free service asleep. **Never log or send deal contents**: no request bodies,
+query strings or local variables in logs or Sentry events (tests check it).
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -58,7 +66,7 @@ user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
-below); 1.1 is done (staging, rollback drill in DEPLOY.md); next is 1.2. End every task session with the handoff described in PLAN.md: tell the
+below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); next is 1.3. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -151,9 +159,6 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
-- Add the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel →
-  fse-ml → Settings → Deployment Protection → Protection Bypass for
-  Automation) so `staging.yml` can open the protected staging preview.
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -174,9 +179,11 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides persist in localStorage and go into every run. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
-| `DEPLOY.md` | Vercel + Render setup steps |
+| `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
+| `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
+| `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (90 tests); `tests/test_model_fixes.py` pins each finding fix |
+| `tests/`, `test_*.py` | Test suite (113 tests); `tests/test_model_fixes.py` pins each finding fix |
 
 ## Commands (Windows, from the repo root)
 
@@ -285,5 +292,13 @@ Skills load when a session starts: install first, then open a new session.
 - Deal defaults: the API uses stored 60% debt / 70% senior; the retired
   Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
   what the golden `defaults` case records.
+- Never put secrets in Playwright `extraHTTPHeaders`: they go to every host
+  the page calls (Sentry included). `web/e2e/live.spec.ts` scopes the Vercel
+  bypass header to the site's own origin.
+- Vercel's Environment Variables page is in the project's main left menu,
+  not under Settings. `NEXT_PUBLIC_*` values (e.g. the Sentry DSN) are baked
+  in at build time, so a changed `SENTRY_DSN` needs a new deploy.
+- Unauthenticated GitHub API calls allow 60 an hour; poll workflow runs
+  sparingly (or read the run page in the browser).
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.

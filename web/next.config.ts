@@ -22,7 +22,17 @@ if (process.env.VERCEL_ENV === "production" && !process.env.FSE_API_URL) {
   throw new Error("Set FSE_API_URL (e.g. https://fse-api.onrender.com) in the Vercel project settings.");
 }
 
+// Error tracking (lib/monitoring.ts). Vercel has SENTRY_DSN in Production and
+// Preview; a DSN is public by design, so it is inlined into the browser
+// bundle at build time. No DSN (local, CI) means no Sentry.
+const fseEnv = process.env.VERCEL_ENV === "production" ? "production" : isPreview ? "staging" : "local";
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN ?? "",
+    NEXT_PUBLIC_FSE_ENV: fseEnv,
+    NEXT_PUBLIC_FSE_COMMIT: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
+  },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];
   },

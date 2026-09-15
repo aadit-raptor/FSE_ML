@@ -29,3 +29,12 @@ jobs:
         env:
           E2E_LIVE: "1"
           E2E_EXPECT_ENV: production
+      # Uptime monitors check that production is reachable; this catches a
+      # site that is up but giving wrong answers (PLAN.md 1.2)
+      - name: Alert if the live checks failed
+        if: failure()
+        working-directory: .
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Production checks failed" --summary "Live browser checks failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

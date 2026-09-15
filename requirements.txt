@@ -6,3 +6,4 @@ openpyxl>=3.1         # Excel downloads (api/routers/export.py)
 fastapi>=0.141       # HTTP API (api/)
 uvicorn>=0.30        # serves the API
 requests>=2.31        # optional: SEC EDGAR autofill in forecasting mode
+sentry-sdk>=2.0          # error tracking, on when SENTRY_DSN is set (api/observability.py)

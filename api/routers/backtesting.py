@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from api.deps import resolve_settings
 from api.schemas import BacktestRequest, BacktestResponse, PreloadedDeal
+from api.observability import model_timer
 from api.serialize import histogram, to_json
 from core.backtesting import PRELOADED_DEALS, backtest_summary
 
@@ -29,7 +30,8 @@ def post_run(req: BacktestRequest):
         raise HTTPException(422, f"actual results need {hold} years for: {short}")
     actual = {k: v[:hold] for k, v in actual.items()}
 
-    bt = backtest_summary(entry, actual, req.actual_exit.model_dump(), cfg, n=req.n)
+    with model_timer("backtest.run"):
+        bt = backtest_summary(entry, actual, req.actual_exit.model_dump(), cfg, n=req.n)
     dist = bt.pop("predicted_irr_distribution")
     pred = bt["predicted_ebitda"]
     return {

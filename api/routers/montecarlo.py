@@ -4,6 +4,7 @@ import time
 from fastapi import APIRouter
 
 from api.deps import resolve_settings
+from api.observability import model_timer
 from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
 from api.serialize import box_stats, histogram, percentile_curve, to_json
 from core.deal import DealInputs
@@ -34,7 +35,8 @@ def post_run(req: MonteCarloRequest):
         params = apply_scenario(req.scenario, params, cfg)
 
     t0 = time.perf_counter()
-    sim = run_vectorized_simulation_full(params, seed=req.seed)
+    with model_timer("montecarlo.run"):
+        sim = run_vectorized_simulation_full(params, seed=req.seed)
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
     sample = analysis_sample(sim)
@@ -69,7 +71,8 @@ def post_scenarios(req: ScenariosRequest):
     cfg = resolve_settings(req.settings, check_correlations=True)
     mc = MCInputs(**req.mc.model_dump())
     params = build_sim_params(mc, DealInputs(**req.deal.model_dump()), cfg)
-    results = run_scenarios(params, cfg, seed=req.seed)
+    with model_timer("montecarlo.scenarios"):
+        results = run_scenarios(params, cfg, seed=req.seed)
     stats = scenario_stats(results, mc.hurdle)
     return {
         "hurdle": mc.hurdle / 100,

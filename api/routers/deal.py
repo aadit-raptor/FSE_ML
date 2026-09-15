@@ -2,6 +2,7 @@
 from fastapi import APIRouter
 
 from api.deps import resolve_settings
+from api.observability import model_timer
 from api.schemas import (
     DealRunRequest, DealRunResponse, SourcesUsesRequest, SourcesUsesResponse,
 )
@@ -27,7 +28,8 @@ def post_sources_and_uses(req: SourcesUsesRequest):
 def post_run(req: DealRunRequest):
     """Run the full LBO model: operating model, cash flow, debt, returns."""
     cfg = resolve_settings(req.settings)
-    result = run_deal(DealInputs(**req.inputs.model_dump()), cfg)
+    with model_timer("deal.run"):
+        result = run_deal(DealInputs(**req.inputs.model_dump()), cfg)
     br = result.equity_bridge
     debt = to_json(result.debt_schedule)
     tranches = debt.pop("schedule")

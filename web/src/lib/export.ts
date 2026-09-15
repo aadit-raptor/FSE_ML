@@ -1,5 +1,6 @@
 import type { Row } from "@/components/charts/DataTable";
 import type { Schemas } from "@/lib/api/client";
+import { newRequestId, reportApiError, REQUEST_ID_HEADER } from "@/lib/monitoring";
 
 export type Sheet = Schemas["WorkbookSheet"];
 type Cell = string | number | boolean | null;
@@ -33,7 +34,12 @@ function save(blob: Blob, filename: string) {
 }
 
 async function postForFile(path: string, body: unknown, filename: string) {
-  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const requestId = newRequestId();
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", [REQUEST_ID_HEADER]: requestId }, body: JSON.stringify(body) }).catch((e: unknown) => {
+    reportApiError(path, "network", requestId);
+    throw e;
+  });
+  if (res.status >= 500) reportApiError(path, res.status, requestId);
   if (!res.ok) {
     const detail = await res.json().then((j) => (typeof j?.detail === "string" ? j.detail : null)).catch(() => null);
     throw new Error(detail ?? `Download failed (${res.status})`);
