@@ -1,0 +1,5064 @@
+{
+  "components": {
+    "schemas": {
+      "BacktestActualExit": {
+        "additionalProperties": false,
+        "properties": {
+          "exit_ev": {
+            "minimum": 0.0,
+            "title": "Exit Ev",
+            "type": "number"
+          },
+          "irr": {
+            "description": "Actual IRR (%)",
+            "title": "Irr",
+            "type": "number"
+          },
+          "moic": {
+            "minimum": 0.0,
+            "title": "Moic",
+            "type": "number"
+          },
+          "net_debt_at_exit": {
+            "minimum": 0.0,
+            "title": "Net Debt At Exit",
+            "type": "number"
+          },
+          "sponsor_equity_entry": {
+            "minimum": 0.0,
+            "title": "Sponsor Equity Entry",
+            "type": "number"
+          }
+        },
+        "required": [
+          "exit_ev",
+          "net_debt_at_exit",
+          "sponsor_equity_entry",
+          "moic",
+          "irr"
+        ],
+        "title": "BacktestActualExit",
+        "type": "object"
+      },
+      "BacktestActuals": {
+        "additionalProperties": false,
+        "properties": {
+          "ebitda": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Ebitda",
+            "type": "array"
+          },
+          "fcf": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Fcf",
+            "type": "array"
+          },
+          "net_income": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Net Income",
+            "type": "array"
+          },
+          "revenue": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Revenue",
+            "type": "array"
+          },
+          "total_debt": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Total Debt",
+            "type": "array"
+          }
+        },
+        "required": [
+          "revenue",
+          "ebitda",
+          "net_income",
+          "fcf",
+          "total_debt"
+        ],
+        "title": "BacktestActuals",
+        "type": "object"
+      },
+      "BacktestEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "base_rate": {
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Base Rate",
+            "type": "number"
+          },
+          "capex_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Capex Pct",
+            "type": "number"
+          },
+          "da_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Da Pct",
+            "type": "number"
+          },
+          "debt_pct": {
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Debt Pct",
+            "type": "number"
+          },
+          "entry_ebitda": {
+            "exclusiveMinimum": 0.0,
+            "title": "Entry Ebitda",
+            "type": "number"
+          },
+          "entry_multiple": {
+            "exclusiveMinimum": 0.0,
+            "title": "Entry Multiple",
+            "type": "number"
+          },
+          "exit_multiple": {
+            "exclusiveMinimum": 0.0,
+            "title": "Exit Multiple",
+            "type": "number"
+          },
+          "gross_margin": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Gross Margin",
+            "type": "number"
+          },
+          "holding_period": {
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Holding Period",
+            "type": "integer"
+          },
+          "mezz_spread": {
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Mezz Spread",
+            "type": "number"
+          },
+          "nwc_pct": {
+            "title": "Nwc Pct",
+            "type": "number"
+          },
+          "opex_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Opex Pct",
+            "type": "number"
+          },
+          "revenue_growth": {
+            "title": "Revenue Growth",
+            "type": "number"
+          },
+          "senior_pct": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Senior Pct",
+            "type": "number"
+          },
+          "tax_rate": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tax Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "entry_ebitda",
+          "entry_multiple",
+          "exit_multiple",
+          "holding_period",
+          "debt_pct",
+          "senior_pct",
+          "base_rate",
+          "mezz_spread",
+          "revenue_growth",
+          "gross_margin",
+          "opex_pct",
+          "da_pct",
+          "tax_rate",
+          "capex_pct",
+          "nwc_pct"
+        ],
+        "title": "BacktestEntry",
+        "type": "object"
+      },
+      "BacktestRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "$ref": "#/components/schemas/BacktestActuals"
+          },
+          "actual_exit": {
+            "$ref": "#/components/schemas/BacktestActualExit"
+          },
+          "entry": {
+            "$ref": "#/components/schemas/BacktestEntry"
+          },
+          "histogram_bins": {
+            "default": 80,
+            "maximum": 400.0,
+            "minimum": 10.0,
+            "title": "Histogram Bins",
+            "type": "integer"
+          },
+          "n": {
+            "default": 30000,
+            "maximum": 200000.0,
+            "minimum": 1000.0,
+            "title": "N",
+            "type": "integer"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "entry",
+          "actual",
+          "actual_exit"
+        ],
+        "title": "BacktestRequest",
+        "type": "object"
+      },
+      "BacktestResponse": {
+        "properties": {
+          "actual_ebitda_margin": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Actual Ebitda Margin",
+            "type": "array"
+          },
+          "actual_equity_entry": {
+            "title": "Actual Equity Entry",
+            "type": "number"
+          },
+          "actual_exit_equity": {
+            "title": "Actual Exit Equity",
+            "type": "number"
+          },
+          "actual_irr": {
+            "title": "Actual Irr",
+            "type": "number"
+          },
+          "actual_moic": {
+            "title": "Actual Moic",
+            "type": "number"
+          },
+          "actual_percentile": {
+            "title": "Actual Percentile",
+            "type": "number"
+          },
+          "attribution": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Attribution",
+            "type": "object"
+          },
+          "irr_histogram": {
+            "$ref": "#/components/schemas/Histogram"
+          },
+          "predicted_ebitda": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Predicted Ebitda",
+            "type": "array"
+          },
+          "predicted_ebitda_margin": {
+            "title": "Predicted Ebitda Margin",
+            "type": "number"
+          },
+          "predicted_equity_entry": {
+            "title": "Predicted Equity Entry",
+            "type": "number"
+          },
+          "predicted_exit_equity": {
+            "title": "Predicted Exit Equity",
+            "type": "number"
+          },
+          "predicted_irr_mean": {
+            "title": "Predicted Irr Mean",
+            "type": "number"
+          },
+          "predicted_irr_p5": {
+            "title": "Predicted Irr P5",
+            "type": "number"
+          },
+          "predicted_irr_p95": {
+            "title": "Predicted Irr P95",
+            "type": "number"
+          },
+          "predicted_moic": {
+            "title": "Predicted Moic",
+            "type": "number"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/BacktestYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "predicted_irr_mean",
+          "predicted_irr_p5",
+          "predicted_irr_p95",
+          "predicted_moic",
+          "predicted_equity_entry",
+          "predicted_exit_equity",
+          "predicted_ebitda",
+          "actual_irr",
+          "actual_moic",
+          "actual_equity_entry",
+          "actual_exit_equity",
+          "actual_percentile",
+          "actual_ebitda_margin",
+          "predicted_ebitda_margin",
+          "attribution",
+          "irr_histogram",
+          "years"
+        ],
+        "title": "BacktestResponse",
+        "type": "object"
+      },
+      "BacktestYear": {
+        "properties": {
+          "actual_ebitda": {
+            "title": "Actual Ebitda",
+            "type": "number"
+          },
+          "actual_fcf": {
+            "title": "Actual Fcf",
+            "type": "number"
+          },
+          "actual_revenue": {
+            "title": "Actual Revenue",
+            "type": "number"
+          },
+          "actual_total_debt": {
+            "title": "Actual Total Debt",
+            "type": "number"
+          },
+          "ebitda_variance": {
+            "title": "Ebitda Variance",
+            "type": "number"
+          },
+          "predicted_ebitda": {
+            "title": "Predicted Ebitda",
+            "type": "number"
+          },
+          "year_index": {
+            "title": "Year Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year_index",
+          "predicted_ebitda",
+          "actual_ebitda",
+          "ebitda_variance",
+          "actual_revenue",
+          "actual_fcf",
+          "actual_total_debt"
+        ],
+        "title": "BacktestYear",
+        "type": "object"
+      },
+      "Bands": {
+        "properties": {
+          "p25": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P25",
+            "type": "array"
+          },
+          "p5": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P5",
+            "type": "array"
+          },
+          "p50": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P50",
+            "type": "array"
+          },
+          "p75": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P75",
+            "type": "array"
+          },
+          "p95": {
+            "items": {
+              "type": "number"
+            },
+            "title": "P95",
+            "type": "array"
+          }
+        },
+        "required": [
+          "p5",
+          "p25",
+          "p50",
+          "p75",
+          "p95"
+        ],
+        "title": "Bands",
+        "type": "object"
+      },
+      "BridgeStep": {
+        "properties": {
+          "is_total": {
+            "title": "Is Total",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "pct_of_gain": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Of Gain"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "value",
+          "is_total",
+          "pct_of_gain"
+        ],
+        "title": "BridgeStep",
+        "type": "object"
+      },
+      "Capabilities": {
+        "properties": {
+          "anomaly_detector": {
+            "title": "Anomaly Detector",
+            "type": "boolean"
+          },
+          "edgar": {
+            "title": "Edgar",
+            "type": "boolean"
+          },
+          "macro_regime_installed": {
+            "title": "Macro Regime Installed",
+            "type": "boolean"
+          },
+          "macro_regime_trained": {
+            "title": "Macro Regime Trained",
+            "type": "boolean"
+          },
+          "surrogate": {
+            "title": "Surrogate",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "anomaly_detector",
+          "surrogate",
+          "macro_regime_installed",
+          "macro_regime_trained",
+          "edgar"
+        ],
+        "title": "Capabilities",
+        "type": "object"
+      },
+      "CashFlowResult": {
+        "properties": {
+          "capex": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Capex",
+            "type": "array"
+          },
+          "capex_pct": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Capex Pct",
+            "type": "array"
+          },
+          "cumulative_fcf": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Cumulative Fcf",
+            "type": "array"
+          },
+          "da": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Da",
+            "type": "array"
+          },
+          "delta_nwc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Delta Nwc",
+            "type": "array"
+          },
+          "delta_nwc_pct": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Delta Nwc Pct",
+            "type": "array"
+          },
+          "holding_period": {
+            "title": "Holding Period",
+            "type": "integer"
+          },
+          "levered_fcf": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Levered Fcf",
+            "type": "array"
+          },
+          "mandatory_repay": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Mandatory Repay",
+            "type": "array"
+          },
+          "net_income": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Net Income",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "title": "CashFlowResult",
+        "type": "object"
+      },
+      "DealInputsIn": {
+        "additionalProperties": false,
+        "description": "Deal wizard inputs.\n\ndebt_pct and senior_pct default to the model's stored defaults (60% / 70%).\nThe Streamlit wizard instead derives them on load from its financing\ninputs -- 3.4x senior + 0.8x mezz EBITDA, i.e. 42% and ~81% -- which is why\nits default deal shows a lower IRR. Use /deal/sources-and-uses to derive\nthem from debt multiples the same way.",
+        "properties": {
+          "ap_days": {
+            "default": 60.0,
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Ap Days",
+            "type": "number"
+          },
+          "ar_days": {
+            "default": 45.0,
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Ar Days",
+            "type": "number"
+          },
+          "base_rate": {
+            "default": 6.5,
+            "description": "Senior interest rate (%)",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Base Rate",
+            "type": "number"
+          },
+          "capex": {
+            "default": 4.0,
+            "description": "Capex / revenue (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Capex",
+            "type": "number"
+          },
+          "da": {
+            "default": 4.0,
+            "description": "D&A / revenue (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Da",
+            "type": "number"
+          },
+          "debt_pct": {
+            "default": 60.0,
+            "description": "Total debt / EV (%)",
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Debt Pct",
+            "type": "number"
+          },
+          "ebitda": {
+            "default": 100.0,
+            "description": "LTM EBITDA ($M)",
+            "exclusiveMinimum": 0.0,
+            "title": "Ebitda",
+            "type": "number"
+          },
+          "entry_mult": {
+            "default": 10.0,
+            "description": "Entry EV / EBITDA (x)",
+            "exclusiveMinimum": 0.0,
+            "title": "Entry Mult",
+            "type": "number"
+          },
+          "exit_mult": {
+            "default": 11.0,
+            "description": "Exit EV / EBITDA (x)",
+            "exclusiveMinimum": 0.0,
+            "title": "Exit Mult",
+            "type": "number"
+          },
+          "gross_margin": {
+            "default": 40.0,
+            "description": "Gross margin (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Gross Margin",
+            "type": "number"
+          },
+          "growth": {
+            "default": 5.0,
+            "description": "Revenue growth (%)",
+            "maximum": 100.0,
+            "minimum": -50.0,
+            "title": "Growth",
+            "type": "number"
+          },
+          "hold": {
+            "default": 5,
+            "description": "Holding period (years)",
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Hold",
+            "type": "integer"
+          },
+          "inv_days": {
+            "default": 30.0,
+            "maximum": 365.0,
+            "minimum": 0.0,
+            "title": "Inv Days",
+            "type": "number"
+          },
+          "mezz_spread": {
+            "default": 4.0,
+            "description": "Mezz spread over senior (%)",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Mezz Spread",
+            "type": "number"
+          },
+          "mincash": {
+            "default": 0.0,
+            "description": "Minimum cash ($M)",
+            "minimum": 0.0,
+            "title": "Mincash",
+            "type": "number"
+          },
+          "nwc": {
+            "default": 1.0,
+            "description": "Change in NWC / revenue (%)",
+            "maximum": 100.0,
+            "minimum": -100.0,
+            "title": "Nwc",
+            "type": "number"
+          },
+          "opex": {
+            "default": 18.0,
+            "description": "OpEx / revenue (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Opex",
+            "type": "number"
+          },
+          "senior_pct": {
+            "default": 70.0,
+            "description": "Senior / total debt (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Senior Pct",
+            "type": "number"
+          },
+          "tax": {
+            "default": 25.0,
+            "description": "Tax rate (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tax",
+            "type": "number"
+          },
+          "wsp_mode": {
+            "default": false,
+            "description": "Use AR/inventory/AP days instead of flat NWC",
+            "title": "Wsp Mode",
+            "type": "boolean"
+          }
+        },
+        "title": "DealInputsIn",
+        "type": "object"
+      },
+      "DealRiskRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "capex": 4.0,
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "inv_days": 30.0,
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "wsp_mode": false
+            }
+          },
+          "mezz_x": {
+            "default": 0.8,
+            "minimum": 0.0,
+            "title": "Mezz X",
+            "type": "number"
+          },
+          "senior_x": {
+            "default": 3.4,
+            "minimum": 0.0,
+            "title": "Senior X",
+            "type": "number"
+          }
+        },
+        "title": "DealRiskRequest",
+        "type": "object"
+      },
+      "DealRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "capex": 4.0,
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "inv_days": 30.0,
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "wsp_mode": false
+            }
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "title": "DealRunRequest",
+        "type": "object"
+      },
+      "DealRunResponse": {
+        "properties": {
+          "bridge_steps": {
+            "items": {
+              "$ref": "#/components/schemas/BridgeStep"
+            },
+            "title": "Bridge Steps",
+            "type": "array"
+          },
+          "cash_flow": {
+            "$ref": "#/components/schemas/CashFlowResult"
+          },
+          "debt_schedule": {
+            "additionalProperties": true,
+            "description": "Totals per year; per-tranche detail in tranches",
+            "title": "Debt Schedule",
+            "type": "object"
+          },
+          "equity_bridge": {
+            "$ref": "#/components/schemas/EquityBridge"
+          },
+          "exit_sensitivity": {
+            "$ref": "#/components/schemas/ExitSensitivity"
+          },
+          "interest_converged": {
+            "title": "Interest Converged",
+            "type": "boolean"
+          },
+          "operating_model": {
+            "$ref": "#/components/schemas/OperatingModelResult"
+          },
+          "returns": {
+            "$ref": "#/components/schemas/ReturnsResult"
+          },
+          "tranches": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/TrancheYear"
+              },
+              "type": "array"
+            },
+            "title": "Tranches",
+            "type": "object"
+          }
+        },
+        "required": [
+          "returns",
+          "operating_model",
+          "cash_flow",
+          "debt_schedule",
+          "tranches",
+          "equity_bridge",
+          "bridge_steps",
+          "exit_sensitivity",
+          "interest_converged"
+        ],
+        "title": "DealRunResponse",
+        "type": "object"
+      },
+      "DriverFit": {
+        "properties": {
+          "intercept": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intercept"
+          },
+          "r": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "R"
+          },
+          "slope": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slope"
+          }
+        },
+        "required": [
+          "slope",
+          "intercept",
+          "r"
+        ],
+        "title": "DriverFit",
+        "type": "object"
+      },
+      "DriverSensitivity": {
+        "properties": {
+          "driver": {
+            "title": "Driver",
+            "type": "string"
+          },
+          "spearman_rho": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spearman Rho"
+          }
+        },
+        "required": [
+          "driver",
+          "spearman_rho"
+        ],
+        "title": "DriverSensitivity",
+        "type": "object"
+      },
+      "EdgarResponse": {
+        "properties": {
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "history": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "Forecasting history keys, oldest year first",
+            "title": "History",
+            "type": "object"
+          },
+          "ticker": {
+            "title": "Ticker",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ticker",
+          "company_name",
+          "years",
+          "history",
+          "warnings"
+        ],
+        "title": "EdgarResponse",
+        "type": "object"
+      },
+      "EquityBridge": {
+        "properties": {
+          "deleveraging": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleveraging"
+          },
+          "deleveraging_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleveraging Pct"
+          },
+          "ebitda_growth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda Growth"
+          },
+          "ebitda_growth_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda Growth Pct"
+          },
+          "entry_costs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Costs"
+          },
+          "entry_costs_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Costs Pct"
+          },
+          "entry_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Equity"
+          },
+          "exit_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Equity"
+          },
+          "multiple_expansion": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiple Expansion"
+          },
+          "multiple_expansion_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiple Expansion Pct"
+          },
+          "residual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Residual"
+          },
+          "total_gain": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Gain"
+          }
+        },
+        "required": [
+          "entry_equity",
+          "entry_costs",
+          "ebitda_growth",
+          "multiple_expansion",
+          "deleveraging",
+          "exit_equity",
+          "total_gain",
+          "residual",
+          "entry_costs_pct",
+          "ebitda_growth_pct",
+          "multiple_expansion_pct",
+          "deleveraging_pct"
+        ],
+        "title": "EquityBridge",
+        "type": "object"
+      },
+      "ExitSensitivity": {
+        "properties": {
+          "exit_multiples": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Exit Multiples",
+            "type": "array"
+          },
+          "holding_periods": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Holding Periods",
+            "type": "array"
+          },
+          "metric": {
+            "title": "Metric",
+            "type": "string"
+          },
+          "table": {
+            "description": "rows = exit multiples, cols = holding periods",
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "title": "Table",
+            "type": "array"
+          }
+        },
+        "required": [
+          "metric",
+          "exit_multiples",
+          "holding_periods",
+          "table"
+        ],
+        "title": "ExitSensitivity",
+        "type": "object"
+      },
+      "FinalStats": {
+        "properties": {
+          "deterministic": {
+            "title": "Deterministic",
+            "type": "number"
+          },
+          "mean": {
+            "title": "Mean",
+            "type": "number"
+          },
+          "median": {
+            "title": "Median",
+            "type": "number"
+          },
+          "p25": {
+            "title": "P25",
+            "type": "number"
+          },
+          "p5": {
+            "title": "P5",
+            "type": "number"
+          },
+          "p75": {
+            "title": "P75",
+            "type": "number"
+          },
+          "p95": {
+            "title": "P95",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mean",
+          "median",
+          "p5",
+          "p25",
+          "p75",
+          "p95",
+          "deterministic"
+        ],
+        "title": "FinalStats",
+        "type": "object"
+      },
+      "ForecastDefaultsResponse": {
+        "properties": {
+          "assumption_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumption Keys",
+            "type": "array"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/HistoricalField"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "history": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "History",
+            "type": "object"
+          },
+          "n_fwd": {
+            "title": "N Fwd",
+            "type": "integer"
+          },
+          "n_hist": {
+            "title": "N Hist",
+            "type": "integer"
+          },
+          "seeded_assumptions": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Seeded Assumptions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "n_hist",
+          "n_fwd",
+          "fields",
+          "history",
+          "assumption_keys",
+          "seeded_assumptions"
+        ],
+        "title": "ForecastDefaultsResponse",
+        "type": "object"
+      },
+      "ForecastRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "assumption key -> one value per forecast year",
+            "title": "Assumptions",
+            "type": "object"
+          },
+          "history": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "field key -> one value per historical year, oldest first",
+            "title": "History",
+            "type": "object"
+          },
+          "n_sim": {
+            "default": 30000,
+            "maximum": 200000.0,
+            "minimum": 1000.0,
+            "title": "N Sim",
+            "type": "integer"
+          },
+          "simulate": {
+            "default": false,
+            "title": "Simulate",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "history",
+          "assumptions"
+        ],
+        "title": "ForecastRunRequest",
+        "type": "object"
+      },
+      "ForecastRunResponse": {
+        "properties": {
+          "balanced": {
+            "title": "Balanced",
+            "type": "boolean"
+          },
+          "forecast_balance_gaps": {
+            "description": "Gap each year introduced by the forecast itself",
+            "items": {
+              "type": "number"
+            },
+            "title": "Forecast Balance Gaps",
+            "type": "array"
+          },
+          "ltm": {
+            "$ref": "#/components/schemas/HistoricalYear"
+          },
+          "opening_balance_gap": {
+            "title": "Opening Balance Gap",
+            "type": "number"
+          },
+          "revenue_cagr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Cagr"
+          },
+          "simulation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastSimulation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ltm",
+          "years",
+          "revenue_cagr",
+          "opening_balance_gap",
+          "forecast_balance_gaps",
+          "balanced",
+          "simulation"
+        ],
+        "title": "ForecastRunResponse",
+        "type": "object"
+      },
+      "ForecastSimulation": {
+        "properties": {
+          "ebitda_bands": {
+            "$ref": "#/components/schemas/Bands"
+          },
+          "ebitda_final": {
+            "$ref": "#/components/schemas/FinalStats"
+          },
+          "growth_final_mean": {
+            "title": "Growth Final Mean",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "revenue_bands": {
+            "$ref": "#/components/schemas/Bands"
+          },
+          "revenue_final": {
+            "$ref": "#/components/schemas/FinalStats"
+          },
+          "target_probabilities": {
+            "items": {
+              "$ref": "#/components/schemas/TargetProbability"
+            },
+            "title": "Target Probabilities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "n",
+          "revenue_bands",
+          "ebitda_bands",
+          "revenue_final",
+          "ebitda_final",
+          "target_probabilities",
+          "growth_final_mean"
+        ],
+        "title": "ForecastSimulation",
+        "type": "object"
+      },
+      "ForecastYear": {
+        "properties": {
+          "adj_ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adj Ebitda"
+          },
+          "adj_ebitda_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adj Ebitda Margin"
+          },
+          "ap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ap"
+          },
+          "ar": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ar"
+          },
+          "balance_check": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance Check"
+          },
+          "cash": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash"
+          },
+          "cff": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cff"
+          },
+          "cfi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cfi"
+          },
+          "cfo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cfo"
+          },
+          "cogs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cogs"
+          },
+          "common_stock": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Common Stock"
+          },
+          "da": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Da"
+          },
+          "deferred_rev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deferred Rev"
+          },
+          "delta_nwc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta Nwc"
+          },
+          "ebit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebit"
+          },
+          "ebit_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebit Margin"
+          },
+          "ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda"
+          },
+          "ebitda_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda Margin"
+          },
+          "gross_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Margin"
+          },
+          "gross_profit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Profit"
+          },
+          "interest_exp": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Exp"
+          },
+          "interest_inc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Inc"
+          },
+          "inventory": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventory"
+          },
+          "ltd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ltd"
+          },
+          "net_cash_chg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Cash Chg"
+          },
+          "net_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Income"
+          },
+          "net_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Margin"
+          },
+          "nwc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nwc"
+          },
+          "oci": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oci"
+          },
+          "other_cl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Cl"
+          },
+          "other_current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Current"
+          },
+          "other_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Income"
+          },
+          "other_lta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Lta"
+          },
+          "other_nca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Nca"
+          },
+          "other_ncl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Ncl"
+          },
+          "ppe_beg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ppe Beg"
+          },
+          "ppe_end": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ppe End"
+          },
+          "ppe_net": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ppe Net"
+          },
+          "pretax": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pretax"
+          },
+          "rd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rd"
+          },
+          "re_beg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Re Beg"
+          },
+          "re_end": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Re End"
+          },
+          "retained_earn": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retained Earn"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "revolver": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revolver"
+          },
+          "revolver_draw": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revolver Draw"
+          },
+          "sbc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sbc"
+          },
+          "sga": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sga"
+          },
+          "taxes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxes"
+          },
+          "total_assets": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Assets"
+          },
+          "total_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Equity"
+          },
+          "total_liab": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Liab"
+          },
+          "year": {
+            "title": "Year",
+            "type": "string"
+          }
+        },
+        "title": "ForecastYear",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Heatmap": {
+        "properties": {
+          "exit_multiple": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Exit Multiple",
+            "type": "array"
+          },
+          "growth": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Growth",
+            "type": "array"
+          },
+          "irr": {
+            "description": "rows = exit multiples, cols = growth",
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "title": "Irr",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "growth",
+          "exit_multiple",
+          "irr",
+          "note"
+        ],
+        "title": "Heatmap",
+        "type": "object"
+      },
+      "Histogram": {
+        "properties": {
+          "density": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Density",
+            "type": "array"
+          },
+          "edges": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Edges",
+            "type": "array"
+          }
+        },
+        "required": [
+          "edges",
+          "density"
+        ],
+        "title": "Histogram",
+        "type": "object"
+      },
+      "HistoricalField": {
+        "properties": {
+          "default_latest": {
+            "title": "Default Latest",
+            "type": "number"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "step": {
+            "title": "Step",
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "default_latest",
+          "step"
+        ],
+        "title": "HistoricalField",
+        "type": "object"
+      },
+      "HistoricalMetrics": {
+        "properties": {
+          "adj_ebitda_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adj Ebitda Margin"
+          },
+          "ebitda_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda Margin"
+          },
+          "gross_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Margin"
+          },
+          "rd_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rd Pct"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "revenue_growth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Growth"
+          },
+          "sga_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sga Pct"
+          }
+        },
+        "required": [
+          "revenue",
+          "revenue_growth",
+          "gross_margin",
+          "rd_pct",
+          "sga_pct",
+          "ebitda_margin",
+          "adj_ebitda_margin"
+        ],
+        "title": "HistoricalMetrics",
+        "type": "object"
+      },
+      "HistoricalYear": {
+        "properties": {
+          "ap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ap"
+          },
+          "ar": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ar"
+          },
+          "capex": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capex"
+          },
+          "cash": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash"
+          },
+          "cogs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cogs"
+          },
+          "common_stock": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Common Stock"
+          },
+          "da": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Da"
+          },
+          "deferred_rev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deferred Rev"
+          },
+          "dividends": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dividends"
+          },
+          "interest_exp": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Exp"
+          },
+          "interest_inc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Inc"
+          },
+          "inventory": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventory"
+          },
+          "ltd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ltd"
+          },
+          "oci": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oci"
+          },
+          "other_cl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Cl"
+          },
+          "other_current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Current"
+          },
+          "other_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Income"
+          },
+          "other_lta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Lta"
+          },
+          "other_nca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Nca"
+          },
+          "other_ncl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Ncl"
+          },
+          "ppe_net": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ppe Net"
+          },
+          "rd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rd"
+          },
+          "repurchases": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repurchases"
+          },
+          "retained_earnings": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retained Earnings"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "sbc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sbc"
+          },
+          "sga": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sga"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax"
+          },
+          "year": {
+            "title": "Year",
+            "type": "string"
+          }
+        },
+        "title": "HistoricalYear",
+        "type": "object"
+      },
+      "HistoryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "history": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "field key -> one value per historical year, oldest first",
+            "title": "History",
+            "type": "object"
+          }
+        },
+        "required": [
+          "history"
+        ],
+        "title": "HistoryRequest",
+        "type": "object"
+      },
+      "MCInputsIn": {
+        "additionalProperties": false,
+        "properties": {
+          "ebitda": {
+            "default": 100.0,
+            "minimum": 1.0,
+            "title": "Ebitda",
+            "type": "number"
+          },
+          "entry_mult": {
+            "default": 10.0,
+            "minimum": 1.0,
+            "title": "Entry Mult",
+            "type": "number"
+          },
+          "exit_mean": {
+            "default": 10.0,
+            "minimum": 1.0,
+            "title": "Exit Mean",
+            "type": "number"
+          },
+          "exit_std": {
+            "default": 1.5,
+            "minimum": 0.1,
+            "title": "Exit Std",
+            "type": "number"
+          },
+          "gm_mean": {
+            "default": 40.0,
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Gm Mean",
+            "type": "number"
+          },
+          "gm_std": {
+            "default": 3.0,
+            "minimum": 0.1,
+            "title": "Gm Std",
+            "type": "number"
+          },
+          "growth_mean": {
+            "default": 5.0,
+            "title": "Growth Mean",
+            "type": "number"
+          },
+          "growth_std": {
+            "default": 3.0,
+            "minimum": 0.1,
+            "title": "Growth Std",
+            "type": "number"
+          },
+          "hold": {
+            "default": 5,
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Hold",
+            "type": "integer"
+          },
+          "hurdle": {
+            "default": 20.0,
+            "description": "Hurdle IRR (%)",
+            "minimum": 0.0,
+            "title": "Hurdle",
+            "type": "number"
+          },
+          "n": {
+            "default": 50000,
+            "description": "Scenarios to simulate",
+            "maximum": 1000000.0,
+            "minimum": 1000.0,
+            "title": "N",
+            "type": "integer"
+          },
+          "rate_mean": {
+            "default": 6.5,
+            "minimum": 0.0,
+            "title": "Rate Mean",
+            "type": "number"
+          },
+          "rate_std": {
+            "default": 1.5,
+            "minimum": 0.1,
+            "title": "Rate Std",
+            "type": "number"
+          }
+        },
+        "title": "MCInputsIn",
+        "type": "object"
+      },
+      "MonteCarloRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "deal": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "capex": 4.0,
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "inv_days": 30.0,
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "wsp_mode": false
+            }
+          },
+          "histogram_bins": {
+            "default": 80,
+            "maximum": 400.0,
+            "minimum": 10.0,
+            "title": "Histogram Bins",
+            "type": "integer"
+          },
+          "mc": {
+            "$ref": "#/components/schemas/MCInputsIn",
+            "default": {
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mean": 10.0,
+              "exit_std": 1.5,
+              "gm_mean": 40.0,
+              "gm_std": 3.0,
+              "growth_mean": 5.0,
+              "growth_std": 3.0,
+              "hold": 5,
+              "hurdle": 20.0,
+              "n": 50000,
+              "rate_mean": 6.5,
+              "rate_std": 1.5
+            }
+          },
+          "scatter_points": {
+            "default": 2000,
+            "maximum": 20000.0,
+            "minimum": 0.0,
+            "title": "Scatter Points",
+            "type": "integer"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "enum": [
+                  "recession",
+                  "base",
+                  "bull",
+                  "stagflation"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fix the random draws for reproducible results",
+            "title": "Seed"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "title": "MonteCarloRequest",
+        "type": "object"
+      },
+      "MonteCarloResponse": {
+        "properties": {
+          "correlations": {
+            "additionalProperties": true,
+            "title": "Correlations",
+            "type": "object"
+          },
+          "driver_fits": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DriverFit"
+            },
+            "title": "Driver Fits",
+            "type": "object"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/DriverSensitivity"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "number"
+          },
+          "heatmap": {
+            "$ref": "#/components/schemas/Heatmap"
+          },
+          "irr_cdf": {
+            "$ref": "#/components/schemas/PercentileCurve"
+          },
+          "irr_histogram": {
+            "$ref": "#/components/schemas/Histogram"
+          },
+          "moic_histogram": {
+            "$ref": "#/components/schemas/Histogram"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "scatter": {
+            "additionalProperties": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "title": "Scatter",
+            "type": "object"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "enum": [
+                  "recession",
+                  "base",
+                  "bull",
+                  "stagflation"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RiskSummary"
+          }
+        },
+        "required": [
+          "n",
+          "elapsed_ms",
+          "scenario",
+          "params",
+          "summary",
+          "irr_histogram",
+          "moic_histogram",
+          "irr_cdf",
+          "drivers",
+          "driver_fits",
+          "correlations",
+          "scatter",
+          "heatmap"
+        ],
+        "title": "MonteCarloResponse",
+        "type": "object"
+      },
+      "OperatingModelResult": {
+        "properties": {
+          "cogs": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Cogs",
+            "type": "array"
+          },
+          "cogs_pct": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Cogs Pct",
+            "type": "array"
+          },
+          "da": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Da",
+            "type": "array"
+          },
+          "da_pct": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Da Pct",
+            "type": "array"
+          },
+          "ebit": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ebit",
+            "type": "array"
+          },
+          "ebit_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ebit Margin",
+            "type": "array"
+          },
+          "ebitda": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ebitda",
+            "type": "array"
+          },
+          "ebitda_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ebitda Margin",
+            "type": "array"
+          },
+          "ebt": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ebt",
+            "type": "array"
+          },
+          "ebt_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Ebt Margin",
+            "type": "array"
+          },
+          "gross_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Gross Margin",
+            "type": "array"
+          },
+          "gross_profit": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Gross Profit",
+            "type": "array"
+          },
+          "holding_period": {
+            "title": "Holding Period",
+            "type": "integer"
+          },
+          "interest_expense": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Interest Expense",
+            "type": "array"
+          },
+          "interest_income": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Interest Income",
+            "type": "array"
+          },
+          "net_income": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Net Income",
+            "type": "array"
+          },
+          "net_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Net Margin",
+            "type": "array"
+          },
+          "opex": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Opex",
+            "type": "array"
+          },
+          "opex_pct": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Opex Pct",
+            "type": "array"
+          },
+          "revenue": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Revenue",
+            "type": "array"
+          },
+          "revenue_growth": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Revenue Growth",
+            "type": "array"
+          },
+          "scenario": {
+            "enum": [
+              "conservative",
+              "management"
+            ],
+            "title": "Scenario",
+            "type": "string"
+          },
+          "tax_rate": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Tax Rate",
+            "type": "array"
+          },
+          "taxes": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Taxes",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "title": "OperatingModelResult",
+        "type": "object"
+      },
+      "PercentileCurve": {
+        "properties": {
+          "percentiles": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Percentiles",
+            "type": "array"
+          },
+          "values": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "percentiles",
+          "values"
+        ],
+        "title": "PercentileCurve",
+        "type": "object"
+      },
+      "PreloadedDeal": {
+        "properties": {
+          "actual": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "default": {},
+            "title": "Actual",
+            "type": "object"
+          },
+          "actual_exit": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "default": {},
+            "title": "Actual Exit",
+            "type": "object"
+          },
+          "actual_years": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Actual Years",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entry": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Entry",
+            "type": "object"
+          },
+          "geography": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geography"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          }
+        },
+        "required": [
+          "name",
+          "entry"
+        ],
+        "title": "PreloadedDeal",
+        "type": "object"
+      },
+      "ReturnsResult": {
+        "properties": {
+          "cash_flow_stream": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Cash Flow Stream",
+            "type": "array"
+          },
+          "deleveraging_contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleveraging Contribution"
+          },
+          "ebitda_growth_contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda Growth Contribution"
+          },
+          "entry_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Equity"
+          },
+          "exit_ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Ebitda"
+          },
+          "exit_ev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Ev"
+          },
+          "exit_multiple": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Multiple"
+          },
+          "gross_exit_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Exit Equity"
+          },
+          "holding_period": {
+            "title": "Holding Period",
+            "type": "integer"
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Irr"
+          },
+          "mgmt_dilution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mgmt Dilution"
+          },
+          "moic": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moic"
+          },
+          "multiple_expansion_contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiple Expansion Contribution"
+          },
+          "net_debt_at_exit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Debt At Exit"
+          },
+          "net_exit_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Exit Equity"
+          }
+        },
+        "title": "ReturnsResult",
+        "type": "object"
+      },
+      "RiskSummary": {
+        "properties": {
+          "hurdle": {
+            "title": "Hurdle",
+            "type": "number"
+          },
+          "mean_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Irr"
+          },
+          "median_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Irr"
+          },
+          "p5_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P5 Irr"
+          },
+          "p95_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Irr"
+          },
+          "p_above_hurdle": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Above Hurdle"
+          },
+          "wipeout_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wipeout Rate"
+          }
+        },
+        "required": [
+          "mean_irr",
+          "median_irr",
+          "p5_irr",
+          "p95_irr",
+          "p_above_hurdle",
+          "wipeout_rate",
+          "hurdle"
+        ],
+        "title": "RiskSummary",
+        "type": "object"
+      },
+      "ScenarioStats": {
+        "properties": {
+          "irr_box": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Irr Box",
+            "type": "object"
+          },
+          "mean_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Irr"
+          },
+          "median_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Irr"
+          },
+          "moic_box": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Moic Box",
+            "type": "object"
+          },
+          "p5_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P5 Irr"
+          },
+          "p95_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Irr"
+          },
+          "p_above_hurdle": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Above Hurdle"
+          },
+          "wipeout_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wipeout Rate"
+          }
+        },
+        "required": [
+          "mean_irr",
+          "median_irr",
+          "p5_irr",
+          "p95_irr",
+          "p_above_hurdle",
+          "wipeout_rate",
+          "irr_box",
+          "moic_box"
+        ],
+        "title": "ScenarioStats",
+        "type": "object"
+      },
+      "ScenariosRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "deal": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "capex": 4.0,
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "inv_days": 30.0,
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "wsp_mode": false
+            }
+          },
+          "mc": {
+            "$ref": "#/components/schemas/MCInputsIn",
+            "default": {
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mean": 10.0,
+              "exit_std": 1.5,
+              "gm_mean": 40.0,
+              "gm_std": 3.0,
+              "growth_mean": 5.0,
+              "growth_std": 3.0,
+              "hold": 5,
+              "hurdle": 20.0,
+              "n": 50000,
+              "rate_mean": 6.5,
+              "rate_std": 1.5
+            }
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "title": "ScenariosRequest",
+        "type": "object"
+      },
+      "ScenariosResponse": {
+        "properties": {
+          "hurdle": {
+            "title": "Hurdle",
+            "type": "number"
+          },
+          "scenarios": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ScenarioStats"
+            },
+            "title": "Scenarios",
+            "type": "object"
+          }
+        },
+        "required": [
+          "hurdle",
+          "scenarios"
+        ],
+        "title": "ScenariosResponse",
+        "type": "object"
+      },
+      "SeedResponse": {
+        "properties": {
+          "historical_metrics": {
+            "items": {
+              "$ref": "#/components/schemas/HistoricalMetrics"
+            },
+            "title": "Historical Metrics",
+            "type": "array"
+          },
+          "ltm": {
+            "$ref": "#/components/schemas/HistoricalYear"
+          },
+          "seeded_assumptions": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Seeded Assumptions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "ltm",
+          "historical_metrics",
+          "seeded_assumptions"
+        ],
+        "title": "SeedResponse",
+        "type": "object"
+      },
+      "SettingsResponse": {
+        "properties": {
+          "correlation_matrix": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Correlation Matrix",
+            "type": "array"
+          },
+          "correlation_valid": {
+            "title": "Correlation Valid",
+            "type": "boolean"
+          },
+          "defaults": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Defaults",
+            "type": "object"
+          }
+        },
+        "required": [
+          "defaults",
+          "correlation_matrix",
+          "correlation_valid"
+        ],
+        "title": "SettingsResponse",
+        "type": "object"
+      },
+      "SettingsValidateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "title": "SettingsValidateRequest",
+        "type": "object"
+      },
+      "SourcesUsesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "ebitda": {
+            "default": 100.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Ebitda",
+            "type": "number"
+          },
+          "entry_mult": {
+            "default": 10.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Entry Mult",
+            "type": "number"
+          },
+          "mezz_x": {
+            "default": 0.8,
+            "description": "Mezz debt (x EBITDA)",
+            "minimum": 0.0,
+            "title": "Mezz X",
+            "type": "number"
+          },
+          "senior_x": {
+            "default": 3.4,
+            "description": "Senior debt (x EBITDA)",
+            "minimum": 0.0,
+            "title": "Senior X",
+            "type": "number"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "title": "SourcesUsesRequest",
+        "type": "object"
+      },
+      "SourcesUsesResponse": {
+        "properties": {
+          "balanced": {
+            "title": "Balanced",
+            "type": "boolean"
+          },
+          "check": {
+            "title": "Check",
+            "type": "number"
+          },
+          "debt_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Implied total debt / EV (%)",
+            "title": "Debt Pct"
+          },
+          "equity_purchase_price": {
+            "title": "Equity Purchase Price",
+            "type": "number"
+          },
+          "financing_fees": {
+            "title": "Financing Fees",
+            "type": "number"
+          },
+          "mezz_debt": {
+            "title": "Mezz Debt",
+            "type": "number"
+          },
+          "other_uses": {
+            "title": "Other Uses",
+            "type": "number"
+          },
+          "senior_debt": {
+            "title": "Senior Debt",
+            "type": "number"
+          },
+          "senior_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Implied senior / total debt (%)",
+            "title": "Senior Pct"
+          },
+          "sponsor_equity": {
+            "title": "Sponsor Equity",
+            "type": "number"
+          },
+          "total_sources": {
+            "title": "Total Sources",
+            "type": "number"
+          },
+          "total_uses": {
+            "title": "Total Uses",
+            "type": "number"
+          },
+          "transaction_fees": {
+            "title": "Transaction Fees",
+            "type": "number"
+          }
+        },
+        "required": [
+          "senior_debt",
+          "mezz_debt",
+          "sponsor_equity",
+          "total_sources",
+          "equity_purchase_price",
+          "transaction_fees",
+          "financing_fees",
+          "other_uses",
+          "total_uses",
+          "check",
+          "balanced"
+        ],
+        "title": "SourcesUsesResponse",
+        "type": "object"
+      },
+      "SurrogateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "deal": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "capex": 4.0,
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "inv_days": 30.0,
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "wsp_mode": false
+            }
+          },
+          "mc": {
+            "$ref": "#/components/schemas/MCInputsIn",
+            "default": {
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mean": 10.0,
+              "exit_std": 1.5,
+              "gm_mean": 40.0,
+              "gm_std": 3.0,
+              "growth_mean": 5.0,
+              "growth_std": 3.0,
+              "hold": 5,
+              "hurdle": 20.0,
+              "n": 50000,
+              "rate_mean": 6.5,
+              "rate_std": 1.5
+            }
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          },
+          "sliders": {
+            "$ref": "#/components/schemas/SurrogateSliders",
+            "default": {
+              "debt_pct": 60.0,
+              "exit_mean": 10.0,
+              "exit_std": 1.5,
+              "gross_margin_mean": 40.0,
+              "growth_mean": 5.0,
+              "interest_mean": 6.5
+            }
+          }
+        },
+        "title": "SurrogateRequest",
+        "type": "object"
+      },
+      "SurrogateResponse": {
+        "properties": {
+          "prediction": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Prediction",
+            "type": "object"
+          },
+          "tail_unreliable": {
+            "title": "Tail Unreliable",
+            "type": "boolean"
+          },
+          "term_differences": {
+            "items": {
+              "$ref": "#/components/schemas/TermDifference"
+            },
+            "title": "Term Differences",
+            "type": "array"
+          }
+        },
+        "required": [
+          "prediction",
+          "tail_unreliable",
+          "term_differences"
+        ],
+        "title": "SurrogateResponse",
+        "type": "object"
+      },
+      "SurrogateSliders": {
+        "additionalProperties": false,
+        "properties": {
+          "debt_pct": {
+            "default": 60.0,
+            "description": "Debt / EV (%)",
+            "maximum": 90.0,
+            "minimum": 20.0,
+            "title": "Debt Pct",
+            "type": "number"
+          },
+          "exit_mean": {
+            "default": 10.0,
+            "maximum": 20.0,
+            "minimum": 4.0,
+            "title": "Exit Mean",
+            "type": "number"
+          },
+          "exit_std": {
+            "default": 1.5,
+            "maximum": 5.0,
+            "minimum": 0.3,
+            "title": "Exit Std",
+            "type": "number"
+          },
+          "gross_margin_mean": {
+            "default": 40.0,
+            "description": "(%)",
+            "maximum": 80.0,
+            "minimum": 10.0,
+            "title": "Gross Margin Mean",
+            "type": "number"
+          },
+          "growth_mean": {
+            "default": 5.0,
+            "description": "Revenue growth mean (%)",
+            "maximum": 20.0,
+            "minimum": -5.0,
+            "title": "Growth Mean",
+            "type": "number"
+          },
+          "interest_mean": {
+            "default": 6.5,
+            "description": "(%)",
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Interest Mean",
+            "type": "number"
+          }
+        },
+        "title": "SurrogateSliders",
+        "type": "object"
+      },
+      "TargetProbability": {
+        "properties": {
+          "probability": {
+            "title": "Probability",
+            "type": "number"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "number"
+          }
+        },
+        "required": [
+          "target",
+          "probability",
+          "scenario"
+        ],
+        "title": "TargetProbability",
+        "type": "object"
+      },
+      "TermDifference": {
+        "properties": {
+          "decimals": {
+            "title": "Decimals",
+            "type": "integer"
+          },
+          "model_value": {
+            "title": "Model Value",
+            "type": "number"
+          },
+          "term": {
+            "title": "Term",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "term",
+          "value",
+          "model_value",
+          "unit",
+          "decimals"
+        ],
+        "title": "TermDifference",
+        "type": "object"
+      },
+      "TrancheYear": {
+        "properties": {
+          "beginning_balance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beginning Balance"
+          },
+          "cash_sweep": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Sweep"
+          },
+          "ending_balance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Balance"
+          },
+          "interest_expense": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Expense"
+          },
+          "interest_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Rate"
+          },
+          "mandatory_repayment": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mandatory Repayment"
+          },
+          "tranche_name": {
+            "title": "Tranche Name",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "tranche_name",
+          "beginning_balance",
+          "mandatory_repayment",
+          "cash_sweep",
+          "ending_balance",
+          "interest_expense",
+          "interest_rate"
+        ],
+        "title": "TrancheYear",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "LBO modelling: deal wizard, Monte Carlo, backtesting and 3-statement forecasting.",
+    "title": "Simulation Model API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/backtesting/deals": {
+      "get": {
+        "description": "Historical deals with their entry assumptions and actual results.",
+        "operationId": "get_deals_api_backtesting_deals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PreloadedDeal"
+                  },
+                  "title": "Response Get Deals Api Backtesting Deals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Deals",
+        "tags": [
+          "backtesting"
+        ]
+      }
+    },
+    "/api/backtesting/run": {
+      "post": {
+        "description": "Predict a deal from its entry assumptions and compare with what happened.",
+        "operationId": "post_run_api_backtesting_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacktestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Run",
+        "tags": [
+          "backtesting"
+        ]
+      }
+    },
+    "/api/capabilities": {
+      "get": {
+        "description": "Which optional features this server can run.",
+        "operationId": "get_capabilities_api_capabilities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capabilities"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Capabilities",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/deal/run": {
+      "post": {
+        "description": "Run the full LBO model: operating model, cash flow, debt, returns.",
+        "operationId": "post_run_api_deal_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Run",
+        "tags": [
+          "deal"
+        ]
+      }
+    },
+    "/api/deal/sources-and-uses": {
+      "post": {
+        "description": "Sources & uses for a deal financed with senior and mezz debt multiples.",
+        "operationId": "post_sources_and_uses_api_deal_sources_and_uses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourcesUsesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourcesUsesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Sources And Uses",
+        "tags": [
+          "deal"
+        ]
+      }
+    },
+    "/api/edgar/{ticker}": {
+      "get": {
+        "description": "Historical financials for a US-listed company, as forecasting inputs.",
+        "operationId": "get_edgar_api_edgar__ticker__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticker",
+            "required": true,
+            "schema": {
+              "title": "Ticker",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EdgarResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Edgar",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/forecasting/defaults": {
+      "get": {
+        "description": "Default historical inputs and the assumptions seeded from them.",
+        "operationId": "get_defaults_api_forecasting_defaults_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastDefaultsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Defaults",
+        "tags": [
+          "forecasting"
+        ]
+      }
+    },
+    "/api/forecasting/run": {
+      "post": {
+        "description": "Run the 3-statement model, optionally with the simulation overlay.",
+        "operationId": "post_run_api_forecasting_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Run",
+        "tags": [
+          "forecasting"
+        ]
+      }
+    },
+    "/api/forecasting/seed": {
+      "post": {
+        "description": "LTM year, historical ratios and seeded assumptions for given historicals.",
+        "operationId": "post_seed_api_forecasting_seed_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Seed",
+        "tags": [
+          "forecasting"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/ml/deal-risk": {
+      "post": {
+        "description": "Anomaly detector risk score, flags and the most similar historical deals.",
+        "operationId": "post_deal_risk_api_ml_deal_risk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealRiskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Deal Risk",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/ml/macro-regime": {
+      "post": {
+        "description": "Classify the current macro regime from FRED data.",
+        "operationId": "post_macro_regime_api_ml_macro_regime_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Post Macro Regime",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/ml/surrogate": {
+      "post": {
+        "description": "Instant IRR distribution estimate for the live sliders.",
+        "operationId": "post_surrogate_api_ml_surrogate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurrogateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurrogateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Surrogate",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/montecarlo/run": {
+      "post": {
+        "description": "Simulate the deal and return chart-ready distributions and analytics.\n\nRaw paths are not returned: histograms, a CDF, a scatter sample and the\nsame analytics the Streamlit tabs show are computed server-side.",
+        "operationId": "post_run_api_montecarlo_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonteCarloRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonteCarloResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Run",
+        "tags": [
+          "monte carlo"
+        ]
+      }
+    },
+    "/api/montecarlo/scenarios": {
+      "post": {
+        "description": "Run all four scenario presets from the same inputs.",
+        "operationId": "post_scenarios_api_montecarlo_scenarios_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenariosRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenariosResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Scenarios",
+        "tags": [
+          "monte carlo"
+        ]
+      }
+    },
+    "/api/settings/defaults": {
+      "get": {
+        "operationId": "get_settings_defaults_api_settings_defaults_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Settings Defaults",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/settings/validate": {
+      "post": {
+        "description": "Apply overrides and report whether the correlation settings are usable.",
+        "operationId": "post_settings_validate_api_settings_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsValidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Settings Validate",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    }
+  }
+}

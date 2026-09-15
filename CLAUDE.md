@@ -13,7 +13,8 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15, after PR #2 merged (`afa256c`).
+Last updated: 2026-09-15, step 1 agreed and step 3 (web shell) in PR on
+`feat/web-shell`.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
@@ -22,19 +23,44 @@ The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
 
 | Step | Status |
 |---|---|
-| 1. Design direction — mockups of key screens for user approval | **Next.** Use the design skills (see Tooling). Needs the user's call on look & feel |
+| 1. Design direction — mockups of key screens for user approval | ✅ Agreed — see "Design system" below |
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
-| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | Not started |
-| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | Not started |
+| 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built on `feat/web-shell` (PR open). Every step route exists and says "Not built yet" |
+| 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | **Next.** Replace `StepPending` per step, matching the final-look mockup |
 | 5. Browser tests in CI proving every control changes its output (Playwright) | Not started |
 | 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
 for `web/`; FastAPI for `api/`; one repo.
 
-Suggested design direction, not yet confirmed by the user: a data-dense
-financial tool — high visual density, moderate boldness, light motion, calm
-references (e.g. Linear, Stripe). Confirm before building.
+### Design system (agreed with the user in step 1 — don't reopen)
+
+Reference mockup of all five screens with real API numbers:
+https://claude.ai/artifact/ALQqM9gaEQxs14oi2Devwg (private to the user).
+Earlier rounds: directions, navigation options, mixes, type weights.
+
+- **Look: "Tape".** Dark, dense workstation. Canvas `#0C1012`, panel `#12181B`,
+  line `#222B30`, ink `#D5DDE1`, accent cyan `#62B6CB`; gain `#58B28A`,
+  loss `#D8665A`, attention amber `#D9A54A`. Square corners, 1px hairline
+  tile grids, no cards. Motion only for state changes. Tokens live in
+  `web/src/app/globals.css`.
+- **Type:** the user wanted Microgramma / Eurostile Extended. Free stand-ins:
+  **Michroma** (text, labels) and **Orbitron** (weights 500–900, structure);
+  **JetBrains Mono** for every figure so columns align.
+  **Zoned** hierarchy — each area reads differently: top menu Orbitron heavy
+  wide caps; steps light Michroma sentence case with underline; **inputs use
+  Michroma thickened with `-webkit-text-stroke`** (group 0.45px, label 0.2px);
+  result titles Orbitron 700 bright; alerts Orbitron 800 amber; actions 900.
+  Use the `type-*` classes, not ad-hoc font styles.
+- **Charts:** categories Michroma 8 caps muted; ticks mono dim; values mono
+  ink, totals bright; reference lines Orbitron 700 caps (amber for thresholds);
+  cyan = the answer, green/red = gain/loss, grey = context.
+- **Navigation: "Guided" (mix 1).** Mode tabs across the top, a step row
+  below, Ctrl K search on the right. No Run button in the top bar. The deal
+  model reruns automatically on edit; Monte Carlo is marked **stale** (tab
+  chip + dimmed tiles) and rerun from a changes bar above the results.
+  Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
+- Screens show open model findings as visible markers rather than hiding them.
 
 ### Model findings — recorded, NOT fixed (need the user's go-ahead)
 
@@ -56,7 +82,7 @@ references (e.g. Linear, Stripe). Confirm before building.
 
 ### Waiting on the user
 
-- Look & feel decision for step 1.
+- Whether to fix finding 1 (minimum cash) before or during step 4.
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -74,9 +100,11 @@ references (e.g. Linear, Stripe). Confirm before building.
 | `simulation/vectorized_simulation.py` | Vectorized Monte Carlo engine |
 | `analytics/` | Risk metrics |
 | `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
+| `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (drives tabs, steps, search, routes); `src/components/shell/` is the Guided shell; `src/app/[mode]/[step]/` the screens; `src/lib/api/` the typed client |
+| `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `app.py`, `pages/` | Streamlit app (to be retired). Pages call `core/` |
 | `tests/golden/` | Snapshot of the Streamlit app's outputs taken **before** logic moved into `core/`; the parity baseline |
-| `tests/`, `test_*.py` | Test suite (67 tests) |
+| `tests/`, `test_*.py` | Test suite (68 tests) |
 
 ## Commands (Windows, from the repo root)
 
@@ -84,7 +112,21 @@ references (e.g. Linear, Stripe). Confirm before building.
 .venv/Scripts/python.exe -m pytest                       # all tests
 .venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
 .venv/Scripts/python.exe -m streamlit run app.py         # legacy Streamlit app
+
+# web/ (run the API too; Next proxies /api to FSE_API_URL, default 127.0.0.1:8000)
+npm --prefix web run dev                                 # http://localhost:3000
+npm --prefix web run lint
+npm --prefix web run typecheck
+npm --prefix web run build
+
+# After changing API schemas: refresh the snapshot, then the TS types
+.venv/Scripts/python.exe -m api.export_openapi web/openapi.json
+npm --prefix web run api:types
 ```
+
+CI (`.github/workflows/tests.yml`) runs `core`, `ml` and `web` jobs.
+`tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
+`web` job fails when `schema.d.ts` doesn't match the snapshot.
 
 Setup on a fresh machine: Python 3.12, then
 `pip install -r requirements-ml.txt -r requirements-dev.txt` (or just
@@ -92,7 +134,7 @@ Setup on a fresh machine: Python 3.12, then
 
 ## Working rules
 
-- **`main` is protected.** Every change: branch → PR → CI (`core` and `ml` jobs)
+- **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
   The GitHub CLI is not installed; open and merge PRs through the browser.
 - **Keep model logic as is** unless the user approves a change. Record findings
@@ -136,5 +178,13 @@ Skills load when a session starts: install first, then open a new session.
   re-seed, assign through `st.session_state`.
 - `tests/golden/generate_golden.py` drives the Streamlit app headlessly; run it
   against `main` in a separate worktree, never to "fix" a failing test.
+- **Next.js 16 differs from older versions.** Read `web/node_modules/next/dist/docs/`
+  before using an API (e.g. `params` is a Promise; `PageProps`/`LayoutProps`
+  are global types generated by `next typegen`). `web/AGENTS.md` is
+  re-created by `next dev`; keep it committed.
+- Components that use context or Motion (`MotionConfig`, `motion.*`) must be
+  client components; the shell keeps them in `workspace.tsx` and the bars.
+- Browser-automation key presses: send `Enter` and `]`, not `Return` or
+  `bracketright`, or shortcuts appear broken when they aren't.
 - Deal defaults differ: the API uses stored 60% debt / 70% senior; the
   Streamlit wizard derives 42% / ~81% from its 3.4x + 0.8x debt multiples.
