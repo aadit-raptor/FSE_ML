@@ -36,7 +36,20 @@ test.describe("Settings", () => {
     await page.getByRole("button", { name: "Apply to current deal" }).click();
     await modeTab(page, "Deal").click();
     await stepLink(page, "Returns").click();
-    await expect(kpi(page, "IRR")).toHaveText("23.8%");
+    await expect(kpi(page, "IRR")).toHaveText("23.7%");
+    await modeTab(page, "Settings").click();
+    await page.getByRole("button", { name: "Reset all" }).click();
+  });
+
+  test("senior amortisation and sensitivity ranges change deal output", async ({ page }) => {
+    await page.goto("/settings/deal");
+    await setField(page, "Senior amortisation", "12");
+    await setField(page, "Hold from", "4");
+    await setField(page, "Hold to", "6");
+    await modeTab(page, "Deal").click();
+    await stepLink(page, "Returns").click();
+    await expect(kpi(page, "IRR")).toHaveText("23.0%");
+    await expect(page.locator("main table").filter({ hasText: "11.0x" }).locator("thead th")).toHaveText(["Exit", "4y", "5y", "6y"]);
     await modeTab(page, "Settings").click();
     await page.getByRole("button", { name: "Reset all" }).click();
   });

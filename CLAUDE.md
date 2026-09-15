@@ -13,14 +13,16 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-15. Stacked branches, all pushed, PRs to open and
-merge in order: `feat/web-shell` (step 3) → `feat/deal-screens` (Deal) →
-`feat/remaining-screens` (Monte Carlo, Backtest, Forecast, Settings).
+Last updated: 2026-09-15. Work is on stacked branches, each containing the
+previous: `feat/remaining-screens` (steps 3–4, PR #4 open) →
+`feat/e2e-tests` (step 5) → `feat/model-fixes` (findings fixed).
+`feat/model-fixes` holds everything; merging it covers all of them.
 
 ### Main goal: frontend rebuild (Streamlit → FastAPI + Next.js)
 
 The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
-**the model's logic kept as is**. Streamlit is retired at the end.
+the model's logic kept as is (the user later approved fixing the findings
+below). Streamlit is retired at the end.
 
 | Step | Status |
 |---|---|
@@ -28,7 +30,7 @@ The user wants a full, scalable, "anti-slop" frontend rebuilt from scratch, with
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
 | 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Built (`feat/web-shell`) |
 | 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built and verified by output in the browser (`feat/deal-screens`, `feat/remaining-screens`). Not yet merged |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (24 tests, CI job `e2e`), on `feat/e2e-tests`. Mutation-checked |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (27 tests, CI job `e2e`). Mutation-checked |
 | 6. Deploy (frontend + API) and retire Streamlit | Not started — needs the user's hosting choice |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
@@ -63,42 +65,36 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
 - Screens show open model findings as visible markers rather than hiding them.
 
-### Model findings — recorded, NOT fixed (need the user's go-ahead)
+### Model findings
 
-1. **Minimum cash inflates returns.** The debt model opens with the minimum cash
-   balance, but sponsor equity doesn't fund it, so the equity bridge residual
-   equals the minimum cash and IRR is overstated when it is > 0. Most important.
-   `tests/test_api.py::test_deal_run_matches_streamlit_snapshot` documents this;
-   a fix must update that test deliberately.
-2. **Settings the model doesn't read:** `def_senior_amort`, `mc_clip_irr`,
-   sensitivity ranges (`sens_*`). The web app marks them "no effect". (The
-   `mc_*` defaults and `def_*` values now seed the web app's Monte Carlo and
-   deal inputs, so they do something in the UI; the engine still ignores them.)
-3. **Monte Carlo heatmap** (`core/montecarlo.py::growth_exit_heatmap`) is a
-   fee-free closed-form approximation, not the simulation.
-4. **Forecast target labels look inverted** (above deterministic EBITDA is
-   labelled "Bear") — `core/forecasting.py::simulation_summary`.
-5. **Backtest error attribution** uses arbitrary factors (0.3, 0.1, 0.05, 0.75).
-6. **Streamlit backtesting page only ever runs Burger King's inputs** (keyed
-   widgets keep the first deal's values). Streamlit-only; the web Backtest
-   runs each deal's own inputs (Dell verified against golden).
-7. **Exit sensitivity grid is only exact in the chosen hold's column.**
-   Other holding-period columns reuse that hold's exit value and only change
-   the discounting years. E.g. 12.0x exit: a real 6-year run gives IRR 21.3%,
-   the 5-year run's grid shows 19.4% for 6y. The Returns screen marks it.
-8. **Interest circularity doesn't always converge** (3 passes, $0.5M
-   tolerance, `lbo_engine/model.py`). Default deal: not converged, P&L interest
-   up to $0.62M off the debt schedule. Minor; the Debt screen shows the gap.
-9. **A fixed Monte Carlo seed isn't reproducible under concurrent requests.**
-   `simulation/vectorized_simulation.py` calls `np.random.seed()` on numpy's
-   global RNG, and FastAPI runs sync endpoints in a thread pool, so two
-   simulations at once interleave draws. The web app runs its own MC calls
-   sequentially; multiple users on one server would still collide. A fix
-   (a local `np.random.default_rng(seed)`) changes golden numbers.
+Fixed on `feat/model-fixes` (user said "you do it all", 2026-09-15). Each fix
+has a test in `tests/test_model_fixes.py` that fails on the old code; the
+golden snapshot is untouched and parity tests explain every departure.
+
+1. ✅ **Minimum cash** is now funded by sponsor equity (`run_lbo`) and listed
+   in sources and uses; the bridge residual is 0. Parity: `assert_min_cash_funded`.
+2. ✅ **Settings the model ignored** — `def_senior_amort`, `mc_clip_irr`,
+   `sens_*` — are read by the deal model, simulation and backtest.
+3. ✅ **Monte Carlo heatmap** cells are full `run_lbo` runs at the
+   simulation's mean assumptions (was a fee-free closed form).
+4. ✅ **Forecast target labels**: above plan is Bull, below plan Bear.
+5. ✅ **Backtest** predicted exit values come from a deal-model run (was exit
+   debt = 75% of entry debt); attribution is an exact split of the exit
+   equity gap into exit EBITDA, exit multiple and net debt.
+6. **Streamlit backtesting page only ever runs Burger King's inputs.**
+   Streamlit-only, not fixed; the web app is unaffected. Moot once Streamlit
+   is retired.
+7. ✅ **Exit sensitivity grid**: each hold column is a full run for that hold;
+   ranges come from `sens_*` (default rows now 6–12x, not 0.6–1.4x of exit).
+8. ✅ **Interest circularity** iterates to $1k (`core/deal.py`
+   `MAX_INTEREST_PASSES`/`INTEREST_TOLERANCE`). `test_core_parity` runs the
+   engine with the snapshot's 3 passes to stay exact; `test_api` compares the
+   API with the converged core run.
+9. ✅ **Seeded Monte Carlo** uses a local `RandomState(seed)`, identical
+   stream to the old global seed, safe under concurrent requests.
 
 ### Waiting on the user
 
-- Whether to fix findings 1 (minimum cash) and 7 (sensitivity grid).
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -120,7 +116,7 @@ Earlier rounds: directions, navigation options, mixes, type weights.
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `app.py`, `pages/` | Streamlit app (to be retired). Pages call `core/` |
 | `tests/golden/` | Snapshot of the Streamlit app's outputs taken **before** logic moved into `core/`; the parity baseline |
-| `tests/`, `test_*.py` | Test suite (68 tests) |
+| `tests/`, `test_*.py` | Test suite (85 tests); `tests/test_model_fixes.py` pins each finding fix |
 
 ## Commands (Windows, from the repo root)
 
@@ -164,12 +160,13 @@ Setup on a fresh machine: Python 3.12, then
 - **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
   The GitHub CLI is not installed; open and merge PRs through the browser.
-- **Keep model logic as is** unless the user approves a change. Record findings
-  in this file instead of silently fixing them.
+- **Keep model logic as is** unless the user approves a change. Record new
+  findings in this file instead of silently fixing them.
 - **Parity:** `tests/test_core_parity.py` and `tests/test_api.py` pin results to
   `tests/golden/golden.json` (1e-9 relative tolerance — bit-for-bit locally,
   but Linux CI numpy can differ in the last bits). Never regenerate the golden
-  file to make a test pass; a deliberate logic change updates tests explicitly.
+  file to make a test pass; a deliberate logic change updates tests explicitly
+  (see how findings 1, 5, 7 and 8 did it).
 - **Verify by output, not by render.** Several past bugs were controls that
   rendered fine and did nothing (scenario presets, WSP toggle, EDGAR, fee
   settings). Check that changing an input changes the result.

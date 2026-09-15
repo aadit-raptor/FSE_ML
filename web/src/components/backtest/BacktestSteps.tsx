@@ -175,10 +175,9 @@ function Predicted() {
 }
 
 const ATTRIBUTION: Record<string, string> = {
-  ebitda_growth_miss: "EBITDA growth",
-  margin_difference: "Margin",
-  fcf_conversion: "FCF conversion",
-  debt_paydown: "Debt paydown",
+  exit_ebitda: "Exit EBITDA",
+  exit_multiple: "Exit multiple",
+  net_debt: "Net debt at exit",
 };
 
 export function AttributionStep() {
@@ -195,16 +194,18 @@ function Attribution() {
   const years = deal.actual_years.length ? deal.actual_years.map(String) : r.years.map((y) => `Y${y.year_index}`);
   return (
     <Tiles>
-      <Notice title="Rough split" role="note" className="col-span-12">
-        The attribution uses fixed weights (0.3, 0.1, 0.05, 0.75) rather than a decomposition of the model. Open finding 5: read the direction, not the size.
-      </Notice>
       <Headline />
-      <Tile span={6} title="Where the prediction missed" unit="$M">
+      <Tile span={6} title="Where the prediction missed" unit="$M of exit equity">
         <DivergingBars
           label="Error attribution"
           format={fmtDelta}
           rows={Object.entries(r.attribution).map(([k, v]) => ({ label: ATTRIBUTION[k] ?? k, value: v }))}
         />
+        <p className="type-body text-[9px]">
+          The parts add up to actual minus predicted exit equity ({fmtDelta(Object.values(r.attribution).reduce((a, b) => a + b, 0))} $M). Exit
+          multiple {deal.entry.exit_multiple}x predicted, {r.actual_exit_multiple.toFixed(1)}x actual; predicted net debt at exit{" "}
+          {fmtMoney(r.predicted_net_debt_at_exit)} $M.
+        </p>
       </Tile>
       <Tile span={6} title="EBITDA margin" unit="actual vs predicted">
         <LineChart

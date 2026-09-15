@@ -126,7 +126,7 @@ def test_every_sensitivity_cell_equals_a_full_run(inputs):
     for i, em in enumerate(s["exit_multiples"]):
         for j, hp in enumerate(s["holding_periods"]):
             full = _deal(**{**inputs, "exit_mult": em, "hold": hp})
-            assert s["table"][i][j] == pytest.approx(full["returns"]["irr"], abs=6e-5), (em, hp)
+            assert s["table"][i][j] == pytest.approx(full["returns"]["irr"], abs=1e-9), (em, hp)
 
 
 def test_sensitivity_ranges_follow_settings():

@@ -6,7 +6,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { fmtMoney, fmtPct } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
-import { DealField, DealScreen, LoadingTiles, MinCashNotice, RailGroup, WspToggle } from "../DealScreen";
+import { DealField, DealScreen, LoadingTiles, RailGroup, WspToggle } from "../DealScreen";
 import { debtSeries, totals, yearLabels } from "./shared";
 
 export function DebtStep() {
@@ -59,14 +59,13 @@ function DebtResults() {
   const lastEnd = end.at(-1);
   const repaidPct = atClose > 0 && lastEnd !== undefined ? ((atClose - lastEnd) / atClose) * 100 : NaN;
   const cumFcf = cf.cumulative_fcf?.at(-1);
-  // The engine stops its interest circularity after 3 passes; show how far the
-  // income statement's interest is from the final debt schedule (finding 8)
+  // How far the income statement's interest is from the final debt schedule;
+  // the interest loop iterates until this is under a cent
   const plInterest = res.operating_model.interest_expense ?? [];
   const interestGap = Math.max(0, ...interest.map((v, i) => Math.abs(v - (plInterest[i] ?? v))));
 
   return (
     <Tiles>
-      <MinCashNotice />
       <Kpi title="Debt at close" value={fmtMoney(atClose)} sub={`${fmtPct(inputs.debt_pct)} of EV, $M`} lead />
       <Kpi title="Debt at exit" value={fmtMoney(lastEnd)} sub={`${fmtPct(repaidPct)} repaid`} />
       <Kpi title="Net debt at exit" value={fmtMoney(res.returns.net_debt_at_exit)} sub="after cash, $M" />

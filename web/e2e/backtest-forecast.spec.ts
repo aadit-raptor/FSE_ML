@@ -15,9 +15,10 @@ test.describe("Backtest", () => {
     await expect(page.locator("main table").first().locator("tbody tr").first()).toContainText("3,626.0");
   });
 
-  test("attribution carries the finding 5 note", async ({ page }) => {
+  test("attribution splits the exit equity gap into three parts", async ({ page }) => {
     await page.goto("/backtest/attribution");
-    await expect(page.getByRole("note")).toContainText("finding 5");
+    await expect(page.getByRole("img", { name: "Error attribution" })).toContainText("Net debt at exit");
+    await expect(page.getByText(/add up to actual minus predicted exit equity/)).toBeVisible();
   });
 });
 
@@ -44,6 +45,9 @@ test.describe("Forecast", () => {
     await page.goto("/forecast/simulation");
     await expect(kpi(page, "Paths")).toHaveText("20,000");
     await expect(page.locator("main svg[role=img]")).toHaveCount(2);
-    await expect(page.getByText("finding 4")).toBeVisible();
+    // Above plan is bull, below plan bear
+    const rows = page.locator("main table tbody tr");
+    await expect(rows.first()).toContainText("bear");
+    await expect(rows.last()).toContainText("bull");
   });
 });

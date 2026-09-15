@@ -6,7 +6,6 @@ import { DivergingBars, RangeRows, Scatter } from "@/components/charts/Bars";
 import { heat } from "@/components/charts/HeatTable";
 import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
-import { Notice } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
 
@@ -293,9 +292,7 @@ function Heatmap() {
   return (
     <div className={staleClass}>
       <Tiles>
-        <Notice title="Approximation" role="note" className="col-span-12">
-          {h.note} Open finding 3: use Distribution for simulated numbers.
-        </Notice>
+        <p className="type-body col-span-12 bg-canvas px-3 py-2 text-[9.5px]">{h.note}</p>
         <Tile span={12} title="IRR by growth and exit multiple" unit="rows exit multiple, columns revenue growth">
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-px font-mono text-[11px]">

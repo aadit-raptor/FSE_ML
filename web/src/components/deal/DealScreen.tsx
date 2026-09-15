@@ -135,16 +135,3 @@ function ChangesBar() {
     </Notice>
   );
 }
-
-/** The model's open finding 1, shown wherever minimum cash affects the numbers. */
-export function MinCashNotice() {
-  const { inputs, run } = useDeal();
-  const residual = run.result?.equity_bridge.residual;
-  if (!(inputs.mincash > 0)) return null;
-  return (
-    <Notice title="Returns overstated" role="note" className="col-span-12">
-      The model doesn&apos;t fund the {inputs.mincash.toFixed(1)} $M minimum cash with sponsor equity, so IRR and MOIC read high
-      {typeof residual === "number" ? ` (bridge residual ${residual.toFixed(1)} $M)` : ""}. Open finding 1, not fixed yet.
-    </Notice>
-  );
-}

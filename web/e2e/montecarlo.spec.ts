@@ -51,7 +51,7 @@ test.describe("Monte Carlo", () => {
     await expect(page.locator("main circle").first()).not.toHaveAttribute("cx", firstX ?? "");
 
     await stepLink(page, "Heatmap").click();
-    await expect(page.getByRole("note")).toContainText("finding 3");
+    await expect(page.getByText("full deal-model run")).toBeVisible();
     await expect(page.locator("main td")).toHaveCount(56);
   });
 });

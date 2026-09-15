@@ -573,7 +573,8 @@ def compute_exit_sensitivity_by_hold(
                 exit_ebitda=exit_ebitda,
                 net_debt_at_exit=net_debt_at_exit,
             ))
-            row.append(round(r.irr if metric == "irr" else r.moic, 4))
+            # Unrounded, so a cell reads the same as the deal's own IRR
+            row.append(r.irr if metric == "irr" else r.moic)
         table.append(row)
     return {
         "table": table,

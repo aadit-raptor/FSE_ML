@@ -8,7 +8,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { fmtMoney, fmtMultiple } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
-import { DealField, DealScreen, LoadingTiles, MinCashNotice, RailGroup } from "../DealScreen";
+import { DealField, DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
 import { baseCell, debtSeries, hurdleSub, totals, yearLabels } from "./shared";
 
 export function ReturnsStep() {
@@ -54,7 +54,6 @@ function ReturnsResults() {
 
   return (
     <Tiles>
-      <MinCashNotice />
       <Kpi title="IRR" value={r.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period ?? inputs.hold} yr hold`} />
       <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub="$M at close" />
@@ -78,10 +77,7 @@ function ReturnsResults() {
           baseRow={base.row}
           baseCol={base.col}
         />
-        <p className="type-body text-[9px]">
-          <span className="chip mr-2 text-attention">finding 7</span>
-          Only the {inputs.hold}y column is exact. Other holds reuse this hold&apos;s exit value, so change Hold to see them properly.
-        </p>
+        <p className="type-body text-[9px]">Every cell is a full model run for that exit multiple and hold. Ranges are set in Settings, Deal defaults.</p>
       </Tile>
       <Tile span={6} title="Debt paydown" unit="by tranche, $M">
         <StackedBars {...debtSeries(res)} />

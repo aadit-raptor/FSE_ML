@@ -14,7 +14,7 @@ import { fmtInput, fmtMoney, fmtRate } from "@/lib/format";
 
 import { useSettings } from "./SettingsProvider";
 
-type Def = { key: string; label: string; spec: Omit<FieldSpec, "label">; noEffect?: boolean };
+type Def = { key: string; label: string; spec: Omit<FieldSpec, "label"> };
 
 const pct = (step = 0.5, decimals = 1, extra: Partial<FieldSpec> = {}) => ({ unit: "%", step, decimals, ...extra });
 
@@ -36,15 +36,15 @@ const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
   { key: "def_capex", input: "capex", label: "Capex", spec: pct() },
   { key: "def_nwc", input: "nwc", label: "NWC change", spec: pct(0.25, 2) },
   { key: "def_mincash", input: "mincash", label: "Minimum cash", spec: { unit: "$M", step: 5, decimals: 1, min: 0 } },
-  { key: "def_senior_amort", label: "Senior amortisation", spec: pct(), noEffect: true },
+  { key: "def_senior_amort", label: "Senior amortisation", spec: pct() },
 ];
 
 const SENSITIVITY: Def[] = [
-  { key: "sens_em_min", label: "Exit multiple from", spec: { unit: "x", step: 0.5, decimals: 1, min: 0 }, noEffect: true },
-  { key: "sens_em_max", label: "Exit multiple to", spec: { unit: "x", step: 0.5, decimals: 1, min: 0 }, noEffect: true },
-  { key: "sens_em_steps", label: "Exit multiple steps", spec: { unit: "", step: 1, decimals: 0, min: 2, integer: true }, noEffect: true },
-  { key: "sens_hp_min", label: "Hold from", spec: { unit: "yr", step: 1, decimals: 0, min: 1, integer: true }, noEffect: true },
-  { key: "sens_hp_max", label: "Hold to", spec: { unit: "yr", step: 1, decimals: 0, min: 1, integer: true }, noEffect: true },
+  { key: "sens_em_min", label: "Exit multiple from", spec: { unit: "x", step: 0.5, decimals: 1, min: 0 } },
+  { key: "sens_em_max", label: "Exit multiple to", spec: { unit: "x", step: 0.5, decimals: 1, min: 0 } },
+  { key: "sens_em_steps", label: "Exit multiple steps", spec: { unit: "", step: 1, decimals: 0, min: 2, integer: true } },
+  { key: "sens_hp_min", label: "Hold from", spec: { unit: "yr", step: 1, decimals: 0, min: 1, integer: true } },
+  { key: "sens_hp_max", label: "Hold to", spec: { unit: "yr", step: 1, decimals: 0, min: 1, integer: true } },
 ];
 
 const FEES: Def[] = [
@@ -89,7 +89,6 @@ function SettingField({ def }: { def: Def }) {
     return (
       <div className="flex items-center justify-between py-1">
         <Switch checked={v} onChange={(on) => set(def.key, on)} label={def.label} />
-        {def.noEffect && <span className="chip text-dim">no effect</span>}
       </div>
     );
   }
@@ -98,7 +97,6 @@ function SettingField({ def }: { def: Def }) {
     <div className="grid grid-cols-[1fr_auto] items-start gap-2">
       <NumberField spec={{ ...def.spec, label: def.label }} value={v} onCommit={(n) => set(def.key, n)} changed={changed} />
       <span className="flex h-[22px] w-[74px] items-center justify-end gap-1.5">
-        {def.noEffect && <span className="chip text-dim">no effect</span>}
         {changed && defaults && (
           <button type="button" onClick={() => reset(def.key)} className="font-mono text-[10px] text-accent hover:underline" title={`Default ${String(defaults[def.key])}`}>
             reset
@@ -202,15 +200,7 @@ function DealDefaults() {
       </Tile>
       <Tile span={6} title="Sensitivity grid">
         <Form defs={SENSITIVITY} />
-        <p className="type-body text-[9px]">
-          <span className="chip mr-2 text-attention">finding 2</span>
-          The model builds the grid at ±40% of the exit multiple and 3 to 7 years whatever these say.
-        </p>
-      </Tile>
-      <Tile span={6} title="Not used yet">
-        <p className="type-body">
-          Senior amortisation is marked no effect: the deal model doesn&apos;t read it (open finding 2). It&apos;s kept so nothing is lost when that&apos;s fixed.
-        </p>
+        <p className="type-body text-[9px]">Rows and columns of the IRR sensitivity on the Returns screen.</p>
       </Tile>
     </Tiles>
   );
@@ -258,11 +248,8 @@ function MonteCarloDefaults() {
         </p>
       </Tile>
       <Tile span={6} title="Clipping">
-        <Form defs={[{ key: "mc_clip_irr", label: "Clip IRR at -100%", spec: { unit: "", step: 1, decimals: 0 }, noEffect: true }]} />
-        <p className="type-body text-[9px]">
-          <span className="chip mr-2 text-attention">finding 2</span>
-          The simulation doesn&apos;t read this switch yet.
-        </p>
+        <Form defs={[{ key: "mc_clip_irr", label: "Clip IRR to -100%...500%", spec: { unit: "", step: 1, decimals: 0 } }]} />
+        <p className="type-body text-[9px]">Limits extreme simulated IRRs so a few paths don&apos;t distort the mean. Applies to Monte Carlo and backtests.</p>
       </Tile>
     </Tiles>
   );

@@ -9,7 +9,7 @@ import { FIELDS, type NumericDealKey } from "@/lib/deal/fields";
 import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
-import { DealScreen, LoadingTiles, MinCashNotice, RailGroup } from "../DealScreen";
+import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
 import { hurdleSub, totals, yearLabels } from "./shared";
 
 const ASSUMPTIONS: { title: string; keys: NumericDealKey[] }[] = [
@@ -67,7 +67,6 @@ function SummaryResults() {
 
   return (
     <Tiles>
-      <MinCashNotice />
       <Kpi title="IRR" value={r.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period} yr hold`} />
       <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub="$M" />

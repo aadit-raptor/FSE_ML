@@ -15,7 +15,7 @@ import { hurdleSub } from "./shared";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
 
-function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number) {
+function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number, mincash: number) {
   const { overrides } = useSettings();
   const [su, setSu] = useState<SourcesUses | null>(null);
   useEffect(() => {
@@ -23,7 +23,7 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
     const id = setTimeout(() => {
       api
         .POST("/api/deal/sources-and-uses", {
-          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, settings: overrides },
+          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides },
           signal: ctrl.signal,
         })
         .then(({ data }) => data && setSu(data))
@@ -33,14 +33,14 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [ebitda, entryMult, seniorX, mezzX, overrides]);
+  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides]);
   return su;
 }
 
 export function InputsStep() {
   const { inputs, run, hurdle } = useDeal();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
-  const su = useSourcesAndUses(inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)));
+  const su = useSourcesAndUses(inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash);
   const r = run.result?.returns;
   const ev = inputs.ebitda * inputs.entry_mult;
 
@@ -97,6 +97,7 @@ export function InputsStep() {
                 ["Transaction fees", su?.transaction_fees],
                 ["Financing fees", su?.financing_fees],
                 ["Other uses", su?.other_uses],
+                ["Cash to balance sheet", su?.cash_to_balance_sheet],
               ]}
               total={["Total uses", su?.total_uses]}
             />

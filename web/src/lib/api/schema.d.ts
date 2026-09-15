@@ -438,13 +438,18 @@ export interface components {
             actual_equity_entry: number;
             /** Actual Exit Equity */
             actual_exit_equity: number;
+            /** Actual Exit Multiple */
+            actual_exit_multiple: number;
             /** Actual Irr */
             actual_irr: number;
             /** Actual Moic */
             actual_moic: number;
             /** Actual Percentile */
             actual_percentile: number;
-            /** Attribution */
+            /**
+             * Attribution
+             * @description Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt
+             */
             attribution: {
                 [key: string]: number;
             };
@@ -465,6 +470,8 @@ export interface components {
             predicted_irr_p95: number;
             /** Predicted Moic */
             predicted_moic: number;
+            /** Predicted Net Debt At Exit */
+            predicted_net_debt_at_exit: number;
             /** Years */
             years: components["schemas"]["BacktestYear"][];
         };

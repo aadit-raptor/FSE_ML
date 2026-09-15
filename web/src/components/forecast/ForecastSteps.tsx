@@ -371,8 +371,11 @@ function Simulation() {
           <tbody>
             {sim.target_probabilities.map((t) => (
               <tr key={t.target}>
-                <th scope="row" className="w-40 border-b border-grid py-1.5 text-left font-normal text-ink">
-                  {fmtMoney(t.target)} $M
+                <th scope="row" className="w-48 border-b border-grid py-1.5 text-left font-normal text-ink">
+                  {fmtMoney(t.target)} $M{" "}
+                  <span className={`chip ml-1 ${t.scenario === "Bull" ? "text-gain" : t.scenario === "Bear" ? "text-loss" : "text-dim"}`}>
+                    {t.scenario.toLowerCase()}
+                  </span>
                 </th>
                 <td className="border-b border-grid py-1.5">
                   <div className="h-3 bg-accent" style={{ width: `${Math.max(0.5, t.probability * 100)}%`, opacity: 0.35 + 0.65 * t.probability }} />
@@ -382,10 +385,7 @@ function Simulation() {
             ))}
           </tbody>
         </table>
-        <p className="type-body text-[9px]">
-          <span className="chip mr-2 text-attention">finding 4</span>
-          The API labels these targets Bull, Base and Bear, but the labels look inverted, so they&apos;re left off until that&apos;s fixed.
-        </p>
+        <p className="type-body text-[9px]">Targets run from 80% to 120% of plan EBITDA: above plan is the bull case, below plan the bear case.</p>
       </Tile>
     </Tiles>
   );
