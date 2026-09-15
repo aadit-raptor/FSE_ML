@@ -6,6 +6,7 @@ import { Tile } from "@/components/ui/Tile";
 import { api } from "@/lib/api/client";
 import { useCapabilities } from "@/lib/capabilities";
 import { multiplesFromPct } from "@/lib/deal/capital";
+import { type HistoricalSample, riskSampleLabel } from "@/lib/provenance";
 
 import { useDeal } from "./DealProvider";
 
@@ -15,6 +16,7 @@ type Risk = {
   warnings: string[];
   nearest_deals: { name: string; entry_mult: number; leverage: number; growth: number; success: boolean }[];
   inputs: { leverage: number; ebitda_margin: number };
+  historical_sample: HistoricalSample;
 };
 
 /** Anomaly-detector score for the deal against historical LBOs. Hidden when the server has no ML layer. */
@@ -81,6 +83,12 @@ export function DealRisk() {
             ))}
           </ul>
         </div>
+      )}
+      {risk && (
+        <p className="type-body text-[9px]" data-provenance="risk">
+          <span className="type-alert text-[9px]">{riskSampleLabel(risk.historical_sample)}</span>, mostly US, plus synthetic deals around the
+          successes. The statistics in the flags are not yet sourced.
+        </p>
       )}
       {!risk && !error && <p className="type-body">Scoring the deal…</p>}
     </Tile>

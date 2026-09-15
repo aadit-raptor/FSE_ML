@@ -1,0 +1,149 @@
+{
+  "capabilities": {
+    "anomaly_detector": true,
+    "surrogate": true,
+    "macro_regime_installed": true,
+    "macro_regime_trained": false,
+    "edgar": true
+  },
+  "deal_risk": {
+    "inputs": {
+      "entry_mult": 10.0,
+      "leverage": 4.2,
+      "growth_pct": 5.0,
+      "ebitda_margin": 26.0,
+      "rate": 7.261904761904762
+    },
+    "is_anomalous": true,
+    "severity": 0.2661469009985362,
+    "anomaly_score": -0.5919693991854328,
+    "warnings": [],
+    "nearest_deals": [
+      {
+        "name": "Burger King 2010",
+        "entry_mult": 8.75,
+        "leverage": 5.94,
+        "growth": 2.9,
+        "margin": 17.8,
+        "interest": 6.82,
+        "success": true,
+        "distance": 0.5947906485303203
+      },
+      {
+        "name": "Extended Stay 2007",
+        "entry_mult": 15.0,
+        "leverage": 8.0,
+        "growth": 1.0,
+        "margin": 12.0,
+        "interest": 8.3,
+        "success": false,
+        "distance": 0.7022380238903256
+      },
+      {
+        "name": "Dollar General 2007",
+        "entry_mult": 8.0,
+        "leverage": 5.5,
+        "growth": 4.0,
+        "margin": 22.0,
+        "interest": 6.0,
+        "success": true,
+        "distance": 0.7180437520702001
+      }
+    ],
+    "risk_score": 2.2322938019970726,
+    "historical_sample": {
+      "deals": 30,
+      "first_year": 1989,
+      "last_year": 2016
+    }
+  },
+  "surrogate": {
+    "prediction": {
+      "irr_p5": 0.0353831984102726,
+      "irr_p10": 0.0683511421084404,
+      "irr_p25": 0.12349094450473785,
+      "irr_p50": 0.1818135380744934,
+      "irr_p75": 0.23556432127952576,
+      "irr_p90": 0.2816227078437805,
+      "irr_p95": 0.3078809976577759,
+      "irr_mean": 0.17727728188037872,
+      "irr_std": 0.08299374580383301,
+      "p_above_20": 0.41771915555000305,
+      "p_wipeout": 0.0
+    },
+    "tail_unreliable": false,
+    "term_differences": [],
+    "training_deal": [
+      {
+        "term": "entry multiple",
+        "value": 10.0,
+        "model_value": 10.0,
+        "unit": "multiple",
+        "decimals": 1
+      },
+      {
+        "term": "holding period",
+        "value": 5.0,
+        "model_value": 5.0,
+        "unit": "years",
+        "decimals": 0
+      },
+      {
+        "term": "opex / revenue",
+        "value": 0.18,
+        "model_value": 0.18,
+        "unit": "percent",
+        "decimals": 1
+      },
+      {
+        "term": "tax rate",
+        "value": 0.25,
+        "model_value": 0.25,
+        "unit": "percent",
+        "decimals": 1
+      },
+      {
+        "term": "senior / total debt",
+        "value": 0.7,
+        "model_value": 0.7,
+        "unit": "percent",
+        "decimals": 0
+      },
+      {
+        "term": "mezz spread",
+        "value": 0.04,
+        "model_value": 0.04,
+        "unit": "percent",
+        "decimals": 2
+      },
+      {
+        "term": "interest rate std dev",
+        "value": 0.015,
+        "model_value": 0.015,
+        "unit": "percent",
+        "decimals": 2
+      },
+      {
+        "term": "transaction fees",
+        "value": 0.023,
+        "model_value": 0.023,
+        "unit": "percent",
+        "decimals": 1
+      },
+      {
+        "term": "financing fees",
+        "value": 0.026000000000000002,
+        "model_value": 0.026000000000000002,
+        "unit": "percent",
+        "decimals": 1
+      },
+      {
+        "term": "other uses",
+        "value": 0.0,
+        "model_value": 0.0,
+        "unit": "usd_millions",
+        "decimals": 0
+      }
+    ]
+  }
+}

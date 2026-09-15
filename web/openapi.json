@@ -4234,12 +4234,21 @@
             },
             "title": "Term Differences",
             "type": "array"
+          },
+          "training_deal": {
+            "description": "Every term held fixed in training (model_value), beside this deal's value",
+            "items": {
+              "$ref": "#/components/schemas/TermDifference"
+            },
+            "title": "Training Deal",
+            "type": "array"
           }
         },
         "required": [
           "prediction",
           "tail_unreliable",
-          "term_differences"
+          "term_differences",
+          "training_deal"
         ],
         "title": "SurrogateResponse",
         "type": "object"

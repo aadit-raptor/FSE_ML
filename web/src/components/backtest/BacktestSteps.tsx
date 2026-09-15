@@ -11,6 +11,7 @@ import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtDelta, fmtMoney, fmtMultiple, isNum } from "@/lib/format";
+import { backtestSampleLabel } from "@/lib/provenance";
 
 import { BACKTEST_PATHS, splitDealName, useBacktest } from "./BacktestProvider";
 
@@ -91,17 +92,24 @@ function Rail() {
 }
 
 function BacktestScreen({ children }: { children: ReactNode }) {
-  const { activate, status, result, error } = useBacktest();
+  const { activate, status, result, error, deals } = useBacktest();
   useEffect(() => activate(), [activate]);
   return (
     <Screen
       rail={<Rail />}
       bar={
-        status === "error" ? (
-          <Notice tone="loss" title="Backtest didn't run" role="alert">
-            {error}
-          </Notice>
-        ) : undefined
+        <>
+          {status === "error" && (
+            <Notice tone="loss" title="Backtest didn't run" role="alert">
+              {error}
+            </Notice>
+          )}
+          {deals && (
+            <Notice title="Examples, not evidence" role="note">
+              {backtestSampleLabel(deals.map((d) => splitDealName(d.name).year))}. Actuals are approximate and unsourced.
+            </Notice>
+          )}
+        </>
       }
     >
       {result ? (

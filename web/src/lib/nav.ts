@@ -70,7 +70,7 @@ export const MODES: Mode[] = [
       {
         slug: "live",
         label: "Live",
-        summary: "Instant IRR estimates from a neural network trained on the simulation, as you drag the assumptions.",
+        summary: "Instant IRR estimates from a neural network trained on simulations of one fixed deal, as you drag the assumptions.",
       },
     ],
   },

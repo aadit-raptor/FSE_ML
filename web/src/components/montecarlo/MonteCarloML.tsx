@@ -28,6 +28,15 @@ const SLIDERS: { key: keyof Sliders; label: string; min: number; max: number; st
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+/** A training-deal term in its unit (rates arrive as fractions). */
+function fmtTerm(v: number, unit: string, decimals: number): string {
+  if (unit === "percent") return `${(v * 100).toFixed(decimals)}%`;
+  if (unit === "multiple") return `${v.toFixed(decimals)}x`;
+  if (unit === "years") return `${v.toFixed(decimals)} yr`;
+  if (unit === "usd_millions") return `${v.toFixed(decimals)} $M`;
+  return v.toFixed(decimals);
+}
+
 export function LiveStep() {
   return (
     <MonteCarloScreen>
@@ -98,6 +107,14 @@ function Live() {
   const hurdle = sim.hurdle / 100;
   return (
     <Tiles>
+      {pred && (
+        <Notice title="Trained on one fixed deal" role="note" className="col-span-12">
+          <span data-provenance="live">
+            {pred.training_deal.map((d) => `${d.term} ${fmtTerm(d.model_value, d.unit, d.decimals)}`).join(" · ")}
+          </span>
+          . Estimates are exact only for a deal with these terms.
+        </Notice>
+      )}
       {pred && pred.term_differences.length > 0 && (
         <Notice title="Directional only" role="note" className="col-span-12">
           The surrogate learned a fixed deal and this one differs in{" "}
@@ -203,7 +220,7 @@ export function MacroRegime() {
   }
   const label = SCENARIOS.find((s) => s.id === regime?.regime)?.label;
   return (
-    <Tile span={12} title="Macro regime" unit="hidden Markov model on FRED data">
+    <Tile span={12} title="Macro regime" unit="hidden Markov model on US FRED data; the ISM PMI series ended in 2022">
       <div className="flex flex-wrap items-center gap-4">
         <SecondaryButton
           disabled={state === "loading"}
