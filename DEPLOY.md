@@ -10,6 +10,53 @@ browser ──> Vercel (Next.js) ──/api/*──> Render (FastAPI + model)
 
 Do the API first; the web app needs its URL at build time.
 
+## Environments
+
+There are two copies of the app, both on free plans.
+
+| | Production | Staging |
+|---|---|---|
+| Git branch | `main` | `staging` |
+| Web | Vercel production, https://fse-ml.vercel.app | Vercel preview of the `staging` branch: https://fse-ml-git-staging-aadit7.vercel.app (and a per-commit preview URL). Behind Vercel login |
+| API | Render `fse-api`, https://fse-api.onrender.com | Render `fse-api-staging`, https://fse-api-staging.onrender.com |
+| `/api/health` | `"environment": "production"` | `"environment": "staging"`; the status bar says `API ok · v0.1.0 · staging` |
+| Browser checks | `.github/workflows/live.yml`, daily | `.github/workflows/staging.yml`, after every push to `staging` |
+
+Pull-request previews on Vercel also use the staging API. A preview never
+talks to the production API: `web/next.config.ts` picks the API by
+`VERCEL_ENV`.
+
+**Variables per environment**
+
+| Variable | Where | Production | Staging | Local |
+|---|---|---|---|---|
+| `FSE_API_URL` | Vercel (Production scope) | `https://fse-api.onrender.com` (required; the build fails without it) | ignored on previews | default `http://127.0.0.1:8000` |
+| `FSE_STAGING_API_URL` | Vercel (Preview scope), optional | — | default `https://fse-api-staging.onrender.com` | — |
+| `FSE_CORS_ORIGINS` | Render service | optional | optional | default `http://localhost:3000` |
+| `FRED_API_KEY` | Render service | optional (ML image only) | optional | `.env` |
+| `FSE_ENV` | Render service, optional | derived: `production` | derived from the `-staging` service name | `local` |
+| `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | GitHub Actions secret | — | lets `staging.yml` open the protected preview | — |
+
+**Moving a change through staging**
+
+1. Merge or push the change to `staging` (for example
+   `git push origin <branch>:staging`, fast-forward only). Render redeploys
+   `fse-api-staging`, Vercel builds the preview, and `staging.yml` waits for
+   both to run that commit, then runs the browser checks on it.
+2. When the checks are green, open the pull request into `main` as usual.
+3. After a merge to `main`, bring staging level again:
+   `git push origin main:staging`.
+
+**Free hours:** Render gives 750 instance hours a month across all free
+services. Both services sleep after 15 minutes idle, so staging costs only
+the time it's being used (a daily production check wakes production for about
+15 minutes). Don't add a scheduled job that keeps staging awake.
+
+Creating the staging API (done once, 2026-09-15): Render → **New → Web
+Service**, this repo, branch `staging`, runtime Docker, free plan, health
+check path `/api/health`, name `fse-api-staging`.
+
 ## 1. API on Render
 
 1. Sign in at <https://render.com> with GitHub and allow access to this repo.
@@ -60,9 +107,48 @@ request). If that matters, set `FSE_CORS_ORIGINS` on Render to your Vercel
 domain (this only stops other websites' browsers, not scripts), and consider
 Render's paid plans or a lower path cap in `api/schemas.py` (`MCInputsIn.n`).
 
+## Rollback
+
+Roll back production when a deploy breaks it. Pick the fastest route that
+fits; all are free.
+
+**A. Git revert (no dashboard, always works, leaves a record).** This is the
+default.
+
+1. Find the merge commit that broke production: `git log --first-parent main`.
+   `/api/health` shows the commit the API runs.
+2. `git checkout -b rollback/<what> origin/main`, then
+   `git revert -m 1 <merge-sha>`, push, open a pull request titled
+   "Roll back …", wait for CI, merge with a merge commit.
+3. Render and Vercel redeploy `main` (a few minutes; watch the commit in
+   `/api/health` change, and run the `live` workflow).
+4. To bring the change back once it's fixed, revert the revert the same way.
+
+**B. Dashboard rollback (fastest, needs your login).**
+
+- *Render:* service `fse-api` → **Events** → pick the last good deploy →
+  **Rollback**. Render turns auto-deploy off after a rollback; turn it back on
+  (Settings → Auto-Deploy) once `main` is fixed, or the next merge won't
+  deploy.
+- *Vercel:* project `fse-ml` → **Deployments** → the last good production
+  deployment → **⋯ → Instant Rollback**. Hobby can roll back only to the
+  previous production deployment. New pushes to `main` don't go live until
+  you promote one (**⋯ → Promote**) or undo the rollback.
+
+Afterwards, still revert the bad change on `main` (route A) so the code and
+the live site agree.
+
+**Rollback drill log**
+
+| Date | What | How | Result |
+|---|---|---|---|
+
 ## Checking a deploy
 
 The CI `docker` job builds this same image, starts it with a host-assigned
 `PORT`, and checks the default deal IRR (21.16%), a seeded Monte Carlo run
 and an Excel export. The `e2e` job runs the browser tests against the API and
 a production build of the web app.
+
+`/api/health` returns `environment` (production, staging or local) and
+`commit` (the git SHA Render built, `null` locally).

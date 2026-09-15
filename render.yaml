@@ -1,5 +1,11 @@
 # Render Blueprint for the API. In Render: New > Blueprint > pick this repo.
 # The web app is on Vercel and proxies /api here (see DEPLOY.md).
+#
+# Production only. Staging is a second free web service, fse-api-staging,
+# created by hand in the dashboard with the same Dockerfile and health check
+# but deploying from the `staging` branch. It isn't listed here so a blueprint
+# sync can't create a duplicate of it. /api/health tells the two apart
+# (environment comes from RENDER_SERVICE_NAME, commit from RENDER_GIT_COMMIT).
 services:
   - type: web
     name: fse-api

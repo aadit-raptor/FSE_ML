@@ -1,0 +1,102 @@
+name: staging
+
+# After every push to `staging`, wait until both staging copies run that
+# commit, then run the read-only browser checks (web/e2e/live.spec.ts) against
+# the Vercel preview built from it. Staging = Render service fse-api-staging
+# (deploys from `staging`) + the Vercel preview of the same commit, which
+# next.config.ts points at the staging API. See DEPLOY.md.
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: staging
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: read
+
+env:
+  STAGING_API: https://fse-api-staging.onrender.com
+  # Keep in step with buildFilter in render.yaml: if none of these changed
+  # since the commit staging runs, that API is already equivalent to this one
+  API_PATHS: Dockerfile requirements*.txt analytics api core lbo_engine ml simulation
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check the preview bypass secret is set
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo "::error::Add the GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET (Vercel > fse-ml > Settings > Deployment Protection > Protection Bypass for Automation). DEPLOY.md explains."
+            exit 1
+          fi
+
+      - name: Wait for the staging API to run this commit
+        run: |
+          # Free Render builds take a few minutes; a sleeping service about a minute to wake
+          for i in $(seq 1 60); do
+            health=$(curl -fsS -m 90 "$STAGING_API/api/health" || true)
+            env=$(echo "$health" | jq -r '.environment // empty' 2>/dev/null || true)
+            commit=$(echo "$health" | jq -r '.commit // empty' 2>/dev/null || true)
+            echo "attempt $i: environment=${env:-?} commit=${commit:-?}"
+            if [ "$env" = "staging" ] && [ -n "$commit" ]; then
+              if [ "$commit" = "$GITHUB_SHA" ]; then
+                echo "Staging API runs $GITHUB_SHA"; exit 0
+              fi
+              if git cat-file -e "$commit^{commit}" 2>/dev/null \
+                 && git merge-base --is-ancestor "$commit" "$GITHUB_SHA" \
+                 && git diff --quiet "$commit" "$GITHUB_SHA" -- $API_PATHS; then
+                echo "Staging API runs $commit; no API changes since, so it matches $GITHUB_SHA"; exit 0
+              fi
+            fi
+            sleep 20
+          done
+          echo "::error::The staging API did not deploy $GITHUB_SHA within 20 minutes"; exit 1
+
+      - name: Wait for the Vercel preview of this commit
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 60); do
+            id=$(gh api "repos/$GITHUB_REPOSITORY/deployments?sha=$GITHUB_SHA&environment=Preview" --jq '.[0].id // empty')
+            if [ -n "$id" ]; then
+              read -r state url < <(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" --jq '.[0] | "\(.state) \(.environment_url // .target_url)"')
+              echo "attempt $i: $state $url"
+              if [ "$state" = "success" ]; then echo "url=$url" >> "$GITHUB_OUTPUT"; exit 0; fi
+              if [ "$state" = "failure" ] || [ "$state" = "error" ]; then echo "::error::Vercel preview build failed"; exit 1; fi
+            else
+              echo "attempt $i: no preview deployment yet"
+            fi
+            sleep 20
+          done
+          echo "::error::No Vercel preview for $GITHUB_SHA within 20 minutes"; exit 1
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Browser checks against staging
+        working-directory: web
+        run: npm run test:live
+        env:
+          E2E_LIVE: "1"
+          E2E_BASE_URL: ${{ steps.preview.outputs.url }}
+          E2E_EXPECT_ENV: staging
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
