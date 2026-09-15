@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-16. Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-16 (PLAN.md 1.3). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -50,6 +50,16 @@ Staging alerts come from `staging.yml`, not a scheduled check, to keep the
 free service asleep. **Never log or send deal contents**: no request bodies,
 query strings or local variables in logs or Sentry events (tests check it).
 
+Database (PLAN.md 1.3, DEPLOY.md "Database"): Neon free project `fse-ml`,
+region us-east-2 (Ohio). Its default branch is named **`production`** (not
+main); branch `staging` never auto-deletes. `DATABASE_URL` (pooled string) is
+set on `fse-api` (production branch) and `fse-api-staging` (staging branch).
+The API opens no connection at start-up and `/api/health` never queries the
+database (either would burn Neon's 100 free compute hours);
+`/api/health/database` connects, migrates on first use and reports storage
+against the free 0.5 GB (warning at 80%). It runs daily from `live.yml` and
+after each staging deploy.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -66,7 +76,7 @@ user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
-below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); next is 1.3. End every task session with the handoff described in PLAN.md: tell the
+below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); next is 1.4. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -180,10 +190,12 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
+| `db/` | Database layer: `engine.py` (Neon-aware connections and retries), `models.py` (tables and column rules), `migrations/` (Alembic, numbered `0001_…`), `migrate.py` (CLI and migrate-on-first-use), `health.py` (status and storage check), `local.py` (local Postgres) |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
+| `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (113 tests); `tests/test_model_fixes.py` pins each finding fix |
+| `tests/`, `test_*.py` | Test suite (137 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer |
 
 ## Commands (Windows, from the repo root)
 
@@ -202,6 +214,36 @@ npm --prefix web run build
 npm --prefix web run api:types
 ```
 
+Database (optional locally; the API runs without one):
+
+```bash
+.venv/Scripts/python.exe -m pip install pgserver         # once: Postgres in a wheel, no Docker needed
+.venv/Scripts/python.exe -m db.local                     # starts it (data in .localdb/), prints DATABASE_URL and TEST_DATABASE_URL
+# set both in the shell (PowerShell: $env:DATABASE_URL="..."), then:
+.venv/Scripts/python.exe -m pytest tests/test_database.py
+.venv/Scripts/python.exe -m db.migrate upgrade | downgrade -1 | current
+.venv/Scripts/python.exe -m db.local stop
+```
+
+### Adding a table
+
+1. Define it in `db/models.py` on `Base`. Follow the column rules (tests
+   enforce them): date-times are `UTCDateTime`; money is a `MoneyAmount`
+   column `<name>_amount` beside a `CurrencyCode` column `<name>_currency`;
+   no float money. Never store deal contents anywhere they could be logged.
+2. With a local database up to date (`python -m db.migrate upgrade`), run
+   `python -m db.migrate revision -m "add deals"`. It writes
+   `db/migrations/versions/000N_add_deals.py`.
+3. Read and fix the file: autogenerate misses renames, check constraints and
+   data changes. Write a real `downgrade()`.
+4. Make it safe while the previous deploy still runs: add first, drop in a
+   later release, backfill before `NOT NULL`. Mind the free 0.5 GB.
+5. Run `tests/test_database.py`: migrations must go up, all the way down and
+   up again, and match the models exactly. Add tests for the new table's
+   behaviour (real rows in, real rows out).
+6. Deploys apply it automatically on first database use; `staging.yml` checks
+   staging is at the new revision before the PR merges to `main`.
+
 Browser tests (`web/e2e/`, Playwright). They start uvicorn and `next start`
 themselves, so build first. No bundled browser on this machine: use Edge.
 
@@ -214,7 +256,8 @@ Tests assert real model output (IRR, MOIC, golden backtest values), not just
 rendering. Add one for every new control, and mutation-check it.
 
 CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web`, `e2e` and `docker`
-jobs. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
+jobs. `core`, `ml` and `docker` get a Postgres 17 service; `FSE_REQUIRE_DB=1`
+makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
 and checks the default deal IRR (0.2116), Monte Carlo and an Excel export.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
 `web` job fails when `schema.d.ts` doesn't match the snapshot.
@@ -300,5 +343,14 @@ Skills load when a session starts: install first, then open a new session.
   in at build time, so a changed `SENTRY_DSN` needs a new deploy.
 - Unauthenticated GitHub API calls allow 60 an hour; poll workflow runs
   sparingly (or read the run page in the browser).
+- Neon: the app uses the pooled URL (`-pooler` host, PgBouncer transaction
+  mode), so no session state (`SET`, advisory locks, `LISTEN`, prepared
+  statements) across statements on app connections; migrations use the
+  direct host. The pooler rejects the libpq `options` startup parameter, so
+  don't set the time zone there: `UTCDateTime` converts instead.
+- Anything polled often (`/api/health`, the uptime monitor, Render's health
+  check) must not touch the database, or Neon never scales to zero.
+- API in Render Oregon, database in Neon Ohio: ~50–70 ms a round trip. Batch
+  queries per request.
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.
