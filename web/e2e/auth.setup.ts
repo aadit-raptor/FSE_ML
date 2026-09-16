@@ -1,6 +1,6 @@
 import { expect, test as setup } from "@playwright/test";
 
-import { SIGNED_IN_STATE } from "./helpers";
+import { asUser, SIGNED_IN_STATE } from "./helpers";
 
 /**
  * Signs in once, so the other specs start where a real user does: signed in,
@@ -37,6 +37,11 @@ setup("sign in and finish the account", async ({ page, request }) => {
   );
   await page.getByRole("button", { name: /^Save/ }).click();
   await saved;
+
+  // Settings live on the account (PLAN.md 1.5) and a local database keeps
+  // them between runs: every run starts from the defaults
+  const cleared = await page.request.put("/api/account/settings", { data: { settings: {} }, headers: await asUser(page) });
+  expect(cleared.ok()).toBe(true);
 
   // Finished: the deal screens no longer send us back to the account
   await page.goto("/deal/inputs");

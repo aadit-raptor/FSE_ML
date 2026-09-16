@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { NumberField } from "@/components/ui/NumberField";
@@ -8,7 +9,7 @@ import { multiplesFromPct, pctFromMultiples } from "@/lib/deal/capital";
 import { FIELDS, type DealInputs, type FieldSpec, type NumericDealKey } from "@/lib/deal/fields";
 import { fmtInput } from "@/lib/format";
 
-import { useDeal } from "./DealProvider";
+import { type DealSaveState, useDeal } from "./DealProvider";
 
 export { LoadingTiles } from "@/components/ui/Screen";
 export { RailGroup };
@@ -31,11 +32,11 @@ export function DealScreen({ rail, children }: { rail: ReactNode; children: Reac
 }
 
 function RailHeader() {
-  const { autoUpdate, setAutoUpdate, run } = useDeal();
+  const { autoUpdate, setAutoUpdate, run, current, saveState } = useDeal();
   const state =
     run.status === "running" ? "Updating" : run.status === "error" ? "Error" : run.status === "ok" ? `Up to date · ${Math.round(run.ms ?? 0)} ms` : "Loading";
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-line px-3.5 py-2">
+    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-b border-line px-3.5 py-2">
       <Switch checked={autoUpdate} onChange={setAutoUpdate} label="Auto-update" />
       <span
         role="status"
@@ -43,9 +44,23 @@ function RailHeader() {
       >
         {state}
       </span>
+      <Link
+        href="/deal/saved"
+        title="Saved deals and version history"
+        className="flex w-full min-w-0 items-center justify-between gap-2 hover:text-ink"
+        data-deal-save={saveState}
+      >
+        <span className="type-input-label min-w-0 truncate">{current?.name ?? "Unsaved deal"}</span>
+        <span className={`font-mono text-[10px] whitespace-nowrap ${SAVE_TONE[saveState]}`} aria-live="polite">
+          {SAVE_TEXT[saveState]}
+        </span>
+      </Link>
     </div>
   );
 }
+
+const SAVE_TEXT: Record<DealSaveState, string> = { unsaved: "Not saved", saving: "Saving", saved: "Saved", error: "Save failed" };
+const SAVE_TONE: Record<DealSaveState, string> = { unsaved: "text-attention", saving: "text-dim", saved: "text-dim", error: "text-loss" };
 
 export function DealField({ name, disabled }: { name: NumericDealKey; disabled?: boolean }) {
   const { inputs, setField, pending, autoUpdate } = useDeal();

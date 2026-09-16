@@ -116,7 +116,8 @@ def test_no_route_is_left_unprotected(clerk):  # noqa: ARG001
         if path in auth.PUBLIC_PATHS:
             continue
         # Path parameters are filled with something harmless
-        url = path.replace("{ticker}", "AAPL")
+        url = (path.replace("{ticker}", "AAPL")
+               .replace("{deal_id}", "00000000-0000-4000-8000-000000000000").replace("{number}", "1"))
         for method in operations:
             if method.upper() not in ("GET", "POST", "PUT", "PATCH", "DELETE"):
                 continue

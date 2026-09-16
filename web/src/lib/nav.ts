@@ -41,6 +41,11 @@ export const MODES: Mode[] = [
         label: "Summary",
         summary: "P&L, cash flow, debt schedule and balance sheet for the whole hold.",
       },
+      {
+        slug: "saved",
+        label: "Saved deals",
+        summary: "Save, open, rename, duplicate, archive and delete deals, with version history and restore.",
+      },
     ],
   },
   {

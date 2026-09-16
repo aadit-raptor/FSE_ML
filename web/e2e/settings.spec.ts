@@ -1,18 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-import { kpi, modeTab, setField, simulationSettled, stepLink } from "./helpers";
+import { kpi, modeTab, resetAllSettings, setField, settingsSaved, simulationSettled, stepLink } from "./helpers";
 
 test.describe("Settings", () => {
   test("fees change deal results and persist across reloads", async ({ page }) => {
     await page.goto("/settings/fees");
     await expect(kpi(page, "Current deal IRR")).toHaveText("21.2%");
+    // Settings are saved to the account (PLAN.md 1.5), not the browser
+    const saved = settingsSaved(page);
     await setField(page, "Transaction fees, % of EV", "5");
+    await saved;
     await expect(kpi(page, "Fees at entry")).toHaveText("65.6");
     await expect(kpi(page, "Current deal IRR")).toHaveText("19.7%");
 
     await page.reload();
     await expect(kpi(page, "Current deal IRR")).toHaveText("19.7%");
-    await page.getByRole("button", { name: "Reset all" }).click();
+    await resetAllSettings(page);
     await expect(kpi(page, "Current deal IRR")).toHaveText("21.2%");
   });
 
@@ -26,7 +29,7 @@ test.describe("Settings", () => {
     // Scoped to the content: Next.js adds its own role=alert route announcer
     const alert = page.locator("#content").getByRole("alert");
     await expect(alert).toContainText("Not a valid correlation matrix");
-    await page.getByRole("button", { name: "Reset all" }).click();
+    await resetAllSettings(page);
     await expect(alert).toHaveCount(0);
   });
 
@@ -38,7 +41,7 @@ test.describe("Settings", () => {
     await stepLink(page, "Returns").click();
     await expect(kpi(page, "IRR")).toHaveText("23.7%");
     await modeTab(page, "Settings").click();
-    await page.getByRole("button", { name: "Reset all" }).click();
+    await resetAllSettings(page);
   });
 
   test("senior amortisation and sensitivity ranges change deal output", async ({ page }) => {
@@ -51,7 +54,7 @@ test.describe("Settings", () => {
     await expect(kpi(page, "IRR")).toHaveText("23.0%");
     await expect(page.locator("main table").filter({ hasText: "11.0x" }).locator("thead th")).toHaveText(["Exit", "4y", "5y", "6y"]);
     await modeTab(page, "Settings").click();
-    await page.getByRole("button", { name: "Reset all" }).click();
+    await resetAllSettings(page);
   });
 
   test("scenario presets feed Monte Carlo and mark it stale", async ({ page }) => {
@@ -74,6 +77,6 @@ test.describe("Settings", () => {
     await simulationSettled(page);
 
     await modeTab(page, "Settings").click();
-    await page.getByRole("button", { name: "Reset all" }).click();
+    await resetAllSettings(page);
   });
 });

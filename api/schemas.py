@@ -537,3 +537,71 @@ class AccountResponse(BaseModel):
     """The signed-in account. ``profile`` is null until sign-up finishes it."""
     subject: str = Field(description="The identity provider's user id")
     profile: Optional[AccountProfile] = None
+
+
+class AccountSettings(Strict):
+    """The account's Settings overrides: only keys that differ from the defaults."""
+    settings: Dict[str, SettingValue] = {}
+
+
+# ---------------------------------------------------------------------------
+# Saved deals (PLAN.md 1.5)
+# ---------------------------------------------------------------------------
+class DealContent(Strict):
+    """Everything that decides a deal's numbers: its inputs and the Settings
+    overrides in effect."""
+    inputs: DealInputsIn
+    settings: Dict[str, SettingValue] = {}
+
+
+class DealCreate(DealContent):
+    name: str = Field(min_length=1, max_length=120, description="Shown in the deal list")
+
+
+class DealPatch(Strict):
+    """Rename, archive or unarchive; fields left out stay as they are."""
+    name: Optional[str] = Field(None, min_length=1, max_length=120)
+    archived: Optional[bool] = None
+
+
+class DealDuplicate(Strict):
+    name: Optional[str] = Field(None, min_length=1, max_length=120,
+                                description="Defaults to the original's name with (copy)")
+
+
+class DealSummary(BaseModel):
+    id: str
+    name: str
+    archived: bool
+    latest_version: int = Field(description="Number of the newest version")
+    created_at: str = Field(description="UTC, ISO 8601")
+    updated_at: str = Field(description="UTC, ISO 8601")
+
+
+class DealDetail(DealSummary):
+    inputs: DealInputsIn
+    settings: Dict[str, SettingValue]
+
+
+class DealList(BaseModel):
+    deals: List[DealSummary]
+
+
+class VersionSave(Strict):
+    label: Optional[str] = Field(None, min_length=1, max_length=120)
+
+
+class VersionSummary(BaseModel):
+    number: int
+    kind: Literal["created", "saved", "auto", "restored"]
+    label: Optional[str]
+    created_at: str = Field(description="UTC, ISO 8601")
+
+
+class VersionDetail(VersionSummary):
+    inputs: DealInputsIn
+    settings: Dict[str, SettingValue]
+
+
+class VersionList(BaseModel):
+    versions: List[VersionSummary]

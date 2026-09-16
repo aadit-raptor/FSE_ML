@@ -28,6 +28,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/account/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Account Settings
+         * @description The caller's Settings overrides, the same on every device.
+         */
+        get: operations["get_account_settings_api_account_settings_get"];
+        /**
+         * Put Account Settings
+         * @description Replace the caller's Settings overrides.
+         */
+        put: operations["put_account_settings_api_account_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backtesting/deals": {
         parameters: {
             query?: never;
@@ -122,6 +146,162 @@ export interface paths {
          * @description Sources & uses for a deal financed with senior and mezz debt multiples.
          */
         post: operations["post_sources_and_uses_api_deal_sources_and_uses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Deals
+         * @description The caller's deals, most recently edited first. ``archived=true`` includes archived ones.
+         */
+        get: operations["list_deals_api_deals_get"];
+        put?: never;
+        /**
+         * Create Deal
+         * @description Save a new deal; its first version is created with it.
+         */
+        post: operations["create_deal_api_deals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Deal
+         * @description Open a deal: its working copy, exactly as last saved.
+         */
+        get: operations["get_deal_api_deals__deal_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Deal
+         * @description Delete a deal and all its versions, for good.
+         */
+        delete: operations["delete_deal_api_deals__deal_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Deal
+         * @description Rename, archive or unarchive.
+         */
+        patch: operations["patch_deal_api_deals__deal_id__patch"];
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Draft
+         * @description Autosave the working copy (adds an automatic checkpoint now and then).
+         */
+        put: operations["save_draft_api_deals__deal_id__draft_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Duplicate Deal
+         * @description A new deal from this one's working copy (its history stays behind).
+         */
+        post: operations["duplicate_deal_api_deals__deal_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Versions
+         * @description The deal's history, newest first.
+         */
+        get: operations["list_versions_api_deals__deal_id__versions_get"];
+        put?: never;
+        /**
+         * Save Version
+         * @description Keep the working copy as a version (no new row if nothing changed).
+         */
+        post: operations["save_version_api_deals__deal_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/versions/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Version
+         * @description One version with its inputs and settings.
+         */
+        get: operations["get_version_api_deals__deal_id__versions__number__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/versions/{number}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Version
+         * @description Make this version the working copy; unsaved edits are kept as a version first.
+         */
+        post: operations["restore_version_api_deals__deal_id__versions__number__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -475,6 +655,19 @@ export interface components {
              */
             subject: string;
         };
+        /**
+         * AccountSettings
+         * @description The account's Settings overrides: only keys that differ from the defaults.
+         */
+        AccountSettings: {
+            /**
+             * Settings
+             * @default {}
+             */
+            settings: {
+                [key: string]: number | boolean;
+            };
+        };
         /** BacktestActualExit */
         BacktestActualExit: {
             /** Exit Ev */
@@ -687,6 +880,74 @@ export interface components {
             years?: number[];
         };
         /**
+         * DealContent
+         * @description Everything that decides a deal's numbers: its inputs and the Settings
+         *     overrides in effect.
+         */
+        DealContent: {
+            inputs: components["schemas"]["DealInputsIn"];
+            /**
+             * Settings
+             * @default {}
+             */
+            settings: {
+                [key: string]: number | boolean;
+            };
+        };
+        /** DealCreate */
+        DealCreate: {
+            inputs: components["schemas"]["DealInputsIn"];
+            /**
+             * Name
+             * @description Shown in the deal list
+             */
+            name: string;
+            /**
+             * Settings
+             * @default {}
+             */
+            settings: {
+                [key: string]: number | boolean;
+            };
+        };
+        /** DealDetail */
+        DealDetail: {
+            /** Archived */
+            archived: boolean;
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            inputs: components["schemas"]["DealInputsIn"];
+            /**
+             * Latest Version
+             * @description Number of the newest version
+             */
+            latest_version: number;
+            /** Name */
+            name: string;
+            /** Settings */
+            settings: {
+                [key: string]: number | boolean;
+            };
+            /**
+             * Updated At
+             * @description UTC, ISO 8601
+             */
+            updated_at: string;
+        };
+        /** DealDuplicate */
+        DealDuplicate: {
+            /**
+             * Name
+             * @description Defaults to the original's name with (copy)
+             */
+            name?: string | null;
+        };
+        /**
          * DealInputsIn
          * @description Deal wizard inputs.
          *
@@ -815,6 +1076,21 @@ export interface components {
              */
             wsp_mode: boolean;
         };
+        /** DealList */
+        DealList: {
+            /** Deals */
+            deals: components["schemas"]["DealSummary"][];
+        };
+        /**
+         * DealPatch
+         * @description Rename, archive or unarchive; fields left out stay as they are.
+         */
+        DealPatch: {
+            /** Archived */
+            archived?: boolean | null;
+            /** Name */
+            name?: string | null;
+        };
         /** DealRiskRequest */
         DealRiskRequest: {
             /**
@@ -910,6 +1186,30 @@ export interface components {
             tranches: {
                 [key: string]: components["schemas"]["TrancheYear"][];
             };
+        };
+        /** DealSummary */
+        DealSummary: {
+            /** Archived */
+            archived: boolean;
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /**
+             * Latest Version
+             * @description Number of the newest version
+             */
+            latest_version: number;
+            /** Name */
+            name: string;
+            /**
+             * Updated At
+             * @description UTC, ISO 8601
+             */
+            updated_at: string;
         };
         /** DriverFit */
         DriverFit: {
@@ -1997,6 +2297,55 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VersionDetail */
+        VersionDetail: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            inputs: components["schemas"]["DealInputsIn"];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "created" | "saved" | "auto" | "restored";
+            /** Label */
+            label: string | null;
+            /** Number */
+            number: number;
+            /** Settings */
+            settings: {
+                [key: string]: number | boolean;
+            };
+        };
+        /** VersionList */
+        VersionList: {
+            /** Versions */
+            versions: components["schemas"]["VersionSummary"][];
+        };
+        /** VersionSave */
+        VersionSave: {
+            /** Label */
+            label?: string | null;
+        };
+        /** VersionSummary */
+        VersionSummary: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "created" | "saved" | "auto" | "restored";
+            /** Label */
+            label: string | null;
+            /** Number */
+            number: number;
+        };
         /** WorkbookRequest */
         WorkbookRequest: {
             /**
@@ -2065,6 +2414,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_account_settings_api_account_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSettings"];
+                };
+            };
+        };
+    };
+    put_account_settings_api_account_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSettings"];
                 };
             };
             /** @description Validation Error */
@@ -2204,6 +2606,365 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourcesUsesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_deals_api_deals_get: {
+        parameters: {
+            query?: {
+                archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_deal_api_deals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_deal_api_deals__deal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_deal_api_deals__deal_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_deal_api_deals__deal_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_draft_api_deals__deal_id__draft_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealContent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    duplicate_deal_api_deals__deal_id__duplicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DealDuplicate"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_versions_api_deals__deal_id__versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_version_api_deals__deal_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VersionSave"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_api_deals__deal_id__versions__number__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_version_api_deals__deal_id__versions__number__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
                 };
             };
             /** @description Validation Error */

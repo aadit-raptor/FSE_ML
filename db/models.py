@@ -17,10 +17,15 @@ CLAUDE.md "Adding a table").
 from __future__ import annotations
 
 import re
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import BigInteger, DateTime, Identity, MetaData, Numeric, String, func
+from sqlalchemy import (
+    BigInteger, CheckConstraint, DateTime, ForeignKey, Identity, Index, Integer, MetaData, Numeric,
+    String, UniqueConstraint, Uuid, func, text,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import TypeDecorator
 
@@ -164,7 +169,77 @@ class User(Base):
                                                  server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
                                                  server_default=func.now())
+    # The account's Settings overrides (PLAN.md 1.5): only the keys that
+    # differ from core/config.py DEFAULTS, so an untouched account stores {}
+    settings: Mapped[dict] = mapped_column(JSONB, nullable=False,
+                                           server_default=text("'{}'::jsonb"))
 
 
-__all__ = ["Base", "CurrencyCode", "MoneyAmount", "StorageCheck", "User", "UTCDateTime",
-           "check_conventions", "utc_now"]
+class Deal(Base):
+    """One saved deal and its working copy (PLAN.md 1.5).
+
+    ``inputs`` and ``settings`` are the draft: what the deal screens show now.
+    Autosave overwrites them in place, so editing never grows the database;
+    history lives in ``deal_versions``. ``inputs`` is always complete (every
+    field of ``DealInputsIn``), so a deal reopens with the same numbers even
+    if the API's input defaults change; ``settings`` holds only overrides.
+
+    ``id`` is a random UUID: it appears in addresses, and can't be guessed or
+    counted. Every read and write also matches ``owner_id``, so a deal id
+    alone never opens someone else's deal (db/deals.py).
+    """
+
+    __tablename__ = "deals"
+    __table_args__ = (
+        Index("ix_deals_owner_id_updated_at", "owner_id", "updated_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    inputs: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    settings: Mapped[dict] = mapped_column(JSONB, nullable=False,
+                                           server_default=text("'{}'::jsonb"))
+    # Highest version number handed out; numbers are never reused
+    latest_version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    archived_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+
+
+VERSION_KINDS = ("created", "saved", "auto", "restored")
+
+
+class DealVersion(Base):
+    """A point in a deal's history the user can go back to.
+
+    Kept small so the free 0.5 GB lasts (db/deals.py): a version is written
+    only when its content differs from the one before; automatic checkpoints
+    are spaced out and capped per deal; settings are overrides only. A
+    version is a few hundred bytes.
+    """
+
+    __tablename__ = "deal_versions"
+    __table_args__ = (
+        UniqueConstraint("deal_id", "number", name="uq_deal_versions_deal_id_number"),
+        CheckConstraint("kind IN ('created', 'saved', 'auto', 'restored')", name="kind"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("deals.id", ondelete="CASCADE"), nullable=False)
+    number: Mapped[int] = mapped_column(Integer, nullable=False)
+    kind: Mapped[str] = mapped_column(String(10), nullable=False)
+    label: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    inputs: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    settings: Mapped[dict] = mapped_column(JSONB, nullable=False,
+                                           server_default=text("'{}'::jsonb"))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+
+
+__all__ = ["Base", "CurrencyCode", "Deal", "DealVersion", "MoneyAmount", "StorageCheck", "User",
+           "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]
