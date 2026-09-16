@@ -303,7 +303,9 @@ Setup on a fresh machine: Python 3.12, then
 
 - **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e`, `docker` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
-  The GitHub CLI is not installed; open and merge PRs through the browser.
+  The GitHub CLI is installed but not signed in (`gh auth status`), and
+  signing it in needs the user's credentials: open and merge PRs through the
+  browser, or run `gh auth login` first.
 - **Keep model logic as is** unless the user approves a change. Record new
   findings in this file instead of silently fixing them.
 - **Parity:** `tests/test_core_parity.py` and `tests/test_api.py` pin results to
