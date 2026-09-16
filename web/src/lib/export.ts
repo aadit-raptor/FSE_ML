@@ -1,5 +1,5 @@
 import type { Row } from "@/components/charts/DataTable";
-import type { Schemas } from "@/lib/api/client";
+import { authHeaders, type Schemas } from "@/lib/api/client";
 import { newRequestId, reportApiError, REQUEST_ID_HEADER } from "@/lib/monitoring";
 
 export type Sheet = Schemas["WorkbookSheet"];
@@ -35,7 +35,9 @@ function save(blob: Blob, filename: string) {
 
 async function postForFile(path: string, body: unknown, filename: string) {
   const requestId = newRequestId();
-  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", [REQUEST_ID_HEADER]: requestId }, body: JSON.stringify(body) }).catch((e: unknown) => {
+  // A plain fetch, so the signed-in user's token has to be added by hand
+  const headers = { "Content-Type": "application/json", [REQUEST_ID_HEADER]: requestId, ...(await authHeaders()) };
+  const res = await fetch(path, { method: "POST", headers, body: JSON.stringify(body) }).catch((e: unknown) => {
     reportApiError(path, "network", requestId);
     throw e;
   });

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { dealSettled, kpi, simulationSettled, stepLink } from "./helpers";
+import { asUser, dealSettled, kpi, simulationSettled, stepLink } from "./helpers";
 
 type Sheet = { name: string; columns: string[]; rows: (string | number | null)[][] };
 
@@ -16,7 +16,7 @@ async function download(page: Page, button: ReturnType<Page["getByRole"]>, path 
 const row = (s: Sheet | undefined, label: string) => s?.rows.find((r) => r[0] === label);
 
 async function capabilities(page: Page) {
-  const res = await page.request.get("/api/capabilities");
+  const res = await page.request.get("/api/capabilities", { headers: await asUser(page) });
   return (await res.json()) as { anomaly_detector: boolean; surrogate: boolean };
 }
 
@@ -24,7 +24,7 @@ test.describe("Streamlit parity", () => {
   test("summary exports every table with the model's numbers", async ({ page }) => {
     await page.goto("/deal/summary");
     await dealSettled(page);
-    const api = await (await page.request.post("/api/deal/run", { data: {} })).json();
+    const api = await (await page.request.post("/api/deal/run", { data: {}, headers: await asUser(page) })).json();
     const { filename, body } = await download(page, page.getByRole("button", { name: "↓ All tables" }));
     expect(filename).toBe("lbo_summary.xlsx");
     const names = body.sheets!.map((s) => s.name);

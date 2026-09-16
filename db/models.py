@@ -138,5 +138,33 @@ class StorageCheck(Base):
     limit_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
 
-__all__ = ["Base", "CurrencyCode", "MoneyAmount", "StorageCheck", "UTCDateTime",
+class User(Base):
+    """One signed-in person, and how they want figures shown (PLAN.md 1.4).
+
+    ``subject`` is the account id from the identity provider (Clerk's
+    ``user_…``), the only link back to them. Names, email addresses and
+    sign-in details stay with the provider: nothing personal is stored here,
+    so the database holds no contact details to leak and none reach the logs.
+
+    The four preferences are asked at sign-up and used everywhere figures are
+    shown or defaults chosen (PLAN.md 2.2 and 2.3 build on them):
+    ``country`` ISO 3166-1 alpha-2, ``preferred_currency`` ISO 4217,
+    ``locale`` a BCP 47 tag, ``time_zone`` an IANA name.
+    """
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    country: Mapped[str] = mapped_column(String(2), nullable=False)
+    preferred_currency: Mapped[str] = mapped_column(CurrencyCode, nullable=False)
+    locale: Mapped[str] = mapped_column(String(35), nullable=False)
+    time_zone: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+
+
+__all__ = ["Base", "CurrencyCode", "MoneyAmount", "StorageCheck", "User", "UTCDateTime",
            "check_conventions", "utc_now"]

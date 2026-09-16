@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-16 (PLAN.md 1.3). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-16 (PLAN.md 1.4). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -60,6 +60,22 @@ database (either would burn Neon's 100 free compute hours);
 against the free 0.5 GB (warning at 80%). It runs daily from `live.yml` and
 after each staging deploy.
 
+Accounts (PLAN.md 1.4, DEPLOY.md "Accounts and sign-in"): **Clerk** free
+development instance, email and Google sign-in. **Every API call except
+`/api/health*` and the schema needs a signed-in user** — the dependency is on
+`include_router`, so a new route is protected unless it is added to
+`api.auth.PUBLIC_PATHS`. The browser sends Clerk's session token as a bearer
+token; `api/auth.py` verifies it locally against the instance's JWKS (RS256,
+issuer, expiry), so no Clerk secret key and no Clerk API quota are used.
+Vercel needs `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`;
+Render needs `CLERK_PUBLISHABLE_KEY` (or `CLERK_ISSUER`). Without a Clerk key
+the app and the API use the **development sign-in** (`Bearer dev:<name>`,
+`FSE_AUTH_DEV=1`), which is what local runs and the browser tests use and
+which is refused in production or whenever Clerk is configured. The `users`
+table stores only Clerk's user id plus country, currency, locale and time
+zone, asked at sign-up on `/account`; **never store or log names, emails or
+anything else personal**.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -76,7 +92,8 @@ user must do first (outside accounts and keys only) and a "done when" test;
 the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
-below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); next is 1.4. End every task session with the handoff described in PLAN.md: tell the
+below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
+sign-in, below); next is 1.5. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -92,7 +109,7 @@ below). Streamlit is retired (removed in step 6).
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
 | 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Merged (PR #5) |
 | 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built, verified by output, merged (PR #5) |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (38 tests, CI job `e2e`). Mutation-checked |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (47 tests, CI job `e2e`). Mutation-checked |
 | 6. Deploy (frontend + API) and retire Streamlit | Config done on `feat/deploy` (root `Dockerfile`, `render.yaml`, Vercel via `FSE_API_URL`, CI `docker` job). Streamlit removed. **Waiting on the user** to connect Render and Vercel (DEPLOY.md) |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
@@ -127,6 +144,11 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
 - Screens show open model findings as visible markers rather than hiding them
   (none are open in the web app now).
+- **Sign-in, sign-up and the account screen** use the same tokens: Clerk's
+  components are themed through `appearance` in
+  `components/auth/AuthScreens.tsx` (square corners, Tape colours), and the
+  account screen is an ordinary form in the `type-*` classes. The top bar's
+  right-hand link shows who is signed in.
 - **Honest labels (PLAN.md 2.1):** unsourced inception-era numbers carry a
   visible label until sourced data replaces them. Wording lives in
   `web/src/lib/provenance.ts`: Settings (every step) and the Monte Carlo rail say
@@ -182,20 +204,22 @@ golden snapshot is untouched and parity tests explain every departure.
 |---|---|
 | `core/` | **All model logic**, no web framework dependency. Functions take inputs and settings explicitly |
 | `api/` | FastAPI app (`api/main.py`), routers per mode (plus `export.py` for Excel downloads), schemas generated from engine dataclasses |
+| `api/auth.py` | Who is calling: Clerk session tokens verified locally against the instance's JWKS, plus the development sign-in for local runs and CI. `PUBLIC_PATHS` lists what works signed out |
 | `lbo_engine/` | Deterministic LBO engine (operating model, cash flow, debt, returns) |
 | `simulation/vectorized_simulation.py` | Vectorized Monte Carlo engine |
 | `analytics/` | Risk metrics |
 | `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
-| `web/` | Next.js 16 frontend. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides persist in localStorage and go into every run. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
+| `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides persist in localStorage and go into every run. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
 | `db/` | Database layer: `engine.py` (Neon-aware connections and retries), `models.py` (tables and column rules), `migrations/` (Alembic, numbered `0001_…`), `migrate.py` (CLI and migrate-on-first-use), `health.py` (status and storage check), `local.py` (local Postgres) |
+| `db/users.py` | Account profiles: validating and storing country, currency, locale and time zone (`api/routers/account.py` serves them) |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (137 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer |
+| `tests/`, `test_*.py` | Test suite (195 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -230,7 +254,9 @@ Database (optional locally; the API runs without one):
 1. Define it in `db/models.py` on `Base`. Follow the column rules (tests
    enforce them): date-times are `UTCDateTime`; money is a `MoneyAmount`
    column `<name>_amount` beside a `CurrencyCode` column `<name>_currency`;
-   no float money. Never store deal contents anywhere they could be logged.
+   no float money. Never store deal contents, names or email addresses
+   anywhere they could be logged; a person is `users.subject` and nothing
+   else.
 2. With a local database up to date (`python -m db.migrate upgrade`), run
    `python -m db.migrate revision -m "add deals"`. It writes
    `db/migrations/versions/000N_add_deals.py`.
@@ -245,19 +271,26 @@ Database (optional locally; the API runs without one):
    staging is at the new revision before the PR merges to `main`.
 
 Browser tests (`web/e2e/`, Playwright). They start uvicorn and `next start`
-themselves, so build first. No bundled browser on this machine: use Edge.
+themselves, so build first. They also need a **database** (accounts) and the
+**development sign-in**: start `python -m db.local`, then set `DATABASE_URL`
+and `FSE_AUTH_DEV=1` in the shell. No bundled browser on this machine: use
+Edge.
 
 ```bash
 npm --prefix web run build
-PW_CHANNEL=msedge npm --prefix web run test:e2e          # PowerShell: $env:PW_CHANNEL="msedge"
+PW_CHANNEL=msedge FSE_AUTH_DEV=1 npm --prefix web run test:e2e   # PowerShell: $env:PW_CHANNEL="msedge"
 ```
+
+`e2e/auth.setup.ts` signs in once as `dev:e2e` and saves the browser state
+every other spec reuses (`web/e2e/.auth/`, git-ignored); `auth.spec.ts` drops
+it to check what a signed-out visitor can reach.
 
 Tests assert real model output (IRR, MOIC, golden backtest values), not just
 rendering. Add one for every new control, and mutation-check it.
 
 CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web`, `e2e` and `docker`
-jobs. `core`, `ml` and `docker` get a Postgres 17 service; `FSE_REQUIRE_DB=1`
-makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
+jobs. `core`, `ml`, `e2e` and `docker` get a Postgres 17 service;
+`FSE_REQUIRE_DB=1` makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
 and checks the default deal IRR (0.2116), Monte Carlo and an Excel export.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
 `web` job fails when `schema.d.ts` doesn't match the snapshot.
@@ -270,7 +303,9 @@ Setup on a fresh machine: Python 3.12, then
 
 - **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e`, `docker` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
-  The GitHub CLI is not installed; open and merge PRs through the browser.
+  The GitHub CLI is installed but not signed in (`gh auth status`), and
+  signing it in needs the user's credentials: open and merge PRs through the
+  browser, or run `gh auth login` first.
 - **Keep model logic as is** unless the user approves a change. Record new
   findings in this file instead of silently fixing them.
 - **Parity:** `tests/test_core_parity.py` and `tests/test_api.py` pin results to
@@ -327,7 +362,10 @@ Skills load when a session starts: install first, then open a new session.
   `#content`. `.next/dev` grows to ~400 MB; delete it when disk is tight.
   Playwright reuses servers already on ports 3000/8000 locally: stop any
   preview or stray uvicorn first, or tests hit stale code (a 404 on a new
-  endpoint means this).
+  endpoint means this). A `next start` left over from an interrupted run keeps
+  serving the old build after a rebuild: the page renders but never hydrates,
+  so clicks do nothing and the console shows `ChunkLoadError`. Kill whatever
+  holds the port (`netstat -ano | grep LISTENING | grep :3000`).
 - The Browser pane's screenshots time out when the Claude window isn't drawn;
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or

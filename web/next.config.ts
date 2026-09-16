@@ -22,6 +22,14 @@ if (process.env.VERCEL_ENV === "production" && !process.env.FSE_API_URL) {
   throw new Error("Set FSE_API_URL (e.g. https://fse-api.onrender.com) in the Vercel project settings.");
 }
 
+// Sign-in (PLAN.md 1.4). A deployed copy must have a Clerk instance: without
+// the publishable key the app falls back to its development sign-in, which is
+// fine locally and in the browser tests but must never reach a deployment.
+// Preview builds are staging and are held to the same rule.
+if ((process.env.VERCEL_ENV === "production" || isPreview) && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  throw new Error("Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (and CLERK_SECRET_KEY) in the Vercel project settings; see DEPLOY.md.");
+}
+
 // Error tracking (lib/monitoring.ts). Vercel has SENTRY_DSN in Production and
 // Preview; a DSN is public by design, so it is inlined into the browser
 // bundle at build time. No DSN (local, CI) means no Sentry.

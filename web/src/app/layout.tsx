@@ -1,7 +1,9 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { JetBrains_Mono, Michroma, Orbitron } from "next/font/google";
 
 import { AppShell } from "@/components/shell/AppShell";
+import { AUTH_MODE } from "@/lib/auth/mode";
 
 import "./globals.css";
 
@@ -16,11 +18,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
+  const shell = (
     <html lang="en" className={`${michroma.variable} ${orbitron.variable} ${jetbrainsMono.variable}`}>
       <body>
         <AppShell>{children}</AppShell>
       </body>
     </html>
   );
+  // Clerk's provider only goes in when there is an instance to talk to; without
+  // one the app uses the development sign-in (lib/auth/mode.ts)
+  return AUTH_MODE === "clerk" ? <ClerkProvider>{shell}</ClerkProvider> : shell;
 }

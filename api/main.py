@@ -8,7 +8,7 @@ the frontend's typed client is generated from.
 import os
 import time
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -16,7 +16,10 @@ from fastapi.responses import JSONResponse
 from api.observability import (
     REQUEST_ID_HEADER, RequestContextMiddleware, configure_logging, init_sentry, utc_now_iso,
 )
-from api.routers import backtesting, deal, export, forecasting, integrations, montecarlo
+from api.auth import require_user
+from api.routers import (
+    account, backtesting, deal, export, forecasting, integrations, montecarlo,
+)
 from db import DatabaseUnavailable
 from db import health as db_health
 
@@ -108,8 +111,11 @@ def create_app() -> FastAPI:
         _last_test_error[0] = now
         raise RuntimeError("Deliberate test error (PLAN.md 1.2)")
 
-    for module in (deal, montecarlo, forecasting, backtesting, integrations, export):
-        app.include_router(module.router, prefix="/api")
+    # Everything except the health checks needs a signed-in user (api/auth.py).
+    # Applying it here, not endpoint by endpoint, means a new route is
+    # protected by default -- forgetting is impossible rather than unlikely.
+    for module in (deal, montecarlo, forecasting, backtesting, integrations, export, account):
+        app.include_router(module.router, prefix="/api", dependencies=[Depends(require_user)])
     return app
 
 

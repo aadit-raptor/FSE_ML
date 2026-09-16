@@ -4,6 +4,30 @@
  */
 
 export interface paths {
+    "/api/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Account
+         * @description The caller's account, with ``profile`` null until they've set one.
+         */
+        get: operations["get_account_api_account_get"];
+        put?: never;
+        /**
+         * Save Account
+         * @description Save the caller's country, currency, locale and time zone.
+         */
+        post: operations["save_account_api_account_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backtesting/deals": {
         parameters: {
             query?: never;
@@ -409,6 +433,48 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AccountProfile
+         * @description How one person wants money, dates and numbers shown.
+         *
+         *     Any country and any currency: the codes are checked for shape and the time
+         *     zone against the IANA database (db/users.py), never against a list of
+         *     "supported" places.
+         */
+        AccountProfile: {
+            /**
+             * Country
+             * @description ISO 3166-1 alpha-2, e.g. GB
+             */
+            country: string;
+            /**
+             * Locale
+             * @description BCP 47 language tag, e.g. en-GB
+             */
+            locale: string;
+            /**
+             * Preferred Currency
+             * @description ISO 4217, e.g. EUR
+             */
+            preferred_currency: string;
+            /**
+             * Time Zone
+             * @description IANA time zone, e.g. Europe/London
+             */
+            time_zone: string;
+        };
+        /**
+         * AccountResponse
+         * @description The signed-in account. ``profile`` is null until sign-up finishes it.
+         */
+        AccountResponse: {
+            profile?: components["schemas"]["AccountProfile"] | null;
+            /**
+             * Subject
+             * @description The identity provider's user id
+             */
+            subject: string;
+        };
         /** BacktestActualExit */
         BacktestActualExit: {
             /** Exit Ev */
@@ -1959,6 +2025,59 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_account_api_account_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountResponse"];
+                };
+            };
+        };
+    };
+    save_account_api_account_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountProfile"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_deals_api_backtesting_deals_get: {
         parameters: {
             query?: never;

@@ -1,10 +1,11 @@
 "use client";
 
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, UserIcon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useSession } from "@/components/auth/AuthProvider";
 import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
 import { MODES, parsePath, stepHref } from "@/lib/nav";
 
@@ -14,6 +15,7 @@ export function TopBar() {
   const pathname = usePathname();
   const { mode: current } = parsePath(pathname);
   const { setSearchOpen } = useWorkspace();
+  const { label } = useSession();
   // Modes whose results no longer match their inputs
   const staleModes = new Set(useMonteCarlo().stale ? ["monte-carlo"] : []);
 
@@ -59,6 +61,16 @@ export function TopBar() {
         <span className="type-step flex-1">Search screens and actions</span>
         <kbd>Ctrl K</kbd>
       </button>
+
+      <Link
+        href="/account"
+        aria-current={pathname === "/account" ? "page" : undefined}
+        title="Your account: country, currency, format and time zone"
+        className={`type-tab flex items-center gap-2 border-l border-line px-3.5 whitespace-nowrap hover:text-ink ${pathname === "/account" ? "bg-raised" : ""}`}
+      >
+        <UserIcon size={13} weight="bold" aria-hidden />
+        <span className="max-w-[180px] truncate normal-case">{label ?? "Account"}</span>
+      </Link>
     </header>
   );
 }

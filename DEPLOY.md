@@ -38,6 +38,10 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | GitHub Actions secret | — | lets `staging.yml` open the protected preview | — |
 | `SENTRY_DSN` | both Render services, and Vercel (Production + Preview) | set | set | unset (no Sentry) |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Vercel (Production + Preview) | `pk_…` from Clerk; the build fails without it | same | unset = development sign-in |
+| `CLERK_SECRET_KEY` | Vercel (Production + Preview) | `sk_…` from Clerk | same | unset |
+| `CLERK_ISSUER` *or* `CLERK_PUBLISHABLE_KEY` | both Render services | the Clerk instance (`https://<instance>.clerk.accounts.dev`) | same | unset = development sign-in |
+| `FSE_AUTH_DEV` | local and CI only | **never set it** | never | `1` accepts `dev:<name>` tokens |
 | `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string | Neon branch `staging`, pooled | optional: `python -m db.local` prints one; unset = no database |
 | `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 17 service) | — | — | optional: tests create and drop their own databases through it |
 | `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
@@ -106,13 +110,46 @@ Pushes to `main` redeploy the web app; pull requests get preview URLs.
 
 If you later change `FSE_API_URL`, redeploy: rewrites are fixed at build time.
 
-## 3. Optional: lock the API to the web app
+## 3. Accounts and sign-in (Clerk)
 
-The API is public. Anything a visitor can do in the web app they can do
-directly, including large Monte Carlo runs (up to 1,000,000 paths per
-request). If that matters, set `FSE_CORS_ORIGINS` on Render to your Vercel
-domain (this only stops other websites' browsers, not scripts), and consider
-Render's paid plans or a lower path cap in `api/schemas.py` (`MCInputsIn.n`).
+Every API call except the health checks needs a signed-in user (PLAN.md 1.4).
+Free plan, no card.
+
+1. Sign in at <https://clerk.com> and **create an application**. Name it
+   `FSE/ML`. Under sign-in options turn on **Email** and **Google**.
+2. Copy the two keys from **API keys** (the Next.js snippet shows them):
+   `pk_…` (publishable, public) and `sk_…` (secret).
+3. **Vercel → fse-ml → Environment Variables** (in the project's main left
+   menu, not under Settings): add `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` = the
+   `pk_…` key and `CLERK_SECRET_KEY` = the `sk_…` key, both to **Production
+   and Preview**. Redeploy: the publishable key is baked in at build time, and
+   the build fails on purpose if it is missing.
+4. **Render → fse-api → Environment**: add `CLERK_PUBLISHABLE_KEY` = the same
+   `pk_…` key (the API reads the instance's address out of it and fetches its
+   public keys; it needs no secret). Do the same on `fse-api-staging`. Set
+   `CLERK_ISSUER` instead if you ever move Clerk to a custom domain.
+5. Open the site, sign up, answer the four account questions (country,
+   currency, number format, time zone) and you land on Deal → Inputs.
+
+Nothing about the person is stored in this database except Clerk's user id
+(`db/models.py`), and the API never logs it.
+
+While Clerk's keys are `pk_test_`/`sk_test_` the instance is a **development**
+one: free, limited to 100 users, and it shows Clerk's development banner.
+Moving to a production instance needs a custom domain (PLAN.md 12).
+
+**The development sign-in.** Without a Clerk key the web app and the API fall
+back to signing in as `dev:<name>`, which is what local runs and the browser
+tests use. It is refused whenever the API is production or Clerk is
+configured, and `staging.yml` checks that a `dev:` token is refused there.
+
+## 4. Optional: limit who can reach the API
+
+The API only answers callers with a valid Clerk token, so the model is no
+longer open to anyone who finds the URL. Large Monte Carlo runs (up to
+1,000,000 paths per request) are still possible for any signed-in account
+until usage limits arrive (PLAN.md 1.6). `FSE_CORS_ORIGINS` on Render can
+also restrict which websites' browsers may call it directly.
 
 ## Rollback
 
@@ -275,3 +312,11 @@ storage.
 
 `/api/health` returns `environment` (production, staging or local) and
 `commit` (the git SHA Render built, `null` locally).
+
+**Live checks and sign-in.** Since accounts arrived, the daily production
+checks (`live.yml`) and the per-deploy staging checks run **signed out**:
+they check that the site sends a visitor to sign-in, that the API answers
+401 without a token, and that staging refuses a `dev:` token. Checking the
+live model output again means a Clerk test account whose credentials live in
+GitHub secrets; the model itself is checked on every pull request by the
+`core`, `e2e` and `docker` jobs.

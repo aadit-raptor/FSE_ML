@@ -9,3 +9,5 @@ ml/surrogate/training_data.parquet
 .claude/launch.json
 # Local development database (python -m db.local)
 .localdb/
+# Signed-in browser state saved by web/e2e/auth.setup.ts
+web/e2e/.auth/

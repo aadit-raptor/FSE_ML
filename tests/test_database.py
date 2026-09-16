@@ -1,9 +1,10 @@
 """Database layer (PLAN.md 1.3): URLs, column rules, migrations both ways,
 health endpoints, the storage warning and recovery after Neon scales to zero.
 
-Tests that need Postgres use ``TEST_DATABASE_URL`` (a server where they may
-create and drop databases; ``python -m db.local`` prints one). Without it they
-skip, except in CI, where ``FSE_REQUIRE_DB=1`` turns a skip into a failure.
+Tests that need Postgres take the ``fresh_db`` fixture (tests/conftest.py):
+an empty database of their own on ``TEST_DATABASE_URL``. Without that
+variable they skip, except in CI, where ``FSE_REQUIRE_DB=1`` turns a skip into
+a failure.
 """
 import io
 import json
@@ -136,38 +137,6 @@ def test_health_without_a_database(monkeypatch):
 # ---------------------------------------------------------------------------
 # Postgres
 # ---------------------------------------------------------------------------
-@pytest.fixture(scope="session")
-def admin_url():
-    url = os.environ.get("TEST_DATABASE_URL")
-    if not url:
-        if os.environ.get("FSE_REQUIRE_DB") == "1":
-            pytest.fail("TEST_DATABASE_URL is required (FSE_REQUIRE_DB=1)")
-        pytest.skip("TEST_DATABASE_URL not set (python -m db.local prints one)")
-    return url
-
-
-@pytest.fixture
-def fresh_db(admin_url, monkeypatch):
-    """An empty database of its own, set as DATABASE_URL, dropped afterwards."""
-    name = f"fse_test_{uuid.uuid4().hex[:10]}"
-    admin = create_engine(db_engine.sqlalchemy_url(admin_url), isolation_level="AUTOCOMMIT")
-    with admin.connect() as conn:
-        conn.execute(text(f'CREATE DATABASE "{name}"'))
-    url = make_url(db_engine.sqlalchemy_url(admin_url)).set(database=name) \
-        .render_as_string(hide_password=False).replace("postgresql+psycopg://", "postgresql://", 1)
-    monkeypatch.setenv("DATABASE_URL", url)
-    monkeypatch.setattr(db_engine, "RETRY_DELAYS_S", (0.05, 0.1, 0.2, 0.4, 0.8))
-    db_health.reset()
-    migrate.reset_state()
-    yield url
-    db_engine.dispose_engines()
-    db_health.reset()
-    migrate.reset_state()
-    with admin.connect() as conn:
-        conn.execute(text(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)'))
-    admin.dispose()
-
-
 def tables(url):
     engine = create_engine(db_engine.sqlalchemy_url(url))
     try:
@@ -180,7 +149,7 @@ def test_migrations_run_forwards_and_backwards(fresh_db):
     assert tables(fresh_db) == set()
     head = migrate.head_revision()
     assert migrate.upgrade(fresh_db) == (None, head)
-    assert tables(fresh_db) == {"alembic_version", "storage_checks"}
+    assert tables(fresh_db) == {"alembic_version", "storage_checks", "users"}
     assert migrate.current(fresh_db) == head
 
     # Every revision back to an empty schema, one step at a time

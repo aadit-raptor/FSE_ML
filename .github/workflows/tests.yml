@@ -68,6 +68,21 @@ jobs:
     # and check that each control changes its output (web/e2e/).
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Accounts live in the database (PLAN.md 1.4), so the browser tests need
+    # one, as the deployed app has Neon
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      # No Clerk instance in CI: the API accepts the development sign-in
+      # (never in production, api/auth.py) and the web app offers it
+      FSE_AUTH_DEV: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -165,7 +180,8 @@ jobs:
       - name: Start the container on the port a host would assign
         run: |
           docker run -d --name api -e PORT=9100 -p 9100:9100 --add-host=host.docker.internal:host-gateway \
-            -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/postgres fse-api
+            -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/postgres \
+            -e FSE_AUTH_DEV=1 fse-api
       - name: Wait for the health check
         run: |
           for i in $(seq 1 30); do
@@ -173,20 +189,28 @@ jobs:
             sleep 2
           done
           docker logs api; exit 1
-      - name: Deal, Monte Carlo and export respond with model output
+      - name: The image refuses anonymous calls (PLAN.md 1.4)
         run: |
-          irr=$(curl -fsS -X POST http://127.0.0.1:9100/api/deal/run -H 'Content-Type: application/json' -d '{}' \
+          code=$(curl -s -o body.json -w '%{http_code}' -X POST http://127.0.0.1:9100/api/deal/run \
+            -H 'Content-Type: application/json' -d '{}')
+          echo "anonymous /api/deal/run -> $code"; test "$code" = "401"
+          ! grep -q irr body.json
+      - name: Deal, Monte Carlo and export respond with model output
+        env:
+          AUTH: "Authorization: Bearer dev:ci"
+        run: |
+          irr=$(curl -fsS -X POST http://127.0.0.1:9100/api/deal/run -H "$AUTH" -H 'Content-Type: application/json' -d '{}' \
             | python3 -c "import sys, json; print(round(json.load(sys.stdin)['returns']['irr'], 4))")
           echo "default deal IRR $irr"; test "$irr" = "0.2116"
-          curl -fsS -X POST http://127.0.0.1:9100/api/montecarlo/run -H 'Content-Type: application/json' \
+          curl -fsS -X POST http://127.0.0.1:9100/api/montecarlo/run -H "$AUTH" -H 'Content-Type: application/json' \
             -d '{"mc": {"n": 5000}, "seed": 1}' | python3 -c "import sys, json; d = json.load(sys.stdin); assert d['n'] == 5000, d"
-          curl -fsS -X POST http://127.0.0.1:9100/api/export/workbook -H 'Content-Type: application/json' \
+          curl -fsS -X POST http://127.0.0.1:9100/api/export/workbook -H "$AUTH" -H 'Content-Type: application/json' \
             -d '{"sheets": [{"name": "t", "columns": ["a"], "rows": [[1]]}]}' -o out.xlsx
           test "$(head -c 2 out.xlsx)" = "PK"
           docker inspect --format '{{.Config.User}}' api | grep -qx app
       - name: Request IDs come back and logs are JSON lines carrying them
         run: |
-          curl -fsS -o /dev/null -D headers.txt -X POST http://127.0.0.1:9100/api/deal/run -H 'Content-Type: application/json' -H 'X-Request-ID: docker-check-0001' -d '{}'
+          curl -fsS -o /dev/null -D headers.txt -X POST http://127.0.0.1:9100/api/deal/run -H 'Authorization: Bearer dev:ci' -H 'Content-Type: application/json' -H 'X-Request-ID: docker-check-0001' -d '{}'
           grep -i '^x-request-id: docker-check-0001' headers.txt
           docker logs api 2>&1 | grep '"request_id": "docker-check-0001"' > logs.txt
           python3 -c "import json; lines = [json.loads(l) for l in open('logs.txt')]; req = next(l for l in lines if l['event'] == 'request'); assert any(l['event'] == 'model_run' for l in lines), lines; assert req['route'] == '/api/deal/run' and req['status'] == 200 and req['ts'].endswith('Z'), req; print(req)"

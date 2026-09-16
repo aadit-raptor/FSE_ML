@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { SIGNED_IN_STATE } from "./e2e/helpers";
+
 /**
  * Browser tests that prove each control changes its output.
  *
@@ -47,7 +49,19 @@ export default defineConfig({
     trace: "retain-on-failure",
     ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } }],
+  // Every screen needs a signed-in user (PLAN.md 1.4): the setup project
+  // signs in once and the rest reuse that browser state. auth.spec.ts drops
+  // it again to check what a signed-out visitor can reach.
+  projects: live
+    ? [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } }]
+    : [
+        { name: "setup", testMatch: /auth\.setup\.ts/, use: { ...devices["Desktop Chrome"] } },
+        {
+          name: "chromium",
+          dependencies: ["setup"],
+          use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, storageState: SIGNED_IN_STATE },
+        },
+      ],
   webServer: live
     ? undefined
     : [
@@ -57,6 +71,9 @@ export default defineConfig({
           url: "http://127.0.0.1:8000/api/health",
           reuseExistingServer: !isCI,
           timeout: 120_000,
+          // No Clerk instance here, so the API accepts the development
+          // sign-in (never in production: api/auth.py)
+          env: { FSE_AUTH_DEV: "1" },
         },
         {
           command: "npm run start -- --port 3000",

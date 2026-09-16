@@ -30,3 +30,20 @@ export async function simulationSettled(page: Page) {
   await expect(kpi(page, "Mean IRR").or(kpi(page, "Base"))).toBeVisible({ timeout: 45_000 });
   await expect(page.getByText("Running simulation")).toHaveCount(0, { timeout: 45_000 });
 }
+
+/** Where the signed-in browser state from e2e/auth.setup.ts is kept. */
+export const SIGNED_IN_STATE = "e2e/.auth/signed-in.json";
+
+/**
+ * Headers for calling the API straight from a test, as the signed-in user.
+ *
+ * The app itself sends the token from JavaScript, so a `page.request` call
+ * carries none: this reads whoever the browser is signed in as (the
+ * development sign-in, lib/auth/dev.ts) and sends their token. It is added
+ * per request, never as `extraHTTPHeaders`, which would send it to every host
+ * the page talks to.
+ */
+export async function asUser(page: Page): Promise<Record<string, string>> {
+  const cookie = (await page.context().cookies()).find((c) => c.name === "fse_dev_user");
+  return cookie ? { Authorization: `Bearer dev:${cookie.value}` } : {};
+}

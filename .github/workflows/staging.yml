@@ -71,14 +71,20 @@ jobs:
           done
           echo "::error::The staging API did not deploy $GITHUB_SHA within 20 minutes"; exit 1
 
-      - name: Quick API check (deal model, request ID)
+      - name: Quick API check (sign-in enforced, request ID, database)
         id: smoke
         continue-on-error: true
         run: |
-          curl -fsS -m 120 -D headers.txt -o deal.json -X POST "$STAGING_API/api/deal/run" -H 'Content-Type: application/json' -H "X-Request-ID: staging-$GITHUB_RUN_ID" -d '{}'
+          # Since PLAN.md 1.4 the model needs an account, so the check that
+          # can be made without one is that it is refused -- and that the
+          # request ID still comes back on a refusal
+          code=$(curl -s -m 120 -D headers.txt -o deal.json -w '%{http_code}' -X POST "$STAGING_API/api/deal/run" -H 'Content-Type: application/json' -H "X-Request-ID: staging-$GITHUB_RUN_ID" -d '{}')
+          echo "anonymous /api/deal/run -> $code"; test "$code" = "401"
           grep -i "^x-request-id: staging-$GITHUB_RUN_ID" headers.txt
-          irr=$(python3 -c "import json; print(round(json.load(open('deal.json'))['returns']['irr'], 4))")
-          echo "default deal IRR $irr"; test "$irr" = "0.2116"
+          ! grep -q irr deal.json
+          # Clerk is configured there, so the development sign-in must be off
+          code=$(curl -s -m 120 -o /dev/null -w '%{http_code}' -X POST "$STAGING_API/api/deal/run" -H 'Authorization: Bearer dev:ci' -H 'Content-Type: application/json' -d '{}')
+          echo "development token -> $code"; test "$code" = "401"
           # Neon staging branch: reachable, migrations applied, storage under 80% (PLAN.md 1.3)
           python3 ops/check_database.py "$STAGING_API"
 
