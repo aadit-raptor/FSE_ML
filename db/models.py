@@ -241,5 +241,21 @@ class DealVersion(Base):
                                                  server_default=func.now())
 
 
-__all__ = ["Base", "CurrencyCode", "Deal", "DealVersion", "MoneyAmount", "StorageCheck", "User",
-           "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]
+class UsageCounter(Base):
+    """A shared usage counter, when Upstash Redis can't be used (PLAN.md 1.6).
+
+    The fallback store for api/usage.py: one row per limit window, e.g. one
+    user's runs today. ``key`` names the limit, a hash of the user and the
+    window, never the user id itself. Rows are deleted once ``expires_at`` has
+    passed, so the table stays a few kilobytes.
+    """
+
+    __tablename__ = "usage_counters"
+
+    key: Mapped[str] = mapped_column(String(160), primary_key=True)
+    count: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
+
+
+__all__ = ["Base", "CurrencyCode", "Deal", "DealVersion", "MoneyAmount", "StorageCheck", "UsageCounter",
+           "User", "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

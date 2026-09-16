@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-16 (PLAN.md 1.5). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-16 (PLAN.md 1.6). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -92,6 +92,24 @@ deal and its save state. Deals store overrides relative to today's
 `core/config.py` defaults, so changing a default changes old deals' results
 until PLAN.md 3.1 records the model version.
 
+Usage limits (PLAN.md 1.6, DEPLOY.md "Usage limits"): `api/limits.py` holds
+every number and why. Per user (a dependency on `include_router`, like
+sign-in, so a new route is limited too): 240 requests a minute, 30 model runs
+a minute and 1,000 a day (runs = `RUN_PATHS`: simulations, backtests,
+forecasts, ML, EDGAR). Per address (middleware, before sign-in): 1,200
+requests and 60 refused sign-ins a minute. Monte Carlo and backtest at most
+**100,000 paths** (forecast 200,000), sized from measured memory on Render
+free's 512 MB; **one simulation at a time** (`simulation_slot`), 100 s
+timeout (504), 1 MB bodies (413). Health checks are never limited. Counting
+is in memory; only daily counts are shared, batched to **Upstash**
+(`UPSTASH_REDIS_REST_URL`/`_TOKEN` on both Render services and in GitHub
+secrets) every 5 minutes, with a hard daily Redis command budget per
+environment and the `usage_counters` table as fallback. Keys hash the user;
+nothing personal goes to Redis. `/api/health/limits` (public) reports the
+store; `live.yml` and `staging.yml` require Upstash there. Tests get fresh
+in-memory counters (`tests/conftest.py`); the browser tests raise limits
+with `FSE_LIMITS_MULTIPLIER` (ignored in production).
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -109,7 +127,7 @@ the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
 below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
-sign-in, below); 1.5 is done (saved deals, below); next is 1.6. End every task session with the handoff described in PLAN.md: tell the
+sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); next is 1.7. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -232,11 +250,12 @@ golden snapshot is untouched and parity tests explain every departure.
 | `db/` | Database layer: `engine.py` (Neon-aware connections and retries), `models.py` (tables and column rules), `migrations/` (Alembic, numbered `0001_…`), `migrate.py` (CLI and migrate-on-first-use), `health.py` (status and storage check), `local.py` (local Postgres) |
 | `db/users.py` | Account profiles: validating and storing country, currency, locale and time zone (`api/routers/account.py` serves them) |
 | `db/deals.py` | Saved deals, versions and account settings: ownership, autosave checkpoints, restore, compact storage (`api/routers/deals.py` serves them) |
+| `api/limits.py`, `api/usage.py`, `db/usage.py` | Usage limits: rules, refusal messages, size caps, simulation slot and timeout; in-memory counters synced to Upstash (daily command budget, `python -m api.usage` prints the monthly estimate) with the database as fallback |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (233 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (255 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -403,6 +422,11 @@ Skills load when a session starts: install first, then open a new session.
   statements) across statements on app connections; migrations use the
   direct host. The pooler rejects the libpq `options` startup parameter, so
   don't set the time zone there: `UTCDateTime` converts instead.
+- A new endpoint that runs a model or calls an outside source: add its path
+  to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
+  `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.
+  A new simulation-size input needs a cap (`SimulationPaths` in
+  `api/schemas.py`).
 - Anything polled often (`/api/health`, the uptime monitor, Render's health
   check) must not touch the database, or Neon never scales to zero.
 - API in Render Oregon, database in Neon Ohio: ~50–70 ms a round trip. Batch

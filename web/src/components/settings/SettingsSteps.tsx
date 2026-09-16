@@ -11,6 +11,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import type { DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput, fmtMoney, fmtRate } from "@/lib/format";
+import { MAX_SIMULATION_PATHS } from "@/lib/limits";
 import { ILLUSTRATIVE, ILLUSTRATIVE_DETAIL } from "@/lib/provenance";
 
 import { useSettings } from "./SettingsProvider";
@@ -55,7 +56,7 @@ const FEES: Def[] = [
 ];
 
 const MC: Def[] = [
-  { key: "mc_n", label: "Paths", spec: { unit: "n", step: 5000, decimals: 0, min: 1000, max: 1_000_000, integer: true } },
+  { key: "mc_n", label: "Paths", spec: { unit: "n", step: 5000, decimals: 0, min: 1000, max: MAX_SIMULATION_PATHS, integer: true } },
   { key: "mc_hurdle", label: "Hurdle IRR", spec: pct(1, 1, { min: 0 }) },
   { key: "mc_growth_mean", label: "Growth mean", spec: pct() },
   { key: "mc_growth_std", label: "Growth std dev", spec: pct(0.5, 1, { min: 0.1 }) },

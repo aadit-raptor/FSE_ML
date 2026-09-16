@@ -68,7 +68,9 @@ const Ctx = createContext<DealContext | null>(null);
 type ValidationError = { detail?: { loc?: (string | number)[]; msg?: string }[] };
 
 function describeError(err: unknown): string {
-  const detail = (err as ValidationError)?.detail;
+  const detail = (err as ValidationError | { detail?: string })?.detail;
+  // A refusal such as a usage limit is one sentence
+  if (typeof detail === "string") return detail;
   if (Array.isArray(detail) && detail.length) {
     return detail.map((d) => `${String(d.loc?.at(-1) ?? "input")}: ${d.msg}`).join("; ");
   }

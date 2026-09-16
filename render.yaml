@@ -39,6 +39,12 @@ services:
       # uses the staging branch). Unset = the API runs without a database.
       - key: DATABASE_URL
         sync: false
+      # Upstash Redis REST URL and token: shared usage counters (PLAN.md 1.6).
+      # Unset = counters shared through the database, or kept in memory
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
       # Only with INSTALL_ML=true images: enables macro regime detection
       - key: FRED_API_KEY
         sync: false
