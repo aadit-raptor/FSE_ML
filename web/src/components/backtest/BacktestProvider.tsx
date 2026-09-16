@@ -23,6 +23,12 @@ type BacktestContext = {
 const Ctx = createContext<BacktestContext | null>(null);
 const PATHS = 30000;
 
+/** A refusal (a usage limit, a busy server) is already a sentence; validation errors are listed. */
+function backtestError(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  return JSON.stringify(detail ?? "Backtest failed");
+}
+
 /** "Burger King (3G Capital, 2010)" -> name, sponsor, year */
 export function splitDealName(full: string) {
   const m = full.match(/^(.*?)\s*\((.*),\s*(\d{4})\)$/);
@@ -87,7 +93,7 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data, error } = await api.POST("/api/backtesting/run", { body, signal: ctrl.signal });
         if (ctrl.signal.aborted) return;
-        setState(data ? { status: "ok", result: data } : { status: "error", error: JSON.stringify((error as { detail?: unknown })?.detail ?? "Backtest failed") });
+        setState(data ? { status: "ok", result: data } : { status: "error", error: backtestError((error as { detail?: unknown })?.detail) });
       } catch (err) {
         if (!ctrl.signal.aborted && (err as Error)?.name !== "AbortError") setState({ status: "error", error: "Can't reach the API." });
       }

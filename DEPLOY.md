@@ -43,6 +43,7 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `CLERK_ISSUER` *or* `CLERK_PUBLISHABLE_KEY` | both Render services | the Clerk instance (`https://<instance>.clerk.accounts.dev`) | same | unset = development sign-in |
 | `FSE_AUTH_DEV` | local and CI only | **never set it** | never | `1` accepts `dev:<name>` tokens |
 | `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string | Neon branch `staging`, pooled | optional: `python -m db.local` prints one; unset = no database |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | both Render services, and GitHub Actions secrets | shared usage counters, keys `fse:production:` | same database, keys `fse:staging:` | unset = counters in memory (or the database); see "Usage limits" |
 | `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 17 service) | — | — | optional: tests create and drop their own databases through it |
 | `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
 
@@ -300,6 +301,73 @@ Render service or Neon project; PLAN.md 12.7 covers regions.
 **Backups and restore** come in PLAN.md 1.8. Until then, Neon's free plan can
 restore a branch to a recent point in time from its console (**Branches →
 branch → Restore**).
+
+## Usage limits
+
+Set up in PLAN.md 1.6 (`api/limits.py`, `api/usage.py`). Upstash Redis free
+plan: one database, shared by both environments (keys start `fse:production:`
+or `fse:staging:`).
+
+| | Production | Staging | CI |
+|---|---|---|---|
+| Variables | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` on `fse-api` | the same on `fse-api-staging` | GitHub Actions secrets of the same names (`tests.yml`, `core` job) |
+| Checked by | `live.yml`, daily | `staging.yml`, after each deploy | `tests/test_limits.py` round trip |
+
+**The limits** (a refusal always says what was limited and when to try again,
+with `Retry-After`):
+
+| Limit | Value | Answer |
+|---|---|---|
+| Requests per signed-in user | 240 a minute | 429 |
+| Model runs per user (simulations, backtests, forecasts, ML, EDGAR) | 30 a minute, 1,000 a day | 429 |
+| Requests per network address | 1,200 a minute | 429 |
+| Refused sign-ins per address | 60 a minute | 429 |
+| Simulation size | 100,000 paths (Monte Carlo, backtest); 200,000 (forecast) | 422 |
+| Request body | 1 MB | 413 |
+| Simulations at once | 1; others wait up to 30 s | 503 |
+| Simulation run time | 100 s | 504 |
+
+Health checks are never limited. Size: a 15-year Monte Carlo run peaks at
+about 1.35 KB a path (100,000 paths: 134 MB; four scenarios: 160 MB) and the
+process uses about 200 MB, so one run at the cap fits Render free's 512 MB
+and two would not. To change a limit, edit `api/limits.py` (and
+`web/src/lib/limits.ts` for the path cap).
+
+**How counting stays inside 500,000 commands a month.** Counting happens in
+the API's memory. Only the per-day run counts are shared, and they go to
+Redis in one script call every 5 minutes, only when they changed; an idle API
+sends nothing. Keys hold a hash of the user, never the id. Estimate at the
+target traffic (`python -m api.usage`, pinned by
+`test_monthly_redis_estimate_holds_at_target_traffic`):
+
+| | Daily active users (45 active minutes each) | Commands a month |
+|---|---|---|
+| Production | 200 | 124,992 |
+| Staging | 20 | 24,552 |
+| CI | | 3,000 |
+| **Total** | | **152,544 (31% of 500,000)** |
+
+Whatever the traffic, a hard **daily budget** holds: each sync also counts
+its commands in Redis (conservatively, every command inside the script), and
+past 8,000 a day on production, 2,000 on staging, 1,000 anywhere else, that
+process uses the database for the rest of the UTC day. The budgets add up to
+341,000 a month at most. `/api/health/limits` shows the store in use, whether
+Upstash answers (a PING, not billed, reused for 10 minutes) and today's
+command count as last seen.
+
+**When Redis is down** (or over budget) the counts go to the `usage_counters`
+table in Neon instead; if that fails too they wait in memory for the next
+sync. Limits keep working throughout: one free instance enforces them
+exactly from memory. With several instances (phase 12), per-minute limits
+become per instance and daily ones are shared within 5 minutes.
+
+**Browser tests** raise every count limit with `FSE_LIMITS_MULTIPLIER=20`
+(`web/playwright.config.ts`); the API ignores it in production.
+
+**Addresses.** uvicorn takes the client address from `X-Forwarded-For`
+(`--proxy-headers`). Through the Vercel proxy that is the visitor's address
+if Vercel passes it on; otherwise many visitors share Vercel's, which is why
+the address limits are generous and signed-in users are limited per account.
 
 ## Checking a deploy
 

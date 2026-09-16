@@ -7,6 +7,7 @@ the frontend's typed client is generated from.
 """
 import os
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +18,8 @@ from api.observability import (
     REQUEST_ID_HEADER, RequestContextMiddleware, configure_logging, init_sentry, utc_now_iso,
 )
 from api.auth import require_user
+from api import usage
+from api.limits import LimitExceeded, LimitRefusal, LimitsMiddleware, enforce_user_limits
 from api.routers import (
     account, backtesting, deal, deals, export, forecasting, integrations, montecarlo,
 )
@@ -48,6 +51,14 @@ TEST_ERROR_INTERVAL_S = 60.0
 _last_test_error = [0.0]
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    # Render stops a sleeping free instance with SIGTERM: send shared usage
+    # counts before the process goes (api/usage.py)
+    usage.counters().close()
+
+
 def create_app() -> FastAPI:
     configure_logging()
     init_sentry(os.environ.get("SENTRY_DSN"), environment=deploy_environment(),
@@ -60,12 +71,16 @@ def create_app() -> FastAPI:
         docs_url="/api/docs",
         redoc_url=None,
         openapi_url="/api/openapi.json",
+        lifespan=lifespan,
     )
 
     # Browser origins allowed to call the API, comma-separated.
     origins = [o.strip() for o in os.environ.get(
         "FSE_CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
-    # Innermost of the three, so its 500 responses still get CORS headers
+    # Innermost: limit refusals are logged with a request ID and carry CORS
+    # headers, so the browser can read the message (api/limits.py)
+    app.add_middleware(LimitsMiddleware)
+    # Inside CORS, so its 500 responses still get CORS headers
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=origins,
                        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["*"],
@@ -95,6 +110,18 @@ def create_app() -> FastAPI:
             response.status_code = 503
         return result
 
+    @app.get("/api/health/limits", tags=["meta"])
+    def health_limits():
+        """Where usage counters are shared (Upstash, the database or memory
+        only), whether Upstash answers, and today's Redis command use. Never
+        queries the database; the Upstash check is a PING (not billed),
+        reused for 10 minutes."""
+        return usage.status()
+
+    @app.exception_handler(LimitExceeded)
+    async def limit_exceeded(request: Request, exc: LimitExceeded):
+        return JSONResponse(exc.body, status_code=429, headers=exc.headers)
+
     @app.exception_handler(DatabaseUnavailable)
     async def database_unavailable(request: Request, exc: DatabaseUnavailable):
         return JSONResponse({"detail": "The database is unavailable; try again shortly."},
@@ -111,11 +138,15 @@ def create_app() -> FastAPI:
         _last_test_error[0] = now
         raise RuntimeError("Deliberate test error (PLAN.md 1.2)")
 
-    # Everything except the health checks needs a signed-in user (api/auth.py).
-    # Applying it here, not endpoint by endpoint, means a new route is
-    # protected by default -- forgetting is impossible rather than unlikely.
+    # Everything except the health checks needs a signed-in user (api/auth.py)
+    # and counts against that user's limits (api/limits.py). Applying both
+    # here, not endpoint by endpoint, means a new route is protected by
+    # default -- forgetting is impossible rather than unlikely.
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account):
-        app.include_router(module.router, prefix="/api", dependencies=[Depends(require_user)])
+        app.include_router(module.router, prefix="/api",
+                           dependencies=[Depends(require_user), Depends(enforce_user_limits)],
+                           responses={429: {"model": LimitRefusal,
+                                            "description": "A usage limit was reached"}})
     return app
 
 

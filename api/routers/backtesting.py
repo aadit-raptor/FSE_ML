@@ -3,6 +3,7 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 
 from api.deps import resolve_settings
+from api.limits import simulation_slot
 from api.schemas import BacktestRequest, BacktestResponse, PreloadedDeal
 from api.observability import model_timer
 from api.serialize import histogram, to_json
@@ -19,6 +20,7 @@ def get_deals():
 
 
 @router.post("/run", response_model=BacktestResponse)
+@simulation_slot
 def post_run(req: BacktestRequest):
     """Predict a deal from its entry assumptions and compare with what happened."""
     cfg = resolve_settings(req.settings)

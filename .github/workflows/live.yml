@@ -31,6 +31,15 @@ jobs:
         continue-on-error: true
         working-directory: .
         run: python3 ops/check_database.py https://fse-api.onrender.com
+      # Usage counters shared through Upstash, which answers and is under
+      # today's command budget (PLAN.md 1.6). PING only: not billed.
+      - name: Production usage limits check
+        id: limits
+        continue-on-error: true
+        working-directory: .
+        run: |
+          curl -fsS -m 120 https://fse-api.onrender.com/api/health/limits | tee limits.json; echo
+          jq -e '.store == "upstash" and .upstash.reachable and (.upstash.over_budget | not)' limits.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:live
@@ -39,8 +48,8 @@ jobs:
           E2E_EXPECT_ENV: production
       # Uptime monitors check that production is reachable; this catches a
       # site that is up but giving wrong answers (PLAN.md 1.2)
-      - name: Fail the run if the database check failed
-        if: steps.database.outcome == 'failure'
+      - name: Fail the run if the database or limits check failed
+        if: steps.database.outcome == 'failure' || steps.limits.outcome == 'failure'
         run: exit 1
       - name: Alert if the live checks failed
         if: failure()
@@ -48,4 +57,4 @@ jobs:
         env:
           BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
         run: |
-          python3 ops/betterstack.py incident --name "Production checks failed" --summary "Live checks failed (browser or database): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          python3 ops/betterstack.py incident --name "Production checks failed" --summary "Live checks failed (browser, database or usage limits): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

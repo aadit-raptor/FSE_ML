@@ -12,6 +12,7 @@ from fastapi import APIRouter
 from fastapi.responses import Response
 
 from api.deps import resolve_settings
+from api.limits import simulation_slot
 from api.schemas import MonteCarloRequest, WorkbookRequest
 from core.deal import DealInputs
 from core.montecarlo import MCInputs, apply_scenario, build_sim_params
@@ -72,6 +73,7 @@ def post_workbook(req: WorkbookRequest):
 
 @router.post("/montecarlo-sample", response_class=Response,
              responses={200: {"content": {XLSX: {}}, "description": "Excel workbook"}})
+@simulation_slot
 def post_montecarlo_sample(req: MonteCarloRequest):
     """Simulate with the same inputs as /montecarlo/run and export up to 10,000 paths.
 

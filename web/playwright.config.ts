@@ -73,7 +73,9 @@ export default defineConfig({
           timeout: 120_000,
           // No Clerk instance here, so the API accepts the development
           // sign-in (never in production: api/auth.py)
-          env: { FSE_AUTH_DEV: "1" },
+          // Every spec signs in as the same user from one address, faster than
+          // a person; raise the usage limits (ignored in production: api/limits.py)
+          env: { FSE_AUTH_DEV: "1", FSE_LIMITS_MULTIPLIER: "20" },
         },
         {
           command: "npm run start -- --port 3000",
