@@ -142,6 +142,10 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
       FSE_REQUIRE_DB: "1"
+      # As in core; this job fails on any skip, so it also proves the real
+      # Upstash round trip ran
+      UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+      UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
