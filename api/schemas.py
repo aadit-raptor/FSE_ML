@@ -515,3 +515,25 @@ class EdgarResponse(BaseModel):
     years: List[int]
     history: Dict[str, List[float]] = Field(description="Forecasting history keys, oldest year first")
     warnings: List[str]
+
+
+# ---------------------------------------------------------------------------
+# Account (PLAN.md 1.4)
+# ---------------------------------------------------------------------------
+class AccountProfile(Strict):
+    """How one person wants money, dates and numbers shown.
+
+    Any country and any currency: the codes are checked for shape and the time
+    zone against the IANA database (db/users.py), never against a list of
+    "supported" places.
+    """
+    country: str = Field(description="ISO 3166-1 alpha-2, e.g. GB", min_length=2, max_length=2)
+    preferred_currency: str = Field(description="ISO 4217, e.g. EUR", min_length=3, max_length=3)
+    locale: str = Field(description="BCP 47 language tag, e.g. en-GB", min_length=2, max_length=35)
+    time_zone: str = Field(description="IANA time zone, e.g. Europe/London", min_length=1, max_length=64)
+
+
+class AccountResponse(BaseModel):
+    """The signed-in account. ``profile`` is null until sign-up finishes it."""
+    subject: str = Field(description="The identity provider's user id")
+    profile: Optional[AccountProfile] = None

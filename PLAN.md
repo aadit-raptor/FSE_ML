@@ -113,7 +113,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 1.1 | Test copy (staging) and production | 0.1 | ☑ |
 | 1.2 | Monitoring, error tracking, logs | 1.1 | ☑ |
 | 1.3 | Database (Neon) | 1.1 | ☑ |
-| 1.4 | Accounts and login | 1.3 | ☐ |
+| 1.4 | Accounts and login | 1.3 | ☑ |
 | 1.5 | Saved deals, versions and settings | 1.4 | ☐ |
 | 1.6 | Usage limits and abuse protection | 1.4 | ☐ |
 | 1.7 | Security hardening | 1.4 | ☐ |

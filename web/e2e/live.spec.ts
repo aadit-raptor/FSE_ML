@@ -46,15 +46,23 @@ test.describe("live site", () => {
     else await expect(status).toContainText(`· ${expected}`);
   });
 
-  test("default deal returns the model's numbers", async ({ page }) => {
+  // Since PLAN.md 1.4 the deal screens need an account, so these checks run
+  // signed out: the site must ask for a sign-in and the API must refuse
+  // anonymous calls. Checking the live model output again needs a test
+  // account's credentials in GitHub secrets (DEPLOY.md, "Live checks").
+  test("the deal screens ask for a sign-in", async ({ page }) => {
     await page.goto("/deal/returns");
-    await expect(kpi(page, "IRR")).toHaveText("21.2%");
-    await expect(kpi(page, "MOIC")).toHaveText("2.61x");
+    await expect(page).toHaveURL(/\/sign-in/);
+    await expect(kpi(page, "IRR")).toHaveCount(0);
   });
 
-  test("Monte Carlo with seed 42 is reproducible", async ({ page }) => {
-    await page.goto("/monte-carlo/distribution");
-    await expect(kpi(page, "Mean IRR")).toHaveText("18.0%");
-    await expect(kpi(page, "P(IRR > 20%)")).toHaveText("42.9%");
+  test("the live API refuses a call without a token", async ({ page }) => {
+    const resp = await page.request.post("/api/deal/run", {
+      data: {},
+      failOnStatusCode: false,
+      headers: bypass ? { "x-vercel-protection-bypass": bypass } : {},
+    });
+    expect(resp.status()).toBe(401);
+    expect(await resp.text()).not.toContain("irr");
   });
 });

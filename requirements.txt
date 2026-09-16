@@ -10,3 +10,5 @@ sentry-sdk>=2.0          # error tracking, on when SENTRY_DSN is set (api/observ
 sqlalchemy>=2.0,<2.1     # database layer (db/), Postgres on Neon
 alembic>=1.13            # schema migrations (db/migrations)
 psycopg[binary]>=3.2     # Postgres driver
+pyjwt[crypto]>=2.9      # verifies Clerk session tokens locally (api/auth.py)
+tzdata>=2024.1           # IANA time zones for account profiles (slim images have none)

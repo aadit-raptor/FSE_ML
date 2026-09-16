@@ -1,6 +1,73 @@
 {
   "components": {
     "schemas": {
+      "AccountProfile": {
+        "additionalProperties": false,
+        "description": "How one person wants money, dates and numbers shown.\n\nAny country and any currency: the codes are checked for shape and the time\nzone against the IANA database (db/users.py), never against a list of\n\"supported\" places.",
+        "properties": {
+          "country": {
+            "description": "ISO 3166-1 alpha-2, e.g. GB",
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Country",
+            "type": "string"
+          },
+          "locale": {
+            "description": "BCP 47 language tag, e.g. en-GB",
+            "maxLength": 35,
+            "minLength": 2,
+            "title": "Locale",
+            "type": "string"
+          },
+          "preferred_currency": {
+            "description": "ISO 4217, e.g. EUR",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Preferred Currency",
+            "type": "string"
+          },
+          "time_zone": {
+            "description": "IANA time zone, e.g. Europe/London",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Time Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "country",
+          "preferred_currency",
+          "locale",
+          "time_zone"
+        ],
+        "title": "AccountProfile",
+        "type": "object"
+      },
+      "AccountResponse": {
+        "description": "The signed-in account. ``profile`` is null until sign-up finishes it.",
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccountProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subject": {
+            "description": "The identity provider's user id",
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject"
+        ],
+        "title": "AccountResponse",
+        "type": "object"
+      },
       "BacktestActualExit": {
         "additionalProperties": false,
         "properties": {
@@ -4571,6 +4638,13 @@
         "title": "WorkbookSheet",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "Clerk session token",
+        "scheme": "bearer",
+        "type": "http"
+      }
     }
   },
   "info": {
@@ -4580,6 +4654,78 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/account": {
+      "get": {
+        "description": "The caller's account, with ``profile`` null until they've set one.",
+        "operationId": "get_account_api_account_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Account",
+        "tags": [
+          "account"
+        ]
+      },
+      "post": {
+        "description": "Save the caller's country, currency, locale and time zone.",
+        "operationId": "save_account_api_account_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Account",
+        "tags": [
+          "account"
+        ]
+      }
+    },
     "/api/backtesting/deals": {
       "get": {
         "description": "Historical deals with their entry assumptions and actual results.",
@@ -4600,6 +4746,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Deals",
         "tags": [
           "backtesting"
@@ -4642,6 +4793,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Run",
         "tags": [
           "backtesting"
@@ -4664,6 +4820,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Capabilities",
         "tags": [
           "settings & integrations"
@@ -4706,6 +4867,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Run",
         "tags": [
           "deal"
@@ -4748,6 +4914,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Sources And Uses",
         "tags": [
           "deal"
@@ -4791,6 +4962,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Edgar",
         "tags": [
           "settings & integrations"
@@ -4829,6 +5005,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Montecarlo Sample",
         "tags": [
           "export"
@@ -4867,6 +5048,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Workbook",
         "tags": [
           "export"
@@ -4889,6 +5075,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Defaults",
         "tags": [
           "forecasting"
@@ -4931,6 +5122,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Run",
         "tags": [
           "forecasting"
@@ -4973,6 +5169,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Seed",
         "tags": [
           "forecasting"
@@ -5052,6 +5253,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Deal Risk",
         "tags": [
           "settings & integrations"
@@ -5072,6 +5278,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Macro Regime",
         "tags": [
           "settings & integrations"
@@ -5114,6 +5325,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Surrogate",
         "tags": [
           "settings & integrations"
@@ -5156,6 +5372,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Run",
         "tags": [
           "monte carlo"
@@ -5198,6 +5419,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Scenarios",
         "tags": [
           "monte carlo"
@@ -5219,6 +5445,11 @@
             "description": "Successful Response"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Settings Defaults",
         "tags": [
           "settings & integrations"
@@ -5261,6 +5492,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Post Settings Validate",
         "tags": [
           "settings & integrations"
