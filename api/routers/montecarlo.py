@@ -4,6 +4,7 @@ import time
 from fastapi import APIRouter
 
 from api.deps import resolve_settings
+from api.limits import simulation_slot
 from api.observability import model_timer
 from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
 from api.serialize import box_stats, histogram, percentile_curve, to_json
@@ -21,6 +22,7 @@ SCATTER_COLUMNS = ["IRR", "MOIC", "Growth", "Exit Multiple", "Interest", "Gross 
 
 
 @router.post("/run", response_model=MonteCarloResponse)
+@simulation_slot
 def post_run(req: MonteCarloRequest):
     """Simulate the deal and return chart-ready distributions and analytics.
 
@@ -66,6 +68,7 @@ def post_run(req: MonteCarloRequest):
 
 
 @router.post("/scenarios", response_model=ScenariosResponse)
+@simulation_slot
 def post_scenarios(req: ScenariosRequest):
     """Run all four scenario presets from the same inputs."""
     cfg = resolve_settings(req.settings, check_correlations=True)

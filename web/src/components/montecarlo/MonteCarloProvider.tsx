@@ -9,6 +9,7 @@ import { api, type Schemas } from "@/lib/api/client";
 import type { DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput } from "@/lib/format";
+import { MAX_SIMULATION_PATHS } from "@/lib/limits";
 
 export type Scenario = "recession" | "base" | "bull" | "stagflation";
 export const SCENARIOS: { id: Scenario; label: string }[] = [
@@ -35,7 +36,7 @@ export type SimKey = keyof SimInputs;
 
 /** Bounds mirror MCInputsIn in api/schemas.py. */
 export const SIM_FIELDS: Record<SimKey, FieldSpec> = {
-  n: { label: "Paths", unit: "n", step: 5000, decimals: 0, min: 1000, max: 1_000_000, integer: true },
+  n: { label: "Paths", unit: "n", step: 5000, decimals: 0, min: 1000, max: MAX_SIMULATION_PATHS, integer: true },
   hurdle: { label: "Hurdle IRR", unit: "%", step: 1, decimals: 1, min: 0 },
   growth_mean: { label: "Mean", unit: "%", step: 0.5, decimals: 1 },
   growth_std: { label: "Std dev", unit: "%", step: 0.5, decimals: 1, min: 0.1 },

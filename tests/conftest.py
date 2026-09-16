@@ -18,6 +18,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
+from api import usage
 from api.auth import AuthUser, require_user
 from api.main import app
 from db import engine as db_engine
@@ -33,6 +34,17 @@ def signed_in():
     app.dependency_overrides[require_user] = lambda: TEST_USER
     yield TEST_USER
     app.dependency_overrides.pop(require_user, None)
+
+
+@pytest.fixture(autouse=True)
+def usage_counters():
+    """Fresh usage counters for each test, kept in memory: limits apply as in
+    production, but no test sends counts to Upstash or the database unless it
+    builds a store itself (tests/test_limits.py)."""
+    fresh = usage.UsageCounters([], background=False)
+    usage.set_counters(fresh)
+    yield fresh
+    usage.set_counters(None)
 
 
 @pytest.fixture

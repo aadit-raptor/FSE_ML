@@ -4,9 +4,12 @@ Input bounds mirror the Streamlit input widgets. Percentages are numbers like
 60.0 (not 0.60) and money is $M, matching the model's inputs; engine outputs
 keep the engine's own units (IRR 0.157 = 15.7%).
 """
-from typing import Dict, List, Literal, Optional, Union
+from typing import Annotated, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic_core import PydanticCustomError
+
+from api.limits import MAX_FORECAST_PATHS, MAX_SIMULATION_PATHS
 
 from api.serialize import model_from_dataclass
 from core.forecasting import ForecastYear, HistoricalYear
@@ -19,6 +22,25 @@ SettingValue = Union[float, int, bool]
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+def _path_cap(maximum: int):
+    """At most ``maximum`` simulation paths, refused with a sentence that says so
+    (api/limits.py explains the numbers)."""
+    def check(n: int) -> int:
+        if n > maximum:
+            raise PydanticCustomError(
+                "too_many_paths",
+                "This server runs at most {maximum} paths in one simulation; this one asks for "
+                "{n}. Use {maximum} or fewer.",
+                {"maximum": f"{maximum:,}", "n": f"{n:,}"})
+        return n
+    # The schema still states the maximum, so clients can bound their inputs
+    return Annotated[int, AfterValidator(check), Field(json_schema_extra={"maximum": maximum})]
+
+
+SimulationPaths = _path_cap(MAX_SIMULATION_PATHS)
+ForecastPaths = _path_cap(MAX_FORECAST_PATHS)
 
 
 # ---------------------------------------------------------------------------
@@ -56,7 +78,7 @@ class DealInputsIn(Strict):
 
 
 class MCInputsIn(Strict):
-    n: int = Field(50000, ge=1000, le=1_000_000, description="Scenarios to simulate")
+    n: SimulationPaths = Field(50000, ge=1000, description="Scenarios to simulate")
     ebitda: float = Field(100.0, ge=1)
     entry_mult: float = Field(10.0, ge=1)
     hold: int = Field(5, ge=1, le=15)
@@ -305,7 +327,7 @@ class SeedResponse(BaseModel):
 class ForecastRunRequest(HistoryRequest):
     assumptions: Dict[str, List[float]] = Field(description="assumption key -> one value per forecast year")
     simulate: bool = False
-    n_sim: int = Field(30000, ge=1000, le=200_000)
+    n_sim: ForecastPaths = Field(30000, ge=1000)
 
 
 class Bands(BaseModel):
@@ -406,7 +428,7 @@ class BacktestRequest(Strict):
     actual: BacktestActuals
     actual_exit: BacktestActualExit
     settings: Dict[str, SettingValue] = {}
-    n: int = Field(30000, ge=1000, le=200_000)
+    n: SimulationPaths = Field(30000, ge=1000)
     histogram_bins: int = Field(80, ge=10, le=400)
 
 

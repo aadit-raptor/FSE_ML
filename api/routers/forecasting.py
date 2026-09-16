@@ -1,6 +1,7 @@
 """3-statement forecasting endpoints."""
 from fastapi import APIRouter, HTTPException
 
+from api.limits import simulation_slot
 from api.schemas import (
     ForecastDefaultsResponse, ForecastRunRequest, ForecastRunResponse, HistoryRequest, SeedResponse,
 )
@@ -58,6 +59,7 @@ def post_seed(req: HistoryRequest):
 
 
 @router.post("/run", response_model=ForecastRunResponse)
+@simulation_slot
 def post_run(req: ForecastRunRequest):
     """Run the 3-statement model, optionally with the simulation overlay."""
     history, _ = _checked_history(req.history)
