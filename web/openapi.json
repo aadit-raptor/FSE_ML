@@ -68,6 +68,32 @@
         "title": "AccountResponse",
         "type": "object"
       },
+      "AccountSettings": {
+        "additionalProperties": false,
+        "description": "The account's Settings overrides: only keys that differ from the defaults.",
+        "properties": {
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "title": "AccountSettings",
+        "type": "object"
+      },
       "BacktestActualExit": {
         "additionalProperties": false,
         "properties": {
@@ -745,6 +771,161 @@
         "title": "CashFlowResult",
         "type": "object"
       },
+      "DealContent": {
+        "additionalProperties": false,
+        "description": "Everything that decides a deal's numbers: its inputs and the Settings\noverrides in effect.",
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "inputs"
+        ],
+        "title": "DealContent",
+        "type": "object"
+      },
+      "DealCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn"
+          },
+          "name": {
+            "description": "Shown in the deal list",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "inputs",
+          "name"
+        ],
+        "title": "DealCreate",
+        "type": "object"
+      },
+      "DealDetail": {
+        "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn"
+          },
+          "latest_version": {
+            "description": "Number of the newest version",
+            "title": "Latest Version",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Settings",
+            "type": "object"
+          },
+          "updated_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "archived",
+          "latest_version",
+          "created_at",
+          "updated_at",
+          "inputs",
+          "settings"
+        ],
+        "title": "DealDetail",
+        "type": "object"
+      },
+      "DealDuplicate": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Defaults to the original's name with (copy)",
+            "title": "Name"
+          }
+        },
+        "title": "DealDuplicate",
+        "type": "object"
+      },
       "DealInputsIn": {
         "additionalProperties": false,
         "description": "Deal wizard inputs.\n\ndebt_pct and senior_pct default to the model's stored defaults (60% / 70%).\nThe Streamlit wizard instead derives them on load from its financing\ninputs -- 3.4x senior + 0.8x mezz EBITDA, i.e. 42% and ~81% -- which is why\nits default deal shows a lower IRR. Use /deal/sources-and-uses to derive\nthem from debt multiples the same way.",
@@ -904,6 +1085,54 @@
         "title": "DealInputsIn",
         "type": "object"
       },
+      "DealList": {
+        "properties": {
+          "deals": {
+            "items": {
+              "$ref": "#/components/schemas/DealSummary"
+            },
+            "title": "Deals",
+            "type": "array"
+          }
+        },
+        "required": [
+          "deals"
+        ],
+        "title": "DealList",
+        "type": "object"
+      },
+      "DealPatch": {
+        "additionalProperties": false,
+        "description": "Rename, archive or unarchive; fields left out stay as they are.",
+        "properties": {
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "DealPatch",
+        "type": "object"
+      },
       "DealRiskRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1055,6 +1284,47 @@
           "interest_converged"
         ],
         "title": "DealRunResponse",
+        "type": "object"
+      },
+      "DealSummary": {
+        "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "latest_version": {
+            "description": "Number of the newest version",
+            "title": "Latest Version",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "archived",
+          "latest_version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DealSummary",
         "type": "object"
       },
       "DriverFit": {
@@ -4559,6 +4829,148 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "VersionDetail": {
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn"
+          },
+          "kind": {
+            "enum": [
+              "created",
+              "saved",
+              "auto",
+              "restored"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "number",
+          "kind",
+          "label",
+          "created_at",
+          "inputs",
+          "settings"
+        ],
+        "title": "VersionDetail",
+        "type": "object"
+      },
+      "VersionList": {
+        "properties": {
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/VersionSummary"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "versions"
+        ],
+        "title": "VersionList",
+        "type": "object"
+      },
+      "VersionSave": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "title": "VersionSave",
+        "type": "object"
+      },
+      "VersionSummary": {
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "created",
+              "saved",
+              "auto",
+              "restored"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number",
+          "kind",
+          "label",
+          "created_at"
+        ],
+        "title": "VersionSummary",
+        "type": "object"
+      },
       "WorkbookRequest": {
         "additionalProperties": false,
         "properties": {
@@ -4723,6 +5135,78 @@
         "summary": "Save Account",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/api/account/settings": {
+      "get": {
+        "description": "The caller's Settings overrides, the same on every device.",
+        "operationId": "get_account_settings_api_account_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Account Settings",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "put": {
+        "description": "Replace the caller's Settings overrides.",
+        "operationId": "put_account_settings_api_account_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Account Settings",
+        "tags": [
+          "saved deals"
         ]
       }
     },
@@ -4922,6 +5406,600 @@
         "summary": "Post Sources And Uses",
         "tags": [
           "deal"
+        ]
+      }
+    },
+    "/api/deals": {
+      "get": {
+        "description": "The caller's deals, most recently edited first. ``archived=true`` includes archived ones.",
+        "operationId": "list_deals_api_deals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Deals",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "post": {
+        "description": "Save a new deal; its first version is created with it.",
+        "operationId": "create_deal_api_deals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Deal",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}": {
+      "delete": {
+        "description": "Delete a deal and all its versions, for good.",
+        "operationId": "delete_deal_api_deals__deal_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Deal",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "get": {
+        "description": "Open a deal: its working copy, exactly as last saved.",
+        "operationId": "get_deal_api_deals__deal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Deal",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "patch": {
+        "description": "Rename, archive or unarchive.",
+        "operationId": "patch_deal_api_deals__deal_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Patch Deal",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/draft": {
+      "put": {
+        "description": "Autosave the working copy (adds an automatic checkpoint now and then).",
+        "operationId": "save_draft_api_deals__deal_id__draft_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealContent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Draft",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/duplicate": {
+      "post": {
+        "description": "A new deal from this one's working copy (its history stays behind).",
+        "operationId": "duplicate_deal_api_deals__deal_id__duplicate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DealDuplicate"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Duplicate Deal",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/versions": {
+      "get": {
+        "description": "The deal's history, newest first.",
+        "operationId": "list_versions_api_deals__deal_id__versions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Versions",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "post": {
+        "description": "Keep the working copy as a version (no new row if nothing changed).",
+        "operationId": "save_version_api_deals__deal_id__versions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/VersionSave"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Version",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/versions/{number}": {
+      "get": {
+        "description": "One version with its inputs and settings.",
+        "operationId": "get_version_api_deals__deal_id__versions__number__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Version",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/versions/{number}/restore": {
+      "post": {
+        "description": "Make this version the working copy; unsaved edits are kept as a version first.",
+        "operationId": "restore_version_api_deals__deal_id__versions__number__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Restore Version",
+        "tags": [
+          "saved deals"
         ]
       }
     },

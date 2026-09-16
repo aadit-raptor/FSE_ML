@@ -20,6 +20,22 @@ export const modeTab = (page: Page, name: string) => page.getByRole("navigation"
 
 export const stepLink = (page: Page, name: string) => page.locator('nav[aria-label$="steps"]').getByRole("link", { name, exact: true });
 
+/** A promise for the next successful save of the account's settings. */
+export function settingsSaved(page: Page) {
+  return page.waitForResponse((r) => r.url().endsWith("/api/account/settings") && r.request().method() === "PUT" && r.ok());
+}
+
+/**
+ * Settings > Reset all, waiting until the account has the defaults again.
+ * Settings are saved to the account (PLAN.md 1.5), so a test that closed its
+ * page before the save went out would hand its settings to the next test.
+ */
+export async function resetAllSettings(page: Page) {
+  const saved = settingsSaved(page);
+  await page.getByRole("button", { name: "Reset all" }).click();
+  await saved;
+}
+
 /** Wait for a deal result, and for any pending rerun to finish. */
 export async function dealSettled(page: Page) {
   await expect(page.getByRole("status").filter({ hasText: /^Up to date/ })).toBeVisible();

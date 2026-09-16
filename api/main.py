@@ -18,7 +18,7 @@ from api.observability import (
 )
 from api.auth import require_user
 from api.routers import (
-    account, backtesting, deal, export, forecasting, integrations, montecarlo,
+    account, backtesting, deal, deals, export, forecasting, integrations, montecarlo,
 )
 from db import DatabaseUnavailable
 from db import health as db_health
@@ -68,7 +68,7 @@ def create_app() -> FastAPI:
     # Innermost of the three, so its 500 responses still get CORS headers
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=origins,
-                       allow_methods=["GET", "POST"], allow_headers=["*"],
+                       allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["*"],
                        expose_headers=["Content-Disposition", REQUEST_ID_HEADER, "Server-Timing"])
     # Simulation responses carry chart data (histograms, scatter samples)
     app.add_middleware(GZipMiddleware, minimum_size=1024)
@@ -114,7 +114,7 @@ def create_app() -> FastAPI:
     # Everything except the health checks needs a signed-in user (api/auth.py).
     # Applying it here, not endpoint by endpoint, means a new route is
     # protected by default -- forgetting is impossible rather than unlikely.
-    for module in (deal, montecarlo, forecasting, backtesting, integrations, export, account):
+    for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account):
         app.include_router(module.router, prefix="/api", dependencies=[Depends(require_user)])
     return app
 
