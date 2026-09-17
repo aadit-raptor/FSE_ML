@@ -86,7 +86,7 @@ jobs:
           code=$(curl -s -m 120 -o /dev/null -w '%{http_code}' -X POST "$STAGING_API/api/deal/run" -H 'Authorization: Bearer dev:ci' -H 'Content-Type: application/json' -d '{}')
           echo "development token -> $code"; test "$code" = "401"
           # Neon staging branch: reachable, migrations applied, storage under 80% (PLAN.md 1.3)
-          python3 ops/check_database.py "$STAGING_API"
+          python3 ops/check_database.py "$STAGING_API" --require-restricted-role
           # Usage counters shared through Upstash, which answers (PLAN.md 1.6)
           curl -fsS -m 120 "$STAGING_API/api/health/limits" | tee limits.json; echo
           jq -e '.store == "upstash" and .upstash.reachable and (.upstash.over_budget | not)' limits.json
