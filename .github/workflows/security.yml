@@ -69,7 +69,9 @@ jobs:
           cache-dependency-path: requirements*.txt
       # The versions CI and the Docker image actually install (requirements
       # are ranges), including the optional ML layer with CPU-only torch
-      - run: pip install --upgrade pip
+      # The runner's own pip and setuptools too: old copies preinstalled with
+      # Python would otherwise be reported as ours
+      - run: pip install --upgrade pip setuptools
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       - run: pip install -r requirements-ml.txt -r requirements-dev.txt pip-audit
       - name: pip-audit

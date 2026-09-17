@@ -8,7 +8,6 @@ with only those rights, and those rights stop schema changes.
 """
 import base64
 import hashlib
-import re
 import uuid
 
 import pytest
@@ -76,8 +75,13 @@ def test_the_docs_page_may_run_only_its_own_inline_script():
     assert resp.status_code == 200 and "swagger-ui" in resp.text
     csp = resp.headers["Content-Security-Policy"]
     assert "unsafe-inline" not in csp and "unsafe-eval" not in csp
-    inline = re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", resp.text, re.S)
+    # FastAPI writes its inline script as a bare <script> tag; the ones with src have attributes
+    inline = [part.split("</script>", 1)[0] for part in resp.text.split("<script>")[1:]]
     assert inline, "the docs page has an inline script to allow"
+    assert security.inline_scripts(resp.content) == inline
+    # Upper-case tags and spaced end tags are found; scripts with src aren't hashed
+    assert security.inline_scripts(b'<script src="x.js"></script><SCRIPT>a()</script ><script>b()</script>') \
+        == ["a()", "b()"]
     for body in inline:
         digest = base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()
         assert f"'sha256-{digest}'" in csp

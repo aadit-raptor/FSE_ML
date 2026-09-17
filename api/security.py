@@ -23,7 +23,7 @@ import base64
 import hashlib
 import logging
 import os
-import re
+from html.parser import HTMLParser
 from urllib.parse import urlsplit
 
 from starlette.datastructures import MutableHeaders
@@ -48,14 +48,40 @@ DOCS_PATH = "/api/docs"
 DOCS_CDN = "https://cdn.jsdelivr.net"
 DOCS_FAVICON = "https://fastapi.tiangolo.com"
 
-_INLINE_SCRIPT = re.compile(rb"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", re.S | re.I)
+class _InlineScripts(HTMLParser):
+    """The exact text of each ``<script>`` without ``src``, as a browser hashes it."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.scripts: list[str] = []
+        self._current: list[str] | None = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script" and not any(name == "src" for name, _ in attrs):
+            self._current = []
+
+    def handle_data(self, data):
+        if self._current is not None:
+            self._current.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "script" and self._current is not None:
+            self.scripts.append("".join(self._current))
+            self._current = None
+
+
+def inline_scripts(html: bytes) -> list[str]:
+    parser = _InlineScripts()
+    parser.feed(html.decode("utf-8", errors="replace"))
+    parser.close()
+    return parser.scripts
 
 
 def docs_csp(html: bytes) -> str:
     """The policy for the Swagger UI page: its CDN files, and its inline scripts by hash."""
     hashes = " ".join(
-        "'sha256-" + base64.b64encode(hashlib.sha256(body).digest()).decode() + "'"
-        for body in _INLINE_SCRIPT.findall(html))
+        "'sha256-" + base64.b64encode(hashlib.sha256(body.encode()).digest()).decode() + "'"
+        for body in inline_scripts(html))
     return (f"default-src 'none'; script-src {DOCS_CDN} {hashes}; style-src {DOCS_CDN}; "
             f"img-src {DOCS_FAVICON} data:; connect-src 'self'; "
             "frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
