@@ -34,7 +34,15 @@ test.describe("live site", () => {
       headers: { ...bypassHeaders, "x-vercel-set-bypass-cookie": "true" },
       maxRedirects: 0,
     });
-    expect(resp.status(), "the bypass secret was not accepted").toBe(200);
+    // Vercel sets the cookie with a redirect back to the same address
+    if (resp.status() === 307 || resp.status() === 302) {
+      expect(new URL(resp.headers()["location"] ?? "", origin).origin, "bypass redirect left the site").toBe(origin);
+    } else {
+      expect(resp.status(), "the bypass secret was not accepted").toBe(200);
+    }
+    // The cookie alone now gets in, without the secret
+    const withCookie = await page.request.get("/healthz", { maxRedirects: 0 });
+    expect(withCookie.status(), "Vercel's bypass cookie did not let the checks in").toBe(200);
   });
 
   // What the uptime monitor checks (ops/betterstack.py)
