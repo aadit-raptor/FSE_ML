@@ -399,14 +399,34 @@ Into a fresh database (what to do if Neon is gone — make a project, then):
 python -m ops.backup restore --name production/2026-09-18T024000Z --into "$NEW_DATABASE_URL"
 ```
 
-Over a database that still has the wrong data in it, add `--clean`. Then
-point `DATABASE_URL` on the Render service at the restored database and
-redeploy. Check with `python3 ops/check_database.py https://fse-api.onrender.com`
-(migrations current) and by opening a saved deal: its IRR must be what it was.
+Over a database that still has the wrong data in it, add `--clean`.
 
-If the roles from migration `0005` don't exist in the new cluster, add
-`--skip-grants`, then run the migrations once (`python -m db.migrate upgrade`
-with `DATABASE_MIGRATION_URL` set) to put them back.
+**Then put the app's grants back.** A restore brings the schema and the rows,
+not the rights: Neon's dump carries its own platform grants
+(`ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin … TO neon_superuser`), only
+Neon's superuser may replay them, and `pg_dump` writes them in the same entry
+as ours — so `pg_restore` leaves privileges out altogether (`--no-privileges`)
+rather than aborting on them. Roles are cluster-wide and aren't in a dump
+either, so a brand-new project needs them made first. As the **owner**
+(`DATABASE_MIGRATION_URL`), against the restored database:
+
+```bash
+psql "$RESTORED_OWNER_URL" -c "GRANT USAGE ON SCHEMA public TO fse_app" -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO fse_app" -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO fse_app" -c "REVOKE INSERT, UPDATE, DELETE ON alembic_version FROM fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO fse_app"
+```
+
+That is migration `0005_app_role`'s `upgrade()`, which stays the source of
+truth — copy from there if it has changed. A new cluster also needs the roles
+themselves: "Least-privilege database role" below has the `fse_app` and
+`fse_api` statements.
+
+Then point `DATABASE_URL` on the Render service at the restored database and
+redeploy. Check with `python3 ops/check_database.py https://fse-api.onrender.com`
+— it reports migrations current **and** `role: restricted`, which only passes
+if the grants above landed — and by opening a saved deal: its IRR must be what
+it was.
+
+`--with-grants` replays the source's privileges instead, which works only when
+every role in the dump is one you own outright (not a managed host's).
 
 ### The restore drill
 
