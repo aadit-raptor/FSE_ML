@@ -117,7 +117,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 1.5 | Saved deals, versions and settings | 1.4 | ☑ |
 | 1.6 | Usage limits and abuse protection | 1.4 | ☑ |
 | 1.7 | Security hardening | 1.4 | ☑ |
-| 1.8 | Backups and recovery | 1.3 | ☐ |
+| 1.8 | Backups and recovery | 1.3 | ☑ |
 | 1.9 | Background jobs and scheduled jobs | 1.3, 1.6 | ☐ |
 | **2** | **Universal by design** | | |
 | 2.1 | Honest labels on inception-era parts (do early) | — | ☑ |
@@ -299,6 +299,12 @@ any time after phase 1.
   on every PR; the threat model is in `docs/security/`.
 
 ### 1.8 Backups and recovery
+- **You first:** create a free Supabase project (brought forward from 1.9,
+  which uses the same one for file uploads) with a **private** `backups`
+  bucket, and add the GitHub Actions secrets `FSE_BACKUP_KEY`,
+  `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `BACKUP_DATABASE_URL` and
+  `BACKUP_STAGING_DATABASE_URL` (DEPLOY.md "Backups and recovery"). Nothing is
+  backed up until they exist; `backup.yml` warns and does nothing meanwhile.
 - **Claude does:**
   - a nightly scheduled GitHub Actions job that exports the database,
     **encrypts it** with a key kept in GitHub secrets, and stores it in
@@ -315,8 +321,9 @@ any time after phase 1.
 - **Why:** data refreshes, model retraining, AI document reading and big
   simulations take too long to run while the user waits, and the free engine
   has no separate worker machines.
-- **You first:** create a free Supabase project (for file storage later) and
-  set its keys; add the needed secrets to GitHub Actions.
+- **You first:** the free Supabase project already exists (1.8 brought it
+  forward for backups); add its keys for file storage and any other secrets
+  the scheduled workflows need to GitHub Actions.
 - **Claude does:**
   - **User-started jobs:** a job table in Neon and a small job runner inside
     the API. Submit, get a job ID, watch progress, fetch the result. Jobs

@@ -44,6 +44,17 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements*.txt
+      # tests/test_backups.py dumps and restores a real database (PLAN.md 1.8).
+      # pg_dump refuses a server newer than itself and the runner image ships
+      # an older client, so install the one Postgres 17 (and Neon) needs.
+      - name: Postgres 17 client, for the backup tests
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
       - run: pip install -r requirements-dev.txt
       - run: pytest -rs
 
@@ -162,6 +173,17 @@ jobs:
       - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
       # requirements-dev.txt brings pytest and httpx (the FastAPI test client)
       - run: pip install -r requirements-ml.txt -r requirements-dev.txt
+      # tests/test_backups.py dumps and restores a real database (PLAN.md 1.8).
+      # pg_dump refuses a server newer than itself and the runner image ships
+      # an older client, so install the one Postgres 17 (and Neon) needs.
+      - name: Postgres 17 client, for the backup tests
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
       - name: Run all tests, failing if any ML test skips
         # shell: bash adds pipefail, so a pytest failure isn't masked by tee
         shell: bash
