@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-17 (PLAN.md 1.7). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-18 (PLAN.md 1.8). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -128,6 +128,30 @@ headers (`live.yml`, `staging.yml`). CI: `security.yml` (gitleaks over all
 history with a planted-key self-test, pip-audit, npm audit), `codeql.yml`,
 Dependabot (`.github/dependabot.yml`). Every workflow's token is read-only.
 
+Backups (PLAN.md 1.8, DEPLOY.md "Backups and recovery"): `backup.yml` dumps
+the production database nightly (`pg_dump -Fc`), encrypts it with AES-256-GCM
+(`ops/encryption.py`, key in the GitHub secret `FSE_BACKUP_KEY`), uploads it
+to a **private** Supabase Storage bucket (`ops/backup_store.py`), rotates old
+ones (7 daily, 8 weekly, 12 monthly, and a 700 MB budget of the free 1 GB),
+then downloads and decrypts what it just stored. On the first of the month a
+**restore drill** restores the newest backup into a throwaway database on the
+Neon staging branch, re-runs the deal model on every restored deal and checks
+the results against **what the manifest recorded when the dump was taken**
+(read inside the same `pg_export_snapshot` `pg_dump` reads, so it describes
+exactly what is in the file — comparing with today's live data would cry wolf
+as soon as anyone edits a deal), then drops the database; either job failing
+raises a Better Stack incident. **Recent mistakes use Neon's own restore window
+instead** — it is faster and loses nothing. The manifest beside each backup
+holds sizes, checksum, versions, the migration revision, how many deals and
+that one-way fingerprint — **never anything from a deal**;
+backups are never GitHub Actions artifacts, which are public on a public
+repository. `pg_dump`/`pg_restore` must be at least the server's major
+version; `ops/backup.py` finds them (PATH, `/usr/lib/postgresql/*/bin`,
+`pgserver`, or `FSE_PG_BIN`) and CI installs `postgresql-client-17`.
+**Nothing is backed up until the user sets the secrets** in DEPLOY.md
+"You need to set this up first" — until then `backup.yml` warns and does
+nothing.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -145,7 +169,7 @@ the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
 below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
-sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); next is 1.8. End every task session with the handoff described in PLAN.md: tell the
+sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); next is 1.9. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -249,6 +273,14 @@ golden snapshot is untouched and parity tests explain every departure.
   to the restricted `fse_api` role on 2026-09-17; `live.yml` and
   `staging.yml` now fail if either goes back to a privileged role.)
 
+- **PLAN.md 1.8: backups do nothing until the secrets exist.** Create the free
+  Supabase project and a private `backups` bucket, then add the GitHub Actions
+  secrets `FSE_BACKUP_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
+  `BACKUP_DATABASE_URL` and `BACKUP_STAGING_DATABASE_URL` — DEPLOY.md
+  "Backups and recovery → You need to set this up first" has the click-by-click
+  steps. Keep a copy of `FSE_BACKUP_KEY` outside GitHub: losing it makes every
+  stored backup unreadable.
+
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -277,12 +309,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/limits.py`, `api/usage.py`, `db/usage.py` | Usage limits: rules, refusal messages, size caps, simulation slot and timeout; in-memory counters synced to Upstash (daily command budget, `python -m api.usage` prints the monthly estimate) with the database as fallback |
 | `api/security.py`, `web/src/lib/security/headers.ts`, `web/src/proxy.ts` | Security headers, CSP (nonce per page request), CORS origins |
 | `ops/check_headers.py` | Header scan of a deployed web app and API (`live.yml`, `staging.yml`) |
+| `ops/backup.py`, `ops/encryption.py`, `ops/backup_store.py` | Backups: dump, encrypt, upload, rotate, restore and the monthly drill (`python -m ops.backup run / list / verify / restore / drill`, run by `backup.yml`); the AES-256-GCM file format; the Supabase Storage and local-directory stores |
 | `SECURITY.md`, `docs/security/threat-model.md` | How to report a vulnerability; threat model, open items and the public-repo review |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (303 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (351 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -310,6 +343,18 @@ Database (optional locally; the API runs without one):
 .venv/Scripts/python.exe -m pytest tests/test_database.py
 .venv/Scripts/python.exe -m db.migrate upgrade | downgrade -1 | current
 .venv/Scripts/python.exe -m db.local stop
+```
+
+Backups (PLAN.md 1.8). `FSE_BACKUP_DIR` keeps them in a directory instead of
+Supabase, which is how to try the whole thing without any account:
+
+```bash
+# in the shell: FSE_BACKUP_KEY (32+ characters), FSE_BACKUP_DIR (or SUPABASE_URL
+# + SUPABASE_SERVICE_ROLE_KEY), BACKUP_DATABASE_URL
+.venv/Scripts/python.exe -m ops.backup run --environment local      # dump, encrypt, upload, rotate
+.venv/Scripts/python.exe -m ops.backup list --environment local
+.venv/Scripts/python.exe -m ops.backup verify --environment local   # download and decrypt the newest
+.venv/Scripts/python.exe -m ops.backup drill --environment local --target "$ADMIN_URL"
 ```
 
 ### Adding a table
@@ -356,7 +401,11 @@ jobs; `security.yml` (secrets, dependency audits) and `codeql.yml` run beside it
 `FSE_REQUIRE_DB=1` makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
 and checks the default deal IRR (0.2116), Monte Carlo and an Excel export.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
-`web` job fails when `schema.d.ts` doesn't match the snapshot.
+`web` job fails when `schema.d.ts` doesn't match the snapshot. `core` and `ml`
+also install `postgresql-client-17`, which `tests/test_backups.py` needs to
+dump and restore the Postgres 17 service. Scheduled workflows beside these:
+`live.yml` (daily production checks), `monitoring.yml`, and `backup.yml`
+(nightly backup, monthly restore drill).
 
 Setup on a fresh machine: Python 3.12, then
 `pip install -r requirements-ml.txt -r requirements-dev.txt` (or just
@@ -433,6 +482,11 @@ Skills load when a session starts: install first, then open a new session.
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
   `bracketright`, or shortcuts appear broken when they aren't.
+- `pg_dump` refuses a server newer than itself, and Neon runs Postgres 17.
+  `ops/backup.py` looks for a new-enough binary on the PATH, in
+  `/usr/lib/postgresql/*/bin` and in the `pgserver` package (which ships
+  Postgres 16, enough for the local database), and `FSE_PG_BIN` overrides it;
+  CI installs `postgresql-client-17` in the `core` and `ml` jobs.
 - Deal defaults: the API uses stored 60% debt / 70% senior; the retired
   Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
   what the golden `defaults` case records.
