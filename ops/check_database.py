@@ -4,7 +4,9 @@ under the free-plan warning level (PLAN.md 1.3).
     python3 ops/check_database.py https://fse-api-staging.onrender.com
 
 Calls ``/api/health/database`` (waiting for a sleeping free service to wake),
-prints a one-line summary and exits 1 on any problem. Used by live.yml
+prints a one-line summary and exits 1 on any problem. The API's database
+role is reported too (PLAN.md 1.7): a warning while it has more than row
+rights, an error with ``--require-restricted-role``. Used by live.yml
 (production, daily) and staging.yml (after each deploy). Standard library only.
 """
 from __future__ import annotations
@@ -37,6 +39,15 @@ def problems(result: dict) -> list[str]:
     return found
 
 
+def role_problem(result: dict) -> Optional[str]:
+    """Why the API's database role is more than least privilege, or None."""
+    role = result.get("role") or {}
+    if result.get("status") != "ok" or role.get("status") == "restricted":
+        return None
+    return (f"the API connects as a privileged database role ({', '.join(role.get('privileges') or ['unknown'])}): "
+            "see DEPLOY.md 'Least-privilege database role'")
+
+
 def fetch(api: str, attempts: int = 4, timeout: int = 120) -> dict:
     url = api.rstrip("/") + "/api/health/database"
     last: Exception = RuntimeError("no attempt")
@@ -57,14 +68,21 @@ def fetch(api: str, attempts: int = 4, timeout: int = 120) -> dict:
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("api")
+    parser.add_argument("--require-restricted-role", action="store_true",
+                        help="fail (not warn) when the API's database role can change the schema")
     args = parser.parse_args(argv)
     result = fetch(args.api)
     storage = result.get("storage") or {}
     print(f"database {result.get('status')}; migrations {(result.get('migrations') or {}).get('status')}; "
           f"storage {storage.get('database_bytes', 0) / 1024 / 1024:.1f} MB "
           f"({storage.get('used_fraction', 0):.1%} of free); connect attempts {result.get('connect_attempts')}; "
-          f"{result.get('latency_ms')} ms")
+          f"{result.get('latency_ms')} ms; role {(result.get('role') or {}).get('status')}")
     found = problems(result)
+    role = role_problem(result)
+    if role and args.require_restricted_role:
+        found.append(role)
+    elif role:
+        print(f"::warning::{role}")
     for p in found:
         print(f"::error::{p}")
     return 1 if found else 0

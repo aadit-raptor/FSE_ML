@@ -1,0 +1,94 @@
+name: security
+
+# Security checks (PLAN.md 1.7), all free for a public repository:
+# - secrets: gitleaks over the whole git history, after proving on a planted
+#   fake key that it still catches one;
+# - dependencies: pip-audit (Python, core and ML) and npm audit (web) against
+#   published advisories.
+# CodeQL runs in codeql.yml; Dependabot's update PRs come from dependabot.yml.
+# The weekly run catches advisories published after the code last changed.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Every commit: a key removed in a later commit is still public
+          fetch-depth: 0
+      - name: Install gitleaks (checksum verified)
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          file="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLO "$base/$file"
+          curl -fsSL "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt" | grep " $file\$" | sha256sum -c -
+          tar -xzf "$file" gitleaks && sudo mv gitleaks /usr/local/bin/ && rm "$file"
+          gitleaks version
+      - name: The scanner catches a planted fake key
+        # Built at run time so this file never contains a key-shaped string
+        run: |
+          plant=$(mktemp -d); cd "$plant"
+          git init -q . && git config user.email ci@example.invalid && git config user.name ci
+          printf 'aws_access_key_id = "%s%s"\n' AKIA QRSTUVWXYZ234567 > settings.py
+          printf 'aws_secret_access_key = "%s%s"\n' wJalrXUtnFEMIK7MDENG bPxRfiCY9x2Kq8vLp3Zt6NbR1sWd >> settings.py
+          git add . && git commit -qm "planted fake key"
+          if gitleaks git --redact --no-banner .; then
+            echo "::error::gitleaks did not catch a planted fake key"; exit 1
+          fi
+          echo "planted fake key caught"
+      - name: No secrets anywhere in the repository's history
+        run: gitleaks git --redact --no-banner --verbose .
+
+  python-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      # The versions CI and the Docker image actually install (requirements
+      # are ranges), including the optional ML layer with CPU-only torch
+      - run: pip install --upgrade pip
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements-ml.txt -r requirements-dev.txt pip-audit
+      - name: pip-audit
+        run: pip-audit --progress-spinner off --desc on
+
+  npm-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      # What ships to browsers and Vercel fails on any high or critical
+      # advisory; build and test tools on critical only
+      - name: npm audit (shipped packages)
+        run: npm audit --omit=dev --audit-level=high
+      - name: npm audit (everything)
+        run: npm audit --audit-level=critical

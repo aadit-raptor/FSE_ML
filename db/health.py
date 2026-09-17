@@ -26,7 +26,7 @@ from datetime import timedelta
 from typing import Optional
 
 import sentry_sdk
-from sqlalchemy import delete, func, insert, select
+from sqlalchemy import delete, func, insert, select, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from api.observability import log_event, utc_now_iso
@@ -82,6 +82,30 @@ def _alert_storage(report: dict, environment: str) -> None:
             f"{report['limit_bytes'] // (1024 * 1024)} MB ({environment})", level="warning")
 
 
+# Whether the API's own role could change more than rows (PLAN.md 1.7): a
+# superuser, a role that can create roles or databases, one that may create
+# tables in the schema, one that owns the app's tables (and so could alter or
+# drop them), or a member of the "read/write everything" roles, which Neon
+# gives roles made in its console
+ROLE_PRIVILEGES_SQL = text("""
+    SELECT r.rolsuper, r.rolcreaterole, r.rolcreatedb, r.rolbypassrls,
+           has_schema_privilege(current_user, 'public', 'CREATE') AS schema_create,
+           EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public'
+                   AND pg_has_role(current_user, tableowner, 'USAGE')) AS owns_tables,
+           EXISTS (SELECT FROM pg_roles g WHERE g.rolname IN ('pg_write_all_data', 'neon_superuser')
+                   AND pg_has_role(current_user, g.oid, 'USAGE')) AS writes_everything
+    FROM pg_roles r WHERE r.rolname = current_user
+""")
+
+
+def role_report(conn) -> dict:
+    """``restricted`` when the connection's role can only read and write rows,
+    else ``privileged`` with the reasons (never the role's name)."""
+    row = conn.execute(ROLE_PRIVILEGES_SQL).mappings().one()
+    reasons = [name for name, value in row.items() if value]
+    return {"status": "privileged" if reasons else "restricted", "privileges": reasons}
+
+
 def check(environment: str, *, force: bool = False) -> dict:
     """Connect, migrate if needed, measure storage and record it."""
     if not is_configured():
@@ -107,6 +131,7 @@ def check(environment: str, *, force: bool = False) -> dict:
                     conn.execute(delete(StorageCheck).where(
                         StorageCheck.checked_at < utc_now() - timedelta(days=KEEP_READINGS_DAYS)))
                     revision = migrate.current_revision(conn)
+                    role = role_report(conn)
             head = migrate.head_revision()
             result.update(
                 status="ok",
@@ -115,6 +140,7 @@ def check(environment: str, *, force: bool = False) -> dict:
                 migrations={"revision": revision, "head": head,
                             "status": "current" if revision == head else "behind"},
                 storage=report,
+                role=role,
             )
             if report["warning"]:
                 _alert_storage(report, environment)

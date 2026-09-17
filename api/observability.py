@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import sys
 import time
@@ -39,6 +40,22 @@ REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{8,64}$")
 # Render's health checks hit this every few seconds; logging them buries real traffic
 QUIET_PATHS = {"/api/health"}
+
+
+def deploy_environment() -> str:
+    """Which copy of the API this is: production, staging or local.
+
+    FSE_ENV wins when set. Otherwise Render's RENDER_SERVICE_NAME decides:
+    a service whose name ends in -staging (fse-api-staging) is staging, any
+    other Render service is production. Read per call so tests can set it.
+    """
+    explicit = os.environ.get("FSE_ENV", "").strip().lower()
+    if explicit:
+        return explicit
+    service = os.environ.get("RENDER_SERVICE_NAME", "")
+    if not service:
+        return "local"
+    return "staging" if service.endswith("-staging") else "production"
 
 
 def utc_now_iso() -> str:

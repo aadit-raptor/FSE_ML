@@ -41,4 +41,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 
 # Render (and most hosts) set PORT; --proxy-headers because TLS ends at the host's proxy.
 # --no-access-log: the API writes its own JSON request log with request IDs (api/observability.py)
-CMD ["sh", "-c", "exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*' --no-access-log"]
+# --no-server-header: no "server: uvicorn" advertising the stack (PLAN.md 1.7)
+CMD ["sh", "-c", "exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*' --no-access-log --no-server-header"]

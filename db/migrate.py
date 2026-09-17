@@ -6,6 +6,10 @@ Render instance restarts on every wake-up, and checking migrations then would
 wake the Neon compute too. Migrations take a Postgres advisory lock, so two
 instances starting together can't run them twice.
 
+Migrations connect as ``DATABASE_MIGRATION_URL`` when it is set (the schema
+owner, while ``DATABASE_URL`` is the restricted app role; see db/engine.py),
+otherwise as ``DATABASE_URL``.
+
 Command line (``DATABASE_URL`` must be set; see CLAUDE.md "Adding a table")::
 
     python -m db.migrate upgrade              # to the latest revision
@@ -31,7 +35,8 @@ from sqlalchemy.pool import NullPool
 
 from api.observability import log_event, utc_now_iso
 from db.engine import (
-    DatabaseUnavailable, connect_args, database_url, direct_url, open_with_retries, sqlalchemy_url,
+    DatabaseUnavailable, connect_args, database_url, direct_url, migration_url, open_with_retries,
+    sqlalchemy_url,
 )
 
 MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
@@ -64,7 +69,7 @@ def current_revision(conn) -> Optional[str]:
 
 def _run(action, url: Optional[str], *, lock: bool = True):
     """Run ``action(cfg, conn)`` on a direct connection inside one transaction."""
-    raw = url or database_url()
+    raw = url or migration_url()
     if raw is None:
         raise DatabaseUnavailable("DATABASE_URL is not set")
     engine = create_engine(sqlalchemy_url(direct_url(raw)), poolclass=NullPool,
@@ -113,7 +118,11 @@ state: dict = {"status": "unchecked", "revision": None, "checked_at": None}
 
 
 def ensure_migrated(url: Optional[str] = None) -> None:
-    """Bring the schema to the latest revision once per process and URL."""
+    """Bring the schema to the latest revision once per process and URL.
+
+    ``url`` names the database; without it that is ``DATABASE_URL``, migrated
+    through ``DATABASE_MIGRATION_URL`` when set.
+    """
     raw = url or database_url()
     if raw is None or raw in _migrated:
         return
@@ -121,7 +130,7 @@ def ensure_migrated(url: Optional[str] = None) -> None:
         if raw in _migrated:
             return
         try:
-            before, after = upgrade(raw)
+            before, after = upgrade(url or migration_url())
         except Exception as exc:
             state.update(status="failed", checked_at=utc_now_iso())
             log_event("migrations_failed", logging.ERROR, error=type(exc).__name__)
