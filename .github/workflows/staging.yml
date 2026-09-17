@@ -126,6 +126,13 @@ jobs:
         working-directory: web
       - run: npx playwright install --with-deps chromium
         working-directory: web
+      # Security headers, content security policy and CORS (PLAN.md 1.7). The
+      # bypass secret goes only to the preview URL: the scan follows no redirects
+      - name: Header scan of staging
+        run: python3 ops/check_headers.py --web "${{ steps.preview.outputs.url }}" --api "$STAGING_API"
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
       - name: Browser checks against staging
         working-directory: web
         run: npm run test:live

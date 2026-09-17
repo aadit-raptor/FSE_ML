@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { SECURITY_HEADERS } from "./src/lib/security/headers";
+
 // The FastAPI app (api/main.py) serves everything under /api. Proxying it
 // through Next keeps the browser on one origin, so no CORS setup is needed
 // in development or behind a single deployment.
@@ -36,10 +38,17 @@ if ((process.env.VERCEL_ENV === "production" || isPreview) && !process.env.NEXT_
 const fseEnv = process.env.VERCEL_ENV === "production" ? "production" : isPreview ? "staging" : "local";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   env: {
     NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN ?? "",
     NEXT_PUBLIC_FSE_ENV: fseEnv,
     NEXT_PUBLIC_FSE_COMMIT: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
+  },
+  // Security headers on everything but /api, which carries the API's own
+  // (api/security.py). The content security policy is set per request, with
+  // a nonce, in src/proxy.ts.
+  async headers() {
+    return [{ source: "/((?!api/).*)", headers: SECURITY_HEADERS }];
   },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];

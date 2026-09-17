@@ -11,3 +11,7 @@ ml/surrogate/training_data.parquet
 .localdb/
 # Signed-in browser state saved by web/e2e/auth.setup.ts
 web/e2e/.auth/
+# Local secrets (PLAN.md 1.7): keys live in Render, Vercel and GitHub secrets
+.env
+.env.*
+!.env.example

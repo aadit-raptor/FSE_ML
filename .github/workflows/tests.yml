@@ -9,6 +9,10 @@ concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: true
 
+# The workflow token can only read the code (PLAN.md 1.7)
+permissions:
+  contents: read
+
 jobs:
   core:
     # Core install only: proves the app and its tests work without the
