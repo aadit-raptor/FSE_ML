@@ -10,7 +10,9 @@
 tables can be restored too), encrypted with AES-256-GCM (``ops/encryption.py``)
 and put in a private Supabase Storage bucket (``ops/backup_store.py``) as
 ``<environment>/<when>.dump.enc``, beside a small ``.json`` manifest — sizes,
-checksum, versions, commit; **never anything from a deal**.
+checksum, versions, commit, and what the dump held: the migration revision,
+how many deals, and a one-way fingerprint of their model results, all read
+inside the snapshot ``pg_dump`` itself reads. **Never anything from a deal.**
 
 **Recent mistakes don't need this.** Neon keeps a restore window on the free
 plan: restoring a branch to a point in time in the console is faster and
@@ -22,11 +24,12 @@ recovery" is the procedure.
 for 12 months, and then drops the oldest until the total fits the storage
 budget, so the free 1 GB is never reached.
 
-**The drill** (monthly, and after any change here) restores the newest
-backup into a throwaway database on the staging branch, checks that every
-saved deal produces exactly the same model result as in the source database,
-and drops it again. It prints counts and whether the results match — never a
-deal's contents.
+**The drill** (monthly, and after any change here) restores the newest backup
+into a throwaway database on the staging branch, checks that every saved deal
+produces exactly the model result the manifest recorded when the dump was
+taken, and drops it again. It compares with the backup, not with today's live
+database — deals change every day — and needs no production credentials. It
+prints counts and whether they match, never a deal's contents.
 
 The tools (``pg_dump``/``pg_restore``) are found automatically and must be at
 least the server's major version; passwords go to them in the environment,
@@ -166,20 +169,57 @@ def pg_tool(name: str, needed_major: int) -> str:
         f"or set FSE_PG_BIN to its bin directory.")
 
 
-def dump(url: str, target: Path) -> None:
+def dump(url: str, target: Path, *, snapshot: Optional[str] = None) -> None:
     """``pg_dump -Fc`` of the whole database into ``target``.
 
     Ownership is left out (``--no-owner``) so a restore works as whatever role
     is doing the restoring; grants are kept, so the least-privilege
     ``fse_app`` role (migration 0005) can read the restored copy at once.
+    ``snapshot`` makes it read an already-exported snapshot instead of taking
+    its own (``dump_with_checks``).
     """
     safe, env = _tool_env(url)
     tool = pg_tool("pg_dump", server_major(url))
-    result = subprocess.run(
-        [tool, "--format=custom", "--compress=9", "--no-owner", "--file", str(target), safe],
-        env=env, capture_output=True, text=True)
+    command = [tool, "--format=custom", "--compress=9", "--no-owner", "--file", str(target)]
+    if snapshot:
+        command.append(f"--snapshot={snapshot}")
+    result = subprocess.run(command + [safe], env=env, capture_output=True, text=True)
     if result.returncode != 0:
         raise BackupError(f"pg_dump failed: {(result.stderr or '').strip()[:500]}")
+
+
+def dump_with_checks(url: str, target: Path, *, log=print) -> dict:
+    """Dump the database and describe what went into the dump.
+
+    The drill has to answer "did this backup restore what it held?", not "does
+    it match the live database?" — deals change every day, so comparing a
+    month-old backup with today's data would cry wolf every time. So the
+    counts and the fingerprint are read **inside the same snapshot pg_dump
+    reads** (``pg_export_snapshot``), and travel in the manifest.
+
+    A connection that can't share a snapshot (a pooler in the way) falls back
+    to a plain dump and a read straight after it, and says so.
+    """
+    import psycopg
+
+    with psycopg.connect(url, connect_timeout=30) as conn:
+        conn.isolation_level = psycopg.IsolationLevel.REPEATABLE_READ
+        snapshot = conn.execute("SELECT pg_export_snapshot()").fetchone()[0]
+        shared = True
+        try:
+            dump(url, target, snapshot=snapshot)
+        except BackupError as e:
+            if "snapshot" not in str(e).lower():
+                raise
+            log(f"::warning::this connection cannot share a snapshot with pg_dump "
+                f"({str(e)[:120]}); dumping without one")
+            shared = False
+            conn.rollback()
+            dump(url, target)
+        counts, rows = _deal_rows(conn)
+        conn.rollback()
+    return {"snapshot": shared, "deals": len(rows), "migration": counts["migration"],
+            "fingerprint": _fingerprint(rows)}
 
 
 def restore(url: str, source: Path, *, clean: bool = False, skip_grants: bool = False) -> None:
@@ -282,8 +322,14 @@ def rotation_plan(files: Sequence[BackupFile], *, keep_daily: int = KEEP_DAILY,
     return kept, sorted(dropped, key=lambda b: b.taken_at, reverse=True)
 
 
-def manifest(environment: str, name: str, stats: dict, url: str) -> dict:
-    """What is stored beside the backup: sizes, checksum and versions only."""
+def manifest(environment: str, name: str, stats: dict, checks: dict, server: int) -> dict:
+    """What is stored, unencrypted, beside the backup.
+
+    Sizes, a checksum, versions, and what the dump held: the migration
+    revision, how many deals, and the one-way fingerprint of their model
+    results the drill checks the restored copy against. **No deal contents**,
+    and nothing a fingerprint could be turned back into.
+    """
     return {
         "name": name,
         "environment": environment,
@@ -293,8 +339,12 @@ def manifest(environment: str, name: str, stats: dict, url: str) -> dict:
         "plaintext_bytes": stats["plaintext_bytes"],
         "chunks": stats["chunks"],
         "sha256": stats["sha256"],
-        "server_major": server_major(url),
+        "server_major": server,
         "commit": (os.environ.get("GITHUB_SHA") or "")[:40] or None,
+        "migration": checks["migration"],
+        "deals": checks["deals"],
+        "fingerprint": checks["fingerprint"],
+        "one_snapshot": checks["snapshot"],
     }
 
 
@@ -305,18 +355,20 @@ def make_backup(url: str, environment: str, store: BackupStore, secret: str,
                 *, now: Optional[datetime] = None, log=print) -> dict:
     """Dump, encrypt, upload and rotate. Returns the manifest."""
     name = backup_name(environment, now or datetime.now(timezone.utc))
+    server = server_major(url)
     with tempfile.TemporaryDirectory(prefix="fse-backup-") as work:
         plain = Path(work) / "dump"
         sealed = Path(work) / "dump.enc"
-        dump(url, plain)
+        checks = dump_with_checks(url, plain, log=log)
         with open(plain, "rb") as source, open(sealed, "wb") as target:
             stats = encryption.encrypt_stream(source, target, secret)
         plain.unlink()
-        note = manifest(environment, name, stats, url)
+        note = manifest(environment, name, stats, checks, server)
         (Path(work) / "manifest.json").write_text(json.dumps(note, indent=2), encoding="utf-8")
         store.put(name + DUMP_SUFFIX, sealed)
         store.put(name + MANIFEST_SUFFIX, Path(work) / "manifest.json", "application/json")
-    log(f"backed up {environment}: {stats['plaintext_bytes'] / 1024 / 1024:.1f} MB dumped, "
+    log(f"backed up {environment}: {stats['plaintext_bytes'] / 1024 / 1024:.1f} MB dumped "
+        f"({checks['deals']} deals at migration {checks['migration']}), "
         f"{stats['encrypted_bytes'] / 1024 / 1024:.1f} MB encrypted, sha256 {stats['sha256'][:16]}... "
         f"-> {name}{DUMP_SUFFIX} in {store.describe}")
     return note
@@ -343,7 +395,10 @@ def latest(store: BackupStore, environment: str) -> BackupFile:
 
 
 def fetch(store: BackupStore, name: str, secret: str, target: Path, *, log=print) -> dict:
-    """Download a backup, check it against its manifest and decrypt it."""
+    """Download a backup, check it against its manifest and decrypt it.
+
+    Returns what was read, with the manifest under ``manifest``.
+    """
     with tempfile.TemporaryDirectory(prefix="fse-restore-") as work:
         sealed = Path(work) / "dump.enc"
         store.get(name + DUMP_SUFFIX, sealed)
@@ -360,46 +415,62 @@ def fetch(store: BackupStore, name: str, secret: str, target: Path, *, log=print
         raise BackupError(f"{name} does not match its manifest checksum: storage returned "
                           f"{stats['sha256'][:16]}..., the manifest says {note['sha256'][:16]}...")
     log(f"{name}: {stats['encrypted_bytes'] / 1024 / 1024:.1f} MB downloaded, decrypted to "
-        f"{stats['plaintext_bytes'] / 1024 / 1024:.1f} MB, checksum matches the manifest")
-    return stats
+        f"{stats['plaintext_bytes'] / 1024 / 1024:.1f} MB"
+        + (", checksum matches the manifest" if note.get("sha256") else ""))
+    return {**stats, "manifest": note}
 
 
 # ---------------------------------------------------------------------------
 # The restore drill
 # ---------------------------------------------------------------------------
-def deal_results(url: str) -> dict:
-    """Every saved deal's model result in one database, as a fingerprint.
+def _deal_rows(conn) -> tuple[dict, list]:
+    """The migration revision, the table counts and every deal's stored inputs.
 
-    Runs the real deal model on each deal's stored inputs and settings and
-    returns counts plus a checksum of the results — the proof that a restored
-    copy gives *identical results*, with no deal contents printed or returned.
+    Read in one transaction and handed back at once, so the caller can close
+    the transaction before spending time on the model.
     """
-    import psycopg
+    counts = {"migration": conn.execute("SELECT version_num FROM alembic_version").fetchone()[0]}
+    for table in ("users", "deals", "deal_versions"):
+        counts[table] = conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
+    return counts, conn.execute("SELECT id, inputs, settings FROM deals ORDER BY id").fetchall()
 
+
+def _fingerprint(rows) -> str:
+    """One checksum over every deal's model result.
+
+    The real deal model is run on each deal's stored inputs and settings;
+    identical fingerprints mean identical answers. It is one-way, so it can
+    travel in the manifest beside the backup without carrying a deal with it.
+    """
     from core.config import resolve_config
     from core.deal import DealInputs, run_deal
 
     digest = hashlib.sha256()
-    counts: dict[str, int] = {}
-    with psycopg.connect(url, connect_timeout=30) as conn:
-        for table in ("users", "deals", "deal_versions"):
-            counts[table] = conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
-        counts["migration"] = conn.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-        rows = conn.execute("SELECT id, inputs, settings FROM deals ORDER BY id").fetchall()
     for deal_id, inputs, settings in rows:
         result = run_deal(DealInputs(**inputs), resolve_config(settings or {}))
         digest.update(f"{deal_id}:{result.returns.irr:.12g}:{result.returns.moic:.12g}\n".encode())
-    return {"counts": counts, "deals": len(rows), "fingerprint": digest.hexdigest()}
+    return digest.hexdigest()
+
+
+def deal_results(url: str) -> dict:
+    """What one database holds: counts, the migration revision and the
+    fingerprint of every saved deal's model result."""
+    import psycopg
+
+    with psycopg.connect(url, connect_timeout=30) as conn:
+        counts, rows = _deal_rows(conn)
+    return {"counts": counts, "deals": len(rows), "fingerprint": _fingerprint(rows)}
 
 
 def drill(store: BackupStore, environment: str, target_url: str, secret: str, *,
-          source_url: Optional[str] = None, name: Optional[str] = None, log=print) -> dict:
-    """Restore the newest backup into a throwaway database and check it.
+          name: Optional[str] = None, log=print) -> dict:
+    """Restore a backup into a throwaway database and check what came back.
 
     The target is a **new** database on the server ``target_url`` points at
-    (the staging branch), created and dropped by this function, so a drill
-    never touches data anyone is using. When ``source_url`` is given, the
-    restored copy's deal results are compared with the live ones.
+    (the staging branch), created and dropped here, so a drill never touches
+    data anyone is using. What the restored copy holds is compared with what
+    the manifest recorded **when the dump was taken** — not with the live
+    database, which has moved on since.
     """
     import psycopg
 
@@ -409,11 +480,10 @@ def drill(store: BackupStore, environment: str, target_url: str, secret: str, *,
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     database = f"drill_{stamp}"
     admin = direct_url(target_url)
-    expected = deal_results(source_url) if source_url else None
 
     with tempfile.TemporaryDirectory(prefix="fse-drill-") as work:
         plain = Path(work) / "dump"
-        fetch(store, name, secret, plain, log=log)
+        note = fetch(store, name, secret, plain, log=log)["manifest"]
         with psycopg.connect(admin, connect_timeout=30, autocommit=True) as conn:
             conn.execute(f'CREATE DATABASE "{database}"')
         try:
@@ -421,21 +491,34 @@ def drill(store: BackupStore, environment: str, target_url: str, secret: str, *,
             restore(restored_url, plain)
             found = deal_results(restored_url)
         finally:
+            if not database.startswith("drill_"):     # belt and braces: only ever a drill copy
+                raise BackupError(f"refusing to drop {database}")
             with psycopg.connect(admin, connect_timeout=30, autocommit=True) as conn:
-                if not database.startswith("drill_"):     # belt and braces: only ever a drill copy
-                    raise BackupError(f"refusing to drop {database}")
                 conn.execute(f'DROP DATABASE IF EXISTS "{database}" WITH (FORCE)')
 
     log(f"restored {name} into {database}: {found['counts']} "
         f"({found['deals']} deals re-run, fingerprint {found['fingerprint'][:16]}...), then dropped it")
-    if expected is not None:
-        if expected["fingerprint"] != found["fingerprint"] or expected["counts"] != found["counts"]:
-            raise BackupError(
-                f"the restored copy differs from the source: counts {found['counts']} vs "
-                f"{expected['counts']}, fingerprints {found['fingerprint'][:16]}... vs "
-                f"{expected['fingerprint'][:16]}...")
-        log(f"every one of the {found['deals']} saved deals gives identical model results "
-            "in the restored copy")
+    expected = {key: note.get(key) for key in ("deals", "migration", "fingerprint")}
+    if expected["fingerprint"] is None:
+        log(f"::warning::{name} records no fingerprint, so there is nothing to compare the "
+            "restored copy with; it restored and every deal re-ran")
+    elif (expected["fingerprint"] != found["fingerprint"] or expected["deals"] != found["deals"]
+          or expected["migration"] != found["counts"]["migration"]):
+        difference = (
+            f"{found['deals']} deals at migration {found['counts']['migration']} (fingerprint "
+            f"{found['fingerprint'][:16]}...) against the manifest's {expected['deals']} at "
+            f"{expected['migration']} ({str(expected['fingerprint'])[:16]}...)")
+        if note.get("one_snapshot") is False:
+            # The manifest was read after the dump rather than from its snapshot,
+            # so a deal saved in between explains this without anything being wrong
+            log(f"::warning::{name} restored, but it does not match its manifest: {difference}. "
+                "That backup was taken without a shared snapshot, so a deal saved while it ran "
+                "would look like this.")
+        else:
+            raise BackupError(f"the restored copy is not what was backed up: {difference}")
+    else:
+        log(f"every one of the {found['deals']} saved deals gives the same model result as when "
+            "the backup was taken")
     return {"name": name, "database": database, **found}
 
 
@@ -451,7 +534,6 @@ def _url(args, *names: str) -> str:
     for value in (args.database_url, *(os.environ.get(n) for n in names)):
         if value and value.strip():
             return value.strip()
-
     raise BackupError(f"set {' or '.join(names)} (or pass --database-url)")
 
 
@@ -475,8 +557,6 @@ def main(argv: Optional[list[str]] = None) -> int:
     p.add_argument("--target", help="a database URL on the server to restore into "
                                     "(default: BACKUP_STAGING_DATABASE_URL)")
     p.add_argument("--name", help="a particular backup (default: the newest)")
-    p.add_argument("--no-compare", action="store_true",
-                   help="skip comparing with the source database")
     args = parser.parse_args(argv)
 
     try:
@@ -509,13 +589,11 @@ def main(argv: Optional[list[str]] = None) -> int:
                 restore(args.into, plain, clean=args.clean, skip_grants=args.skip_grants)
             print(f"restored {args.name}")
         else:
-            source = None if args.no_compare else _url(
-                args, "BACKUP_DATABASE_URL", "DATABASE_MIGRATION_URL", "DATABASE_URL")
             target = args.target or (os.environ.get("BACKUP_STAGING_DATABASE_URL") or "").strip()
             if not target:
                 raise BackupError("set BACKUP_STAGING_DATABASE_URL (or pass --target): the "
                                   "database server the drill restores into")
-            drill(store, args.environment, target, secret, source_url=source, name=args.name)
+            drill(store, args.environment, target, secret, name=args.name)
     except (BackupError, StorageError, encryption.BackupKeyError, encryption.BackupCorrupt) as e:
         print(f"::error::{e}")
         return 1

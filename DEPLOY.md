@@ -334,8 +334,14 @@ reach for. The nightly backup is what covers losing Neon.
 `pg_dump -Fc` of the whole production database, encrypted with AES-256-GCM and
 uploaded to a **private** Supabase Storage bucket as
 `production/<when>.dump.enc`, with a small `<when>.json` beside it holding
-sizes, the checksum, the Postgres version and the commit — **never anything
-from a deal**. The key never leaves the GitHub Actions secret
+sizes, the checksum, the Postgres version, the commit, and what the dump held:
+the migration revision, how many deals, and a one-way fingerprint of their
+model results. **Never anything from a deal**, and nothing a fingerprint could
+be turned back into.
+
+The counts and the fingerprint are read **inside the same snapshot `pg_dump`
+reads** (`pg_export_snapshot`), so the manifest describes exactly what is in
+the file — which is what makes the drill's comparison meaningful weeks later. The key never leaves the GitHub Actions secret
 `FSE_BACKUP_KEY`; without it a backup is bytes nobody can read, which is why
 it is kept outside this repository, outside Supabase and outside Neon.
 
@@ -404,16 +410,20 @@ Proof that the backups restore, run **monthly** (the first of the month) by
 `backup.yml`, and on demand from the **Actions → backup → Run workflow**
 button with *Run the restore drill* ticked. It restores the newest production
 backup into a **new, throwaway database on the staging branch**, re-runs the
-deal model on every restored deal, compares the results with the live ones and
-drops the database again. It prints counts and whether they match, never a
-deal. A failure raises a Better Stack incident: the backups are not restorable
-and that is an incident in itself.
+deal model on every restored deal, compares the results with **what the
+manifest recorded when the dump was taken** — not with the live database,
+which has moved on since — and drops the database again. It prints counts and
+whether they match, never a deal. A failure raises a Better Stack incident:
+the backups are not restorable, and that is an incident in itself.
 
 By hand, against any Postgres:
 
 ```bash
 python -m ops.backup drill --environment production --target "$STAGING_OWNER_URL"
 ```
+
+It needs no access to the production database: everything it checks against
+travels in the backup's manifest.
 
 `tests/test_backups.py` runs the same code against a real Postgres on every
 pull request: a saved deal is backed up, encrypted, restored into another

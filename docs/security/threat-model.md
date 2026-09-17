@@ -69,7 +69,7 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | A tampered GitHub Action | Only first-party (`actions/*`, `github/codeql-action`) actions are used; gitleaks is downloaded from its release and checksum-verified; workflow tokens are read-only by default | Partial: actions are pinned to major versions, not commit SHAs (Dependabot keeps them current) |
 | Tampered trained model files (`*.pkl` load with pickle, which can run code) | Loaded only from files in the repository and image, never from users; changes go through a reviewed PR | Partial: no integrity hash recorded; 5.1 (ML evaluation) should record hashes and prefer safe formats |
 | A backup altered in storage and restored unnoticed | Each 1 MiB chunk's AES-GCM tag covers the header, the chunk's number and whether the file ends there, so an altered, reordered, duplicated or truncated backup fails to decrypt instead of restoring wrong data; the manifest's SHA-256 is checked before anything is restored (`tests/test_backups.py`) | Done (1.8) |
-| Backups that quietly stop, or can't actually be restored | The nightly run reads back and decrypts what it just uploaded; a monthly drill restores into a throwaway database and checks every deal gives identical model results; either failing raises a Better Stack incident | Done (1.8) |
+| Backups that quietly stop, or can't actually be restored | The nightly run reads back and decrypts what it just uploaded; a monthly drill restores into a throwaway database and checks every deal gives the same model result as the manifest recorded from the dump's own snapshot; either failing raises a Better Stack incident | Done (1.8) |
 
 ### Repudiation (denying what happened)
 
@@ -94,7 +94,7 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | Confidential documents sent to a free AI tier | Rule in PLAN.md: free AI tier only on public documents | Open until 6.2 and 12.4 |
 | A backup read by whoever can reach the storage | Every backup is AES-256-GCM before it leaves the runner; the key is a GitHub Actions secret, held nowhere else; the Supabase bucket is private; backups are never Actions artifacts (public repositories hand those to anyone) | Done (1.8) |
 | The backup key lost or leaked | A leak needs a new key and re-encrypted backups; a loss makes every stored backup unreadable, so a copy is kept outside GitHub (DEPLOY.md). Neon's own restore window covers recent mistakes either way | Accepted: one key, rotated by hand |
-| Production deals copied onto the staging branch by the restore drill | The drill restores into a **new** database it creates and drops, on the same Neon project (one account, one trust boundary); it reports counts and a fingerprint, never deal contents | Done (1.8) |
+| Production deals copied onto the staging branch by the restore drill | The drill restores into a **new** database it creates and drops, on the same Neon project (one account, one trust boundary); it reports counts and a one-way fingerprint, never deal contents, and needs no access to the production database | Done (1.8) |
 
 ### Denial of service and quota exhaustion
 

@@ -135,11 +135,15 @@ to a **private** Supabase Storage bucket (`ops/backup_store.py`), rotates old
 ones (7 daily, 8 weekly, 12 monthly, and a 700 MB budget of the free 1 GB),
 then downloads and decrypts what it just stored. On the first of the month a
 **restore drill** restores the newest backup into a throwaway database on the
-Neon staging branch, re-runs the deal model on every restored deal, checks the
-results are identical and drops the database; either job failing raises a
-Better Stack incident. **Recent mistakes use Neon's own restore window
+Neon staging branch, re-runs the deal model on every restored deal and checks
+the results against **what the manifest recorded when the dump was taken**
+(read inside the same `pg_export_snapshot` `pg_dump` reads, so it describes
+exactly what is in the file — comparing with today's live data would cry wolf
+as soon as anyone edits a deal), then drops the database; either job failing
+raises a Better Stack incident. **Recent mistakes use Neon's own restore window
 instead** — it is faster and loses nothing. The manifest beside each backup
-holds sizes, checksum and versions and **never anything from a deal**;
+holds sizes, checksum, versions, the migration revision, how many deals and
+that one-way fingerprint — **never anything from a deal**;
 backups are never GitHub Actions artifacts, which are public on a public
 repository. `pg_dump`/`pg_restore` must be at least the server's major
 version; `ops/backup.py` finds them (PATH, `/usr/lib/postgresql/*/bin`,
@@ -311,7 +315,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (346 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (351 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 

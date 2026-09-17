@@ -466,13 +466,17 @@ def test_a_backup_too_big_for_the_free_plan_is_refused_before_uploading(supabase
 # The manifest says nothing about the deals
 # ---------------------------------------------------------------------------
 def test_the_manifest_holds_no_deal_contents(monkeypatch):
-    monkeypatch.setattr(backup, "server_major", lambda url: 17)
+    """Sizes, versions, counts and a one-way fingerprint -- nothing that could
+    be turned back into a deal, and no connection string."""
     monkeypatch.setenv("GITHUB_SHA", "a" * 40)
     note = backup.manifest("production", "production/2026-09-18T023000Z",
                            {"encrypted_bytes": 10, "plaintext_bytes": 20, "chunks": 1,
-                            "sha256": "f" * 64}, "postgresql://u:p@host/db")
+                            "sha256": "f" * 64},
+                           {"migration": "0005", "deals": 3, "fingerprint": "a" * 64,
+                            "snapshot": True}, 17)
     assert set(note) == {"name", "environment", "created_at", "format", "encrypted_bytes",
-                         "plaintext_bytes", "chunks", "sha256", "server_major", "commit"}
+                         "plaintext_bytes", "chunks", "sha256", "server_major", "commit",
+                         "migration", "deals", "fingerprint", "one_snapshot"}
     assert "p@host" not in json.dumps(note)
 
 
@@ -503,6 +507,14 @@ def empty_database(admin_url: str):
         with admin.connect() as conn:
             conn.execute(text(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)'))
         admin.dispose()
+
+
+@pytest.fixture
+def migrated_db(fresh_db):
+    """``fresh_db`` with the schema already applied, for tests that back it up
+    without going through the API first."""
+    migrate.upgrade()
+    return fresh_db
 
 
 def irr_now() -> float:
@@ -559,17 +571,21 @@ def test_a_restored_backup_gives_back_the_deal_and_its_irr(fresh_db, admin_url, 
 
 def test_the_drill_restores_checks_and_cleans_up(fresh_db, admin_url, tmp_path, sign_in):
     """The monthly drill: restore the newest backup into a throwaway database
-    on the same server, prove every saved deal gives identical results, drop it."""
+    on the same server, prove every saved deal gives the same model result as
+    when the dump was taken, drop it."""
     sign_in("user:drill")
     assert client.post("/api/deals", json={"name": "Drill deal", "inputs": INPUTS,
                                            "settings": SETTINGS}).status_code == 201
     store = LocalStore(tmp_path / "store")
-    backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    assert note["one_snapshot"] is True          # the dump and the fingerprint saw the same data
 
-    report = backup.drill(store, "test", admin_url, SECRET, source_url=fresh_db,
-                          log=lambda msg: None)
+    said = []
+    report = backup.drill(store, "test", admin_url, SECRET, log=said.append)
     assert report["deals"] == 1 and report["counts"]["deals"] == 1
     assert report["counts"]["migration"] == migrate.head_revision()
+    assert report["fingerprint"] == note["fingerprint"]
+    assert any("same model result as when the backup was taken" in line for line in said)
     admin = create_engine(db_engine.sqlalchemy_url(admin_url), isolation_level="AUTOCOMMIT")
     with admin.connect() as conn:
         left = conn.execute(text("SELECT count(*) FROM pg_database WHERE datname LIKE 'drill_%'")
@@ -578,30 +594,111 @@ def test_the_drill_restores_checks_and_cleans_up(fresh_db, admin_url, tmp_path, 
     assert left == 0, "the drill left a database behind"
 
 
-def test_the_drill_notices_a_backup_that_does_not_match(fresh_db, admin_url, tmp_path, sign_in):
-    """Proof the comparison means something: change the deal after the backup
-    and the drill must refuse it."""
-    sign_in("user:drill-mismatch")
+def test_the_dump_and_the_fingerprint_see_the_same_moment(fresh_db, admin_url, tmp_path,
+                                                          sign_in, monkeypatch):
+    """A deal saved while the backup is running must land on one side of it,
+    not both: pg_dump reads the snapshot the fingerprint was taken from, so
+    the manifest always describes exactly what the dump holds."""
+    sign_in("user:snapshot")
+    assert client.post("/api/deals", json={"name": "Before", "inputs": INPUTS,
+                                           "settings": SETTINGS}).status_code == 201
+    real_dump = backup.dump
+
+    def save_a_deal_then_dump(url, target, **kwargs):
+        assert client.post("/api/deals", json={"name": "During", "inputs": INPUTS,
+                                               "settings": {}}).status_code == 201
+        return real_dump(url, target, **kwargs)
+
+    monkeypatch.setattr(backup, "dump", save_a_deal_then_dump)
+    store = LocalStore(tmp_path / "store")
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    monkeypatch.undo()
+    assert note["deals"] == 1 and note["one_snapshot"] is True
+
+    # The drill only passes if the restored copy holds what the manifest says
+    report = backup.drill(store, "test", admin_url, SECRET, log=lambda msg: None)
+    assert report["deals"] == 1
+
+
+def test_the_drill_compares_with_the_backup_not_with_today(fresh_db, admin_url, tmp_path,
+                                                           sign_in):
+    """Deals change every day, so a month-old backup will never match the live
+    database. The drill must still pass after the source moves on."""
+    sign_in("user:drill-moved-on")
     created = client.post("/api/deals", json={"name": "Drill deal", "inputs": INPUTS,
                                               "settings": SETTINGS})
     deal_id = created.json()["id"]
     store = LocalStore(tmp_path / "store")
     backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
 
-    moved = {**INPUTS, "exit_mult": 12.0}
     assert client.put(f"/api/deals/{deal_id}/draft",
-                      json={"inputs": moved, "settings": SETTINGS}).status_code == 200
-    with pytest.raises(backup.BackupError, match="differs from the source"):
-        backup.drill(store, "test", admin_url, SECRET, source_url=fresh_db, log=lambda msg: None)
+                      json={"inputs": {**INPUTS, "exit_mult": 12.0},
+                            "settings": SETTINGS}).status_code == 200
+    assert client.post("/api/deals", json={"name": "Later deal", "inputs": INPUTS,
+                                           "settings": {}}).status_code == 201
+    report = backup.drill(store, "test", admin_url, SECRET, log=lambda msg: None)
+    assert report["deals"] == 1                  # what the backup held, not the two there now
 
 
-def test_rotation_deletes_old_backups_from_a_real_store(fresh_db, tmp_path):
+def test_the_drill_refuses_a_backup_that_is_not_what_was_recorded(fresh_db, admin_url, tmp_path,
+                                                                  sign_in):
+    """Proof the comparison means something: a manifest saying the dump held
+    something else must stop the drill."""
+    sign_in("user:drill-mismatch")
+    assert client.post("/api/deals", json={"name": "Drill deal", "inputs": INPUTS,
+                                           "settings": SETTINGS}).status_code == 201
+    store = LocalStore(tmp_path / "store")
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+
+    path = tmp_path / "store" / (note["name"] + backup.MANIFEST_SUFFIX)
+    path.write_text(json.dumps({**note, "fingerprint": "b" * 64}), encoding="utf-8")
+    with pytest.raises(backup.BackupError, match="not what was backed up"):
+        backup.drill(store, "test", admin_url, SECRET, log=lambda msg: None)
+
+
+def test_a_backup_taken_without_a_shared_snapshot_only_warns(fresh_db, admin_url, tmp_path,
+                                                             sign_in):
+    """When pg_dump could not share the reader's snapshot, a difference may
+    just be a deal saved while the dump ran, so the drill says so instead of
+    calling it a broken backup."""
+    sign_in("user:drill-no-snapshot")
+    assert client.post("/api/deals", json={"name": "Drill deal", "inputs": INPUTS,
+                                           "settings": SETTINGS}).status_code == 201
+    store = LocalStore(tmp_path / "store")
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    (tmp_path / "store" / (note["name"] + backup.MANIFEST_SUFFIX)).write_text(
+        json.dumps({**note, "fingerprint": "b" * 64, "one_snapshot": False}), encoding="utf-8")
+
+    said = []
+    backup.drill(store, "test", admin_url, SECRET, log=said.append)
+    assert any("without a shared snapshot" in line for line in said)
+
+
+def test_an_old_backup_without_a_fingerprint_still_drills(fresh_db, admin_url, tmp_path, sign_in):
+    """A backup made before the fingerprint existed can't be compared, but it
+    can still be restored and its deals re-run; the drill says so."""
+    sign_in("user:drill-old")
+    assert client.post("/api/deals", json={"name": "Old deal", "inputs": INPUTS,
+                                           "settings": SETTINGS}).status_code == 201
+    store = LocalStore(tmp_path / "store")
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    older = {k: v for k, v in note.items() if k not in ("fingerprint", "deals", "migration")}
+    (tmp_path / "store" / (note["name"] + backup.MANIFEST_SUFFIX)).write_text(
+        json.dumps(older), encoding="utf-8")
+
+    said = []
+    report = backup.drill(store, "test", admin_url, SECRET, log=said.append)
+    assert report["deals"] == 1
+    assert any("records no fingerprint" in line for line in said)
+
+
+def test_rotation_deletes_old_backups_from_a_real_store(migrated_db, tmp_path):
     """Twelve nights of real backups in a real store: rotation leaves the
     seven the policy keeps, deletes both files of each of the others, and what
     is left still decrypts."""
     store = LocalStore(tmp_path / "store")
     when = datetime(2026, 9, 18, 2, 30, tzinfo=timezone.utc)
-    note = backup.make_backup(fresh_db, "test", store, SECRET, now=when, log=lambda msg: None)
+    note = backup.make_backup(migrated_db, "test", store, SECRET, now=when, log=lambda msg: None)
     root = tmp_path / "store"
     for days in range(1, 12):                     # the same dump, as if taken each night
         name = backup.backup_name("test", when - timedelta(days=days))
@@ -621,25 +718,26 @@ def test_rotation_deletes_old_backups_from_a_real_store(fresh_db, tmp_path):
     assert stats["sha256"] == note["sha256"]
 
 
-def test_the_newest_backup_is_found_and_verified(fresh_db, tmp_path):
+def test_the_newest_backup_is_found_and_verified(migrated_db, tmp_path):
     store = LocalStore(tmp_path / "store")
     when = datetime(2026, 9, 18, 2, 30, tzinfo=timezone.utc)
-    old = backup.make_backup(fresh_db, "test", store, SECRET, now=when - timedelta(days=1),
+    old = backup.make_backup(migrated_db, "test", store, SECRET, now=when - timedelta(days=1),
                              log=lambda msg: None)
-    new = backup.make_backup(fresh_db, "test", store, SECRET, now=when, log=lambda msg: None)
+    new = backup.make_backup(migrated_db, "test", store, SECRET, now=when, log=lambda msg: None)
     assert backup.latest(store, "test").name == new["name"] != old["name"]
     stats = backup.fetch(store, new["name"], SECRET, tmp_path / "out", log=lambda msg: None)
     assert stats["sha256"] == new["sha256"]
+    assert stats["manifest"]["fingerprint"] == new["fingerprint"]
     assert (tmp_path / "out").read_bytes()[:5] == b"PGDMP"               # a real pg_dump archive
     with pytest.raises(backup.BackupError, match="no backup"):
         backup.latest(store, "staging")
 
 
-def test_a_backup_that_storage_damaged_is_refused(fresh_db, tmp_path):
+def test_a_backup_that_storage_damaged_is_refused(migrated_db, tmp_path):
     """The manifest's checksum catches a file that changed in storage, before
     anything is restored from it."""
     store = LocalStore(tmp_path / "store")
-    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    note = backup.make_backup(migrated_db, "test", store, SECRET, log=lambda msg: None)
     path = tmp_path / "store" / (note["name"] + backup.DUMP_SUFFIX)
     damaged = bytearray(path.read_bytes())
     damaged[-1] ^= 0x01
