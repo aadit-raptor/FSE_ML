@@ -427,8 +427,11 @@ connects as a login role in that group, `fse_api`; the owner (`neondb_owner`)
 is used only for migrations, through `DATABASE_MIGRATION_URL`.
 `/api/health/database` reports `"role": {"status": "restricted"}` once the
 API connects as `fse_api`, and `"privileged"` with the reasons before. The
-database checks warn (`ops/check_database.py`) while it is privileged; once
-both environments are switched, `--require-restricted-role` makes it an error.
+database checks (`ops/check_database.py --require-restricted-role` in
+`live.yml` and `staging.yml`) fail when it is privileged. Both environments
+were switched on 2026-09-17; follow the steps below again for a new Neon
+branch, or to change the `fse_api` password (use `ALTER ROLE fse_api PASSWORD
+'...';` in step 3).
 
 Roles belong to a Neon branch, so do this once per branch, **staging first**,
 and only after a deploy with migration 0005 has run there (the health check
@@ -459,8 +462,12 @@ shows `"migrations": {"revision": "0005", …}` or later):
 4. **Point the API at it.** Take the `DATABASE_URL` value from step 1 and
    replace the user and password between `://` and `@` with
    `fse_api:<the password>`, keeping the `-pooler` host and everything after
-   `@`. Render → **Environment** → edit `DATABASE_URL` → paste → **Save
-   changes**. Render redeploys.
+   `@`. Render → **Environment** → edit `DATABASE_URL` → paste → **Save and
+   deploy**. The API reads the variable only when it starts: if Render only
+   saved, click **Manual Deploy → Deploy latest commit**, and wait for
+   **Deploy live** before checking. If the check then shows an error, put
+   the owner string back in `DATABASE_URL` and deploy at once: the live
+   app can't reach its data until you do.
 5. **Check.** Open `https://fse-api-staging.onrender.com/api/health/database`
    (production: `https://fse-api.onrender.com/api/health/database`); wait
    for the free service to wake. It should show `"status": "ok"` and

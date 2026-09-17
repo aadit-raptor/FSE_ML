@@ -34,7 +34,7 @@ jobs:
         id: database
         continue-on-error: true
         working-directory: .
-        run: python3 ops/check_database.py https://fse-api.onrender.com
+        run: python3 ops/check_database.py https://fse-api.onrender.com --require-restricted-role
       # Usage counters shared through Upstash, which answers and is under
       # today's command budget (PLAN.md 1.6). PING only: not billed.
       - name: Production usage limits check
