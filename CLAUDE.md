@@ -121,7 +121,7 @@ API (`api/security.py`) sends `default-src 'none'` and `no-store` on every
 answer (a hash-based policy for `/api/docs`) and allows CORS only from exact
 HTTPS app origins (`FSE_CORS_ORIGINS` can't widen it). Deployed copies force
 TLS to the database. Migration 0005 creates `fse_app`, a role with row rights
-only; the API is meant to connect as login role `fse_api` in it, with the
+only; the API connects as login role `fse_api` in it (both environments), with the
 owner in `DATABASE_MIGRATION_URL` for migrations. `/api/health/database`
 reports `role` restricted or privileged. `ops/check_headers.py` scans the live
 headers (`live.yml`, `staging.yml`). CI: `security.yml` (gitleaks over all
@@ -243,12 +243,11 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
-- PLAN.md 1.7 follow-up: switch each environment's `DATABASE_URL` to the
-  restricted role (DEPLOY.md "Least-privilege database role", staging first)
-  and the GitHub settings in DEPLOY.md "CI and GitHub settings". When
-  `/api/health/database` shows `"role": {"status": "restricted"}` on both,
-  add `--require-restricted-role` to the `check_database.py` calls in
-  `live.yml` and `staging.yml`.
+- PLAN.md 1.7 follow-up: the GitHub settings in DEPLOY.md "CI and GitHub
+  settings" (private vulnerability reporting, required checks, Dependabot
+  secrets) and the commit email. (Both environments' `DATABASE_URL` switched
+  to the restricted `fse_api` role on 2026-09-17; `live.yml` and
+  `staging.yml` now fail if either goes back to a privileged role.)
 
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
