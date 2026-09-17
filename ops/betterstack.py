@@ -53,9 +53,12 @@ STATUS_PAGE = {
 MONITORS = [
     {
         "pronounceable_name": "FSE/ML web (production)",
-        "url": "https://fse-ml.vercel.app/deal/inputs",
+        # Signed-out pages answer 404 or redirect to sign-in (PLAN.md 1.4), so
+        # the monitor checks the app's public health route instead
+        # (web/src/app/healthz/route.ts; tests/test_betterstack.py pins both)
+        "url": "https://fse-ml.vercel.app/healthz",
         "monitor_type": "keyword",
-        "required_keyword": "FSE/ML",
+        "required_keyword": '"service":"FSE/ML web"',
         "check_frequency": 180,
         "request_timeout": 30,
         "confirmation_period": 120,

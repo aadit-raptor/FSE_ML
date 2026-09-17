@@ -60,6 +60,23 @@ def test_monitor_plan_fits_free_limits():
     assert all(m["email"] for m in bs.MONITORS)
 
 
+def test_web_monitor_checks_a_route_that_works_signed_out():
+    """Since sign-in (PLAN.md 1.4) signed-out pages answer 404 or redirect, so
+    the web monitor must use the health route the proxy leaves open, and look
+    for text that route really returns (web/e2e/auth.spec.ts requests it)."""
+    from pathlib import Path
+
+    web = Path(__file__).resolve().parents[1] / "web"
+    [monitor] = [m for m in bs.MONITORS if m["_host"] == "vercel"]
+    assert monitor["url"] == "https://fse-ml.vercel.app/healthz"
+    route = (web / "src/app/healthz/route.ts").read_text(encoding="utf-8")
+    assert monitor["required_keyword"] == '"service":"FSE/ML web"'
+    assert 'service: "FSE/ML web"' in route
+    proxy = (web / "src/proxy.ts").read_text(encoding="utf-8")
+    assert "(?!api|healthz|" in proxy, "the proxy must not send /healthz to sign-in"
+    assert monitor["required_keyword"] in (web / "e2e/auth.spec.ts").read_text(encoding="utf-8")
+
+
 def test_awake_hours_model():
     assert bs.render_awake_hours(180) == bs.MONTH_HOURS          # never gets to sleep
     assert bs.render_awake_hours(960) == bs.MONTH_HOURS

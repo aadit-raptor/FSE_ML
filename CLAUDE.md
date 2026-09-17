@@ -143,7 +143,7 @@ below). Streamlit is retired (removed in step 6).
 | 2. API layer — `core/` + `api/` | ✅ Done (PR #2) |
 | 3. App shell — Next.js in `web/`, design system, layout, navigation, TS client generated from `/api/openapi.json` | ✅ Merged (PR #5) |
 | 4. Rebuild the five screens: deal wizard, Monte Carlo, backtesting, forecasting, settings | ✅ All five built, verified by output, merged (PR #5) |
-| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (51 tests, CI job `e2e`). Mutation-checked |
+| 5. Browser tests in CI proving every control changes its output (Playwright) | ✅ `web/e2e/` (52 tests, CI job `e2e`). Mutation-checked |
 | 6. Deploy (frontend + API) and retire Streamlit | Config done on `feat/deploy` (root `Dockerfile`, `render.yaml`, Vercel via `FSE_API_URL`, CI `docker` job). Streamlit removed. **Waiting on the user** to connect Render and Vercel (DEPLOY.md) |
 
 Agreed stack: **Next.js (App Router) + TypeScript + Tailwind + Radix + Motion**
@@ -255,7 +255,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (255 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (256 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -410,8 +410,14 @@ Skills load when a session starts: install first, then open a new session.
   Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
   what the golden `defaults` case records.
 - Never put secrets in Playwright `extraHTTPHeaders`: they go to every host
-  the page calls (Sentry included). `web/e2e/live.spec.ts` scopes the Vercel
-  bypass header to the site's own origin.
+  the page calls (Sentry included). Nor in `page.route` header overrides:
+  Playwright keeps them across redirects, and signed-out pages redirect to
+  Clerk. `web/e2e/live.spec.ts` trades the Vercel bypass secret once for
+  Vercel's bypass cookie and fails if the secret reaches another origin.
+- Signed out, every page answers 404 (non-browser requests) or redirects to
+  Clerk, so anything that checks the web app without an account (the Better
+  Stack website monitor) uses `/healthz`, which `src/proxy.ts`'s matcher
+  leaves open. It must never call the API (that would keep Render awake).
 - Vercel's Environment Variables page is in the project's main left menu,
   not under Settings. `NEXT_PUBLIC_*` values (e.g. the Sentry DSN) are baked
   in at build time, so a changed `SENTRY_DSN` needs a new deploy.
