@@ -6,7 +6,7 @@
 # INSTALL_ML=true adds the optional ML layer (deal risk, live sliders, macro
 # regime). It makes the image ~1 GB larger and needs more than 512 MB of RAM
 # at run time because of torch; the app works without it.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 ARG INSTALL_ML=false
 ENV PYTHONDONTWRITEBYTECODE=1 \
