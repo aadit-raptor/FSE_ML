@@ -116,8 +116,12 @@ class LocalStore:
 class SupabaseStore:
     """A private Supabase Storage bucket, over its REST API.
 
-    The service-role key is a bearer token: it is never printed, never put in
-    a URL and never included in an error message.
+    ``SUPABASE_SERVICE_ROLE_KEY`` is whichever privileged key the project
+    has: the legacy ``service_role`` JWT, or the ``sb_secret_…`` secret key
+    that replaced it. Both go in the ``Authorization`` **and** ``apikey``
+    headers, which is what Supabase's own clients send and what its gateway
+    checks. The key is never printed, never put in a URL and never included
+    in an error message.
     """
 
     def __init__(self, url: str, key: str, bucket: str = DEFAULT_BUCKET,
@@ -137,6 +141,7 @@ class SupabaseStore:
                  content_type: Optional[str] = None, headers: Optional[dict] = None):
         request = urllib.request.Request(f"{self.url}{path}", data=body, method=method)
         request.add_header("Authorization", f"Bearer {self._key}")
+        request.add_header("apikey", self._key)
         if content_type:
             request.add_header("Content-Type", content_type)
         for header, value in (headers or {}).items():

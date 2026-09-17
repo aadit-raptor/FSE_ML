@@ -339,7 +339,7 @@ def test_the_store_is_chosen_by_the_environment(monkeypatch, tmp_path):
     monkeypatch.setenv("FSE_BACKUP_DIR", str(tmp_path))
     assert isinstance(store_from_env(), LocalStore)
     monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")
-    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_example")
     monkeypatch.setenv("SUPABASE_BACKUP_BUCKET", "fse-backups")
     store = store_from_env()
     assert isinstance(store, SupabaseStore) and store.bucket == "fse-backups"
@@ -368,7 +368,8 @@ class FakeSupabase(BaseHTTPRequestHandler):
     def do_POST(self):
         body = self._body()
         self._record()
-        if self.headers.get("Authorization") != "Bearer service-role-key":
+        if (self.headers.get("Authorization") != "Bearer sb_secret_example"
+                or self.headers.get("apikey") != "sb_secret_example"):
             return self._send(401, b'{"error":"unauthorized"}')
         if self.path.startswith("/storage/v1/object/list/"):
             prefix = json.loads(body)["prefix"]
@@ -382,6 +383,9 @@ class FakeSupabase(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._record()
+        if (self.headers.get("Authorization") != "Bearer sb_secret_example"
+                or self.headers.get("apikey") != "sb_secret_example"):
+            return self._send(401, b'{"error":"unauthorized"}')
         name = self.path.split("/storage/v1/object/backups/", 1)[1]
         if name not in FakeSupabase.objects:
             return self._send(404, b'{"error":"Object not found"}')
@@ -390,6 +394,9 @@ class FakeSupabase(BaseHTTPRequestHandler):
     def do_DELETE(self):
         body = self._body()
         self._record()
+        if (self.headers.get("Authorization") != "Bearer sb_secret_example"
+                or self.headers.get("apikey") != "sb_secret_example"):
+            return self._send(401, b'{"error":"unauthorized"}')
         for name in json.loads(body)["prefixes"]:
             FakeSupabase.objects.pop(name, None)
         self._send(200, b"[]")
@@ -404,7 +411,7 @@ def supabase():
     server = HTTPServer(("127.0.0.1", 0), FakeSupabase)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    yield SupabaseStore(f"http://127.0.0.1:{server.server_port}", "service-role-key")
+    yield SupabaseStore(f"http://127.0.0.1:{server.server_port}", "sb_secret_example")
     server.shutdown()
     server.server_close()
 
@@ -425,10 +432,14 @@ def test_supabase_store_round_trip(supabase, tmp_path):
     supabase.delete(["production/2026-09-17T023000Z.dump.enc"])
     assert [o.name for o in supabase.list("production")] == \
         ["production/2026-09-18T023000Z.dump.enc"]
-    # Every call carried the key as a bearer token, and none put it in the URL
-    assert all(headers.get("authorization") == "Bearer service-role-key"
-               for _, _, headers in FakeSupabase.seen)
-    assert not any("service-role-key" in path for _, path, _ in FakeSupabase.seen)
+    # Every call carried the key both ways Supabase's gateway looks for it
+    # (a new-style sb_secret_... key is refused without the apikey header),
+    # and none of them put it in the URL
+    assert FakeSupabase.seen and all(
+        headers.get("authorization") == "Bearer sb_secret_example"
+        and headers.get("apikey") == "sb_secret_example"
+        for _, _, headers in FakeSupabase.seen)
+    assert not any("sb_secret_example" in path for _, path, _ in FakeSupabase.seen)
 
 
 def test_supabase_upload_is_an_upsert(supabase, tmp_path):
@@ -446,7 +457,7 @@ def test_a_supabase_failure_never_shows_the_key(supabase, tmp_path):
     missing = tmp_path / "back.enc"
     with pytest.raises(StorageError) as caught:
         supabase.get("production/missing.dump.enc", missing)
-    assert "404" in str(caught.value) and "service-role-key" not in str(caught.value)
+    assert "404" in str(caught.value) and "sb_secret_example" not in str(caught.value)
 
 
 def test_a_backup_too_big_for_the_free_plan_is_refused_before_uploading(supabase, tmp_path,

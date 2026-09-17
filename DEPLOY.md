@@ -363,8 +363,8 @@ Secrets and variables → Actions → New repository secret**:
 | Secret | Where it comes from |
 |---|---|
 | `FSE_BACKUP_KEY` | make one: `python -c "import base64, secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"`. **Keep a copy somewhere outside GitHub** (a password manager): losing it loses every backup |
-| `SUPABASE_URL` | Supabase → the project → **Project Settings → Data API → Project URL** |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Project Settings → API Keys → service_role**. It bypasses row policies, so it lives only in GitHub secrets |
+| `SUPABASE_URL` | Supabase → the project's home page, the `https://<id>.supabase.co` line under its name (also **Project Settings → Data API → Project URL**) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Project Settings → API Keys → Secret keys → `default`** (reveal, then copy). New projects show an `sb_secret_…` key; older ones a `service_role` JWT — either works, and the variable keeps the old name. It bypasses row policies, so it lives only in GitHub secrets |
 | `BACKUP_DATABASE_URL` | Neon → project `fse-ml` → branch **`production`** → **Connect** → the **owner** (`neondb_owner`) connection string, **unpooled** (untick *Connection pooling*) |
 | `BACKUP_STAGING_DATABASE_URL` | the same for the **`staging`** branch — the drill's target |
 
