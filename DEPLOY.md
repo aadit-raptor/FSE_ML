@@ -45,7 +45,7 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string, as the restricted role `fse_api` (see "Security") | Neon branch `staging`, pooled, `fse_api` | optional: `python -m db.local` prints one; unset = no database |
 | `DATABASE_MIGRATION_URL` | both Render services | the schema owner's pooled string (`neondb_owner`), used only for migrations | same, staging branch | unset = migrations use `DATABASE_URL` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | both Render services, and GitHub Actions secrets | shared usage counters, keys `fse:production:` | same database, keys `fse:staging:` | unset = counters in memory (or the database); see "Usage limits" |
-| `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 17 service) | — | — | optional: tests create and drop their own databases through it |
+| `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 18 service) | — | — | optional: tests create and drop their own databases through it |
 | `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
 
 **Moving a change through staging**
@@ -383,8 +383,10 @@ means.
 
 Anything below needs `FSE_BACKUP_KEY`, `SUPABASE_URL` and
 `SUPABASE_SERVICE_ROLE_KEY` in the shell (a git-ignored `.env`, never in a
-command), plus `pg_restore` 17 or newer (`FSE_PG_BIN` points at it if it isn't
-on the PATH).
+command), plus a `pg_restore` at least as new as the server — Neon runs
+Postgres 18 today, so install PGDG's newest client (`FSE_PG_BIN` points at it
+if it isn't on the PATH). An older one is refused with a message naming every
+binary it found.
 
 ```bash
 python -m ops.backup list --environment production

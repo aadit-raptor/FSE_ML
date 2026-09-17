@@ -102,7 +102,7 @@ def _tool_env(url: str) -> tuple[str, dict]:
 
 
 def server_major(url: str) -> int:
-    """The server's major version (17 for Postgres 17.5)."""
+    """The server's major version (18 for Postgres 18.1)."""
     import psycopg
 
     try:

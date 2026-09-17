@@ -195,6 +195,30 @@ def test_a_client_older_than_the_server_is_refused(monkeypatch):
         backup.pg_tool("pg_dump", 18)
 
 
+def test_a_client_newer_than_the_server_is_fine(monkeypatch):
+    """pg_dump reads an older server happily and refuses only a newer one, so
+    the workflows install the newest client rather than pinning a version to
+    whatever Neon happens to run (it moved from 17 to 18 under us)."""
+    monkeypatch.setattr(backup, "tool_candidates", lambda name: ["/new/pg_dump"])
+    monkeypatch.setattr(backup, "tool_version", lambda path: 19)
+    for server in (14, 17, 18, 19):
+        assert backup.pg_tool("pg_dump", server) == "/new/pg_dump"
+
+
+def test_the_version_error_names_every_binary_it_found(monkeypatch):
+    """What the first real backup run hit: the message has to say which
+    binaries were tried and what to install, or the failure is a puzzle."""
+    monkeypatch.setattr(backup, "tool_candidates",
+                        lambda name: ["/usr/bin/pg_dump", "/usr/lib/postgresql/17/bin/pg_dump"])
+    monkeypatch.setattr(backup, "tool_version", lambda path: 17 if "/17/" in path else 16)
+    with pytest.raises(backup.BackupError) as caught:
+        backup.pg_tool("pg_dump", 18)
+    message = str(caught.value)
+    assert "/usr/bin/pg_dump (16)" in message
+    assert "/usr/lib/postgresql/17/bin/pg_dump (17)" in message
+    assert "postgresql-client-18" in message and "FSE_PG_BIN" in message
+
+
 def test_the_tools_are_found_on_this_machine():
     """Whatever this machine has (PATH, a Debian per-version directory or the
     pgserver package), the finder reports a usable pg_dump and pg_restore."""

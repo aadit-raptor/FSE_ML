@@ -68,9 +68,10 @@ jobs:
           cache-dependency-path: requirements*.txt
       - run: pip install -r requirements.txt
         if: steps.secrets.outputs.configured == 'yes'
-      # Neon runs Postgres 17; the runner image ships an older client, and
-      # pg_dump refuses a server newer than itself
-      - name: Postgres 17 client
+      # pg_dump refuses a server NEWER than itself but is happy with an older
+      # one, so install PGDG's newest client rather than pinning a version:
+      # the runner image ships an older one, and Neon upgrades when it likes
+      - name: Newest Postgres client
         if: steps.secrets.outputs.configured == 'yes'
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
@@ -79,7 +80,7 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17
+          sudo apt-get install -y -qq postgresql-client
           pg_dump --version
       - name: Back up, rotate, then read it back
         if: steps.secrets.outputs.configured == 'yes'
@@ -127,7 +128,7 @@ jobs:
       # The drill re-runs the deal model on every restored deal, so it needs
       # the whole app, not just the database driver
       - run: pip install -r requirements.txt
-      - name: Postgres 17 client
+      - name: Newest Postgres client
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
@@ -135,7 +136,7 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17
+          sudo apt-get install -y -qq postgresql-client
       # No production credentials here: everything the drill checks against
       # travels in the backup's own manifest
       - name: Restore the newest backup into a throwaway database on staging

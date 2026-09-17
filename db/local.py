@@ -13,7 +13,8 @@ Then, in the same shell (PowerShell: ``$env:DATABASE_URL="..."``)::
     TEST_DATABASE_URL=...   # tests create and drop their own databases through it
 
 Any other Postgres 14+ works too (e.g. ``docker run -p 5432:5432
--e POSTGRES_PASSWORD=postgres postgres:17``); CI uses that image.
+-e POSTGRES_PASSWORD=postgres postgres:18``); CI uses that image, the major
+version Neon runs.
 """
 from __future__ import annotations
 
