@@ -341,9 +341,11 @@ be turned back into.
 
 The counts and the fingerprint are read **inside the same snapshot `pg_dump`
 reads** (`pg_export_snapshot`), so the manifest describes exactly what is in
-the file — which is what makes the drill's comparison meaningful weeks later. The key never leaves the GitHub Actions secret
-`FSE_BACKUP_KEY`; without it a backup is bytes nobody can read, which is why
-it is kept outside this repository, outside Supabase and outside Neon.
+the file — which is what makes the drill's comparison meaningful weeks later.
+
+The key never leaves the GitHub Actions secret `FSE_BACKUP_KEY`; without it a
+backup is bytes nobody can read, which is why it is kept outside this
+repository, outside Supabase and outside Neon.
 
 The nightly run (02:40 UTC) dumps, encrypts, uploads, rotates, and then
 **downloads what it just stored and decrypts it**, so a backup is never
