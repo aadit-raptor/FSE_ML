@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-16 (PLAN.md 1.6). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-17 (PLAN.md 1.7). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -110,6 +110,24 @@ store; `live.yml` and `staging.yml` require Upstash there. Tests get fresh
 in-memory counters (`tests/conftest.py`); the browser tests raise limits
 with `FSE_LIMITS_MULTIPLIER` (ignored in production).
 
+Security (PLAN.md 1.7, DEPLOY.md "Security", `docs/security/threat-model.md`,
+`SECURITY.md`): the web app sends security headers (`next.config.ts`) and a
+**nonce-based content security policy** built per request in `src/proxy.ts`
+from `src/lib/security/headers.ts`, so **every page renders per request**
+(`await connection()` in the root layout, `<ClerkProvider dynamic>`). A new
+third-party script, frame, image or API host must be added to that policy or
+the browser refuses it; `e2e/security.spec.ts` fails on any violation. The
+API (`api/security.py`) sends `default-src 'none'` and `no-store` on every
+answer (a hash-based policy for `/api/docs`) and allows CORS only from exact
+HTTPS app origins (`FSE_CORS_ORIGINS` can't widen it). Deployed copies force
+TLS to the database. Migration 0005 creates `fse_app`, a role with row rights
+only; the API is meant to connect as login role `fse_api` in it, with the
+owner in `DATABASE_MIGRATION_URL` for migrations. `/api/health/database`
+reports `role` restricted or privileged. `ops/check_headers.py` scans the live
+headers (`live.yml`, `staging.yml`). CI: `security.yml` (gitleaks over all
+history with a planted-key self-test, pip-audit, npm audit), `codeql.yml`,
+Dependabot (`.github/dependabot.yml`). Every workflow's token is read-only.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -127,7 +145,7 @@ the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
 below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
-sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); next is 1.7. End every task session with the handoff described in PLAN.md: tell the
+sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); next is 1.8. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -225,6 +243,13 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- PLAN.md 1.7 follow-up: switch each environment's `DATABASE_URL` to the
+  restricted role (DEPLOY.md "Least-privilege database role", staging first)
+  and the GitHub settings in DEPLOY.md "CI and GitHub settings". When
+  `/api/health/database` shows `"role": {"status": "restricted"}` on both,
+  add `--require-restricted-role` to the `check_database.py` calls in
+  `live.yml` and `staging.yml`.
+
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
@@ -251,11 +276,14 @@ golden snapshot is untouched and parity tests explain every departure.
 | `db/users.py` | Account profiles: validating and storing country, currency, locale and time zone (`api/routers/account.py` serves them) |
 | `db/deals.py` | Saved deals, versions and account settings: ownership, autosave checkpoints, restore, compact storage (`api/routers/deals.py` serves them) |
 | `api/limits.py`, `api/usage.py`, `db/usage.py` | Usage limits: rules, refusal messages, size caps, simulation slot and timeout; in-memory counters synced to Upstash (daily command budget, `python -m api.usage` prints the monthly estimate) with the database as fallback |
+| `api/security.py`, `web/src/lib/security/headers.ts`, `web/src/proxy.ts` | Security headers, CSP (nonce per page request), CORS origins |
+| `ops/check_headers.py` | Header scan of a deployed web app and API (`live.yml`, `staging.yml`) |
+| `SECURITY.md`, `docs/security/threat-model.md` | How to report a vulnerability; threat model, open items and the public-repo review |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (256 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (303 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -325,7 +353,7 @@ Tests assert real model output (IRR, MOIC, golden backtest values), not just
 rendering. Add one for every new control, and mutation-check it.
 
 CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web`, `e2e` and `docker`
-jobs. `core`, `ml`, `e2e` and `docker` get a Postgres 17 service;
+jobs; `security.yml` (secrets, dependency audits) and `codeql.yml` run beside it. `core`, `ml`, `e2e` and `docker` get a Postgres 17 service;
 `FSE_REQUIRE_DB=1` makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
 and checks the default deal IRR (0.2116), Monte Carlo and an Excel export.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
@@ -437,5 +465,14 @@ Skills load when a session starts: install first, then open a new session.
   check) must not touch the database, or Neon never scales to zero.
 - API in Render Oregon, database in Neon Ohio: ~50–70 ms a round trip. Batch
   queries per request.
+- Writing a file through a Bash heredoc can eat backslashes (the `\\.` in
+  `proxy.ts`'s matcher became `\.`, so the proxy matched no page and the CSP
+  silently vanished). Use the Write/Edit tools for source with backslashes,
+  and check `.next/server/functions-config-manifest.json` after a build.
+- The CSP's `script-src` has no host list: `'strict-dynamic'` lets scripts
+  loaded by nonce'd scripts run (Clerk's). Styles keep `'unsafe-inline'`
+  because Clerk injects styles in production; local runs have no Clerk, so
+  the browser tests can't see a Clerk-only violation: check the live sign-in
+  page after changing the policy.
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.

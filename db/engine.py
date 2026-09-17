@@ -15,6 +15,15 @@ connection open at suspend time is closed by the server. So:
 The app uses the pooled URL Neon gives (``-pooler`` host, PgBouncer).
 Migrations use the direct URL (``direct_url``), which Neon recommends for
 schema changes.
+
+Least privilege (PLAN.md 1.7): ``DATABASE_URL`` can be a role that only reads
+and writes rows (``fse_app``, migration 0005); the schema owner's URL then
+goes in ``DATABASE_MIGRATION_URL``, used for migrations only. Without it,
+migrations use ``DATABASE_URL`` as before.
+
+Encrypted connections: a deployed copy (production or staging) always uses
+TLS. A URL without ``sslmode`` gets ``sslmode=require``; one that would allow
+plain text (``disable``, ``allow``, ``prefer``) is refused.
 """
 from __future__ import annotations
 
@@ -24,13 +33,13 @@ import threading
 import time
 from contextlib import contextmanager
 from typing import Iterator, Optional
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import DBAPIError, OperationalError
 
-from api.observability import log_event
+from api.observability import deploy_environment, log_event
 
 # Waits between connection attempts: 7 attempts over ~15 s rides out a Neon
 # cold start (typically well under 5 s) without holding a request forever
@@ -49,17 +58,53 @@ def database_url() -> Optional[str]:
     return (os.environ.get("DATABASE_URL") or "").strip() or None
 
 
+def migration_url() -> Optional[str]:
+    """``DATABASE_MIGRATION_URL`` (the schema owner) when set, else ``DATABASE_URL``."""
+    return (os.environ.get("DATABASE_MIGRATION_URL") or "").strip() or database_url()
+
+
 def is_configured() -> bool:
     return database_url() is not None
+
+
+# libpq modes that never fall back to plain text
+TLS_SSLMODES = ("require", "verify-ca", "verify-full")
+DEPLOYED_ENVIRONMENTS = ("production", "staging")
+LOOPBACK_HOSTS = ("localhost", "127.0.0.1", "::1")
+
+
+def require_tls(raw: str, environment: Optional[str] = None) -> str:
+    """``raw`` with TLS enforced when this is a deployed copy.
+
+    Locally and in CI (a Postgres without TLS) the URL is returned unchanged,
+    as is a loopback host, where traffic never leaves the machine.
+    """
+    environment = deploy_environment() if environment is None else environment
+    if environment not in DEPLOYED_ENVIRONMENTS:
+        return raw
+    parts = urlsplit(raw)
+    if parts.hostname in LOOPBACK_HOSTS:
+        return raw
+    query = parse_qsl(parts.query, keep_blank_values=True)
+    modes = [v for k, v in query if k == "sslmode"]
+    if not modes:
+        query.append(("sslmode", "require"))
+        return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+    if any(mode not in TLS_SSLMODES for mode in modes):
+        log_event("database_tls_refused", logging.ERROR, sslmode=modes[-1][:20])
+        raise DatabaseUnavailable(
+            f"the database URL must use TLS (sslmode={'|'.join(TLS_SSLMODES)}), not sslmode={modes[-1]}")
+    return raw
 
 
 def sqlalchemy_url(raw: str) -> str:
     """A Postgres URL as given by Neon/Heroku-style hosts, for SQLAlchemy + psycopg 3.
 
     ``postgres://`` and ``postgresql://`` become ``postgresql+psycopg://``;
-    query parameters (``sslmode``, ``channel_binding``) are kept for libpq.
+    query parameters (``sslmode``, ``channel_binding``) are kept for libpq,
+    and a deployed copy gets TLS enforced (``require_tls``).
     """
-    parts = urlsplit(raw)
+    parts = urlsplit(require_tls(raw))
     scheme = parts.scheme.lower()
     if scheme in ("postgres", "postgresql"):
         scheme = "postgresql+psycopg"

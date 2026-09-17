@@ -1,0 +1,39 @@
+# Dependabot (PLAN.md 1.7): weekly update PRs for every package manager in
+# the repository, grouped so a week's updates are one PR per ecosystem.
+# Security updates come separately as soon as an advisory is published
+# (turned on in the repository's Settings > Advanced Security).
+# Each PR runs the full CI like any other change.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      web:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2

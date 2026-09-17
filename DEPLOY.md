@@ -32,7 +32,7 @@ talks to the production API: `web/next.config.ts` picks the API by
 |---|---|---|---|---|
 | `FSE_API_URL` | Vercel (Production scope) | `https://fse-api.onrender.com` (required; the build fails without it) | ignored on previews | default `http://127.0.0.1:8000` |
 | `FSE_STAGING_API_URL` | Vercel (Preview scope), optional | — | default `https://fse-api-staging.onrender.com` | — |
-| `FSE_CORS_ORIGINS` | Render service | optional | optional | default `http://localhost:3000` |
+| `FSE_CORS_ORIGINS` | Render service, optional | default `https://fse-ml.vercel.app`; replaces it when set | default none (previews use the proxy) | default `http://localhost:3000` |
 | `FRED_API_KEY` | Render service | optional (ML image only) | optional | `.env` |
 | `FSE_ENV` | Render service, optional | derived: `production` | derived from the `-staging` service name | `local` |
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
@@ -42,7 +42,8 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `CLERK_SECRET_KEY` | Vercel (Production + Preview) | `sk_…` from Clerk | same | unset |
 | `CLERK_ISSUER` *or* `CLERK_PUBLISHABLE_KEY` | both Render services | the Clerk instance (`https://<instance>.clerk.accounts.dev`) | same | unset = development sign-in |
 | `FSE_AUTH_DEV` | local and CI only | **never set it** | never | `1` accepts `dev:<name>` tokens |
-| `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string | Neon branch `staging`, pooled | optional: `python -m db.local` prints one; unset = no database |
+| `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string, as the restricted role `fse_api` (see "Security") | Neon branch `staging`, pooled, `fse_api` | optional: `python -m db.local` prints one; unset = no database |
+| `DATABASE_MIGRATION_URL` | both Render services | the schema owner's pooled string (`neondb_owner`), used only for migrations | same, staging branch | unset = migrations use `DATABASE_URL` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | both Render services, and GitHub Actions secrets | shared usage counters, keys `fse:production:` | same database, keys `fse:staging:` | unset = counters in memory (or the database); see "Usage limits" |
 | `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 17 service) | — | — | optional: tests create and drop their own databases through it |
 | `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
@@ -378,6 +379,122 @@ become per instance and daily ones are shared within 5 minutes.
 (`--proxy-headers`). Through the Vercel proxy that is the visitor's address
 if Vercel passes it on; otherwise many visitors share Vercel's, which is why
 the address limits are generous and signed-in users are limited per account.
+
+## Security
+
+Set up in PLAN.md 1.7. The threat model, and what is still open, is in
+`docs/security/threat-model.md`; how to report a problem is in `SECURITY.md`.
+
+**Headers.** The web app sends HSTS, `nosniff`, `X-Frame-Options: DENY`, a
+strict referrer policy and a permissions policy on every response
+(`web/next.config.ts`), and a content security policy with a fresh nonce on
+every page (`web/src/proxy.ts`, `web/src/lib/security/headers.ts`). Every page
+is therefore rendered per request (a nonce can't be baked into a static
+page); on Vercel Hobby that counts as function invocations, far inside the
+free allowance at this traffic. The policy allows Clerk's Frontend API (from
+the publishable key), Clerk's images and telemetry, Cloudflare Turnstile (bot
+protection on sign-up) and the Sentry DSN's host. **A new third-party script,
+frame or API host must be added there**, or the browser refuses it. The API
+sends its own headers (`api/security.py`): `default-src 'none'` and
+`Cache-Control: no-store` on every answer, and a hash-based policy for the
+Swagger page at `/api/docs`.
+
+**Header scan.** `ops/check_headers.py` checks all of that on a deployed copy
+(and that CORS refuses an unknown origin). `live.yml` runs it daily on
+production and `staging.yml` after each staging deploy. By hand:
+
+```bash
+python3 ops/check_headers.py --web https://fse-ml.vercel.app --api https://fse-api.onrender.com
+```
+
+**CORS.** The web app calls the API through its own proxy, so the browser
+never needs CORS. The API allows only exact HTTPS origins: by default
+`https://fse-ml.vercel.app` in production, none on staging and
+`http://localhost:3000` locally. A wildcard, a path or plain `http://` in
+`FSE_CORS_ORIGINS` is dropped (and logged as `cors_origin_refused`), never
+widened.
+
+**Encrypted connections.** Browsers reach Vercel, Render and Clerk over HTTPS
+only (HSTS). A deployed API adds `sslmode=require` to a database URL without
+one and refuses to connect with `sslmode=disable`, `allow` or `prefer`
+(`db/engine.py`). Upstash, Clerk, Sentry and the data sources are HTTPS URLs.
+
+### Least-privilege database role
+
+Migration `0005_app_role` creates the group role `fse_app`, which can select,
+insert, update and delete rows in the app's tables and nothing else. The API
+connects as a login role in that group, `fse_api`; the owner (`neondb_owner`)
+is used only for migrations, through `DATABASE_MIGRATION_URL`.
+`/api/health/database` reports `"role": {"status": "restricted"}` once the
+API connects as `fse_api`, and `"privileged"` with the reasons before. The
+database checks warn (`ops/check_database.py`) while it is privileged; once
+both environments are switched, `--require-restricted-role` makes it an error.
+
+Roles belong to a Neon branch, so do this once per branch, **staging first**,
+and only after a deploy with migration 0005 has run there (the health check
+shows `"migrations": {"revision": "0005", …}` or later):
+
+1. **Keep the owner for migrations.** Render → the service
+   (`fse-api-staging`, later `fse-api`) → **Environment** → copy the value of
+   `DATABASE_URL` → **Add Environment Variable** → key
+   `DATABASE_MIGRATION_URL`, paste the value → **Save changes**.
+2. **Make a password.** In PowerShell on your computer (it goes straight to
+   the clipboard, not the screen):
+
+   ```powershell
+   $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | % { 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'[$_ % 57] }) | Set-Clipboard
+   ```
+
+3. **Create the login role.** https://console.neon.tech → project `fse-ml` →
+   **SQL Editor** → branch `staging` (later `production`), database `neondb`
+   → run, pasting the password between the quotes:
+
+   ```sql
+   CREATE ROLE fse_api LOGIN PASSWORD 'paste-here' IN ROLE fse_app;
+   ```
+
+   "Success" means done. (Roles made with SQL get no extra rights; roles made
+   in Neon's Roles page get `neon_superuser`, which is why this one is made
+   with SQL.)
+4. **Point the API at it.** Take the `DATABASE_URL` value from step 1 and
+   replace the user and password between `://` and `@` with
+   `fse_api:<the password>`, keeping the `-pooler` host and everything after
+   `@`. Render → **Environment** → edit `DATABASE_URL` → paste → **Save
+   changes**. Render redeploys.
+5. **Check.** Open `https://fse-api-staging.onrender.com/api/health/database`
+   (production: `https://fse-api.onrender.com/api/health/database`); wait
+   for the free service to wake. It should show `"status": "ok"` and
+   `"role": {"status": "restricted", "privileges": []}`. If it shows an
+   authentication error, the password or user in step 4 is wrong: put the
+   old value back from `DATABASE_MIGRATION_URL` and redo step 4.
+
+To undo: set `DATABASE_URL` back to the owner's value.
+
+### CI and GitHub settings
+
+On every pull request: `security.yml` (gitleaks over the whole history after
+proving it catches a planted fake key; `pip-audit`; `npm audit`) and
+`codeql.yml` (CodeQL for Python, TypeScript and the workflows). Both also run
+weekly. Dependabot opens grouped update PRs weekly (`.github/dependabot.yml`).
+
+Repository settings these rely on (GitHub → the repository → **Settings**):
+
+- **Advanced Security**: turn on *Private vulnerability reporting*,
+  *Dependabot alerts* and *Dependabot security updates*. Secret scanning and
+  push protection are on by default for public repositories; keep them on.
+- **Branches** → the `main` rule → *Require status checks*: add `secrets`,
+  `python-dependencies`, `npm-dependencies` and the three
+  `analyze (…)` CodeQL checks next to the existing ones.
+- **Secrets and variables → Dependabot**: add `UPSTASH_REDIS_REST_URL` and
+  `UPSTASH_REDIS_REST_TOKEN` with the same values as the Actions secrets.
+  Dependabot's pull requests can't read Actions secrets, and the `ml` job
+  fails when the Upstash test skips.
+
+**Commit email.** This repository is public, so commit authors' emails are
+too. Use GitHub's private address for new commits: GitHub → **Settings →
+Emails** → tick *Keep my email addresses private* and *Block command line
+pushes that expose my email*, copy the `…@users.noreply.github.com` address,
+then run `git config --global user.email "<that address>"`.
 
 ## Checking a deploy
 

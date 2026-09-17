@@ -15,11 +15,13 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from api.observability import (
-    REQUEST_ID_HEADER, RequestContextMiddleware, configure_logging, init_sentry, utc_now_iso,
+    REQUEST_ID_HEADER, RequestContextMiddleware, configure_logging, deploy_environment, init_sentry,
+    utc_now_iso,
 )
 from api.auth import require_user
 from api import usage
 from api.limits import LimitExceeded, LimitRefusal, LimitsMiddleware, enforce_user_limits
+from api.security import CORS_ALLOW_HEADERS, SecurityHeadersMiddleware, cors_origins
 from api.routers import (
     account, backtesting, deal, deals, export, forecasting, integrations, montecarlo,
 )
@@ -27,22 +29,6 @@ from db import DatabaseUnavailable
 from db import health as db_health
 
 API_VERSION = "0.1.0"
-
-
-def deploy_environment() -> str:
-    """Which copy of the API this is: production, staging or local.
-
-    FSE_ENV wins when set. Otherwise Render's RENDER_SERVICE_NAME decides:
-    a service whose name ends in -staging (fse-api-staging) is staging, any
-    other Render service is production. Read per request so tests can set it.
-    """
-    explicit = os.environ.get("FSE_ENV", "").strip().lower()
-    if explicit:
-        return explicit
-    service = os.environ.get("RENDER_SERVICE_NAME", "")
-    if not service:
-        return "local"
-    return "staging" if service.endswith("-staging") else "production"
 
 
 # /api/debug/error: at most one deliberate error per this many seconds, so a
@@ -74,17 +60,21 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Browser origins allowed to call the API, comma-separated.
-    origins = [o.strip() for o in os.environ.get(
-        "FSE_CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
+    # Browser origins allowed to call the API: the app's own domains only
+    # (api/security.py; FSE_CORS_ORIGINS replaces the default)
+    origins = cors_origins(deploy_environment())
     # Innermost: limit refusals are logged with a request ID and carry CORS
     # headers, so the browser can read the message (api/limits.py)
     app.add_middleware(LimitsMiddleware)
     # Inside CORS, so its 500 responses still get CORS headers
     app.add_middleware(RequestContextMiddleware)
-    app.add_middleware(CORSMiddleware, allow_origins=origins,
-                       allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["*"],
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False,
+                       allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+                       allow_headers=list(CORS_ALLOW_HEADERS),
                        expose_headers=["Content-Disposition", REQUEST_ID_HEADER, "Server-Timing"])
+    # Security headers on every response, refusals and preflights included;
+    # inside gzip so the docs page can be hashed uncompressed
+    app.add_middleware(SecurityHeadersMiddleware)
     # Simulation responses carry chart data (histograms, scatter samples)
     app.add_middleware(GZipMiddleware, minimum_size=1024)
 
