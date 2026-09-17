@@ -34,6 +34,7 @@ export default AUTH_MODE === "clerk"
   : development;
 
 export const config = {
-  // Everything except Next's own assets, files with an extension, and /api
-  matcher: ["/((?!api|_next|favicon.ico|.*\\.[^/]+$).*)"],
+  // Everything except Next's own assets, files with an extension, /api, and
+  // /healthz (the uptime monitor's signed-out check, app/healthz/route.ts)
+  matcher: ["/((?!api|healthz|_next|favicon.ico|.*\\.[^/]+$).*)"],
 };

@@ -220,7 +220,7 @@ Screens show times in the viewer's time zone (`formatForViewer` in
 
 | Monitor | URL | Every | Alerts after |
 |---|---|---|---|
-| Website | `https://fse-ml.vercel.app/deal/inputs` (keyword `FSE/ML`) | 3 min | 2 min failing |
+| Website | `https://fse-ml.vercel.app/healthz` (keyword `"service":"FSE/ML web"`) | 3 min | 2 min failing |
 | Model API | `https://fse-api.onrender.com/api/health` (keyword `"status":"ok"`) | 30 min | 60 s timeout + 4 min rechecking |
 
 A check that reaches a sleeping API waits while it wakes (about a minute);
@@ -243,6 +243,16 @@ The drill also found that the live browser checks sent the Vercel bypass
 secret to every host the page called, which leaked it to Sentry and broke
 the browser's error reports; `web/e2e/live.spec.ts` now sends it to the site
 only and fails if it reaches any other host.
+
+Accounts (PLAN.md 1.4) broke two checks without breaking the site, fixed on
+2026-09-17. Signed-out pages answer 404 to a monitor and redirect a browser
+to Clerk, so the website monitor was down for a day: it now checks
+`/healthz` (`web/src/app/healthz/route.ts`), which the sign-in proxy leaves
+open and which never calls the API (that would wake Render). And the bypass
+secret added to the site's own requests followed the redirect to Clerk,
+because Playwright keeps changed headers across redirects: the live checks
+now trade the secret once for Vercel's bypass cookie (`/healthz`,
+`x-vercel-set-bypass-cookie`) and send API requests with `maxRedirects: 0`.
 
 ## Database
 
@@ -383,8 +393,11 @@ storage.
 
 **Live checks and sign-in.** Since accounts arrived, the daily production
 checks (`live.yml`) and the per-deploy staging checks run **signed out**:
-they check that the site sends a visitor to sign-in, that the API answers
-401 without a token, and that staging refuses a `dev:` token. Checking the
+they check the web app's `/healthz`, the API's `/api/health` through the
+website's proxy (and that it is the expected environment), that the site
+sends a visitor to sign-in, that the API answers 401 without a token, and
+that staging refuses a `dev:` token. The status bar can't be checked signed
+out, since no screen renders. Checking the
 live model output again means a Clerk test account whose credentials live in
 GitHub secrets; the model itself is checked on every pull request by the
 `core`, `e2e` and `docker` jobs.
