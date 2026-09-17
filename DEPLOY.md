@@ -309,9 +309,129 @@ roughly 50–70 ms per round trip. Keep each request to a few queries (load a
 deal in one query, not one per row). Moving both to one region means a new
 Render service or Neon project; PLAN.md 12.7 covers regions.
 
-**Backups and restore** come in PLAN.md 1.8. Until then, Neon's free plan can
-restore a branch to a recent point in time from its console (**Branches →
-branch → Restore**).
+**Backups and restore** are below, under "Backups and recovery": Neon's own
+restore window for recent mistakes, and an encrypted nightly copy in Supabase
+Storage for everything else.
+
+## Backups and recovery
+
+Set up in PLAN.md 1.8. Everything is in `ops/backup.py` (dump, restore,
+drill), `ops/encryption.py` (the file format) and `ops/backup_store.py`
+(where backups live); `.github/workflows/backup.yml` is the schedule.
+
+**Two ways back, for two kinds of accident:**
+
+| What happened | Use | How far back |
+|---|---|---|
+| A bad migration, a wrong delete, something noticed within days | **Neon's restore window** — Neon console → **Branches → `production` → Restore**, pick a time | Neon free keeps a 24-hour history |
+| A backup older than that, or the Neon project itself gone | **The encrypted nightly backup** in Supabase Storage | last 7 nights, one a week for 8 weeks, one a month for 12 months |
+
+Neon's own restore is faster and loses nothing, so it is the first thing to
+reach for. The nightly backup is what covers losing Neon.
+
+### What a backup is
+
+`pg_dump -Fc` of the whole production database, encrypted with AES-256-GCM and
+uploaded to a **private** Supabase Storage bucket as
+`production/<when>.dump.enc`, with a small `<when>.json` beside it holding
+sizes, the checksum, the Postgres version and the commit — **never anything
+from a deal**. The key never leaves the GitHub Actions secret
+`FSE_BACKUP_KEY`; without it a backup is bytes nobody can read, which is why
+it is kept outside this repository, outside Supabase and outside Neon.
+
+The nightly run (02:40 UTC) dumps, encrypts, uploads, rotates, and then
+**downloads what it just stored and decrypts it**, so a backup is never
+assumed to work. A failure raises a Better Stack incident.
+
+Backups are not kept as GitHub Actions artifacts: on a public repository
+anyone can download those.
+
+### You need to set this up first
+
+Nothing is backed up until these GitHub Actions secrets exist (the workflow
+says so with a warning and does nothing until then). Repository → **Settings →
+Secrets and variables → Actions → New repository secret**:
+
+| Secret | Where it comes from |
+|---|---|
+| `FSE_BACKUP_KEY` | make one: `python -c "import base64, secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"`. **Keep a copy somewhere outside GitHub** (a password manager): losing it loses every backup |
+| `SUPABASE_URL` | Supabase → the project → **Project Settings → Data API → Project URL** |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Project Settings → API Keys → service_role**. It bypasses row policies, so it lives only in GitHub secrets |
+| `BACKUP_DATABASE_URL` | Neon → project `fse-ml` → branch **`production`** → **Connect** → the **owner** (`neondb_owner`) connection string, **unpooled** (untick *Connection pooling*) |
+| `BACKUP_STAGING_DATABASE_URL` | the same for the **`staging`** branch — the drill's target |
+
+The Supabase project is free and needs no card; create it once (PLAN.md 1.9
+uses the same project for file uploads), then **Storage → New bucket**, name
+it `backups` and leave it **private**. A free Supabase project pauses after a
+week with no activity — the nightly backup is itself the activity that keeps
+it awake.
+
+The two database URLs are the **owner** role, not `fse_api`: a backup has to
+read every table and a restore has to create them. They are the most valuable
+secrets in the repository; `docs/security/threat-model.md` says what that
+means.
+
+### Restoring
+
+Anything below needs `FSE_BACKUP_KEY`, `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` in the shell (a git-ignored `.env`, never in a
+command), plus `pg_restore` 17 or newer (`FSE_PG_BIN` points at it if it isn't
+on the PATH).
+
+```bash
+python -m ops.backup list --environment production
+python -m ops.backup verify --environment production
+```
+
+Into a fresh database (what to do if Neon is gone — make a project, then):
+
+```bash
+python -m ops.backup restore --name production/2026-09-18T024000Z --into "$NEW_DATABASE_URL"
+```
+
+Over a database that still has the wrong data in it, add `--clean`. Then
+point `DATABASE_URL` on the Render service at the restored database and
+redeploy. Check with `python3 ops/check_database.py https://fse-api.onrender.com`
+(migrations current) and by opening a saved deal: its IRR must be what it was.
+
+If the roles from migration `0005` don't exist in the new cluster, add
+`--skip-grants`, then run the migrations once (`python -m db.migrate upgrade`
+with `DATABASE_MIGRATION_URL` set) to put them back.
+
+### The restore drill
+
+Proof that the backups restore, run **monthly** (the first of the month) by
+`backup.yml`, and on demand from the **Actions → backup → Run workflow**
+button with *Run the restore drill* ticked. It restores the newest production
+backup into a **new, throwaway database on the staging branch**, re-runs the
+deal model on every restored deal, compares the results with the live ones and
+drops the database again. It prints counts and whether they match, never a
+deal. A failure raises a Better Stack incident: the backups are not restorable
+and that is an incident in itself.
+
+By hand, against any Postgres:
+
+```bash
+python -m ops.backup drill --environment production --target "$STAGING_OWNER_URL"
+```
+
+`tests/test_backups.py` runs the same code against a real Postgres on every
+pull request: a saved deal is backed up, encrypted, restored into another
+database and read back through the API, and its IRR has to come out identical.
+
+### Free-plan limits that shape this
+
+- Supabase Storage free is **1 GB**, and one upload may be at most 50 MB.
+  Rotation keeps the total under **700 MB** (`STORAGE_BUDGET_BYTES`) — daily,
+  then weekly, then monthly, then oldest-first once the budget is reached; the
+  newest backup is never deleted. An upload over 45 MB is refused with a
+  message rather than failing half-way (a database that big needs the
+  resumable uploads of PLAN.md 12.2).
+- Neon free gives no scheduled jobs, so GitHub Actions is the scheduler. It is
+  free on this public repository, but **schedules pause after 60 days with no
+  commit** (PLAN.md 11.3).
+- A nightly `pg_dump` wakes the Neon compute for a few seconds: nothing
+  against the 100 free compute hours.
 
 ## Usage limits
 

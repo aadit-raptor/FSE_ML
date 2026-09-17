@@ -1,0 +1,152 @@
+name: backup
+
+# Nightly encrypted backup of the production database, and a monthly restore
+# drill (PLAN.md 1.8, DEPLOY.md "Backups and recovery").
+#
+# The free engine has no scheduled jobs, so GitHub Actions is the scheduler:
+# it dumps the database, encrypts it with FSE_BACKUP_KEY, uploads it to the
+# private Supabase Storage bucket, rotates old backups out and then downloads
+# what it just stored and decrypts it, so a backup is never assumed to be
+# restorable. The monthly drill restores the newest backup into a throwaway
+# database on the Neon staging branch, checks that every saved deal gives
+# identical model results, and drops it again.
+#
+# Nothing here prints a deal, a database URL or a key.
+on:
+  schedule:
+    - cron: "40 2 * * *"      # every night, after live.yml's checks
+    - cron: "40 3 1 * *"      # the first of the month: the restore drill
+  workflow_dispatch:
+    inputs:
+      drill:
+        description: "Run the restore drill as well"
+        type: boolean
+        default: false
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+# The workflow token can only read the code (PLAN.md 1.7)
+permissions:
+  contents: read
+
+env:
+  ENVIRONMENT: production
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      configured: ${{ steps.secrets.outputs.configured }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Is backup storage set up yet?
+        id: secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FSE_BACKUP_KEY: ${{ secrets.FSE_BACKUP_KEY }}
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          missing=""
+          for name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY FSE_BACKUP_KEY BACKUP_DATABASE_URL; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "configured=no" >> "$GITHUB_OUTPUT"
+            echo "::warning::No backups are being taken: add the GitHub Actions secrets$missing (DEPLOY.md 'Backups and recovery')"
+          else
+            echo "configured=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@v7
+        if: steps.secrets.outputs.configured == 'yes'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+        if: steps.secrets.outputs.configured == 'yes'
+      # Neon runs Postgres 17; the runner image ships an older client, and
+      # pg_dump refuses a server newer than itself
+      - name: Postgres 17 client
+        if: steps.secrets.outputs.configured == 'yes'
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
+      - name: Back up, rotate, then read it back
+        if: steps.secrets.outputs.configured == 'yes'
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          FSE_BACKUP_KEY: ${{ secrets.FSE_BACKUP_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python -m ops.backup run --environment "$ENVIRONMENT"
+          python -m ops.backup verify --environment "$ENVIRONMENT"
+          python -m ops.backup list --environment "$ENVIRONMENT"
+      - name: Alert if the backup failed
+        if: failure()
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Nightly backup failed" --summary "The production backup did not complete: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+  drill:
+    # The monthly proof that a backup can actually be restored: the first of
+    # the month, or on demand. It runs after the nightly backup so it restores
+    # something taken hours ago, not weeks.
+    needs: backup
+    if: |
+      needs.backup.outputs.configured == 'yes'
+      && (github.event.schedule == '40 3 1 * *' || inputs.drill)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the drill's target is set
+        env:
+          BACKUP_STAGING_DATABASE_URL: ${{ secrets.BACKUP_STAGING_DATABASE_URL }}
+        run: |
+          if [ -z "$BACKUP_STAGING_DATABASE_URL" ]; then
+            echo "::error::Add the GitHub Actions secret BACKUP_STAGING_DATABASE_URL (the Neon staging branch's owner connection string). DEPLOY.md explains."
+            exit 1
+          fi
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      # The drill re-runs the deal model on every restored deal, so it needs
+      # the whole app, not just the database driver
+      - run: pip install -r requirements.txt
+      - name: Postgres 17 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+      - name: Restore the newest backup into a throwaway database on staging
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          FSE_BACKUP_KEY: ${{ secrets.FSE_BACKUP_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_STAGING_DATABASE_URL: ${{ secrets.BACKUP_STAGING_DATABASE_URL }}
+        run: python -m ops.backup drill --environment "$ENVIRONMENT"
+      - name: Alert if the restore drill failed
+        if: failure()
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Restore drill failed" --summary "The monthly restore drill did not pass -- the backups may not be restorable: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
