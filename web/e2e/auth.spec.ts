@@ -28,6 +28,16 @@ test("the API refuses a call without a token, whoever asks", async ({ request })
   expect((await request.get("/api/health")).status()).toBe(200);
 });
 
+test("the web app's health route answers signed out, for the uptime monitor", async ({ request }) => {
+  const resp = await request.get("/healthz", { maxRedirects: 0 });
+  expect(resp.status()).toBe(200);
+  // The keyword ops/betterstack.py's web monitor looks for
+  expect(await resp.text()).toContain('"service":"FSE/ML web"');
+  // Pages stay closed: the same kind of request to a screen doesn't get the app
+  const page = await request.get("/deal/returns", { maxRedirects: 0 });
+  expect(page.status()).not.toBe(200);
+});
+
 test("signing in reaches the deal screens, and signing out closes them again", async ({ page }) => {
   await page.goto("/deal/returns");
   await expect(page).toHaveURL(/\/sign-in/);

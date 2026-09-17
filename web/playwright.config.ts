@@ -26,8 +26,9 @@ const isCI = !!process.env.CI;
 const live = process.env.E2E_LIVE === "1";
 const liveUrl = process.env.E2E_BASE_URL ?? "https://fse-ml.vercel.app";
 // Vercel previews sit behind Vercel login. VERCEL_AUTOMATION_BYPASS_SECRET
-// lets the staging checks in; e2e/live.spec.ts adds it only to requests for
-// the site itself (never to other hosts such as Sentry). Production needs none.
+// lets the staging checks in; e2e/live.spec.ts trades it once for Vercel's
+// bypass cookie and never sends it to other hosts (Clerk, Sentry). Production
+// needs none.
 // Resolved from the repo root (the API server's cwd)
 const python = process.env.PYTHON ?? (process.platform === "win32" ? ".venv\\Scripts\\python.exe" : "python");
 
