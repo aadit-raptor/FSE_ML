@@ -254,5 +254,21 @@ jobs:
           curl -fsS http://127.0.0.1:9100/api/health/database | tee db.json
           python3 -c "import json; d = json.load(open('db.json')); assert d['status'] == 'ok' and d['migrations']['status'] == 'current' and d['storage']['database_bytes'] > 0, d"
           docker exec "${{ job.services.postgres.id }}" psql -U postgres -tAc "select count(*) from storage_checks" | grep -qx 1
+      - name: A background job runs in the image and matches the direct run (PLAN.md 1.9)
+        env:
+          AUTH: "Authorization: Bearer dev:ci"
+        run: |
+          body='{"mc": {"n": 5000}, "seed": 7}'
+          curl -fsS -X POST http://127.0.0.1:9100/api/montecarlo/run -H "$AUTH" -H 'Content-Type: application/json' -d "$body" > direct.json
+          id=$(curl -fsS -X POST http://127.0.0.1:9100/api/jobs -H "$AUTH" -H 'Content-Type: application/json'             -d "{\"kind\": \"montecarlo.run\", \"input\": $body}" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
+          for i in $(seq 1 60); do
+            curl -fsS "http://127.0.0.1:9100/api/jobs/$id" -H "$AUTH" > job.json
+            status=$(python3 -c "import json; print(json.load(open('job.json'))['status'])")
+            echo "attempt $i: $status"
+            [ "$status" = "queued" ] || [ "$status" = "running" ] || break
+            sleep 1
+          done
+          python3 -c "import json; j = json.load(open('job.json')); d = json.load(open('direct.json')); assert j['status'] == 'succeeded', j; assert j['result']['summary'] == d['summary'], (j['result']['summary'], d['summary']); print(j['result']['summary'])"
+          docker exec "${{ job.services.postgres.id }}" psql -U postgres -tAc "select status from jobs where id = '$id'" | grep -qx succeeded
       - if: failure()
         run: docker logs api || true

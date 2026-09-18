@@ -46,7 +46,8 @@ from jwt import PyJWKClient
 # Endpoints that work signed out: the health checks Render, the uptime monitor
 # and the status bar poll, and the schema the typed client is generated from.
 PUBLIC_PATHS = frozenset({
-    "/api/health", "/api/health/database", "/api/health/limits", "/api/openapi.json", "/api/docs",
+    "/api/health", "/api/health/database", "/api/health/limits", "/api/health/jobs",
+    "/api/openapi.json", "/api/docs",
     "/api/docs/oauth2-redirect", "/api/debug/error",
 })
 

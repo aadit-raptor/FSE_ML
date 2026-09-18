@@ -24,6 +24,9 @@ concurrency:
 permissions:
   contents: read
   deployments: read
+  # Only to prove to the staging API that this workflow is calling (the job
+  # drill below, api/github_oidc.py); the repository token stays read-only
+  id-token: write
 
 env:
   STAGING_API: https://fse-api-staging.onrender.com
@@ -141,6 +144,15 @@ jobs:
           E2E_BASE_URL: ${{ steps.preview.outputs.url }}
           E2E_EXPECT_ENV: staging
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      # Background jobs (PLAN.md 1.9): ten seeded simulations queued at once
+      # must all finish with the pinned result while /api/health keeps
+      # answering; the run is recorded as job-drill in /api/health/jobs
+      - name: Job drill on staging
+        run: |
+          python3 -m ops.scheduled drill --api "$STAGING_API" --environment staging
+          curl -fsS -m 120 "$STAGING_API/api/health/jobs" | tee jobs.json; echo
+          jq -e '.queue == "database" and .runner == "api" and .scheduled["job-drill"].status == "succeeded"' jobs.json
 
       - name: Fail the run if the API check failed
         if: steps.smoke.outcome == 'failure'

@@ -16,8 +16,11 @@ export function TopBar() {
   const { mode: current } = parsePath(pathname);
   const { setSearchOpen } = useWorkspace();
   const { label } = useSession();
-  // Modes whose results no longer match their inputs
-  const staleModes = new Set(useMonteCarlo().stale ? ["monte-carlo"] : []);
+  // Modes whose results no longer match their inputs, and runs in progress
+  // (a Monte Carlo run carries on while you work elsewhere)
+  const mc = useMonteCarlo();
+  const staleModes = new Set(mc.stale && mc.run.status !== "running" ? ["monte-carlo"] : []);
+  const runningModes = new Set(mc.run.status === "running" ? ["monte-carlo"] : []);
 
   return (
     <header className="flex min-h-[42px] flex-none items-stretch border-b border-line bg-panel">
@@ -38,6 +41,7 @@ export function TopBar() {
             >
               {mode.label}
               {staleModes.has(mode.slug) && <span className="chip text-attention">stale</span>}
+              {runningModes.has(mode.slug) && <span className="chip text-accent">running</span>}
               {active && (
                 <motion.span
                   layoutId="mode-underline"

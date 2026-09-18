@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { kpi, modeTab, setField, simulationSettled, stepLink } from "./helpers";
+import { asUser, kpi, modeTab, setField, simulationSettled, stepLink } from "./helpers";
 
 test.describe("Monte Carlo", () => {
   test("seed 42 matches the API", async ({ page }) => {
@@ -53,5 +53,46 @@ test.describe("Monte Carlo", () => {
     await stepLink(page, "Heatmap").click();
     await expect(page.getByText("full deal-model run")).toBeVisible();
     await expect(page.locator("main td")).toHaveCount(56);
+  });
+
+  // Background jobs (PLAN.md 1.9): the run is queued on the server and polled
+  test("a run goes on in the background while the rest of the app works", async ({ page }) => {
+    await page.goto("/monte-carlo/distribution");
+    await simulationSettled(page);
+    await setField(page, "Paths", "100000");
+    await setField(page, "Mean", "12", "Exit multiple");
+    await page.getByRole("button", { name: "Run Monte Carlo" }).click();
+
+    await expect(page.getByRole("progressbar", { name: "Simulation progress" })).toBeVisible();
+    await expect(modeTab(page, "Monte Carlo")).toContainText("running");
+    // Another mode is usable meanwhile: the deal model still answers
+    await modeTab(page, "Deal").click();
+    await setField(page, "Exit multiple", "12");
+    await expect(kpi(page, "IRR")).toHaveText("23.7%");
+
+    await modeTab(page, "Monte Carlo").click();
+    await simulationSettled(page);
+    await expect(modeTab(page, "Monte Carlo")).not.toContainText("running");
+    // 100,000 paths at exit mean 12x, seed 42 (50,000 paths give 68.7% and 10.2%)
+    await expect(kpi(page, "P(IRR > 20%)")).toHaveText("68.8%");
+    await expect(kpi(page, "P5")).toHaveText("10.0%");
+  });
+
+  test("cancelling stops the run on the server and keeps the last result", async ({ page }) => {
+    await page.goto("/monte-carlo/distribution");
+    await simulationSettled(page);
+    await setField(page, "Paths", "100000");
+    const submitted = page.waitForResponse((r) => r.url().endsWith("/api/jobs") && r.request().method() === "POST");
+    await page.getByRole("button", { name: "Run Monte Carlo" }).click();
+    const { id } = (await (await submitted).json()) as { id: string };
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await expect(page.getByText("Monte Carlo is out of date")).toBeVisible();
+    await expect(kpi(page, "Mean IRR")).toHaveText("18.0%");
+    const headers = await asUser(page);
+    await expect.poll(async () => {
+      const job = await (await page.request.get(`/api/jobs/${id}`, { headers })).json();
+      return job.status;
+    }, { timeout: 30_000 }).toBe("cancelled");
   });
 });

@@ -289,6 +289,25 @@
         "title": "BacktestEntry",
         "type": "object"
       },
+      "BacktestJob": {
+        "additionalProperties": false,
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/BacktestRequest"
+          },
+          "kind": {
+            "const": "backtesting.run",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "input"
+        ],
+        "title": "BacktestJob",
+        "type": "object"
+      },
       "BacktestRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1327,6 +1346,174 @@
         "title": "DealSummary",
         "type": "object"
       },
+      "DrillJob": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "elapsed_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Ms"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mismatched": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Mismatched",
+            "type": "array"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "stage",
+          "progress",
+          "attempts",
+          "error",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "DrillJob",
+        "type": "object"
+      },
+      "DrillRequest": {
+        "properties": {
+          "count": {
+            "default": 10,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "title": "DrillRequest",
+        "type": "object"
+      },
+      "DrillStarted": {
+        "properties": {
+          "expected_summary": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Expected Summary",
+            "type": "object"
+          },
+          "jobs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "request": {
+            "additionalProperties": true,
+            "title": "Request",
+            "type": "object"
+          }
+        },
+        "required": [
+          "jobs",
+          "request",
+          "expected_summary"
+        ],
+        "title": "DrillStarted",
+        "type": "object"
+      },
       "DriverFit": {
         "properties": {
           "intercept": {
@@ -1736,6 +1923,25 @@
           "seeded_assumptions"
         ],
         "title": "ForecastDefaultsResponse",
+        "type": "object"
+      },
+      "ForecastJob": {
+        "additionalProperties": false,
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/ForecastRunRequest"
+          },
+          "kind": {
+            "const": "forecasting.run",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "input"
+        ],
+        "title": "ForecastJob",
         "type": "object"
       },
       "ForecastRunRequest": {
@@ -3008,6 +3214,170 @@
         "title": "HistoryRequest",
         "type": "object"
       },
+      "JobList": {
+        "properties": {
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobOut"
+            },
+            "title": "Jobs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "jobs"
+        ],
+        "title": "JobList",
+        "type": "object"
+      },
+      "JobOut": {
+        "properties": {
+          "ahead": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Queued jobs ahead of this one (queued only)",
+            "title": "Ahead"
+          },
+          "attempts": {
+            "description": "Runs so far; above 1 means it was resumed after a restart",
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "cancel_requested": {
+            "title": "Cancel Requested",
+            "type": "boolean"
+          },
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why it failed, for people",
+            "title": "Error"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The HTTP status the same request would have got (422: bad input)",
+            "title": "Error Status"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "montecarlo.run",
+              "montecarlo.scenarios",
+              "backtesting.run",
+              "forecasting.run"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "progress": {
+            "description": "0 to 1; moves as the run passes its stages",
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Once succeeded: exactly what the matching endpoint answers (MonteCarloResponse for montecarlo.run, and so on)",
+            "title": "Result"
+          },
+          "result_expired": {
+            "default": false,
+            "description": "It succeeded, but the result has been deleted; run it again",
+            "title": "Result Expired",
+            "type": "boolean"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the run is doing now, for people",
+            "title": "Stage"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "progress",
+          "attempts",
+          "cancel_requested",
+          "created_at"
+        ],
+        "title": "JobOut",
+        "type": "object"
+      },
       "LimitInfo": {
         "properties": {
           "limit": {
@@ -3142,6 +3512,25 @@
           }
         },
         "title": "MCInputsIn",
+        "type": "object"
+      },
+      "MonteCarloJob": {
+        "additionalProperties": false,
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/MonteCarloRequest"
+          },
+          "kind": {
+            "const": "montecarlo.run",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "input"
+        ],
+        "title": "MonteCarloJob",
         "type": "object"
       },
       "MonteCarloRequest": {
@@ -3806,6 +4195,71 @@
         "title": "PreloadedDeal",
         "type": "object"
       },
+      "ReportedRun": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 20,
+            "title": "Summary",
+            "type": "object"
+          },
+          "task": {
+            "pattern": "^[a-z][a-z0-9-]{1,39}$",
+            "title": "Task",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task",
+          "status",
+          "started_at"
+        ],
+        "title": "ReportedRun",
+        "type": "object"
+      },
       "ReturnsResult": {
         "properties": {
           "cash_flow_stream": {
@@ -4166,6 +4620,25 @@
           "moic_box"
         ],
         "title": "ScenarioStats",
+        "type": "object"
+      },
+      "ScenariosJob": {
+        "additionalProperties": false,
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/ScenariosRequest"
+          },
+          "kind": {
+            "const": "montecarlo.scenarios",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "input"
+        ],
+        "title": "ScenariosJob",
         "type": "object"
       },
       "ScenariosRequest": {
@@ -4713,6 +5186,79 @@
         "title": "TargetProbability",
         "type": "object"
       },
+      "TaskRun": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "github_run_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Run Id"
+          },
+          "status": {
+            "enum": [
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Summary",
+            "type": "object"
+          },
+          "task": {
+            "title": "Task",
+            "type": "string"
+          },
+          "workflow": {
+            "title": "Workflow",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task",
+          "status",
+          "workflow"
+        ],
+        "title": "TaskRun",
+        "type": "object"
+      },
       "TermDifference": {
         "properties": {
           "decimals": {
@@ -5100,7 +5646,7 @@
     },
     "securitySchemes": {
       "HTTPBearer": {
-        "description": "Clerk session token",
+        "description": "GitHub Actions OIDC token",
         "scheme": "bearer",
         "type": "http"
       }
@@ -6604,6 +7150,26 @@
         ]
       }
     },
+    "/api/health/jobs": {
+      "get": {
+        "description": "The job queue (PLAN.md 1.9): which queue and runner are configured,\nwhether the runner is running, jobs per status, and the newest run of\neach scheduled task. Queries the database, so it is cached for a\nminute and nothing polls it often.",
+        "operationId": "health_jobs_api_health_jobs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Jobs",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
     "/api/health/limits": {
       "get": {
         "description": "Where usage counters are shared (Upstash, the database or memory\nonly), whether Upstash answers, and today's Redis command use. Never\nqueries the database; the Upstash check is a PING (not billed),\nreused for 10 minutes.",
@@ -6621,6 +7187,239 @@
         "summary": "Health Limits",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "description": "The caller's recent jobs, newest first, without their results.",
+        "operationId": "get_jobs_api_jobs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Jobs",
+        "tags": [
+          "jobs"
+        ]
+      },
+      "post": {
+        "description": "Queue a long run. Poll ``GET /api/jobs/{id}`` for progress and the result.",
+        "operationId": "post_job_api_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "backtesting.run": "#/components/schemas/BacktestJob",
+                    "forecasting.run": "#/components/schemas/ForecastJob",
+                    "montecarlo.run": "#/components/schemas/MonteCarloJob",
+                    "montecarlo.scenarios": "#/components/schemas/ScenariosJob"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MonteCarloJob"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScenariosJob"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BacktestJob"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ForecastJob"
+                  }
+                ],
+                "title": "Job"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "description": "A job's progress, and its result once it succeeded.",
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/cancel": {
+      "post": {
+        "description": "Cancel a job: at once if it is waiting; a running one ends as cancelled\nand its result is dropped.",
+        "operationId": "cancel_job_api_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Job",
+        "tags": [
+          "jobs"
         ]
       }
     },
@@ -6882,6 +7681,221 @@
         "summary": "Post Scenarios",
         "tags": [
           "monte carlo"
+        ]
+      }
+    },
+    "/api/scheduled/drill": {
+      "post": {
+        "description": "Queue ``count`` identical seeded Monte Carlo jobs at once (jobs/drill.py).",
+        "operationId": "start_drill_api_scheduled_drill_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrillRequest",
+                "default": {
+                  "count": 10
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DrillStarted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Drill",
+        "tags": [
+          "scheduled"
+        ]
+      }
+    },
+    "/api/scheduled/drill/{job_id}": {
+      "get": {
+        "operationId": "get_drill_job_api_scheduled_drill__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DrillJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Drill Job",
+        "tags": [
+          "scheduled"
+        ]
+      }
+    },
+    "/api/scheduled/runs": {
+      "get": {
+        "description": "The newest recorded run of each task.",
+        "operationId": "get_runs_api_scheduled_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Runs",
+        "tags": [
+          "scheduled"
+        ]
+      },
+      "post": {
+        "description": "Record a task the workflow ran itself (e.g. the Supabase keep-alive).",
+        "operationId": "report_run_api_scheduled_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportedRun"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report Run",
+        "tags": [
+          "scheduled"
+        ]
+      }
+    },
+    "/api/scheduled/tasks/{task}": {
+      "post": {
+        "description": "Run a scheduled task now and record the run (a failed task answers 500\nafter recording, so the workflow fails and alerts).",
+        "operationId": "run_task_api_scheduled_tasks__task__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task",
+            "required": true,
+            "schema": {
+              "title": "Task",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Task",
+        "tags": [
+          "scheduled"
         ]
       }
     },
