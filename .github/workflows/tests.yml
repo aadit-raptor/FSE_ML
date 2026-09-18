@@ -21,10 +21,10 @@ jobs:
     timeout-minutes: 15
     # Real Postgres for tests/test_database.py (migrations both ways, the
     # health check, recovery after the database drops every connection).
-    # Neon runs Postgres 17. FSE_REQUIRE_DB turns a skipped database test into a failure.
+    # Neon runs Postgres 18. FSE_REQUIRE_DB turns a skipped database test into a failure.
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]
@@ -46,14 +46,14 @@ jobs:
           cache-dependency-path: requirements*.txt
       # tests/test_backups.py dumps and restores a real database (PLAN.md 1.8).
       # pg_dump refuses a server newer than itself and the runner image ships
-      # an older client, so install the one Postgres 17 (and Neon) needs.
-      - name: Postgres 17 client, for the backup tests
+      # an older client, so install PGDG's newest, as backup.yml does.
+      - name: Newest Postgres client, for the backup tests
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17
+          sudo apt-get install -y -qq postgresql-client
           pg_dump --version
       - run: pip install -r requirements-dev.txt
       - run: pytest -rs
@@ -91,7 +91,7 @@ jobs:
     # one, as the deployed app has Neon
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]
@@ -148,7 +148,7 @@ jobs:
     # Same database as the core job
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]
@@ -175,14 +175,14 @@ jobs:
       - run: pip install -r requirements-ml.txt -r requirements-dev.txt
       # tests/test_backups.py dumps and restores a real database (PLAN.md 1.8).
       # pg_dump refuses a server newer than itself and the runner image ships
-      # an older client, so install the one Postgres 17 (and Neon) needs.
-      - name: Postgres 17 client, for the backup tests
+      # an older client, so install PGDG's newest, as backup.yml does.
+      - name: Newest Postgres client, for the backup tests
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17
+          sudo apt-get install -y -qq postgresql-client
           pg_dump --version
       - name: Run all tests, failing if any ML test skips
         # shell: bash adds pipefail, so a pytest failure isn't masked by tee
@@ -202,7 +202,7 @@ jobs:
     # A database for the container, as Neon is for Render
     services:
       postgres:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         ports: ["5432:5432"]

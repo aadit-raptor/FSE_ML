@@ -102,7 +102,7 @@ def _tool_env(url: str) -> tuple[str, dict]:
 
 
 def server_major(url: str) -> int:
-    """The server's major version (17 for Postgres 17.5)."""
+    """The server's major version (18 for Postgres 18.1)."""
     import psycopg
 
     try:
@@ -173,10 +173,11 @@ def dump(url: str, target: Path, *, snapshot: Optional[str] = None) -> None:
     """``pg_dump -Fc`` of the whole database into ``target``.
 
     Ownership is left out (``--no-owner``) so a restore works as whatever role
-    is doing the restoring; grants are kept, so the least-privilege
-    ``fse_app`` role (migration 0005) can read the restored copy at once.
-    ``snapshot`` makes it read an already-exported snapshot instead of taking
-    its own (``dump_with_checks``).
+    is doing the restoring. Grants are kept in the file — they cost nothing
+    and record what the rights were — but ``restore`` leaves them out when
+    replaying, because a managed Postgres mixes its own platform grants in
+    with ours. ``snapshot`` makes it read an already-exported snapshot
+    instead of taking its own (``dump_with_checks``).
     """
     safe, env = _tool_env(url)
     tool = pg_tool("pg_dump", server_major(url))
@@ -222,18 +223,28 @@ def dump_with_checks(url: str, target: Path, *, log=print) -> dict:
             "fingerprint": _fingerprint(rows)}
 
 
-def restore(url: str, source: Path, *, clean: bool = False, skip_grants: bool = False) -> None:
+def restore(url: str, source: Path, *, clean: bool = False, with_grants: bool = False) -> None:
     """Restore a decrypted dump into the database ``url`` points at.
 
     All or nothing (``--single-transaction --exit-on-error``): a restore that
     hits a problem leaves the target as it was rather than half-filled.
+
+    **Grants are left out by default** (``--no-privileges``). A dump from a
+    managed Postgres carries the platform's own grants, and the role doing
+    the restore is not allowed to replay them: on Neon the dump contains
+    ``ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin … TO neon_superuser``,
+    which only Neon's superuser may run, and pg_dump puts it in the same
+    entry as our grants, so it can't be filtered out. Keeping privileges
+    therefore aborts the whole restore. The app's own rights are re-applied
+    afterwards from migration 0005 — DEPLOY.md "Restoring" has the step.
+    ``with_grants`` keeps them, for a dump from a cluster you own outright.
     """
     safe, env = _tool_env(url)
     tool = pg_tool("pg_restore", server_major(url))
     command = [tool, "--dbname", safe, "--no-owner", "--single-transaction", "--exit-on-error"]
     if clean:
         command += ["--clean", "--if-exists"]
-    if skip_grants:
+    if not with_grants:
         command += ["--no-privileges"]
     result = subprocess.run(command + [str(source)], env=env, capture_output=True, text=True)
     if result.returncode != 0:
@@ -550,8 +561,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     p.add_argument("--name", required=True)
     p.add_argument("--into", required=True, help="the database URL to restore into")
     p.add_argument("--clean", action="store_true", help="replace what is already there")
-    p.add_argument("--skip-grants", action="store_true",
-                   help="leave out GRANTs (a cluster without the fse_app role)")
+    p.add_argument("--with-grants", action="store_true",
+                   help="restore the source's GRANTs too (only works from a cluster you own "
+                        "outright; a managed one's platform grants can't be replayed)")
     p = sub.add_parser("drill")
     p.add_argument("--environment", required=True, help="whose backup to restore")
     p.add_argument("--target", help="a database URL on the server to restore into "
@@ -586,7 +598,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             with tempfile.TemporaryDirectory(prefix="fse-restore-") as work:
                 plain = Path(work) / "dump"
                 fetch(store, args.name, secret, plain)
-                restore(args.into, plain, clean=args.clean, skip_grants=args.skip_grants)
+                restore(args.into, plain, clean=args.clean, with_grants=args.with_grants)
             print(f"restored {args.name}")
         else:
             target = args.target or (os.environ.get("BACKUP_STAGING_DATABASE_URL") or "").strip()

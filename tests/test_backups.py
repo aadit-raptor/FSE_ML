@@ -195,6 +195,30 @@ def test_a_client_older_than_the_server_is_refused(monkeypatch):
         backup.pg_tool("pg_dump", 18)
 
 
+def test_a_client_newer_than_the_server_is_fine(monkeypatch):
+    """pg_dump reads an older server happily and refuses only a newer one, so
+    the workflows install the newest client rather than pinning a version to
+    whatever Neon happens to run (it moved from 17 to 18 under us)."""
+    monkeypatch.setattr(backup, "tool_candidates", lambda name: ["/new/pg_dump"])
+    monkeypatch.setattr(backup, "tool_version", lambda path: 19)
+    for server in (14, 17, 18, 19):
+        assert backup.pg_tool("pg_dump", server) == "/new/pg_dump"
+
+
+def test_the_version_error_names_every_binary_it_found(monkeypatch):
+    """What the first real backup run hit: the message has to say which
+    binaries were tried and what to install, or the failure is a puzzle."""
+    monkeypatch.setattr(backup, "tool_candidates",
+                        lambda name: ["/usr/bin/pg_dump", "/usr/lib/postgresql/17/bin/pg_dump"])
+    monkeypatch.setattr(backup, "tool_version", lambda path: 17 if "/17/" in path else 16)
+    with pytest.raises(backup.BackupError) as caught:
+        backup.pg_tool("pg_dump", 18)
+    message = str(caught.value)
+    assert "/usr/bin/pg_dump (16)" in message
+    assert "/usr/lib/postgresql/17/bin/pg_dump (17)" in message
+    assert "postgresql-client-18" in message and "FSE_PG_BIN" in message
+
+
 def test_the_tools_are_found_on_this_machine():
     """Whatever this machine has (PATH, a Debian per-version directory or the
     pgserver package), the finder reports a usable pg_dump and pg_restore."""
@@ -339,7 +363,7 @@ def test_the_store_is_chosen_by_the_environment(monkeypatch, tmp_path):
     monkeypatch.setenv("FSE_BACKUP_DIR", str(tmp_path))
     assert isinstance(store_from_env(), LocalStore)
     monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")
-    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_example")
     monkeypatch.setenv("SUPABASE_BACKUP_BUCKET", "fse-backups")
     store = store_from_env()
     assert isinstance(store, SupabaseStore) and store.bucket == "fse-backups"
@@ -368,7 +392,8 @@ class FakeSupabase(BaseHTTPRequestHandler):
     def do_POST(self):
         body = self._body()
         self._record()
-        if self.headers.get("Authorization") != "Bearer service-role-key":
+        if (self.headers.get("Authorization") != "Bearer sb_secret_example"
+                or self.headers.get("apikey") != "sb_secret_example"):
             return self._send(401, b'{"error":"unauthorized"}')
         if self.path.startswith("/storage/v1/object/list/"):
             prefix = json.loads(body)["prefix"]
@@ -382,6 +407,9 @@ class FakeSupabase(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._record()
+        if (self.headers.get("Authorization") != "Bearer sb_secret_example"
+                or self.headers.get("apikey") != "sb_secret_example"):
+            return self._send(401, b'{"error":"unauthorized"}')
         name = self.path.split("/storage/v1/object/backups/", 1)[1]
         if name not in FakeSupabase.objects:
             return self._send(404, b'{"error":"Object not found"}')
@@ -390,6 +418,9 @@ class FakeSupabase(BaseHTTPRequestHandler):
     def do_DELETE(self):
         body = self._body()
         self._record()
+        if (self.headers.get("Authorization") != "Bearer sb_secret_example"
+                or self.headers.get("apikey") != "sb_secret_example"):
+            return self._send(401, b'{"error":"unauthorized"}')
         for name in json.loads(body)["prefixes"]:
             FakeSupabase.objects.pop(name, None)
         self._send(200, b"[]")
@@ -404,7 +435,7 @@ def supabase():
     server = HTTPServer(("127.0.0.1", 0), FakeSupabase)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    yield SupabaseStore(f"http://127.0.0.1:{server.server_port}", "service-role-key")
+    yield SupabaseStore(f"http://127.0.0.1:{server.server_port}", "sb_secret_example")
     server.shutdown()
     server.server_close()
 
@@ -425,10 +456,14 @@ def test_supabase_store_round_trip(supabase, tmp_path):
     supabase.delete(["production/2026-09-17T023000Z.dump.enc"])
     assert [o.name for o in supabase.list("production")] == \
         ["production/2026-09-18T023000Z.dump.enc"]
-    # Every call carried the key as a bearer token, and none put it in the URL
-    assert all(headers.get("authorization") == "Bearer service-role-key"
-               for _, _, headers in FakeSupabase.seen)
-    assert not any("service-role-key" in path for _, path, _ in FakeSupabase.seen)
+    # Every call carried the key both ways Supabase's gateway looks for it
+    # (a new-style sb_secret_... key is refused without the apikey header),
+    # and none of them put it in the URL
+    assert FakeSupabase.seen and all(
+        headers.get("authorization") == "Bearer sb_secret_example"
+        and headers.get("apikey") == "sb_secret_example"
+        for _, _, headers in FakeSupabase.seen)
+    assert not any("sb_secret_example" in path for _, path, _ in FakeSupabase.seen)
 
 
 def test_supabase_upload_is_an_upsert(supabase, tmp_path):
@@ -446,7 +481,7 @@ def test_a_supabase_failure_never_shows_the_key(supabase, tmp_path):
     missing = tmp_path / "back.enc"
     with pytest.raises(StorageError) as caught:
         supabase.get("production/missing.dump.enc", missing)
-    assert "404" in str(caught.value) and "service-role-key" not in str(caught.value)
+    assert "404" in str(caught.value) and "sb_secret_example" not in str(caught.value)
 
 
 def test_a_backup_too_big_for_the_free_plan_is_refused_before_uploading(supabase, tmp_path,
@@ -517,6 +552,13 @@ def migrated_db(fresh_db):
     return fresh_db
 
 
+class _ok:
+    """What a successful subprocess.run returns, for the command-line tests."""
+
+    returncode = 0
+    stdout = stderr = ""
+
+
 def irr_now() -> float:
     resp = client.post("/api/deal/run", json={"inputs": INPUTS, "settings": SETTINGS})
     assert resp.status_code == 200, resp.text
@@ -560,13 +602,54 @@ def test_a_restored_backup_gives_back_the_deal_and_its_irr(fresh_db, admin_url, 
         assert reopened.json()["name"] == "Project Vault"
         assert reopened.json()["inputs"] == INPUTS and reopened.json()["settings"] == SETTINGS
         assert irr_now() == before
-        # The least-privilege role (migration 0005) can still read the copy
+        # Grants do not come with the data: a managed Postgres mixes its own
+        # platform grants into the dump and the restoring role can't replay
+        # them, so they are re-applied afterwards (DEPLOY.md "Restoring")
+        with db_engine.connect() as conn:
+            assert conn.execute(text(
+                "SELECT has_table_privilege('fse_app', 'deals', 'SELECT')")).scalar() is False
+    use_database(fresh_db, monkeypatch)
+
+
+def test_restore_leaves_the_source_grants_out_unless_asked(fresh_db, admin_url, tmp_path,
+                                                           sign_in, monkeypatch):
+    """Neon's dump carries ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin,
+    which only Neon's superuser may run and which pg_dump puts in the same
+    entry as ours -- so replaying privileges aborts the whole restore. Asking
+    for them works only where every role in the dump is yours, as here."""
+    sign_in("user:grants")
+    assert client.post("/api/deals", json={"name": "Granted", "inputs": INPUTS,
+                                           "settings": SETTINGS}).status_code == 201
+    store = LocalStore(tmp_path / "store")
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    plain = tmp_path / "dump"
+    backup.fetch(store, note["name"], SECRET, plain, log=lambda msg: None)
+
+    with empty_database(admin_url) as restored_url:
+        backup.restore(restored_url, plain, with_grants=True)
+        use_database(restored_url, monkeypatch)
         with db_engine.connect() as conn:
             assert conn.execute(text(
                 "SELECT has_table_privilege('fse_app', 'deals', 'SELECT')")).scalar() is True
             assert conn.execute(text(
                 "SELECT has_table_privilege('fse_app', 'deals', 'TRUNCATE')")).scalar() is False
     use_database(fresh_db, monkeypatch)
+
+
+def test_the_restore_command_says_whether_grants_are_replayed(monkeypatch):
+    """The flag is wired to pg_restore, not just documented."""
+    ran = []
+    monkeypatch.setattr(backup, "server_major", lambda url: 18)
+    monkeypatch.setattr(backup, "pg_tool", lambda name, major: f"/usr/bin/{name}")
+    monkeypatch.setattr(backup.subprocess, "run",
+                        lambda cmd, **kw: ran.append(cmd) or _ok())
+    backup.restore("postgresql://u:p@host/db", Path("dump"))
+    assert "--no-privileges" in ran[0] and "--single-transaction" in ran[0]
+    assert "--exit-on-error" in ran[0] and "--clean" not in ran[0]
+    backup.restore("postgresql://u:p@host/db", Path("dump"), with_grants=True, clean=True)
+    assert "--no-privileges" not in ran[1]
+    assert "--clean" in ran[1] and "--if-exists" in ran[1]
+    assert not any("p@host" in " ".join(cmd) for cmd in ran)     # no password on the command line
 
 
 def test_the_drill_restores_checks_and_cleans_up(fresh_db, admin_url, tmp_path, sign_in):

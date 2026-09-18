@@ -45,7 +45,7 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `DATABASE_URL` | both Render services | Neon branch `production`, pooled connection string, as the restricted role `fse_api` (see "Security") | Neon branch `staging`, pooled, `fse_api` | optional: `python -m db.local` prints one; unset = no database |
 | `DATABASE_MIGRATION_URL` | both Render services | the schema owner's pooled string (`neondb_owner`), used only for migrations | same, staging branch | unset = migrations use `DATABASE_URL` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | both Render services, and GitHub Actions secrets | shared usage counters, keys `fse:production:` | same database, keys `fse:staging:` | unset = counters in memory (or the database); see "Usage limits" |
-| `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 17 service) | — | — | optional: tests create and drop their own databases through it |
+| `TEST_DATABASE_URL` | CI (`tests.yml`, a Postgres 18 service) | — | — | optional: tests create and drop their own databases through it |
 | `BETTERSTACK_API_TOKEN` | GitHub Actions secret (Better Stack Uptime API token) | monitors, status page, alerts from `live.yml` | alerts from `staging.yml` | — |
 
 **Moving a change through staging**
@@ -363,8 +363,8 @@ Secrets and variables → Actions → New repository secret**:
 | Secret | Where it comes from |
 |---|---|
 | `FSE_BACKUP_KEY` | make one: `python -c "import base64, secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"`. **Keep a copy somewhere outside GitHub** (a password manager): losing it loses every backup |
-| `SUPABASE_URL` | Supabase → the project → **Project Settings → Data API → Project URL** |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Project Settings → API Keys → service_role**. It bypasses row policies, so it lives only in GitHub secrets |
+| `SUPABASE_URL` | Supabase → the project's home page, the `https://<id>.supabase.co` line under its name (also **Project Settings → Data API → Project URL**) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → **Project Settings → API Keys → Secret keys → `default`** (reveal, then copy). New projects show an `sb_secret_…` key; older ones a `service_role` JWT — either works, and the variable keeps the old name. It bypasses row policies, so it lives only in GitHub secrets |
 | `BACKUP_DATABASE_URL` | Neon → project `fse-ml` → branch **`production`** → **Connect** → the **owner** (`neondb_owner`) connection string, **unpooled** (untick *Connection pooling*) |
 | `BACKUP_STAGING_DATABASE_URL` | the same for the **`staging`** branch — the drill's target |
 
@@ -383,8 +383,10 @@ means.
 
 Anything below needs `FSE_BACKUP_KEY`, `SUPABASE_URL` and
 `SUPABASE_SERVICE_ROLE_KEY` in the shell (a git-ignored `.env`, never in a
-command), plus `pg_restore` 17 or newer (`FSE_PG_BIN` points at it if it isn't
-on the PATH).
+command), plus a `pg_restore` at least as new as the server — Neon runs
+Postgres 18 today, so install PGDG's newest client (`FSE_PG_BIN` points at it
+if it isn't on the PATH). An older one is refused with a message naming every
+binary it found.
 
 ```bash
 python -m ops.backup list --environment production
@@ -397,14 +399,34 @@ Into a fresh database (what to do if Neon is gone — make a project, then):
 python -m ops.backup restore --name production/2026-09-18T024000Z --into "$NEW_DATABASE_URL"
 ```
 
-Over a database that still has the wrong data in it, add `--clean`. Then
-point `DATABASE_URL` on the Render service at the restored database and
-redeploy. Check with `python3 ops/check_database.py https://fse-api.onrender.com`
-(migrations current) and by opening a saved deal: its IRR must be what it was.
+Over a database that still has the wrong data in it, add `--clean`.
 
-If the roles from migration `0005` don't exist in the new cluster, add
-`--skip-grants`, then run the migrations once (`python -m db.migrate upgrade`
-with `DATABASE_MIGRATION_URL` set) to put them back.
+**Then put the app's grants back.** A restore brings the schema and the rows,
+not the rights: Neon's dump carries its own platform grants
+(`ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin … TO neon_superuser`), only
+Neon's superuser may replay them, and `pg_dump` writes them in the same entry
+as ours — so `pg_restore` leaves privileges out altogether (`--no-privileges`)
+rather than aborting on them. Roles are cluster-wide and aren't in a dump
+either, so a brand-new project needs them made first. As the **owner**
+(`DATABASE_MIGRATION_URL`), against the restored database:
+
+```bash
+psql "$RESTORED_OWNER_URL" -c "GRANT USAGE ON SCHEMA public TO fse_app" -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO fse_app" -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO fse_app" -c "REVOKE INSERT, UPDATE, DELETE ON alembic_version FROM fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO fse_app"
+```
+
+That is migration `0005_app_role`'s `upgrade()`, which stays the source of
+truth — copy from there if it has changed. A new cluster also needs the roles
+themselves: "Least-privilege database role" below has the `fse_app` and
+`fse_api` statements.
+
+Then point `DATABASE_URL` on the Render service at the restored database and
+redeploy. Check with `python3 ops/check_database.py https://fse-api.onrender.com`
+— it reports migrations current **and** `role: restricted`, which only passes
+if the grants above landed — and by opening a saved deal: its IRR must be what
+it was.
+
+`--with-grants` replays the source's privileges instead, which works only when
+every role in the dump is one you own outright (not a managed host's).
 
 ### The restore drill
 
