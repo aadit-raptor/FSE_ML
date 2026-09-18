@@ -1,0 +1,84 @@
+name: scheduled
+
+# Scheduled jobs (PLAN.md 1.9). The free engine has no scheduler or worker
+# machines, so GitHub Actions is the scheduler: this workflow runs the
+# scheduled tasks in each environment's API and runs the scripts that don't
+# belong there. Every run is recorded by the API (scheduled_runs) and shown by
+# /api/health/jobs, so a schedule that stopped is visible.
+#
+# No secret is needed to call the API: each call carries the OpenID Connect
+# token GitHub mints for this run, which the API checks names this repository,
+# this workflow and the main branch (api/github_oidc.py). That is all
+# "id-token: write" allows; the repository token stays read-only.
+#
+# Later tasks (data refresh, retraining) are added as steps here; see
+# jobs/scheduled.py for adding one to the API.
+on:
+  schedule:
+    - cron: "10 4 * * *"      # nightly, after backup.yml
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  api-tasks:
+    # Staging too: waking it once a night costs ~15 minutes of the free
+    # instance hours, and keeps its job table tidy
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: production
+            api: https://fse-api.onrender.com
+          - environment: staging
+            api: https://fse-api-staging.onrender.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Job maintenance (requeue lost jobs, apply retention)
+        run: python3 -m ops.scheduled task job-maintenance --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
+      - name: Alert if a scheduled task failed
+        if: failure()
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Scheduled task failed (${{ matrix.environment }})" --summary "A scheduled task failed on ${{ matrix.environment }}: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+  supabase-keepalive:
+    # A free Supabase project pauses after a week without activity, which
+    # would stop backups (and later file uploads). Listing the bucket counts.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Is Supabase set up?
+        id: secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "configured=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=no" >> "$GITHUB_OUTPUT"
+            echo "::warning::Supabase isn't set up: add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (DEPLOY.md 'Backups and recovery')"
+          fi
+      - name: List the bucket and record the run
+        if: steps.secrets.outputs.configured == 'yes'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python3 -m ops.scheduled keepalive --api https://fse-api.onrender.com --environment production
+      - name: Alert if the keep-alive failed
+        if: failure()
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+        run: |
+          python3 ops/betterstack.py incident --name "Supabase keep-alive failed" --summary "The Supabase keep-alive failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

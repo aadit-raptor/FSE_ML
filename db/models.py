@@ -22,8 +22,8 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
-    BigInteger, CheckConstraint, DateTime, ForeignKey, Identity, Index, Integer, MetaData, Numeric,
-    String, UniqueConstraint, Uuid, func, text,
+    BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Identity, Index, Integer,
+    MetaData, Numeric, String, UniqueConstraint, Uuid, false, func, text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -257,5 +257,90 @@ class UsageCounter(Base):
     expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
 
 
-__all__ = ["Base", "CurrencyCode", "Deal", "DealVersion", "MoneyAmount", "StorageCheck", "UsageCounter",
-           "User", "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]
+JOB_STATUSES = ("queued", "running", "succeeded", "failed", "cancelled")
+
+
+class Job(Base):
+    """A long run a user (or a scheduled task) started and watches (PLAN.md 1.9).
+
+    The queue behind ``jobs.database.DatabaseQueue``: submitting inserts a
+    ``queued`` row; a runner claims it (``FOR UPDATE SKIP LOCKED``, so two
+    runners never take the same job), reports progress and a heartbeat, and
+    stores the result. A ``running`` job whose heartbeat stops (the server
+    restarted or went to sleep) is put back in the queue or failed with a
+    message, by whichever runner notices first.
+
+    ``owner`` is the caller's subject (``users.subject``) or ``system:<name>``
+    for jobs the scheduler starts; every read matches it, so another
+    account's job answers 404. ``payload`` (the run's inputs) is cleared when
+    the job ends and ``result`` a few hours later (jobs/queue.py), so the
+    table stays small on the free 0.5 GB.
+    """
+
+    __tablename__ = "jobs"
+    __table_args__ = (
+        CheckConstraint("status IN ('queued', 'running', 'succeeded', 'failed', 'cancelled')",
+                        name="status"),
+        CheckConstraint("progress >= 0 AND progress <= 1", name="progress"),
+        # The runner's claim: oldest queued job first
+        Index("ix_jobs_status_created_at", "status", "created_at"),
+        Index("ix_jobs_owner_created_at", "owner", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner: Mapped[str] = mapped_column(String(255), nullable=False)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(10), nullable=False, server_default="queued")
+    # none_as_null: clearing them stores SQL NULL, not the JSON value null
+    payload: Mapped[Optional[dict]] = mapped_column(JSONB(none_as_null=True), nullable=True)
+    result: Mapped[Optional[dict]] = mapped_column(JSONB(none_as_null=True), nullable=True)
+    error: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    # The HTTP status the same run would have answered with (422 bad input, 500)
+    error_status: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    progress: Mapped[float] = mapped_column(Float, nullable=False, server_default="0")
+    stage: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    cancel_requested: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false())
+    worker: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+    started_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    heartbeat_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+
+
+SCHEDULED_RUN_STATUSES = ("succeeded", "failed")
+
+
+class ScheduledRun(Base):
+    """One run of a scheduled task, as the scheduler reported it (PLAN.md 1.9).
+
+    Written by ``/api/scheduled/...`` when a GitHub Actions workflow runs a
+    task through the API or reports a script it ran itself (the Supabase
+    keep-alive). ``summary`` holds counts only, never deal contents. The
+    newest ``jobs.scheduled.KEEP_RUNS_PER_TASK`` per task are kept.
+    """
+
+    __tablename__ = "scheduled_runs"
+    __table_args__ = (
+        CheckConstraint("status IN ('succeeded', 'failed')", name="status"),
+        Index("ix_scheduled_runs_task_started_at", "task", "started_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    task: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(10), nullable=False)
+    # How the workflow was started (schedule, workflow_dispatch, push) and which one
+    trigger: Mapped[str] = mapped_column(String(20), nullable=False)
+    workflow: Mapped[str] = mapped_column(String(80), nullable=False)
+    github_run_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    summary: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    error: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    started_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+    finished_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                  server_default=func.now())
+
+
+__all__ = ["Base", "CurrencyCode", "Deal", "DealVersion", "JOB_STATUSES", "Job", "MoneyAmount",
+           "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
+           "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

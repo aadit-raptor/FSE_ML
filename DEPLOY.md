@@ -467,6 +467,85 @@ database and read back through the API, and its IRR has to come out identical.
 - A nightly `pg_dump` wakes the Neon compute for a few seconds: nothing
   against the 100 free compute hours.
 
+## Background jobs and scheduled jobs
+
+PLAN.md 1.9. **Nothing to set up**: no new account, key or secret.
+
+### Jobs a user starts
+
+Long runs go through a queue instead of holding a request open: `POST
+/api/jobs` with `{"kind": "montecarlo.run", "input": <the body POST
+/api/montecarlo/run takes>}` answers 202 with a job id at once; `GET
+/api/jobs/{id}` gives progress (`stage`, `progress`, `ahead`) and, once it
+succeeded, `result`, which is exactly what the direct endpoint answers. Kinds:
+`montecarlo.run`, `montecarlo.scenarios`, `backtesting.run`,
+`forecasting.run` (`jobs/kinds.py`). The Monte Carlo screen uses it: a
+progress bar with Cancel, a `running` chip on its tab, and every other screen
+usable meanwhile. The deal model stays a direct call (it answers instantly).
+
+- **Where they wait:** the `jobs` table in Neon (`jobs/database.py`); without
+  a database, in memory (`jobs/memory.py`).
+- **Who runs them:** a thread inside the API (`jobs/runner.py`), since
+  Render's free tier has no worker machines. It starts when a job is submitted
+  or checked, and stops after a minute with nothing to do, so a sleeping Neon
+  stays asleep. It runs one simulation at a time, sharing the slot the direct
+  endpoints use: two big runs never share the 512 MB.
+- **Restarts:** a running job's heartbeat stops when Render restarts or puts
+  the service to sleep. The next check on the job (the screen polls) wakes a
+  runner, which puts it back in the queue after 90 s of silence and runs it
+  again from the start (runs are seeded, so the result is the same); after 3
+  tries it fails with a message saying so.
+- **Limits:** submitting counts as a model run (`api/limits.py`); at most 4
+  unfinished jobs per account (429) and 40 in the whole queue (503).
+- **Staying small:** a job's inputs are deleted when it ends, its result after
+  6 hours (or once the account has 10 newer ones), the row after 7 days.
+  A Monte Carlo result is about 0.25 MB.
+
+**Configuration** (defaults are right for the free plan): `FSE_JOB_QUEUE`
+(`database` | `memory`), `FSE_JOB_RUNNER` (`api` | `external`). Phase 12
+sets `FSE_JOB_RUNNER=external` on the API and runs `python -m jobs.worker`
+on worker machines instead: no endpoint changes.
+
+### Scheduled jobs
+
+GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
+**Run workflow** by hand):
+
+| Step | What it does | Recorded as |
+|---|---|---|
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/job-maintenance`: requeues or fails jobs whose runner went silent, applies retention | `job-maintenance` |
+| `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |
+
+`staging.yml` also runs the **job drill** after each staging deploy: ten
+seeded simulations queued at once must all finish with the pinned result
+while `/api/health` keeps answering (`ops/scheduled.py drill`, recorded as
+`job-drill`). It is refused in production.
+
+**How the workflows sign in, with no secret:** each call carries the OpenID
+Connect token GitHub mints for the workflow run (`permissions: id-token:
+write`, which allows nothing else). The API checks it against GitHub's
+published keys (`api/github_oidc.py`): this repository (by id, not just
+name), the workflow file and a protected branch (production accepts only
+`scheduled.yml` on `main`; staging also `staging.yml` and `scheduled.yml` on
+`staging`), and an audience naming the environment, so a staging token is
+refused by production.
+
+**Checking it:** `/api/health/jobs` (public; counts and statuses only, cached
+for a minute) shows the queue, whether the runner is running, jobs per status
+and the newest run of each scheduled task:
+
+```bash
+curl -s https://fse-api-staging.onrender.com/api/health/jobs
+```
+
+A failed step raises a Better Stack incident. Waking staging once a night
+costs about 15 minutes of the free instance hours a day.
+
+To add a scheduled task (data refresh, retraining): a function with
+`@task("name", "what it does")` in `jobs/scheduled.py` returning a small dict
+of counts, and a step in `scheduled.yml`. Anything longer than a request
+should queue a job instead.
+
 ## Usage limits
 
 Set up in PLAN.md 1.6 (`api/limits.py`, `api/usage.py`). Upstash Redis free

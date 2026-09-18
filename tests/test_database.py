@@ -150,7 +150,7 @@ def test_migrations_run_forwards_and_backwards(fresh_db):
     head = migrate.head_revision()
     assert migrate.upgrade(fresh_db) == (None, head)
     assert tables(fresh_db) == {"alembic_version", "storage_checks", "users", "deals", "deal_versions",
-                                 "usage_counters"}
+                                 "usage_counters", "jobs", "scheduled_runs"}
     assert migrate.current(fresh_db) == head
 
     # Every revision back to an empty schema, one step at a time

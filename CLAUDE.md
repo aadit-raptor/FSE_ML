@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-18 (PLAN.md 1.8). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-18 (PLAN.md 1.9). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -148,9 +148,31 @@ backups are never GitHub Actions artifacts, which are public on a public
 repository. `pg_dump`/`pg_restore` must be at least the server's major
 version; `ops/backup.py` finds them (PATH, `/usr/lib/postgresql/*/bin`,
 `pgserver`, or `FSE_PG_BIN`) and CI installs PGDG's newest client.
-**Nothing is backed up until the user sets the secrets** in DEPLOY.md
-"You need to set this up first" — until then `backup.yml` warns and does
-nothing.
+The secrets are set: the first backup and restore drill succeeded on
+2026-09-18.
+
+Background and scheduled jobs (PLAN.md 1.9, DEPLOY.md "Background jobs and
+scheduled jobs"): long runs go through **`/api/jobs`** — submit
+`{"kind": "montecarlo.run", "input": <the endpoint's body>}`, poll
+`/api/jobs/{id}` for `stage`/`progress`, get `result`, which is exactly what
+the direct endpoint answers (`jobs/kinds.py` calls the same function, minus
+its slot wrapper). The queue is an interface (`jobs/queue.py`):
+`DatabaseQueue` (table `jobs`, `FOR UPDATE SKIP LOCKED`) whenever
+`DATABASE_URL` is set, else `MemoryQueue`; `FSE_JOB_QUEUE`/`FSE_JOB_RUNNER`
+choose, and phase 12's workers are `python -m jobs.worker`. The runner is a
+**thread in the API** that starts on a submit or a poll and stops after a
+minute idle (so Neon sleeps); it takes the same one-simulation slot as the
+direct endpoints. A job whose heartbeat is silent 90 s is requeued (up to 3
+tries); results are kept 6 hours, rows 7 days. The Monte Carlo screen runs
+through it (progress bar, Cancel, `running` tab chip). **Scheduled jobs**:
+`scheduled.yml` (nightly) calls `/api/scheduled/tasks/job-maintenance` on
+both environments and runs the Supabase keep-alive; every run lands in
+`scheduled_runs` and `/api/health/jobs` (public). Those endpoints take **no
+secret**: GitHub's OIDC token for the run (`id-token: write`), checked in
+`api/github_oidc.py` for this repository's id, the workflow file, a
+protected branch and an environment audience. `staging.yml` runs the **job
+drill** (ten seeded simulations at once, health polled throughout, results
+against `jobs/drill.py`'s pinned summary; refused in production).
 
 ### What's next: PLAN.md
 
@@ -169,7 +191,7 @@ the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
 below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
-sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); next is 1.9. End every task session with the handoff described in PLAN.md: tell the
+sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); next is 2.2. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -273,13 +295,8 @@ golden snapshot is untouched and parity tests explain every departure.
   to the restricted `fse_api` role on 2026-09-17; `live.yml` and
   `staging.yml` now fail if either goes back to a privileged role.)
 
-- **PLAN.md 1.8: backups do nothing until the secrets exist.** Create the free
-  Supabase project and a private `backups` bucket, then add the GitHub Actions
-  secrets `FSE_BACKUP_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
-  `BACKUP_DATABASE_URL` and `BACKUP_STAGING_DATABASE_URL` — DEPLOY.md
-  "Backups and recovery → You need to set this up first" has the click-by-click
-  steps. Keep a copy of `FSE_BACKUP_KEY` outside GitHub: losing it makes every
-  stored backup unreadable.
+- Keep a copy of `FSE_BACKUP_KEY` outside GitHub (PLAN.md 1.8): losing it
+  makes every stored backup unreadable.
 
 - A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
@@ -313,9 +330,11 @@ golden snapshot is untouched and parity tests explain every departure.
 | `SECURITY.md`, `docs/security/threat-model.md` | How to report a vulnerability; threat model, open items and the public-repo review |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
+| `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
+| `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (355 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (427 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -399,13 +418,14 @@ rendering. Add one for every new control, and mutation-check it.
 CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web`, `e2e` and `docker`
 jobs; `security.yml` (secrets, dependency audits) and `codeql.yml` run beside it. `core`, `ml`, `e2e` and `docker` get a Postgres 18 service (what Neon runs);
 `FSE_REQUIRE_DB=1` makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
-and checks the default deal IRR (0.2116), Monte Carlo and an Excel export.
+and checks the default deal IRR (0.2116), Monte Carlo, an Excel export and a background job.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
 `web` job fails when `schema.d.ts` doesn't match the snapshot. `core` and `ml`
 also install PGDG's newest `postgresql-client`, which `tests/test_backups.py`
 needs to dump and restore that service. Scheduled workflows beside these:
-`live.yml` (daily production checks), `monitoring.yml`, and `backup.yml`
-(nightly backup, monthly restore drill).
+`live.yml` (daily production checks), `monitoring.yml`, `backup.yml`
+(nightly backup, monthly restore drill) and `scheduled.yml` (nightly job
+maintenance on both environments, Supabase keep-alive).
 
 Setup on a fresh machine: Python 3.12, then
 `pip install -r requirements-ml.txt -r requirements-dev.txt` (or just
@@ -519,6 +539,19 @@ Skills load when a session starts: install first, then open a new session.
   statements) across statements on app connections; migrations use the
   direct host. The pooler rejects the libpq `options` startup parameter, so
   don't set the time zone there: `UTCDateTime` converts instead.
+- A new long run as a background job: register it in `jobs/kinds.py` (the
+  endpoint function, its request/response models and its `model_timer`
+  names for progress), add a `*Job` model to the `JobSubmit` union in
+  `api/schemas.py`, and to `_SETTINGS_CHECKED` in `api/routers/jobs.py` if it
+  takes settings. Anything a job or the runner does must stay pooler-safe
+  (one statement per round trip; no advisory locks or session state).
+- `jobs` owners are subjects; the drill uses `system:drill`, which no sign-in
+  can produce. The conftest gives every test a fresh `MemoryQueue` and turns
+  the runner thread off; tests run jobs with `Runner.run_next()`.
+- A new top-level Python package the API imports (as `jobs/` in 1.9) must be
+  added in three places: a `COPY` line in the `Dockerfile` (it copies
+  packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in
+  `staging.yml`. CI's `docker` job fails at start-up if the first is missing.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.

@@ -24,6 +24,8 @@ from api.main import app
 from db import engine as db_engine
 from db import health as db_health
 from db import migrate
+from jobs import config as jobs_config
+from jobs.memory import MemoryQueue
 
 TEST_USER = AuthUser(subject="test:pytest", is_dev=True)
 
@@ -45,6 +47,19 @@ def usage_counters():
     usage.set_counters(fresh)
     yield fresh
     usage.set_counters(None)
+
+
+@pytest.fixture(autouse=True)
+def job_queue(monkeypatch):
+    """A fresh in-memory job queue for each test, with the in-API runner
+    switched off: tests run jobs themselves (``Runner.run_next``), so nothing
+    runs behind their back. ``tests/test_jobs.py`` turns the real thread on
+    where that is what's being tested."""
+    queue = MemoryQueue()
+    jobs_config.use_queue(queue)
+    monkeypatch.setattr(jobs_config, "wake_runner", lambda: None)
+    yield queue
+    jobs_config.use_queue(None)
 
 
 @pytest.fixture

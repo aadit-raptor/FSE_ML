@@ -5,10 +5,11 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 import { useDeal } from "@/components/deal/DealProvider";
 import { dealLabel, describeDealValue } from "@/components/deal/DealScreen";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
-import { api, type Schemas } from "@/lib/api/client";
+import type { Schemas } from "@/lib/api/client";
 import type { DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput } from "@/lib/format";
+import { describeJob, type Job, JobFailed, runJob } from "@/lib/jobs";
 import { MAX_SIMULATION_PATHS } from "@/lib/limits";
 
 export type Scenario = "recession" | "base" | "bull" | "stagflation";
@@ -83,11 +84,13 @@ const SIM_DEAL_KEYS: (keyof DealInputs)[] = ["ebitda", "entry_mult", "hold", "op
 type Snapshot ={ sim: SimInputs; deal: DealInputs; settings: Settings; scenario: Scenario | null; seed: number | null };
 
 type RunState = {
-  status: "idle" | "running" | "ok" | "error";
+  status: "idle" | "running" | "ok" | "error" | "cancelled";
   result?: Schemas["MonteCarloResponse"];
   scenarios?: Schemas["ScenariosResponse"];
   ranFor?: Snapshot;
   error?: string;
+  /** While running: what the server is doing, and how far along (0-1) */
+  progress?: { stage: string; fraction: number };
 };
 
 type MonteCarloContext = {
@@ -99,6 +102,8 @@ type MonteCarloContext = {
   setSeed: (s: number | null) => void;
   run: RunState;
   runNow: () => void;
+  /** Stop the run in progress (the server drops it too) */
+  cancel: () => void;
   /** A result exists but inputs, the deal or settings changed since */
   stale: boolean;
   /** Human-readable differences from the last run */
@@ -109,11 +114,12 @@ type MonteCarloContext = {
 
 const Ctx = createContext<MonteCarloContext | null>(null);
 
-function detail(err: unknown): string {
-  const d = (err as { detail?: unknown })?.detail;
-  if (typeof d === "string") return d;
-  if (Array.isArray(d)) return d.map((x: { loc?: unknown[]; msg?: string }) => `${String(x.loc?.at(-1))}: ${x.msg}`).join("; ");
-  return "The simulation couldn't run with these inputs.";
+/** Both runs' progress as one: the main simulation, then the four scenarios. */
+function combined(main: Job | undefined, scen: Job | undefined): { stage: string; fraction: number } {
+  const done = (j: Job | undefined) => (j?.status === "succeeded" ? 1 : (j?.progress ?? 0));
+  const fraction = (done(main) + done(scen)) / 2;
+  const mainDone = main?.status === "succeeded";
+  return { stage: mainDone ? `Scenarios: ${describeJob(scen)}` : describeJob(main), fraction };
 }
 
 export function MonteCarloProvider({ children }: { children: React.ReactNode }) {
@@ -135,31 +141,45 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
     const ctrl = new AbortController();
     inflight.current = ctrl;
     const snap = snapshot;
-    setRun((r) => ({ ...r, status: "running", error: undefined }));
+    setRun((r) => ({ ...r, status: "running", error: undefined, progress: { stage: "Starting", fraction: 0 } }));
     const mc = { ...snap.sim, ebitda: snap.deal.ebitda, entry_mult: snap.deal.entry_mult, hold: snap.deal.hold };
+    // Background jobs (PLAN.md 1.9): the server queues both and runs them one
+    // at a time, so the rest of the app stays usable while they run
+    let main: Job | undefined;
+    let scen: Job | undefined;
+    const update = () => {
+      if (!ctrl.signal.aborted) setRun((r) => ({ ...r, progress: combined(main, scen) }));
+    };
     try {
-      // One after the other, not in parallel: the engine seeds numpy's global
-      // RNG, so concurrent simulations on the server break a fixed seed (finding 9)
-      const main = await api.POST("/api/montecarlo/run", {
-        body: { mc, deal: snap.deal, settings: snap.settings, scenario: snap.scenario, seed: snap.seed, histogram_bins: 80, scatter_points: 2000 },
-        signal: ctrl.signal,
-      });
+      const [result, scenarios] = await Promise.all([
+        runJob<Schemas["MonteCarloResponse"]>(
+          { kind: "montecarlo.run", input: { mc, deal: snap.deal, settings: snap.settings, scenario: snap.scenario, seed: snap.seed, histogram_bins: 80, scatter_points: 2000 } },
+          { signal: ctrl.signal, onUpdate: (j) => { main = j; update(); } },
+        ).then((r) => {
+          if (main) main = { ...main, status: "succeeded" };
+          update();
+          return r;
+        }),
+        runJob<Schemas["ScenariosResponse"]>(
+          { kind: "montecarlo.scenarios", input: { mc, deal: snap.deal, settings: snap.settings, seed: snap.seed } },
+          { signal: ctrl.signal, onUpdate: (j) => { scen = j; update(); } },
+        ),
+      ]);
       if (ctrl.signal.aborted) return;
-      const scen = await api.POST("/api/montecarlo/scenarios", {
-        body: { mc, deal: snap.deal, settings: snap.settings, seed: snap.seed },
-        signal: ctrl.signal,
-      });
-      if (ctrl.signal.aborted) return;
-      if (main.data && scen.data) {
-        setRun({ status: "ok", result: main.data, scenarios: scen.data, ranFor: snap });
-      } else {
-        setRun((r) => ({ ...r, status: "error", error: detail(main.error ?? scen.error) }));
-      }
+      setRun({ status: "ok", result, scenarios, ranFor: snap });
     } catch (e) {
       if (ctrl.signal.aborted || (e as Error)?.name === "AbortError") return;
-      setRun((r) => ({ ...r, status: "error", error: "Can't reach the API. If it was idle it may still be starting; try again shortly." }));
+      ctrl.abort(); // cancels the other job on the server
+      const error = e instanceof JobFailed ? e.message : "Can't reach the API. If it was idle it may still be starting; try again shortly.";
+      setRun((r) => ({ ...r, status: "error", error, progress: undefined }));
     }
   }, [snapshot]);
+
+  const cancel = useCallback(() => {
+    inflight.current?.abort();
+    inflight.current = null;
+    setRun((r) => ({ ...r, status: r.result ? "ok" : "cancelled", progress: undefined }));
+  }, []);
 
   const changes = useMemo(() => {
     const prev = run.ranFor;
@@ -190,11 +210,12 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
       setSeed,
       run,
       runNow: () => void runNow(),
+      cancel,
       stale: !!run.result && changes.length > 0,
       changes,
       hurdle: sim.hurdle / 100,
     }),
-    [sim, setSim, scenario, seed, run, runNow, changes],
+    [sim, setSim, scenario, seed, run, runNow, cancel, changes],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

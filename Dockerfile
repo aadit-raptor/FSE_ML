@@ -28,6 +28,7 @@ COPY analytics ./analytics
 COPY api ./api
 COPY core ./core
 COPY db ./db
+COPY jobs ./jobs
 COPY lbo_engine ./lbo_engine
 COPY ml ./ml
 COPY simulation ./simulation
