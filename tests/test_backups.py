@@ -552,6 +552,13 @@ def migrated_db(fresh_db):
     return fresh_db
 
 
+class _ok:
+    """What a successful subprocess.run returns, for the command-line tests."""
+
+    returncode = 0
+    stdout = stderr = ""
+
+
 def irr_now() -> float:
     resp = client.post("/api/deal/run", json={"inputs": INPUTS, "settings": SETTINGS})
     assert resp.status_code == 200, resp.text
@@ -595,13 +602,54 @@ def test_a_restored_backup_gives_back_the_deal_and_its_irr(fresh_db, admin_url, 
         assert reopened.json()["name"] == "Project Vault"
         assert reopened.json()["inputs"] == INPUTS and reopened.json()["settings"] == SETTINGS
         assert irr_now() == before
-        # The least-privilege role (migration 0005) can still read the copy
+        # Grants do not come with the data: a managed Postgres mixes its own
+        # platform grants into the dump and the restoring role can't replay
+        # them, so they are re-applied afterwards (DEPLOY.md "Restoring")
+        with db_engine.connect() as conn:
+            assert conn.execute(text(
+                "SELECT has_table_privilege('fse_app', 'deals', 'SELECT')")).scalar() is False
+    use_database(fresh_db, monkeypatch)
+
+
+def test_restore_leaves_the_source_grants_out_unless_asked(fresh_db, admin_url, tmp_path,
+                                                           sign_in, monkeypatch):
+    """Neon's dump carries ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin,
+    which only Neon's superuser may run and which pg_dump puts in the same
+    entry as ours -- so replaying privileges aborts the whole restore. Asking
+    for them works only where every role in the dump is yours, as here."""
+    sign_in("user:grants")
+    assert client.post("/api/deals", json={"name": "Granted", "inputs": INPUTS,
+                                           "settings": SETTINGS}).status_code == 201
+    store = LocalStore(tmp_path / "store")
+    note = backup.make_backup(fresh_db, "test", store, SECRET, log=lambda msg: None)
+    plain = tmp_path / "dump"
+    backup.fetch(store, note["name"], SECRET, plain, log=lambda msg: None)
+
+    with empty_database(admin_url) as restored_url:
+        backup.restore(restored_url, plain, with_grants=True)
+        use_database(restored_url, monkeypatch)
         with db_engine.connect() as conn:
             assert conn.execute(text(
                 "SELECT has_table_privilege('fse_app', 'deals', 'SELECT')")).scalar() is True
             assert conn.execute(text(
                 "SELECT has_table_privilege('fse_app', 'deals', 'TRUNCATE')")).scalar() is False
     use_database(fresh_db, monkeypatch)
+
+
+def test_the_restore_command_says_whether_grants_are_replayed(monkeypatch):
+    """The flag is wired to pg_restore, not just documented."""
+    ran = []
+    monkeypatch.setattr(backup, "server_major", lambda url: 18)
+    monkeypatch.setattr(backup, "pg_tool", lambda name, major: f"/usr/bin/{name}")
+    monkeypatch.setattr(backup.subprocess, "run",
+                        lambda cmd, **kw: ran.append(cmd) or _ok())
+    backup.restore("postgresql://u:p@host/db", Path("dump"))
+    assert "--no-privileges" in ran[0] and "--single-transaction" in ran[0]
+    assert "--exit-on-error" in ran[0] and "--clean" not in ran[0]
+    backup.restore("postgresql://u:p@host/db", Path("dump"), with_grants=True, clean=True)
+    assert "--no-privileges" not in ran[1]
+    assert "--clean" in ran[1] and "--if-exists" in ran[1]
+    assert not any("p@host" in " ".join(cmd) for cmd in ran)     # no password on the command line
 
 
 def test_the_drill_restores_checks_and_cleans_up(fresh_db, admin_url, tmp_path, sign_in):

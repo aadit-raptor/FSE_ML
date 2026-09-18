@@ -315,7 +315,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (353 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (355 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -482,6 +482,12 @@ Skills load when a session starts: install first, then open a new session.
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
   `bracketright`, or shortcuts appear broken when they aren't.
+- A restore brings the schema and rows but **not the grants**: Neon's dump
+  carries `ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin … TO neon_superuser`,
+  which only Neon's superuser may replay and which `pg_dump` puts in the same
+  entry as ours, so `ops/backup.py restore` passes `--no-privileges` and
+  DEPLOY.md "Restoring" re-applies migration 0005's grants afterwards. The
+  first drill run failed exactly here.
 - `pg_dump` refuses a server **newer** than itself but reads an older one
   happily. **Neon runs Postgres 18** (it was 17 when 1.3 was written; check
   with `SHOW server_version_num` rather than trusting this line). So the
