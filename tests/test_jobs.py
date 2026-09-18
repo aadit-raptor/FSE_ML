@@ -544,7 +544,8 @@ def test_the_drill_runs_many_identical_jobs(job_queue, github, github_key):  # n
     for job_id in started["jobs"]:
         body = ok(client.get(f"/api/scheduled/drill/{job_id}", headers=token))
         assert body["status"] == "succeeded" and body["mismatched"] == []
-        assert body["summary"]["mean_irr"] == drill.EXPECTED_SUMMARY["mean_irr"]
+        # Not ==: Linux numpy differs from Windows in the last bits (1e-9, like the golden file)
+        assert body["summary"]["mean_irr"] == pytest.approx(drill.EXPECTED_SUMMARY["mean_irr"], rel=1e-9)
     # A user can't see the drill's jobs
     assert client.get(f"/api/jobs/{started['jobs'][0]}").status_code == 404
 
