@@ -54,6 +54,8 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 |---|---|---|
 | Calling the API as someone else | Every route except `PUBLIC_PATHS` needs a Clerk session token, verified locally (RS256 signature against the instance's JWKS, issuer, expiry, not-before); dependency on `include_router`, so new routes are protected by default (`api/auth.py`, `tests/test_auth.py`) | Done |
 | The development sign-in (`dev:<name>`) reaching production | Refused in production and whenever Clerk is configured; `staging.yml` checks staging refuses it | Done |
+| Calling the scheduler's endpoints (`/api/scheduled/*`) | A GitHub Actions OIDC token, verified locally against GitHub's keys: this repository's id and name, an allowed workflow file on a protected branch, and an audience naming the environment (a staging token is refused by production). No shared secret exists to leak; forks' pull requests get no token (`api/github_oidc.py`, `tests/test_jobs.py`) | Done |
+| Reading or cancelling another account's background job | Every job read and write matches the owner in the same statement; another account's job answers 404 (`jobs/`, `tests/test_jobs.py`) | Done |
 | Forged cross-site requests | The API reads a bearer token, not cookies, and CORS allows only the app's own origin without credentials (`api/security.py`) | Done |
 | Account takeover through weak sign-in | Clerk handles passwords, email verification, Google sign-in and bot protection | Partial: Clerk **development** instance; a production instance with its own domain comes with a custom domain (phase 12.3) |
 
@@ -103,6 +105,8 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | Flooding the API | Per-address limit before sign-in (1,200 requests and 60 refused sign-ins a minute), per-user limits after (240 requests and 30 runs a minute, 1,000 runs a day), 1 MB bodies, 100,000-path simulations, one simulation at a time, 100 s timeout (`api/limits.py`) | Done |
 | Burning Neon compute hours or Render hours | Health checks never touch the database; no connection at start-up; storage warning at 80% | Done |
 | Burning Upstash commands | Counts batched every 5 minutes under a daily command budget, database fallback | Done |
+| Filling the job queue or the database with jobs | Submitting counts as a model run; 4 unfinished jobs per account, 40 in the queue; inputs deleted when a job ends, results after 6 hours, rows after 7 days; results over 2 MB refused (`jobs/queue.py`) | Done |
+| Background jobs keeping Neon awake | The runner starts only when a job is submitted or checked and stops after a minute idle | Done |
 | Burning Sentry events | Deliberate test error limited to one a minute and never in production | Done |
 | Large-scale DDoS | Vercel's and Render's edge protection only | Open: a WAF or paid tier (phase 12) |
 
@@ -112,7 +116,7 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 |---|---|---|
 | A new route shipped without sign-in or limits | Both are dependencies on `include_router`, not per route | Done |
 | The container running as root | The image runs as user `app` (checked by CI's `docker` job) | Done |
-| Workflow token abuse from a pull request | `permissions: contents: read` on every workflow; secrets are not given to forks' pull requests by GitHub | Done |
+| Workflow token abuse from a pull request | `permissions: contents: read` on every workflow; secrets are not given to forks' pull requests by GitHub. `scheduled.yml` and `staging.yml` also have `id-token: write`, which only mints the OIDC token above; the API accepts it only from those workflows on `main`/`staging` | Done |
 
 ## Open items, by plan task
 

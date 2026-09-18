@@ -75,6 +75,39 @@ function Rail() {
   );
 }
 
+/** Where a background run is (PLAN.md 1.9); the rest of the app stays usable meanwhile. */
+function RunProgress() {
+  const { run, cancel } = useMonteCarlo();
+  const pct = Math.round((run.progress?.fraction ?? 0) * 100);
+  return (
+    <Notice
+      tone="info"
+      title="Running simulation"
+      actions={
+        <button type="button" onClick={cancel} className="type-action-secondary border border-line px-2.5 py-1.5 text-muted hover:text-ink">
+          Cancel
+        </button>
+      }
+    >
+      <span className="flex items-center gap-3">
+        <span
+          role="progressbar"
+          aria-label="Simulation progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          aria-valuetext={run.progress?.stage}
+          className="relative h-[3px] w-40 flex-none bg-line"
+        >
+          <span className="absolute inset-y-0 left-0 bg-accent transition-[width] duration-300" style={{ width: `${pct}%` }} />
+        </span>
+        <span className="font-mono text-[11px] tabular-nums">{pct}%</span>
+        <span data-testid="run-stage">{run.progress?.stage}</span>
+      </span>
+    </Notice>
+  );
+}
+
 function Bar() {
   const { run, stale, changes, runNow } = useMonteCarlo();
   if (run.status === "error") {
@@ -84,9 +117,7 @@ function Bar() {
       </Notice>
     );
   }
-  if (run.status === "running" && run.result) {
-    return <Notice tone="info" title="Running simulation" />;
-  }
+  if (run.status === "running") return <RunProgress />;
   if (!stale) return null;
   return (
     <Notice title="Monte Carlo is out of date" actions={<PrimaryButton onClick={runNow}>Run Monte Carlo</PrimaryButton>}>
@@ -112,6 +143,10 @@ export function MonteCarloScreen({ children }: { children: ReactNode }) {
       ) : run.status === "error" ? (
         <EmptyState title="No simulation yet" action={<PrimaryButton onClick={runNow}>Run Monte Carlo</PrimaryButton>}>
           Fix the problem above and run again.
+        </EmptyState>
+      ) : run.status === "cancelled" ? (
+        <EmptyState title="Simulation cancelled" action={<PrimaryButton onClick={runNow}>Run Monte Carlo</PrimaryButton>}>
+          Nothing ran to the end. Run it when you are ready.
         </EmptyState>
       ) : (
         <LoadingTiles />

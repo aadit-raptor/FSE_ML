@@ -28,7 +28,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Callable, Optional
 
 import sentry_sdk
 from starlette.datastructures import MutableHeaders
@@ -127,16 +127,27 @@ def log_event(event: str, level: int = logging.INFO, exc_info=None, **fields) ->
     logger.log(level, event, exc_info=exc_info, extra={"fields": fields})
 
 
+# Called with (model name, "start" | "end") around each model run. A job
+# runner sets it to turn model runs into progress (jobs/runner.py).
+model_run_listener: ContextVar[Optional[Callable[[str, str], None]]] = ContextVar(
+    "fse_model_run_listener", default=None)
+
+
 @contextmanager
 def model_timer(name: str):
     """Time one model run and record it on the current request.
 
     Logs ``model_run`` with the model name and duration even if the run fails.
     """
+    listener = model_run_listener.get()
+    if listener is not None:
+        listener(name, "start")
     t0 = time.perf_counter()
     ok = False
     try:
         yield
+        if listener is not None:
+            listener(name, "end")
         ok = True
     finally:
         ms = round((time.perf_counter() - t0) * 1000, 2)

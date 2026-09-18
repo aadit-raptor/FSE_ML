@@ -469,6 +469,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Jobs
+         * @description The job queue (PLAN.md 1.9): which queue and runner are configured,
+         *     whether the runner is running, jobs per status, and the newest run of
+         *     each scheduled task. Queries the database, so it is cached for a
+         *     minute and nothing polls it often.
+         */
+        get: operations["health_jobs_api_health_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health/limits": {
         parameters: {
             query?: never;
@@ -486,6 +509,71 @@ export interface paths {
         get: operations["health_limits_api_health_limits_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Jobs
+         * @description The caller's recent jobs, newest first, without their results.
+         */
+        get: operations["get_jobs_api_jobs_get"];
+        put?: never;
+        /**
+         * Post Job
+         * @description Queue a long run. Poll ``GET /api/jobs/{id}`` for progress and the result.
+         */
+        post: operations["post_job_api_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Job
+         * @description A job's progress, and its result once it succeeded.
+         */
+        get: operations["get_job_api_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Job
+         * @description Cancel a job: at once if it is waiting; a running one ends as cancelled
+         *     and its result is dropped.
+         */
+        post: operations["cancel_job_api_jobs__job_id__cancel_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -589,6 +677,88 @@ export interface paths {
          * @description Run all four scenario presets from the same inputs.
          */
         post: operations["post_scenarios_api_montecarlo_scenarios_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduled/drill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Drill
+         * @description Queue ``count`` identical seeded Monte Carlo jobs at once (jobs/drill.py).
+         */
+        post: operations["start_drill_api_scheduled_drill_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduled/drill/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Drill Job */
+        get: operations["get_drill_job_api_scheduled_drill__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduled/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Runs
+         * @description The newest recorded run of each task.
+         */
+        get: operations["get_runs_api_scheduled_runs_get"];
+        put?: never;
+        /**
+         * Report Run
+         * @description Record a task the workflow ran itself (e.g. the Supabase keep-alive).
+         */
+        post: operations["report_run_api_scheduled_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduled/tasks/{task}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Task
+         * @description Run a scheduled task now and record the run (a failed task answers 500
+         *     after recording, so the workflow fails and alerts).
+         */
+        post: operations["run_task_api_scheduled_tasks__task__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -752,6 +922,15 @@ export interface components {
             senior_pct: number;
             /** Tax Rate */
             tax_rate: number;
+        };
+        /** BacktestJob */
+        BacktestJob: {
+            input: components["schemas"]["BacktestRequest"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "backtesting.run";
         };
         /** BacktestRequest */
         BacktestRequest: {
@@ -1234,6 +1413,57 @@ export interface components {
              */
             updated_at: string;
         };
+        /** DrillJob */
+        DrillJob: {
+            /** Attempts */
+            attempts: number;
+            /** Elapsed Ms */
+            elapsed_ms?: number | null;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Mismatched
+             * @default []
+             */
+            mismatched: string[];
+            /** Progress */
+            progress: number;
+            /** Stage */
+            stage: string | null;
+            /** Started At */
+            started_at: string | null;
+            /** Status */
+            status: string;
+            /** Summary */
+            summary?: {
+                [key: string]: number | boolean | string | null;
+            } | null;
+        };
+        /** DrillRequest */
+        DrillRequest: {
+            /**
+             * Count
+             * @default 10
+             */
+            count: number;
+        };
+        /** DrillStarted */
+        DrillStarted: {
+            /** Expected Summary */
+            expected_summary: {
+                [key: string]: number;
+            };
+            /** Jobs */
+            jobs: string[];
+            /** Request */
+            request: {
+                [key: string]: unknown;
+            };
+        };
         /** DriverFit */
         DriverFit: {
             /** Intercept */
@@ -1344,6 +1574,15 @@ export interface components {
             seeded_assumptions: {
                 [key: string]: number;
             };
+        };
+        /** ForecastJob */
+        ForecastJob: {
+            input: components["schemas"]["ForecastRunRequest"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "forecasting.run";
         };
         /** ForecastRunRequest */
         ForecastRunRequest: {
@@ -1635,6 +1874,80 @@ export interface components {
                 [key: string]: number[];
             };
         };
+        /** JobList */
+        JobList: {
+            /** Jobs */
+            jobs: components["schemas"]["JobOut"][];
+        };
+        /** JobOut */
+        JobOut: {
+            /**
+             * Ahead
+             * @description Queued jobs ahead of this one (queued only)
+             */
+            ahead?: number | null;
+            /**
+             * Attempts
+             * @description Runs so far; above 1 means it was resumed after a restart
+             */
+            attempts: number;
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /**
+             * Error
+             * @description Why it failed, for people
+             */
+            error?: string | null;
+            /**
+             * Error Status
+             * @description The HTTP status the same request would have got (422: bad input)
+             */
+            error_status?: number | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run";
+            /**
+             * Progress
+             * @description 0 to 1; moves as the run passes its stages
+             */
+            progress: number;
+            /**
+             * Result
+             * @description Once succeeded: exactly what the matching endpoint answers (MonteCarloResponse for montecarlo.run, and so on)
+             */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Result Expired
+             * @description It succeeded, but the result has been deleted; run it again
+             * @default false
+             */
+            result_expired: boolean;
+            /**
+             * Stage
+             * @description What the run is doing now, for people
+             */
+            stage?: string | null;
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
         /** LimitInfo */
         LimitInfo: {
             /** Limit */
@@ -1727,6 +2040,15 @@ export interface components {
              * @default 1.5
              */
             rate_std: number;
+        };
+        /** MonteCarloJob */
+        MonteCarloJob: {
+            input: components["schemas"]["MonteCarloRequest"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "montecarlo.run";
         };
         /** MonteCarloRequest */
         MonteCarloRequest: {
@@ -1929,6 +2251,27 @@ export interface components {
             /** Sector */
             sector?: string | null;
         };
+        /** ReportedRun */
+        ReportedRun: {
+            /** Error */
+            error?: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "succeeded" | "failed";
+            /** Summary */
+            summary?: {
+                [key: string]: number | boolean | string | null;
+            };
+            /** Task */
+            task: string;
+        };
         /** ReturnsResult */
         ReturnsResult: {
             /** Cash Flow Stream */
@@ -2001,6 +2344,15 @@ export interface components {
             p_above_hurdle: number | null;
             /** Wipeout Rate */
             wipeout_rate: number | null;
+        };
+        /** ScenariosJob */
+        ScenariosJob: {
+            input: components["schemas"]["ScenariosRequest"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "montecarlo.scenarios";
         };
         /** ScenariosRequest */
         ScenariosRequest: {
@@ -2297,6 +2649,29 @@ export interface components {
             scenario: string;
             /** Target */
             target: number;
+        };
+        /** TaskRun */
+        TaskRun: {
+            /** Error */
+            error?: string | null;
+            /** Github Run Id */
+            github_run_id?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "succeeded" | "failed";
+            /**
+             * Summary
+             * @default {}
+             */
+            summary: {
+                [key: string]: number | boolean | string | null;
+            };
+            /** Task */
+            task: string;
+            /** Workflow */
+            workflow: string;
         };
         /** TermDifference */
         TermDifference: {
@@ -3481,6 +3856,26 @@ export interface operations {
             };
         };
     };
+    health_jobs_api_health_jobs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     health_limits_api_health_limits_get: {
         parameters: {
             query?: never;
@@ -3497,6 +3892,157 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_jobs_api_jobs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobList"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_job_api_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonteCarloJob"] | components["schemas"]["ScenariosJob"] | components["schemas"]["BacktestJob"] | components["schemas"]["ForecastJob"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_job_api_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    cancel_job_api_jobs__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
                 };
             };
         };
@@ -3694,6 +4240,154 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    start_drill_api_scheduled_drill_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DrillRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrillStarted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_drill_job_api_scheduled_drill__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrillJob"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_runs_api_scheduled_runs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    report_run_api_scheduled_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportedRun"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_task_api_scheduled_tasks__task__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

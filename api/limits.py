@@ -30,6 +30,7 @@ limit for the browser tests; it is ignored in production.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import functools
 import json
 import math
@@ -85,8 +86,16 @@ SIMULATION_PATHS = frozenset({
 UNLIMITED_PREFIX = "/api/health"
 
 
+# Submitting a background job (PLAN.md 1.9) is a run too; polling it is not
+JOBS_PATH = "/api/jobs"
+
+
 def is_run_path(path: str) -> bool:
     return path in RUN_PATHS or path.startswith(RUN_PATH_PREFIXES)
+
+
+def is_run_request(method: str, path: str) -> bool:
+    return is_run_path(path) or (method == "POST" and path == JOBS_PATH)
 
 
 def limit_multiplier() -> float:
@@ -168,7 +177,7 @@ def _enforce(rules: list[tuple[Rule, str]], *, now: Optional[float] = None) -> N
 def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)) -> None:
     """FastAPI dependency: the signed-in user's request and run limits."""
     rules = [(USER_REQUESTS, user.subject)]
-    if is_run_path(request.url.path):
+    if is_run_request(request.method, request.url.path):
         rules += [(USER_RUNS, user.subject), (USER_RUNS_DAY, user.subject)]
     _enforce(rules)
 
@@ -177,6 +186,19 @@ def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)
 # One simulation at a time
 # ---------------------------------------------------------------------------
 _slots = threading.BoundedSemaphore(SIMULATION_SLOTS)
+
+
+@contextlib.contextmanager
+def holding_simulation_slot(timeout: Optional[float] = None):
+    """Hold the simulation slot for a block, waiting up to ``timeout`` (None:
+    as long as it takes). The job runner uses it, so a background run and a
+    direct request never simulate at the same time. Yields whether it got it."""
+    got = _slots.acquire(timeout=timeout) if timeout is not None else _slots.acquire()
+    try:
+        yield got
+    finally:
+        if got:
+            _slots.release()
 
 
 def simulation_slot(endpoint):

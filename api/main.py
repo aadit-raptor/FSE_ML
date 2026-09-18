@@ -22,8 +22,10 @@ from api.auth import require_user
 from api import usage
 from api.limits import LimitExceeded, LimitRefusal, LimitsMiddleware, enforce_user_limits
 from api.security import CORS_ALLOW_HEADERS, SecurityHeadersMiddleware, cors_origins
+from api.github_oidc import require_workflow
 from api.routers import (
-    account, backtesting, deal, deals, export, forecasting, integrations, montecarlo,
+    account, backtesting, deal, deals, export, forecasting, integrations, jobs, montecarlo,
+    scheduled,
 )
 from db import DatabaseUnavailable
 from db import health as db_health
@@ -108,6 +110,17 @@ def create_app() -> FastAPI:
         reused for 10 minutes."""
         return usage.status()
 
+    @app.get("/api/health/jobs", tags=["meta"])
+    def health_jobs(response: Response):
+        """The job queue (PLAN.md 1.9): which queue and runner are configured,
+        whether the runner is running, jobs per status, and the newest run of
+        each scheduled task. Queries the database, so it is cached for a
+        minute and nothing polls it often."""
+        result = jobs_health()
+        if result.get("status") == "error":
+            response.status_code = 503
+        return result
+
     @app.exception_handler(LimitExceeded)
     async def limit_exceeded(request: Request, exc: LimitExceeded):
         return JSONResponse(exc.body, status_code=429, headers=exc.headers)
@@ -132,12 +145,40 @@ def create_app() -> FastAPI:
     # and counts against that user's limits (api/limits.py). Applying both
     # here, not endpoint by endpoint, means a new route is protected by
     # default -- forgetting is impossible rather than unlikely.
-    for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account):
+    for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
+                   jobs):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,
                                             "description": "A usage limit was reached"}})
+    # The scheduler's endpoints take a GitHub Actions token instead of a user
+    # (api/github_oidc.py); the per-address limits still apply
+    app.include_router(scheduled.router, prefix="/api", dependencies=[Depends(require_workflow)])
     return app
+
+
+JOBS_HEALTH_CACHE_S = 60.0
+_jobs_health: list = [0.0, None]
+
+
+def jobs_health() -> dict:
+    from jobs import config
+    from jobs import scheduled as scheduled_tasks
+
+    now = time.monotonic()
+    if _jobs_health[1] is not None and now - _jobs_health[0] < JOBS_HEALTH_CACHE_S:
+        return {**_jobs_health[1], "runner_alive": config.runner_alive()}
+    out = {"status": "ok", "queue": config.queue_mode(), "runner": config.runner_mode(),
+           "runner_alive": config.runner_alive(), "checked_at": utc_now_iso()}
+    try:
+        out["counts"] = config.get_queue().counts()
+        out["scheduled"] = {name: {k: run[k] for k in ("status", "trigger", "workflow", "github_run_id",
+                                                        "started_at", "finished_at")}
+                            for name, run in scheduled_tasks.latest_runs().items()}             if config.queue_mode() == "database" else {}
+    except DatabaseUnavailable:
+        out.update(status="error", detail="The database is unavailable.")
+    _jobs_health[:] = [now, out]
+    return out
 
 
 app = create_app()

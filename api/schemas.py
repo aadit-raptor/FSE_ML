@@ -627,3 +627,61 @@ class VersionDetail(VersionSummary):
 
 class VersionList(BaseModel):
     versions: List[VersionSummary]
+
+
+# ---------------------------------------------------------------------------
+# Background jobs (PLAN.md 1.9)
+# ---------------------------------------------------------------------------
+class MonteCarloJob(Strict):
+    kind: Literal["montecarlo.run"]
+    input: MonteCarloRequest
+
+
+class ScenariosJob(Strict):
+    kind: Literal["montecarlo.scenarios"]
+    input: ScenariosRequest
+
+
+class BacktestJob(Strict):
+    kind: Literal["backtesting.run"]
+    input: BacktestRequest
+
+
+class ForecastJob(Strict):
+    kind: Literal["forecasting.run"]
+    input: ForecastRunRequest
+
+
+# What to run: the same request the matching endpoint takes, e.g. kind
+# "montecarlo.run" with the body of POST /api/montecarlo/run
+JobSubmit = Annotated[Union[MonteCarloJob, ScenariosJob, BacktestJob, ForecastJob],
+                      Field(discriminator="kind")]
+
+JobKindName = Literal["montecarlo.run", "montecarlo.scenarios", "backtesting.run", "forecasting.run"]
+JobStatus = Literal["queued", "running", "succeeded", "failed", "cancelled"]
+
+
+class JobOut(BaseModel):
+    id: str
+    kind: JobKindName
+    status: JobStatus
+    progress: float = Field(description="0 to 1; moves as the run passes its stages")
+    stage: Optional[str] = Field(None, description="What the run is doing now, for people")
+    ahead: Optional[int] = Field(None, description="Queued jobs ahead of this one (queued only)")
+    attempts: int = Field(description="Runs so far; above 1 means it was resumed after a restart")
+    cancel_requested: bool
+    created_at: str = Field(description="UTC, ISO 8601")
+    started_at: Optional[str] = None
+    finished_at: Optional[str] = None
+    error: Optional[str] = Field(None, description="Why it failed, for people")
+    error_status: Optional[int] = Field(
+        None, description="The HTTP status the same request would have got (422: bad input)")
+    result_expired: bool = Field(
+        False, description="It succeeded, but the result has been deleted; run it again")
+    result: Optional[dict] = Field(
+        None, description="Once succeeded: exactly what the matching endpoint answers "
+                          "(MonteCarloResponse for montecarlo.run, and so on)")
+
+
+class JobList(BaseModel):
+    jobs: List[JobOut]
