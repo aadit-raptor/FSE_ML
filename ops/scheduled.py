@@ -43,6 +43,10 @@ TOKEN_REUSE_S = 120                    # GitHub's tokens live a few minutes
 HEALTH_LIMIT_S = 10.0
 DRILL_TIMEOUT_S = 20 * 60
 POLL_S = 2.0
+# Render answers these from its proxy while a deploy swaps instances (the first
+# scheduled run met a 502 right after a merge) or the service wakes
+GATEWAY_ERRORS = frozenset({502, 503, 504})
+GATEWAY_RETRY_DELAYS_S = (5.0, 15.0, 30.0)
 
 
 class Failed(RuntimeError):
@@ -85,6 +89,19 @@ class Api:
 
     def call(self, method: str, path: str, body: Optional[dict] = None, *, auth: bool = True,
              timeout: float = 120) -> tuple[int, dict]:
+        """One request; a gateway error (Render's proxy while a deploy swaps
+        instances, or a service still waking) is retried a few times."""
+        for delay in (*GATEWAY_RETRY_DELAYS_S, None):
+            code, answer = self._send(method, path, body, auth=auth, timeout=timeout)
+            if code not in GATEWAY_ERRORS or delay is None:
+                return code, answer
+            self.sleep(delay)
+        raise AssertionError("unreachable")
+
+    sleep = staticmethod(time.sleep)
+
+    def _send(self, method: str, path: str, body: Optional[dict], *, auth: bool,
+              timeout: float) -> tuple[int, dict]:
         headers = {"Accept": "application/json", "X-Request-ID": f"scheduler-{os.environ.get('GITHUB_RUN_ID', 'local')}"}
         data = None
         if body is not None:

@@ -643,3 +643,31 @@ def test_a_dedicated_worker_runs_what_the_api_queued(fresh_db, monkeypatch):  # 
     assert worker.main([], once=True) == 0
     assert without_timing(status(job["id"])["result"]) == \
         without_timing(ok(client.post("/api/montecarlo/run", json=MC)))
+
+
+def test_the_scheduler_retries_a_gateway_error_but_not_a_refusal():
+    """The first scheduled run failed on one 502 from Render's proxy during a
+    deploy; a real refusal (401, 422) must still fail at once."""
+    from ops import scheduled as ops_scheduled
+
+    class Scripted(ops_scheduled.Api):
+        def __init__(self, answers):
+            super().__init__("http://api", "staging", token_source=lambda aud: "t")
+            self.answers, self.sent, self.slept = list(answers), 0, []
+            self.sleep = self.slept.append
+
+        def _send(self, method, path, body, *, auth, timeout):
+            self.sent += 1
+            return self.answers.pop(0)
+
+    api = Scripted([(502, {"detail": "Bad Gateway"}), (201, {"status": "succeeded"})])
+    assert api.call("POST", "/api/scheduled/runs", {}) == (201, {"status": "succeeded"})
+    assert api.sent == 2 and api.slept == [ops_scheduled.GATEWAY_RETRY_DELAYS_S[0]]
+
+    api = Scripted([(401, {"detail": "no"})])
+    assert api.call("POST", "/api/scheduled/runs", {})[0] == 401 and api.sent == 1
+
+    always = [(504, {})] * (len(ops_scheduled.GATEWAY_RETRY_DELAYS_S) + 1)
+    api = Scripted(always)
+    assert api.call("GET", "/api/health", auth=False)[0] == 504
+    assert api.sent == len(always)
