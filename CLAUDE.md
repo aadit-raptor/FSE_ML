@@ -548,6 +548,10 @@ Skills load when a session starts: install first, then open a new session.
 - `jobs` owners are subjects; the drill uses `system:drill`, which no sign-in
   can produce. The conftest gives every test a fresh `MemoryQueue` and turns
   the runner thread off; tests run jobs with `Runner.run_next()`.
+- A new top-level Python package the API imports (as `jobs/` in 1.9) must be
+  added in three places: a `COPY` line in the `Dockerfile` (it copies
+  packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in
+  `staging.yml`. CI's `docker` job fails at start-up if the first is missing.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.
