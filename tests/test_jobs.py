@@ -311,9 +311,9 @@ def test_an_oversized_result_is_refused(queue, monkeypatch):
     assert "too large" in status(job["id"])["error"]
 
 
-def test_inputs_are_cleared_when_a_job_ends(queue):
-    if not isinstance(queue, DatabaseQueue):
-        pytest.skip("reads the table")
+def test_inputs_are_cleared_when_a_job_ends(fresh_db):  # noqa: ARG001 - reads the table
+    queue = DatabaseQueue()
+    config.use_queue(queue)
     job = submit("montecarlo.run", MC)
     runner_for(queue).run_next()
     with db_engine.connect() as conn:
