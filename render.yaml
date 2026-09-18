@@ -27,6 +27,7 @@ services:
         - api/**
         - core/**
         - db/**
+        - jobs/**
         - lbo_engine/**
         - ml/**
         - simulation/**

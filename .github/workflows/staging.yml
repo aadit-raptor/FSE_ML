@@ -32,7 +32,7 @@ env:
   STAGING_API: https://fse-api-staging.onrender.com
   # Keep in step with buildFilter in render.yaml: if none of these changed
   # since the commit staging runs, that API is already equivalent to this one
-  API_PATHS: Dockerfile requirements*.txt analytics api core db lbo_engine ml simulation
+  API_PATHS: Dockerfile requirements*.txt analytics api core db jobs lbo_engine ml simulation
 
 jobs:
   staging:
