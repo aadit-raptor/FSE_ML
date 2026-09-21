@@ -87,6 +87,8 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
       settings: overrides,
       n: PATHS,
       histogram_bins: 60,
+      // The example deals are US dollar millions; the API says so with each one
+      money: deal.money,
     };
     const id = setTimeout(async () => {
       setState((s) => ({ ...s, status: "running" }));

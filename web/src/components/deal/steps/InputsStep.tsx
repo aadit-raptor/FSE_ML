@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useSettings } from "@/components/settings/SettingsProvider";
+import { useMoney } from "@/components/ui/MoneyScope";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { multiplesFromPct } from "@/lib/deal/capital";
@@ -11,20 +12,21 @@ import { fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
-import { DealField, DealScreen, DebtMultipleField, LoadingTiles, RailGroup } from "../DealScreen";
+import { DealField, DealScreen, DebtMultipleField, LoadingTiles, MoneyFields, RailGroup } from "../DealScreen";
 import { hurdleSub } from "./shared";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
 
 function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number, mincash: number) {
   const { overrides } = useSettings();
+  const { money } = useMoney();
   const [su, setSu] = useState<SourcesUses | null>(null);
   useEffect(() => {
     const ctrl = new AbortController();
     const id = setTimeout(() => {
       api
         .POST("/api/deal/sources-and-uses", {
-          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides },
+          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides, money },
           signal: ctrl.signal,
         })
         .then(({ data }) => data && setSu(data))
@@ -34,7 +36,7 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides]);
+  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides, money]);
   return su;
 }
 
@@ -44,11 +46,15 @@ export function InputsStep() {
   const su = useSourcesAndUses(inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash);
   const r = run.result?.returns;
   const ev = inputs.ebitda * inputs.entry_mult;
+  const { label: mu } = useMoney();
 
   return (
     <DealScreen
       rail={
         <>
+          <RailGroup title="Money">
+            <MoneyFields />
+          </RailGroup>
           <RailGroup title="Entry and exit">
             <DealField name="ebitda" />
             <DealField name="entry_mult" />
@@ -76,12 +82,12 @@ export function InputsStep() {
         <Tiles>
           <Kpi title="IRR" value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
           <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${inputs.hold} yr hold`} />
-          <Kpi title="Enterprise value" value={fmtMoney(ev)} sub={`${fmtMultiple(inputs.entry_mult, 1)} EBITDA, $M`} />
+          <Kpi title="Enterprise value" value={fmtMoney(ev)} sub={`${fmtMultiple(inputs.entry_mult, 1)} EBITDA, ${mu}`} />
           <Kpi title="Total debt" value={fmtMoney((ev * inputs.debt_pct) / 100)} sub={`${fmtPct(inputs.debt_pct)} of EV`} />
-          <Kpi title="Sponsor equity" value={fmtMoney(su?.sponsor_equity)} sub="$M incl. fees" />
+          <Kpi title="Sponsor equity" value={fmtMoney(su?.sponsor_equity)} sub={`${mu} incl. fees`} />
           <Kpi title="Senior share" value={fmtPct(inputs.senior_pct)} sub={`${fmtMultiple(seniorX, 1)} senior, ${fmtMultiple(mezzX, 1)} mezz`} />
 
-          <Tile span={6} title="Sources" unit="$M">
+          <Tile span={6} title="Sources" unit={mu}>
             <SuTable
               rows={[
                 ["Senior term loan", su?.senior_debt],
@@ -91,7 +97,7 @@ export function InputsStep() {
               total={["Total sources", su?.total_sources]}
             />
           </Tile>
-          <Tile span={6} title="Uses" unit="$M" aside={su && <span className={`chip ${su.balanced ? "text-gain" : "text-loss"}`}>{su.balanced ? "balanced" : "out of balance"}</span>}>
+          <Tile span={6} title="Uses" unit={mu} aside={su && <span className={`chip ${su.balanced ? "text-gain" : "text-loss"}`}>{su.balanced ? "balanced" : "out of balance"}</span>}>
             <SuTable
               rows={[
                 ["Purchase price", su?.equity_purchase_price],

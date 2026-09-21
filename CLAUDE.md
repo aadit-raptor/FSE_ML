@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-18 (PLAN.md 1.9). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-21 (PLAN.md 2.2). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -174,6 +174,32 @@ protected branch and an environment audience. `staging.yml` runs the **job
 drill** (ten seeded simulations at once, health polled throughout, results
 against `jobs/drill.py`'s pinned summary; refused in production).
 
+Currency and money units (PLAN.md 2.2): every deal has a **currency** (any
+ISO 4217 code) and a **unit** (`thousands`, `millions`, `billions`), stored
+as `currency`/`unit` in its inputs (`DealInputsIn`); a new deal starts in the
+account's currency. Forecast requests, backtests and sources & uses take a
+`money` object; **every answer with money carries `money`**, and Excel
+workbooks get an About sheet saying what the money is in. The model never
+reads the currency. The deal engine rounds money to two decimals and is
+pinned to the golden snapshot in millions, so **deals, simulations and
+backtests run in millions whatever their unit**: the router converts inputs
+(`core.deal.in_millions`, `mc_in_millions`, `backtest_in_millions`) and
+hands the answer back with `core.money.rescale` and an explicit list of
+money keys (`DEAL_MONEY_KEYS`, `SOURCES_USES_MONEY_KEYS`, `MC_MONEY_KEYS`,
+`BACKTEST_MONEY_KEYS`). A deal in thousands therefore answers exactly as
+in millions, times a thousand (`tests/test_money.py` checks every leaf
+against the unconverted engine). The forecast runs in the company's own
+unit; its fixed amounts use `in_unit`/`round_money`. Web: `lib/money.ts`
+makes labels from the browser's CLDR data ("€k", "£M", "CHF bn"), and
+`useMoney()` gives the money on screen: DealProvider sets the open deal's
+for every screen, Backtest and Forecast set their own inside it. A field
+spec's unit `MONEY` shows the label; a unit change converts the deal's
+money so its size stays the same. **No hardcoded "$"**:
+`tests/test_no_hardcoded_currency.py` fails on one in `api`, `core`,
+`lbo_engine`, `ml`, `ops`, `web/src` and the rest (a real exception ends
+its line with `currency-ok`). The example backtest deals and SEC EDGAR data
+are US dollar millions and say so.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -191,7 +217,7 @@ the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
 below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
-sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); next is 2.2. End every task session with the handoff described in PLAN.md: tell the
+sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); 2.2 is done (currency and money units, below); next is 2.3. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -286,6 +312,13 @@ golden snapshot is untouched and parity tests explain every departure.
    API with the converged core run.
 9. ✅ **Seeded Monte Carlo** uses a local `RandomState(seed)`, identical
    stream to the old global seed, safe under concurrent requests.
+10. **Open (found in PLAN.md 2.2, needs the user's approval): the engine
+    rounds money to two decimals of a million** (`lbo_engine/*` `round(x, 2)`,
+    and the backtest's predicted EBITDA to 0.1M), i.e. to 10,000 of the
+    currency. Deals now always run in millions, so this is the same in every
+    unit, but a small deal (EBITDA under about 10M) loses precision: revenue
+    and interest are off by up to 5,000. Fixing it changes the golden
+    numbers, so it waits for approval.
 
 ### Waiting on the user
 
@@ -330,11 +363,12 @@ golden snapshot is untouched and parity tests explain every departure.
 | `SECURITY.md`, `docs/security/threat-model.md` | How to report a vulnerability; threat model, open items and the public-repo review |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
+| `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (427 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (456 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -449,8 +483,10 @@ Setup on a fresh machine: Python 3.12, then
   rendered fine and did nothing (scenario presets, WSP toggle, EDGAR, fee
   settings). Check that changing an input changes the result.
 - **Mutation-check new tests**: break the logic on purpose, confirm the test fails.
-- **Units:** API inputs use percentages as numbers (`60.0`) and money in $M;
-  engine outputs keep engine units (IRR `0.157` = 15.7%).
+- **Units:** API inputs use percentages as numbers (`60.0`) and money in the
+  deal's currency and unit (US dollar millions by default); engine outputs
+  keep engine units (IRR `0.157` = 15.7%). Show money with `useMoney()` /
+  `moneyLabel()`, never a written currency sign.
 - **Optional ML** stays behind guarded, lazy imports; the app and CI's `core`
   job must work without ML packages.
 - Commit messages explain *why* and how it was verified.
@@ -548,6 +584,11 @@ Skills load when a session starts: install first, then open a new session.
 - `jobs` owners are subjects; the drill uses `system:drill`, which no sign-in
   can produce. The conftest gives every test a fresh `MemoryQueue` and turns
   the runner thread off; tests run jobs with `Runner.run_next()`.
+- A new money figure in a deal, simulation or backtest answer must be added
+  to that answer's money-key list (`DEAL_MONEY_KEYS` and so on), or a deal
+  in thousands shows it a thousand times too small; `tests/test_money.py`'s
+  leaf-by-leaf tests catch it. A new money input is converted in
+  `in_millions` (and a money setting in `MONEY_SETTINGS`).
 - A new top-level Python package the API imports (as `jobs/` in 1.9) must be
   added in three places: a `COPY` line in the `Dockerfile` (it copies
   packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in

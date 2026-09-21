@@ -20,10 +20,10 @@ The cash sweep waterfall:
 Why interest on beginning balance:
     Standard LBO convention. Interest is charged on the balance at the
     START of the year. This matches the BK PDF exactly:
-        USD term loan Year 1: $1,510M * 6.82% = $103M  (PDF: $103M)
-        EUR term loan Year 1:   $334M * 7.11% =  $24M  (PDF: $24M)
-        Senior Notes  Year 1:   $800M * 10.19% =  $82M  (PDF: $82M)
-        Total interest Year 1:                   $208M  (PDF: $208M)
+        USD term loan Year 1: USD 1,510M * 6.82% = USD 103M  (PDF: USD 103M)
+        EUR term loan Year 1:   USD 334M * 7.11% =  USD 24M  (PDF: USD 24M)
+        Senior Notes  Year 1:   USD 800M * 10.19% =  USD 82M  (PDF: USD 82M)
+        Total interest Year 1:                   USD 208M  (PDF: USD 208M)
 
 The outputs of this module feed two places:
     1. operating_model.complete_income_statement()
@@ -39,8 +39,8 @@ Burger King reference (debt schedule, conservative):
     Total debt end:         2,644   2,626   2,572   2,459   2,268
     Total interest:           208     208     205     199     189
 
-    Note: The BK model shows $0 mandatory repayment in year 1 because
-    the $15M annual amort on the USD term loan is funded from excess
+    Note: The BK model shows USD 0 mandatory repayment in year 1 because
+    the USD 15M annual amort on the USD term loan is funded from excess
     balance sheet cash, not modelled as a separate FCF line.
     We make this explicit via the include_mandatory_repayments flag
     in cashflow_model.py.
@@ -61,7 +61,7 @@ class TrancheYearRecord:
     """
     Single year snapshot for one tranche.
 
-    All values in $M.
+    All values in millions of the deal's currency.
     """
     year: int
     tranche_name: str
@@ -112,7 +112,7 @@ class DebtScheduleResult:
         Net debt at exit = total ending debt in final year - final cash balance.
         Fed directly into returns.py.
 
-        BK reference: $2,268M debt - $118M cash = $2,150M net debt.
+        BK reference: USD 2,268M debt - USD 118M cash = USD 2,150M net debt.
         """
         return round(self.total_ending_debt[-1] - self.cash_balance[-1], 2)
 
@@ -129,7 +129,7 @@ class DebtScheduleResult:
         return [r.ending_balance for r in self.schedule[tranche_name]]
 
     def total_debt_repaid(self) -> float:
-        """Total principal repaid over the holding period ($M)."""
+        """Total principal repaid over the holding period (M)."""
         return round(
             sum(self.total_mandatory_repayment) + sum(self.total_cash_sweep), 2
         )
@@ -158,12 +158,12 @@ def run_debt_model(
         Output from cashflow_model.py. The levered_fcf list drives the sweep.
 
     minimum_cash : float
-        Minimum cash balance maintained on the balance sheet ($M).
-        BK: $118M. Cash above this floor is swept to debt.
+        Minimum cash balance maintained on the balance sheet (M).
+        BK: USD 118M. Cash above this floor is swept to debt.
 
     opening_cash : float
-        Cash balance at the START of year 1 ($M).
-        In BK: $118M (minimum cash retained post-close).
+        Cash balance at the START of year 1 (M).
+        In BK: USD 118M (minimum cash retained post-close).
         Excess cash above minimum was used as a source of funds at close.
 
     pure_sweep_mode : bool
@@ -172,7 +172,7 @@ def run_debt_model(
         cash is swept directly (BK PDF convention).
 
         Background: The BK deal pre-funded mandatory amortization from
-        the excess cash at close ($188M total - $118M minimum = $70M).
+        the excess cash at close (USD 188M total - USD 118M minimum = USD 70M).
         So the FCF sweep is purely the excess over the minimum cash floor,
         with no deduction for scheduled amort. This exactly replicates
         the BK PDF debt schedule (sweep: 0, 18, 54, 113, 191).
@@ -299,7 +299,7 @@ def run_debt_model(
         # ------------------------------------------------------------------
         # Step 7: Ending cash balance
         # Cash = minimum_cash + any unswept excess
-        # In BK, cash stays at minimum_cash = $118M throughout.
+        # In BK, cash stays at minimum_cash = USD 118M throughout.
         # ------------------------------------------------------------------
         unswept = remaining_sweep   # any cash that couldn't be used (debt fully repaid)
         ending_cash = minimum_cash + unswept
@@ -401,8 +401,8 @@ def print_debt_schedule(result: DebtScheduleResult) -> None:
     row("Total interest expense",  result.total_interest_expense)
 
     print(wide_sep)
-    print(f"  Net debt at exit:      ${result.net_debt_at_exit:>10,.1f}M")
-    print(f"  Total debt repaid:     ${result.total_debt_repaid():>10,.1f}M")
+    print(f"  Net debt at exit:      {result.net_debt_at_exit:>10,.1f}M")
+    print(f"  Total debt repaid:     {result.total_debt_repaid():>10,.1f}M")
     print(f"  Debt / entry debt:     "
           f"{result.total_ending_debt[-1] / result.total_beginning_debt[0] * 100:.1f}%"
           f"  remaining at exit\n")
@@ -496,17 +496,17 @@ if __name__ == "__main__":
             f"{bk_usd_sweep[i]:>10,}"
         )
 
-    print(f"\n  Net debt at exit: ${debt_result.net_debt_at_exit:,.0f}M  "
-          f"(BK PDF: $2,150M)")
-    print(f"  Cash balance Y5:  ${debt_result.cash_balance[-1]:,.0f}M  "
-          f"(BK PDF: $118M)")
+    print(f"\n  Net debt at exit: {debt_result.net_debt_at_exit:,.0f}M  "
+          f"(BK PDF: USD 2,150M)")
+    print(f"  Cash balance Y5:  {debt_result.cash_balance[-1]:,.0f}M  "
+          f"(BK PDF: USD 118M)")
 
     # --- Standard mode comparison (more conservative, for generic deals) ---
     print("\n--- Standard mode (pure_sweep_mode=False) for comparison ---")
     debt_result_std = run_debt_model(
         cs, cf_result, min_cash, open_cash, pure_sweep_mode=False
     )
-    print(f"  Net debt at exit (standard): ${debt_result_std.net_debt_at_exit:,.0f}M")
-    print(f"  Net debt at exit (BK mode):  ${debt_result.net_debt_at_exit:,.0f}M")
-    print(f"  Difference: ${debt_result_std.net_debt_at_exit - debt_result.net_debt_at_exit:,.0f}M "
+    print(f"  Net debt at exit (standard): {debt_result_std.net_debt_at_exit:,.0f}M")
+    print(f"  Net debt at exit (BK mode):  {debt_result.net_debt_at_exit:,.0f}M")
+    print(f"  Difference: {debt_result_std.net_debt_at_exit - debt_result.net_debt_at_exit:,.0f}M "
           f"(standard is more conservative — less sweep, more debt remaining)")

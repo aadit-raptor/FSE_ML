@@ -89,11 +89,11 @@ def train_distress_model():
 
 
 def compute_distress_probs(
-    ebitda_path:    list,   # EBITDA each year [$M]
-    interest_path:  list,   # interest expense each year [$M]
-    mandatory_path: list,   # mandatory amort each year [$M]
-    fcf_path:       list,   # levered FCF each year [$M]
-    ending_debt:    list,   # total debt at year end [$M]
+    ebitda_path:    list,   # EBITDA each year [M]
+    interest_path:  list,   # interest expense each year [M]
+    mandatory_path: list,   # mandatory amort each year [M]
+    fcf_path:       list,   # levered FCF each year [M]
+    ending_debt:    list,   # total debt at year end [M]
 ) -> dict:
     """
     Compute year-by-year distress probability given deal outputs.

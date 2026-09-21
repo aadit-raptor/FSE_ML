@@ -7,6 +7,8 @@ from typing import List, Optional  # noqa: F401
 
 import numpy as np
 
+from core.money import DEFAULT_UNIT, in_unit, round_money
+
 
 @dataclass
 class HistoricalYear:
@@ -62,9 +64,9 @@ class ForecastAssumptions:
     other_cl_pct:     float   # other current liabilities % of revenue
     deferred_rev_pct: float   # deferred revenue % of revenue
     other_nca_pct:    float   # other non-current assets % of revenue
-    other_income:     float   # flat $M
-    dividends:        float   # flat $M
-    repurchases:      float   # flat $M
+    other_income:     float   # flat, in the company's money unit
+    dividends:        float   # flat, in the company's money unit
+    repurchases:      float   # flat, in the company's money unit
     ltd_change:       float   # net new borrowing (+ = draw, − = repay)
     interest_rate_cash: float # rate earned on cash balance
     interest_rate_debt: float # rate paid on debt balance
@@ -307,7 +309,7 @@ def run_3_statement_model(
 
         yr.total_equity = yr.common_stock + yr.retained_earn + yr.oci
         yr.balance_check= yr.total_assets - yr.total_liab - yr.total_equity
-        if abs(yr.balance_check) < 1e-9:   # float noise, not a gap; avoids "$-0.0"
+        if abs(yr.balance_check) < 1e-9:   # float noise, not a gap; avoids "-0.0"
             yr.balance_check = 0.0
 
         results.append(yr)
@@ -505,9 +507,14 @@ ASSUMPTION_KEYS = ["rev_g", "gm", "rd", "sga", "tax", "da", "sbc", "capex",
                    "min_cash"]
 
 
-def seed_assumptions(ltm):
-    """Default value for every assumption key, derived from the LTM year."""
-    rev     = ltm.revenue if ltm.revenue > 0 else 1
+def seed_assumptions(ltm, unit=DEFAULT_UNIT):
+    """Default value for every assumption key, derived from the LTM year.
+
+    Money is in ``unit``; the floors and roundings below were written in
+    millions and are converted, so a company in thousands seeds the same
+    assumptions as in millions."""
+    one = in_unit(1.0, unit)
+    rev     = ltm.revenue if ltm.revenue > 0 else one
     cogs    = abs(ltm.cogs)
     gp_m    = (rev + ltm.cogs) / rev
     rd_pct  = abs(ltm.rd)  / rev
@@ -517,11 +524,11 @@ def seed_assumptions(ltm):
     capex_pct = ltm.capex / rev
     tax_rate  = abs(ltm.tax) / max(
         (rev + ltm.cogs + ltm.rd + ltm.sga +
-         ltm.interest_inc + ltm.interest_exp + ltm.other_income), 0.01
+         ltm.interest_inc + ltm.interest_exp + ltm.other_income), in_unit(0.01, unit)
     )
     ar_days  = ltm.ar  / rev * 365 if ltm.ar > 0 else 45
-    inv_days = ltm.inventory / max(cogs, 1) * 365 if ltm.inventory > 0 else 30
-    ap_days  = ltm.ap  / max(cogs, 1) * 365 if ltm.ap > 0 else 60
+    inv_days = ltm.inventory / max(cogs, one) * 365 if ltm.inventory > 0 else 30
+    ap_days  = ltm.ap  / max(cogs, one) * 365 if ltm.ap > 0 else 60
     other_cl_pct = ltm.other_cl / rev if rev > 0 else 0.12
     def_rev_pct  = ltm.deferred_rev / rev if rev > 0 else 0.04
     other_nca_pct= ltm.other_nca / rev if rev > 0 else 0.08
@@ -541,13 +548,13 @@ def seed_assumptions(ltm):
         "ocl_pct":   round(other_cl_pct*100,1),
         "def_pct":   round(def_rev_pct*100,1),
         "nca_pct":   round(other_nca_pct*100,1),
-        "other_inc": round(ltm.other_income,1),
-        "divs":      round(ltm.dividends,1),
-        "buybacks":  round(ltm.repurchases,1),
+        "other_inc": round_money(ltm.other_income, 1, unit),
+        "divs":      round_money(ltm.dividends, 1, unit),
+        "buybacks":  round_money(ltm.repurchases, 1, unit),
         "ltd_chg":   0.0,
         "r_cash":    2.2,
         "r_debt":    2.8,
-        "min_cash":  round(ltm.cash * 0.20, 0),
+        "min_cash":  round_money(ltm.cash * 0.20, 0, unit),
     }
 
 

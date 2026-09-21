@@ -40,12 +40,12 @@ Cash flow stream convention:
     positive cash flows at the relevant year and increase IRR.
 
 Burger King reference:
-    Sponsor equity at entry:    $1,560M
-    Exit EBITDA (Year 5):         $672M
+    Sponsor equity at entry:    USD 1,560M
+    Exit EBITDA (Year 5):         USD 672M
     Exit multiple:                 8.8x
-    Exit EV:                    $5,914M  (672 * 8.8)
-    Net debt at exit:           $2,150M
-    Sponsor equity at exit:     $3,764M  (BK PDF shows $3,730M)
+    Exit EV:                    USD 5,914M  (672 * 8.8)
+    Net debt at exit:           USD 2,150M
+    Sponsor equity at exit:     USD 3,764M  (BK PDF shows USD 3,730M)
     MOIC:                          2.4x  (3,730 / 1,560)
     IRR:                          19.0%  (over 5 years)
 """
@@ -154,18 +154,18 @@ class ReturnAssumptions:
         Years from close to exit. BK: 5 years.
 
     interim_dividends : list[float]
-        Optional cash distributions to sponsor in years 1..n-1 ($M).
+        Optional cash distributions to sponsor in years 1..n-1 (M).
         Positive = cash to sponsor. Length must equal holding_period - 1.
         Leave empty for clean exit with no interim distributions.
 
     entry_equity : float
-        Sponsor equity check at close ($M). From transaction.py.
+        Sponsor equity check at close (M). From transaction.py.
 
     exit_ebitda : float
-        EBITDA in the exit year ($M). From operating_model.exit_ebitda.
+        EBITDA in the exit year (M). From operating_model.exit_ebitda.
 
     net_debt_at_exit : float
-        Total debt minus minimum cash at exit ($M). From debt_model.net_debt_at_exit.
+        Total debt minus minimum cash at exit (M). From debt_model.net_debt_at_exit.
 
     management_option_pool_pct : float
         Management equity / option pool as % of exit equity value.
@@ -190,7 +190,7 @@ class ReturnsResult:
     """
     Full returns output for a single scenario.
 
-    All dollar values in $M.
+    All money values in millions of the deal's currency.
     """
 
     # --- Inputs (echoed for reference) ---
@@ -223,7 +223,7 @@ class ReturnsResult:
 
     @property
     def value_created(self) -> float:
-        """Total value created ($M) = exit equity - entry equity."""
+        """Total value created (M) = exit equity - entry equity."""
         return round(self.net_exit_equity - self.entry_equity, 2)
 
 
@@ -389,7 +389,7 @@ def compute_equity_bridge(
         2. Multiple change   — market re-rating (expansion or compression)
         3. Deleveraging      — debt paydown releasing equity value
 
-    All values in $M.
+    All values in millions of the deal's currency.
 
     Method:
         We hold two factors constant and vary the third to isolate
@@ -498,11 +498,11 @@ def compute_exit_sensitivity(
     Parameters
     ----------
     entry_equity : float
-        Sponsor equity check at close ($M).
+        Sponsor equity check at close (M).
     exit_ebitda : float
-        EBITDA at exit ($M) — same for all cells (operating model fixed).
+        EBITDA at exit (M) — same for all cells (operating model fixed).
     net_debt_at_exit : float
-        Net debt at exit ($M) — same for all cells (debt model fixed).
+        Net debt at exit (M) — same for all cells (debt model fixed).
     holding_periods : list[int]
         Columns of the table. Default: [3, 4, 5, 6, 7].
     exit_multiples : list[float]
@@ -601,33 +601,33 @@ def print_returns_summary(
     print(f"  RETURNS SUMMARY")
     print(sep)
     print(f"  {'Holding period':<32} {result.holding_period} years")
-    print(f"  {'Entry equity':<32} ${result.entry_equity:>10,.1f}M")
-    print(f"  {'Exit EBITDA':<32} ${result.exit_ebitda:>10,.1f}M")
+    print(f"  {'Entry equity':<32} {result.entry_equity:>10,.1f}M")
+    print(f"  {'Exit EBITDA':<32} {result.exit_ebitda:>10,.1f}M")
     print(f"  {'Exit multiple':<32} {result.exit_multiple:>11.1f}x")
-    print(f"  {'Exit EV':<32} ${result.exit_ev:>10,.1f}M")
-    print(f"  {'Net debt at exit':<32} ${result.net_debt_at_exit:>10,.1f}M")
+    print(f"  {'Exit EV':<32} {result.exit_ev:>10,.1f}M")
+    print(f"  {'Net debt at exit':<32} {result.net_debt_at_exit:>10,.1f}M")
     print(dash)
-    print(f"  {'Exit equity (sponsor)':<32} ${result.net_exit_equity:>10,.1f}M")
+    print(f"  {'Exit equity (sponsor)':<32} {result.net_exit_equity:>10,.1f}M")
     print(dash)
     print(f"  {'MOIC':<32} {result.moic:>11.2f}x")
     print(f"  {'IRR':<32} {result.irr_pct:>10.1f}%")
-    print(f"  {'Value created':<32} ${result.value_created:>10,.1f}M")
+    print(f"  {'Value created':<32} {result.value_created:>10,.1f}M")
     print(sep)
 
     if bridge:
-        print(f"\n  EQUITY BRIDGE  (${bridge['entry_equity']:,.0f}M  →  ${bridge['exit_equity']:,.0f}M)")
+        print(f"\n  EQUITY BRIDGE  ({bridge['entry_equity']:,.0f}M  →  {bridge['exit_equity']:,.0f}M)")
         print(dash)
-        print(f"  {'Entry equity check':<32} ${bridge['entry_equity']:>10,.1f}M")
-        print(f"  {'+ EBITDA growth':<32} ${bridge['ebitda_growth']:>10,.1f}M  "
+        print(f"  {'Entry equity check':<32} {bridge['entry_equity']:>10,.1f}M")
+        print(f"  {'+ EBITDA growth':<32} {bridge['ebitda_growth']:>10,.1f}M  "
               f"({bridge['ebitda_growth_pct']:>5.1f}%)")
-        print(f"  {'+ Multiple expansion':<32} ${bridge['multiple_expansion']:>10,.1f}M  "
+        print(f"  {'+ Multiple expansion':<32} {bridge['multiple_expansion']:>10,.1f}M  "
               f"({bridge['multiple_expansion_pct']:>5.1f}%)")
-        print(f"  {'+ Deleveraging':<32} ${bridge['deleveraging']:>10,.1f}M  "
+        print(f"  {'+ Deleveraging':<32} {bridge['deleveraging']:>10,.1f}M  "
               f"({bridge['deleveraging_pct']:>5.1f}%)")
         if abs(bridge['residual']) > 0.1:
-            print(f"  {'  Residual (rounding)':<32} ${bridge['residual']:>10,.1f}M")
+            print(f"  {'  Residual (rounding)':<32} {bridge['residual']:>10,.1f}M")
         print(dash)
-        print(f"  {'Exit equity (sponsor)':<32} ${bridge['exit_equity']:>10,.1f}M")
+        print(f"  {'Exit equity (sponsor)':<32} {bridge['exit_equity']:>10,.1f}M")
         print(sep)
 
 
@@ -703,7 +703,7 @@ if __name__ == "__main__":
     print(f"  (Difference is small here because there are no interim cash flows)")
 
     # --- Test with interim dividend ---
-    print("\n--- With $200M dividend recap in year 3 ---")
+    print("\n--- With USD 200M dividend recap in year 3 ---")
     bk_recap = ReturnAssumptions(
         exit_multiple=8.8,
         holding_period=5,
@@ -747,8 +747,8 @@ if __name__ == "__main__":
         net_debt_at_exit=2150.0,
     )
     distress_result = compute_returns(distress)
-    print(f"  Exit EV: ${distress_result.exit_ev:,.0f}M  "
-          f"Net debt: ${distress_result.net_debt_at_exit:,.0f}M  "
-          f"Exit equity: ${distress_result.net_exit_equity:,.0f}M")
+    print(f"  Exit EV: {distress_result.exit_ev:,.0f}M  "
+          f"Net debt: {distress_result.net_debt_at_exit:,.0f}M  "
+          f"Exit equity: {distress_result.net_exit_equity:,.0f}M")
     print(f"  MOIC: {distress_result.moic:.2f}x  IRR: {distress_result.irr_pct:.1f}%  "
           f"(equity wiped out)")

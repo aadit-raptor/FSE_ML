@@ -30,14 +30,14 @@ Burger King reference (FYE 6/30, conservative):
     = Levered FCF:        -16      18      54     113     191
 
     Key insight: Mandatory debt repayments in the BK model are ZERO
-    because the USD term loan's 1% amort ($15.1M/yr) is funded from
+    because the USD term loan's 1% amort (USD 15.1M/yr) is funded from
     cash on hand, not from the FCF sweep. The FCF sweep is purely
     the excess above the minimum cash floor. We model both.
 
 NWC convention:
     A positive NWC change = cash OUTFLOW (working capital is building up).
     A negative NWC change = cash INFLOW (working capital is releasing).
-    BK uses +$27M in year 1 = cash outflow = NWC is increasing.
+    BK uses +USD 27M in year 1 = cash outflow = NWC is increasing.
     In the formula: FCF -= delta_nwc (positive delta = use of cash).
 """
 
@@ -111,17 +111,17 @@ class CashFlowResult:
     """
     Year-by-year levered free cash flow output.
 
-    All values in $M. Index 0 = Year 1.
+    All values in millions of the deal's currency. Index 0 = Year 1.
 
     Fields
     ------
     net_income          From complete_income_statement()
     da                  From operating_model (non-cash add-back)
-    capex               Capital expenditures ($M, shown as positive outflow)
+    capex               Capital expenditures (M, shown as positive outflow)
     capex_pct           Capex / revenue
-    delta_nwc           Change in net working capital ($M, positive = outflow)
+    delta_nwc           Change in net working capital (M, positive = outflow)
     delta_nwc_pct       delta_nwc / revenue
-    mandatory_repay     Scheduled debt amortization ($M, all tranches combined)
+    mandatory_repay     Scheduled debt amortization (M, all tranches combined)
     levered_fcf         Net Income + D&A - Capex - delta_nwc - mandatory_repay
     cumulative_fcf      Running sum of levered_fcf
 
@@ -147,12 +147,12 @@ class CashFlowResult:
 
     @property
     def total_fcf(self) -> float:
-        """Sum of all levered FCF over the holding period ($M)."""
+        """Sum of all levered FCF over the holding period (M)."""
         return round(sum(self.levered_fcf), 2)
 
     @property
     def avg_annual_fcf(self) -> float:
-        """Average annual levered FCF ($M)."""
+        """Average annual levered FCF (M)."""
         return round(self.total_fcf / self.holding_period, 2)
 
 
@@ -304,8 +304,8 @@ def print_cashflow_model(result: CashFlowResult) -> None:
     row("Cumulative FCF",           result.cumulative_fcf)
 
     print(f"{'=' * (30 + n * 10)}")
-    print(f"  Total FCF over period:  ${result.total_fcf:,.1f}M")
-    print(f"  Avg annual FCF:         ${result.avg_annual_fcf:,.1f}M\n")
+    print(f"  Total FCF over period:  {result.total_fcf:,.1f}M")
+    print(f"  Avg annual FCF:         {result.avg_annual_fcf:,.1f}M\n")
 
 
 # ---------------------------------------------------------------------------
@@ -394,7 +394,7 @@ if __name__ == "__main__":
             f"{flag}"
         )
 
-    print(f"\n  Total FCF: ${cf_result.total_fcf:,.0f}M")
+    print(f"\n  Total FCF: {cf_result.total_fcf:,.0f}M")
 
     # --- Test with mandatory repayments included ---
     print("\n--- With mandatory repayments deducted ---")
@@ -410,8 +410,8 @@ if __name__ == "__main__":
     cf_result_2 = run_cashflow_model(op_result, cf_with_mandatory, cs)
     print_cashflow_model(cf_result_2)
 
-    print(f"  Mandatory repayments Year 1: ${cf_result_2.mandatory_repay[0]:,.1f}M")
-    print(f"  FCF after mandatory Year 1:  ${cf_result_2.levered_fcf[0]:,.1f}M")
+    print(f"  Mandatory repayments Year 1: {cf_result_2.mandatory_repay[0]:,.1f}M")
+    print(f"  FCF after mandatory Year 1:  {cf_result_2.levered_fcf[0]:,.1f}M")
 
     # --- Test generic assumptions ---
     print("\n--- Generic assumptions (for simulation) ---")
