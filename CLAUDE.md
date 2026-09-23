@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-21 (PLAN.md 2.2). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-24 (development cycle, PLAN.md 0.2, 0.3, 11.4 added). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -217,7 +217,10 @@ the appendix lists every US-specific and deal-dependent assumption in the
 code. Work one task per session and per PR, lowest open number first, tick it
 in PLAN.md in the same PR. 0.1 is done (live site above); 2.1 is done (labels
 below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitoring, alert drill in DEPLOY.md); 1.3 is done (database); 1.4 is done (accounts and
-sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); 2.2 is done (currency and money units, below); next is 2.3. End every task session with the handoff described in PLAN.md: tell the
+sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); 2.2 is done (currency and money units, below). Added 2026-09-24: the
+development cycle in **docs/WORKFLOW.md** (ECC merged with these rules), and
+tasks 0.2 (own domain, when the user has bought one), 0.3 (cycle gates in CI)
+and 11.4 (owner's handbook). **Next is 0.3**, then 2.3. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -352,6 +355,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
+| `docs/WORKFLOW.md`, `.github/pull_request_template.md` | The development cycle every change follows, and the PR form that records it |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
 | `db/` | Database layer: `engine.py` (Neon-aware connections and retries), `models.py` (tables and column rules), `migrations/` (Alembic, numbered `0001_…`), `migrate.py` (CLI and migrate-on-first-use), `health.py` (status and storage check), `local.py` (local Postgres) |
 | `db/users.py` | Account profiles: validating and storing country, currency, locale and time zone (`api/routers/account.py` serves them) |
@@ -467,6 +471,12 @@ Setup on a fresh machine: Python 3.12, then
 
 ## Working rules
 
+**The development cycle is docs/WORKFLOW.md** (research → plan → test first →
+build → review → verify → ship → remember), ECC's framework merged with the
+rules below. Where they differ, the rules below win.
+
+@docs/WORKFLOW.md
+
 - **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e`, `docker` jobs)
   green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
   The GitHub CLI is installed but not signed in (`gh auth status`), and
@@ -489,7 +499,9 @@ Setup on a fresh machine: Python 3.12, then
   `moneyLabel()`, never a written currency sign.
 - **Optional ML** stays behind guarded, lazy imports; the app and CI's `core`
   job must work without ML packages.
-- Commit messages explain *why* and how it was verified.
+- Commit messages start with an ECC type (`feat:`, `fix:`, `docs:` …) and
+  explain *why* and how it was verified. PRs use
+  `.github/pull_request_template.md`.
 
 ## Tooling
 
@@ -502,6 +514,7 @@ reinstall:
 | `web-design-guidelines` | `npx skills add vercel-labs/agent-skills --skill web-design-guidelines` | Fetches Vercel's guidelines from GitHub each run |
 | `image-to-code` | `npx skills add https://github.com/Leonxlnx/taste-skill --skill image-to-code` | Written for Codex; expects to generate images, which Claude Code can't |
 | Playwright CLI | `npm install -g @playwright/cli@latest` then `playwright-cli install --skills --global` | No Chrome on the original machine: use `--browser=msedge`. Writes to `.playwright-cli/` |
+| ECC (Everything Claude Code) | In an interactive `claude` terminal: `/plugin marketplace add https://github.com/affaan-m/ECC`, then `/plugin install ecc@ecc` | Optional (docs/WORKFLOW.md "Installing ECC"). Plugin only: no `install.sh`, no hooks, no global rules copy. Not installed as of 2026-09-24 |
 | awesome-design-md | `git clone https://github.com/VoltAgent/awesome-design-md` | 74 brand `DESIGN.md` files — inspiration only, don't clone a real brand's identity |
 
 Skills load when a session starts: install first, then open a new session.
