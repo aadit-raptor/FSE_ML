@@ -16,7 +16,7 @@ DEFAULTS = {
     # --- Transaction fees (dashboard page 1) ---
     "tx_fee_pct":          2.3,    # % of EV
     "fin_fee_pct":         2.6,    # % of total debt
-    "other_uses":          0.0,    # $M flat
+    "other_uses":          0.0,    # M flat
 
     # --- Deal model defaults (pre-fill pages 1-2) ---
     "def_ebitda":          100.0,

@@ -9,8 +9,10 @@ import { LineChart } from "@/components/charts/LineChart";
 import { EmptyState, LoadingTiles, Notice, RailGroup, Screen } from "@/components/ui/Screen";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { MoneyScope, useMoney } from "@/components/ui/MoneyScope";
 import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtDelta, fmtMoney, fmtMultiple, isNum } from "@/lib/format";
+import { DEFAULT_MONEY, fieldUnit, MONEY } from "@/lib/money";
 import { backtestSampleLabel } from "@/lib/provenance";
 
 import { BACKTEST_PATHS, splitDealName, useBacktest } from "./BacktestProvider";
@@ -18,7 +20,7 @@ import { BACKTEST_PATHS, splitDealName, useBacktest } from "./BacktestProvider";
 const pctNum = (v: number | null | undefined, d = 1) => (isNum(v) ? `${v.toFixed(d)}%` : "n/a");
 
 const ENTRY_LABELS: [string, string, string][] = [
-  ["entry_ebitda", "EBITDA", "$M"],
+  ["entry_ebitda", "EBITDA", MONEY],
   ["entry_multiple", "Entry multiple", "x"],
   ["exit_multiple", "Exit multiple", "x"],
   ["holding_period", "Hold", "yr"],
@@ -37,6 +39,7 @@ const ENTRY_LABELS: [string, string, string][] = [
 
 function Rail() {
   const { deals, selected, select, deal } = useBacktest();
+  const { money } = useMoney();
   return (
     <>
       <RailGroup title="Historical deal">
@@ -79,7 +82,7 @@ function Rail() {
                 <div key={k} className="contents">
                   <dt className="type-input-label">{label}</dt>
                   <dd className="text-right font-mono text-[11.5px] text-ink">
-                    {deal.entry[k]} <span className="text-[10px] text-[#56636a]">{unit}</span>
+                    {deal.entry[k]} <span className="text-[10px] text-[#56636a]">{fieldUnit(unit, money)}</span>
                   </dd>
                 </div>
               ))}
@@ -92,9 +95,11 @@ function Rail() {
 }
 
 function BacktestScreen({ children }: { children: ReactNode }) {
-  const { activate, status, result, error, deals } = useBacktest();
+  const { activate, status, result, error, deals, deal } = useBacktest();
   useEffect(() => activate(), [activate]);
+  // The example deal's own currency and unit, not the open deal's
   return (
+    <MoneyScope money={result?.money ?? deal?.money ?? DEFAULT_MONEY}>
     <Screen
       rail={<Rail />}
       bar={
@@ -120,10 +125,12 @@ function BacktestScreen({ children }: { children: ReactNode }) {
         <LoadingTiles />
       )}
     </Screen>
+    </MoneyScope>
   );
 }
 
 function Headline() {
+  const { label: mu } = useMoney();
   const { result: r } = useBacktest();
   if (!r) return null;
   const lastPred = r.predicted_ebitda.at(-1);
@@ -134,8 +141,8 @@ function Headline() {
       <Kpi title="Predicted IRR" value={pctNum(r.predicted_irr_mean)} sub={`mean of ${BACKTEST_PATHS.toLocaleString("en-US")} paths`} />
       <Kpi title="Predicted range" value={pctNum(r.predicted_irr_p5)} sub={`to ${pctNum(r.predicted_irr_p95)} (P5 to P95)`} />
       <Kpi title="Actual percentile" value={isNum(r.actual_percentile) ? r.actual_percentile.toFixed(1) : "n/a"} sub="of predicted paths" />
-      <Kpi title="Exit EBITDA" value={fmtMoney(lastAct)} sub={`predicted ${fmtMoney(lastPred)} $M`} tone={isNum(lastAct) && isNum(lastPred) ? (lastAct >= lastPred ? "gain" : "loss") : undefined} />
-      <Kpi title="Exit equity" value={fmtMoney(r.actual_exit_equity)} sub={`predicted ${fmtMoney(r.predicted_exit_equity)} $M`} />
+      <Kpi title="Exit EBITDA" value={fmtMoney(lastAct)} sub={`predicted ${fmtMoney(lastPred)} ${mu}`} tone={isNum(lastAct) && isNum(lastPred) ? (lastAct >= lastPred ? "gain" : "loss") : undefined} />
+      <Kpi title="Exit equity" value={fmtMoney(r.actual_exit_equity)} sub={`predicted ${fmtMoney(r.predicted_exit_equity)} ${mu}`} />
     </>
   );
 }
@@ -149,13 +156,14 @@ export function PredictedStep() {
 }
 
 function Predicted() {
+  const { label: mu } = useMoney();
   const { result: r, deal } = useBacktest();
   if (!r || !deal) return null;
   const years = deal.actual_years.length ? deal.actual_years.map(String) : r.years.map((y) => `Y${y.year_index}`);
   return (
     <Tiles>
       <Headline />
-      <Tile span={7} title="EBITDA, predicted vs actual" unit="$M">
+      <Tile span={7} title="EBITDA, predicted vs actual" unit={mu}>
         <GroupedBars
           label={`Predicted and actual EBITDA for ${splitDealName(deal.name).name}`}
           categories={years}
@@ -199,22 +207,23 @@ export function AttributionStep() {
 }
 
 function Attribution() {
+  const { label: mu } = useMoney();
   const { result: r, deal } = useBacktest();
   if (!r || !deal) return null;
   const years = deal.actual_years.length ? deal.actual_years.map(String) : r.years.map((y) => `Y${y.year_index}`);
   return (
     <Tiles>
       <Headline />
-      <Tile span={6} title="Where the prediction missed" unit="$M of exit equity">
+      <Tile span={6} title="Where the prediction missed" unit={`${mu} of exit equity`}>
         <DivergingBars
           label="Error attribution"
           format={fmtDelta}
           rows={Object.entries(r.attribution).map(([k, v]) => ({ label: ATTRIBUTION[k] ?? k, value: v }))}
         />
         <p className="type-body text-[9px]">
-          The parts add up to actual minus predicted exit equity ({fmtDelta(Object.values(r.attribution).reduce((a, b) => a + b, 0))} $M). Exit
+          The parts add up to actual minus predicted exit equity ({fmtDelta(Object.values(r.attribution).reduce((a, b) => a + b, 0))} {mu}). Exit
           multiple {deal.entry.exit_multiple}x predicted, {r.actual_exit_multiple.toFixed(1)}x actual; predicted net debt at exit{" "}
-          {fmtMoney(r.predicted_net_debt_at_exit)} $M.
+          {fmtMoney(r.predicted_net_debt_at_exit)} {mu}.
         </p>
       </Tile>
       <Tile span={6} title="EBITDA margin" unit="actual vs predicted">
@@ -241,6 +250,7 @@ export function YearsStep() {
 }
 
 function Years() {
+  const { label: mu, money } = useMoney();
   const { result: r, deal } = useBacktest();
   if (!r || !deal) return null;
   const years = deal.actual_years.length ? deal.actual_years.map(String) : r.years.map((y) => `Y${y.year_index}`);
@@ -250,7 +260,7 @@ function Years() {
       <Tile
         span={12}
         title="Year by year"
-        unit="$M"
+        unit={mu}
         action={
           <DownloadButton
             onDownload={() =>
@@ -266,12 +276,12 @@ function Years() {
                   [
                     ["IRR (%)", r.predicted_irr_mean, r.actual_irr],
                     ["MOIC (x)", r.predicted_moic, r.actual_moic],
-                    ["Entry equity ($M)", r.predicted_equity_entry, r.actual_equity_entry],
-                    ["Exit equity ($M)", r.predicted_exit_equity, r.actual_exit_equity],
+                    [`Entry equity (${mu})`, r.predicted_equity_entry, r.actual_equity_entry],
+                    [`Exit equity (${mu})`, r.predicted_exit_equity, r.actual_exit_equity],
                   ],
                 ),
-                sheet("Attribution", ["Part", "$M"], Object.entries(r.attribution).map(([k, v]) => [k, v])),
-              ])
+                sheet("Attribution", ["Part", `${mu}`], Object.entries(r.attribution).map(([k, v]) => [k, v])),
+              ], money)
             }
           />
         }
@@ -289,7 +299,7 @@ function Years() {
           ]}
         />
       </Tile>
-      <Tile span={6} title="Equity" unit="$M">
+      <Tile span={6} title="Equity" unit={mu}>
         <DataTable
           caption="Predicted and actual equity"
           columns={["Predicted", "Actual"]}

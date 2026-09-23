@@ -12,14 +12,14 @@ Responsibilities:
        downstream modules (capital_structure, operating_model, returns).
 
 Burger King reference:
-    Share price:      $18.86
+    Share price:      USD 18.86
     Premium:          27%
-    Offer price:      $24.01
+    Offer price:      USD 24.01
     Diluted shares:   139M
-    Equity value:     $3,325M
-    + Net debt:       $567M  ($755M debt - $188M cash)
-    = EV:             $3,892M
-    Entry multiple:   8.75x  ($3,892M / $445M LTM EBITDA)
+    Equity value:     USD 3,325M
+    + Net debt:       USD 567M  (USD 755M debt - USD 188M cash)
+    = EV:             USD 3,892M
+    Entry multiple:   8.75x  (USD 3,892M / USD 445M LTM EBITDA)
 """
 
 from dataclasses import dataclass, field
@@ -54,27 +54,27 @@ class TransactionAssumptions:
     company_name: str = "Target Company"
 
     # --- Public deal inputs (Mode 1) ---
-    share_price: Optional[float] = None          # Latest closing price ($)
+    share_price: Optional[float] = None          # Latest closing price (per share)
     premium_pct: Optional[float] = None          # Acquisition premium, e.g. 0.27 for 27%
     diluted_shares: Optional[float] = None       # Diluted shares outstanding (millions)
 
     # --- Private deal input (Mode 2) ---
-    direct_equity_value: Optional[float] = None  # Equity value ($M) if not using share approach
+    direct_equity_value: Optional[float] = None  # Equity value (M) if not using share approach
 
     # --- Balance sheet at entry ---
-    existing_debt: float = 0.0                   # Debt being refinanced ($M)
-    existing_cash: float = 0.0                   # Total cash on balance sheet ($M)
-    minimum_cash: float = 0.0                    # Cash retained in business post-close ($M)
+    existing_debt: float = 0.0                   # Debt being refinanced (M)
+    existing_cash: float = 0.0                   # Total cash on balance sheet (M)
+    minimum_cash: float = 0.0                    # Cash retained in business post-close (M)
 
     # --- LTM financials ---
-    ltm_ebitda: float = 445.0                    # Last twelve months EBITDA ($M)
+    ltm_ebitda: float = 445.0                    # Last twelve months EBITDA (M)
 
     # --- Fee assumptions ---
     transaction_fees_pct: float = 0.02           # % of EV (advisory, legal, etc.)
     financing_fees_pct: float = 0.02             # % of total debt raised (amortised via OID)
 
     # --- Other uses ---
-    other_uses: float = 0.0                      # Any additional uses of funds ($M)
+    other_uses: float = 0.0                      # Any additional uses of funds (M)
 
 
 @dataclass
@@ -83,7 +83,7 @@ class SourcesAndUses:
     The Sources & Uses table.
     Sources == Uses by construction (enforced in TransactionResult).
 
-    All values in $M.
+    All values in millions of the deal's currency.
     """
     # Sources
     total_debt_raised: float = 0.0
@@ -124,24 +124,24 @@ class TransactionResult:
     This object is passed as-is to every downstream module.
 
     Key values:
-        enterprise_value    — entry EV ($M)
+        enterprise_value    — entry EV (M)
         entry_multiple      — EV / LTM EBITDA (x)
-        sponsor_equity      — PE firm's equity check ($M)
-        total_debt          — total new debt raised ($M)
-        net_debt_at_entry   — total_debt - minimum_cash ($M)
+        sponsor_equity      — PE firm's equity check (M)
+        total_debt          — total new debt raised (M)
+        net_debt_at_entry   — total_debt - minimum_cash (M)
         sources_and_uses    — the balanced S&U table
     """
     company_name: str
-    offer_price_per_share: float         # $0 if private deal
-    equity_value: float                  # $M
-    enterprise_value: float              # $M
+    offer_price_per_share: float         # USD 0 if private deal
+    equity_value: float                  # M
+    enterprise_value: float              # M
     entry_multiple: float                # EV / LTM EBITDA
-    ltm_ebitda: float                    # $M
-    existing_debt: float                 # $M
-    existing_cash: float                 # $M
-    minimum_cash: float                  # $M retained post-close
-    total_debt: float                    # New debt raised ($M)
-    sponsor_equity: float                # PE equity check ($M)
+    ltm_ebitda: float                    # M
+    existing_debt: float                 # M
+    existing_cash: float                 # M
+    minimum_cash: float                  # M retained post-close
+    total_debt: float                    # New debt raised (M)
+    sponsor_equity: float                # PE equity check (M)
     net_debt_at_entry: float             # total_debt - minimum_cash
     sources_and_uses: SourcesAndUses
 
@@ -164,9 +164,9 @@ def build_transaction(
     assumptions : TransactionAssumptions
         Raw deal inputs.
     total_debt_raised : float
-        Sum of all debt tranche amounts ($M). Comes from CapitalStructure.
+        Sum of all debt tranche amounts (M). Comes from CapitalStructure.
     sponsor_equity : float
-        Sponsor equity check ($M). Comes from solve_sponsor_equity().
+        Sponsor equity check (M). Comes from solve_sponsor_equity().
 
     Returns
     -------
@@ -178,7 +178,7 @@ def build_transaction(
     ValueError
         If neither a share-price approach nor a direct equity value is provided.
     ValueError
-        If the Sources & Uses table does not balance within $0.01M.
+        If the Sources & Uses table does not balance within USD 0.01M.
     """
 
     # ------------------------------------------------------------------
@@ -191,7 +191,7 @@ def build_transaction(
                 "premium_pct is required when using the share-price approach."
             )
         offer_price = assumptions.share_price * (1 + assumptions.premium_pct)
-        equity_value = offer_price * assumptions.diluted_shares   # $M
+        equity_value = offer_price * assumptions.diluted_shares   # M
     elif assumptions.direct_equity_value is not None:
         # Mode 2: Private deal — equity value given directly
         offer_price = 0.0
@@ -212,14 +212,14 @@ def build_transaction(
     entry_multiple = enterprise_value / assumptions.ltm_ebitda
 
     # ------------------------------------------------------------------
-    # Step 3: Compute fees (absolute $M)
+    # Step 3: Compute fees (absolute, in M)
     # ------------------------------------------------------------------
     transaction_fees = enterprise_value * assumptions.transaction_fees_pct
     financing_fees = total_debt_raised * assumptions.financing_fees_pct
 
     # ------------------------------------------------------------------
     # Step 4: Cash on hand available to fund deal
-    # The BK model used $69M of excess cash (total $188M - $118M minimum)
+    # The BK model used USD 69M of excess cash (total USD 188M - USD 118M minimum)
     # as a source of funds.
     # ------------------------------------------------------------------
     cash_available = max(assumptions.existing_cash - assumptions.minimum_cash, 0.0)
@@ -242,13 +242,13 @@ def build_transaction(
 
     # ------------------------------------------------------------------
     # Step 6: Validate balance
-    # Sources must equal Uses within $0.01M rounding tolerance
+    # Sources must equal Uses within USD 0.01M rounding tolerance
     # ------------------------------------------------------------------
     if abs(sau.check) > 0.01:
         raise ValueError(
-            f"Sources & Uses do not balance: delta = ${sau.check:.4f}M. "
-            f"Total Sources = ${sau.total_sources:.2f}M, "
-            f"Total Uses = ${sau.total_uses:.2f}M. "
+            f"Sources & Uses do not balance: delta = {sau.check:.4f}M. "
+            f"Total Sources = {sau.total_sources:.2f}M, "
+            f"Total Uses = {sau.total_uses:.2f}M. "
             f"Check sponsor_equity calculation."
         )
 
@@ -301,7 +301,7 @@ def solve_sponsor_equity(
     Returns
     -------
     float
-        Sponsor equity check in $M.
+        Sponsor equity check in M.
     """
 
     # Recompute equity value (same logic as build_transaction)
@@ -330,8 +330,8 @@ def solve_sponsor_equity(
 
     if sponsor_equity < 0:
         raise ValueError(
-            f"Sponsor equity is negative (${sponsor_equity:.2f}M). "
-            f"Debt raised (${total_debt_raised:.2f}M) exceeds total uses. "
+            f"Sponsor equity is negative ({sponsor_equity:.2f}M). "
+            f"Debt raised ({total_debt_raised:.2f}M) exceeds total uses. "
             f"Reduce total debt or increase uses."
         )
 
@@ -357,31 +357,31 @@ def print_transaction_summary(result: TransactionResult) -> None:
     print(f"\n  ENTRY VALUATION")
     print(sep)
     if result.offer_price_per_share > 0:
-        print(f"  Offer price per share       ${result.offer_price_per_share:>10.2f}")
-    print(f"  Equity value                ${result.equity_value:>10,.1f}M")
-    print(f"  + Existing debt             ${result.existing_debt:>10,.1f}M")
-    print(f"  - Existing cash             ${result.existing_cash:>10,.1f}M")
-    print(f"  Enterprise value            ${result.enterprise_value:>10,.1f}M")
-    print(f"  LTM EBITDA                  ${result.ltm_ebitda:>10,.1f}M")
+        print(f"  Offer price per share       {result.offer_price_per_share:>10.2f}")
+    print(f"  Equity value                {result.equity_value:>10,.1f}M")
+    print(f"  + Existing debt             {result.existing_debt:>10,.1f}M")
+    print(f"  - Existing cash             {result.existing_cash:>10,.1f}M")
+    print(f"  Enterprise value            {result.enterprise_value:>10,.1f}M")
+    print(f"  LTM EBITDA                  {result.ltm_ebitda:>10,.1f}M")
     print(f"  Entry multiple              {result.entry_multiple:>11.1f}x")
 
     print(f"\n  SOURCES & USES")
     print(sep)
     print(f"  {'SOURCES':<30} {'USES':<20}")
     print(f"  {sep}")
-    print(f"  New debt raised  ${sau.total_debt_raised:>7,.1f}M   "
-          f"Equity purchase  ${sau.equity_purchase_price:>7,.1f}M")
-    print(f"  Cash on hand     ${sau.cash_on_hand_used:>7,.1f}M   "
-          f"Debt refinanced  ${sau.debt_refinanced:>7,.1f}M")
-    print(f"  Sponsor equity   ${sau.sponsor_equity:>7,.1f}M   "
-          f"Transaction fees ${sau.transaction_fees:>7,.1f}M")
-    print(f"  {'':>26}   Financing fees   ${sau.financing_fees:>7,.1f}M")
+    print(f"  New debt raised  {sau.total_debt_raised:>7,.1f}M   "
+          f"Equity purchase  {sau.equity_purchase_price:>7,.1f}M")
+    print(f"  Cash on hand     {sau.cash_on_hand_used:>7,.1f}M   "
+          f"Debt refinanced  {sau.debt_refinanced:>7,.1f}M")
+    print(f"  Sponsor equity   {sau.sponsor_equity:>7,.1f}M   "
+          f"Transaction fees {sau.transaction_fees:>7,.1f}M")
+    print(f"  {'':>26}   Financing fees   {sau.financing_fees:>7,.1f}M")
     if sau.other_uses > 0:
-        print(f"  {'':>26}   Other            ${sau.other_uses:>7,.1f}M")
+        print(f"  {'':>26}   Other            {sau.other_uses:>7,.1f}M")
     print(sep)
-    print(f"  Total            ${sau.total_sources:>7,.1f}M   "
-          f"Total            ${sau.total_uses:>7,.1f}M")
-    print(f"\n  Check (must be 0): ${sau.check:.4f}M")
+    print(f"  Total            {sau.total_sources:>7,.1f}M   "
+          f"Total            {sau.total_uses:>7,.1f}M")
+    print(f"\n  Check (must be 0): {sau.check:.4f}M")
     print(f"{'=' * 55}\n")
 
 
@@ -396,13 +396,13 @@ if __name__ == "__main__":
         company_name="Burger King",
         share_price=18.86,
         premium_pct=0.27,
-        diluted_shares=138.5,       # ~139M shares → equity value ~$3,325M
+        diluted_shares=138.5,       # ~139M shares → equity value ~USD 3,325M
         existing_debt=755.0,
         existing_cash=188.0,
         minimum_cash=118.0,
         ltm_ebitda=445.0,
-        transaction_fees_pct=0.0234,   # $91.2M / $3,893M EV
-        financing_fees_pct=0.0261,     # $69M / $2,644M debt
+        transaction_fees_pct=0.0234,   # USD 91.2M / USD 3,893M EV
+        financing_fees_pct=0.0261,     # USD 69M / USD 2,644M debt
         other_uses=32.0,
     )
 

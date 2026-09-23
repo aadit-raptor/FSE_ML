@@ -5,13 +5,41 @@ are passed in explicitly instead of read from session state.
 """
 import numpy as np
 
+from core.money import Money, to_millions
 from lbo_engine.model import LBOParams, run_lbo
 from simulation.vectorized_simulation import SimulationParams, run_vectorized_simulation_full
 
 
+# The example deals' figures are US dollar millions
+PRELOADED_MONEY = Money("USD", "millions")
+
+# Money fields of a backtest's inputs (actual results are all money)
+ENTRY_MONEY = ("entry_ebitda",)
+EXIT_MONEY = ("exit_ev", "net_debt_at_exit", "sponsor_equity_entry")
+
+
+# Money in a backtest answer (api/routers/backtesting.py builds it). Not
+# derivable from names: "exit_multiple" under attribution is money.
+BACKTEST_MONEY_KEYS = frozenset({
+    "predicted_equity_entry", "predicted_exit_equity", "predicted_ebitda", "actual_equity_entry",
+    "actual_exit_equity", "predicted_net_debt_at_exit", "attribution", "actual_ebitda",
+    "ebitda_variance", "actual_revenue", "actual_fcf", "actual_total_debt",
+})
+
+
+def backtest_in_millions(entry, actual_results, actual_exit, cfg, unit):
+    """A backtest's inputs with money in millions, the unit the engine runs in."""
+    def m(v):
+        return to_millions(v, unit)
+    entry = {k: m(v) if k in ENTRY_MONEY else v for k, v in entry.items()}
+    actual_results = {k: [m(x) for x in v] for k, v in actual_results.items()}
+    actual_exit = {k: m(v) if k in EXIT_MONEY else v for k, v in actual_exit.items()}
+    cfg = {**cfg, "other_uses": m(cfg["other_uses"])}
+    return entry, actual_results, actual_exit, cfg
+
 PRELOADED_DEALS = {
     "Burger King (3G Capital, 2010)": {
-        "description": "3G Capital acquired BK in 2010 for $4.0B enterprise value. "
+        "description": "3G Capital acquired BK in 2010 for USD 4.0bn enterprise value. "
                        "Classic operational turnaround — franchise refranchising, cost cuts, "
                        "and international expansion drove EBITDA nearly doubling over 5 years.",
         "entry": {
@@ -51,10 +79,10 @@ PRELOADED_DEALS = {
         "outcome": "SUCCESS",
     },
     "Hilton Hotels (Blackstone, 2007)": {
-        "description": "Blackstone acquired Hilton for $26B in 2007 — right before the "
+        "description": "Blackstone acquired Hilton for USD 26bn in 2007 — right before the "
                        "financial crisis. Despite severe distress in 2008-09, Blackstone "
                        "restructured, expanded internationally, and exited via IPO in 2013 "
-                       "for a record ~$14B profit.",
+                       "for a record ~USD 14bn profit.",
         "entry": {
             "entry_ebitda": 1400.0,
             "entry_multiple": 18.5,
@@ -92,7 +120,7 @@ PRELOADED_DEALS = {
         "outcome": "SUCCESS",
     },
     "Dell (Silver Lake, 2013)": {
-        "description": "Silver Lake and Michael Dell took Dell private for $24.9B "
+        "description": "Silver Lake and Michael Dell took Dell private for USD 24.9bn "
                        "to restructure from a PC maker to an enterprise IT solutions provider, "
                        "away from public market short-termism. Returned public via VMware "
                        "tracking stock and then direct listing in 2018.",
@@ -133,7 +161,7 @@ PRELOADED_DEALS = {
         "outcome": "SUCCESS",
     },
     "Freescale Semiconductor (Consortium, 2006)": {
-        "description": "Blackstone, Carlyle, TPG, and Permira acquired Freescale for $17.6B "
+        "description": "Blackstone, Carlyle, TPG, and Permira acquired Freescale for USD 17.6bn "
                        "in 2006 — one of the largest tech LBOs ever at the time. "
                        "The financial crisis decimated semiconductor demand. "
                        "Freescale filed for bankruptcy in 2009.",
@@ -252,7 +280,8 @@ def predicted_ebitda(entry):
 
 
 def prediction_lbo_params(entry, cfg):
-    """Deal-model inputs for a backtest's entry assumptions (percentages as numbers)."""
+    """Deal-model inputs for a backtest's entry assumptions (percentages as numbers,
+    money in millions)."""
     from core.deal import INTEREST_TOLERANCE, MAX_INTEREST_PASSES
     return LBOParams(
         entry_ebitda=entry["entry_ebitda"], entry_multiple=entry["entry_multiple"],

@@ -4,6 +4,9 @@ import { useId, useRef, useState } from "react";
 
 import { fmtInput } from "@/lib/format";
 import { validate, type FieldSpec } from "@/lib/fields";
+import { fieldUnit } from "@/lib/money";
+
+import { useMoney } from "./MoneyScope";
 
 type Props = {
   spec: FieldSpec;
@@ -25,6 +28,7 @@ type Props = {
  */
 export function NumberField({ spec, value, onCommit, disabled, changed, label }: Props) {
   const id = useId();
+  const { money } = useMoney();
   const [draft, setDraft] = useState<string | null>(null);
   const beforeEdit = useRef(value);
   const shown = draft ?? fmtInput(value, spec.decimals);
@@ -49,7 +53,7 @@ export function NumberField({ spec, value, onCommit, disabled, changed, label }:
 
   return (
     <div className="grid gap-0.5 py-px">
-      <div className="grid grid-cols-[1fr_68px_24px] items-center gap-1.5">
+      <div className="grid grid-cols-[1fr_68px_minmax(24px,auto)] items-center gap-1.5">
         <label htmlFor={id} className={`type-input-label ${disabled ? "opacity-45" : ""}`}>
           {label ?? spec.label}
         </label>
@@ -78,7 +82,7 @@ export function NumberField({ spec, value, onCommit, disabled, changed, label }:
             error ? "border-loss text-loss" : changed ? "border-attention text-attention" : "border-line text-ink"
           }`}
         />
-        <span className={`font-mono text-[10px] text-[#56636a] ${disabled ? "opacity-45" : ""}`}>{spec.unit}</span>
+        <span className={`font-mono text-[10px] text-[#56636a] ${disabled ? "opacity-45" : ""}`}>{fieldUnit(spec.unit, money)}</span>
       </div>
       {error && (
         <p id={`${id}-err`} className="text-right font-mono text-[10px] text-loss">

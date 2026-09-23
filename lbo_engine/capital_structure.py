@@ -12,9 +12,9 @@ Design philosophy:
     lien is just appending one more Tranche object — no other file changes.
 
 Burger King reference tranches:
-    1. USD Secured Term Loan   $1,510M  6.82%  7yr  1% annual amort
-    2. EUR Secured Term Loan     $334M  7.11%  6yr  ~0.4% annual amort
-    3. Senior Notes              $800M 10.19%  8yr  bullet (no amort)
+    1. USD Secured Term Loan   USD 1,510M  6.82%  7yr  1% annual amort
+    2. EUR Secured Term Loan     USD 334M  7.11%  6yr  ~0.4% annual amort
+    3. Senior Notes              USD 800M 10.19%  8yr  bullet (no amort)
 
 Amortization types supported:
     "bullet"      — no principal payments until maturity
@@ -55,7 +55,7 @@ class Tranche:
         Descriptive label, e.g. "USD Term Loan A", "Senior Notes".
 
     amount : float
-        Original principal ($M).
+        Original principal (M).
 
     interest_rate : float
         Annual interest rate as a decimal, e.g. 0.0682 for 6.82%.
@@ -76,7 +76,7 @@ class Tranche:
         e.g. 0.01 means 1% of original principal per year.
 
     amort_schedule : list[float]
-        Explicit list of principal repayments per year ($M).
+        Explicit list of principal repayments per year (M).
         Required when amort_type == "custom". Length must equal holding_period.
 
     fee_pct : float
@@ -98,7 +98,7 @@ class Tranche:
     """
 
     name: str
-    amount: float                             # $M original principal
+    amount: float                             # M original principal
     interest_rate: float                      # Annual rate, decimal
     maturity_years: int                       # Years to maturity
     amort_type: AmortizationType = "bullet"
@@ -115,17 +115,17 @@ class Tranche:
 
     @property
     def fee_amount(self) -> float:
-        """Upfront fee in $M."""
+        """Upfront fee in M."""
         return round(self.amount * self.fee_pct, 4)
 
     @property
     def net_proceeds(self) -> float:
-        """Proceeds after upfront fee ($M)."""
+        """Proceeds after upfront fee (M)."""
         return round(self.amount - self.fee_amount, 4)
 
     def mandatory_repayment(self, year: int, holding_period: int) -> float:
         """
-        Mandatory principal repayment in a given year ($M).
+        Mandatory principal repayment in a given year (M).
 
         Parameters
         ----------
@@ -138,7 +138,7 @@ class Tranche:
         Returns
         -------
         float
-            Mandatory repayment amount ($M) for that year.
+            Mandatory repayment amount (M) for that year.
         """
         if self.amort_type == "bullet":
             # Pay full outstanding balance only at maturity
@@ -179,12 +179,12 @@ class Tranche:
         Parameters
         ----------
         beginning_balance : float
-            Outstanding principal at start of the year ($M).
+            Outstanding principal at start of the year (M).
 
         Returns
         -------
         float
-            Interest expense ($M).
+            Interest expense (M).
         """
         return round(beginning_balance * self.interest_rate, 4)
 
@@ -220,12 +220,12 @@ class CapitalStructure:
 
     @property
     def total_debt(self) -> float:
-        """Total par value of all tranches ($M)."""
+        """Total par value of all tranches (M)."""
         return round(sum(t.amount for t in self.tranches), 2)
 
     @property
     def total_fees(self) -> float:
-        """Total upfront financing fees across all tranches ($M)."""
+        """Total upfront financing fees across all tranches (M)."""
         return round(sum(t.fee_amount for t in self.tranches), 2)
 
     @property
@@ -266,11 +266,11 @@ class CapitalStructure:
         for t in self.tranches:
             rows.append({
                 "Tranche": t.name,
-                "Amount ($M)": t.amount,
+                "Amount (M)": t.amount,
                 "x EBITDA": round(t.amount / self.ltm_ebitda, 2),
                 "Rate (%)": round(t.interest_rate * 100, 2),
                 "Fee (%)": round(t.fee_pct * 100, 2),
-                "Fee ($M)": t.fee_amount,
+                "Fee (M)": t.fee_amount,
                 "Maturity (yrs)": t.maturity_years,
                 "Amort type": t.amort_type,
                 "Annual amort (%)": round(t.amort_pct * 100, 2),
@@ -279,11 +279,11 @@ class CapitalStructure:
             })
         rows.append({
             "Tranche": "TOTAL",
-            "Amount ($M)": self.total_debt,
+            "Amount (M)": self.total_debt,
             "x EBITDA": self.total_leverage_multiple,
             "Rate (%)": round(self.blended_interest_rate * 100, 2),
             "Fee (%)": "",
-            "Fee ($M)": self.total_fees,
+            "Fee (M)": self.total_fees,
             "Maturity (yrs)": "",
             "Amort type": "",
             "Annual amort (%)": "",
@@ -301,29 +301,29 @@ class CapitalStructure:
         print(f"{'=' * 80}")
         print(
             f"  {'Tranche':<28} {'Amount':>8} {'xEBITDA':>8} "
-            f"{'Rate':>7} {'Fee%':>6} {'Fee$':>7} {'Maturity':>9}"
+            f"{'Rate':>7} {'Fee%':>6} {'Fee M':>7} {'Maturity':>9}"
         )
         print(f"  {'-' * 76}")
 
         for t in self.tranches:
             print(
                 f"  {t.name:<28} "
-                f"${t.amount:>7,.0f}M "
+                f"{t.amount:>7,.0f}M "
                 f"{t.amount / self.ltm_ebitda:>6.1f}x "
                 f"{t.interest_rate * 100:>6.2f}% "
                 f"{t.fee_pct * 100:>5.1f}% "
-                f"${t.fee_amount:>5.1f}M "
+                f"{t.fee_amount:>5.1f}M "
                 f"{t.maturity_years:>6}yr"
             )
 
         print(f"  {'-' * 76}")
         print(
             f"  {'TOTAL':<28} "
-            f"${self.total_debt:>7,.0f}M "
+            f"{self.total_debt:>7,.0f}M "
             f"{self.total_leverage_multiple:>6.1f}x "
             f"{self.blended_interest_rate * 100:>6.2f}% "
             f"{'':>6} "
-            f"${self.total_fees:>5.1f}M"
+            f"{self.total_fees:>5.1f}M"
         )
         print(f"{'=' * 80}\n")
 
@@ -337,13 +337,13 @@ def build_bk_capital_structure() -> CapitalStructure:
     Reconstruct the exact Burger King LBO capital structure from the PDF.
 
     Tranche details from the model:
-        USD Term Loan:  $1,510M  6.82%  6yr  2.7% fee  1% annual amort  sweep
-        EUR Term Loan:    $334M  7.11%  6yr  2.5% fee  0.4% annual amort  no sweep
-        Senior Notes:     $800M 10.19%  8yr  2.5% fee  bullet             no sweep
+        USD Term Loan:  USD 1,510M  6.82%  6yr  2.7% fee  1% annual amort  sweep
+        EUR Term Loan:    USD 334M  7.11%  6yr  2.5% fee  0.4% annual amort  no sweep
+        Senior Notes:     USD 800M 10.19%  8yr  2.5% fee  bullet             no sweep
 
     Notes:
         - USD term loan is the primary sweep vehicle in the BK model.
-          In the PDF the paydown goes: $0, $18M, $54M, $113M, $191M
+          In the PDF the paydown goes: USD 0, USD 18M, USD 54M, USD 113M, USD 191M
           which matches excess FCF after minimum cash floor.
         - EUR term loan and Senior Notes have no FCF sweep in the BK model.
         - Amort rates are approximated from the PDF debt schedule.
@@ -354,7 +354,7 @@ def build_bk_capital_structure() -> CapitalStructure:
         interest_rate=0.0682,
         maturity_years=6,
         amort_type="amortizing",
-        amort_pct=0.01,            # 1% annual = $15.1M/yr mandatory
+        amort_pct=0.01,            # 1% annual = USD 15.1M/yr mandatory
         fee_pct=0.027,
         is_cash_sweep=True,
         sweep_priority=1,          # Swept first — most senior
@@ -412,9 +412,9 @@ def build_simple_two_tranche_structure(
     Parameters
     ----------
     enterprise_value : float
-        Entry EV ($M).
+        Entry EV (M).
     ltm_ebitda : float
-        LTM EBITDA at entry ($M).
+        LTM EBITDA at entry (M).
     debt_pct : float
         Total debt as % of EV.
     senior_pct : float
@@ -476,7 +476,7 @@ if __name__ == "__main__":
 
     print("Sweep eligible tranches (in priority order):")
     for t in cs.sweep_eligible_tranches:
-        print(f"  [{t.sweep_priority}] {t.name}  ${t.amount:,.0f}M")
+        print(f"  [{t.sweep_priority}] {t.name}  {t.amount:,.0f}M")
 
     print(f"\nBlended rate: {cs.blended_interest_rate * 100:.2f}%")
     print(f"Total leverage: {cs.total_leverage_multiple:.1f}x EBITDA")
@@ -484,4 +484,4 @@ if __name__ == "__main__":
     # Test mandatory repayment
     print("\nMandatory repayments (USD Term Loan, years 1-5):")
     for yr in range(1, 6):
-        print(f"  Year {yr}: ${cs.tranches[0].mandatory_repayment(yr, 5):,.1f}M")
+        print(f"  Year {yr}: {cs.tranches[0].mandatory_repayment(yr, 5):,.1f}M")

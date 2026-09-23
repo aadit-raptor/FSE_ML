@@ -5,7 +5,7 @@ export type Group = { title: string; rows: RowDef[] };
 
 export const HISTORY_GROUPS: Group[] = [
   {
-    title: "Income statement, $M",
+    title: "Income statement, {money}",
     rows: [
       { key: "h_rev", label: "Revenue" },
       { key: "h_cogs", label: "Cost of sales (negative)" },
@@ -20,7 +20,7 @@ export const HISTORY_GROUPS: Group[] = [
     ],
   },
   {
-    title: "Balance sheet, $M",
+    title: "Balance sheet, {money}",
     rows: [
       { key: "h_cash", label: "Cash" },
       { key: "h_ar", label: "Receivables" },
@@ -40,7 +40,7 @@ export const HISTORY_GROUPS: Group[] = [
     ],
   },
   {
-    title: "Cash flow, $M",
+    title: "Cash flow, {money}",
     rows: [
       { key: "h_capex", label: "Capex" },
       { key: "h_divs", label: "Dividends" },
@@ -82,13 +82,13 @@ export const ASSUMPTION_GROUPS: Group[] = [
   {
     title: "Financing and other",
     rows: [
-      { key: "other_inc", label: "Other income, $M" },
-      { key: "divs", label: "Dividends, $M" },
-      { key: "buybacks", label: "Buybacks, $M" },
-      { key: "ltd_chg", label: "Debt net change, $M" },
+      { key: "other_inc", label: "Other income, {money}" },
+      { key: "divs", label: "Dividends, {money}" },
+      { key: "buybacks", label: "Buybacks, {money}" },
+      { key: "ltd_chg", label: "Debt net change, {money}" },
       { key: "r_cash", label: "Rate on cash, %" },
       { key: "r_debt", label: "Rate on debt, %" },
-      { key: "min_cash", label: "Minimum cash, $M" },
+      { key: "min_cash", label: "Minimum cash, {money}" },
     ],
   },
 ];

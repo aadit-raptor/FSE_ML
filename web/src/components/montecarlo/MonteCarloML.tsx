@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useDeal } from "@/components/deal/DealProvider";
 import { useSettings } from "@/components/settings/SettingsProvider";
+import { useMoney } from "@/components/ui/MoneyScope";
 import { EmptyState, Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
@@ -28,12 +29,12 @@ const SLIDERS: { key: keyof Sliders; label: string; min: number; max: number; st
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-/** A training-deal term in its unit (rates arrive as fractions). */
-function fmtTerm(v: number, unit: string, decimals: number): string {
+/** A training-deal term in its unit (rates arrive as fractions; "money" is the deal's currency and unit). */
+function fmtTerm(v: number, unit: string, decimals: number, moneyLabel: string): string {
   if (unit === "percent") return `${(v * 100).toFixed(decimals)}%`;
   if (unit === "multiple") return `${v.toFixed(decimals)}x`;
   if (unit === "years") return `${v.toFixed(decimals)} yr`;
-  if (unit === "usd_millions") return `${v.toFixed(decimals)} $M`;
+  if (unit === "money") return `${v.toFixed(decimals)} ${moneyLabel}`;
   return v.toFixed(decimals);
 }
 
@@ -49,6 +50,7 @@ function Live() {
   const caps = useCapabilities();
   const { sim, runNow } = useMonteCarlo();
   const { inputs: deal } = useDeal();
+  const { label: mu } = useMoney();
   const { overrides } = useSettings();
   const initial = (): Sliders => ({
     growth_mean: clamp(sim.growth_mean, -5, 20),
@@ -110,7 +112,7 @@ function Live() {
       {pred && (
         <Notice title="Trained on one fixed deal" role="note" className="col-span-12">
           <span data-provenance="live">
-            {pred.training_deal.map((d) => `${d.term} ${fmtTerm(d.model_value, d.unit, d.decimals)}`).join(" · ")}
+            {pred.training_deal.map((d) => `${d.term} ${fmtTerm(d.model_value, d.unit, d.decimals, mu)}`).join(" · ")}
           </span>
           . Estimates are exact only for a deal with these terms.
         </Notice>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { MoneySelects } from "@/components/ui/MoneySelects";
 import { NumberField } from "@/components/ui/NumberField";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { multiplesFromPct, pctFromMultiples } from "@/lib/deal/capital";
@@ -96,6 +97,15 @@ export function DebtMultipleField({ tranche }: { tranche: "senior" | "mezz" }) {
   );
 }
 
+/**
+ * The deal's currency and the unit its money is entered and shown in. A new
+ * unit keeps the deal's size (DealProvider.setMoney).
+ */
+export function MoneyFields() {
+  const { money, setMoney } = useDeal();
+  return <MoneySelects money={money} onChange={setMoney} of="Deal" />;
+}
+
 export function WspToggle() {
   const { inputs, setField } = useDeal();
   return (
@@ -107,12 +117,16 @@ export function WspToggle() {
 
 export function describeDealValue(key: keyof DealInputs, v: DealInputs[keyof DealInputs]): string {
   if (typeof v === "boolean") return v ? "on" : "off";
+  if (typeof v === "string") return v;
   const spec = FIELDS[key as NumericDealKey];
   return spec ? `${fmtInput(v, spec.decimals)}${spec.unit === "%" ? "%" : spec.unit === "x" ? "x" : ""}` : String(v);
 }
 
 export function dealLabel(key: keyof DealInputs): string {
-  return key === "wsp_mode" ? "Working capital from days" : (FIELDS[key as NumericDealKey]?.label ?? key);
+  if (key === "wsp_mode") return "Working capital from days";
+  if (key === "currency") return "Currency";
+  if (key === "unit") return "Amounts in";
+  return FIELDS[key as NumericDealKey]?.label ?? key;
 }
 
 /** Error from the last run, or (with auto-update off) the edits waiting to run. */

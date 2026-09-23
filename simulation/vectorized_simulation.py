@@ -88,7 +88,7 @@ class SimulationParams:
         Number of simulation paths.
 
     entry_ebitda : float
-        LTM EBITDA at entry ($M). Fixed — not simulated.
+        LTM EBITDA at entry (M). Fixed — not simulated.
 
     entry_multiple : float
         EV / LTM EBITDA at entry. Fixed — not simulated.
@@ -152,7 +152,7 @@ class SimulationParams:
         Fees as % of entry EV / % of total debt. Default 0.
 
     other_uses : float
-        Other uses of funds at close ($M). Default 0.
+        Other uses of funds at close (M). Default 0.
 
         All three are funded by sponsor equity at close, raising the equity
         check without buying enterprise value -- matching lbo_engine.run_lbo.
@@ -210,7 +210,7 @@ class SimulationParams:
     # Transaction costs (funded by sponsor equity at close)
     transaction_fees_pct: float = 0.0   # % of entry EV
     financing_fees_pct: float = 0.0     # % of total debt
-    other_uses: float = 0.0             # $M
+    other_uses: float = 0.0             # M
 
     # Correlation (None = use default)
     corr_matrix: Optional[np.ndarray] = None

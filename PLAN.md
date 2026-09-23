@@ -121,7 +121,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 1.9 | Background jobs and scheduled jobs | 1.3, 1.6 | ☑ |
 | **2** | **Universal by design** | | |
 | 2.1 | Honest labels on inception-era parts (do early) | — | ☑ |
-| 2.2 | Currency and money units everywhere | 1.5 | ☐ |
+| 2.2 | Currency and money units everywhere | 1.5 | ☑ |
 | 2.3 | Locale: numbers, dates, fiscal years, languages | 2.2 | ☐ |
 | 2.4 | Global debt structures and interest rates | 2.2 | ☐ |
 | 2.5 | Global tax rules | 2.2 | ☐ |
@@ -914,7 +914,7 @@ when a limit is actually reached or before charging customers.
 
 | Where | Assumption | Fixed by |
 |---|---|---|
-| 177 places across `core/`, `api/`, `lbo_engine/`, `ml/`, `web/src` | Money shown as "$M" | 2.2 |
+| 177 places across `core/`, `api/`, `lbo_engine/`, `ml/`, `web/src` | Money shown as "$M" | 2.2 (done: deal currency and unit; CI check against new dollar signs) |
 | 11 places in `web/src` | Number formats fixed to `en-US` | 2.3 |
 | `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
 | `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4 |

@@ -9,8 +9,9 @@ from api.observability import model_timer
 from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
 from api.serialize import box_stats, histogram, percentile_curve, to_json
 from core.deal import DealInputs
+from core.money import in_unit, rescale
 from core.montecarlo import (
-    MCInputs, analysis_sample, apply_scenario, build_sim_params, driver_fits,
+    MC_MONEY_KEYS, MCInputs, analysis_sample, mc_in_millions, apply_scenario, build_sim_params, driver_fits,
     driver_sensitivity, empirical_correlations, growth_exit_heatmap, risk_summary,
     run_scenarios, scenario_stats,
 )
@@ -30,8 +31,8 @@ def post_run(req: MonteCarloRequest):
     same analytics the Streamlit tabs show are computed server-side.
     """
     cfg = resolve_settings(req.settings, check_correlations=True)
-    mc = MCInputs(**req.mc.model_dump())
-    deal = DealInputs(**req.deal.model_dump())
+    # Money runs in millions, as the deal model does; it comes back in the deal's unit
+    mc, deal, cfg = mc_in_millions(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
     params = build_sim_params(mc, deal, cfg)
     if req.scenario:
         params = apply_scenario(req.scenario, params, cfg)
@@ -50,7 +51,7 @@ def post_run(req: MonteCarloRequest):
         "n": params.n,
         "elapsed_ms": elapsed_ms,
         "scenario": req.scenario,
-        "params": params_json,
+        "params": rescale(params_json, in_unit(1.0, req.deal.unit), MC_MONEY_KEYS),
         "summary": to_json(risk_summary(sim, mc.hurdle)),
         "irr_histogram": histogram(sim.irr, req.histogram_bins),
         "moic_histogram": histogram(sim.moic, req.histogram_bins),
@@ -64,6 +65,7 @@ def post_run(req: MonteCarloRequest):
             "note": "Each cell is a full deal-model run at the simulation's mean "
                     "assumptions for that growth and exit multiple.",
         },
+        "money": req.deal.money(),
     }
 
 
@@ -72,8 +74,8 @@ def post_run(req: MonteCarloRequest):
 def post_scenarios(req: ScenariosRequest):
     """Run all four scenario presets from the same inputs."""
     cfg = resolve_settings(req.settings, check_correlations=True)
-    mc = MCInputs(**req.mc.model_dump())
-    params = build_sim_params(mc, DealInputs(**req.deal.model_dump()), cfg)
+    mc, deal, cfg = mc_in_millions(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
+    params = build_sim_params(mc, deal, cfg)
     with model_timer("montecarlo.scenarios"):
         results = run_scenarios(params, cfg, seed=req.seed)
     stats = scenario_stats(results, mc.hurdle)
@@ -85,4 +87,5 @@ def post_scenarios(req: ScenariosRequest):
                  "moic_box": to_json(box_stats(results[sc].moic))}
             for sc in results
         },
+        "money": req.deal.money(),
     }

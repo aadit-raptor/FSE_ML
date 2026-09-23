@@ -96,7 +96,7 @@ def issuer_from_publishable_key(key: str) -> Optional[str]:
         decoded = base64.b64decode(encoded + "=" * (-len(encoded) % 4)).decode("ascii")
     except (binascii.Error, UnicodeDecodeError, ValueError):
         return None
-    domain = decoded.rstrip("$").strip()
+    domain = decoded.rstrip("$").strip()  # the key ends in "$"; not money (currency-ok)
     if not domain or "/" in domain or " " in domain:
         return None
     return f"https://{domain}"

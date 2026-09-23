@@ -4,6 +4,7 @@ import { DataTable } from "@/components/charts/DataTable";
 import { StackedBars } from "@/components/charts/StackedBars";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { useMoney } from "@/components/ui/MoneyScope";
 import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtPct } from "@/lib/format";
 
@@ -50,6 +51,7 @@ export function DebtStep() {
 }
 
 function DebtResults() {
+  const { label: mu, money } = useMoney();
   const { inputs, run } = useDeal();
   const res = run.result!;
   const begin = totals(res, "total_beginning_debt");
@@ -68,22 +70,22 @@ function DebtResults() {
 
   return (
     <Tiles>
-      <Kpi title="Debt at close" value={fmtMoney(atClose)} sub={`${fmtPct(inputs.debt_pct)} of EV, $M`} lead />
+      <Kpi title="Debt at close" value={fmtMoney(atClose)} sub={`${fmtPct(inputs.debt_pct)} of EV, ${mu}`} lead />
       <Kpi title="Debt at exit" value={fmtMoney(lastEnd)} sub={`${fmtPct(repaidPct)} repaid`} />
-      <Kpi title="Net debt at exit" value={fmtMoney(res.returns.net_debt_at_exit)} sub="after cash, $M" />
-      <Kpi title="Interest, year 1" value={fmtMoney(interest[0])} sub="$M" />
+      <Kpi title="Net debt at exit" value={fmtMoney(res.returns.net_debt_at_exit)} sub={`after cash, ${mu}`} />
+      <Kpi title="Interest, year 1" value={fmtMoney(interest[0])} sub={mu} />
       <Kpi title="Cumulative FCF" value={fmtMoney(cumFcf)} sub={`levered, ${end.length} yr`} />
       <Kpi
         title="Interest loop"
         value={res.interest_converged ? "Converged" : "Not converged"}
-        sub={`P&L vs schedule gap ${fmtMoney(interestGap)} $M`}
+        sub={`P&L vs schedule gap ${fmtMoney(interestGap)} ${mu}`}
         tone={res.interest_converged ? "gain" : "attention"}
       />
 
-      <Tile span={6} title="Debt balance" unit="by tranche, $M">
+      <Tile span={6} title="Debt balance" unit={`by tranche, ${mu}`}>
         <StackedBars {...debtSeries(res)} />
       </Tile>
-      <Tile span={6} title="Cash flow" unit="$M">
+      <Tile span={6} title="Cash flow" unit={mu}>
         <DataTable
           caption="Levered free cash flow by year"
           columns={years}
@@ -103,7 +105,7 @@ function DebtResults() {
           key={name}
           span={6}
           title={name}
-          unit={`${fmtPct((rows[0]?.interest_rate ?? NaN) * 100, 2)} rate, $M`}
+          unit={`${fmtPct((rows[0]?.interest_rate ?? NaN) * 100, 2)} rate, ${mu}`}
           action={
             <DownloadButton
               onDownload={() =>
@@ -113,7 +115,7 @@ function DebtResults() {
                     ["Year", "Opening", "Mandatory", "Cash sweep", "Closing", "Interest"],
                     rows.map((t) => [t.year, t.beginning_balance ?? null, t.mandatory_repayment ?? null, t.cash_sweep ?? null, t.ending_balance ?? null, t.interest_expense ?? null]),
                   ),
-                ])
+                ], money)
               }
             />
           }

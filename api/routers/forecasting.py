@@ -3,10 +3,11 @@ from fastapi import APIRouter, HTTPException
 
 from api.limits import simulation_slot
 from api.schemas import (
-    ForecastDefaultsResponse, ForecastRunRequest, ForecastRunResponse, HistoryRequest, SeedResponse,
+    ForecastDefaultsResponse, Money, ForecastRunRequest, ForecastRunResponse, HistoryRequest, SeedResponse,
 )
 from api.observability import model_timer
 from api.serialize import to_json
+from core.money import in_unit
 from core.forecasting import (
     ASSUMPTION_KEYS, HISTORICAL_FIELDS, assumptions_from_grid, default_history,
     historical_metrics, ltm_from_history, opening_bs_gap, revenue_cagr,
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/forecasting", tags=["forecasting"])
 
 N_HIST = 3
 N_FWD = 5
-BALANCE_TOLERANCE = 0.5     # $M; the Streamlit page warns above this
+BALANCE_TOLERANCE = 0.5     # millions (in_unit converts); the Streamlit page warned above this
 
 
 def _checked_history(history):
@@ -43,6 +44,7 @@ def get_defaults():
         "history": history,
         "assumption_keys": ASSUMPTION_KEYS,
         "seeded_assumptions": to_json(seed_assumptions(ltm_from_history(history))),
+        "money": Money(),
     }
 
 
@@ -54,7 +56,8 @@ def post_seed(req: HistoryRequest):
     return {
         "ltm": to_json(ltm),
         "historical_metrics": to_json(historical_metrics(history, n)),
-        "seeded_assumptions": to_json(seed_assumptions(ltm)),
+        "seeded_assumptions": to_json(seed_assumptions(ltm, req.money.unit)),
+        "money": req.money,
     }
 
 
@@ -78,6 +81,7 @@ def post_run(req: ForecastRunRequest):
         fwd = run_3_statement_model(ltm, assumptions)
     gap0 = opening_bs_gap(ltm)
     model_gaps = [y.balance_check - gap0 for y in fwd]
+    tolerance = in_unit(BALANCE_TOLERANCE, req.money.unit)
 
     simulation = None
     if req.simulate:
@@ -92,6 +96,7 @@ def post_run(req: ForecastRunRequest):
         "revenue_cagr": to_json(revenue_cagr(ltm, fwd)) if ltm.revenue > 0 else None,
         "opening_balance_gap": gap0,
         "forecast_balance_gaps": model_gaps,
-        "balanced": abs(gap0) <= BALANCE_TOLERANCE and all(abs(g) <= BALANCE_TOLERANCE for g in model_gaps),
+        "balanced": abs(gap0) <= tolerance and all(abs(g) <= tolerance for g in model_gaps),
         "simulation": simulation,
+        "money": req.money,
     }

@@ -1,11 +1,12 @@
 import type { Row } from "@/components/charts/DataTable";
 import { authHeaders, type Schemas } from "@/lib/api/client";
+import type { Money } from "@/lib/money";
 import { newRequestId, reportApiError, REQUEST_ID_HEADER } from "@/lib/monitoring";
 
 export type Sheet = Schemas["WorkbookSheet"];
 type Cell = string | number | boolean | null;
 
-/** A DataTable's rows as a sheet: money as $M numbers, rates as percentages. */
+/** A DataTable's rows as a sheet: money as numbers in the screen's unit, rates as percentages. */
 export function tableSheet(name: string, columns: string[], rows: Row[]): Sheet {
   return {
     name,
@@ -49,9 +50,9 @@ async function postForFile(path: string, body: unknown, filename: string) {
   save(await res.blob(), filename);
 }
 
-/** Ask the API to write the sheets to .xlsx and save it. */
-export function downloadWorkbook(filename: string, sheets: Sheet[]) {
-  return postForFile("/api/export/workbook", { filename, sheets }, filename);
+/** Ask the API to write the sheets to .xlsx and save it; an About sheet says what the money is in. */
+export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money) {
+  return postForFile("/api/export/workbook", { filename, sheets, money }, filename);
 }
 
 /** Up to 10,000 simulated paths for the given Monte Carlo request. */

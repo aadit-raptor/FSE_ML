@@ -1,4 +1,4 @@
-/** Number formatting. Money is $M, rates from the engine are fractions (0.157 = 15.7%). */
+/** Number formatting. Money is a number in the screen's currency and unit (lib/money.ts), rates from the engine are fractions (0.157 = 15.7%). */
 
 const money = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 

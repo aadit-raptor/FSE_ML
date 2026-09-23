@@ -8,6 +8,7 @@ import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { useMoney } from "@/components/ui/MoneyScope";
 import { downloadMonteCarloSample, downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
 
@@ -139,6 +140,7 @@ export function ScenariosStep() {
 }
 
 function Scenarios() {
+  const { money } = useMoney();
   const { scen, hurdle, r } = useResult();
   const staleClass = useStaleClass();
   const rows = SCENARIOS.map((sc) => ({ ...sc, st: scen.scenarios[sc.id] })).filter((x) => x.st);
@@ -183,7 +185,7 @@ function Scenarios() {
                       st.moic_box.p50,
                     ]),
                   ),
-                ])
+                ], money)
               }
             />
           }

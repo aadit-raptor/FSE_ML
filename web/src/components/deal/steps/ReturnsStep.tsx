@@ -6,6 +6,7 @@ import { StackedBars } from "@/components/charts/StackedBars";
 import { Waterfall } from "@/components/charts/Waterfall";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { useMoney } from "@/components/ui/MoneyScope";
 import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtMultiple } from "@/lib/format";
 
@@ -46,6 +47,7 @@ export function ReturnsStep() {
 }
 
 function ReturnsResults() {
+  const { label: mu, money } = useMoney();
   const { inputs, run, hurdle } = useDeal();
   const res = run.result!;
   const r = res.returns;
@@ -58,14 +60,14 @@ function ReturnsResults() {
     <Tiles>
       <Kpi title="IRR" value={r.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period ?? inputs.hold} yr hold`} />
-      <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub="$M at close" />
-      <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub="$M at exit" />
+      <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub={`${mu} at close`} />
+      <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub={`${mu} at exit`} />
       <Kpi title="Exit EV" value={fmtMoney(r.exit_ev)} sub={`${fmtMultiple(r.exit_multiple, 1)} on ${fmtMoney(r.exit_ebitda)} EBITDA`} />
-      <Kpi title="Net debt at exit" value={fmtMoney(r.net_debt_at_exit)} sub={`from ${fmtMoney(begin[0])} $M`} />
+      <Kpi title="Net debt at exit" value={fmtMoney(r.net_debt_at_exit)} sub={`from ${fmtMoney(begin[0])} ${mu}`} />
 
-      <Tile span={6} title="Equity bridge" unit="$M">
+      <Tile span={6} title="Equity bridge" unit={mu}>
         <Waterfall
-          label={`Equity bridge from ${fmtMoney(r.entry_equity)} to ${fmtMoney(r.net_exit_equity)} $M`}
+          label={`Equity bridge from ${fmtMoney(r.entry_equity)} to ${fmtMoney(r.net_exit_equity)} ${mu}`}
           // `key` is the API's short axis label (Entry, Fees, EBITDA growth, Multiple, Deleverage, Exit)
           steps={res.bridge_steps.map((s) => ({ label: s.key, value: s.value ?? 0, isTotal: s.is_total }))}
         />
@@ -83,7 +85,7 @@ function ReturnsResults() {
                   ["Exit multiple", ...res.exit_sensitivity.holding_periods.map((h) => `${h}y`)],
                   res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => (v == null ? null : v * 100))]),
                 ),
-              ])
+              ], money)
             }
           />
         }
@@ -98,10 +100,10 @@ function ReturnsResults() {
         />
         <p className="type-body text-[9px]">Every cell is a full model run for that exit multiple and hold. Ranges are set in Settings, Deal defaults.</p>
       </Tile>
-      <Tile span={6} title="Debt paydown" unit="by tranche, $M">
+      <Tile span={6} title="Debt paydown" unit={`by tranche, ${mu}`}>
         <StackedBars {...debtSeries(res)} />
       </Tile>
-      <Tile span={6} title="Operating summary" unit="$M">
+      <Tile span={6} title="Operating summary" unit={mu}>
         <DataTable
           caption="Operating summary by year"
           columns={years}

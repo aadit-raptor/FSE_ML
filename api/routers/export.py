@@ -15,7 +15,7 @@ from api.deps import resolve_settings
 from api.limits import simulation_slot
 from api.schemas import MonteCarloRequest, WorkbookRequest
 from core.deal import DealInputs
-from core.montecarlo import MCInputs, apply_scenario, build_sim_params
+from core.montecarlo import MCInputs, apply_scenario, build_sim_params, mc_in_millions
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
 router = APIRouter(prefix="/export", tags=["export"])
@@ -55,6 +55,14 @@ def workbook_bytes(sheets) -> bytes:
     return buf.getvalue()
 
 
+UNIT_WORDS = {"thousands": "thousands", "millions": "millions", "billions": "billions"}
+
+
+def money_rows(money) -> tuple[list, list]:
+    """Items and values saying what a workbook's money columns are counted in."""
+    return (["Currency", "Money unit"], [money.currency, UNIT_WORDS[money.unit]])
+
+
 def _xlsx_response(data: bytes, filename: str) -> Response:
     return Response(data, media_type=XLSX, headers={
         "Content-Disposition": f'attachment; filename="{_safe_filename(filename)}"'})
@@ -68,6 +76,9 @@ def post_workbook(req: WorkbookRequest):
     for sheet in req.sheets:
         rows = [row + [None] * (len(sheet.columns) - len(row)) for row in sheet.rows]
         frames.append((sheet.name, pd.DataFrame(rows, columns=sheet.columns)))
+    if req.money is not None:
+        items, values = money_rows(req.money)
+        frames.append(("About", pd.DataFrame({"Item": items, "Value": values})))
     return _xlsx_response(workbook_bytes(frames), req.filename)
 
 
@@ -80,7 +91,9 @@ def post_montecarlo_sample(req: MonteCarloRequest):
     With a fixed seed the paths are exactly those behind the on-screen results.
     """
     cfg = resolve_settings(req.settings, check_correlations=True)
-    params = build_sim_params(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
+    # The paths hold IRR, MOIC and the drawn rates and multiples: no money to convert back
+    mc, deal, cfg = mc_in_millions(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
+    params = build_sim_params(mc, deal, cfg)
     if req.scenario:
         params = apply_scenario(req.scenario, params, cfg)
     t0 = time.perf_counter()
@@ -88,9 +101,10 @@ def post_montecarlo_sample(req: MonteCarloRequest):
     elapsed = time.perf_counter() - t0
     df = sim.df
     sample = df.sample(min(SAMPLE_ROWS, len(df)), random_state=42).reset_index(drop=True)
+    money_items, money_values = money_rows(req.deal.money())
     about = pd.DataFrame({
-        "Item": ["Paths simulated", "Paths in this file", "Seed", "Scenario", "Run time (s)"],
+        "Item": ["Paths simulated", "Paths in this file", "Seed", "Scenario", "Run time (s)", *money_items],
         "Value": [len(df), len(sample), "random" if req.seed is None else req.seed,
-                  req.scenario or "none", round(elapsed, 3)],
+                  req.scenario or "none", round(elapsed, 3), *money_values],
     })
     return _xlsx_response(workbook_bytes([("Paths", sample), ("About", about)]), "mc_simulation.xlsx")
