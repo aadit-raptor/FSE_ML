@@ -124,6 +124,10 @@ export interface paths {
         /**
          * Post Run
          * @description Run the full LBO model: operating model, cash flow, debt, returns.
+         *
+         *     Money in and out is in the deal's currency and unit. The engine runs in
+         *     millions (core/money.py), so a deal in thousands answers exactly as the
+         *     same deal in millions, times a thousand.
          */
         post: operations["post_run_api_deal_run_post"];
         delete?: never;
@@ -144,6 +148,9 @@ export interface paths {
         /**
          * Post Sources And Uses
          * @description Sources & uses for a deal financed with senior and mezz debt multiples.
+         *
+         *     Money in and out is in ``money``'s unit; the sums run in millions like the
+         *     deal model's.
          */
         post: operations["post_sources_and_uses_api_deal_sources_and_uses_post"];
         delete?: never;
@@ -943,6 +950,13 @@ export interface components {
              */
             histogram_bins: number;
             /**
+             * @default {
+             *       "currency": "USD",
+             *       "unit": "millions"
+             *     }
+             */
+            money: components["schemas"]["Money"];
+            /**
              * N
              * @default 30000
              */
@@ -973,12 +987,13 @@ export interface components {
             actual_percentile: number;
             /**
              * Attribution
-             * @description Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt
+             * @description Exact split of actual minus predicted exit equity: exit_ebitda, exit_multiple, net_debt
              */
             attribution: {
                 [key: string]: number;
             };
             irr_histogram: components["schemas"]["Histogram"];
+            money: components["schemas"]["Money"];
             /** Predicted Ebitda */
             predicted_ebitda: number[];
             /** Predicted Ebitda Margin */
@@ -1183,6 +1198,12 @@ export interface components {
              */
             capex: number;
             /**
+             * Currency
+             * @description The deal's currency (ISO 4217)
+             * @default USD
+             */
+            currency: string;
+            /**
              * Da
              * @description D&A / revenue (%)
              * @default 4
@@ -1196,7 +1217,7 @@ export interface components {
             debt_pct: number;
             /**
              * Ebitda
-             * @description LTM EBITDA ($M)
+             * @description LTM EBITDA (in currency and unit)
              * @default 100
              */
             ebitda: number;
@@ -1243,7 +1264,7 @@ export interface components {
             mezz_spread: number;
             /**
              * Mincash
-             * @description Minimum cash ($M)
+             * @description Minimum cash (in currency and unit)
              * @default 0
              */
             mincash: number;
@@ -1271,6 +1292,13 @@ export interface components {
              * @default 25
              */
             tax: number;
+            /**
+             * Unit
+             * @description The deal's money figures are thousands, millions or billions
+             * @default millions
+             * @enum {string}
+             */
+            unit: "thousands" | "millions" | "billions";
             /**
              * Wsp Mode
              * @description Use AR/inventory/AP days instead of flat NWC
@@ -1301,6 +1329,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
              *       "ebitda": 100,
@@ -1316,6 +1345,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "unit": "millions",
              *       "wsp_mode": false
              *     }
              */
@@ -1339,6 +1369,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
              *       "ebitda": 100,
@@ -1354,6 +1385,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "unit": "millions",
              *       "wsp_mode": false
              *     }
              */
@@ -1382,6 +1414,7 @@ export interface components {
             exit_sensitivity: components["schemas"]["ExitSensitivity"];
             /** Interest Converged */
             interest_converged: boolean;
+            money: components["schemas"]["Money"];
             operating_model: components["schemas"]["OperatingModelResult"];
             returns: components["schemas"]["ReturnsResult"];
             /** Tranches */
@@ -1491,6 +1524,8 @@ export interface components {
             history: {
                 [key: string]: number[];
             };
+            /** @description SEC filings are read in US dollars, in millions */
+            money: components["schemas"]["Money"];
             /** Ticker */
             ticker: string;
             /** Warnings */
@@ -1566,6 +1601,8 @@ export interface components {
             history: {
                 [key: string]: number[];
             };
+            /** @description What the default history is counted in */
+            money: components["schemas"]["Money"];
             /** N Fwd */
             n_fwd: number;
             /** N Hist */
@@ -1601,6 +1638,14 @@ export interface components {
                 [key: string]: number[];
             };
             /**
+             * @description The company's reporting currency and the unit its figures are in
+             * @default {
+             *       "currency": "USD",
+             *       "unit": "millions"
+             *     }
+             */
+            money: components["schemas"]["Money"];
+            /**
              * N Sim
              * @default 30000
              */
@@ -1621,6 +1666,7 @@ export interface components {
              */
             forecast_balance_gaps: number[];
             ltm: components["schemas"]["HistoricalYear"];
+            money: components["schemas"]["Money"];
             /** Opening Balance Gap */
             opening_balance_gap: number;
             /** Revenue Cagr */
@@ -1873,6 +1919,14 @@ export interface components {
             history: {
                 [key: string]: number[];
             };
+            /**
+             * @description The company's reporting currency and the unit its figures are in
+             * @default {
+             *       "currency": "USD",
+             *       "unit": "millions"
+             *     }
+             */
+            money: components["schemas"]["Money"];
         };
         /** JobList */
         JobList: {
@@ -2041,6 +2095,27 @@ export interface components {
              */
             rate_std: number;
         };
+        /**
+         * Money
+         * @description What money figures are counted in. Any ISO 4217 currency; the model never
+         *     calculates with the code, so the same numbers give the same results in any
+         *     currency.
+         */
+        Money: {
+            /**
+             * Currency
+             * @description ISO 4217, e.g. EUR
+             * @default USD
+             */
+            currency: string;
+            /**
+             * Unit
+             * @description Money figures are thousands, millions or billions
+             * @default millions
+             * @enum {string}
+             */
+            unit: "thousands" | "millions" | "billions";
+        };
         /** MonteCarloJob */
         MonteCarloJob: {
             input: components["schemas"]["MonteCarloRequest"];
@@ -2058,6 +2133,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
              *       "ebitda": 100,
@@ -2073,6 +2149,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "unit": "millions",
              *       "wsp_mode": false
              *     }
              */
@@ -2138,6 +2215,7 @@ export interface components {
             irr_cdf: components["schemas"]["PercentileCurve"];
             irr_histogram: components["schemas"]["Histogram"];
             moic_histogram: components["schemas"]["Histogram"];
+            money: components["schemas"]["Money"];
             /** N */
             n: number;
             /** Params */
@@ -2244,6 +2322,7 @@ export interface components {
             };
             /** Geography */
             geography?: string | null;
+            money: components["schemas"]["Money"];
             /** Name */
             name: string;
             /** Outcome */
@@ -2362,6 +2441,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
              *       "ebitda": 100,
@@ -2377,6 +2457,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "unit": "millions",
              *       "wsp_mode": false
              *     }
              */
@@ -2413,6 +2494,7 @@ export interface components {
         ScenariosResponse: {
             /** Hurdle */
             hurdle: number;
+            money: components["schemas"]["Money"];
             /** Scenarios */
             scenarios: {
                 [key: string]: components["schemas"]["ScenarioStats"];
@@ -2423,6 +2505,7 @@ export interface components {
             /** Historical Metrics */
             historical_metrics: components["schemas"]["HistoricalMetrics"][];
             ltm: components["schemas"]["HistoricalYear"];
+            money: components["schemas"]["Money"];
             /** Seeded Assumptions */
             seeded_assumptions: {
                 [key: string]: number;
@@ -2469,10 +2552,17 @@ export interface components {
             mezz_x: number;
             /**
              * Mincash
-             * @description Minimum cash left on the balance sheet ($M)
+             * @description Minimum cash left on the balance sheet
              * @default 0
              */
             mincash: number;
+            /**
+             * @default {
+             *       "currency": "USD",
+             *       "unit": "millions"
+             *     }
+             */
+            money: components["schemas"]["Money"];
             /**
              * Senior X
              * @description Senior debt (x EBITDA)
@@ -2506,6 +2596,7 @@ export interface components {
             financing_fees: number;
             /** Mezz Debt */
             mezz_debt: number;
+            money: components["schemas"]["Money"];
             /** Other Uses */
             other_uses: number;
             /** Senior Debt */
@@ -2532,6 +2623,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
              *       "ebitda": 100,
@@ -2547,6 +2639,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "unit": "millions",
              *       "wsp_mode": false
              *     }
              */
@@ -2774,6 +2867,8 @@ export interface components {
              * @default export.xlsx
              */
             filename: string;
+            /** @description What the money columns are counted in; written on an About sheet */
+            money?: components["schemas"]["Money"] | null;
             /** Sheets */
             sheets: components["schemas"]["WorkbookSheet"][];
         };

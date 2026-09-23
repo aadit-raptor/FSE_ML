@@ -1,8 +1,10 @@
 """Request and response schemas.
 
 Input bounds mirror the Streamlit input widgets. Percentages are numbers like
-60.0 (not 0.60) and money is $M, matching the model's inputs; engine outputs
-keep the engine's own units (IRR 0.157 = 15.7%).
+60.0 (not 0.60) and money is a plain number in the deal's currency and unit
+(``Money``; US dollar millions unless the request says otherwise), matching the
+model's inputs; engine outputs keep the engine's own units (IRR 0.157 = 15.7%).
+Every response that holds money says which currency and unit it is in.
 """
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
@@ -12,6 +14,7 @@ from pydantic_core import PydanticCustomError
 from api.limits import MAX_FORECAST_PATHS, MAX_SIMULATION_PATHS
 
 from api.serialize import model_from_dataclass
+from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT
 from core.forecasting import ForecastYear, HistoricalYear
 from lbo_engine.cashflow_model import CashFlowResult
 from lbo_engine.operating_model import OperatingModelResult
@@ -44,6 +47,22 @@ ForecastPaths = _path_cap(MAX_FORECAST_PATHS)
 
 
 # ---------------------------------------------------------------------------
+# Money (PLAN.md 2.2)
+# ---------------------------------------------------------------------------
+MoneyUnit = Literal["thousands", "millions", "billions"]
+CurrencyCode = Annotated[str, Field(pattern=r"^[A-Z]{3}$", min_length=3, max_length=3,
+                                    description="ISO 4217, e.g. EUR")]
+
+
+class Money(Strict):
+    """What money figures are counted in. Any ISO 4217 currency; the model never
+    calculates with the code, so the same numbers give the same results in any
+    currency."""
+    currency: CurrencyCode = DEFAULT_CURRENCY
+    unit: MoneyUnit = Field(DEFAULT_UNIT, description="Money figures are thousands, millions or billions")
+
+
+# ---------------------------------------------------------------------------
 # Shared inputs
 # ---------------------------------------------------------------------------
 class DealInputsIn(Strict):
@@ -55,7 +74,7 @@ class DealInputsIn(Strict):
     its default deal shows a lower IRR. Use /deal/sources-and-uses to derive
     them from debt multiples the same way.
     """
-    ebitda: float = Field(100.0, gt=0, description="LTM EBITDA ($M)")
+    ebitda: float = Field(100.0, gt=0, description="LTM EBITDA (in currency and unit)")
     entry_mult: float = Field(10.0, gt=0, description="Entry EV / EBITDA (x)")
     exit_mult: float = Field(11.0, gt=0, description="Exit EV / EBITDA (x)")
     hold: int = Field(5, ge=1, le=15, description="Holding period (years)")
@@ -70,11 +89,16 @@ class DealInputsIn(Strict):
     mezz_spread: float = Field(4.0, ge=0, le=50, description="Mezz spread over senior (%)")
     capex: float = Field(4.0, ge=0, le=100, description="Capex / revenue (%)")
     nwc: float = Field(1.0, ge=-100, le=100, description="Change in NWC / revenue (%)")
-    mincash: float = Field(0.0, ge=0, description="Minimum cash ($M)")
+    mincash: float = Field(0.0, ge=0, description="Minimum cash (in currency and unit)")
     wsp_mode: bool = Field(False, description="Use AR/inventory/AP days instead of flat NWC")
     ar_days: float = Field(45.0, ge=0, le=365)
     inv_days: float = Field(30.0, ge=0, le=365)
     ap_days: float = Field(60.0, ge=0, le=365)
+    currency: CurrencyCode = Field(DEFAULT_CURRENCY, description="The deal's currency (ISO 4217)")
+    unit: MoneyUnit = Field(DEFAULT_UNIT, description="The deal's money figures are thousands, millions or billions")
+
+    def money(self) -> "Money":
+        return Money(currency=self.currency, unit=self.unit)
 
 
 class MCInputsIn(Strict):
@@ -117,8 +141,9 @@ class SourcesUsesRequest(Strict):
     entry_mult: float = Field(10.0, gt=0)
     senior_x: float = Field(3.4, ge=0, description="Senior debt (x EBITDA)")
     mezz_x: float = Field(0.8, ge=0, description="Mezz debt (x EBITDA)")
-    mincash: float = Field(0.0, ge=0, description="Minimum cash left on the balance sheet ($M)")
+    mincash: float = Field(0.0, ge=0, description="Minimum cash left on the balance sheet")
     settings: Dict[str, SettingValue] = {}
+    money: Money = Money()
 
 
 class SourcesUsesResponse(BaseModel):
@@ -136,6 +161,7 @@ class SourcesUsesResponse(BaseModel):
     balanced: bool
     debt_pct: Optional[float] = Field(None, description="Implied total debt / EV (%)")
     senior_pct: Optional[float] = Field(None, description="Implied senior / total debt (%)")
+    money: Money
 
 
 class DealRunRequest(Strict):
@@ -194,6 +220,7 @@ class DealRunResponse(BaseModel):
     bridge_steps: List[BridgeStep]
     exit_sensitivity: ExitSensitivity
     interest_converged: bool
+    money: Money
 
 
 # ---------------------------------------------------------------------------
@@ -261,6 +288,7 @@ class MonteCarloResponse(BaseModel):
     correlations: Dict[str, object]
     scatter: Dict[str, List[Optional[float]]]
     heatmap: Heatmap
+    money: Money
 
 
 class ScenarioStats(BaseModel):
@@ -284,6 +312,7 @@ class ScenariosRequest(Strict):
 class ScenariosResponse(BaseModel):
     hurdle: float
     scenarios: Dict[str, ScenarioStats]
+    money: Money
 
 
 # ---------------------------------------------------------------------------
@@ -302,10 +331,12 @@ class ForecastDefaultsResponse(BaseModel):
     history: Dict[str, List[float]]
     assumption_keys: List[str]
     seeded_assumptions: Dict[str, float]
+    money: Money = Field(description="What the default history is counted in")
 
 
 class HistoryRequest(Strict):
     history: Dict[str, List[float]] = Field(description="field key -> one value per historical year, oldest first")
+    money: Money = Field(Money(), description="The company's reporting currency and the unit its figures are in")
 
 
 class HistoricalMetrics(BaseModel):
@@ -322,6 +353,7 @@ class SeedResponse(BaseModel):
     ltm: model_from_dataclass(HistoricalYear)
     historical_metrics: List[HistoricalMetrics]
     seeded_assumptions: Dict[str, float]
+    money: Money
 
 
 class ForecastRunRequest(HistoryRequest):
@@ -372,6 +404,7 @@ class ForecastRunResponse(BaseModel):
     forecast_balance_gaps: List[float] = Field(description="Gap each year introduced by the forecast itself")
     balanced: bool
     simulation: Optional[ForecastSimulation]
+    money: Money
 
 
 # ---------------------------------------------------------------------------
@@ -421,6 +454,7 @@ class PreloadedDeal(BaseModel):
     actual_years: List[int] = []
     actual: Dict[str, List[float]] = {}
     actual_exit: Dict[str, float] = {}
+    money: Money
 
 
 class BacktestRequest(Strict):
@@ -430,6 +464,7 @@ class BacktestRequest(Strict):
     settings: Dict[str, SettingValue] = {}
     n: SimulationPaths = Field(30000, ge=1000)
     histogram_bins: int = Field(80, ge=10, le=400)
+    money: Money = Money()
 
 
 class BacktestYear(BaseModel):
@@ -460,9 +495,10 @@ class BacktestResponse(BaseModel):
     predicted_net_debt_at_exit: float
     actual_exit_multiple: float
     attribution: Dict[str, float] = Field(
-        description="Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt")
+        description="Exact split of actual minus predicted exit equity: exit_ebitda, exit_multiple, net_debt")
     irr_histogram: Histogram
     years: List[BacktestYear]
+    money: Money
 
 
 # ---------------------------------------------------------------------------
@@ -480,6 +516,8 @@ class WorkbookSheet(Strict):
 class WorkbookRequest(Strict):
     filename: str = Field("export.xlsx", max_length=120)
     sheets: List[WorkbookSheet] = Field(min_length=1, max_length=30)
+    money: Optional[Money] = Field(
+        None, description="What the money columns are counted in; written on an About sheet")
 
 
 # ---------------------------------------------------------------------------
@@ -537,6 +575,7 @@ class EdgarResponse(BaseModel):
     years: List[int]
     history: Dict[str, List[float]] = Field(description="Forecasting history keys, oldest year first")
     warnings: List[str]
+    money: Money = Field(description="SEC filings are read in US dollars, in millions")
 
 
 # ---------------------------------------------------------------------------

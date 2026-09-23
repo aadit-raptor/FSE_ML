@@ -20,7 +20,9 @@ def training_terms(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping)
     """Every term held fixed while the surrogate was trained, beside this deal's value.
 
     Each item: term, value, model_value, unit ("multiple", "years", "percent",
-    "usd_millions") and decimals -- rates as fractions, so 0.25 is 25%.
+    "money") and decimals -- rates as fractions, so 0.25 is 25%. "money" is in
+    the deal's currency and unit; the training deal's is zero, so it compares
+    in any currency.
     """
     terms = [
         ("entry multiple", mc.entry_mult, fixed["entry_multiple"], "multiple", 1),
@@ -32,7 +34,7 @@ def training_terms(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping)
         ("interest rate std dev", mc.rate_std / 100, fixed["interest_std"], "percent", 2),
         ("transaction fees", cfg["tx_fee_pct"] / 100, fixed["transaction_fees_pct"], "percent", 1),
         ("financing fees", cfg["fin_fee_pct"] / 100, fixed["financing_fees_pct"], "percent", 1),
-        ("other uses", cfg["other_uses"], fixed["other_uses"], "usd_millions", 0),
+        ("other uses", cfg["other_uses"], fixed["other_uses"], "money", 0),
     ]
     return [{"term": name, "value": yours, "model_value": model, "unit": unit,
              "decimals": decimals}

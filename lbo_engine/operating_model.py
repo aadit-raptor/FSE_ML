@@ -76,8 +76,8 @@ class OperatingAssumptions:
         Number of projection years (e.g. 5).
 
     base_revenue : float
-        Revenue in year 0 (LTM at entry), $M.
-        BK: $2,502M (FY2010A).
+        Revenue in year 0 (LTM at entry), in M.
+        BK: USD 2,502M (FY2010A).
 
     revenue_growth : list[float] or float
         Year-by-year revenue growth rates.
@@ -164,7 +164,7 @@ class OperatingModelResult:
         interest_expense, interest_income, ebt, taxes, net_income
         and their corresponding _pct variants
 
-    All absolute values in $M. All _pct values are ratios (e.g. 0.355).
+    All absolute values in millions of the deal's currency. All _pct values are ratios (e.g. 0.355).
     Index 0 = Year 1 (first full year post-close).
     """
 
@@ -213,12 +213,12 @@ class OperatingModelResult:
     # --- Convenience: final year EBITDA (used by returns module) ---
     @property
     def exit_ebitda(self) -> float:
-        """EBITDA in the final projection year ($M)."""
+        """EBITDA in the final projection year (M)."""
         return self.ebitda[-1]
 
     @property
     def exit_revenue(self) -> float:
-        """Revenue in the final projection year ($M)."""
+        """Revenue in the final projection year (M)."""
         return self.revenue[-1]
 
 
@@ -324,15 +324,15 @@ def complete_income_statement(
         Output from run_operating_model() — already has Revenue → EBITDA.
 
     interest_expense : list[float]
-        Total interest expense per year ($M), from debt_model.py.
+        Total interest expense per year (M), from debt_model.py.
         Length must equal result.holding_period.
 
     tax_rate : list[float]
         Effective tax rate per year (decimal). Same as in OperatingAssumptions.
 
     minimum_cash : float
-        Cash balance on which interest income is earned ($M).
-        BK uses $118M minimum cash at 0.5% = ~$0.6M/yr interest income.
+        Cash balance on which interest income is earned (M).
+        BK uses USD 118M minimum cash at 0.5% = ~USD 0.6M/yr interest income.
 
     interest_income_rate : float
         Rate earned on minimum cash balance. BK: 0.5%.
@@ -409,11 +409,11 @@ def print_operating_model(result: OperatingModelResult) -> None:
     yr_labels = [f"Year {t}" for t in result.years]
     col_w = 10
 
-    def row(label, values, fmt="$", pct_values=None):
+    def row(label, values, fmt="money", pct_values=None):
         """Print one P&L row with optional % margin row below."""
         line = f"  {label:<28}"
         for v in values:
-            if fmt == "$":
+            if fmt == "money":
                 line += f"  {v:>8,.0f}"
             elif fmt == "%":
                 line += f"  {v * 100:>7.1f}%"
@@ -437,7 +437,7 @@ def print_operating_model(result: OperatingModelResult) -> None:
     print(header)
     print(sep)
 
-    row("Revenue ($M)",          result.revenue)
+    row("Revenue (M)",          result.revenue)
     row("  % growth",            result.revenue_growth, fmt="%")
     print()
     row("COGS",                  result.cogs,         pct_values=result.cogs_pct)
@@ -467,7 +467,7 @@ def build_bk_conservative() -> OperatingAssumptions:
     """
     Burger King conservative scenario assumptions from the LBO PDF.
 
-    Base revenue = FY2010A revenue of $2,502M.
+    Base revenue = FY2010A revenue of USD 2,502M.
     Projection period = FY2011E through FY2015E (5 years).
     """
     return OperatingAssumptions(
@@ -583,7 +583,7 @@ if __name__ == "__main__":
             f"{bk_net_inc[i]:>9,}"
         )
 
-    print(f"\n  Exit EBITDA: ${result.exit_ebitda:,.0f}M  (BK PDF: $672M)")
+    print(f"\n  Exit EBITDA: {result.exit_ebitda:,.0f}M  (BK PDF: USD 672M)")
 
     # --- Test management scenario ---
     print("\n--- Management scenario ---")

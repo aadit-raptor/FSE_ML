@@ -141,7 +141,7 @@
         "term": "other uses",
         "value": 0.0,
         "model_value": 0.0,
-        "unit": "usd_millions",
+        "unit": "money",
         "decimals": 0
       }
     ]

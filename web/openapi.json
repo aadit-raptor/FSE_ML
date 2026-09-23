@@ -327,6 +327,13 @@
             "title": "Histogram Bins",
             "type": "integer"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "default": {
+              "currency": "USD",
+              "unit": "millions"
+            }
+          },
           "n": {
             "default": 30000,
             "maximum": 100000.0,
@@ -398,12 +405,15 @@
             "additionalProperties": {
               "type": "number"
             },
-            "description": "Exact split of actual minus predicted exit equity ($M): exit_ebitda, exit_multiple, net_debt",
+            "description": "Exact split of actual minus predicted exit equity: exit_ebitda, exit_multiple, net_debt",
             "title": "Attribution",
             "type": "object"
           },
           "irr_histogram": {
             "$ref": "#/components/schemas/Histogram"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money"
           },
           "predicted_ebitda": {
             "items": {
@@ -471,7 +481,8 @@
           "actual_exit_multiple",
           "attribution",
           "irr_histogram",
-          "years"
+          "years",
+          "money"
         ],
         "title": "BacktestResponse",
         "type": "object"
@@ -979,6 +990,15 @@
             "title": "Capex",
             "type": "number"
           },
+          "currency": {
+            "default": "USD",
+            "description": "The deal's currency (ISO 4217)",
+            "maxLength": 3,
+            "minLength": 3,
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
           "da": {
             "default": 4.0,
             "description": "D&A / revenue (%)",
@@ -997,7 +1017,7 @@
           },
           "ebitda": {
             "default": 100.0,
-            "description": "LTM EBITDA ($M)",
+            "description": "LTM EBITDA (in currency and unit)",
             "exclusiveMinimum": 0.0,
             "title": "Ebitda",
             "type": "number"
@@ -1057,7 +1077,7 @@
           },
           "mincash": {
             "default": 0.0,
-            "description": "Minimum cash ($M)",
+            "description": "Minimum cash (in currency and unit)",
             "minimum": 0.0,
             "title": "Mincash",
             "type": "number"
@@ -1093,6 +1113,17 @@
             "minimum": 0.0,
             "title": "Tax",
             "type": "number"
+          },
+          "unit": {
+            "default": "millions",
+            "description": "The deal's money figures are thousands, millions or billions",
+            "enum": [
+              "thousands",
+              "millions",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
           },
           "wsp_mode": {
             "default": false,
@@ -1162,6 +1193,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
               "ebitda": 100.0,
@@ -1177,6 +1209,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "unit": "millions",
               "wsp_mode": false
             }
           },
@@ -1206,6 +1239,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
               "ebitda": 100.0,
@@ -1221,6 +1255,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "unit": "millions",
               "wsp_mode": false
             }
           },
@@ -1274,6 +1309,9 @@
             "title": "Interest Converged",
             "type": "boolean"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
           "operating_model": {
             "$ref": "#/components/schemas/OperatingModelResult"
           },
@@ -1300,7 +1338,8 @@
           "equity_bridge",
           "bridge_steps",
           "exit_sensitivity",
-          "interest_converged"
+          "interest_converged",
+          "money"
         ],
         "title": "DealRunResponse",
         "type": "object"
@@ -1600,6 +1639,10 @@
             "title": "History",
             "type": "object"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "description": "SEC filings are read in US dollars, in millions"
+          },
           "ticker": {
             "title": "Ticker",
             "type": "string"
@@ -1624,7 +1667,8 @@
           "company_name",
           "years",
           "history",
-          "warnings"
+          "warnings",
+          "money"
         ],
         "title": "EdgarResponse",
         "type": "object"
@@ -1898,6 +1942,10 @@
             "title": "History",
             "type": "object"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "description": "What the default history is counted in"
+          },
           "n_fwd": {
             "title": "N Fwd",
             "type": "integer"
@@ -1920,7 +1968,8 @@
           "fields",
           "history",
           "assumption_keys",
-          "seeded_assumptions"
+          "seeded_assumptions",
+          "money"
         ],
         "title": "ForecastDefaultsResponse",
         "type": "object"
@@ -1969,6 +2018,14 @@
             "title": "History",
             "type": "object"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "default": {
+              "currency": "USD",
+              "unit": "millions"
+            },
+            "description": "The company's reporting currency and the unit its figures are in"
+          },
           "n_sim": {
             "default": 30000,
             "maximum": 200000.0,
@@ -2005,6 +2062,9 @@
           },
           "ltm": {
             "$ref": "#/components/schemas/HistoricalYear"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money"
           },
           "opening_balance_gap": {
             "title": "Opening Balance Gap",
@@ -2046,7 +2106,8 @@
           "opening_balance_gap",
           "forecast_balance_gaps",
           "balanced",
-          "simulation"
+          "simulation",
+          "money"
         ],
         "title": "ForecastRunResponse",
         "type": "object"
@@ -3206,6 +3267,14 @@
             "description": "field key -> one value per historical year, oldest first",
             "title": "History",
             "type": "object"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "default": {
+              "currency": "USD",
+              "unit": "millions"
+            },
+            "description": "The company's reporting currency and the unit its figures are in"
           }
         },
         "required": [
@@ -3514,6 +3583,34 @@
         "title": "MCInputsIn",
         "type": "object"
       },
+      "Money": {
+        "additionalProperties": false,
+        "description": "What money figures are counted in. Any ISO 4217 currency; the model never\ncalculates with the code, so the same numbers give the same results in any\ncurrency.",
+        "properties": {
+          "currency": {
+            "default": "USD",
+            "description": "ISO 4217, e.g. EUR",
+            "maxLength": 3,
+            "minLength": 3,
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "unit": {
+            "default": "millions",
+            "description": "Money figures are thousands, millions or billions",
+            "enum": [
+              "thousands",
+              "millions",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "title": "Money",
+        "type": "object"
+      },
       "MonteCarloJob": {
         "additionalProperties": false,
         "properties": {
@@ -3543,6 +3640,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
               "ebitda": 100.0,
@@ -3558,6 +3656,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "unit": "millions",
               "wsp_mode": false
             }
           },
@@ -3681,6 +3780,9 @@
           "moic_histogram": {
             "$ref": "#/components/schemas/Histogram"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
           "n": {
             "title": "N",
             "type": "integer"
@@ -3741,7 +3843,8 @@
           "driver_fits",
           "correlations",
           "scatter",
-          "heatmap"
+          "heatmap",
+          "money"
         ],
         "title": "MonteCarloResponse",
         "type": "object"
@@ -4161,6 +4264,9 @@
             ],
             "title": "Geography"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -4190,7 +4296,8 @@
         },
         "required": [
           "name",
-          "entry"
+          "entry",
+          "money"
         ],
         "title": "PreloadedDeal",
         "type": "object"
@@ -4651,6 +4758,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
               "ebitda": 100.0,
@@ -4666,6 +4774,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "unit": "millions",
               "wsp_mode": false
             }
           },
@@ -4726,6 +4835,9 @@
             "title": "Hurdle",
             "type": "number"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
           "scenarios": {
             "additionalProperties": {
               "$ref": "#/components/schemas/ScenarioStats"
@@ -4736,7 +4848,8 @@
         },
         "required": [
           "hurdle",
-          "scenarios"
+          "scenarios",
+          "money"
         ],
         "title": "ScenariosResponse",
         "type": "object"
@@ -4753,6 +4866,9 @@
           "ltm": {
             "$ref": "#/components/schemas/HistoricalYear"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
           "seeded_assumptions": {
             "additionalProperties": {
               "type": "number"
@@ -4764,7 +4880,8 @@
         "required": [
           "ltm",
           "historical_metrics",
-          "seeded_assumptions"
+          "seeded_assumptions",
+          "money"
         ],
         "title": "SeedResponse",
         "type": "object"
@@ -4860,10 +4977,17 @@
           },
           "mincash": {
             "default": 0.0,
-            "description": "Minimum cash left on the balance sheet ($M)",
+            "description": "Minimum cash left on the balance sheet",
             "minimum": 0.0,
             "title": "Mincash",
             "type": "number"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "default": {
+              "currency": "USD",
+              "unit": "millions"
+            }
           },
           "senior_x": {
             "default": 3.4,
@@ -4932,6 +5056,9 @@
             "title": "Mezz Debt",
             "type": "number"
           },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
           "other_uses": {
             "title": "Other Uses",
             "type": "number"
@@ -4981,7 +5108,8 @@
           "cash_to_balance_sheet",
           "total_uses",
           "check",
-          "balanced"
+          "balanced",
+          "money"
         ],
         "title": "SourcesUsesResponse",
         "type": "object"
@@ -4996,6 +5124,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
               "ebitda": 100.0,
@@ -5011,6 +5140,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "unit": "millions",
               "wsp_mode": false
             }
           },
@@ -5573,6 +5703,17 @@
             "title": "Filename",
             "type": "string"
           },
+          "money": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Money"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the money columns are counted in; written on an About sheet"
+          },
           "sheets": {
             "items": {
               "$ref": "#/components/schemas/WorkbookSheet"
@@ -5980,7 +6121,7 @@
     },
     "/api/deal/run": {
       "post": {
-        "description": "Run the full LBO model: operating model, cash flow, debt, returns.",
+        "description": "Run the full LBO model: operating model, cash flow, debt, returns.\n\nMoney in and out is in the deal's currency and unit. The engine runs in\nmillions (core/money.py), so a deal in thousands answers exactly as the\nsame deal in millions, times a thousand.",
         "operationId": "post_run_api_deal_run_post",
         "requestBody": {
           "content": {
@@ -6037,7 +6178,7 @@
     },
     "/api/deal/sources-and-uses": {
       "post": {
-        "description": "Sources & uses for a deal financed with senior and mezz debt multiples.",
+        "description": "Sources & uses for a deal financed with senior and mezz debt multiples.\n\nMoney in and out is in ``money``'s unit; the sums run in millions like the\ndeal model's.",
         "operationId": "post_sources_and_uses_api_deal_sources_and_uses_post",
         "requestBody": {
           "content": {

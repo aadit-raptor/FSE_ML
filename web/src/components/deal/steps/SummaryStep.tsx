@@ -7,11 +7,13 @@ import { DataTable, type Row } from "@/components/charts/DataTable";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { NumberField } from "@/components/ui/NumberField";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { useMoney } from "@/components/ui/MoneyScope";
 import { multiplesFromPct } from "@/lib/deal/capital";
 import { FIELDS, type NumericDealKey } from "@/lib/deal/fields";
 import { downloadWorkbook, sheet, tableSheet } from "@/lib/export";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct } from "@/lib/format";
+import { fieldUnit } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
 import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
@@ -27,7 +29,7 @@ const ASSUMPTIONS: { title: string; keys: NumericDealKey[] }[] = [
 ];
 
 export function SummaryStep() {
-  const { inputs, run } = useDeal();
+  const { inputs, run, money } = useDeal();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
   return (
     <DealScreen
@@ -40,7 +42,7 @@ export function SummaryStep() {
                   <div key={k} className="contents">
                     <dt className="type-input-label">{FIELDS[k].label}</dt>
                     <dd className="text-right font-mono text-[11.5px] text-ink">
-                      {fmtInput(inputs[k], FIELDS[k].decimals)} <span className="text-[10px] text-[#56636a]">{FIELDS[k].unit}</span>
+                      {fmtInput(inputs[k], FIELDS[k].decimals)} <span className="text-[10px] text-[#56636a]">{fieldUnit(FIELDS[k].unit, money)}</span>
                     </dd>
                   </div>
                 ))}
@@ -64,6 +66,7 @@ export function SummaryStep() {
 }
 
 function SummaryResults() {
+  const { label: mu, money } = useMoney();
   const { run, hurdle, inputs } = useDeal();
   const [sbcPct, setSbcPct] = useState(2);
   const res = run.result!;
@@ -143,7 +146,7 @@ function SummaryResults() {
 
   const bridgeSheet = sheet(
     "Equity bridge",
-    ["Component", "Value ($M)", "% of gain"],
+    ["Component", `Value (${mu})`, "% of gain"],
     res.bridge_steps.map((s) => [s.label, s.value ?? null, s.pct_of_gain ?? null]),
   );
   const allSheets = () => [
@@ -175,34 +178,34 @@ function SummaryResults() {
     <Tiles>
       <Kpi title="IRR" value={r.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period} yr hold`} />
-      <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub="$M" />
-      <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub="$M" />
-      <Kpi title="Total gain" value={fmtMoney(br.total_gain)} sub="$M" />
-      <Kpi title="Bridge residual" value={fmtMoney(br.residual)} sub="$M, should be 0" tone={Math.abs(br.residual ?? 0) > 0.05 ? "attention" : undefined} />
+      <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub={mu} />
+      <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub={mu} />
+      <Kpi title="Total gain" value={fmtMoney(br.total_gain)} sub={mu} />
+      <Kpi title="Bridge residual" value={fmtMoney(br.residual)} sub={`${mu}, should be 0`} tone={Math.abs(br.residual ?? 0) > 0.05 ? "attention" : undefined} />
 
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
         <p className="type-body">Every table on this page, plus each tranche&apos;s schedule, in one workbook.</p>
-        <DownloadButton label="All tables" onDownload={() => downloadWorkbook("lbo_summary.xlsx", allSheets())} />
+        <DownloadButton label="All tables" onDownload={() => downloadWorkbook("lbo_summary.xlsx", allSheets(), money)} />
       </div>
 
-      <Tile span={12} title="Income statement" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("pl.xlsx", [tableSheet("P&L", years, incomeRows)])} />}>
+      <Tile span={12} title="Income statement" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("pl.xlsx", [tableSheet("P&L", years, incomeRows)], money)} />}>
         <DataTable caption="Income statement by year" columns={years} rows={incomeRows} />
       </Tile>
-      <Tile span={6} title="Cash flow" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("cashflow.xlsx", [tableSheet("Cash flow", years, cashRows)])} />}>
+      <Tile span={6} title="Cash flow" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("cashflow.xlsx", [tableSheet("Cash flow", years, cashRows)], money)} />}>
         <DataTable caption="Cash flow by year" columns={years} rows={cashRows} />
       </Tile>
-      <Tile span={6} title="Debt" unit="all tranches, $M" action={<DownloadButton onDownload={() => downloadWorkbook("debt_schedule.xlsx", [tableSheet("Debt schedule", years, debtRows)])} />}>
+      <Tile span={6} title="Debt" unit={`all tranches, ${mu}`} action={<DownloadButton onDownload={() => downloadWorkbook("debt_schedule.xlsx", [tableSheet("Debt schedule", years, debtRows)], money)} />}>
         <DataTable caption="Debt schedule totals by year" columns={years} rows={debtRows} />
       </Tile>
-      <Tile span={6} title="PP&E roll-forward" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("ppe_schedule.xlsx", [tableSheet("PP&E", years, ppeRows)])} />}>
+      <Tile span={6} title="PP&E roll-forward" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("ppe_schedule.xlsx", [tableSheet("PP&E", years, ppeRows)], money)} />}>
         <DataTable caption="PP&E roll-forward by year" columns={years} rows={ppeRows} />
         <p className="type-body text-[9px]">The deal model has no balance sheet: opening PP&amp;E is estimated at three times year-one capex.</p>
       </Tile>
       <Tile
         span={6}
         title="Working capital"
-        unit="days method, $M"
-        action={inputs.wsp_mode ? <DownloadButton onDownload={() => downloadWorkbook("wc_schedule.xlsx", [tableSheet("Working capital", years, wcRows)])} /> : undefined}
+        unit={`days method, ${mu}`}
+        action={inputs.wsp_mode ? <DownloadButton onDownload={() => downloadWorkbook("wc_schedule.xlsx", [tableSheet("Working capital", years, wcRows)], money)} /> : undefined}
       >
         {inputs.wsp_mode ? (
           <>
@@ -221,14 +224,14 @@ function SummaryResults() {
           </p>
         )}
       </Tile>
-      <Tile span={6} title="Adjusted EBITDA" unit="$M" action={<DownloadButton onDownload={() => downloadWorkbook("adj_ebitda.xlsx", [tableSheet("Adjusted EBITDA", years, adjRows)])} />}>
+      <Tile span={6} title="Adjusted EBITDA" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("adj_ebitda.xlsx", [tableSheet("Adjusted EBITDA", years, adjRows)], money)} />}>
         <div className="max-w-[260px]">
           <NumberField spec={SBC_SPEC} value={sbcPct} onCommit={setSbcPct} />
         </div>
         <DataTable caption="Adjusted EBITDA by year" columns={years} rows={adjRows} />
         <p className="type-body text-[9px]">Stock-based comp is added back for presentation only; it doesn&apos;t change the model&apos;s returns.</p>
       </Tile>
-      <Tile span={6} title="Equity bridge" unit="$M and share of gain" action={<DownloadButton onDownload={() => downloadWorkbook("equity_bridge.xlsx", [bridgeSheet])} />}>
+      <Tile span={6} title="Equity bridge" unit={`${mu} and share of gain`} action={<DownloadButton onDownload={() => downloadWorkbook("equity_bridge.xlsx", [bridgeSheet], money)} />}>
         <table className="w-full border-collapse font-mono text-[11.5px]">
           <caption className="sr-only">Equity bridge</caption>
           <tbody>

@@ -5,7 +5,7 @@ and capital-structure assumptions come from the deal wizard inputs, exactly as
 on the Monte Carlo page; percentages are numbers like 5.0.
 """
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Mapping
 
 import numpy as np
@@ -23,7 +23,7 @@ SCENARIOS = ["recession", "base", "bull", "stagflation"]
 class MCInputs:
     """Monte Carlo page inputs. Defaults match the page's first load."""
     n: int = 50000
-    ebitda: float = 100.0        # entry EBITDA ($M)
+    ebitda: float = 100.0        # entry EBITDA (money, in the deal's currency and unit)
     entry_mult: float = 10.0
     hold: int = 5
     hurdle: float = 20.0         # %
@@ -35,6 +35,19 @@ class MCInputs:
     rate_std: float = 1.5
     gm_mean: float = 40.0
     gm_std: float = 3.0
+
+
+# Money in a simulation answer: the parameters it ran with
+MC_MONEY_KEYS = frozenset({"entry_ebitda", "other_uses"})
+
+
+def mc_in_millions(mc: MCInputs, deal: DealInputs, cfg: Mapping):
+    """Simulation inputs with money in millions (core.deal.in_millions)."""
+    from core.deal import in_millions
+    from core.money import to_millions
+    mc = replace(mc, ebitda=to_millions(mc.ebitda, deal.unit))
+    deal, cfg = in_millions(deal, cfg)
+    return mc, deal, cfg
 
 
 def build_sim_params(mc: MCInputs, deal: DealInputs, cfg: Mapping) -> SimulationParams:

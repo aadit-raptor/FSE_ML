@@ -454,11 +454,12 @@ def _fingerprint(rows) -> str:
     travel in the manifest beside the backup without carrying a deal with it.
     """
     from core.config import resolve_config
-    from core.deal import DealInputs, run_deal
+    from core.deal import DealInputs, in_millions, run_deal
 
     digest = hashlib.sha256()
     for deal_id, inputs, settings in rows:
-        result = run_deal(DealInputs(**inputs), resolve_config(settings or {}))
+        # As the app runs it: money in millions whatever the deal's unit (core/money.py)
+        result = run_deal(*in_millions(DealInputs(**inputs), resolve_config(settings or {})))
         digest.update(f"{deal_id}:{result.returns.irr:.12g}:{result.returns.moic:.12g}\n".encode())
     return digest.hexdigest()
 

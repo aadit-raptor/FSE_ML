@@ -244,7 +244,7 @@ def _get_annual_values(facts_data: dict, tag: str,
     result = []
     for yr in years_wanted:
         if yr in by_year:
-            result.append(by_year[yr]['val'] / 1e6)  # Convert to $M
+            result.append(by_year[yr]['val'] / 1e6)  # Convert to millions
         else:
             result.append(None)
 
@@ -433,7 +433,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
 
     # Step 7: Derived calculations where direct tags unavailable
     # SG&A: some filers tag selling & marketing and G&A separately instead of
-    # a combined line. Taking G&A alone understated MSFT's costs by $26.7B.
+    # a combined line. Taking G&A alone understated MSFT's costs by USD 26.7B.
     combined_sga = [sm + ga for sm, ga in zip(extracted['selling_marketing'],
                                               extracted['general_admin'])]
     if any(v == 0 and c != 0 for v, c in zip(extracted['selling_general_admin'],
@@ -474,7 +474,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
             folded.append((years_wanted[j], gap))
     if folded:
         fy, amt = folded[-1]
-        warnings.append(f"Operating costs not separately tagged (${amt:,.0f}M in "
+        warnings.append(f"Operating costs not separately tagged ({amt:,.0f}M in "
                         f"FY{fy}) folded into SG&A so operating income matches "
                         f"the 10-K")
 

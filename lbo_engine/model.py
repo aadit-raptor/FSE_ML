@@ -112,7 +112,7 @@ class LBOParams:
 
     Transaction
     -----------
-    entry_ebitda : float        [REQUIRED]  LTM EBITDA at entry ($M)
+    entry_ebitda : float        [REQUIRED]  LTM EBITDA at entry (M)
     entry_multiple : float      [REQUIRED]  EV / LTM EBITDA at entry
     exit_multiple : float       [REQUIRED]  EV / LTM EBITDA at exit
     holding_period : int        [REQUIRED]  Years from close to exit
@@ -144,7 +144,7 @@ class LBOParams:
     -------------------
     transaction_fees_pct : float [OPTIONAL]  default 0.0  (% of entry EV)
     financing_fees_pct : float   [OPTIONAL]  default 0.0  (% of total debt)
-    other_uses : float           [OPTIONAL]  default 0.0  ($M)
+    other_uses : float           [OPTIONAL]  default 0.0  (M)
         Funded by sponsor equity at close, so they raise the equity check
         without buying enterprise value. Defaults of 0 reproduce the
         fee-free behaviour.
@@ -190,7 +190,7 @@ class LBOParams:
     # --- Transaction ---
     transaction_fees_pct: float = 0.0   # % of entry EV
     financing_fees_pct: float = 0.0     # % of total debt
-    other_uses: float = 0.0             # $M
+    other_uses: float = 0.0             # M
     minimum_cash: float = 0.0
     company_name: str = "Target"
     pure_sweep_mode: bool = False
@@ -203,7 +203,7 @@ class LBOParams:
 
     # --- Iteration control ---
     n_iterations: int = 2   # maximum interest convergence passes
-    interest_tolerance: float = 0.5   # $M; stop when interest moves less than this
+    interest_tolerance: float = 0.5   # M; stop when interest moves less than this
 
     # --- Exit sensitivity grid ---
     # None keeps the defaults: exit multiples at 0.6x-1.4x of the deal's and
@@ -296,7 +296,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
             - interest_pass2 feeds final P&L and returns calculation
 
         Convergence check:
-            max |interest_pass2[t] - interest_pass1[t]| < 0.5 ($M)
+            max |interest_pass2[t] - interest_pass1[t]| < 0.5 (M)
     """
 
     result = LBOResult(params=params)
@@ -890,7 +890,7 @@ def _test_burger_king():
     print("  VALIDATION vs BK PDF:")
     print(f"    IRR:          {bk_result.irr * 100:.1f}%   (PDF: 19.0%)")
     print(f"    MOIC:         {bk_result.moic:.2f}x  (PDF: 2.4x)")
-    print(f"    Exit equity:  ${bk_result.exit_equity:,.0f}M  (PDF: $3,730M)")
+    print(f"    Exit equity:  {bk_result.exit_equity:,.0f}M  (PDF: USD 3,730M)")
 
 
 # ---------------------------------------------------------------------------

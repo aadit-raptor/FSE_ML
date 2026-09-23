@@ -1,5 +1,6 @@
 import type { Schemas } from "@/lib/api/client";
 import { changedKeys, type FieldSpec, validate } from "@/lib/fields";
+import { DEFAULT_MONEY, MONEY } from "@/lib/money";
 
 export type DealInputs = Required<Schemas["DealInputsIn"]>;
 export type DealRun = Schemas["DealRunResponse"];
@@ -27,13 +28,15 @@ export const DEFAULT_INPUTS: DealInputs = {
   ar_days: 45,
   inv_days: 30,
   ap_days: 60,
+  currency: DEFAULT_MONEY.currency,
+  unit: DEFAULT_MONEY.unit,
 };
 
 export type { FieldSpec };
 
 /** Bounds mirror DealInputsIn in api/schemas.py. */
 export const FIELDS: Record<NumericDealKey, FieldSpec> = {
-  ebitda: { label: "EBITDA", unit: "$M", step: 5, decimals: 1, min: 0, exclusiveMin: true },
+  ebitda: { label: "EBITDA", unit: MONEY, step: 5, decimals: 1, min: 0, exclusiveMin: true },
   entry_mult: { label: "Entry multiple", unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true },
   exit_mult: { label: "Exit multiple", unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true },
   hold: { label: "Hold", unit: "yr", step: 1, decimals: 0, min: 1, max: 15, integer: true },
@@ -48,7 +51,7 @@ export const FIELDS: Record<NumericDealKey, FieldSpec> = {
   mezz_spread: { label: "Mezz spread", unit: "%", step: 0.25, decimals: 2, min: 0, max: 50 },
   capex: { label: "Capex", unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
   nwc: { label: "NWC change", unit: "%", step: 0.25, decimals: 2, min: -100, max: 100 },
-  mincash: { label: "Minimum cash", unit: "$M", step: 5, decimals: 1, min: 0 },
+  mincash: { label: "Minimum cash", unit: MONEY, step: 5, decimals: 1, min: 0 },
   ar_days: { label: "Receivable days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
   inv_days: { label: "Inventory days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
   ap_days: { label: "Payable days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },

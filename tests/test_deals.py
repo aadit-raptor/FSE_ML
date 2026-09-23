@@ -24,7 +24,8 @@ PROFILE = {"country": "DE", "preferred_currency": "EUR", "locale": "de-DE",
 INPUTS = {"ebitda": 240.0, "entry_mult": 9.0, "exit_mult": 10.5, "hold": 6, "growth": 7.5,
           "gross_margin": 44.0, "opex": 17.0, "tax": 29.0, "da": 3.5, "debt_pct": 55.0,
           "senior_pct": 75.0, "base_rate": 5.25, "mezz_spread": 4.5, "capex": 3.0, "nwc": 0.5,
-          "mincash": 15.0, "wsp_mode": False, "ar_days": 45.0, "inv_days": 30.0, "ap_days": 60.0}
+          "mincash": 15.0, "wsp_mode": False, "ar_days": 45.0, "inv_days": 30.0, "ap_days": 60.0,
+          "currency": "EUR", "unit": "thousands"}
 SETTINGS = {"tx_fee_pct": 3.0}
 
 

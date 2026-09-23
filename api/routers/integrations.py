@@ -158,4 +158,6 @@ def get_edgar(ticker: str):
     history = {f: [by_year[j] for j in sorted(by_year)] for f, by_year in history.items()}
     return {"ticker": ticker, "company_name": extracted.company_name,
             "years": list(extracted.years), "history": to_json(history),
-            "warnings": list(extracted.warnings)}
+            "warnings": list(extracted.warnings),
+            # The extractor reads the filings' USD facts and divides by a million
+            "money": {"currency": "USD", "unit": "millions"}}

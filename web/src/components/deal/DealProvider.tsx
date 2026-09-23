@@ -3,8 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { api, type Schemas } from "@/lib/api/client";
+import { useProfile } from "@/components/auth/ProfileProvider";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
+import { MoneyScope } from "@/components/ui/MoneyScope";
 import { changedKeys, DEFAULT_INPUTS, type DealInputs, type DealRun } from "@/lib/deal/fields";
+import { type Money, unitFactor } from "@/lib/money";
 
 /** Debounce between the last edit and an automatic rerun. */
 const AUTO_RUN_DELAY_MS = 300;
@@ -35,6 +38,9 @@ type DealContext = {
   inputs: DealInputs;
   setField: <K extends keyof DealInputs>(key: K, value: DealInputs[K]) => void;
   setFields: (patch: Partial<DealInputs>) => void;
+  /** The deal's currency and unit. A new unit keeps the deal's size: 100 (millions) becomes 100,000 (thousands). */
+  money: Money;
+  setMoney: (money: Money) => void;
   autoUpdate: boolean;
   setAutoUpdate: (on: boolean) => void;
   run: RunState;
@@ -113,8 +119,12 @@ function lastDeal(): string | null {
 }
 
 export function DealProvider({ children }: { children: React.ReactNode }) {
-  const { overrides, effective, defaults, loaded: settingsLoaded, replace: replaceSettings } = useSettings();
+  const { overrides, effective, defaults, loaded: settingsLoaded, replace: replaceSettings, set: setSetting } = useSettings();
+  const { profile } = useProfile();
   const [inputs, setInputs] = useState<DealInputs>(DEFAULT_INPUTS);
+  // A new deal starts in the account's currency (PLAN.md 2.2)
+  const accountCurrency = profile?.preferred_currency || DEFAULT_INPUTS.currency;
+  const startInputs = useMemo(() => ({ ...DEFAULT_INPUTS, currency: accountCurrency }), [accountCurrency]);
   const [autoUpdate, setAutoUpdate] = useState(true);
   const [run, setRun] = useState<RunState>({ status: "idle" });
   const inflight = useRef<AbortController | null>(null);
@@ -159,6 +169,22 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     setInputs((prev) => ({ ...prev, ...patch }));
   }, []);
 
+  const money = useMemo<Money>(() => ({ currency: inputs.currency, unit: inputs.unit }), [inputs.currency, inputs.unit]);
+  const otherUses = num(effective, "other_uses", 0);
+  const setMoney = useCallback(
+    (next: Money) => {
+      setInputs((prev) => {
+        const k = unitFactor(prev.unit, next.unit);
+        // Keep the deal the same size in its new unit
+        return k === 1
+          ? { ...prev, currency: next.currency }
+          : { ...prev, currency: next.currency, unit: next.unit, ebitda: prev.ebitda * k, mincash: prev.mincash * k };
+      });
+      const k = unitFactor(inputs.unit, next.unit);
+      if (k !== 1 && otherUses !== 0) setSetting("other_uses", otherUses * k);
+    },
+    [inputs.unit, otherUses, setSetting],
+  );
   // ---- Saved deals (PLAN.md 1.5) ----
   const [current, setCurrent] = useState<OpenDeal | null>(null);
   const [saveState, setSaveState] = useState<DealSaveState>("unsaved");
@@ -204,9 +230,18 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     savedKey.current = null;
     setCurrent(null);
     setSaveState("unsaved");
-    setInputs(DEFAULT_INPUTS);
+    setInputs(startInputs);
     rememberDeal(null);
-  }, []);
+  }, [startInputs]);
+
+  // The start deal takes the account's currency once the profile loads
+  // (adjusted during render, as React recommends for derived state), unless a
+  // saved deal is open or the currency was already changed by hand
+  const [appliedCurrency, setAppliedCurrency] = useState(DEFAULT_INPUTS.currency);
+  if (appliedCurrency !== accountCurrency) {
+    setAppliedCurrency(accountCurrency);
+    if (current === null && inputs.currency === appliedCurrency) setInputs({ ...inputs, currency: accountCurrency });
+  }
 
   const patchCurrent = useCallback((patch: Partial<OpenDeal>) => {
     setCurrent((c) => (c ? { ...c, ...patch } : c));
@@ -280,13 +315,17 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
-      inputs, setField, setFields, autoUpdate, setAutoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
+      inputs, setField, setFields, money, setMoney, autoUpdate, setAutoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
       current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush,
     }),
-    [inputs, setField, setFields, autoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
+    [inputs, setField, setFields, money, setMoney, autoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
       current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush],
   );
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={value}>
+      <MoneyScope money={money}>{children}</MoneyScope>
+    </Ctx.Provider>
+  );
 }
 
 export function useDeal(): DealContext {

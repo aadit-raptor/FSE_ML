@@ -8,10 +8,12 @@ import { CellInput } from "@/components/ui/CellInput";
 import { NumberField } from "@/components/ui/NumberField";
 import { EmptyState, LoadingTiles, Notice, PrimaryButton, RailGroup, Screen, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
+import { useMoney } from "@/components/ui/MoneyScope";
 import type { DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput, fmtMoney, fmtRate } from "@/lib/format";
 import { MAX_SIMULATION_PATHS } from "@/lib/limits";
+import { MONEY } from "@/lib/money";
 import { ILLUSTRATIVE, ILLUSTRATIVE_DETAIL } from "@/lib/provenance";
 
 import { useSettings } from "./SettingsProvider";
@@ -22,7 +24,7 @@ const pct = (step = 0.5, decimals = 1, extra: Partial<FieldSpec> = {}) => ({ uni
 
 /** Deal default key -> deal input it seeds. */
 const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
-  { key: "def_ebitda", input: "ebitda", label: "EBITDA", spec: { unit: "$M", step: 5, decimals: 1, min: 0, exclusiveMin: true } },
+  { key: "def_ebitda", input: "ebitda", label: "EBITDA", spec: { unit: MONEY, step: 5, decimals: 1, min: 0, exclusiveMin: true } },
   { key: "def_entry_mult", input: "entry_mult", label: "Entry multiple", spec: { unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true } },
   { key: "def_exit_mult", input: "exit_mult", label: "Exit multiple", spec: { unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true } },
   { key: "def_hold", input: "hold", label: "Hold", spec: { unit: "yr", step: 1, decimals: 0, min: 1, max: 15, integer: true } },
@@ -37,7 +39,7 @@ const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
   { key: "def_mezz_spread", input: "mezz_spread", label: "Mezz spread", spec: pct(0.25, 2, { min: 0 }) },
   { key: "def_capex", input: "capex", label: "Capex", spec: pct() },
   { key: "def_nwc", input: "nwc", label: "NWC change", spec: pct(0.25, 2) },
-  { key: "def_mincash", input: "mincash", label: "Minimum cash", spec: { unit: "$M", step: 5, decimals: 1, min: 0 } },
+  { key: "def_mincash", input: "mincash", label: "Minimum cash", spec: { unit: MONEY, step: 5, decimals: 1, min: 0 } },
   { key: "def_senior_amort", label: "Senior amortisation", spec: pct() },
 ];
 
@@ -52,7 +54,7 @@ const SENSITIVITY: Def[] = [
 const FEES: Def[] = [
   { key: "tx_fee_pct", label: "Transaction fees, % of EV", spec: pct(0.1, 2, { min: 0 }) },
   { key: "fin_fee_pct", label: "Financing fees, % of debt", spec: pct(0.1, 2, { min: 0 }) },
-  { key: "other_uses", label: "Other uses", spec: { unit: "$M", step: 1, decimals: 1, min: 0 } },
+  { key: "other_uses", label: "Other uses", spec: { unit: MONEY, step: 1, decimals: 1, min: 0 } },
 ];
 
 const MC: Def[] = [
@@ -224,6 +226,7 @@ export function FeesStep() {
 }
 
 function Fees() {
+  const { label: mu } = useMoney();
   const { run } = useDeal();
   const r = run.result;
   return (
@@ -233,8 +236,8 @@ function Fees() {
         <p className="type-body text-[9px]">Funded by sponsor equity at close, so higher fees lower IRR. Used by the deal, Monte Carlo and backtests.</p>
       </Tile>
       <Kpi title="Current deal IRR" value={fmtRate(r?.returns.irr)} sub="updates as you edit" lead />
-      <Kpi title="Fees at entry" value={fmtMoney(r ? -(r.equity_bridge.entry_costs ?? 0) : null)} sub="$M, current deal" />
-      <Kpi title="Equity in" value={fmtMoney(r?.returns.entry_equity)} sub="$M, current deal" />
+      <Kpi title="Fees at entry" value={fmtMoney(r ? -(r.equity_bridge.entry_costs ?? 0) : null)} sub={`${mu}, current deal`} />
+      <Kpi title="Equity in" value={fmtMoney(r?.returns.entry_equity)} sub={`${mu}, current deal`} />
     </Tiles>
   );
 }
