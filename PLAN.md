@@ -42,7 +42,8 @@ These apply to every task; a task isn't done if it breaks one.
 
 Start each session with this prompt (swap in the task number):
 
-> Read CLAUDE.md and PLAN.md. Do task **1.3** only. Check its "Needs" are done
+> Read CLAUDE.md, PLAN.md and docs/WORKFLOW.md. Do task **1.3** only, following
+> the cycle in docs/WORKFLOW.md. Check its "Needs" are done
 > and its "You first" items are in place; if not, stop and tell me what's
 > missing. Follow PLAN.md's guiding principles (free plans only) and
 > CLAUDE.md's working rules (branch, tests that check real output,
@@ -109,6 +110,8 @@ which moved into Foundations (1.9) because later phases need them.
 |---|---|---|---|
 | **0** | **Online** | | |
 | 0.1 | Put the current app online (free) | — | ☑ |
+| 0.2 | Your own domain | 0.1, 1.4 | ☐ |
+| 0.3 | Development cycle gates (coverage, PR checks) | — | ☐ |
 | **1** | **Foundations** | | |
 | 1.1 | Test copy (staging) and production | 0.1 | ☑ |
 | 1.2 | Monitoring, error tracking, logs | 1.1 | ☑ |
@@ -181,6 +184,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 11.1 | Release routine and rollback | 1.1, 3.1 | ☐ |
 | 11.2 | Incident routine and runbooks | 1.2 | ☐ |
 | 11.3 | Free-limit, data-freshness and dependency upkeep | 1.9, 4.3 | ☐ |
+| 11.4 | Owner's handbook: running it without Claude | 1.9 | ☐ |
 | **12** | **Paid tiers (only once the product is functional)** | | |
 | 12.1 | Always-on hosting and dedicated workers with autoscaling | 8.3 | ☐ |
 | 12.2 | Paid database with longer backups | 12.1 | ☐ |
@@ -193,7 +197,10 @@ which moved into Foundations (1.9) because later phases need them.
 
 **Order:** 0.1 → 2.1 (small, do early) → 1 → 2 → 3 → 4 → 5 → 6 and 7 (any
 order) → 8 → 9 → 10 → 11 → 12. Task 3.2 can start any time; 11.1 and 11.2
-any time after phase 1.
+any time after phase 1. Added 2026-09-24: **0.3 next** (before 2.3), then
+back to phase 2; **0.2 as soon as the domain is bought** (it jumps the queue
+then); **11.4 any time**, refreshed whenever a later task changes how the app
+is run.
 
 ---
 
@@ -207,6 +214,64 @@ any time after phase 1.
   the status page.
 - **Done when:** the live status bar shows "API ok" (after wake-up); the default
   deal shows 21.2% IRR; URLs are in CLAUDE.md.
+
+### 0.2 Your own domain
+- **You first:**
+  - buy the domain. Cloudflare Registrar is recommended: it charges the
+    registry's price with no markup, renewals don't jump and DNS is free.
+    Porkbun is a good alternative. Prefer `.com`; `.app` is fine (HTTPS only);
+  - keep its DNS at the registrar (Cloudflare) and tell Claude the name;
+  - in Clerk, create the **production instance** for that domain (a Clerk
+    production instance can't use `*.vercel.app`), and put its keys in
+    Vercel and Render;
+  - add the domain in Vercel (project `fse-ml`) and `api.<domain>` in Render
+    (`fse-api`), then add the DNS records both dashboards show. Claude lists
+    them exactly first.
+- **Claude does:**
+  - production at `https://<domain>` (and `www.` redirecting to it), the API at
+    `https://api.<domain>`, both on the free plans' automatic certificates;
+    `fse-ml.vercel.app` redirects to the domain;
+  - staging stays where it is (Vercel preview and `fse-api-staging`), so
+    nothing about the test copy changes;
+  - moves every place that names the production URL: CORS origins
+    (`api/security.py`), the CSP (`web/src/lib/security/headers.ts`, Clerk's
+    new hosts), `FSE_API_URL`, Better Stack monitors and status page
+    (`ops/betterstack.py`), header scan (`ops/check_headers.py`), live tests
+    and `live.yml`, Sentry's allowed origins, DEPLOY.md and CLAUDE.md;
+  - **accounts:** a new Clerk instance gives every person a new user id, so
+    saved deals and settings keyed to development-instance ids would be
+    orphaned. Claude writes a one-off, tested mapping (old subject → new
+    subject, run with the user's approval) or documents that the dev-instance
+    accounts are test data to drop;
+  - Cloudflare DNS records set to "DNS only" (grey cloud), so Vercel and
+    Render issue their own certificates and the CSP and headers stay theirs;
+  - Resend's domain records noted for later (PLAN.md emails) without enabling
+    anything paid.
+- **Done when:** `live.yml` passes against the domain; the old URL redirects;
+  sign-in works on the Clerk production instance; `ops/check_headers.py`
+  passes on both hosts; a deal saved before the switch opens after it (or the
+  drop is documented and approved).
+- **Free limits:** Vercel Hobby allows custom domains; Render free allows
+  custom domains; the domain itself is the only cost (about 10–15 US dollars
+  a year for `.com`).
+
+### 0.3 Development cycle gates (coverage, PR checks)
+The ECC framework merged in docs/WORKFLOW.md, enforced by CI where a machine
+can check it.
+- **You first:** optionally install the ECC plugin (docs/WORKFLOW.md
+  "Installing ECC"); nothing else.
+- **Claude does:**
+  - Python coverage (`pytest-cov`) in the `core` and `ml` jobs, with a report
+    in the job summary; the floor is today's figure and only rises
+    (a `.coverage-floor` file); **80% of changed lines** (`diff-cover`)
+    for new code, ECC's number;
+  - a PR title check for the ECC types (`feat:`, `fix:` …), read-only token;
+  - `docs/WORKFLOW.md` step 6 and CLAUDE.md updated with the new gates;
+  - no web unit-test framework yet: the browser tests stay the web's proof,
+    and one is added only when a task has logic worth unit-testing.
+- **Done when:** CI shows coverage; a PR that lowers the floor or leaves
+  changed lines under 80% fails (demonstrated on a throwaway branch); a PR
+  title without a type fails.
 
 ---
 
@@ -842,6 +907,26 @@ enough for the free server.
   - alerts when a data source hasn't refreshed on time.
 - **Done when:** the dashboard covers every free service; a simulated 80% usage
   alert fires; a deliberately broken data connector raises an alert.
+
+### 11.4 Owner's handbook: running it without Claude
+- **You first:** nothing.
+- **Claude does:**
+  - `docs/MAINTAINING.md`, written for you, not for Claude: set up a new
+    computer; run everything locally; make and ship a small change through
+    docs/WORKFLOW.md by hand; update dependencies (Dependabot PRs, Python and
+    Node upgrades, Next.js majors); what each alert and failing workflow
+    means and what to do; rotate each secret; restore a backup;
+  - an **accounts table**: every outside service, what it's for, the variables
+    it sets, its free limit, and when and how to upgrade it (linking PLAN.md
+    phase 12);
+  - a **monthly 15-minute checklist**: workflows still enabled, free-limit
+    usage, backups verified, Dependabot merged, domain and certificates
+    renewing;
+  - `docs/ARCHITECTURE.md`: how the pieces fit, the design decisions and why
+    (the "why" now spread across CLAUDE.md), with a diagram;
+  - refreshed whenever a later task changes how the app is run.
+- **Done when:** following only the handbook, you set up a clean checkout,
+  ship a one-line change to staging and handle a simulated staging alert.
 
 ---
 
