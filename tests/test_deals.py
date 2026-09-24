@@ -86,7 +86,9 @@ def test_settings_equal_to_the_defaults_are_not_stored():
 
 def test_stored_inputs_are_complete_even_when_a_caller_sends_a_few():
     cleaned = store.clean_inputs({"ebitda": 50})
-    assert cleaned["ebitda"] == 50 and cleaned["exit_mult"] == 11.0 and len(cleaned) == len(INPUTS)
+    assert cleaned["ebitda"] == 50 and cleaned["exit_mult"] == 11.0
+    # Every field but the fiscal year labels, which are stored only when set
+    assert set(cleaned) == set(INPUTS) - set(store.LABEL_DEFAULTS)
 
 
 @pytest.mark.parametrize("name", ["", "   ", "x" * 121])

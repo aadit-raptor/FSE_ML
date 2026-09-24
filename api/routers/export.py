@@ -89,13 +89,13 @@ def _number_format(kind: Optional[str], value, grouping: str) -> Optional[str]:
     return NUMBER_FORMATS[kind]
 
 
-def _apply_formats(ws, df: pd.DataFrame, columns, rows, grouping: str) -> None:
+def _apply_formats(ws, df: pd.DataFrame, column_formats, row_formats, grouping: str) -> None:
     """Set each data cell's number format: its row's format, else its column's."""
-    columns, rows = list(columns or []), list(rows or [])
+    column_formats, row_formats = list(column_formats or []), list(row_formats or [])
     for r in range(len(df)):
-        row_kind = rows[r] if r < len(rows) else None
+        row_kind = row_formats[r] if r < len(row_formats) else None
         for c in range(df.shape[1]):
-            kind = row_kind or (columns[c] if c < len(columns) else None)
+            kind = row_kind or (column_formats[c] if c < len(column_formats) else None)
             if kind is None:
                 continue
             cell = ws.cell(row=r + 2, column=c + 1)     # row 1 is the header

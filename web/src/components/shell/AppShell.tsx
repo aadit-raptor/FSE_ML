@@ -89,9 +89,10 @@ function Shell({ children }: { children: React.ReactNode }) {
                 </main>
                 <StatusBar />
               </div>
-              <CommandSearch />
-              <Shortcuts />
             </LocaleScope>
+            {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
+            <CommandSearch />
+            <Shortcuts />
           </ForecastProvider>
           </BacktestProvider>
           </MonteCarloProvider>

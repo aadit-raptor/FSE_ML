@@ -262,7 +262,7 @@ function formatExample(draft: Profile): string {
   if (!draft.preferred_currency || !draft.locale) return "—";
   try {
     const style = { locale: draft.locale, grouping: draft.digit_grouping };
-    return formatNumber(1234567.89, { decimals: 2, currency: draft.preferred_currency }, style);
+    return formatNumber(1234567.89, { currency: draft.preferred_currency }, style);
   } catch {
     return "—";
   }

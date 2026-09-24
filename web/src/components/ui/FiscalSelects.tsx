@@ -12,6 +12,14 @@ const CONTROL =
 const MIN_YEAR = 1900;
 const MAX_YEAR = 2200;
 
+/** A typed year: null when empty, NaN unless four digits in range. */
+function parseYear(text: string): number | null {
+  const t = text.trim();
+  if (t === "") return null;
+  const y = /^\d{4}$/.test(t) ? Number(t) : NaN;
+  return y >= MIN_YEAR && y <= MAX_YEAR ? y : NaN;
+}
+
 /**
  * The month a fiscal year ends and which fiscal year a column starts at (PLAN.md 2.3a). `of` names what
  * they belong to, for screen readers ("Deal fiscal year end"); `yearLabel` says which column the year is
@@ -31,9 +39,7 @@ export function FiscalSelects({
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (fiscal.year === null ? "" : String(fiscal.year));
-  const typed = shown.trim();
-  const year = typed === "" ? null : /^\d{4}$/.test(typed) ? Number(typed) : NaN;
-  const invalid = year !== null && !(Number.isInteger(year) && year >= MIN_YEAR && year <= MAX_YEAR);
+  const invalid = Number.isNaN(parseYear(shown));
   return (
     <>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
@@ -62,9 +68,8 @@ export function FiscalSelects({
           value={shown}
           onChange={(e) => {
             setDraft(e.target.value);
-            const t = e.target.value.trim();
-            const y = t === "" ? null : /^\d{4}$/.test(t) ? Number(t) : NaN;
-            if (y === null || (y >= MIN_YEAR && y <= MAX_YEAR)) onChange({ ...fiscal, year: y });
+            const y = parseYear(e.target.value);
+            if (!Number.isNaN(y)) onChange({ ...fiscal, year: y });
           }}
           onBlur={() => !invalid && setDraft(null)}
           className={`${CONTROL} ${invalid ? "border-loss text-loss" : "border-line"}`}

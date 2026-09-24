@@ -114,13 +114,14 @@ export type NumberOptions = {
 
 /** A number in the current style: 1,145.5 / 1.145,5 / 11,45,000.0 / 21,2 %. */
 export function formatNumber(v: number, opts: NumberOptions = {}, style: NumberStyle = current): string {
+  // No decimals asked for and a currency given: the currency's own (2 for EUR, 0 for JPY)
+  const own = opts.currency !== undefined && opts.decimals === undefined && opts.minDecimals === undefined && opts.maxDecimals === undefined;
   const min = opts.decimals ?? opts.minDecimals ?? 0;
   const max = Math.max(min, opts.decimals ?? opts.maxDecimals ?? min);
   const grouped = opts.grouping !== false;
   const custom = grouped && style.grouping !== "locale";
   const options: Intl.NumberFormatOptions = {
-    minimumFractionDigits: min,
-    maximumFractionDigits: max,
+    ...(own ? {} : { minimumFractionDigits: min, maximumFractionDigits: max }),
     useGrouping: grouped && !custom,
     ...(opts.percent ? { style: "percent" } : {}),
     ...(opts.currency ? { style: "currency", currency: opts.currency } : {}),
