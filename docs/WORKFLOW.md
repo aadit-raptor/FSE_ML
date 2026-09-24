@@ -240,3 +240,5 @@ Sessions stay one task each. Two independent tasks may run at once in
 separate git worktrees (`git worktree add ../FSE_ML-2 -b feat/x`), each with
 its own session and PR. Never run two sessions on one migration number:
 migrations are numbered and must stay linear.
+
+<!-- PLAN.md 0.3 demo: throwaway change for the PR title check; do not merge. -->
