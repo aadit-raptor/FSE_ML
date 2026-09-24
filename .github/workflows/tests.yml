@@ -39,6 +39,9 @@ jobs:
       UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The public repository needs no token to fetch the base branch's floor
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -70,7 +73,11 @@ jobs:
           : > base-floor.txt
           if [ -n "$BASE_REF" ]; then
             git fetch -q --no-tags --depth=1 origin "$BASE_REF"
-            git show FETCH_HEAD:.coverage-floor > base-floor.txt 2>/dev/null || : > base-floor.txt
+            # Only a base branch without the file skips the rise check; any
+            # other git failure fails the step (bash -e)
+            if [ -n "$(git ls-tree --name-only FETCH_HEAD -- .coverage-floor)" ]; then
+              git show FETCH_HEAD:.coverage-floor > base-floor.txt
+            fi
           fi
           python -m ops.coverage_gate --job core --coverage coverage.json --base-floor base-floor.txt
 
@@ -182,6 +189,7 @@ jobs:
         with:
           # diff-cover compares with the base branch, so it needs the history
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -225,7 +233,10 @@ jobs:
             coverage report --format=markdown; echo; echo "</details>"; } >> "$GITHUB_STEP_SUMMARY"
           : > base-floor.txt
           if [ -n "$BASE_REF" ]; then
-            git show "origin/$BASE_REF:.coverage-floor" > base-floor.txt 2>/dev/null || : > base-floor.txt
+            git rev-parse --verify -q "origin/$BASE_REF" > /dev/null
+            if [ -n "$(git ls-tree --name-only "origin/$BASE_REF" -- .coverage-floor)" ]; then
+              git show "origin/$BASE_REF:.coverage-floor" > base-floor.txt
+            fi
           fi
           status=0
           python -m ops.coverage_gate --job ml --coverage coverage.json --base-floor base-floor.txt || status=1
