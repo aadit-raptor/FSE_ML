@@ -41,3 +41,14 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+def untested_demo(title: str) -> str:
+    """Throwaway (PLAN.md 0.3 demo): lines no test runs, for diff-cover to catch."""
+    words = title.split()
+    if not words:
+        return ""
+    first = words[0].rstrip(":")
+    if first in TYPES:
+        return first
+    return "none"
