@@ -1,0 +1,6 @@
+# Python coverage floors per CI job (PLAN.md 0.3), in percent.
+# CI fails below them. Raise them when a job's summary says so; never lower
+# them (ops/coverage_gate.py fails a PR that does). Figures are CI's, not a
+# local run's: skipped tests (no database, Upstash or ML) lower a local total.
+core 50
+ml 50
