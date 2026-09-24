@@ -55,8 +55,10 @@ talks to the production API: `web/next.config.ts` picks the API by
    `fse-api-staging`, Vercel builds the preview, and `staging.yml` waits for
    both to run that commit, then runs the browser checks on it.
 2. When the checks are green, open the pull request into `main` as usual.
-3. After a merge to `main`, bring staging level again:
-   `git push origin main:staging`.
+3. After a merge to `main`, bring staging level again with a pull request
+   from `main` to `staging`, titled `chore: bring staging level with main`,
+   merged by the user (GitHub → **Pull requests → New**, base `staging`,
+   compare `main`; merge with "Create a merge commit").
 
 **Free hours:** Render gives 750 instance hours a month across all free
 services. Both services sleep after 15 minutes idle, so staging costs only
@@ -723,8 +725,10 @@ Repository settings these rely on (GitHub → the repository → **Settings**):
   *Dependabot alerts* and *Dependabot security updates*. Secret scanning and
   push protection are on by default for public repositories; keep them on.
 - **Branches** → the `main` rule → *Require status checks*: add `secrets`,
-  `python-dependencies`, `npm-dependencies` and the three
-  `analyze (…)` CodeQL checks next to the existing ones.
+  `python-dependencies`, `npm-dependencies`, the three
+  `analyze (…)` CodeQL checks and `title` (the PR title check, `pr.yml`,
+  PLAN.md 0.3) next to the existing ones. The coverage gates (PLAN.md 0.3)
+  run inside the `core` and `ml` checks, so they need nothing extra.
 - **Secrets and variables → Dependabot**: add `UPSTASH_REDIS_REST_URL` and
   `UPSTASH_REDIS_REST_TOKEN` with the same values as the Actions secrets.
   Dependabot's pull requests can't read Actions secrets, and the `ml` job

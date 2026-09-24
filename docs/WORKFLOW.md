@@ -141,9 +141,33 @@ If the API schemas changed: refresh `web/openapi.json` and `schema.d.ts`
 [`/build-fix`, `ecc:build-error-resolver`]. Never skip a hook, loosen a test
 or regenerate the golden file to go green.
 
-**Coverage (ECC asks for 80%).** PLAN.md 0.3 adds measured coverage to CI,
-with the current figure as a floor that only rises and 80% for changed lines.
-Until then, every new behaviour has a test and mutation checks stand in.
+**CI gates (PLAN.md 0.3).** On every pull request a machine checks what it
+can of this cycle:
+
+| Gate | Where | Fails when |
+|---|---|---|
+| Python coverage floor | `core` and `ml` jobs (`ops/coverage_gate.py`) | the job's total is below its line in `.coverage-floor`, or the PR lowers a floor |
+| Changed lines (ECC's 80%) | `ml` job (`diff-cover`) | under 80% of the Python lines the PR adds or changes in the app's packages are covered |
+| PR title | `pr.yml` (`ops/pr_title.py`) | the title doesn't start with an ECC type (step 7) |
+
+Each job's summary shows the coverage table and the changed-line report.
+When coverage rises well above the floor, the job prints the figure to
+raise it to: raise `.coverage-floor` in the same PR (never lower it; if code
+is deleted and the total drops, add tests elsewhere rather than lowering).
+Locally:
+
+```bash
+.venv/Scripts/python.exe -m pytest --cov --cov-report=term    # totals per file
+.venv/Scripts/python.exe -m coverage xml
+.venv/Scripts/python.exe -m diff_cover.diff_cover_tool coverage.xml --compare-branch=origin/main --fail-under=80
+```
+
+The local total differs from CI's when tests skip (no database, no
+Upstash, no ML packages); the floors are CI's figures. The web has no unit
+tests: the browser tests are its proof, and a unit-test framework comes
+with the first task whose web logic is worth unit-testing. Mutation checks
+still apply to every new test: coverage says a line ran, not that a test
+would notice it breaking.
 
 ### 7. Ship
 - **Branch** from `main`, named `<type>/<short-name>`: `feat/locale`,
@@ -156,8 +180,12 @@ Until then, every new behaviour has a test and mutation checks stand in.
 - **PR** from `.github/pull_request_template.md`: the task, the plan, the
   "Done when" evidence, the review result, the user's checks. CI green, then
   merge with "Create a merge commit".
-- **After the merge:** `git push origin main:staging`, wait for `staging.yml`,
-  then check production (`/api/health` shows the new commit).
+- **PR titles** use the same types (`pr.yml` checks them): the title becomes
+  the merge commit's message on `main`.
+- **After the merge:** bring staging level with a pull request from `main`
+  to `staging`, titled `chore: bring staging level with main`, which the
+  user merges (Claude can't push to `staging` or merge). Wait for
+  `staging.yml`, then check production (`/api/health` shows the new commit).
 - Rollback is DEPLOY.md "Rollback".
 
 ### 8. Remember (ECC "remember and improve")
@@ -190,7 +218,13 @@ Then start a new session. Choices that fit this project:
 - **Plugin only.** It brings agents, skills and commands. Don't also run ECC's
   `install.sh`; ECC warns against stacking install methods.
 - **No hooks for now.** ECC lists Windows defects in its continuous-learning
-  observer and memory vault. Revisit once PLAN.md 0.3 lands.
+  observer and memory vault. **ECC's hooks are on by default**
+  (`ECC_HOOKS_ENABLED` defaults to `true` in its `scripts/lib/hook-flags.js`),
+  so installing the plugin alone turns them on. This repository turns them
+  off in the committed `.claude/settings.json`: `"env": {"ECC_HOOKS_ENABLED":
+  "false", "ECC_SESSION_START_CONTEXT": "off"}` (the second stops its
+  session-start context injection). Keep both when editing that file, and
+  start a new session after changing them.
 - **No global rules copy.** ECC's rules would apply to every project on the
   machine. This file already carries what this project uses from them.
 - **Commit attribution stays on**, whatever ECC's settings say.

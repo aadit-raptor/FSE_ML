@@ -15,3 +15,10 @@ web/e2e/.auth/
 .env
 .env.*
 !.env.example
+# Coverage output (PLAN.md 0.3)
+.coverage
+.coverage.*
+coverage.json
+coverage.xml
+diff-cover.md
+base-floor.txt

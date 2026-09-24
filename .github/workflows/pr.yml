@@ -1,0 +1,32 @@
+name: pr
+
+# Pull request checks from the development cycle (PLAN.md 0.3,
+# docs/WORKFLOW.md step 7). The title becomes the merge commit's message, so
+# it must start with an ECC type: feat:, fix:, refactor:, docs:, test:,
+# chore:, perf: or ci:. Reruns when the title is edited.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Read-only token (PLAN.md 1.7)
+permissions:
+  contents: read
+
+jobs:
+  title:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The title reaches the script as data through env, never inside the
+      # script text, so a crafted title can't run shell
+      - name: Title starts with an ECC type
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: python3 -m ops.pr_title

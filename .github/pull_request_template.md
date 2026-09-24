@@ -14,6 +14,7 @@ PLAN.md **X.Y** — <name>. Needs done: <list>. "You first" in place: <yes / wha
 ## Tests
 - [ ] New tests failed before the change (red), or were mutation-checked
 - [ ] `pytest`, `lint`, `typecheck`, `build`, `test:e2e` pass locally
+- [ ] CI gates green: coverage floor (raised if the job suggests it), 80% of changed lines, PR title with an ECC type
 - [ ] `web/openapi.json` and `schema.d.ts` refreshed (if schemas changed)
 
 ## Review

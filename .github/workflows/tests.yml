@@ -56,7 +56,23 @@ jobs:
           sudo apt-get install -y -qq postgresql-client
           pg_dump --version
       - run: pip install -r requirements-dev.txt
-      - run: pytest -rs
+      - run: pytest -rs --cov --cov-report=
+      # PLAN.md 0.3: the report goes in the job summary, and the total must
+      # stay at or above this job's line in .coverage-floor, which may only
+      # rise (compared with the base branch's copy on a pull request)
+      - name: Coverage against the floor
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          coverage json -q -o coverage.json
+          { echo "<details><summary>Python coverage (core): $(coverage report --format=total)%</summary>"; echo
+            coverage report --format=markdown; echo; echo "</details>"; } >> "$GITHUB_STEP_SUMMARY"
+          : > base-floor.txt
+          if [ -n "$BASE_REF" ]; then
+            git fetch -q --no-tags --depth=1 origin "$BASE_REF"
+            git show FETCH_HEAD:.coverage-floor > base-floor.txt 2>/dev/null || : > base-floor.txt
+          fi
+          python -m ops.coverage_gate --job core --coverage coverage.json --base-floor base-floor.txt
 
   web:
     # Next.js frontend: lint, types (incl. the generated API client) and a
@@ -163,6 +179,9 @@ jobs:
       UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # diff-cover compares with the base branch, so it needs the history
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -188,11 +207,35 @@ jobs:
         # shell: bash adds pipefail, so a pytest failure isn't masked by tee
         shell: bash
         run: |
-          pytest -rs | tee pytest.log
+          pytest -rs --cov --cov-report= | tee pytest.log
           if grep -q SKIPPED pytest.log; then
             echo "::error::ML tests skipped -- dependencies or model files missing"
             exit 1
           fi
+      # PLAN.md 0.3. This job runs every test, ML included, so it is the one
+      # that checks changed lines: 80% of the Python lines a pull request
+      # changes must be covered (ECC's figure). Tests, docs and web files
+      # don't count; the web's proof is the browser tests.
+      - name: Coverage against the floor, and of the changed lines
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          coverage json -q -o coverage.json
+          { echo "<details><summary>Python coverage (ml): $(coverage report --format=total)%</summary>"; echo
+            coverage report --format=markdown; echo; echo "</details>"; } >> "$GITHUB_STEP_SUMMARY"
+          : > base-floor.txt
+          if [ -n "$BASE_REF" ]; then
+            git show "origin/$BASE_REF:.coverage-floor" > base-floor.txt 2>/dev/null || : > base-floor.txt
+          fi
+          status=0
+          python -m ops.coverage_gate --job ml --coverage coverage.json --base-floor base-floor.txt || status=1
+          if [ -n "$BASE_REF" ]; then
+            coverage xml -q -o coverage.xml
+            diff-cover coverage.xml --compare-branch="origin/$BASE_REF" --fail-under=80 \
+              --markdown-report diff-cover.md || status=1
+            cat diff-cover.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $status
 
   docker:
     # The API image Render deploys (Dockerfile): build it, start it, and check
