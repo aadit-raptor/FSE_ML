@@ -1,0 +1,23 @@
+# Python coverage (PLAN.md 0.3): what CI measures against .coverage-floor.
+# The app's own packages only; tests, the web app and scripts outside the
+# packages are left out.
+[run]
+source =
+    analytics
+    api
+    core
+    db
+    jobs
+    lbo_engine
+    ml
+    ops
+    simulation
+# The jobs runner works in a thread; count its lines too
+concurrency = thread
+
+[report]
+precision = 2
+skip_empty = true
+exclude_also =
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:

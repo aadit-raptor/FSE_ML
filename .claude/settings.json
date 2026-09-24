@@ -1,0 +1,9 @@
+{
+  "enabledPlugins": {
+    "ecc@ecc": true
+  },
+  "env": {
+    "ECC_HOOKS_ENABLED": "false",
+    "ECC_SESSION_START_CONTEXT": "off"
+  }
+}

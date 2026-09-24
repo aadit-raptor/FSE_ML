@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-24 (development cycle, PLAN.md 0.2, 0.3, 11.4 added). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-24 (PLAN.md 0.3: CI gates for the development cycle). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -36,7 +36,9 @@ Production deploys automatically from `main`, staging from `staging` (PLAN.md
 `staging`, `.github/workflows/staging.yml` waits for both staging copies to run
 that commit and runs the live browser checks there (needs the GitHub secret
 `VERCEL_AUTOMATION_BYPASS_SECRET`). After merging to `main`, bring staging
-level: `git push origin main:staging`. Rollback: DEPLOY.md "Rollback" (default
+level with a pull request from `main` to `staging` titled `chore: bring
+staging level with main`, which the user merges (Claude can't push to
+`staging` or merge). Rollback: DEPLOY.md "Rollback" (default
 is a git revert PR). The free API sleeps after 15 minutes
 idle and takes about a minute to wake. Read-only checks against the live site:
 `E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
@@ -200,6 +202,19 @@ money so its size stays the same. **No hardcoded "$"**:
 its line with `currency-ok`). The example backtest deals and SEC EDGAR data
 are US dollar millions and say so.
 
+CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
+measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
+put the table in the job summary and fail below their line in
+**`.coverage-floor`**, which may only rise (`ops/coverage_gate.py` compares
+it with the base branch's copy). The `ml` job, which runs every test, also
+fails a PR when under **80% of its changed Python lines** are covered
+(`diff-cover`, needs `fetch-depth: 0`). `pr.yml` fails a **PR title**
+without an ECC type (`ops/pr_title.py`, the types in WORKFLOW.md step 7;
+Dependabot titles are `chore(deps): …`). Floors since 2026-09-24: core 75.5, ml 76.9
+(CI's measured 75.54% and 76.93%). Raise the floor when a job's
+summary suggests it; never lower it. No web unit-test framework yet: the
+browser tests are the web's proof.
+
 ### What's next: PLAN.md
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
@@ -220,7 +235,8 @@ below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitor
 sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); 2.2 is done (currency and money units, below). Added 2026-09-24: the
 development cycle in **docs/WORKFLOW.md** (ECC merged with these rules), and
 tasks 0.2 (own domain, when the user has bought one), 0.3 (cycle gates in CI)
-and 11.4 (owner's handbook). **Next is 0.3**, then 2.3. End every task session with the handoff described in PLAN.md: tell the
+and 11.4 (owner's handbook). 0.3 is done (CI gates, below). **Next is 2.3**
+(0.2 jumps the queue once the domain is bought). End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -356,6 +372,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
 | `docs/WORKFLOW.md`, `.github/pull_request_template.md` | The development cycle every change follows, and the PR form that records it |
+| `.coverage-floor`, `.coveragerc`, `ops/coverage_gate.py`, `ops/pr_title.py`, `.github/workflows/pr.yml` | CI gates (PLAN.md 0.3): coverage floors per job (only rise), what coverage measures, the floor check, the PR title check |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
 | `db/` | Database layer: `engine.py` (Neon-aware connections and retries), `models.py` (tables and column rules), `migrations/` (Alembic, numbered `0001_…`), `migrate.py` (CLI and migrate-on-first-use), `health.py` (status and storage check), `local.py` (local Postgres) |
 | `db/users.py` | Account profiles: validating and storing country, currency, locale and time zone (`api/routers/account.py` serves them) |
@@ -372,12 +389,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (456 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (456 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
 ```bash
 .venv/Scripts/python.exe -m pytest                       # all tests
+.venv/Scripts/python.exe -m pytest --cov --cov-report=term   # with coverage (CI's floors: .coverage-floor)
 .venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
 
 # web/ (run the API too; Next proxies /api to FSE_API_URL, default 127.0.0.1:8000)
@@ -454,7 +472,9 @@ Tests assert real model output (IRR, MOIC, golden backtest values), not just
 rendering. Add one for every new control, and mutation-check it.
 
 CI (`.github/workflows/tests.yml`) runs `core`, `ml`, `web`, `e2e` and `docker`
-jobs; `security.yml` (secrets, dependency audits) and `codeql.yml` run beside it. `core`, `ml`, `e2e` and `docker` get a Postgres 18 service (what Neon runs);
+jobs; `security.yml` (secrets, dependency audits), `codeql.yml` and `pr.yml`
+(PR title) run beside it. `core` and `ml` also enforce the coverage floor,
+and `ml` 80% of changed lines (PLAN.md 0.3). `core`, `ml`, `e2e` and `docker` get a Postgres 18 service (what Neon runs);
 `FSE_REQUIRE_DB=1` makes a skipped database test fail. `docker` builds the root Dockerfile, runs it with a host-assigned PORT
 and checks the default deal IRR (0.2116), Monte Carlo, an Excel export and a background job.
 `tests/test_openapi_snapshot.py` fails when `web/openapi.json` is stale; the
@@ -514,7 +534,7 @@ reinstall:
 | `web-design-guidelines` | `npx skills add vercel-labs/agent-skills --skill web-design-guidelines` | Fetches Vercel's guidelines from GitHub each run |
 | `image-to-code` | `npx skills add https://github.com/Leonxlnx/taste-skill --skill image-to-code` | Written for Codex; expects to generate images, which Claude Code can't |
 | Playwright CLI | `npm install -g @playwright/cli@latest` then `playwright-cli install --skills --global` | No Chrome on the original machine: use `--browser=msedge`. Writes to `.playwright-cli/` |
-| ECC (Everything Claude Code) | In an interactive `claude` terminal: `/plugin marketplace add https://github.com/affaan-m/ECC`, then `/plugin install ecc@ecc` | Optional (docs/WORKFLOW.md "Installing ECC"). Plugin only: no `install.sh`, no hooks, no global rules copy. Not installed as of 2026-09-24 |
+| ECC (Everything Claude Code) | In an interactive `claude` terminal: `/plugin marketplace add https://github.com/affaan-m/ECC`, then `/plugin install ecc@ecc` at **project scope** | Optional (docs/WORKFLOW.md "Installing ECC"). **Installed 2026-09-24, ECC 2.2.2, project scope** (`enabledPlugins` in the committed `.claude/settings.json`). Plugin only: no `install.sh`, no global rules copy, attribution unchanged. ECC's hooks default to **on**; they're **off** through `.claude/settings.json` `env`: `ECC_HOOKS_ENABLED=false`, `ECC_SESSION_START_CONTEXT=off` |
 | awesome-design-md | `git clone https://github.com/VoltAgent/awesome-design-md` | 74 brand `DESIGN.md` files — inspiration only, don't clone a real brand's identity |
 
 Skills load when a session starts: install first, then open a new session.
