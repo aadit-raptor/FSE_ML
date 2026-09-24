@@ -125,7 +125,8 @@ which moved into Foundations (1.9) because later phases need them.
 | **2** | **Universal by design** | | |
 | 2.1 | Honest labels on inception-era parts (do early) | — | ☑ |
 | 2.2 | Currency and money units everywhere | 1.5 | ☑ |
-| 2.3 | Locale: numbers, dates, fiscal years, languages | 2.2 | ☐ |
+| 2.3a | Locale: numbers, dates, fiscal years, Excel formats | 2.2 | ☑ |
+| 2.3b | Locale: interface text in translation files, right-to-left | 2.3a | ☐ |
 | 2.4 | Global debt structures and interest rates | 2.2 | ☐ |
 | 2.5 | Global tax rules | 2.2 | ☐ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
@@ -161,12 +162,12 @@ which moved into Foundations (1.9) because later phases need them.
 | **7** | **Product features** | | |
 | 7.1 | Onboarding and in-app help | 1.5 | ☐ |
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☐ |
-| 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3 | ☐ |
+| 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☐ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
 | 7.5 | Lender view with regional conventions | 2.4, 5.3 | ☐ |
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
-| 7.8 | More languages | 2.3 | ☐ |
+| 7.8 | More languages | 2.3b | ☐ |
 | **8** | **Ready to scale** | | |
 | 8.1 | Result caching | 1.9 | ☐ |
 | 8.2 | Speed budgets (web and API) | 1.2 | ☐ |
@@ -445,6 +446,26 @@ can check it.
 - **Done when:** e2e passes in `en-US`, `de-DE` and `en-IN`; a March year-end
   company labels correctly; no visible text outside translation files (CI
   check).
+- **Split (2026-09-24), too big for one session:**
+  - **2.3a (done):** figures and dates follow the account's locale
+    (`web/src/lib/locale.ts`, `lib/format.ts`) with a digit-grouping choice
+    on the account (as the locale does, thousands, or lakh and crore;
+    migration 0007); inputs read numbers the locale's way; a fiscal
+    year-end per deal (`fiscal_year_end_month`, `first_fiscal_year`, labels
+    only) and per forecast company (read from the latest 10-K by EDGAR);
+    labels "FY2025" or "FY2024/25"; Excel exports with a number format per
+    cell (lakh patterns sized per cell); CI check against hardcoded
+    locales and ad-hoc `toFixed` (`tests/test_no_hardcoded_locale.py`);
+    e2e `locale.spec.ts` in `en-US`, `de-DE` and `en-IN`, March year-end
+    deal and company.
+  - **2.3b (next):** all interface text into translation files
+    (`next-intl`, taking its locale from the profile with no locale in the
+    URL, so `src/proxy.ts` and its CSP stay as they are, and reusing
+    `lib/locale.ts` for numbers), English complete, right-to-left layout
+    checked, the CI check against visible text outside translation files,
+    and the three-locale e2e run again once the text is translated.
+    Native digits (Arabic-Indic, Devanagari) are decided there: 2.3a keeps
+    Latin digits everywhere so the mono columns align.
 
 ### 2.4 Global debt structures and interest rates
 - **Why:** today there's one fixed-rate senior loan plus one mezzanine tranche.
@@ -1000,7 +1021,7 @@ when a limit is actually reached or before charging customers.
 | Where | Assumption | Fixed by |
 |---|---|---|
 | 177 places across `core/`, `api/`, `lbo_engine/`, `ml/`, `web/src` | Money shown as "$M" | 2.2 (done: deal currency and unit; CI check against new dollar signs) |
-| 11 places in `web/src` | Number formats fixed to `en-US` | 2.3 |
+| 11 places in `web/src` | Number formats fixed to `en-US` | 2.3a (done: account locale and grouping; CI check) |
 | `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
 | `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4 |
 | `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |

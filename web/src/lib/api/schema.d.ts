@@ -828,6 +828,13 @@ export interface components {
              */
             country: string;
             /**
+             * Digit Grouping
+             * @description Group long numbers as the locale does, in thousands, or in lakh and crore
+             * @default locale
+             * @enum {string}
+             */
+            digit_grouping: "locale" | "thousands" | "lakh";
+            /**
              * Locale
              * @description BCP 47 language tag, e.g. en-GB
              */
@@ -1234,6 +1241,17 @@ export interface components {
              */
             exit_mult: number;
             /**
+             * First Fiscal Year
+             * @description Fiscal year of the first projected year, named by the year it ends in; none labels years Y1, Y2 ...
+             */
+            first_fiscal_year?: number | null;
+            /**
+             * Fiscal Year End Month
+             * @description Month the deal's fiscal year ends (12 = December)
+             * @default 12
+             */
+            fiscal_year_end_month: number;
+            /**
              * Gross Margin
              * @description Gross margin (%)
              * @default 40
@@ -1335,6 +1353,7 @@ export interface components {
              *       "ebitda": 100,
              *       "entry_mult": 10,
              *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
@@ -1375,6 +1394,7 @@ export interface components {
              *       "ebitda": 100,
              *       "entry_mult": 10,
              *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
@@ -1517,6 +1537,11 @@ export interface components {
         EdgarResponse: {
             /** Company Name */
             company_name: string;
+            /**
+             * Fiscal Year End Month
+             * @description Month the filer's fiscal year ends; years are named by the year they end in
+             */
+            fiscal_year_end_month?: number | null;
             /**
              * History
              * @description Forecasting history keys, oldest year first
@@ -2139,6 +2164,7 @@ export interface components {
              *       "ebitda": 100,
              *       "entry_mult": 10,
              *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
@@ -2447,6 +2473,7 @@ export interface components {
              *       "ebitda": 100,
              *       "entry_mult": 10,
              *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
@@ -2629,6 +2656,7 @@ export interface components {
              *       "ebitda": 100,
              *       "entry_mult": 10,
              *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
@@ -2867,6 +2895,13 @@ export interface components {
              * @default export.xlsx
              */
             filename: string;
+            /**
+             * Grouping
+             * @description Lakh and crore patterns when 'lakh'
+             * @default locale
+             * @enum {string}
+             */
+            grouping: "locale" | "thousands" | "lakh";
             /** @description What the money columns are counted in; written on an About sheet */
             money?: components["schemas"]["Money"] | null;
             /** Sheets */
@@ -2874,10 +2909,20 @@ export interface components {
         };
         /** WorkbookSheet */
         WorkbookSheet: {
+            /**
+             * Column Formats
+             * @description Number format per column; percent cells hold fractions
+             */
+            column_formats?: (("money" | "percent" | "multiple" | "integer" | "number" | "text") | null)[] | null;
             /** Columns */
             columns: string[];
             /** Name */
             name: string;
+            /**
+             * Row Formats
+             * @description Number format per row; wins over the column's
+             */
+            row_formats?: (("money" | "percent" | "multiple" | "integer" | "number" | "text") | null)[] | null;
             /** Rows */
             rows: (number | string | boolean | null)[][];
         };

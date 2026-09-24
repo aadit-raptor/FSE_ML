@@ -15,9 +15,9 @@ from db import users as user_store
 client = TestClient(app)
 
 LONDON = {"country": "GB", "preferred_currency": "GBP", "locale": "en-GB",
-          "time_zone": "Europe/London"}
+          "time_zone": "Europe/London", "digit_grouping": "locale"}
 TOKYO = {"country": "JP", "preferred_currency": "JPY", "locale": "ja-JP",
-         "time_zone": "Asia/Tokyo"}
+         "time_zone": "Asia/Tokyo", "digit_grouping": "locale"}
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_any_country_and_currency_work_not_just_a_supported_list():
         {"country": "NG", "preferred_currency": "NGN", "locale": "en-NG", "time_zone": "Africa/Lagos"},
         {"country": "KZ", "preferred_currency": "KZT", "locale": "kk-Cyrl-KZ", "time_zone": "Asia/Almaty"},
     ):
-        assert user_store.clean(**profile).as_dict() == profile
+        assert user_store.clean(**profile).as_dict() == {**profile, "digit_grouping": "locale"}
 
 
 # ---------------------------------------------------------------------------

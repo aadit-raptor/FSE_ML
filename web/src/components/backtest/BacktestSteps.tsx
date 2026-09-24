@@ -10,14 +10,14 @@ import { EmptyState, LoadingTiles, Notice, RailGroup, Screen } from "@/component
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { MoneyScope, useMoney } from "@/components/ui/MoneyScope";
-import { downloadWorkbook, sheet } from "@/lib/export";
-import { fmtDelta, fmtMoney, fmtMultiple, isNum } from "@/lib/format";
+import { downloadWorkbook, fraction, sheet } from "@/lib/export";
+import { fmtCount, fmtDelta, fmtMoney, fmtMultiple, fmtNumber, fmtPct, isNum } from "@/lib/format";
 import { DEFAULT_MONEY, fieldUnit, MONEY } from "@/lib/money";
 import { backtestSampleLabel } from "@/lib/provenance";
 
 import { BACKTEST_PATHS, splitDealName, useBacktest } from "./BacktestProvider";
 
-const pctNum = (v: number | null | undefined, d = 1) => (isNum(v) ? `${v.toFixed(d)}%` : "n/a");
+const pctNum = (v: number | null | undefined, d = 1) => fmtPct(v, d);
 
 const ENTRY_LABELS: [string, string, string][] = [
   ["entry_ebitda", "EBITDA", MONEY],
@@ -138,9 +138,9 @@ function Headline() {
   return (
     <>
       <Kpi title="Actual IRR" value={pctNum(r.actual_irr)} sub={`MOIC ${fmtMultiple(r.actual_moic)}`} lead />
-      <Kpi title="Predicted IRR" value={pctNum(r.predicted_irr_mean)} sub={`mean of ${BACKTEST_PATHS.toLocaleString("en-US")} paths`} />
+      <Kpi title="Predicted IRR" value={pctNum(r.predicted_irr_mean)} sub={`mean of ${fmtCount(BACKTEST_PATHS)} paths`} />
       <Kpi title="Predicted range" value={pctNum(r.predicted_irr_p5)} sub={`to ${pctNum(r.predicted_irr_p95)} (P5 to P95)`} />
-      <Kpi title="Actual percentile" value={isNum(r.actual_percentile) ? r.actual_percentile.toFixed(1) : "n/a"} sub="of predicted paths" />
+      <Kpi title="Actual percentile" value={fmtNumber(r.actual_percentile, 1)} sub="of predicted paths" />
       <Kpi title="Exit EBITDA" value={fmtMoney(lastAct)} sub={`predicted ${fmtMoney(lastPred)} ${mu}`} tone={isNum(lastAct) && isNum(lastPred) ? (lastAct >= lastPred ? "gain" : "loss") : undefined} />
       <Kpi title="Exit equity" value={fmtMoney(r.actual_exit_equity)} sub={`predicted ${fmtMoney(r.predicted_exit_equity)} ${mu}`} />
     </>
@@ -179,7 +179,7 @@ function Predicted() {
           label="Predicted IRR distribution with the actual IRR marked"
           edges={r.irr_histogram.edges}
           density={r.irr_histogram.density}
-          format={(v) => `${v.toFixed(0)}%`}
+          format={(v) => fmtPct(v, 0)}
           tickCount={5}
           markers={[
             { value: r.predicted_irr_p5, label: `P5 ${pctNum(r.predicted_irr_p5)}` },
@@ -222,7 +222,7 @@ function Attribution() {
         />
         <p className="type-body text-[9px]">
           The parts add up to actual minus predicted exit equity ({fmtDelta(Object.values(r.attribution).reduce((a, b) => a + b, 0))} {mu}). Exit
-          multiple {deal.entry.exit_multiple}x predicted, {r.actual_exit_multiple.toFixed(1)}x actual; predicted net debt at exit{" "}
+          multiple {fmtMultiple(deal.entry.exit_multiple, 1)} predicted, {fmtMultiple(r.actual_exit_multiple, 1)} actual; predicted net debt at exit{" "}
           {fmtMoney(r.predicted_net_debt_at_exit)} {mu}.
         </p>
       </Tile>
@@ -230,7 +230,7 @@ function Attribution() {
         <LineChart
           label="Actual EBITDA margin by year against the predicted margin"
           xLabels={years}
-          yFormat={(v) => `${v.toFixed(0)}%`}
+          yFormat={(v) => fmtPct(v, 0)}
           lines={[
             { name: "Actual", values: r.actual_ebitda_margin, color: "var(--color-accent)" },
             { name: "Predicted", values: years.map(() => r.predicted_ebitda_margin), color: "var(--color-muted)", dashed: true },
@@ -269,18 +269,20 @@ function Years() {
                   "Year by year",
                   ["Year", "Predicted EBITDA", "Actual EBITDA", "Variance", "Actual revenue", "Actual FCF", "Actual total debt"],
                   r.years.map((y, i) => [years[i] ?? y.year_index, y.predicted_ebitda, y.actual_ebitda, y.ebitda_variance, y.actual_revenue, y.actual_fcf, y.actual_total_debt]),
+                  { columns: ["text", "money", "money", "money", "money", "money", "money"] },
                 ),
                 sheet(
                   "Returns",
                   ["Metric", "Predicted", "Actual"],
                   [
-                    ["IRR (%)", r.predicted_irr_mean, r.actual_irr],
-                    ["MOIC (x)", r.predicted_moic, r.actual_moic],
+                    ["IRR", fraction(r.predicted_irr_mean, 100), fraction(r.actual_irr, 100)],
+                    ["MOIC", r.predicted_moic, r.actual_moic],
                     [`Entry equity (${mu})`, r.predicted_equity_entry, r.actual_equity_entry],
                     [`Exit equity (${mu})`, r.predicted_exit_equity, r.actual_exit_equity],
                   ],
+                  { rows: ["percent", "multiple", "money", "money"] },
                 ),
-                sheet("Attribution", ["Part", `${mu}`], Object.entries(r.attribution).map(([k, v]) => [k, v])),
+                sheet("Attribution", ["Part", `${mu}`], Object.entries(r.attribution).map(([k, v]) => [k, v]), { columns: ["text", "money"] }),
               ], money)
             }
           />

@@ -6,7 +6,7 @@ import { useDeal } from "@/components/deal/DealProvider";
 import { dealLabel, describeDealValue } from "@/components/deal/DealScreen";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import type { Schemas } from "@/lib/api/client";
-import type { DealInputs } from "@/lib/deal/fields";
+import { apiInputs, type DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput } from "@/lib/format";
 import { describeJob, type Job, JobFailed, runJob } from "@/lib/jobs";
@@ -153,7 +153,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
     try {
       const [result, scenarios] = await Promise.all([
         runJob<Schemas["MonteCarloResponse"]>(
-          { kind: "montecarlo.run", input: { mc, deal: snap.deal, settings: snap.settings, scenario: snap.scenario, seed: snap.seed, histogram_bins: 80, scatter_points: 2000 } },
+          { kind: "montecarlo.run", input: { mc, deal: apiInputs(snap.deal), settings: snap.settings, scenario: snap.scenario, seed: snap.seed, histogram_bins: 80, scatter_points: 2000 } },
           { signal: ctrl.signal, onUpdate: (j) => { main = j; update(); } },
         ).then((r) => {
           if (main) main = { ...main, status: "succeeded" };
@@ -161,7 +161,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
           return r;
         }),
         runJob<Schemas["ScenariosResponse"]>(
-          { kind: "montecarlo.scenarios", input: { mc, deal: snap.deal, settings: snap.settings, seed: snap.seed } },
+          { kind: "montecarlo.scenarios", input: { mc, deal: apiInputs(snap.deal), settings: snap.settings, seed: snap.seed } },
           { signal: ctrl.signal, onUpdate: (j) => { scen = j; update(); } },
         ),
       ]);

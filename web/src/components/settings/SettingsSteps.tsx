@@ -11,7 +11,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import type { DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
-import { fmtInput, fmtMoney, fmtRate } from "@/lib/format";
+import { fmtInput, fmtMoney, fmtNumber, fmtRate } from "@/lib/format";
 import { MAX_SIMULATION_PATHS } from "@/lib/limits";
 import { MONEY } from "@/lib/money";
 import { ILLUSTRATIVE, ILLUSTRATIVE_DETAIL } from "@/lib/provenance";
@@ -340,7 +340,7 @@ function Correlations() {
                 <tr key={i}>
                   {r.map((v, j) => (
                     <td key={j} className="px-2 py-1 text-right" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
-                      {v.toFixed(2)}
+                      {fmtNumber(v, 2)}
                     </td>
                   ))}
                 </tr>

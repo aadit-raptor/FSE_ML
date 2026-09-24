@@ -3,12 +3,14 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { FiscalSelects } from "@/components/ui/FiscalSelects";
 import { MoneySelects } from "@/components/ui/MoneySelects";
 import { NumberField } from "@/components/ui/NumberField";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { multiplesFromPct, pctFromMultiples } from "@/lib/deal/capital";
 import { FIELDS, type DealInputs, type FieldSpec, type NumericDealKey } from "@/lib/deal/fields";
 import { fmtInput } from "@/lib/format";
+import { monthName } from "@/lib/locale";
 
 import { type DealSaveState, useDeal } from "./DealProvider";
 
@@ -106,6 +108,19 @@ export function MoneyFields() {
   return <MoneySelects money={money} onChange={setMoney} of="Deal" />;
 }
 
+/** The month the deal's fiscal year ends and its first projected year: labels only (PLAN.md 2.3a). */
+export function FiscalFields() {
+  const { inputs, setFields } = useDeal();
+  return (
+    <FiscalSelects
+      fiscal={{ endMonth: inputs.fiscal_year_end_month, year: inputs.first_fiscal_year }}
+      onChange={(f) => setFields({ fiscal_year_end_month: f.endMonth, first_fiscal_year: f.year })}
+      of="Deal"
+      yearLabel="First fiscal year"
+    />
+  );
+}
+
 export function WspToggle() {
   const { inputs, setField } = useDeal();
   return (
@@ -116,8 +131,10 @@ export function WspToggle() {
 }
 
 export function describeDealValue(key: keyof DealInputs, v: DealInputs[keyof DealInputs]): string {
+  if (key === "fiscal_year_end_month" && typeof v === "number") return monthName(v);
+  if (key === "first_fiscal_year") return v === null ? "none" : String(v);
   if (typeof v === "boolean") return v ? "on" : "off";
-  if (typeof v === "string") return v;
+  if (typeof v !== "number") return String(v);
   const spec = FIELDS[key as NumericDealKey];
   return spec ? `${fmtInput(v, spec.decimals)}${spec.unit === "%" ? "%" : spec.unit === "x" ? "x" : ""}` : String(v);
 }
@@ -126,6 +143,8 @@ export function dealLabel(key: keyof DealInputs): string {
   if (key === "wsp_mode") return "Working capital from days";
   if (key === "currency") return "Currency";
   if (key === "unit") return "Amounts in";
+  if (key === "fiscal_year_end_month") return "Fiscal year end";
+  if (key === "first_fiscal_year") return "First fiscal year";
   return FIELDS[key as NumericDealKey]?.label ?? key;
 }
 

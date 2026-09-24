@@ -12,7 +12,7 @@ import { fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
-import { DealField, DealScreen, DebtMultipleField, LoadingTiles, MoneyFields, RailGroup } from "../DealScreen";
+import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup } from "../DealScreen";
 import { hurdleSub } from "./shared";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
@@ -54,6 +54,9 @@ export function InputsStep() {
         <>
           <RailGroup title="Money">
             <MoneyFields />
+          </RailGroup>
+          <RailGroup title="Fiscal years">
+            <FiscalFields />
           </RailGroup>
           <RailGroup title="Entry and exit">
             <DealField name="ebitda" />

@@ -183,6 +183,8 @@ class ExtractedFinancials:
     years: List[int]
     data: Dict[str, List[float]]  # field -> [year1_val, year2_val, ...]
     warnings: List[str]
+    # Month the filer's fiscal year ends (PLAN.md 2.3a); None if unknown
+    fiscal_year_end_month: Optional[int] = None
 
 
 def _get_cik_from_ticker(ticker: str) -> Optional[str]:
@@ -249,6 +251,38 @@ def _get_annual_values(facts_data: dict, tag: str,
             result.append(None)
 
     return result
+
+
+def _latest_10k_end(facts_data: dict) -> Optional[str]:
+    """Period-end date (YYYY-MM-DD) of the latest 10-K balance sheet."""
+    us_gaap = facts_data.get('facts', {}).get('us-gaap', {})
+    for tag in ('Assets', 'LiabilitiesAndStockholdersEquity'):
+        ends = [e['end'] for e in us_gaap.get(tag, {}).get('units', {}).get('USD', [])
+                if e.get('form') in ('10-K', '10-K/A')
+                and e.get('fp') == 'FY' and 'end' in e]
+        if ends:
+            return max(ends)
+    return None
+
+
+# A 52/53-week year ends on a weekday near the month end, sometimes a few
+# days into the next month (Apple's 2025-10-04 is its September year)
+_FIRST_WEEK = 7
+
+
+def _fiscal_year_end(facts_data: dict) -> Optional[tuple]:
+    """(year, month) the filer's latest fiscal year really ends in, or None.
+
+    Fiscal years are named by the year they end in, so a 52/53-week year
+    ending 2025-01-03 is the fiscal year that ended December 2024.
+    """
+    end = _latest_10k_end(facts_data)
+    if end is None:
+        return None
+    year, month, day = int(end[:4]), int(end[5:7]), int(end[8:10])
+    if day <= _FIRST_WEEK:
+        year, month = (year - 1, 12) if month == 1 else (year, month - 1)
+    return year, month
 
 
 def _latest_fiscal_year(facts_data: dict) -> Optional[int]:
@@ -495,12 +529,18 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     if warnings:
         print(f"Warnings: {warnings}")
 
+    # Label the years as the filer's fiscal years: the lookups above key them
+    # by the calendar year the period ends in, one too many for a 52/53-week
+    # year that ends in early January
+    year_end = _fiscal_year_end(facts_data)
+    shift = year_end[0] - latest_fy if year_end and year_end[0] < latest_fy else 0
     return ExtractedFinancials(
         ticker=ticker,
         company_name=company_name,
-        years=years_wanted,
+        years=[y + shift for y in years_wanted],
         data=extracted,
         warnings=warnings,
+        fiscal_year_end_month=year_end[1] if year_end else None,
     )
 
 

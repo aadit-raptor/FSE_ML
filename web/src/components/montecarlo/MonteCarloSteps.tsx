@@ -9,15 +9,16 @@ import { LineChart } from "@/components/charts/LineChart";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
-import { downloadMonteCarloSample, downloadWorkbook, sheet } from "@/lib/export";
-import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
+import { apiInputs } from "@/lib/deal/fields";
+import { downloadMonteCarloSample, downloadWorkbook, fraction, sheet } from "@/lib/export";
+import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 
 import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
 
-const pct0 = (v: number) => `${(v * 100).toFixed(0)}%`;
-const count = (share: number | null | undefined, n: number) => (isNum(share) ? Math.round(share * n).toLocaleString("en-US") : "n/a");
+const pct0 = (v: number) => fmtRate(v, 0);
+const count = (share: number | null | undefined, n: number) => (isNum(share) ? fmtCount(share * n) : "n/a");
 
 function useResult() {
   const { run, hurdle } = useMonteCarlo();
@@ -52,7 +53,7 @@ function Distribution() {
     <div className={staleClass}>
       <Tiles>
         <Kpi title="Mean IRR" value={fmtRate(s.mean_irr)} sub={`median ${fmtRate(s.median_irr)}`} lead />
-        <Kpi title={`P(IRR > ${pct0(hurdle)})`} value={fmtRate(s.p_above_hurdle)} sub={`${count(s.p_above_hurdle, r.n)} of ${r.n.toLocaleString("en-US")}`} />
+        <Kpi title={`P(IRR > ${pct0(hurdle)})`} value={fmtRate(s.p_above_hurdle)} sub={`${count(s.p_above_hurdle, r.n)} of ${fmtCount(r.n)}`} />
         <Kpi title="P5" value={fmtRate(s.p5_irr)} sub="1 in 20 below" />
         <Kpi title="P95" value={fmtRate(s.p95_irr)} sub="1 in 20 above" />
         <Kpi title="Wipeout" value={fmtRate(s.wipeout_rate, 3)} sub={`${count(s.wipeout_rate, r.n)} paths`} tone={(s.wipeout_rate ?? 0) > 0.05 ? "loss" : undefined} />
@@ -61,7 +62,7 @@ function Distribution() {
         <Tile
           span={7}
           title="IRR distribution"
-          unit={`${r.n.toLocaleString("en-US")} paths`}
+          unit={`${fmtCount(r.n)} paths`}
           action={
             <DownloadButton
               label="10k paths"
@@ -69,7 +70,7 @@ function Distribution() {
               onDownload={() =>
                 downloadMonteCarloSample({
                   mc: { ...ranFor.sim, ebitda: ranFor.deal.ebitda, entry_mult: ranFor.deal.entry_mult, hold: ranFor.deal.hold },
-                  deal: ranFor.deal,
+                  deal: apiInputs(ranFor.deal),
                   settings: ranFor.settings,
                   scenario: ranFor.scenario,
                   seed: ranFor.seed,
@@ -94,7 +95,7 @@ function Distribution() {
         <Tile span={5} title="IRR by percentile" unit="share of paths below">
           <LineChart
             label="IRR at each percentile"
-            xLabels={r.irr_cdf.percentiles.map((q) => `P${q.toFixed(0)}`)}
+            xLabels={r.irr_cdf.percentiles.map((q) => `P${fmtNumber(q, 0)}`)}
             xTickEvery={25}
             lines={[{ name: "", values: r.irr_cdf.values, color: "var(--color-accent)" }]}
             hlines={[{ value: hurdle, label: `Hurdle ${pct0(hurdle)}`, tone: "attention" }]}
@@ -108,7 +109,7 @@ function Distribution() {
             edges={r.moic_histogram.edges}
             density={r.moic_histogram.density}
             highlightFrom={1}
-            format={(v) => `${v.toFixed(1)}x`}
+            format={(v) => fmtMultiple(v, 1)}
             markers={[{ value: 1, label: "1.0x money back", tone: "attention", dashed: true }]}
           />
         </Tile>
@@ -150,7 +151,7 @@ function Scenarios() {
         {rows.map(({ id, label, st }) => (
           <Kpi key={id} title={label} value={fmtRate(st.mean_irr)} sub={`${fmtRate(st.p_above_hurdle)} clear the hurdle`} lead={id === "base"} tone={(st.mean_irr ?? 0) < 0 ? "loss" : undefined} />
         ))}
-        <Kpi title="Paths each" value={r.n.toLocaleString("en-US")} sub="same seed for all four" />
+        <Kpi title="Paths each" value={fmtCount(r.n)} sub="same seed for all four" />
         <Kpi title="Hurdle" value={pct0(scen.hurdle)} sub="from the rail" />
         <MacroRegime />
 
@@ -177,13 +178,14 @@ function Scenarios() {
               onDownload={() =>
                 downloadWorkbook("scenario_comparison.xlsx", [
                   sheet(
-                    "Scenarios (%)",
-                    ["Scenario", "Mean IRR", "Median IRR", "P5 IRR", "P95 IRR", "P(IRR > hurdle)", "Wipeout", "MOIC P50 (x)"],
+                    "Scenarios",
+                    ["Scenario", "Mean IRR", "Median IRR", "P5 IRR", "P95 IRR", "P(IRR > hurdle)", "Wipeout", "MOIC P50"],
                     rows.map(({ label, st }) => [
                       label,
-                      ...[st.mean_irr, st.median_irr, st.p5_irr, st.p95_irr, st.p_above_hurdle, st.wipeout_rate].map((v) => (v == null ? null : v * 100)),
+                      ...[st.mean_irr, st.median_irr, st.p5_irr, st.p95_irr, st.p_above_hurdle, st.wipeout_rate].map((v) => fraction(v)),
                       st.moic_box.p50,
                     ]),
+                    { columns: ["text", "percent", "percent", "percent", "percent", "percent", "percent", "multiple"] },
                   ),
                 ], money)
               }
@@ -243,7 +245,7 @@ function Drivers() {
   const ys = (r.scatter.IRR ?? []).map((v) => (v ?? NaN) * 100);
   const fit = r.driver_fits[driver];
   const corr = r.correlations as { labels: string[]; matrix: number[][] };
-  const xFormat = driver === "Exit Multiple" ? (v: number) => `${v.toFixed(1)}x` : (v: number) => `${(v * 100).toFixed(1)}%`;
+  const xFormat = driver === "Exit Multiple" ? (v: number) => fmtMultiple(v, 1) : (v: number) => fmtRate(v, 1);
 
   return (
     <div className={staleClass}>
@@ -252,7 +254,7 @@ function Drivers() {
           <DivergingBars
             label="Spearman rank correlation of each driver with IRR"
             domain={1}
-            format={(v) => `${v > 0 ? "+" : ""}${v.toFixed(2)}`}
+            format={(v) => fmtNumber(v, 2, v > 0)}
             rows={r.drivers.map((d) => ({ label: d.driver, value: d.spearman_rho ?? 0 }))}
           />
           <p className="type-body text-[9px]">+1 means IRR rises whenever the driver does; 0 means no link.</p>
@@ -283,11 +285,11 @@ function Drivers() {
             ys={ys}
             fit={isNum(fit?.slope) && isNum(fit?.intercept) ? { slope: fit.slope, intercept: fit.intercept } : undefined}
             xFormat={xFormat}
-            yFormat={(v) => `${v.toFixed(0)}%`}
+            yFormat={(v) => fmtRate(v / 100, 0)}
           />
           <p className="type-body text-[9px]">
-            {xs.length.toLocaleString("en-US")} sampled paths; amber line is the least-squares fit
-            {isNum(fit?.r) ? ` (r = ${fit.r.toFixed(2)})` : ""}.
+            {fmtCount(xs.length)} sampled paths; amber line is the least-squares fit
+            {isNum(fit?.r) ? ` (r = ${fmtNumber(fit.r, 2)})` : ""}.
           </p>
         </Tile>
         <Tile span={12} title="Correlations in the simulated paths" unit="Pearson">
@@ -310,7 +312,7 @@ function Drivers() {
                   </th>
                   {row.map((v, j) => (
                     <td key={j} className="px-2 py-1 text-right" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
-                      {v.toFixed(2)}
+                      {fmtNumber(v, 2)}
                     </td>
                   ))}
                 </tr>
@@ -347,7 +349,7 @@ function Heatmap() {
                   <th className="px-2 py-1 text-right font-normal text-muted">Exit</th>
                   {h.growth.map((g) => (
                     <th key={g} scope="col" className="px-2 py-1 text-right font-normal text-muted">
-                      {(g * 100).toFixed(1)}%
+                      {fmtRate(g, 1)}
                     </th>
                   ))}
                 </tr>
@@ -356,7 +358,7 @@ function Heatmap() {
                 {h.irr.map((row, i) => (
                   <tr key={h.exit_multiple[i]}>
                     <th scope="row" className="px-2 py-1 text-right font-normal text-muted">
-                      {h.exit_multiple[i].toFixed(1)}x
+                      {fmtMultiple(h.exit_multiple[i], 1)}
                     </th>
                     {row.map((v, j) => (
                       <td key={j} className="px-2 py-1.5 text-right" style={isNum(v) ? { background: heat(v, hurdle, 0.25) } : undefined}>

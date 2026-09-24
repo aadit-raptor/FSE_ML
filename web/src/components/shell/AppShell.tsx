@@ -11,6 +11,7 @@ import { ForecastProvider } from "@/components/forecast/ForecastProvider";
 import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { isPublicRoute } from "@/lib/auth/mode";
+import { setNumberStyle } from "@/lib/locale";
 
 import { CommandSearch } from "./CommandSearch";
 import { Shortcuts } from "./Shortcuts";
@@ -79,14 +80,17 @@ function Shell({ children }: { children: React.ReactNode }) {
           <MonteCarloProvider>
           <BacktestProvider>
           <ForecastProvider>
-            <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-              <TopBar />
-              <StepBar />
-              <main id="content" className="min-h-0 flex-1 overflow-auto">
-                {children}
-              </main>
-              <StatusBar />
-            </div>
+            <LocaleScope>
+              <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+                <TopBar />
+                <StepBar />
+                <main id="content" className="min-h-0 flex-1 overflow-auto">
+                  {children}
+                </main>
+                <StatusBar />
+              </div>
+            </LocaleScope>
+            {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
             <CommandSearch />
             <Shortcuts />
           </ForecastProvider>
@@ -96,6 +100,27 @@ function Shell({ children }: { children: React.ReactNode }) {
       </SettingsProvider>
     </ProfileProvider>
   );
+}
+
+/**
+ * Numbers and dates follow the account's locale and digit grouping (PLAN.md 2.3a). The style is set here,
+ * during render and before any screen below draws, and the screens wait for the account to answer so they
+ * never draw once in the default format first. The account screen, where the style changes, has no model
+ * figures; the screens pick the new style up when they mount again.
+ */
+function LocaleScope({ children }: { children: React.ReactNode }) {
+  const { profile, loaded } = useProfile();
+  setNumberStyle(profile ? { locale: profile.locale, grouping: profile.digit_grouping } : null);
+  if (!loaded) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center bg-canvas">
+        <p className="type-step" role="status">
+          Loading your account
+        </p>
+      </div>
+    );
+  }
+  return <>{children}</>;
 }
 
 /**

@@ -5,6 +5,7 @@ import { StackedBars } from "@/components/charts/StackedBars";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
+import { dealFiscal } from "@/lib/deal/fields";
 import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtPct } from "@/lib/format";
 
@@ -58,7 +59,8 @@ function DebtResults() {
   const end = totals(res, "total_ending_debt");
   const interest = totals(res, "total_interest_expense");
   const cf = res.cash_flow;
-  const years = yearLabels(end.length);
+  const fiscal = dealFiscal(inputs);
+  const years = yearLabels(end.length, fiscal);
   const atClose = begin[0];
   const lastEnd = end.at(-1);
   const repaidPct = atClose > 0 && lastEnd !== undefined ? ((atClose - lastEnd) / atClose) * 100 : NaN;
@@ -83,7 +85,7 @@ function DebtResults() {
       />
 
       <Tile span={6} title="Debt balance" unit={`by tranche, ${mu}`}>
-        <StackedBars {...debtSeries(res)} />
+        <StackedBars {...debtSeries(res, fiscal)} />
       </Tile>
       <Tile span={6} title="Cash flow" unit={mu}>
         <DataTable
@@ -113,7 +115,8 @@ function DebtResults() {
                   sheet(
                     name,
                     ["Year", "Opening", "Mandatory", "Cash sweep", "Closing", "Interest"],
-                    rows.map((t) => [t.year, t.beginning_balance ?? null, t.mandatory_repayment ?? null, t.cash_sweep ?? null, t.ending_balance ?? null, t.interest_expense ?? null]),
+                    rows.map((t) => [years[t.year - 1] ?? t.year, t.beginning_balance ?? null, t.mandatory_repayment ?? null, t.cash_sweep ?? null, t.ending_balance ?? null, t.interest_expense ?? null]),
+                    { columns: ["text", "money", "money", "money", "money", "money"] },
                   ),
                 ], money)
               }
@@ -122,7 +125,7 @@ function DebtResults() {
         >
           <DataTable
             caption={`${name} schedule`}
-            columns={rows.map((r) => `Y${r.year}`)}
+            columns={rows.map((r) => years[r.year - 1] ?? `Y${r.year}`)}
             rows={[
               { label: "Opening", values: rows.map((r) => r.beginning_balance) },
               { label: "Mandatory", values: rows.map((r) => r.mandatory_repayment), kind: "outflow" },

@@ -186,6 +186,17 @@ default.
 Afterwards, still revert the bad change on `main` (route A) so the code and
 the live site agree.
 
+**Rolling back past a change to what the API accepts.** The API refuses
+fields it doesn't know. PLAN.md 2.3a added a deal's fiscal year-end
+(`fiscal_year_end_month`, `first_fiscal_year`), the account's
+`digit_grouping` and Excel number formats. Deals store the fiscal fields only
+when set, and the web app sends them only when set, so after a rollback to
+before 2.3a only deals that set a fiscal year stop running (422 on
+`inputs.fiscal_year_end_month`). Clear their fiscal year on the Inputs step,
+or roll forward. Migration 0007's column has a default, so the older API
+keeps writing accounts. Downgrade it (`python -m db.migrate downgrade -1`)
+only if the rollback is permanent.
+
 **Rollback drill log**
 
 | Date | What | How | Result |

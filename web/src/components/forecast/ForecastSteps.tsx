@@ -10,18 +10,17 @@ import { DownloadButton } from "@/components/ui/DownloadButton";
 import { EmptyState, LoadingTiles, Notice, RailGroup, Screen, SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { MoneyScope, useMoney } from "@/components/ui/MoneyScope";
+import { FiscalSelects } from "@/components/ui/FiscalSelects";
 import { MoneySelects } from "@/components/ui/MoneySelects";
 import { downloadWorkbook, sheet, tableSheet } from "@/lib/export";
 import { ASSUMPTION_GROUPS, HISTORY_GROUPS } from "@/lib/forecast";
-import { fmtInput, fmtMoney, fmtRate, isNum } from "@/lib/format";
+import { fmtCount, fmtInput, fmtMoney, fmtNumber, fmtRate, isNum } from "@/lib/format";
 import { withMoney } from "@/lib/money";
 
 import { type ForecastRun, useForecast } from "./ForecastProvider";
 
-const FWD = (n: number) => Array.from({ length: n }, (_, i) => `F+${i + 1}`);
-
 function Rail() {
-  const { source, fetchEdgar, edgar, resetSample, metrics, status, result, money, setMoney } = useForecast();
+  const { source, fetchEdgar, edgar, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels } = useForecast();
   const [ticker, setTicker] = useState("");
   const latest = metrics?.at(-1);
   return (
@@ -62,7 +61,7 @@ function Rail() {
         {source.kind === "edgar" && (
           <div className="grid gap-1 pt-1">
             <p className="type-input-label">{source.company}</p>
-            <p className="font-mono text-[10px] text-muted">Fiscal years {source.years.join(", ")}</p>
+            <p className="font-mono text-[10px] text-muted">Fiscal years {histLabels.join(", ")}</p>
             {source.warnings.map((w) => (
               <p key={w} className="font-mono text-[10px] text-attention">
                 {w}
@@ -73,6 +72,9 @@ function Rail() {
         <div className="pt-1.5">
           <SecondaryButton onClick={resetSample}>Reset to sample</SecondaryButton>
         </div>
+      </RailGroup>
+      <RailGroup title="Fiscal years">
+        <FiscalSelects fiscal={fiscal} onChange={setFiscal} of="Company" yearLabel="Latest fiscal year" />
       </RailGroup>
       {latest && (
         <RailGroup title="Latest year ratios">
@@ -126,11 +128,6 @@ function ForecastScreen({ children, needsResult = true }: { children: ReactNode;
   );
 }
 
-function yearLabels(n: number, edgarYears?: number[]) {
-  if (edgarYears?.length === n) return edgarYears.map((y) => `FY${y}`);
-  return Array.from({ length: n }, (_, i) => (i === n - 1 ? "LTM" : `LTM-${n - 1 - i}`));
-}
-
 export function HistoricalsStep() {
   return (
     <ForecastScreen needsResult={false}>
@@ -141,8 +138,7 @@ export function HistoricalsStep() {
 
 function Historicals() {
   const { label: mu } = useMoney();
-  const { history, setHistory, nHist, source } = useForecast();
-  const cols = yearLabels(nHist, source.kind === "edgar" ? source.years : undefined);
+  const { history, setHistory, histLabels: cols } = useForecast();
   return (
     <Tiles>
       {HISTORY_GROUPS.map((g) => (
@@ -212,8 +208,7 @@ export function AssumptionsStep() {
 
 function Assumptions() {
   const { label: mu } = useMoney();
-  const { assumptions, setAssumption, fillAssumption, nFwd, seeded, reseed } = useForecast();
-  const cols = FWD(nFwd);
+  const { assumptions, setAssumption, fillAssumption, seeded, reseed, fwdLabels: cols } = useForecast();
   return (
     <Tiles>
       <Notice
@@ -358,14 +353,13 @@ export function StatementsStep() {
 
 function Statements() {
   const { label: mu, money } = useMoney();
-  const { result: res, nFwd, assumptions, source } = useForecast();
+  const { result: res, assumptions, source, histLabels, fwdLabels: fwd } = useForecast();
   if (!res) return null;
-  const cols = ["LTM", ...FWD(nFwd)];
+  const cols = [histLabels.at(-1) ?? "LTM", ...fwd];
   const last = res.years.at(-1);
   const maxGap = Math.max(0, ...res.forecast_balance_gaps.map(Math.abs));
   const t = statementTables(res);
   const s = scheduleTables(res, assumptions);
-  const fwd = FWD(nFwd);
   const company = source.kind === "edgar" ? source.ticker : "sample";
   const everything = () => [
     tableSheet("Income statement", cols, t.income),
@@ -412,9 +406,8 @@ export function SchedulesStep() {
 
 function Schedules() {
   const { label: mu, money } = useMoney();
-  const { result: res, nFwd, assumptions } = useForecast();
+  const { result: res, assumptions, fwdLabels: fwd } = useForecast();
   if (!res) return null;
-  const fwd = FWD(nFwd);
   const s = scheduleTables(res, assumptions);
   const y = res.years.at(-1);
   const bridge = y
@@ -450,7 +443,7 @@ function Schedules() {
       <Tile span={6} title="Working capital" unit={mu}>
         <DataTable caption="Working capital schedule" columns={fwd} rows={s.workingCapital} />
         <p className="font-mono text-[10.5px] text-muted">
-          Cash conversion cycle {s.cycleDays.map((d) => (Number.isFinite(d) ? `${d.toFixed(0)}d` : "n/a")).join(" · ")}
+          Cash conversion cycle {s.cycleDays.map((d) => (Number.isFinite(d) ? `${fmtNumber(d, 0)}d` : "n/a")).join(" · ")}
         </p>
       </Tile>
       <Tile span={6} title="Interest" unit={mu}>
@@ -477,15 +470,14 @@ export function SimulationStep() {
 
 function Simulation() {
   const { label: mu, money } = useMoney();
-  const { result: res, nFwd, simPaths } = useForecast();
+  const { result: res, simPaths, fwdLabels: cols } = useForecast();
   const sim = res?.simulation;
   if (!res || !sim) return <EmptyState title="No simulation">The forecast ran without a simulation.</EmptyState>;
-  const cols = FWD(nFwd);
   const fan = (b: typeof sim.revenue_bands, det: number[], name: string) => (
     <LineChart
       label={`${name} simulation fan`}
       xLabels={cols}
-      yFormat={(v) => v.toFixed(0)}
+      yFormat={(v) => fmtNumber(v, 0)}
       bands={[
         { lower: b.p5, upper: b.p95, color: "var(--color-accent)", opacity: 0.14 },
         { lower: b.p25, upper: b.p75, color: "var(--color-accent)", opacity: 0.28 },
@@ -503,15 +495,21 @@ function Simulation() {
       <Kpi title={`EBITDA ${cols.at(-1)}`} value={fmtMoney(sim.ebitda_final.median)} sub={`plan ${fmtMoney(sim.ebitda_final.deterministic)} ${mu}`} />
       <Kpi title="EBITDA P5 / P95" value={fmtMoney(sim.ebitda_final.p5)} sub={`to ${fmtMoney(sim.ebitda_final.p95)} ${mu}`} />
       <Kpi title="Simulated growth" value={fmtRate(sim.growth_final_mean)} sub="mean, final year" />
-      <Kpi title="Paths" value={sim.n.toLocaleString("en-US")} sub={`requested ${simPaths.toLocaleString("en-US")}`} />
+      <Kpi title="Paths" value={fmtCount(sim.n)} sub={`requested ${fmtCount(simPaths)}`} />
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
         <p className="type-body">Percentile bands for revenue and EBITDA each year, and the target probabilities.</p>
         <DownloadButton
           onDownload={() =>
             downloadWorkbook("simulation_results.xlsx", [
-              sheet("Revenue bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.revenue_bands[q]])),
-              sheet("EBITDA bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.ebitda_bands[q]])),
-              sheet("Targets", [`EBITDA target (${mu})`, "Probability (%)", "Case"], sim.target_probabilities.map((t) => [t.target, t.probability * 100, t.scenario])),
+              sheet("Revenue bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.revenue_bands[q]]), {
+                columns: ["text", ...cols.map(() => "money" as const)],
+              }),
+              sheet("EBITDA bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.ebitda_bands[q]]), {
+                columns: ["text", ...cols.map(() => "money" as const)],
+              }),
+              sheet("Targets", [`EBITDA target (${mu})`, "Probability", "Case"], sim.target_probabilities.map((t) => [t.target, t.probability, t.scenario]), {
+                columns: ["money", "percent", "text"],
+              }),
             ], money)
           }
         />

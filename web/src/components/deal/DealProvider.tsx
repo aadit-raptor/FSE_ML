@@ -6,7 +6,7 @@ import { api, type Schemas } from "@/lib/api/client";
 import { useProfile } from "@/components/auth/ProfileProvider";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import { MoneyScope } from "@/components/ui/MoneyScope";
-import { changedKeys, DEFAULT_INPUTS, type DealInputs, type DealRun } from "@/lib/deal/fields";
+import { apiInputs, changedKeys, DEFAULT_INPUTS, type DealInputs, type DealRun } from "@/lib/deal/fields";
 import { type Money, unitFactor } from "@/lib/money";
 
 /** Debounce between the last edit and an automatic rerun. */
@@ -140,7 +140,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     const t0 = performance.now();
     try {
       const { data, error } = await api.POST("/api/deal/run", {
-        body: { inputs: snapshot, settings },
+        body: { inputs: apiInputs(snapshot), settings },
         signal: ctrl.signal,
       });
       if (ctrl.signal.aborted) return;
@@ -218,7 +218,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
 
   const saveAs = useCallback(
     async (name: string): Promise<Outcome> => {
-      const { data, error } = await api.POST("/api/deals", { body: { name, inputs, settings: overrides } });
+      const { data, error } = await api.POST("/api/deals", { body: { name, inputs: apiInputs(inputs), settings: overrides } });
       if (!data) return { ok: false, error: apiMessage(error, "The deal couldn't be saved.") };
       adopt(data);
       return { ok: true };
@@ -250,7 +250,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   const writeDraft = useCallback(async (id: string, key: string, body: { inputs: DealInputs; settings: Settings }) => {
     setSaveState("saving");
     try {
-      const { data } = await api.PUT("/api/deals/{deal_id}/draft", { params: { path: { deal_id: id } }, body });
+      const { data } = await api.PUT("/api/deals/{deal_id}/draft", { params: { path: { deal_id: id } }, body: { ...body, inputs: apiInputs(body.inputs) } });
       if (!data) {
         setSaveState("error");
         return false;

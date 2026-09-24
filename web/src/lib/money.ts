@@ -6,6 +6,7 @@
  * is "€k".
  */
 import type { Schemas } from "@/lib/api/client";
+import { numberStyle } from "@/lib/locale";
 
 export type Money = Schemas["Money"];
 export type MoneyUnit = Money["unit"];
@@ -38,21 +39,23 @@ export function currencyCodes(): string[] {
 const symbols = new Map<string, string>();
 
 /**
- * The currency's symbol, disambiguated (USD and CAD get different ones), with "€" and "₹" as they are,
- * or its code when there is no symbol ("CHF"). English formatting until the
- * locale work (PLAN.md 2.3).
+ * The currency's symbol as the account's locale writes it (PLAN.md 2.3a), with "€" and "₹" as they are,
+ * or its code when there is no symbol ("CHF"). The locale disambiguates where it must: en-CA writes
+ * USD differently from CAD, en-US doesn't.
  */
 export function currencySymbol(currency: string): string {
-  const cached = symbols.get(currency);
+  const { locale } = numberStyle();
+  const key = `${locale}|${currency}`;
+  const cached = symbols.get(key);
   if (cached) return cached;
   let symbol = currency;
   try {
-    const parts = new Intl.NumberFormat("en-US", { style: "currency", currency, currencyDisplay: "symbol" }).formatToParts(0);
+    const parts = new Intl.NumberFormat(locale, { style: "currency", currency, currencyDisplay: "symbol" }).formatToParts(0);
     symbol = parts.find((p) => p.type === "currency")?.value ?? currency;
   } catch {
     symbol = currency;
   }
-  symbols.set(currency, symbol);
+  symbols.set(key, symbol);
   return symbol;
 }
 

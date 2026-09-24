@@ -6,7 +6,7 @@ as numbers like 60.0, money in the deal's currency and unit (core/money.py;
 US dollar millions unless the deal says otherwise).
 """
 from dataclasses import dataclass, replace
-from typing import Mapping
+from typing import Mapping, Optional
 
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT, to_millions
 from lbo_engine.model import LBOParams, run_lbo
@@ -40,6 +40,10 @@ class DealInputs:
     # calculated with; the engine always runs in millions (in_millions).
     currency: str = DEFAULT_CURRENCY
     unit: str = DEFAULT_UNIT
+    # Fiscal year labels (PLAN.md 2.3a), carried like the currency: the model
+    # counts years from 1 whatever they say
+    fiscal_year_end_month: int = 12
+    first_fiscal_year: Optional[int] = None
 
 
 # Money inputs, in the deal's unit
