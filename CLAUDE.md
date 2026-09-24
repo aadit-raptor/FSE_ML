@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-24 (PLAN.md 0.3: CI gates for the development cycle). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-24 (PLAN.md 2.3a: locale formats and fiscal years). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -202,6 +202,34 @@ money so its size stays the same. **No hardcoded "$"**:
 its line with `currency-ok`). The example backtest deals and SEC EDGAR data
 are US dollar millions and say so.
 
+Locale (PLAN.md 2.3a; 2.3b, the translation files, is next): figures and
+dates follow the **account's locale and digit grouping** (`users.digit_grouping`:
+`locale`, `thousands` or `lakh`, migration 0007). `web/src/lib/locale.ts` is
+**the one place that turns numbers into text**; `lib/format.ts` (`fmtMoney`,
+`fmtRate`, `fmtNumber`, `fmtCount`, `fmtAxis` ...) builds on it, and
+`tests/test_no_hardcoded_locale.py` fails on a quoted locale tag,
+`toLocaleString` or a display `toFixed` anywhere else (`Number(x.toFixed(6))`
+rounding is fine; a real exception ends its line with `locale-ok`). The
+style is a module value set during render by `LocaleScope` in
+`AppShell.tsx`, which holds the screens until the account answers; pages
+never render on the server before the session is known, so there's no
+hydration mismatch. Figures use Latin digits always. Inputs read numbers
+the locale's way (`parseNumber`: "11,5" in German). Currency symbols come
+from the locale ("US$" for dollars in en-GB). **Fiscal years are labels
+only**: a deal's `fiscal_year_end_month` (default 12) and
+`first_fiscal_year` (default none: Y1, Y2 ...), a forecast company's year-end
+and latest year (EDGAR reads them from the latest 10-K; a 52/53-week year
+ending in a month's first week counts as the month before). Years are named
+by the year they end in: "FY2025" for December, else "FY2024/25"
+(`lib/fiscal.ts`). **Stored and sent only when set** (`db/deals.py`
+`LABEL_DEFAULTS`, web `apiInputs()`), so old deals are unchanged and an API
+from before 2.3a (a deploy rolling out, a rollback) still answers every deal
+that doesn't use them; API answers always carry them. Excel: a sheet sends
+`row_formats` / `column_formats` (`money`, `percent` as fractions,
+`multiple`, `integer`, `number`, `text`); standard formats show with the
+reader's own separators, and the lakh choice gets a pattern sized to each
+cell (Excel's conditional formats would drop the minus sign).
+
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
 put the table in the job summary and fail below their line in
@@ -235,8 +263,9 @@ below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitor
 sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); 2.2 is done (currency and money units, below). Added 2026-09-24: the
 development cycle in **docs/WORKFLOW.md** (ECC merged with these rules), and
 tasks 0.2 (own domain, when the user has bought one), 0.3 (cycle gates in CI)
-and 11.4 (owner's handbook). 0.3 is done (CI gates, below). **Next is 2.3**
-(0.2 jumps the queue once the domain is bought). End every task session with the handoff described in PLAN.md: tell the
+and 11.4 (owner's handbook). 0.3 is done (CI gates, below). 2.3 is split: **2.3a is done** (locale
+formats and fiscal years, below); **next is 2.3b** (interface text in
+translation files; 0.2 jumps the queue once the domain is bought). End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -384,12 +413,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `SECURITY.md`, `docs/security/threat-model.md` | How to report a vulnerability; threat model, open items and the public-repo review |
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
+| `web/src/lib/locale.ts`, `web/src/lib/format.ts`, `web/src/lib/fiscal.ts`, `web/src/components/ui/FiscalSelects.tsx` | Locale (PLAN.md 2.3a): number, date and input formats from the account's locale and grouping; fiscal year labels and their controls |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (456 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (456 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -586,6 +616,14 @@ Skills load when a session starts: install first, then open a new session.
   ships Postgres 16, enough for the local database); `FSE_PG_BIN` overrides
   the search. The first backup attempt failed exactly here, with a message
   naming every binary it found.
+- In this repo's PowerShell, `Get-Content -Raw` then `WriteAllText` turns
+  a non-ASCII character into mojibake (an NBSP became "Â "). Edit source with
+  the Edit/Write tools or a Python script that writes UTF-8; keep test
+  strings with special spaces as escapes (`"21,2\u00a0%"`).
+- A new field on `DealInputsIn` must also go on `core.deal.DealInputs`
+  (every router builds it with `DealInputs(**model_dump())`), and a field
+  that is only a label belongs in `db/deals.py` `LABEL_DEFAULTS` and web
+  `apiInputs()`, or old deals gain a version and a rollback breaks them.
 - Deal defaults: the API uses stored 60% debt / 70% senior; the retired
   Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
   what the golden `defaults` case records.

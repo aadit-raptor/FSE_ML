@@ -12,6 +12,17 @@
             "title": "Country",
             "type": "string"
           },
+          "digit_grouping": {
+            "default": "locale",
+            "description": "Group long numbers as the locale does, in thousands, or in lakh and crore",
+            "enum": [
+              "locale",
+              "thousands",
+              "lakh"
+            ],
+            "title": "Digit Grouping",
+            "type": "string"
+          },
           "locale": {
             "description": "BCP 47 language tag, e.g. en-GB",
             "maxLength": 35,
@@ -1036,6 +1047,28 @@
             "title": "Exit Mult",
             "type": "number"
           },
+          "first_fiscal_year": {
+            "anyOf": [
+              {
+                "maximum": 2200.0,
+                "minimum": 1900.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fiscal year of the first projected year, named by the year it ends in; none labels years Y1, Y2 ...",
+            "title": "First Fiscal Year"
+          },
+          "fiscal_year_end_month": {
+            "default": 12,
+            "description": "Month the deal's fiscal year ends (12 = December)",
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Fiscal Year End Month",
+            "type": "integer"
+          },
           "gross_margin": {
             "default": 40.0,
             "description": "Gross margin (%)",
@@ -1199,6 +1232,7 @@
               "ebitda": 100.0,
               "entry_mult": 10.0,
               "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
@@ -1245,6 +1279,7 @@
               "ebitda": 100.0,
               "entry_mult": 10.0,
               "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
@@ -1627,6 +1662,20 @@
           "company_name": {
             "title": "Company Name",
             "type": "string"
+          },
+          "fiscal_year_end_month": {
+            "anyOf": [
+              {
+                "maximum": 12.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Month the filer's fiscal year ends; years are named by the year they end in",
+            "title": "Fiscal Year End Month"
           },
           "history": {
             "additionalProperties": {
@@ -3646,6 +3695,7 @@
               "ebitda": 100.0,
               "entry_mult": 10.0,
               "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
@@ -4764,6 +4814,7 @@
               "ebitda": 100.0,
               "entry_mult": 10.0,
               "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
@@ -5130,6 +5181,7 @@
               "ebitda": 100.0,
               "entry_mult": 10.0,
               "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
@@ -5703,6 +5755,17 @@
             "title": "Filename",
             "type": "string"
           },
+          "grouping": {
+            "default": "locale",
+            "description": "Lakh and crore patterns when 'lakh'",
+            "enum": [
+              "locale",
+              "thousands",
+              "lakh"
+            ],
+            "title": "Grouping",
+            "type": "string"
+          },
           "money": {
             "anyOf": [
               {
@@ -5733,6 +5796,37 @@
       "WorkbookSheet": {
         "additionalProperties": false,
         "properties": {
+          "column_formats": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "money",
+                        "percent",
+                        "multiple",
+                        "integer",
+                        "number",
+                        "text"
+                      ],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxItems": 200,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Number format per column; percent cells hold fractions",
+            "title": "Column Formats"
+          },
           "columns": {
             "items": {
               "type": "string"
@@ -5747,6 +5841,37 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "row_formats": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "money",
+                        "percent",
+                        "multiple",
+                        "integer",
+                        "number",
+                        "text"
+                      ],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maxItems": 50000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Number format per row; wins over the column's",
+            "title": "Row Formats"
           },
           "rows": {
             "items": {

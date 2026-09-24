@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 
 import { fmtInput } from "@/lib/format";
+import { parseNumber } from "@/lib/locale";
 import { validate, type FieldSpec } from "@/lib/fields";
 import { fieldUnit } from "@/lib/money";
 
@@ -32,11 +33,11 @@ export function NumberField({ spec, value, onCommit, disabled, changed, label }:
   const [draft, setDraft] = useState<string | null>(null);
   const beforeEdit = useRef(value);
   const shown = draft ?? fmtInput(value, spec.decimals);
-  const error = draft === null ? null : validate(spec, draft.trim() === "" ? NaN : Number(draft));
+  const error = draft === null ? null : validate(spec, parseNumber(draft));
 
   const commitText = (text: string) => {
     setDraft(text);
-    const n = text.trim() === "" ? NaN : Number(text);
+    const n = parseNumber(text);
     if (!validate(spec, n)) onCommit(n);
     else if (value !== beforeEdit.current) onCommit(beforeEdit.current);
   };

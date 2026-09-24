@@ -159,5 +159,6 @@ def get_edgar(ticker: str):
     return {"ticker": ticker, "company_name": extracted.company_name,
             "years": list(extracted.years), "history": to_json(history),
             "warnings": list(extracted.warnings),
+            "fiscal_year_end_month": extracted.fiscal_year_end_month,
             # The extractor reads the filings' USD facts and divides by a million
             "money": {"currency": "USD", "unit": "millions"}}

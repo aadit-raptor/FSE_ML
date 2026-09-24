@@ -1,8 +1,8 @@
 """Reading and writing account profiles (PLAN.md 1.4).
 
 One row per signed-in person (``db.models.User``), found by the identity
-provider's subject. The four preferences -- country, currency, locale and time
-zone -- are validated here rather than at the edge, so nothing invalid can
+provider's subject. The preferences -- country, currency, locale, time zone
+and digit grouping -- are validated here rather than at the edge, so nothing invalid can
 reach the database whichever caller writes it.
 
 Validation is deliberately generic, not a list of "supported" countries: the
@@ -28,6 +28,9 @@ COUNTRY_RE = re.compile(r"^[A-Z]{2}$")
 CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
 # BCP 47: language, optional script, optional region, optional variants
 LOCALE_RE = re.compile(r"^[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|\d{3}))?(-[A-Za-z0-9]{3,8})*$")
+# How long numbers are grouped (PLAN.md 2.3a): as the locale does, always in
+# thousands (1,000,000), or in lakh and crore (10,00,000) whatever the locale
+DIGIT_GROUPINGS = ("locale", "thousands", "lakh")
 
 
 class InvalidProfile(ValueError):
@@ -42,12 +45,14 @@ class Profile:
     preferred_currency: str
     locale: str
     time_zone: str
+    digit_grouping: str = "locale"
 
     def as_dict(self) -> dict:
         return asdict(self)
 
 
-def clean(country: str, preferred_currency: str, locale: str, time_zone: str) -> Profile:
+def clean(country: str, preferred_currency: str, locale: str, time_zone: str,
+          digit_grouping: str = "locale") -> Profile:
     """A validated profile, or ``InvalidProfile`` naming the field at fault."""
     country = (country or "").strip().upper()
     currency = (preferred_currency or "").strip().upper()
@@ -65,20 +70,24 @@ def clean(country: str, preferred_currency: str, locale: str, time_zone: str) ->
         ZoneInfo(time_zone)
     except Exception:  # noqa: BLE001 - a name the tz database can't load
         raise InvalidProfile("time zone must be an IANA name such as Europe/London") from None
-    return Profile(country=country, preferred_currency=currency, locale=locale, time_zone=time_zone)
+    if digit_grouping not in DIGIT_GROUPINGS:
+        raise InvalidProfile("digit grouping must be one of: " + ", ".join(DIGIT_GROUPINGS))
+    return Profile(country=country, preferred_currency=currency, locale=locale, time_zone=time_zone,
+                   digit_grouping=digit_grouping)
 
 
 def get_profile(subject: str) -> Optional[Profile]:
     """The person's saved profile, or None when they haven't set one yet."""
     with connect() as conn:
         row = conn.execute(
-            select(User.country, User.preferred_currency, User.locale, User.time_zone)
+            select(User.country, User.preferred_currency, User.locale, User.time_zone,
+                   User.digit_grouping)
             .where(User.subject == subject)
         ).first()
     if row is None:
         return None
     return Profile(country=row.country, preferred_currency=row.preferred_currency,
-                   locale=row.locale, time_zone=row.time_zone)
+                   locale=row.locale, time_zone=row.time_zone, digit_grouping=row.digit_grouping)
 
 
 def save_profile(subject: str, profile: Profile) -> Profile:

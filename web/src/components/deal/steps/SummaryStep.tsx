@@ -9,10 +9,10 @@ import { NumberField } from "@/components/ui/NumberField";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { multiplesFromPct } from "@/lib/deal/capital";
-import { FIELDS, type NumericDealKey } from "@/lib/deal/fields";
-import { downloadWorkbook, sheet, tableSheet } from "@/lib/export";
+import { dealFiscal, FIELDS, type NumericDealKey } from "@/lib/deal/fields";
+import { downloadWorkbook, fraction, sheet, tableSheet } from "@/lib/export";
 import type { FieldSpec } from "@/lib/fields";
-import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct } from "@/lib/format";
+import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { fieldUnit } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
@@ -73,7 +73,7 @@ function SummaryResults() {
   const om = res.operating_model;
   const cf = res.cash_flow;
   const r = res.returns;
-  const years = yearLabels(om.revenue?.length ?? 0);
+  const years = yearLabels(om.revenue?.length ?? 0, dealFiscal(inputs));
   const br = res.equity_bridge;
   const revenue = (om.revenue ?? []).map((v) => v ?? 0);
   const cogs = (om.cogs ?? []).map((v) => Math.abs(v ?? 0));
@@ -146,8 +146,9 @@ function SummaryResults() {
 
   const bridgeSheet = sheet(
     "Equity bridge",
-    ["Component", `Value (${mu})`, "% of gain"],
-    res.bridge_steps.map((s) => [s.label, s.value ?? null, s.pct_of_gain ?? null]),
+    ["Component", `Value (${mu})`, "Share of gain"],
+    res.bridge_steps.map((s) => [s.label, s.value ?? null, fraction(s.pct_of_gain, 100)]),
+    { columns: ["text", "money", "percent"] },
   );
   const allSheets = () => [
     tableSheet("P&L", years, incomeRows),
@@ -156,16 +157,17 @@ function SummaryResults() {
     ...Object.entries(res.tranches).map(([name, rows]) =>
       sheet(
         name,
-        ["Year", "Opening", "Mandatory", "Cash sweep", "Closing", "Interest", "Rate (%)"],
+        ["Year", "Opening", "Mandatory", "Cash sweep", "Closing", "Interest", "Rate"],
         rows.map((t) => [
-          t.year,
+          years[t.year - 1] ?? t.year,
           t.beginning_balance ?? null,
           t.mandatory_repayment ?? null,
           t.cash_sweep ?? null,
           t.ending_balance ?? null,
           t.interest_expense ?? null,
-          t.interest_rate == null ? null : t.interest_rate * 100,
+          fraction(t.interest_rate),
         ]),
+        { columns: ["text", "money", "money", "money", "money", "money", "percent"] },
       ),
     ),
     bridgeSheet,
@@ -176,7 +178,7 @@ function SummaryResults() {
 
   return (
     <Tiles>
-      <Kpi title="IRR" value={r.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead {...hurdleSub(r.irr, hurdle)} />
+      <Kpi title="IRR" value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period} yr hold`} />
       <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub={mu} />
       <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub={mu} />

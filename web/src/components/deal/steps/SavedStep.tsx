@@ -6,7 +6,7 @@ import { useProfile } from "@/components/auth/ProfileProvider";
 import { Notice, PrimaryButton, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
-import { fmtMultiple } from "@/lib/format";
+import { fmtMultiple, fmtRate } from "@/lib/format";
 
 import { apiMessage, useDeal } from "../DealProvider";
 import { DealScreen, RailGroup } from "../DealScreen";
@@ -69,7 +69,7 @@ function Headline() {
   const r = run.result?.returns;
   return (
     <>
-      <Kpi title="IRR" value={r?.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead />
+      <Kpi title="IRR" value={fmtRate(r?.irr)} lead />
       <Kpi title="MOIC" value={fmtMultiple(r?.moic)} />
       <Kpi
         title="Saved"

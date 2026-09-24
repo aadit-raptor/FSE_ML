@@ -7,8 +7,9 @@ import { Waterfall } from "@/components/charts/Waterfall";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
-import { downloadWorkbook, sheet } from "@/lib/export";
-import { fmtMoney, fmtMultiple } from "@/lib/format";
+import { dealFiscal } from "@/lib/deal/fields";
+import { downloadWorkbook, fraction, sheet } from "@/lib/export";
+import { fmtMoney, fmtMultiple, fmtRate } from "@/lib/format";
 
 import { useDeal } from "../DealProvider";
 import { DealField, DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
@@ -54,11 +55,12 @@ function ReturnsResults() {
   const om = res.operating_model;
   const base = baseCell(res, inputs.exit_mult, inputs.hold);
   const begin = totals(res, "total_beginning_debt");
-  const years = yearLabels(om.revenue?.length ?? 0);
+  const fiscal = dealFiscal(inputs);
+  const years = yearLabels(om.revenue?.length ?? 0, fiscal);
 
   return (
     <Tiles>
-      <Kpi title="IRR" value={r.irr == null ? "n/a" : `${(r.irr * 100).toFixed(1)}%`} lead {...hurdleSub(r.irr, hurdle)} />
+      <Kpi title="IRR" value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period ?? inputs.hold} yr hold`} />
       <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub={`${mu} at close`} />
       <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub={`${mu} at exit`} />
@@ -81,9 +83,10 @@ function ReturnsResults() {
             onDownload={() =>
               downloadWorkbook("irr_sensitivity.xlsx", [
                 sheet(
-                  "IRR sensitivity (%)",
+                  "IRR sensitivity",
                   ["Exit multiple", ...res.exit_sensitivity.holding_periods.map((h) => `${h}y`)],
-                  res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => (v == null ? null : v * 100))]),
+                  res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => fraction(v))]),
+                  { columns: ["multiple", ...res.exit_sensitivity.holding_periods.map(() => "percent" as const)] },
                 ),
               ], money)
             }
@@ -101,7 +104,7 @@ function ReturnsResults() {
         <p className="type-body text-[9px]">Every cell is a full model run for that exit multiple and hold. Ranges are set in Settings, Deal defaults.</p>
       </Tile>
       <Tile span={6} title="Debt paydown" unit={`by tranche, ${mu}`}>
-        <StackedBars {...debtSeries(res)} />
+        <StackedBars {...debtSeries(res, fiscal)} />
       </Tile>
       <Tile span={6} title="Operating summary" unit={mu}>
         <DataTable

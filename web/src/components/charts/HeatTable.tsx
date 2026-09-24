@@ -1,4 +1,4 @@
-import { fmtRate, isNum } from "@/lib/format";
+import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
 
 /** Background mixed toward gain or loss by distance from `center`. */
 export function heat(v: number, center: number, span: number): string {
@@ -42,7 +42,7 @@ export function SensitivityTable({
         {table.map((row, i) => (
           <tr key={exitMultiples[i]}>
             <th scope="row" className="px-2 py-1 text-right font-normal text-muted">
-              {exitMultiples[i].toFixed(1)}x
+              {fmtMultiple(exitMultiples[i], 1)}
             </th>
             {row.map((v, j) => {
               const base = i === baseRow && j === baseCol;

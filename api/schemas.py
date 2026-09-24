@@ -54,6 +54,10 @@ CurrencyCode = Annotated[str, Field(pattern=r"^[A-Z]{3}$", min_length=3, max_len
                                     description="ISO 4217, e.g. EUR")]
 
 
+# How long numbers are grouped (PLAN.md 2.3a); db/users.py DIGIT_GROUPINGS
+DigitGrouping = Literal["locale", "thousands", "lakh"]
+
+
 class Money(Strict):
     """What money figures are counted in. Any ISO 4217 currency; the model never
     calculates with the code, so the same numbers give the same results in any
@@ -96,6 +100,13 @@ class DealInputsIn(Strict):
     ap_days: float = Field(60.0, ge=0, le=365)
     currency: CurrencyCode = Field(DEFAULT_CURRENCY, description="The deal's currency (ISO 4217)")
     unit: MoneyUnit = Field(DEFAULT_UNIT, description="The deal's money figures are thousands, millions or billions")
+    # Labels only (PLAN.md 2.3a): the model counts years from 1 whatever these say
+    fiscal_year_end_month: int = Field(12, ge=1, le=12, strict=True,
+                                       description="Month the deal's fiscal year ends (12 = December)")
+    first_fiscal_year: Optional[int] = Field(
+        None, ge=1900, le=2200, strict=True,
+        description="Fiscal year of the first projected year, named by the year it ends in; "
+                    "none labels years Y1, Y2 ...")
 
     def money(self) -> "Money":
         return Money(currency=self.currency, unit=self.unit)
@@ -507,15 +518,24 @@ class BacktestResponse(BaseModel):
 Cell = Union[float, int, str, bool, None]
 
 
+# How a cell's number shows in Excel (PLAN.md 2.3a): api/routers/export.py NUMBER_FORMATS
+CellFormat = Literal["money", "percent", "multiple", "integer", "number", "text"]
+
+
 class WorkbookSheet(Strict):
     name: str = Field(min_length=1, max_length=100)
     columns: List[str] = Field(min_length=1, max_length=200)
     rows: List[List[Cell]] = Field(max_length=50_000)
+    column_formats: Optional[List[Optional[CellFormat]]] = Field(
+        None, max_length=200, description="Number format per column; percent cells hold fractions")
+    row_formats: Optional[List[Optional[CellFormat]]] = Field(
+        None, max_length=50_000, description="Number format per row; wins over the column's")
 
 
 class WorkbookRequest(Strict):
     filename: str = Field("export.xlsx", max_length=120)
     sheets: List[WorkbookSheet] = Field(min_length=1, max_length=30)
+    grouping: DigitGrouping = Field("locale", description="Lakh and crore patterns when 'lakh'")
     money: Optional[Money] = Field(
         None, description="What the money columns are counted in; written on an About sheet")
 
@@ -575,6 +595,8 @@ class EdgarResponse(BaseModel):
     years: List[int]
     history: Dict[str, List[float]] = Field(description="Forecasting history keys, oldest year first")
     warnings: List[str]
+    fiscal_year_end_month: Optional[int] = Field(
+        None, ge=1, le=12, description="Month the filer's fiscal year ends; years are named by the year they end in")
     money: Money = Field(description="SEC filings are read in US dollars, in millions")
 
 
@@ -592,6 +614,8 @@ class AccountProfile(Strict):
     preferred_currency: str = Field(description="ISO 4217, e.g. EUR", min_length=3, max_length=3)
     locale: str = Field(description="BCP 47 language tag, e.g. en-GB", min_length=2, max_length=35)
     time_zone: str = Field(description="IANA time zone, e.g. Europe/London", min_length=1, max_length=64)
+    digit_grouping: DigitGrouping = Field(
+        "locale", description="Group long numbers as the locale does, in thousands, or in lakh and crore")
 
 
 class AccountResponse(BaseModel):

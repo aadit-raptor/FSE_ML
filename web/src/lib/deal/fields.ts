@@ -4,7 +4,9 @@ import { DEFAULT_MONEY, MONEY } from "@/lib/money";
 
 export type DealInputs = Required<Schemas["DealInputsIn"]>;
 export type DealRun = Schemas["DealRunResponse"];
-export type NumericDealKey = { [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs];
+/** Fiscal year labels (PLAN.md 2.3a): not model inputs, set in their own rail group */
+export type FiscalDealKey = "fiscal_year_end_month" | "first_fiscal_year";
+export type NumericDealKey = Exclude<{ [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs], FiscalDealKey>;
 
 /** Matches the API's DealInputsIn defaults (api/schemas.py). */
 export const DEFAULT_INPUTS: DealInputs = {
@@ -30,7 +32,29 @@ export const DEFAULT_INPUTS: DealInputs = {
   ap_days: 60,
   currency: DEFAULT_MONEY.currency,
   unit: DEFAULT_MONEY.unit,
+  fiscal_year_end_month: 12,
+  first_fiscal_year: null,
 };
+
+/**
+ * The inputs as the API gets them: the fiscal year labels only when set. The API stores them the same
+ * way (db/deals.py), and an API from before them (a deploy still rolling out, or a rollback) keeps
+ * answering every deal that doesn't use them.
+ */
+export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
+  const { fiscal_year_end_month, first_fiscal_year, ...rest } = inputs;
+  // The generated type lists every defaulted field as present; the API fills in the ones left out
+  return {
+    ...rest,
+    ...(fiscal_year_end_month !== DEFAULT_INPUTS.fiscal_year_end_month ? { fiscal_year_end_month } : {}),
+    ...(first_fiscal_year !== null ? { first_fiscal_year } : {}),
+  } as Schemas["DealInputsIn"];
+}
+
+/** The deal's fiscal years, for labels. */
+export function dealFiscal(inputs: DealInputs): { endMonth: number; year: number | null } {
+  return { endMonth: inputs.fiscal_year_end_month, year: inputs.first_fiscal_year };
+}
 
 export type { FieldSpec };
 
