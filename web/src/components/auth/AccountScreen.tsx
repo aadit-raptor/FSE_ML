@@ -7,11 +7,12 @@ import { useSession } from "@/components/auth/AuthProvider";
 import { type Profile, useProfile } from "@/components/auth/ProfileProvider";
 import { Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
 import { AFTER_SIGN_IN } from "@/lib/auth/mode";
+import { DIGIT_GROUPINGS, type DigitGrouping, formatNumber, LOCALE_SUGGESTIONS } from "@/lib/locale";
 
 /**
- * The account screen (PLAN.md 1.4): who is signed in, and the four answers
- * every figure in the app depends on -- country, currency, locale and time
- * zone. A new account is sent here by the shell and can't reach the deal
+ * The account screen (PLAN.md 1.4): who is signed in, and the answers every
+ * figure in the app depends on -- country, currency, locale, time zone and
+ * (PLAN.md 2.3a) how long numbers are grouped. A new account is sent here by the shell and can't reach the deal
  * screens until it has answered.
  *
  * The lists come from the browser's own CLDR data (Intl), not a list of
@@ -67,6 +68,7 @@ function suggested(): Profile {
     preferred_currency: "",  // no browser answer for this: the account chooses
     locale: language,
     time_zone: resolved.timeZone || "UTC",
+    digit_grouping: "locale",
   };
 }
 
@@ -178,10 +180,26 @@ export function AccountScreen() {
             {(typeof navigator === "undefined" ? [] : navigator.languages).map((tag) => (
               <option key={tag} value={tag} />
             ))}
-            {["en-GB", "en-US", "de-DE", "fr-FR", "pt-BR", "ja-JP", "hi-IN"].map((tag) => (
+            {LOCALE_SUGGESTIONS.map((tag) => (
               <option key={tag} value={tag} />
             ))}
           </datalist>
+        </label>
+
+        <label className="grid gap-1.5">
+          <span className="type-input-group">Digit grouping</span>
+          <select
+            aria-label="Digit grouping"
+            value={draft.digit_grouping}
+            onChange={(e) => set("digit_grouping")(e.target.value as DigitGrouping)}
+            className="border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
+          >
+            {DIGIT_GROUPINGS.map((g) => (
+              <option key={g.value} value={g.value}>
+                {g.label} · {groupingExample(draft.locale, g.value)}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="grid gap-1.5">
@@ -243,10 +261,19 @@ export function AccountScreen() {
 function formatExample(draft: Profile): string {
   if (!draft.preferred_currency || !draft.locale) return "—";
   try {
-    return new Intl.NumberFormat(draft.locale, { style: "currency", currency: draft.preferred_currency })
-      .format(1234567.89);
+    const style = { locale: draft.locale, grouping: draft.digit_grouping };
+    return formatNumber(1234567.89, { decimals: 2, currency: draft.preferred_currency }, style);
   } catch {
     return "—";
+  }
+}
+
+/** 12,345,678 grouped this way in this locale: "1,23,45,678" for lakh and crore. */
+function groupingExample(locale: string, grouping: DigitGrouping): string {
+  try {
+    return formatNumber(12345678, { decimals: 0 }, { locale, grouping });
+  } catch {
+    return formatNumber(12345678, { decimals: 0 }, { locale: "en", grouping });
   }
 }
 

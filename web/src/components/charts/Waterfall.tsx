@@ -1,4 +1,4 @@
-import { fmtDelta, fmtMoney } from "@/lib/format";
+import { fmtAxis, fmtDelta, fmtMoney } from "@/lib/format";
 
 import { niceScale } from "./scale";
 
@@ -34,7 +34,7 @@ export function Waterfall({ steps, label }: { steps: WaterfallStep[]; label: str
         <g key={t}>
           <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="var(--color-grid)" />
           <text x={L - 6} y={y(t) + 4} textAnchor="end" className="chart-tick">
-            {t.toLocaleString("en-US")}
+            {fmtAxis(t)}
           </text>
         </g>
       ))}

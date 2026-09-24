@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { api } from "@/lib/api/client";
+import type { DigitGrouping } from "@/lib/locale";
 
 /** How this account wants money, dates and numbers shown (PLAN.md 1.4). */
 export type Profile = {
@@ -10,6 +11,8 @@ export type Profile = {
   preferred_currency: string;
   locale: string;
   time_zone: string;
+  /** How long numbers are grouped (PLAN.md 2.3a) */
+  digit_grouping: DigitGrouping;
 };
 
 type ProfileContext = {

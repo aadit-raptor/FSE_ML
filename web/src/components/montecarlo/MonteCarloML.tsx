@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 
 import { useDeal } from "@/components/deal/DealProvider";
+import { apiInputs } from "@/lib/deal/fields";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { EmptyState, Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { useCapabilities } from "@/lib/capabilities";
-import { fmtRate } from "@/lib/format";
+import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
 
 import { SCENARIOS, type Scenario, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen } from "./MonteCarloScreen";
@@ -31,11 +32,11 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 /** A training-deal term in its unit (rates arrive as fractions; "money" is the deal's currency and unit). */
 function fmtTerm(v: number, unit: string, decimals: number, moneyLabel: string): string {
-  if (unit === "percent") return `${(v * 100).toFixed(decimals)}%`;
-  if (unit === "multiple") return `${v.toFixed(decimals)}x`;
-  if (unit === "years") return `${v.toFixed(decimals)} yr`;
-  if (unit === "money") return `${v.toFixed(decimals)} ${moneyLabel}`;
-  return v.toFixed(decimals);
+  if (unit === "percent") return fmtRate(v, decimals);
+  if (unit === "multiple") return fmtMultiple(v, decimals);
+  if (unit === "years") return `${fmtNumber(v, decimals)} yr`;
+  if (unit === "money") return `${fmtNumber(v, decimals)} ${moneyLabel}`;
+  return fmtNumber(v, decimals);
 }
 
 export function LiveStep() {
@@ -72,7 +73,7 @@ function Live() {
       setStatus("loading");
       api
         .POST("/api/ml/surrogate", {
-          body: { mc: { ...sim, ebitda: deal.ebitda, entry_mult: deal.entry_mult, hold: deal.hold }, deal, settings: overrides, sliders },
+          body: { mc: { ...sim, ebitda: deal.ebitda, entry_mult: deal.entry_mult, hold: deal.hold }, deal: apiInputs(deal), settings: overrides, sliders },
           signal: ctrl.signal,
         })
         .then(({ data, error: err }) => {
@@ -120,7 +121,7 @@ function Live() {
       {pred && pred.term_differences.length > 0 && (
         <Notice title="Directional only" role="note" className="col-span-12">
           The surrogate learned a fixed deal and this one differs in{" "}
-          {pred.term_differences.map((d) => `${d.term} (${d.value.toFixed(d.decimals + (d.unit === "percent" ? 2 : 0))} vs ${d.model_value.toFixed(d.decimals + (d.unit === "percent" ? 2 : 0))})`).join(", ")}.
+          {pred.term_differences.map((d) => `${d.term} (${fmtNumber(d.value, d.decimals + (d.unit === "percent" ? 2 : 0))} vs ${fmtNumber(d.model_value, d.decimals + (d.unit === "percent" ? 2 : 0))})`).join(", ")}.
           Use Run Monte Carlo for exact results.
         </Notice>
       )}
@@ -142,7 +143,7 @@ function Live() {
             <label key={s.key} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1">
               <span className="type-input-label">{s.label}</span>
               <span className="font-mono text-[11.5px] text-ink">
-                {sliders[s.key].toFixed(s.step < 1 ? 1 : 0)} {s.unit}
+                {fmtNumber(sliders[s.key], s.step < 1 ? 1 : 0)} {s.unit}
               </span>
               <input
                 type="range"
@@ -186,7 +187,7 @@ function RangeBand({ p, hurdle }: { p: Record<string, number | null>; hurdle: nu
         <g key={t}>
           <line x1={x(t)} x2={x(t)} y1={18} y2={80} stroke="var(--color-grid)" />
           <text x={x(t)} y={98} textAnchor="middle" className="chart-tick">
-            {(t * 100).toFixed(0)}%
+            {fmtRate(t, 0)}
           </text>
         </g>
       ))}
@@ -195,7 +196,7 @@ function RangeBand({ p, hurdle }: { p: Record<string, number | null>; hurdle: nu
       <line x1={x(v("irr_p50"))} x2={x(v("irr_p50"))} y1={28} y2={70} stroke="var(--color-accent)" strokeWidth={3} />
       <line x1={x(hurdle)} x2={x(hurdle)} y1={16} y2={80} stroke="var(--color-attention)" strokeDasharray="3 3" />
       <text x={x(hurdle) + 5} y={14} className="chart-reference" style={{ fill: "var(--color-attention)" }}>
-        Hurdle {(hurdle * 100).toFixed(0)}%
+        Hurdle {fmtRate(hurdle, 0)}
       </text>
     </svg>
   );
@@ -243,11 +244,11 @@ export function MacroRegime() {
         {regime && (
           <>
             <span className="font-mono text-[11.5px] text-ink">
-              <b className="text-bright">{label ?? regime.regime}</b> · {(regime.confidence * 100).toFixed(0)}% confidence · data as of {regime.data_as_of}
+              <b className="text-bright">{label ?? regime.regime}</b> · {fmtRate(regime.confidence, 0)} confidence · data as of {regime.data_as_of}
             </span>
             <span className="font-mono text-[10.5px] text-muted">
               {Object.entries(regime.label_probabilities)
-                .map(([k, v]) => `${k} ${(v * 100).toFixed(0)}%`)
+                .map(([k, v]) => `${k} ${fmtRate(v, 0)}`)
                 .join(" · ")}
             </span>
             {label && (

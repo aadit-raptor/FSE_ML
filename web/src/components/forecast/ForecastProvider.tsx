@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { api, type Schemas } from "@/lib/api/client";
+import { type Fiscal, fiscalYearLabels } from "@/lib/fiscal";
 import { DEFAULT_MONEY, type Money, unitFactor } from "@/lib/money";
 
 type Series = Record<string, number[]>;
@@ -33,6 +34,12 @@ type ForecastContext = {
   money: Money;
   /** A new unit keeps the company's size: every figure is converted */
   setMoney: (money: Money) => void;
+  /** The company's fiscal year-end and its latest historical fiscal year (PLAN.md 2.3a); labels only */
+  fiscal: Fiscal;
+  setFiscal: (fiscal: Fiscal) => void;
+  /** Column labels: history oldest first ("FY2023/24" ... or "LTM-2" ... "LTM"), then forecast years */
+  histLabels: string[];
+  fwdLabels: string[];
   fetchEdgar: (ticker: string) => Promise<void>;
   edgar: { status: "idle" | "loading" | "error"; error?: string };
   metrics: Metrics[] | null;
@@ -45,6 +52,9 @@ type ForecastContext = {
 };
 
 const Ctx = createContext<ForecastContext | null>(null);
+
+/** A company with no fiscal year set: history labelled LTM, forecast F+1 ... */
+const NO_FISCAL_YEAR: Fiscal = { endMonth: 12, year: null };
 
 function spread(seeded: Record<string, number>, n: number): Series {
   return Object.fromEntries(Object.entries(seeded).map(([k, v]) => [k, Array(n).fill(v)]));
@@ -63,6 +73,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
   const [history, setHistoryState] = useState<Series>({});
   const [assumptions, setAssumptions] = useState<Series>({});
   const [source, setSource] = useState<Source>({ kind: "sample" });
+  const [fiscal, setFiscal] = useState<Fiscal>(NO_FISCAL_YEAR);
   const [money, setMoneyState] = useState<Money>(DEFAULT_MONEY);
   const [edgar, setEdgar] = useState<ForecastContext["edgar"]>({ status: "idle" });
   const [seedInfo, setSeedInfo] = useState<{ metrics: Metrics[]; seeded: Record<string, number> } | null>(null);
@@ -159,6 +170,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
     setHistoryState(defaults.history);
     setAssumptions(spread(defaults.seeded_assumptions, defaults.n_fwd));
     setSource({ kind: "sample" });
+    setFiscal(NO_FISCAL_YEAR);
     setEdgar({ status: "idle" });
   }, [defaults]);
 
@@ -180,6 +192,8 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
         setMoneyState(data.money);
         setHistoryState(merged);
         setSource({ kind: "edgar", ticker: data.ticker, company: data.company_name, years: data.years, warnings: data.warnings });
+        // Filings name each fiscal year by the year it ends in (api/routers/integrations.py)
+        setFiscal({ endMonth: data.fiscal_year_end_month ?? 12, year: data.years.at(-1) ?? null });
         const seeded = await api.POST("/api/forecasting/seed", { body: { history: merged, money: data.money } });
         if (seeded.data) setAssumptions(spread(seeded.data.seeded_assumptions, nFwd));
         setEdgar({ status: "idle" });
@@ -191,6 +205,18 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
   );
 
   const activate = useCallback(() => setEnabled(true), []);
+
+  const histLabels = useMemo(
+    () =>
+      fiscalYearLabels(nHist, { ...fiscal, year: fiscal.year === null ? null : fiscal.year - nHist + 1 }, (i) =>
+        i === nHist - 1 ? "LTM" : `LTM-${nHist - 1 - i}`,
+      ),
+    [fiscal, nHist],
+  );
+  const fwdLabels = useMemo(
+    () => fiscalYearLabels(nFwd, { ...fiscal, year: fiscal.year === null ? null : fiscal.year + 1 }, (i) => `F+${i + 1}`),
+    [fiscal, nFwd],
+  );
 
   const value = useMemo(
     () => ({
@@ -207,6 +233,10 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       source,
       money,
       setMoney,
+      fiscal,
+      setFiscal,
+      histLabels,
+      fwdLabels,
       fetchEdgar,
       edgar,
       metrics: seedInfo?.metrics ?? null,
@@ -217,7 +247,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       simPaths: SIM_PATHS,
       activate,
     }),
-    [defaults, nHist, nFwd, history, assumptions, setHistory, setAssumption, fillAssumption, reseed, resetSample, source, money, setMoney, fetchEdgar, edgar, seedInfo, run, activate],
+    [defaults, nHist, nFwd, history, assumptions, setHistory, setAssumption, fillAssumption, reseed, resetSample, source, money, setMoney, fiscal, histLabels, fwdLabels, fetchEdgar, edgar, seedInfo, run, activate],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

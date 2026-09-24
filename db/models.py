@@ -154,10 +154,15 @@ class User(Base):
     The four preferences are asked at sign-up and used everywhere figures are
     shown or defaults chosen (PLAN.md 2.2 and 2.3 build on them):
     ``country`` ISO 3166-1 alpha-2, ``preferred_currency`` ISO 4217,
-    ``locale`` a BCP 47 tag, ``time_zone`` an IANA name.
+    ``locale`` a BCP 47 tag, ``time_zone`` an IANA name. ``digit_grouping``
+    (PLAN.md 2.3a) says how long numbers are grouped: as the locale does,
+    always in thousands (1,000,000), or in lakh and crore (10,00,000).
     """
 
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint("digit_grouping IN ('locale', 'thousands', 'lakh')", name="digit_grouping"),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
@@ -165,6 +170,8 @@ class User(Base):
     preferred_currency: Mapped[str] = mapped_column(CurrencyCode, nullable=False)
     locale: Mapped[str] = mapped_column(String(35), nullable=False)
     time_zone: Mapped[str] = mapped_column(String(64), nullable=False)
+    digit_grouping: Mapped[str] = mapped_column(String(10), nullable=False,
+                                                server_default="locale")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
                                                  server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
@@ -182,7 +189,9 @@ class Deal(Base):
     Autosave overwrites them in place, so editing never grows the database;
     history lives in ``deal_versions``. ``inputs`` is always complete (every
     field of ``DealInputsIn``), so a deal reopens with the same numbers even
-    if the API's input defaults change; ``settings`` holds only overrides.
+    if the API's input defaults change; the only exceptions are the fiscal
+    year labels, stored only when set (db/deals.py ``clean_inputs``).
+    ``settings`` holds only overrides.
 
     ``id`` is a random UUID: it appears in addresses, and can't be guessed or
     counted. Every read and write also matches ``owner_id``, so a deal id

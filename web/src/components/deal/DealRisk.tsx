@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 
 import { Tile } from "@/components/ui/Tile";
 import { api } from "@/lib/api/client";
+import { fmtMultiple, fmtNumber, fmtPct } from "@/lib/format";
 import { useCapabilities } from "@/lib/capabilities";
 import { multiplesFromPct } from "@/lib/deal/capital";
+import { apiInputs } from "@/lib/deal/fields";
 import { type HistoricalSample, riskSampleLabel } from "@/lib/provenance";
 
 import { useDeal } from "./DealProvider";
@@ -32,7 +34,7 @@ export function DealRisk() {
     const ctrl = new AbortController();
     const id = setTimeout(() => {
       api
-        .POST("/api/ml/deal-risk", { body: { inputs, senior_x: Number(seniorX.toFixed(6)), mezz_x: Number(mezzX.toFixed(6)) }, signal: ctrl.signal })
+        .POST("/api/ml/deal-risk", { body: { inputs: apiInputs(inputs), senior_x: Number(seniorX.toFixed(6)), mezz_x: Number(mezzX.toFixed(6)) }, signal: ctrl.signal })
         .then(({ data, error: err }) => {
           if (data) {
             setRisk(data as unknown as Risk);
@@ -56,10 +58,10 @@ export function DealRisk() {
         <div className="grid grid-cols-[180px_1fr_1fr] gap-4">
           <div>
             <p className={`type-figure text-[22px] ${tone}`} data-kpi="Risk score">
-              {risk.risk_score.toFixed(1)} / 10
+              {fmtNumber(risk.risk_score, 1)} / 10
             </p>
             <p className="font-mono text-[10px] text-muted">
-              {risk.is_anomalous ? "unusual versus history" : "in line with history"} · {risk.inputs.leverage.toFixed(1)}x leverage
+              {risk.is_anomalous ? "unusual versus history" : "in line with history"} · {fmtMultiple(risk.inputs.leverage, 1)} leverage
             </p>
           </div>
           <ul className="grid content-start gap-1" aria-label="Risk flags">
@@ -76,9 +78,9 @@ export function DealRisk() {
           <ul className="grid content-start gap-1" aria-label="Most similar historical deals">
             {risk.nearest_deals.map((d) => (
               <li key={d.name} className="font-mono text-[10.5px] text-ink">
-                <span className={d.success ? "text-gain" : "text-loss"}>{d.success ? "success" : "distress"}</span> {d.name} · {d.entry_mult.toFixed(1)}x entry ·{" "}
-                {d.leverage.toFixed(1)}x lev · {d.growth >= 0 ? "+" : ""}
-                {d.growth.toFixed(1)}% growth
+                <span className={d.success ? "text-gain" : "text-loss"}>{d.success ? "success" : "distress"}</span> {d.name} · {fmtMultiple(d.entry_mult, 1)} entry ·{" "}
+                {fmtMultiple(d.leverage, 1)} lev · {d.growth >= 0 ? "+" : ""}
+                {fmtPct(d.growth, 1)} growth
               </li>
             ))}
           </ul>
