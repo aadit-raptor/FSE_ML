@@ -1,6 +1,6 @@
 -r requirements.txt
-pytest>=8
-httpx>=0.27          # FastAPI TestClient
-pytest-cov>=6        # coverage in CI against .coverage-floor (PLAN.md 0.3)
-diff-cover>=9        # 80% of changed lines covered (PLAN.md 0.3)
-pyyaml>=6            # tests read the workflow and Dependabot files
+pytest>=9.1.1
+httpx>=0.28.1          # FastAPI TestClient
+pytest-cov>=7.1.0        # coverage in CI against .coverage-floor (PLAN.md 0.3)
+diff-cover>=10.5.1        # 80% of changed lines covered (PLAN.md 0.3)
+pyyaml>=6.0.3            # tests read the workflow and Dependabot files
