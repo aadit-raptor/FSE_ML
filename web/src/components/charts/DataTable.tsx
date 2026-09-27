@@ -9,7 +9,7 @@ export type Row = {
 };
 
 function cell(v: number | null | undefined, kind: Row["kind"]) {
-  if (!isNum(v)) return { text: "n/a", negative: false };
+  if (!isNum(v)) return { text: fmtMoney(v), negative: false };
   if (kind === "rate") return { text: fmtRate(v), negative: v < 0 };
   const shown = kind === "outflow" ? -Math.abs(v) : v;
   return { text: fmtMoney(shown), negative: shown < 0 };
@@ -25,7 +25,7 @@ export function DataTable({ columns, rows, caption }: { columns: string[]; rows:
           <tr>
             <th scope="col" className="w-[30%]" />
             {columns.map((c) => (
-              <th key={c} scope="col" className="border-b border-grid px-2 py-1 text-right font-normal text-muted">
+              <th key={c} scope="col" className="border-b border-grid px-2 py-1 text-end font-normal text-muted">
                 {c}
               </th>
             ))}
@@ -34,13 +34,13 @@ export function DataTable({ columns, rows, caption }: { columns: string[]; rows:
         <tbody>
           {rows.map((r) => (
             <tr key={r.label} className={r.total ? "text-bright" : "text-ink"}>
-              <th scope="row" className="type-input-label border-b border-grid px-2 py-1 text-left text-[9px] font-normal text-soft">
+              <th scope="row" className="type-input-label border-b border-grid px-2 py-1 text-start text-[9px] font-normal text-soft">
                 {r.label}
               </th>
               {r.values.map((v, i) => {
                 const c = cell(v, r.kind);
                 return (
-                  <td key={i} className={`border-b border-grid px-2 py-1 text-right whitespace-nowrap ${c.negative ? "text-loss" : ""} ${r.total ? "font-semibold" : ""}`}>
+                  <td key={i} className={`border-b border-grid px-2 py-1 text-end whitespace-nowrap ${c.negative ? "text-loss" : ""} ${r.total ? "font-semibold" : ""}`}>
                     {c.text}
                   </td>
                 );

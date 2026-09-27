@@ -10,6 +10,17 @@ export type CellFormat = NonNullable<NonNullable<Sheet["column_formats"]>[number
 type Cell = string | number | boolean | null;
 
 /**
+ * What a failed download says, in the account's language (PLAN.md 2.3b). A
+ * module value set during render by `I18nScope`, like the number style, so the
+ * download helpers stay plain functions.
+ */
+let downloadFailed = (status: number) => `Download failed (${status})`; // text-ok: replaced before any screen draws
+
+export function setDownloadFailedMessage(message: (status: number) => string): void {
+  downloadFailed = message;
+}
+
+/**
  * A DataTable's rows as a sheet, each row with its Excel number format (PLAN.md 2.3a): money as numbers in
  * the screen's unit, rates as fractions shown as percentages. Excel shows them with the reader's own
  * separators, so the file needs no locale.
@@ -67,7 +78,7 @@ async function postForFile(path: string, body: unknown, filename: string) {
   if (res.status >= 500) reportApiError(path, res.status, requestId);
   if (!res.ok) {
     const detail = await res.json().then((j) => (typeof j?.detail === "string" ? j.detail : null)).catch(() => null);
-    throw new Error(detail ?? `Download failed (${res.status})`);
+    throw new Error(detail ?? downloadFailed(res.status));
   }
   save(await res.blob(), filename);
 }

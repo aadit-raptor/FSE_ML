@@ -238,6 +238,33 @@
   }
 }
 
+/*
+ * Right to left (PLAN.md 2.3b). The layout mirrors by itself, because the
+ * screens use logical properties (border-s/-e, ps/pe, ms/me, text-start/-end)
+ * rather than left and right. Figures must not mirror: a Latin-digit number
+ * with a leading sign or a trailing per-cent sign is neutral at the edges, so
+ * the browser's bidi algorithm would move "-38.6" to "38.6-" inside an
+ * right-to-left paragraph. Everything that carries a figure is therefore its
+ * own left-to-right island; a name typed in Arabic inside one still reads
+ * right to left, because `isolate` only sets the surrounding direction.
+ */
+.type-figure,
+.chart-tick,
+.chart-value,
+.chart-total,
+.chip,
+[class~="font-mono"]:not(input),
+[class~="tabular-nums"],
+kbd,
+code,
+/* Inputs are named one by one: a box someone types a name into must follow
+   what they type, not the figures around it. */
+input[inputmode="decimal"],
+input[inputmode="numeric"] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

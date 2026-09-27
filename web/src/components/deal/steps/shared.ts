@@ -1,36 +1,55 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useCallback } from "react";
+
 import type { StackedBars } from "@/components/charts/StackedBars";
 import { type DealRun } from "@/lib/deal/fields";
-import { type Fiscal, fiscalYearLabels } from "@/lib/fiscal";
 import { fmtNumber, fmtRate, isNum } from "@/lib/format";
 
 /** "+1.2 pts vs 20% hurdle" with gain / loss tone. */
-export function hurdleSub(irr: number | null | undefined, hurdle: number): { sub?: string; tone?: "gain" | "loss" } {
-  if (!isNum(irr)) return {};
-  const diff = (irr - hurdle) * 100;
-  return {
-    sub: `${fmtNumber(diff, 1, true)} pts vs ${fmtRate(hurdle, 0)} hurdle`,
-    tone: diff >= 0 ? "gain" : "loss",
-  };
+export function useHurdleSub(): (irr: number | null | undefined, hurdle: number) => { sub?: string; tone?: "gain" | "loss" } {
+  const t = useTranslations("deal");
+  return useCallback(
+    (irr, hurdle) => {
+      if (!isNum(irr)) return {};
+      const diff = (irr - hurdle) * 100;
+      return {
+        sub: t("hurdleSub", { diff: fmtNumber(diff, 1, true), hurdle: fmtRate(hurdle, 0) }),
+        tone: diff >= 0 ? "gain" : "loss",
+      };
+    },
+    [t],
+  );
 }
-
-/** Projection years: "FY2027" or "FY2026/27" once the deal has a first fiscal year (PLAN.md 2.3a), else "Y1". */
-export const yearLabels = (n: number, fiscal: Fiscal) => fiscalYearLabels(n, fiscal, (i) => `Y${i + 1}`);
 
 const TRANCHE_COLORS = ["var(--color-accent)", "var(--color-neutral-bar)", "var(--color-soft)"];
 
-/** Debt balance per tranche: at close, then at each year end. */
-export function debtSeries(result: DealRun, fiscal: Fiscal): Parameters<typeof StackedBars>[0] {
+/**
+ * Debt balance per tranche: at close, then at each year end. The tranche names
+ * come from the engine (lbo_engine/capital_structure.py); `trancheName`
+ * translates the ones the catalogue knows and passes anything else through.
+ */
+export function debtSeries(
+  result: DealRun,
+  years: string[],
+  labels: { close: string; chart: string; trancheName: (name: string) => string },
+): Parameters<typeof StackedBars>[0] {
   const tranches = Object.entries(result.tranches);
-  const years = tranches[0]?.[1].length ?? 0;
   return {
-    categories: ["Close", ...yearLabels(years, fiscal)],
+    categories: [labels.close, ...years],
     series: tranches.map(([name, rows], i) => ({
-      name,
+      name: labels.trancheName(name),
       color: TRANCHE_COLORS[i % TRANCHE_COLORS.length],
       values: [rows[0]?.beginning_balance ?? 0, ...rows.map((r) => r.ending_balance ?? 0)],
     })),
-    label: "Debt balance by tranche",
+    label: labels.chart,
   };
+}
+
+/** How many year columns the debt schedule has. */
+export function debtYears(result: DealRun): number {
+  return Object.values(result.tranches)[0]?.length ?? 0;
 }
 
 /** Numeric array from the loosely typed debt_schedule totals. */

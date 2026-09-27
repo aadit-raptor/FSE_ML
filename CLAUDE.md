@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-24 (PLAN.md 2.3a: locale formats and fiscal years). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-27 (PLAN.md 2.3b: interface text in translation files, right to left). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -202,7 +202,7 @@ money so its size stays the same. **No hardcoded "$"**:
 its line with `currency-ok`). The example backtest deals and SEC EDGAR data
 are US dollar millions and say so.
 
-Locale (PLAN.md 2.3a; 2.3b, the translation files, is next): figures and
+Locale, part one (PLAN.md 2.3a): figures and
 dates follow the **account's locale and digit grouping** (`users.digit_grouping`:
 `locale`, `thousands` or `lakh`, migration 0007). `web/src/lib/locale.ts` is
 **the one place that turns numbers into text**; `lib/format.ts` (`fmtMoney`,
@@ -229,6 +229,45 @@ that doesn't use them; API answers always carry them. Excel: a sheet sends
 `multiple`, `integer`, `number`, `text`); standard formats show with the
 reader's own separators, and the lakh choice gets a pattern sized to each
 cell (Excel's conditional formats would drop the minus sign).
+
+Interface text (PLAN.md 2.3b): **every word on screen lives in
+`web/messages/<language>.json`** and reaches it through **next-intl 4**
+(`useTranslations`). `en.json` is the only catalogue (1,087 keys); PLAN.md 7.8
+adds languages by adding files. The language and the **text direction** come
+from the account's locale, the same answer as the number format, and never
+from the URL, so `src/proxy.ts` and its CSP are untouched:
+`lib/i18n/config.ts` maps a locale to a catalogue and to `ltr`/`rtl`, and
+`components/shell/I18nScope.tsx` mounts the provider and sets `<html lang>`
+and `<html dir>` during render. A locale with no catalogue keeps its own
+numbers, dates and direction and falls back to English words.
+**Right to left works by itself**: the screens use logical CSS
+(`border-s`/`-e`, `ps`/`pe`, `ms`/`me`, `text-start`/`-end`), and
+`globals.css` makes every figure its own `direction: ltr; unicode-bidi:
+isolate` island, so "-38.6" keeps its sign in front. Modules that aren't
+components hold **keys, not words**: `lib/nav.ts` (`labelKey`/`summaryKey`),
+`lib/deal/fields.ts` and `SettingsSteps` (the field's own key doubles as the
+message key), `lib/forecast.ts`, `MONEY_UNITS`, `DIGIT_GROUPINGS`,
+`lib/fields.ts` (a `FieldProblem`, not a sentence), `lib/jobs.ts` (a
+`JobStage`, plus a `JobMessages` the caller passes in). Two module values are
+set during render beside the number style, so the plain formatters stay plain:
+`setMissingText` (what stands in for a figure the model didn't produce) and
+`setDownloadFailedMessage`. **Labels the API sends** -- tranche names, equity
+bridge steps, Monte Carlo drivers -- are engine output and stay as they are
+(model logic); `lib/i18n/useEngineText.ts` turns each into a key and shows the
+API's own word when the catalogue has none. Page `metadata` is English,
+because it is produced before anyone is known to be signed in
+(`lib/i18n/titles.ts`); `DocumentTitle` rewrites the tab in the account's
+language once the route settles. Three CI checks:
+`tests/test_no_hardcoded_text.py` fails on a JSX text node or a
+`title`/`label`/`aria-label`-style value holding a word of three letters or
+more (a real exception ends its line with `text-ok`);
+`tests/test_translations.py` fails when a key a component asks for is
+missing, when a message nothing asks for is left behind, when a language file
+doesn't match English's keys and placeholders, or when the engine produces a
+label the catalogue can't translate. A key built at run time is declared in a
+comment, `i18n-keys: nav.*` (one `i18n-keys:` per line). `e2e/text.spec.ts`
+reads the expected words out of `en.json` and checks the mirrored layout with
+an Arabic account.
 
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
@@ -263,9 +302,10 @@ below); 1.1 is done (staging, rollback drill in DEPLOY.md); 1.2 is done (monitor
 sign-in, below); 1.5 is done (saved deals, below); 1.6 is done (usage limits, below); 1.7 is done (security, below); 1.8 is done (backups, below); 1.9 is done (background and scheduled jobs, below); 2.2 is done (currency and money units, below). Added 2026-09-24: the
 development cycle in **docs/WORKFLOW.md** (ECC merged with these rules), and
 tasks 0.2 (own domain, when the user has bought one), 0.3 (cycle gates in CI)
-and 11.4 (owner's handbook). 0.3 is done (CI gates, below). 2.3 is split: **2.3a is done** (locale
-formats and fiscal years, below); **next is 2.3b** (interface text in
-translation files; 0.2 jumps the queue once the domain is bought). End every task session with the handoff described in PLAN.md: tell the
+and 11.4 (owner's handbook). 0.3 is done (CI gates, below). 2.3 is done: **2.3a** (locale
+formats and fiscal years) and **2.3b** (interface text in translation files,
+right to left), both below. **Next is 2.4** (global debt structures and
+interest rates); 0.2 jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -414,12 +454,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/observability.py`, `web/src/lib/monitoring.ts` | Request IDs, JSON logs, model-run timings, Sentry (with privacy scrubbing) |
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `web/src/lib/locale.ts`, `web/src/lib/format.ts`, `web/src/lib/fiscal.ts`, `web/src/components/ui/FiscalSelects.tsx` | Locale (PLAN.md 2.3a): number, date and input formats from the account's locale and grouping; fiscal year labels and their controls |
+| `web/messages/en.json`, `web/src/lib/i18n/`, `web/src/components/shell/I18nScope.tsx`, `web/src/components/shell/DocumentTitle.tsx` | Interface text (PLAN.md 2.3b): the catalogue; which language and direction a locale gets, the message loader, the page titles, and the hooks for fiscal labels, field text, engine labels and the honest labels |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (456 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (553 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -586,7 +627,14 @@ Skills load when a session starts: install first, then open a new session.
 - **Drive C: on the original machine is nearly full.** It hit 0 bytes during
   step 4 (npm cache, `.next`, an old scratch venv were cleared, leaving ~1 GB).
   Check `Get-PSDrive C` before builds; "No space left on device" / npm
-  `nospc` errors mean this, not a code problem.
+  `nospc` errors mean this, not a code problem. **At exactly 0 bytes Claude
+  can't run any command at all**: the desktop app writes each command's output
+  to `%LOCALAPPDATA%\Temp\claude\...`, so every Bash and PowerShell call fails
+  with `ENOSPC` before it starts, and the sandbox refuses
+  `Remove-Item` on `%LOCALAPPDATA%\npm-cache`. Only the Read, Write, Edit,
+  Grep and Glob tools still work (the repo is on D:). The user has to free the
+  space; `%LOCALAPPDATA%\Temp\claude` holds the old sessions' working files and
+  is the usual culprit. It happened again on 2026-09-27, during PLAN.md 2.3b.
 - Playwright: open the app at `localhost`, not `127.0.0.1` (Next's dev server
   blocks its client scripts for other hosts; the page never hydrates). Next.js
   renders a hidden `role="alert"` route announcer, so scope alert locators to
@@ -673,6 +721,28 @@ Skills load when a session starts: install first, then open a new session.
   check) must not touch the database, or Neon never scales to zero.
 - API in Render Oregon, database in Neon Ohio: ~50–70 ms a round trip. Batch
   queries per request.
+- A provider that reads the translations itself must sit **below**
+  `I18nScope`, not above it. `ProfileProvider` reports "the account service is
+  unreachable", so it needs words before the account can say which language:
+  `AppShell` wraps it in an outer scope on the browser's language and
+  `ProfileI18nScope` overrides that once the profile arrives. Get it the wrong
+  way round and every screen dies in `global-error` with next-intl's "context
+  from `NextIntlClientProvider` was not found" -- which the browser tests
+  catch, but only `next dev` names the component.
+- One `useTranslations` name per namespace per file. `tests/test_translations.py`
+  reads `const x = useTranslations("ns")` and the `x("key")` calls that follow,
+  so two `const t =` in one file for two namespaces makes it check the wrong
+  catalogue (it reported keys as missing until `DealScreen.tsx` and
+  `AppShell.tsx` used `fields` and `app` for their second scope).
+- In a right-to-left locale `Intl` wraps a per-cent sign and a leading sign in
+  **left-to-right marks**: an `ar-EG` account's 21.2% is "21.2", U+200E, "%",
+  U+200E. They are invisible, and they are exactly what keeps the sign in front
+  of the number, so a test that compares a figure exactly has to strip U+200E
+  and U+200F first (`e2e/text.spec.ts`'s `plain()`).
+- An ICU argument that is a **number** is formatted with the account's digit
+  grouping, so a year would read "FY2,025". Pass years, indexes and ids as
+  `String(...)`; pass a real quantity as a number (a plural's `{count}`, a
+  duration in milliseconds) where grouping is what you want.
 - Writing a file through a Bash heredoc can eat backslashes (the `\\.` in
   `proxy.ts`'s matcher became `\.`, so the proxy matched no page and the CSP
   silently vanished). Use the Write/Edit tools for source with backslashes,

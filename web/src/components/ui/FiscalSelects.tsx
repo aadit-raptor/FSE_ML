@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { type Fiscal, MONTHS, yearEndNote } from "@/lib/fiscal";
+import { type Fiscal, MONTHS } from "@/lib/fiscal";
+import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { monthName } from "@/lib/locale";
 
 const CONTROL =
@@ -37,15 +39,17 @@ export function FiscalSelects({
   of: string;
   yearLabel: string;
 }) {
+  const t = useTranslations("fiscal");
+  const labels = useFiscalLabels();
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (fiscal.year === null ? "" : String(fiscal.year));
   const invalid = Number.isNaN(parseYear(shown));
   return (
     <>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">Year ends in</span>
+        <span className="type-input-label">{t("yearEndsIn")}</span>
         <select
-          aria-label={`${of} fiscal year end`}
+          aria-label={t("endOf", { of })}
           value={fiscal.endMonth}
           onChange={(e) => onChange({ ...fiscal, endMonth: Number(e.target.value) })}
           className={`${CONTROL} border-line`}
@@ -60,11 +64,11 @@ export function FiscalSelects({
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
         <span className="type-input-label">{yearLabel}</span>
         <input
-          aria-label={`${of} ${yearLabel.toLowerCase()}`}
+          aria-label={t("yearOf", { of, label: yearLabel.toLowerCase() })}
           aria-invalid={invalid}
           inputMode="numeric"
           autoComplete="off"
-          placeholder="none"
+          placeholder={t("none")}
           value={shown}
           onChange={(e) => {
             setDraft(e.target.value);
@@ -76,7 +80,7 @@ export function FiscalSelects({
         />
       </label>
       <p className="font-mono text-[9.5px] text-muted">
-        {invalid ? `A year from ${MIN_YEAR} to ${MAX_YEAR}, named by when it ends` : yearEndNote(fiscal.endMonth)}
+        {invalid ? t("yearRange", { min: String(MIN_YEAR), max: String(MAX_YEAR) }) : labels.note(fiscal.endMonth)}
       </p>
     </>
   );

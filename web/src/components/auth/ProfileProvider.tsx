@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { api } from "@/lib/api/client";
@@ -36,17 +37,31 @@ export function useProfile(): ProfileContext {
   return ctx;
 }
 
-function describe(error: unknown): string {
+/** Wording for the refusals this provider reports, in the account's language (PLAN.md 2.3b). */
+type ProfileMessages = { rejected: (field: string, reason: string) => string; profileField: string; rejectedFallback: string; saveFailed: string };
+
+function describe(error: unknown, m: ProfileMessages): string {
   const detail = (error as { detail?: unknown } | undefined)?.detail;
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail) && detail.length) {
     const first = detail[0] as { loc?: (string | number)[]; msg?: string };
-    return `${String(first.loc?.at(-1) ?? "profile")}: ${first.msg ?? "rejected"}`;
+    return m.rejected(String(first.loc?.at(-1) ?? m.profileField), first.msg ?? m.rejectedFallback);
   }
-  return "The account couldn't be saved.";
+  return m.saveFailed;
 }
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("account");
+  const messages = useMemo<ProfileMessages>(
+    () => ({
+      rejected: (field, reason) => t("rejected", { field, reason }),
+      profileField: t("profileField"),
+      rejectedFallback: t("rejectedFallback"),
+      saveFailed: t("saveFailed"),
+    }),
+    [t],
+  );
+  const unreachable = t("unreachable");
   const [subject, setSubject] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -63,15 +78,15 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           setProfile((data.profile as Profile | null) ?? null);
           setError(undefined);
         } else if (err) {
-          setError(describe(err));
+          setError(describe(err, messages));
         }
       })
-      .catch(() => !cancelled && setError("The account service is unreachable."))
+      .catch(() => !cancelled && setError(unreachable))
       .finally(() => !cancelled && setLoaded(true));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [messages, unreachable]);
 
   const save = useCallback(async (next: Profile) => {
     const { data, error: err } = await api.POST("/api/account", { body: next });
@@ -81,10 +96,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       setError(undefined);
       return { ok: true };
     }
-    const message = describe(err);
+    const message = describe(err, messages);
     setError(message);
     return { ok: false, error: message };
-  }, []);
+  }, [messages]);
 
   const value = useMemo<ProfileContext>(
     () => ({ subject, profile, loaded, needsProfile: loaded && !profile && !error, save, error }),

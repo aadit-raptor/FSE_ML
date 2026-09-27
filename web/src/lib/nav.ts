@@ -1,165 +1,79 @@
 /**
  * Every mode and step in the app. The shell's tabs, step row, command search
  * and keyboard shortcuts, and the generated routes, all read from this list.
+ *
+ * The words live in the translation files (PLAN.md 2.3b): each entry carries
+ * the key of its label and of the line search matches on, under the `nav`
+ * namespace of `web/messages/<language>.json`.
+ *
+ * i18n-keys: nav.*
  */
 
 export type Step = {
   slug: string;
-  label: string;
-  /** One line on what the step shows (used by search). */
-  summary: string;
+  labelKey: string;
+  /** Key of the one line on what the step shows (used by search). */
+  summaryKey: string;
 };
 
 export type Mode = {
   slug: string;
-  label: string;
+  labelKey: string;
   steps: Step[];
 };
 
 export const MODES: Mode[] = [
   {
     slug: "deal",
-    label: "Deal",
+    labelKey: "modeDeal",
     steps: [
-      {
-        slug: "inputs",
-        label: "Deal inputs",
-        summary: "Entry and exit multiples, operations and capital structure, with sources and uses.",
-      },
-      {
-        slug: "debt",
-        label: "Debt & cash flow",
-        summary: "Tranche schedule, cash sweep, working capital and minimum cash.",
-      },
-      {
-        slug: "returns",
-        label: "Returns",
-        summary: "IRR, MOIC, equity bridge, exit sensitivity and debt paydown.",
-      },
-      {
-        slug: "summary",
-        label: "Summary",
-        summary: "P&L, cash flow, debt schedule and balance sheet for the whole hold.",
-      },
-      {
-        slug: "saved",
-        label: "Saved deals",
-        summary: "Save, open, rename, duplicate, archive and delete deals, with version history and restore.",
-      },
+      { slug: "inputs", labelKey: "dealInputs", summaryKey: "dealInputsSummary" },
+      { slug: "debt", labelKey: "dealDebt", summaryKey: "dealDebtSummary" },
+      { slug: "returns", labelKey: "dealReturns", summaryKey: "dealReturnsSummary" },
+      { slug: "summary", labelKey: "dealSummary", summaryKey: "dealSummarySummary" },
+      { slug: "saved", labelKey: "dealSaved", summaryKey: "dealSavedSummary" },
     ],
   },
   {
     slug: "monte-carlo",
-    label: "Monte Carlo",
+    labelKey: "modeMonteCarlo",
     steps: [
-      {
-        slug: "distribution",
-        label: "Distribution",
-        summary: "IRR and MOIC distributions, percentiles, and the chance of clearing the hurdle.",
-      },
-      {
-        slug: "scenarios",
-        label: "Scenarios",
-        summary: "Recession, stagflation, base and bull cases side by side.",
-      },
-      {
-        slug: "drivers",
-        label: "Drivers",
-        summary: "Which inputs move IRR most, and the correlations between them.",
-      },
-      {
-        slug: "heatmap",
-        label: "Heatmap",
-        summary: "IRR across growth and exit multiple.",
-      },
-      {
-        slug: "live",
-        label: "Live",
-        summary: "Instant IRR estimates from a neural network trained on simulations of one fixed deal, as you drag the assumptions.",
-      },
+      { slug: "distribution", labelKey: "mcDistribution", summaryKey: "mcDistributionSummary" },
+      { slug: "scenarios", labelKey: "mcScenarios", summaryKey: "mcScenariosSummary" },
+      { slug: "drivers", labelKey: "mcDrivers", summaryKey: "mcDriversSummary" },
+      { slug: "heatmap", labelKey: "mcHeatmap", summaryKey: "mcHeatmapSummary" },
+      { slug: "live", labelKey: "mcLive", summaryKey: "mcLiveSummary" },
     ],
   },
   {
     slug: "backtest",
-    label: "Backtest",
+    labelKey: "modeBacktest",
     steps: [
-      {
-        slug: "predicted",
-        label: "Predicted vs actual",
-        summary: "The model run on a real deal's entry assumptions, against what happened.",
-      },
-      {
-        slug: "attribution",
-        label: "Error attribution",
-        summary: "Where the prediction missed: growth, margin, cash conversion and paydown.",
-      },
-      {
-        slug: "years",
-        label: "Year by year",
-        summary: "Predicted and actual EBITDA, revenue, free cash flow and debt per year.",
-      },
+      { slug: "predicted", labelKey: "backtestPredicted", summaryKey: "backtestPredictedSummary" },
+      { slug: "attribution", labelKey: "backtestAttribution", summaryKey: "backtestAttributionSummary" },
+      { slug: "years", labelKey: "backtestYears", summaryKey: "backtestYearsSummary" },
     ],
   },
   {
     slug: "forecast",
-    label: "Forecast",
+    labelKey: "modeForecast",
     steps: [
-      {
-        slug: "historicals",
-        label: "Historicals",
-        summary: "Three years of statements, entered by hand or autofilled from SEC EDGAR.",
-      },
-      {
-        slug: "assumptions",
-        label: "Assumptions",
-        summary: "Growth, margins and working capital for each forecast year.",
-      },
-      {
-        slug: "statements",
-        label: "Statements",
-        summary: "Income statement, balance sheet and cash flow, with the balance check.",
-      },
-      {
-        slug: "schedules",
-        label: "Schedules",
-        summary: "PP&E, retained earnings, working capital, interest and revolver schedules, and the EBITDA to net income bridge.",
-      },
-      {
-        slug: "simulation",
-        label: "Simulation",
-        summary: "Revenue and EBITDA fans, and the chance of reaching each target.",
-      },
+      { slug: "historicals", labelKey: "forecastHistoricals", summaryKey: "forecastHistoricalsSummary" },
+      { slug: "assumptions", labelKey: "forecastAssumptions", summaryKey: "forecastAssumptionsSummary" },
+      { slug: "statements", labelKey: "forecastStatements", summaryKey: "forecastStatementsSummary" },
+      { slug: "schedules", labelKey: "forecastSchedules", summaryKey: "forecastSchedulesSummary" },
+      { slug: "simulation", labelKey: "forecastSimulation", summaryKey: "forecastSimulationSummary" },
     ],
   },
   {
     slug: "settings",
-    label: "Settings",
+    labelKey: "modeSettings",
     steps: [
-      {
-        slug: "deal",
-        label: "Deal defaults",
-        summary: "Starting values for every deal input.",
-      },
-      {
-        slug: "fees",
-        label: "Fees",
-        summary: "Transaction and financing fees, and other uses of funds.",
-      },
-      {
-        slug: "monte-carlo",
-        label: "Monte Carlo",
-        summary: "Simulation defaults and hurdle rate.",
-      },
-      {
-        slug: "correlations",
-        label: "Correlations",
-        summary: "The driver correlation matrix, checked for validity as you edit.",
-      },
-      {
-        slug: "presets",
-        label: "Scenario presets",
-        summary: "Multipliers behind the bull, recession and stagflation cases.",
-      },
+      { slug: "deal", labelKey: "settingsDeal", summaryKey: "settingsDealSummary" },
+      { slug: "fees", labelKey: "settingsFees", summaryKey: "settingsFeesSummary" },
+      { slug: "monte-carlo", labelKey: "settingsMonteCarlo", summaryKey: "settingsMonteCarloSummary" },
+      { slug: "correlations", labelKey: "settingsCorrelations", summaryKey: "settingsCorrelationsSummary" },
+      { slug: "presets", labelKey: "settingsPresets", summaryKey: "settingsPresetsSummary" },
     ],
   },
 ];

@@ -10,8 +10,8 @@
  * server before the session is known, so server and browser can't disagree.
  *
  * Figures always use Latin digits so the monospaced columns line up and
- * typed numbers parse the same way everywhere; native digits are part of
- * the translation work (PLAN.md 2.3b, 7.8).
+ * typed numbers parse the same way everywhere; native digits stay out of
+ * the translation work as well (PLAN.md 2.3b keeps them Latin; 7.8 may revisit).
  */
 
 export type DigitGrouping = "locale" | "thousands" | "lakh";
@@ -23,10 +23,11 @@ export const DEFAULT_STYLE: NumberStyle = { locale: "en-US", grouping: "locale" 
 /** Formats the account screen suggests besides the browser's own languages; any BCP 47 tag works. */
 export const LOCALE_SUGGESTIONS = ["en-GB", "en-US", "en-IN", "de-DE", "fr-FR", "pt-BR", "ja-JP", "hi-IN"];
 
-export const DIGIT_GROUPINGS: { value: DigitGrouping; label: string }[] = [
-  { value: "locale", label: "As the format does" },
-  { value: "thousands", label: "Thousands" },
-  { value: "lakh", label: "Lakh and crore" },
+/** `labelKey` names the choice in the `locale` namespace (PLAN.md 2.3b). i18n-keys: locale.* */
+export const DIGIT_GROUPINGS: { value: DigitGrouping; labelKey: string }[] = [
+  { value: "locale", labelKey: "groupingLocale" },
+  { value: "thousands", labelKey: "groupingThousands" },
+  { value: "lakh", labelKey: "groupingLakh" },
 ];
 
 let current: NumberStyle = DEFAULT_STYLE;

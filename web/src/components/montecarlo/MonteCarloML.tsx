@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { useDeal } from "@/components/deal/DealProvider";
@@ -18,26 +19,17 @@ import { MonteCarloScreen } from "./MonteCarloScreen";
 type Sliders = Schemas["SurrogateSliders"];
 type Prediction = Schemas["SurrogateResponse"];
 
-/** Bounds mirror SurrogateSliders in api/schemas.py (the surrogate's training range). */
-const SLIDERS: { key: keyof Sliders; label: string; min: number; max: number; step: number; unit: string }[] = [
-  { key: "growth_mean", label: "Revenue growth mean", min: -5, max: 20, step: 0.1, unit: "%" },
-  { key: "exit_mean", label: "Exit multiple mean", min: 4, max: 20, step: 0.1, unit: "x" },
-  { key: "interest_mean", label: "Interest rate mean", min: 1, max: 15, step: 0.1, unit: "%" },
-  { key: "gross_margin_mean", label: "Gross margin mean", min: 10, max: 80, step: 0.5, unit: "%" },
-  { key: "debt_pct", label: "Debt / EV", min: 20, max: 90, step: 1, unit: "%" },
-  { key: "exit_std", label: "Exit multiple std dev", min: 0.3, max: 5, step: 0.1, unit: "x" },
+/** Bounds mirror SurrogateSliders in api/schemas.py (the surrogate's training range). i18n-keys: montecarlo.slider* */
+const SLIDERS: { key: keyof Sliders; labelKey: string; min: number; max: number; step: number; unit: string }[] = [
+  { key: "growth_mean", labelKey: "sliderGrowthMean", min: -5, max: 20, step: 0.1, unit: "%" },
+  { key: "exit_mean", labelKey: "sliderExitMean", min: 4, max: 20, step: 0.1, unit: "x" },
+  { key: "interest_mean", labelKey: "sliderInterestMean", min: 1, max: 15, step: 0.1, unit: "%" },
+  { key: "gross_margin_mean", labelKey: "sliderGrossMarginMean", min: 10, max: 80, step: 0.5, unit: "%" },
+  { key: "debt_pct", labelKey: "sliderDebtPct", min: 20, max: 90, step: 1, unit: "%" },
+  { key: "exit_std", labelKey: "sliderExitStd", min: 0.3, max: 5, step: 0.1, unit: "x" },
 ];
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-
-/** A training-deal term in its unit (rates arrive as fractions; "money" is the deal's currency and unit). */
-function fmtTerm(v: number, unit: string, decimals: number, moneyLabel: string): string {
-  if (unit === "percent") return fmtRate(v, decimals);
-  if (unit === "multiple") return fmtMultiple(v, decimals);
-  if (unit === "years") return `${fmtNumber(v, decimals)} yr`;
-  if (unit === "money") return `${fmtNumber(v, decimals)} ${moneyLabel}`;
-  return fmtNumber(v, decimals);
-}
 
 export function LiveStep() {
   return (
@@ -53,6 +45,17 @@ function Live() {
   const { inputs: deal } = useDeal();
   const { label: mu } = useMoney();
   const { overrides } = useSettings();
+  const t = useTranslations("montecarlo");
+  const e = useTranslations("errors");
+  const units = useTranslations("units");
+  /** A training-deal term in its unit (rates arrive as fractions; "money" is the deal's currency and unit). */
+  const term = (v: number, unit: string, decimals: number): string => {
+    if (unit === "percent") return fmtRate(v, decimals);
+    if (unit === "multiple") return fmtMultiple(v, decimals);
+    if (unit === "years") return units("years", { value: fmtNumber(v, decimals) });
+    if (unit === "money") return `${fmtNumber(v, decimals)} ${mu}`;
+    return fmtNumber(v, decimals);
+  };
   const initial = (): Sliders => ({
     growth_mean: clamp(sim.growth_mean, -5, 20),
     exit_mean: clamp(sim.exit_mean, 4, 20),
@@ -65,6 +68,8 @@ function Live() {
   const [pred, setPred] = useState<Prediction | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string>();
+  const unavailable = t("liveUnavailableShort");
+  const unreachable = e("apiUnreachable");
 
   useEffect(() => {
     if (!caps?.surrogate) return;
@@ -81,13 +86,13 @@ function Live() {
             setPred(data);
             setStatus("idle");
           } else {
-            setError(String((err as { detail?: unknown })?.detail ?? "Live mode is unavailable"));
+            setError(String((err as { detail?: unknown })?.detail ?? unavailable));
             setStatus("error");
           }
         })
-        .catch((e) => {
-          if ((e as Error)?.name !== "AbortError") {
-            setError("Can't reach the API.");
+        .catch((err) => {
+          if ((err as Error)?.name !== "AbortError") {
+            setError(unreachable);
             setStatus("error");
           }
         });
@@ -96,13 +101,13 @@ function Live() {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [caps?.surrogate, sliders, sim, deal, overrides]);
+  }, [caps?.surrogate, sliders, sim, deal, overrides, unavailable, unreachable]);
 
   if (!caps) return null;
   if (!caps.surrogate) {
     return (
-      <EmptyState title="Live mode isn't available on this server">
-        It needs the optional ML layer (<code>pip install -r requirements-ml.txt</code>) and the committed surrogate model files. Monte Carlo itself works without it.
+      <EmptyState title={t("liveUnavailable")}>
+        {t.rich("liveUnavailableBody", { code: (chunks) => <code>{chunks}</code> })}
       </EmptyState>
     );
   }
@@ -111,48 +116,54 @@ function Live() {
   return (
     <Tiles>
       {pred && (
-        <Notice title="Trained on one fixed deal" role="note" className="col-span-12">
-          <span data-provenance="live">
-            {pred.training_deal.map((d) => `${d.term} ${fmtTerm(d.model_value, d.unit, d.decimals, mu)}`).join(" · ")}
-          </span>
-          . Estimates are exact only for a deal with these terms.
+        <Notice title={t("liveTrainedTitle")} role="note" className="col-span-12">
+          <span data-provenance="live">{pred.training_deal.map((d) => `${d.term} ${term(d.model_value, d.unit, d.decimals)}`).join(" · ")}</span>
+          {t("liveTrainedAfter")}
         </Notice>
       )}
       {pred && pred.term_differences.length > 0 && (
-        <Notice title="Directional only" role="note" className="col-span-12">
-          The surrogate learned a fixed deal and this one differs in{" "}
-          {pred.term_differences.map((d) => `${d.term} (${fmtNumber(d.value, d.decimals + (d.unit === "percent" ? 2 : 0))} vs ${fmtNumber(d.model_value, d.decimals + (d.unit === "percent" ? 2 : 0))})`).join(", ")}.
-          Use Run Monte Carlo for exact results.
+        <Notice title={t("liveDirectionalTitle")} role="note" className="col-span-12">
+          {t("liveDirectionalBody", {
+            differences: pred.term_differences
+              .map((d) =>
+                t("liveDifference", {
+                  term: d.term,
+                  value: fmtNumber(d.value, d.decimals + (d.unit === "percent" ? 2 : 0)),
+                  modelValue: fmtNumber(d.model_value, d.decimals + (d.unit === "percent" ? 2 : 0)),
+                }),
+              )
+              .join(", "),
+          })}
         </Notice>
       )}
       {pred?.tail_unreliable && (
-        <Notice title="Downside tail unreliable" role="note" className="col-span-12">
-          With this much wipeout risk the 5th percentile sits near the -100% floor, where the surrogate isn&apos;t reliable. Run the simulation for the downside.
+        <Notice title={t("liveTailTitle")} role="note" className="col-span-12">
+          {t("liveTailBody")}
         </Notice>
       )}
-      <Kpi title="Median IRR" value={fmtRate(p?.irr_p50)} sub={status === "loading" ? "updating" : "surrogate estimate"} lead />
-      <Kpi title="Mean IRR" value={fmtRate(p?.irr_mean)} sub={`std ${fmtRate(p?.irr_std)}`} />
-      <Kpi title="P5" value={pred?.tail_unreliable ? "n/a" : fmtRate(p?.irr_p5)} sub="1 in 20 below" />
-      <Kpi title="P95" value={fmtRate(p?.irr_p95)} sub="1 in 20 above" />
-      <Kpi title="P(IRR > 20%)" value={fmtRate(p?.p_above_20)} sub="as trained" />
-      <Kpi title="Wipeout" value={fmtRate(p?.p_wipeout)} sub="share of paths" tone={(p?.p_wipeout ?? 0) > 0.05 ? "loss" : undefined} />
+      <Kpi title={t("kpiMedianIrr")} value={fmtRate(p?.irr_p50)} sub={status === "loading" ? t("updating") : t("surrogateEstimate")} lead />
+      <Kpi title={t("kpiMeanIrr")} value={fmtRate(p?.irr_mean)} sub={t("stdSub", { std: fmtRate(p?.irr_std) })} />
+      <Kpi title={t("kpiP5")} value={pred?.tail_unreliable ? fmtRate(null) : fmtRate(p?.irr_p5)} sub={t("oneInTwentyBelow")} />
+      <Kpi title={t("kpiP95")} value={fmtRate(p?.irr_p95)} sub={t("oneInTwentyAbove")} />
+      <Kpi title={t("kpiAbove20")} value={fmtRate(p?.p_above_20)} sub={t("asTrained")} />
+      <Kpi title={t("kpiWipeout")} value={fmtRate(p?.p_wipeout)} sub={t("shareOfPaths")} tone={(p?.p_wipeout ?? 0) > 0.05 ? "loss" : undefined} />
 
-      <Tile span={5} title="Assumptions" aside={<SecondaryButton onClick={() => setSliders(initial())}>Reset to rail</SecondaryButton>}>
+      <Tile span={5} title={t("tileAssumptions")} aside={<SecondaryButton onClick={() => setSliders(initial())}>{t("resetToRail")}</SecondaryButton>}>
         <div className="grid gap-3">
           {SLIDERS.map((s) => (
             <label key={s.key} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1">
-              <span className="type-input-label">{s.label}</span>
+              <span className="type-input-label">{t(s.labelKey)}</span>
               <span className="font-mono text-[11.5px] text-ink">
                 {fmtNumber(sliders[s.key], s.step < 1 ? 1 : 0)} {s.unit}
               </span>
               <input
                 type="range"
-                aria-label={s.label}
+                aria-label={t(s.labelKey)}
                 min={s.min}
                 max={s.max}
                 step={s.step}
                 value={sliders[s.key]}
-                onChange={(e) => setSliders((v) => ({ ...v, [s.key]: Number(e.target.value) }))}
+                onChange={(ev) => setSliders((v) => ({ ...v, [s.key]: Number(ev.target.value) }))}
                 className="col-span-2 accent-[var(--color-accent)]"
               />
             </label>
@@ -160,13 +171,11 @@ function Live() {
         </div>
         {status === "error" && <p className="font-mono text-[10.5px] text-loss">{error}</p>}
       </Tile>
-      <Tile span={7} title="Estimated IRR range" unit="P5-P95, P25-P75, median">
+      <Tile span={7} title={t("tileEstimatedRange")} unit={t("estimatedRangeUnit")}>
         {p && <RangeBand p={p} hurdle={hurdle} />}
-        <p className="type-body text-[9px]">
-          A neural network trained on the simulation answers in milliseconds as you drag. The first answer can take a few seconds while the model loads.
-        </p>
+        <p className="type-body text-[9px]">{t("surrogateNote")}</p>
         <div>
-          <PrimaryButton onClick={runNow}>Run Monte Carlo</PrimaryButton>
+          <PrimaryButton onClick={runNow}>{t("runNow")}</PrimaryButton>
         </div>
       </Tile>
     </Tiles>
@@ -174,6 +183,7 @@ function Live() {
 }
 
 function RangeBand({ p, hurdle }: { p: Record<string, number | null>; hurdle: number }) {
+  const t = useTranslations("montecarlo");
   const W = 620;
   const H = 110;
   const lo = -0.3;
@@ -182,12 +192,12 @@ function RangeBand({ p, hurdle }: { p: Record<string, number | null>; hurdle: nu
   const v = (k: string) => p[k] ?? 0;
   const ticks = [-0.2, 0, 0.2, 0.4, 0.6, 0.8];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Estimated IRR range" className="block h-auto w-full">
-      {ticks.map((t) => (
-        <g key={t}>
-          <line x1={x(t)} x2={x(t)} y1={18} y2={80} stroke="var(--color-grid)" />
-          <text x={x(t)} y={98} textAnchor="middle" className="chart-tick">
-            {fmtRate(t, 0)}
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("chartEstimatedRange")} className="block h-auto w-full">
+      {ticks.map((tick) => (
+        <g key={tick}>
+          <line x1={x(tick)} x2={x(tick)} y1={18} y2={80} stroke="var(--color-grid)" />
+          <text x={x(tick)} y={98} textAnchor="middle" className="chart-tick">
+            {fmtRate(tick, 0)}
           </text>
         </g>
       ))}
@@ -196,7 +206,7 @@ function RangeBand({ p, hurdle }: { p: Record<string, number | null>; hurdle: nu
       <line x1={x(v("irr_p50"))} x2={x(v("irr_p50"))} y1={28} y2={70} stroke="var(--color-accent)" strokeWidth={3} />
       <line x1={x(hurdle)} x2={x(hurdle)} y1={16} y2={80} stroke="var(--color-attention)" strokeDasharray="3 3" />
       <text x={x(hurdle) + 5} y={14} className="chart-reference" style={{ fill: "var(--color-attention)" }}>
-        Hurdle {fmtRate(hurdle, 0)}
+        {t("markerHurdle", { value: fmtRate(hurdle, 0) })}
       </text>
     </svg>
   );
@@ -208,22 +218,22 @@ type Regime = { regime: Scenario; confidence: number; data_as_of: string; label_
 export function MacroRegime() {
   const caps = useCapabilities();
   const { setScenario } = useMonteCarlo();
+  const t = useTranslations("montecarlo");
   const [regime, setRegime] = useState<Regime | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string>();
   if (!caps?.macro_regime_installed) return null;
   if (!caps.macro_regime_trained) {
     return (
-      <Tile span={12} title="Macro regime" unit="FRED">
-        <p className="type-body">
-          Installed but not trained. Set <code>FRED_API_KEY</code> on the API server and run <code>python -m ml.macro_regime</code> to classify the current regime here.
-        </p>
+      <Tile span={12} title={t("tileMacroRegime")} unit={t("macroSource")}>
+        <p className="type-body">{t.rich("macroUntrained", { code: (chunks) => <code>{chunks}</code> })}</p>
       </Tile>
     );
   }
-  const label = SCENARIOS.find((s) => s.id === regime?.regime)?.label;
+  const preset = SCENARIOS.find((s) => s.id === regime?.regime);
+  const label = preset ? t(preset.labelKey) : undefined;
   return (
-    <Tile span={12} title="Macro regime" unit="hidden Markov model on US FRED data; the ISM PMI series ended in 2022">
+    <Tile span={12} title={t("tileMacroRegime")} unit={t("macroUnit")}>
       <div className="flex flex-wrap items-center gap-4">
         <SecondaryButton
           disabled={state === "loading"}
@@ -234,21 +244,22 @@ export function MacroRegime() {
               setRegime(data as Regime);
               setState("idle");
             } else {
-              setError(String((err as unknown as { detail?: unknown } | undefined)?.detail ?? "Could not classify the regime"));
+              setError(String((err as unknown as { detail?: unknown } | undefined)?.detail ?? t("macroFailed")));
               setState("error");
             }
           }}
         >
-          {state === "loading" ? "Classifying" : "Detect current regime"}
+          {state === "loading" ? t("macroClassifying") : t("macroDetect")}
         </SecondaryButton>
         {regime && (
           <>
             <span className="font-mono text-[11.5px] text-ink">
-              <b className="text-bright">{label ?? regime.regime}</b> · {fmtRate(regime.confidence, 0)} confidence · data as of {regime.data_as_of}
+              <b className="text-bright">{label ?? regime.regime}</b> ·{" "}
+              {t("macroConfidence", { confidence: fmtRate(regime.confidence, 0), asOf: regime.data_as_of })}
             </span>
             <span className="font-mono text-[10.5px] text-muted">
               {Object.entries(regime.label_probabilities)
-                .map(([k, v]) => `${k} ${fmtRate(v, 0)}`)
+                .map(([k, v]) => t("macroProbability", { label: k, share: fmtRate(v, 0) }))
                 .join(" · ")}
             </span>
             {label && (
@@ -256,7 +267,7 @@ export function MacroRegime() {
                 // Marks Monte Carlo out of date; the bar above reruns it
                 onClick={() => setScenario(regime.regime)}
               >
-                Use {label} preset
+                {t("macroUsePreset", { label })}
               </SecondaryButton>
             )}
           </>

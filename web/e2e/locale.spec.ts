@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { asUser, dealSettled, field, kpi, setField, stepLink } from "./helpers";
+import { asUser, dealSettled, field, kpi, setField, signInAs, stepLink } from "./helpers";
 
 /**
  * Numbers, dates and fiscal years follow the account (PLAN.md 2.3a), in
@@ -12,26 +12,6 @@ import { asUser, dealSettled, field, kpi, setField, stepLink } from "./helpers";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const run = Date.now().toString(36);
-
-type Grouping = "locale" | "thousands" | "lakh";
-
-async function signInAs(page: Page, user: string, locale: string, grouping: Grouping = "locale") {
-  await page.goto("/sign-in");
-  await page.getByLabel("Development user").fill(user);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/(deal|account)/);
-  await page.goto("/account");
-  await page.getByLabel("Country").selectOption(locale.slice(-2));
-  await page.getByLabel("Currency").selectOption("USD");
-  await page.getByLabel("Number and date format").fill(locale);
-  await page.getByLabel("Digit grouping").selectOption(grouping);
-  await page.getByLabel("Time zone").selectOption("Europe/London");
-  const saved = page.waitForResponse((r) => r.url().endsWith("/api/account") && r.request().method() === "POST" && r.ok());
-  await page.getByRole("button", { name: /^Save/ }).click();
-  await saved;
-  // Settings live on the account: start from the defaults
-  await page.request.put("/api/account/settings", { data: { settings: {} }, headers: await asUser(page) });
-}
 
 /** The API's IRR for the default deal with this exit multiple. */
 async function irrWithExit(page: Page, exitMult: number): Promise<number> {

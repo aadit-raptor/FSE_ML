@@ -34,10 +34,16 @@ export function problem(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export async function runJob<T>(job: JobSubmit, opts: { signal: AbortSignal; onUpdate?: (job: Job) => void }): Promise<T> {
-  const { signal, onUpdate } = opts;
+/** The four refusals a run can end in, already in the account's language (PLAN.md 2.3b). */
+export type JobMessages = { startFailed: string; lostTrack: string; resultExpired: string; didntFinish: string };
+
+export async function runJob<T>(
+  job: JobSubmit,
+  opts: { signal: AbortSignal; messages: JobMessages; onUpdate?: (job: Job) => void },
+): Promise<T> {
+  const { signal, messages, onUpdate } = opts;
   const submitted = await api.POST("/api/jobs", { body: job, signal });
-  if (!submitted.data) throw new JobFailed(problem(submitted.error, "The run couldn't start with these inputs."));
+  if (!submitted.data) throw new JobFailed(problem(submitted.error, messages.startFailed));
   const id = submitted.data.id;
   onUpdate?.(submitted.data);
 
@@ -59,15 +65,15 @@ export async function runJob<T>(job: JobSubmit, opts: { signal: AbortSignal; onU
       }
       if (!res.data) {
         if (res.response.status >= 500 && ++failures <= MAX_POLL_FAILURES) continue;
-        throw new JobFailed(problem(res.error, "Lost track of the run."));
+        throw new JobFailed(problem(res.error, messages.lostTrack));
       }
       failures = 0;
       const j = res.data;
       if (j.status === "succeeded") {
-        if (!j.result) throw new JobFailed("The result has expired. Run it again.");
+        if (!j.result) throw new JobFailed(messages.resultExpired);
         return j.result as T;
       }
-      if (j.status === "failed" || j.status === "cancelled") throw new JobFailed(j.error ?? "The run didn't finish.");
+      if (j.status === "failed" || j.status === "cancelled") throw new JobFailed(j.error ?? messages.didntFinish);
       onUpdate?.(j);
     }
   } finally {
@@ -75,12 +81,19 @@ export async function runJob<T>(job: JobSubmit, opts: { signal: AbortSignal; onU
   }
 }
 
-/** A line for people: where a job is. */
-export function describeJob(job: Job | undefined): string {
-  if (!job) return "Starting";
+/**
+ * Where a job is, as a key in the `jobs` namespace plus what it needs
+ * (PLAN.md 2.3b). `stage` is the server's own line and is passed through.
+ *
+ * i18n-keys: jobs.starting, jobs.resuming, jobs.ahead, jobs.waiting, jobs.running
+ */
+export type JobStage = { key: "starting" | "resuming" | "ahead" | "waiting" | "running"; count?: number; stage?: string };
+
+export function describeJob(job: Job | undefined): JobStage {
+  if (!job) return { key: "starting" };
   if (job.status === "queued") {
-    if (job.attempts > 0) return "Resuming after a server restart";
-    return job.ahead ? `Waiting: ${job.ahead} run${job.ahead === 1 ? "" : "s"} ahead` : "Waiting to start";
+    if (job.attempts > 0) return { key: "resuming" };
+    return job.ahead ? { key: "ahead", count: job.ahead } : { key: "waiting" };
   }
-  return job.stage ?? "Running";
+  return { key: "running", stage: job.stage ?? undefined };
 }

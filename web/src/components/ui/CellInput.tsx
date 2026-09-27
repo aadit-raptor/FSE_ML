@@ -23,7 +23,7 @@ export function CellInput({ value, onCommit, label, decimals = 1 }: { value: num
         if (Number.isFinite(n)) onCommit(n);
       }}
       onBlur={() => !invalid && setDraft(null)}
-      className={`w-full min-w-[64px] border bg-field px-1.5 py-0.5 text-right font-mono text-[11px] outline-none focus:border-accent ${invalid ? "border-loss text-loss" : "border-line text-ink"}`}
+      className={`w-full min-w-[64px] border bg-field px-1.5 py-0.5 text-end font-mono text-[11px] outline-none focus:border-accent ${invalid ? "border-loss text-loss" : "border-line text-ink"}`}
     />
   );
 }

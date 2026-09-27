@@ -1,6 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -10,12 +11,8 @@ import { useWorkspace } from "./workspace";
 
 type Entry = { href: string; mode: string; step: string; summary: string };
 
-const ENTRIES: Entry[] = MODES.flatMap((m) =>
-  m.steps.map((s) => ({ href: stepHref(m.slug, s.slug), mode: m.label, step: s.label, summary: s.summary })),
-);
-
 /** Every word of the query must appear in the mode, step or summary. */
-export function searchEntries(query: string, entries: Entry[] = ENTRIES): Entry[] {
+function searchEntries(query: string, entries: Entry[]): Entry[] {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!words.length) return entries;
   return entries.filter((e) => {
@@ -24,8 +21,26 @@ export function searchEntries(query: string, entries: Entry[] = ENTRIES): Entry[
   });
 }
 
+/** Mode, step and summary in the account's language, so search matches what is on screen. */
+function useEntries(): Entry[] {
+  const nav = useTranslations("nav");
+  return useMemo(
+    () =>
+      MODES.flatMap((m) =>
+        m.steps.map((s) => ({
+          href: stepHref(m.slug, s.slug),
+          mode: nav(m.labelKey),
+          step: nav(s.labelKey),
+          summary: nav(s.summaryKey),
+        })),
+      ),
+    [nav],
+  );
+}
+
 export function CommandSearch() {
   const { searchOpen, setSearchOpen } = useWorkspace();
+  const t = useTranslations("shell");
   return (
     <Dialog.Root open={searchOpen} onOpenChange={setSearchOpen}>
       <Dialog.Portal>
@@ -34,7 +49,7 @@ export function CommandSearch() {
           aria-describedby={undefined}
           className="fixed top-[72px] left-1/2 z-50 w-[580px] max-w-[calc(100vw-32px)] -translate-x-1/2 border border-line-strong bg-[#141b1f] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.8)]"
         >
-          <Dialog.Title className="sr-only">Search screens</Dialog.Title>
+          <Dialog.Title className="sr-only">{t("searchTitle")}</Dialog.Title>
           {/* Remounted on every open, so the query starts empty */}
           <SearchBody onDone={() => setSearchOpen(false)} />
         </Dialog.Content>
@@ -45,9 +60,11 @@ export function CommandSearch() {
 
 function SearchBody({ onDone }: { onDone: () => void }) {
   const router = useRouter();
+  const t = useTranslations("shell");
+  const entries = useEntries();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
-  const results = useMemo(() => searchEntries(query), [query]);
+  const results = useMemo(() => searchEntries(query, entries), [query, entries]);
 
   const go = (entry: Entry | undefined) => {
     if (!entry) return;
@@ -76,8 +93,8 @@ function SearchBody({ onDone }: { onDone: () => void }) {
             go(results[active]);
           }
         }}
-        placeholder="Search screens"
-        aria-label="Search screens"
+        placeholder={t("searchPlaceholder")}
+        aria-label={t("searchPlaceholder")}
         role="combobox"
         aria-expanded
         aria-controls="command-results"
@@ -102,7 +119,7 @@ function SearchBody({ onDone }: { onDone: () => void }) {
             </span>
           </li>
         ))}
-        {!results.length && <li className="type-body px-4 py-3">No screens match “{query}”.</li>}
+        {!results.length && <li className="type-body px-4 py-3">{t("searchNoResults", { query })}</li>}
       </ul>
     </>
   );

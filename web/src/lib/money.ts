@@ -14,10 +14,11 @@ export type MoneyUnit = Money["unit"];
 /** What an answer's money is in when it doesn't say: the API's own default. */
 export const DEFAULT_MONEY: Money = { currency: "USD", unit: "millions" };
 
-export const MONEY_UNITS: { value: MoneyUnit; label: string; short: string; scale: number }[] = [
-  { value: "thousands", label: "Thousands", short: "k", scale: 1e3 },
-  { value: "millions", label: "Millions", short: "M", scale: 1e6 },
-  { value: "billions", label: "Billions", short: "bn", scale: 1e9 },
+/** `labelKey` names the unit in the `money` namespace (PLAN.md 2.3b). i18n-keys: money.unit* */
+export const MONEY_UNITS: { value: MoneyUnit; labelKey: string; short: string; scale: number }[] = [
+  { value: "thousands", labelKey: "unitThousands", short: "k", scale: 1e3 },
+  { value: "millions", labelKey: "unitMillions", short: "M", scale: 1e6 },
+  { value: "billions", labelKey: "unitBillions", short: "bn", scale: 1e9 },
 ];
 
 /** A FieldSpec unit meaning "the money label of whatever is on screen". */
@@ -59,10 +60,10 @@ export function currencySymbol(currency: string): string {
   return symbol;
 }
 
-/** Name of the currency for a list: "EUR · Euro". */
+/** Name of the currency for a list, in the account's language: "EUR · Euro", "EUR · Euro" in German too. */
 export function currencyName(currency: string): string {
   try {
-    const name = new Intl.DisplayNames(["en"], { type: "currency" }).of(currency);
+    const name = new Intl.DisplayNames([numberStyle().locale], { type: "currency" }).of(currency);
     return name && name !== currency ? `${currency} · ${name}` : currency;
   } catch {
     return currency;
@@ -78,11 +79,6 @@ export function moneyLabel(money: Money): string {
   const symbol = currencySymbol(money.currency);
   const short = unitShort(money.unit);
   return /\p{L}$/u.test(symbol) ? `${symbol} ${short}` : `${symbol}${short}`;
-}
-
-/** A field's unit on screen: the money label for money fields, else the unit as written. */
-export function fieldUnit(unit: string, money: Money): string {
-  return unit === MONEY ? moneyLabel(money) : unit;
 }
 
 /** Factor that turns an amount in `from` into the same amount in `to` (millions to thousands: 1,000). */

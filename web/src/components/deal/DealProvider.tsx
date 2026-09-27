@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { api, type Schemas } from "@/lib/api/client";
@@ -73,14 +74,17 @@ const Ctx = createContext<DealContext | null>(null);
 
 type ValidationError = { detail?: { loc?: (string | number)[]; msg?: string }[] };
 
-function describeError(err: unknown): string {
+/** Wording for the refusals this provider reports, in the account's language (PLAN.md 2.3b). */
+type RunMessages = { field: (name: string, reason: string) => string; inputField: string; modelFailed: string; unreachable: string };
+
+function describeError(err: unknown, m: RunMessages): string {
   const detail = (err as ValidationError | { detail?: string })?.detail;
   // A refusal such as a usage limit is one sentence
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail) && detail.length) {
-    return detail.map((d) => `${String(d.loc?.at(-1) ?? "input")}: ${d.msg}`).join("; ");
+    return detail.map((d) => m.field(String(d.loc?.at(-1) ?? m.inputField), d.msg ?? "")).join("; ");
   }
-  return "The model couldn't run with these inputs.";
+  return m.modelFailed;
 }
 
 /** A message from an API refusal, for the saved-deal screens. */
@@ -119,6 +123,16 @@ function lastDeal(): string | null {
 }
 
 export function DealProvider({ children }: { children: React.ReactNode }) {
+  const e = useTranslations("errors");
+  const messages = useMemo<RunMessages>(
+    () => ({
+      field: (field, reason) => e("detail", { field, reason }),
+      inputField: e("inputField"),
+      modelFailed: e("modelFailed"),
+      unreachable: e("apiWaking"),
+    }),
+    [e],
+  );
   const { overrides, effective, defaults, loaded: settingsLoaded, replace: replaceSettings, set: setSetting } = useSettings();
   const { profile } = useProfile();
   const [inputs, setInputs] = useState<DealInputs>(DEFAULT_INPUTS);
@@ -147,13 +161,13 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         setRun({ status: "ok", result: data, ranFor: snapshot, ranSettings: JSON.stringify(settings), ms: performance.now() - t0 });
       } else {
-        setRun((r) => ({ ...r, status: "error", error: describeError(error) }));
+        setRun((r) => ({ ...r, status: "error", error: describeError(error, messages) }));
       }
     } catch (e) {
       if (ctrl.signal.aborted || (e as Error)?.name === "AbortError") return;
-      setRun((r) => ({ ...r, status: "error", error: "Can't reach the API. If it was idle it may still be starting; try again shortly." }));
+      setRun((r) => ({ ...r, status: "error", error: messages.unreachable }));
     }
-  }, []);
+  }, [messages]);
 
   // Automatic rerun after edits or settings changes (and the first run once settings load)
   useEffect(() => {
@@ -209,21 +223,21 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   const openDeal = useCallback(
     async (id: string): Promise<Outcome> => {
       const { data, error } = await api.GET("/api/deals/{deal_id}", { params: { path: { deal_id: id } } });
-      if (!data) return { ok: false, error: apiMessage(error, "That deal couldn't be opened.") };
+      if (!data) return { ok: false, error: apiMessage(error, e("dealOpenFailed")) };
       adopt(data);
       return { ok: true };
     },
-    [adopt],
+    [adopt, e],
   );
 
   const saveAs = useCallback(
     async (name: string): Promise<Outcome> => {
       const { data, error } = await api.POST("/api/deals", { body: { name, inputs: apiInputs(inputs), settings: overrides } });
-      if (!data) return { ok: false, error: apiMessage(error, "The deal couldn't be saved.") };
+      if (!data) return { ok: false, error: apiMessage(error, e("dealSaveFailed")) };
       adopt(data);
       return { ok: true };
     },
-    [adopt, inputs, overrides],
+    [adopt, inputs, overrides, e],
   );
 
   const newDeal = useCallback(() => {

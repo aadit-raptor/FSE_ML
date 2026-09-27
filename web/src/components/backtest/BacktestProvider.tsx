@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { useSettings } from "@/components/settings/SettingsProvider";
@@ -24,9 +25,9 @@ const Ctx = createContext<BacktestContext | null>(null);
 const PATHS = 30000;
 
 /** A refusal (a usage limit, a busy server) is already a sentence; validation errors are listed. */
-function backtestError(detail: unknown): string {
+function backtestError(detail: unknown, fallback: string): string {
   if (typeof detail === "string") return detail;
-  return JSON.stringify(detail ?? "Backtest failed");
+  return JSON.stringify(detail ?? fallback);
 }
 
 /** "Burger King (3G Capital, 2010)" -> name, sponsor, year */
@@ -36,6 +37,8 @@ export function splitDealName(full: string) {
 }
 
 export function BacktestProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("backtest");
+  const e = useTranslations("errors");
   const { overrides, defaults } = useSettings();
   const [enabled, setEnabled] = useState(false);
   const [deals, setDeals] = useState<PreloadedDeal[] | null>(null);
@@ -52,35 +55,35 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
         setDeals(data);
         setSelected((s) => s ?? data[0]?.name ?? null);
       })
-      .catch(() => !cancelled && setState({ status: "error", error: "Can't load historical deals from the API." }));
+      .catch(() => !cancelled && setState({ status: "error", error: t("loadFailed") }));
     return () => {
       cancelled = true;
     };
-  }, [enabled, deals]);
+  }, [enabled, deals, t]);
 
   const deal = useMemo(() => deals?.find((d) => d.name === selected) ?? null, [deals, selected]);
 
   useEffect(() => {
     if (!deal || !defaults) return;
     const ctrl = new AbortController();
-    const e = deal.entry;
+    const entry = deal.entry;
     const body = {
       entry: {
-        entry_ebitda: e.entry_ebitda,
-        entry_multiple: e.entry_multiple,
-        exit_multiple: e.exit_multiple,
-        holding_period: Math.round(e.holding_period),
-        debt_pct: e.debt_pct,
-        senior_pct: e.senior_pct,
-        base_rate: e.base_rate,
-        mezz_spread: e.mezz_spread,
-        revenue_growth: e.revenue_growth,
-        gross_margin: e.gross_margin,
-        opex_pct: e.opex_pct,
-        da_pct: e.da_pct,
-        tax_rate: e.tax_rate,
-        capex_pct: e.capex_pct,
-        nwc_pct: e.nwc_pct,
+        entry_ebitda: entry.entry_ebitda,
+        entry_multiple: entry.entry_multiple,
+        exit_multiple: entry.exit_multiple,
+        holding_period: Math.round(entry.holding_period),
+        debt_pct: entry.debt_pct,
+        senior_pct: entry.senior_pct,
+        base_rate: entry.base_rate,
+        mezz_spread: entry.mezz_spread,
+        revenue_growth: entry.revenue_growth,
+        gross_margin: entry.gross_margin,
+        opex_pct: entry.opex_pct,
+        da_pct: entry.da_pct,
+        tax_rate: entry.tax_rate,
+        capex_pct: entry.capex_pct,
+        nwc_pct: entry.nwc_pct,
       },
       actual: deal.actual as Schemas["BacktestActuals"],
       actual_exit: deal.actual_exit as Schemas["BacktestActualExit"],
@@ -95,16 +98,16 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data, error } = await api.POST("/api/backtesting/run", { body, signal: ctrl.signal });
         if (ctrl.signal.aborted) return;
-        setState(data ? { status: "ok", result: data } : { status: "error", error: backtestError((error as { detail?: unknown })?.detail) });
+        setState(data ? { status: "ok", result: data } : { status: "error", error: backtestError((error as { detail?: unknown })?.detail, t("runFailed")) });
       } catch (err) {
-        if (!ctrl.signal.aborted && (err as Error)?.name !== "AbortError") setState({ status: "error", error: "Can't reach the API." });
+        if (!ctrl.signal.aborted && (err as Error)?.name !== "AbortError") setState({ status: "error", error: e("apiUnreachable") });
       }
     }, 150);
     return () => {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [deal, overrides, defaults]);
+  }, [deal, overrides, defaults, t, e]);
 
   const activate = useCallback(() => setEnabled(true), []);
   const value = useMemo(
