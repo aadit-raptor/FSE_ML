@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -12,10 +13,13 @@ type Health = { state: "checking" } | { state: "ok"; version: string; environmen
 const POLL_MS = 30_000;
 // Retry sooner while the API is down: a sleeping host can take ~a minute to start
 const RETRY_MS = 5_000;
-const DOWN_HINT = process.env.NODE_ENV === "development" ? "start it with uvicorn api.main:app --port 8000" : "it may be starting up, retrying";
+const LOCAL = process.env.NODE_ENV === "development";
 
 export function StatusBar() {
   const { mode, step } = parsePath(usePathname());
+  const t = useTranslations("shell");
+  const nav = useTranslations("nav");
+  const app = useTranslations("app");
   const [health, setHealth] = useState<Health>({ state: "checking" });
 
   useEffect(() => {
@@ -49,25 +53,23 @@ export function StatusBar() {
     <footer className="flex min-h-7 flex-none items-stretch border-t border-line bg-panel font-mono text-[10.5px] text-muted">
       {/* The API reports its clock in UTC; show it in the viewer's time zone */}
       <span
-        className="flex items-center gap-1.5 border-r border-line px-3"
+        className="flex items-center gap-1.5 border-e border-line px-3"
         role="status"
-        title={health.state === "ok" && health.time ? `API checked ${formatForViewer(health.time)}` : undefined}
+        title={health.state === "ok" && health.time ? t("apiCheckedAt", { when: formatForViewer(health.time) }) : undefined}
       >
-        API{" "}
-        {health.state === "ok" && <b className="font-medium text-ink">ok · v{health.version}</b>}
+        {t("apiLabel")}{" "}
+        {health.state === "ok" && <b className="font-medium text-ink">{t("apiOk", { version: health.version })}</b>}
         {/* Name any copy that isn't production, so staging is never mistaken for it */}
         {health.state === "ok" && health.environment && health.environment !== "production" && (
           <b className="font-medium text-attention">· {health.environment}</b>
         )}
-        {health.state === "checking" && <b className="font-medium text-dim">checking</b>}
+        {health.state === "checking" && <b className="font-medium text-dim">{t("apiChecking")}</b>}
         {health.state === "down" && (
-          <b className="font-medium text-loss">
-            unreachable · {DOWN_HINT}
-          </b>
+          <b className="font-medium text-loss">{t("apiUnreachable", { hint: LOCAL ? t("apiHintLocal") : t("apiHintDeployed") })}</b>
         )}
       </span>
-      <span className="ml-auto flex items-center border-l border-line px-3">
-        {mode && step ? `${mode.label} · ${step.label}` : "FSE/ML"}
+      <span className="ms-auto flex items-center border-s border-line px-3">
+        {mode && step ? `${nav(mode.labelKey)} · ${nav(step.labelKey)}` : app("brand")}
       </span>
     </footer>
   );

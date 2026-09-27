@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
 
 /** Background mixed toward gain or loss by distance from `center`. */
@@ -23,17 +27,19 @@ export function SensitivityTable({
   baseRow: number;
   baseCol: number;
 }) {
+  const t = useTranslations("charts");
+  const units = useTranslations("units");
   return (
     <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
-      <caption className="sr-only">IRR by exit multiple and holding period</caption>
+      <caption className="sr-only">{t("sensitivityCaption")}</caption>
       <thead>
         <tr>
-          <th scope="col" className="px-2 py-1 text-right font-normal text-muted">
-            Exit
+          <th scope="col" className="px-2 py-1 text-end font-normal text-muted">
+            {t("exit")}
           </th>
           {holds.map((h) => (
-            <th key={h} scope="col" className="px-2 py-1 text-right font-normal text-muted">
-              {h}y
+            <th key={h} scope="col" className="px-2 py-1 text-end font-normal text-muted">
+              {units("holdColumn", { years: h })}
             </th>
           ))}
         </tr>
@@ -41,7 +47,7 @@ export function SensitivityTable({
       <tbody>
         {table.map((row, i) => (
           <tr key={exitMultiples[i]}>
-            <th scope="row" className="px-2 py-1 text-right font-normal text-muted">
+            <th scope="row" className="px-2 py-1 text-end font-normal text-muted">
               {fmtMultiple(exitMultiples[i], 1)}
             </th>
             {row.map((v, j) => {
@@ -49,7 +55,7 @@ export function SensitivityTable({
               return (
                 <td
                   key={holds[j]}
-                  className={`px-2 py-1 text-right whitespace-nowrap ${base ? "font-semibold outline-[1.5px] -outline-offset-[1.5px] outline-ink outline-solid" : ""}`}
+                  className={`px-2 py-1 text-end whitespace-nowrap ${base ? "font-semibold outline-[1.5px] -outline-offset-[1.5px] outline-ink outline-solid" : ""}`}
                   style={isNum(v) ? { background: heat(v, hurdle, 0.25) } : undefined}
                   aria-current={base ? "true" : undefined}
                 >

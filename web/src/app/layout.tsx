@@ -5,6 +5,7 @@ import { JetBrains_Mono, Michroma, Orbitron } from "next/font/google";
 
 import { AppShell } from "@/components/shell/AppShell";
 import { AUTH_MODE } from "@/lib/auth/mode";
+import { APP_BRAND, APP_DESCRIPTION } from "@/lib/i18n/titles";
 
 import "./globals.css";
 
@@ -14,16 +15,18 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron", dis
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "FSE/ML", template: "%s · FSE/ML" },
-  description: "LBO modelling: deal returns, Monte Carlo simulation, backtesting and forecasting.",
+  title: { default: APP_BRAND, template: `%s · ${APP_BRAND}` },
+  description: APP_DESCRIPTION,
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Rendered per request, never prerendered: each page's scripts carry the
   // nonce from that request's content security policy (src/proxy.ts)
   await connection();
+  // `lang` and `dir` start at the default and are set to the account's locale
+  // by I18nScope, which is the first thing that knows who is signed in
   const shell = (
-    <html lang="en" className={`${michroma.variable} ${orbitron.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" dir="ltr" className={`${michroma.variable} ${orbitron.variable} ${jetbrainsMono.variable}`}>
       <body>
         <AppShell>{children}</AppShell>
       </body>

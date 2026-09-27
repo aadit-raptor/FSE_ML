@@ -47,7 +47,7 @@ test.describe("Monte Carlo", () => {
     await stepLink(page, "Drivers").click();
     await expect(page.locator("main circle")).toHaveCount(2000);
     const firstX = await page.locator("main circle").first().getAttribute("cx");
-    await page.getByRole("radio", { name: "Exit Multiple" }).click();
+    await page.getByRole("radio", { name: "Exit multiple" }).click();
     await expect(page.locator("main circle").first()).not.toHaveAttribute("cx", firstX ?? "");
 
     await stepLink(page, "Heatmap").click();

@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { api, type Schemas } from "@/lib/api/client";
-import { type Fiscal, fiscalYearLabels } from "@/lib/fiscal";
+import { type Fiscal } from "@/lib/fiscal";
+import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { DEFAULT_MONEY, type Money, unitFactor } from "@/lib/money";
 
 type Series = Record<string, number[]>;
@@ -60,14 +62,17 @@ function spread(seeded: Record<string, number>, n: number): Series {
   return Object.fromEntries(Object.entries(seeded).map(([k, v]) => [k, Array(n).fill(v)]));
 }
 
-function detail(err: unknown): string {
+function detail(err: unknown, fallback: string): string {
   const d = (err as { detail?: unknown } | undefined)?.detail;
   if (typeof d === "string") return d;
   if (Array.isArray(d)) return d.map((x: { loc?: unknown[]; msg?: string }) => `${x.loc?.slice(1).join(".")}: ${x.msg}`).join("; ");
-  return "The forecast couldn't run with these inputs.";
+  return fallback;
 }
 
 export function ForecastProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("forecast");
+  const e = useTranslations("errors");
+  const labels = useFiscalLabels();
   const [enabled, setEnabled] = useState(false);
   const [defaults, setDefaults] = useState<Schemas["ForecastDefaultsResponse"] | null>(null);
   const [history, setHistoryState] = useState<Series>({});
@@ -94,11 +99,11 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
         setHistoryState(data.history);
         setAssumptions(spread(data.seeded_assumptions, data.n_fwd));
       })
-      .catch(() => !cancelled && setRun({ status: "error", error: "Can't load forecasting defaults from the API." }));
+      .catch(() => !cancelled && setRun({ status: "error", error: t("defaultsFailed") }));
     return () => {
       cancelled = true;
     };
-  }, [enabled, defaults]);
+  }, [enabled, defaults, t]);
 
   // Historical ratios (and suggested assumptions) for the current historicals
   useEffect(() => {
@@ -128,16 +133,16 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
           signal: ctrl.signal,
         });
         if (ctrl.signal.aborted) return;
-        setRun(data ? { status: "ok", result: data } : (r) => ({ ...r, status: "error", error: detail(error) }));
-      } catch (e) {
-        if (!ctrl.signal.aborted && (e as Error)?.name !== "AbortError") setRun((r) => ({ ...r, status: "error", error: "Can't reach the API." }));
+        setRun(data ? { status: "ok", result: data } : (r) => ({ ...r, status: "error", error: detail(error, t("runFailed")) }));
+      } catch (err) {
+        if (!ctrl.signal.aborted && (err as Error)?.name !== "AbortError") setRun((r) => ({ ...r, status: "error", error: e("apiUnreachable") }));
       }
     }, 400);
     return () => {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [history, assumptions, money, defaults]);
+  }, [history, assumptions, money, defaults, t, e]);
 
   const setHistory = useCallback((key: string, year: number, value: number) => {
     setHistoryState((h) => ({ ...h, [key]: (h[key] ?? []).map((v, i) => (i === year ? value : v)) }));
@@ -176,13 +181,13 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
 
   const fetchEdgar = useCallback(
     async (ticker: string) => {
-      const t = ticker.trim().toUpperCase();
-      if (!t) return;
+      const code = ticker.trim().toUpperCase();
+      if (!code) return;
       setEdgar({ status: "loading" });
       try {
-        const { data, error, response } = await api.GET("/api/edgar/{ticker}", { params: { path: { ticker: t } } });
+        const { data, error, response } = await api.GET("/api/edgar/{ticker}", { params: { path: { ticker: code } } });
         if (!data) {
-          setEdgar({ status: "error", error: response.status === 503 ? "EDGAR autofill isn't available on this server." : detail(error) });
+          setEdgar({ status: "error", error: response.status === 503 ? t("edgarUnavailable") : detail(error, t("runFailed")) });
           return;
         }
         // Fields EDGAR didn't return keep their current values, in EDGAR's unit
@@ -198,25 +203,16 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
         if (seeded.data) setAssumptions(spread(seeded.data.seeded_assumptions, nFwd));
         setEdgar({ status: "idle" });
       } catch {
-        setEdgar({ status: "error", error: "SEC EDGAR request failed. Check the connection and try again." });
+        setEdgar({ status: "error", error: t("edgarFailed") });
       }
     },
-    [history, money.unit, nHist, nFwd],
+    [history, money.unit, nHist, nFwd, t],
   );
 
   const activate = useCallback(() => setEnabled(true), []);
 
-  const histLabels = useMemo(
-    () =>
-      fiscalYearLabels(nHist, { ...fiscal, year: fiscal.year === null ? null : fiscal.year - nHist + 1 }, (i) =>
-        i === nHist - 1 ? "LTM" : `LTM-${nHist - 1 - i}`,
-      ),
-    [fiscal, nHist],
-  );
-  const fwdLabels = useMemo(
-    () => fiscalYearLabels(nFwd, { ...fiscal, year: fiscal.year === null ? null : fiscal.year + 1 }, (i) => `F+${i + 1}`),
-    [fiscal, nFwd],
-  );
+  const histLabels = useMemo(() => labels.history(nHist, fiscal), [labels, fiscal, nHist]);
+  const fwdLabels = useMemo(() => labels.forward(nFwd, fiscal), [labels, fiscal, nFwd]);
 
   const value = useMemo(
     () => ({

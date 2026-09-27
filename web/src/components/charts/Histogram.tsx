@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 export type Marker = { value: number; label: string; tone?: "ink" | "attention" | "accent"; dashed?: boolean };
 
 const W = 640;
@@ -30,8 +34,9 @@ export function Histogram({
   label: string;
   tickCount?: number;
 }) {
+  const t = useTranslations("charts");
   const nonzero = density.map((d, i) => (d > 0 ? i : -1)).filter((i) => i >= 0);
-  if (!nonzero.length) return <p className="type-body">No distribution to show.</p>;
+  if (!nonzero.length) return <p className="type-body">{t("noDistribution")}</p>;
   const first = nonzero[0];
   const last = nonzero.at(-1)!;
   let lo = edges[first];

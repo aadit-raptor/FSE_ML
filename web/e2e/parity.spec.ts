@@ -28,7 +28,7 @@ test.describe("Streamlit parity", () => {
     const { filename, body } = await download(page, page.getByRole("button", { name: "↓ All tables" }));
     expect(filename).toBe("lbo_summary.xlsx");
     const names = body.sheets!.map((s) => s.name);
-    expect(names).toEqual(expect.arrayContaining(["P&L", "Cash flow", "Debt schedule", "Senior Term Loan", "Mezzanine", "Equity bridge", "PP&E", "Adjusted EBITDA"]));
+    expect(names).toEqual(expect.arrayContaining(["P&L", "Cash flow", "Debt schedule", "Senior term loan", "Mezzanine", "Equity bridge", "PP&E", "Adjusted EBITDA"]));
     const pl = body.sheets!.find((s) => s.name === "P&L");
     expect(row(pl, "Revenue")?.[1]).toBeCloseTo(api.operating_model.revenue[0], 6);
     expect(row(pl, "Net income")?.[5]).toBeCloseTo(api.operating_model.net_income[4], 6);

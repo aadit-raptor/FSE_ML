@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 import { fmtAxis } from "@/lib/format";
 
 import { niceScale } from "./scale";
@@ -200,6 +204,7 @@ export function Scatter({
   yFormat: (v: number) => string;
   label: string;
 }) {
+  const t = useTranslations("charts");
   const W = 640;
   const H = 280;
   const L = 52;
@@ -207,7 +212,7 @@ export function Scatter({
   const TOP = 12;
   const BOTTOM = 26;
   const pts = xs.map((x, i) => [x, ys[i]] as const).filter(([a, b]) => Number.isFinite(a) && Number.isFinite(b));
-  if (!pts.length) return <p className="type-body">No sample to plot.</p>;
+  if (!pts.length) return <p className="type-body">{t("noSample")}</p>;
   const sortX = pts.map((p) => p[0]).sort((a, b) => a - b);
   const sortY = pts.map((p) => p[1]).sort((a, b) => a - b);
   // Clip the outer 1% so a few extreme paths don't flatten the cloud

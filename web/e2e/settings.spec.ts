@@ -64,7 +64,8 @@ test.describe("Settings", () => {
 
     await modeTab(page, "Settings").click();
     await stepLink(page, "Scenario presets").click();
-    const mult = page.getByRole("textbox", { name: "Bull bull_growth_mult" });
+    // The cell names itself after the preset and the column, not the setting key
+    const mult = page.getByRole("textbox", { name: "Bull Growth" });
     await mult.fill("3");
     await mult.blur();
     await expect(modeTab(page, "Monte Carlo")).toContainText("stale");

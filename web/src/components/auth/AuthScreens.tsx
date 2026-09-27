@@ -1,6 +1,7 @@
 "use client";
 
 import { SignIn, SignUp } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -57,6 +58,7 @@ function Frame({ title, hint, children }: { title: string; hint?: string; childr
 
 /** The development sign-in: pick a name, and the API sees `dev:<name>`. */
 function DeveloperSignIn({ heading }: { heading: string }) {
+  const t = useTranslations("auth");
   const { signInAsDeveloper } = useSession();
   const router = useRouter();
   const params = useSearchParams();
@@ -66,12 +68,12 @@ function DeveloperSignIn({ heading }: { heading: string }) {
   return (
     <Frame
       title={heading}
-      hint="This build has no Clerk instance, so it signs in as a development user. Deployed copies use real accounts; the API refuses development sign-in in production."
+      hint={t("devHint")}
     >
       <label className="grid gap-1.5">
-        <span className="type-input-group">Development user</span>
+        <span className="type-input-group">{t("devUser")}</span>
         <input
-          aria-label="Development user"
+          aria-label={t("devUser")}
           value={name}
           autoComplete="off"
           onChange={(e) => setName(e.target.value)}
@@ -80,7 +82,7 @@ function DeveloperSignIn({ heading }: { heading: string }) {
       </label>
       {!valid && (
         <p role="alert" className="font-mono text-[10px] text-loss">
-          Letters, digits, hyphen and underscore only.
+          {t("devNameRule")}
         </p>
       )}
       <div>
@@ -92,7 +94,7 @@ function DeveloperSignIn({ heading }: { heading: string }) {
             router.replace(next && next.startsWith("/") ? next : AFTER_SIGN_IN);
           }}
         >
-          Sign in
+          {t("signIn")}
         </PrimaryButton>
       </div>
     </Frame>
@@ -100,9 +102,10 @@ function DeveloperSignIn({ heading }: { heading: string }) {
 }
 
 export function SignInScreen() {
-  if (AUTH_MODE !== "clerk") return <DeveloperSignIn heading="Sign in" />;
+  const t = useTranslations("auth");
+  if (AUTH_MODE !== "clerk") return <DeveloperSignIn heading={t("signIn")} />;
   return (
-    <Frame title="Sign in">
+    <Frame title={t("signIn")}>
       <SignIn
         routing="path"
         path="/sign-in"
@@ -115,9 +118,10 @@ export function SignInScreen() {
 }
 
 export function SignUpScreen() {
-  if (AUTH_MODE !== "clerk") return <DeveloperSignIn heading="Sign up" />;
+  const t = useTranslations("auth");
+  if (AUTH_MODE !== "clerk") return <DeveloperSignIn heading={t("signUp")} />;
   return (
-    <Frame title="Create an account">
+    <Frame title={t("createAccount")}>
       <SignUp
         routing="path"
         path="/sign-up"
