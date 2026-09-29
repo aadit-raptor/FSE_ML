@@ -2,6 +2,7 @@
 
 import { MagnifyingGlassIcon, UserIcon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -16,6 +17,10 @@ export function TopBar() {
   const { mode: current } = parsePath(pathname);
   const { setSearchOpen } = useWorkspace();
   const { label } = useSession();
+  const t = useTranslations("shell");
+  const nav = useTranslations("nav");
+  const app = useTranslations("app");
+  const mcText = useTranslations("montecarlo");
   // Modes whose results no longer match their inputs, and runs in progress
   // (a Monte Carlo run carries on while you work elsewhere)
   const mc = useMonteCarlo();
@@ -24,11 +29,11 @@ export function TopBar() {
 
   return (
     <header className="flex min-h-[42px] flex-none items-stretch border-b border-line bg-panel">
-      <Link href="/" className="flex items-center border-r border-line px-4">
-        <span className="type-brand">FSE/ML</span>
+      <Link href="/" className="flex items-center border-e border-line px-4">
+        <span className="type-brand">{app("brand")}</span>
       </Link>
 
-      <nav aria-label="Modes" className="flex">
+      <nav aria-label={t("modes")} className="flex">
         {MODES.map((mode, i) => {
           const active = mode.slug === current?.slug;
           return (
@@ -36,12 +41,12 @@ export function TopBar() {
               key={mode.slug}
               href={stepHref(mode.slug, mode.steps[0].slug)}
               aria-current={active ? "page" : undefined}
-              title={`Alt ${i + 1}`}
-              className={`type-tab relative flex items-center gap-2 border-r border-line px-[15px] whitespace-nowrap hover:text-ink ${active ? "bg-raised" : ""}`}
+              title={t("modeShortcut", { number: i + 1 })}
+              className={`type-tab relative flex items-center gap-2 border-e border-line px-[15px] whitespace-nowrap hover:text-ink ${active ? "bg-raised" : ""}`}
             >
-              {mode.label}
-              {staleModes.has(mode.slug) && <span className="chip text-attention">stale</span>}
-              {runningModes.has(mode.slug) && <span className="chip text-accent">running</span>}
+              {nav(mode.labelKey)}
+              {staleModes.has(mode.slug) && <span className="chip text-attention">{mcText("chipStale")}</span>}
+              {runningModes.has(mode.slug) && <span className="chip text-accent">{mcText("chipRunning")}</span>}
               {active && (
                 <motion.span
                   layoutId="mode-underline"
@@ -59,21 +64,21 @@ export function TopBar() {
       <button
         type="button"
         onClick={() => setSearchOpen(true)}
-        className="my-[7px] mx-2.5 flex min-w-[300px] items-center gap-2 border border-[#2a343a] bg-field px-2.5 text-left hover:border-line-strong"
+        className="my-[7px] mx-2.5 flex min-w-[300px] items-center gap-2 border border-[#2a343a] bg-field px-2.5 text-start hover:border-line-strong"
       >
         <MagnifyingGlassIcon size={13} weight="bold" className="text-dim" aria-hidden />
-        <span className="type-step flex-1">Search screens and actions</span>
+        <span className="type-step flex-1">{t("searchPlaceholderShort")}</span>
         <kbd>Ctrl K</kbd>
       </button>
 
       <Link
         href="/account"
         aria-current={pathname === "/account" ? "page" : undefined}
-        title="Your account: country, currency, format and time zone"
-        className={`type-tab flex items-center gap-2 border-l border-line px-3.5 whitespace-nowrap hover:text-ink ${pathname === "/account" ? "bg-raised" : ""}`}
+        title={t("accountTitle")}
+        className={`type-tab flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap hover:text-ink ${pathname === "/account" ? "bg-raised" : ""}`}
       >
         <UserIcon size={13} weight="bold" aria-hidden />
-        <span className="max-w-[180px] truncate normal-case">{label ?? "Account"}</span>
+        <span className="max-w-[180px] truncate normal-case">{label ?? t("account")}</span>
       </Link>
     </header>
   );

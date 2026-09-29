@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 /** Secondary action that runs an async download and reports failure inline. */
-export function DownloadButton({ label = "Excel", onDownload, title }: { label?: string; onDownload: () => Promise<void>; title?: string }) {
+export function DownloadButton({ label, onDownload, title }: { label?: string; onDownload: () => Promise<void>; title?: string }) {
+  const t = useTranslations("ui");
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
   const [error, setError] = useState<string>();
   return (
@@ -15,7 +17,7 @@ export function DownloadButton({ label = "Excel", onDownload, title }: { label?:
       )}
       <button
         type="button"
-        title={title ?? "Download as an Excel workbook"}
+        title={title ?? t("downloadTitle")}
         disabled={state === "busy"}
         onClick={async () => {
           setState("busy");
@@ -29,7 +31,7 @@ export function DownloadButton({ label = "Excel", onDownload, title }: { label?:
         }}
         className="type-action-secondary px-2 py-0.5 text-[8.5px] text-muted shadow-[inset_0_0_0_1px_#2a343a] hover:text-ink disabled:opacity-50"
       >
-        {state === "busy" ? "Preparing" : `↓ ${label}`}
+        {state === "busy" ? t("downloadPreparing") : t("downloadPrefix", { label: label ?? t("download") })}
       </button>
     </span>
   );

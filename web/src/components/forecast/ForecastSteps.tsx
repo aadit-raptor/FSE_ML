@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { DataTable, type Row } from "@/components/charts/DataTable";
@@ -21,47 +22,53 @@ import { type ForecastRun, useForecast } from "./ForecastProvider";
 
 function Rail() {
   const { source, fetchEdgar, edgar, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels } = useForecast();
+  const t = useTranslations("forecast");
+  const fiscalText = useTranslations("fiscal");
   const [ticker, setTicker] = useState("");
   const latest = metrics?.at(-1);
   return (
     <>
       <div className="flex items-center justify-between gap-2 border-b border-line px-3.5 py-2">
-        <span className="type-control">{source.kind === "edgar" ? source.ticker : "Sample company"}</span>
+        <span className="type-control">{source.kind === "edgar" ? source.ticker : t("sampleCompany")}</span>
         <span role="status" className={`font-mono text-[10px] ${status === "error" ? "text-loss" : status === "running" ? "text-attention" : "text-dim"}`}>
-          {status === "running" ? "Updating" : status === "error" ? "Error" : result ? "Up to date" : "Loading"}
+          {status === "running" ? t("stateUpdating") : status === "error" ? t("stateError") : result ? t("stateUpToDate") : t("stateLoading")}
         </span>
       </div>
-      <RailGroup title="Reporting currency">
-        <MoneySelects money={money} onChange={setMoney} of="Company" />
+      <RailGroup title={t("groupReportingCurrency")}>
+        <MoneySelects money={money} onChange={setMoney} of={t("of")} />
       </RailGroup>
-      <RailGroup title="Autofill from SEC EDGAR">
+      <RailGroup title={t("groupEdgar")}>
         <form
           className="grid grid-cols-[1fr_auto] gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
+          onSubmit={(ev) => {
+            ev.preventDefault();
             void fetchEdgar(ticker);
           }}
         >
           <label className="sr-only" htmlFor="edgar-ticker">
-            Ticker
+            {t("ticker")}
           </label>
           <input
             id="edgar-ticker"
             value={ticker}
-            onChange={(e) => setTicker(e.target.value)}
-            placeholder="Ticker, e.g. DELL"
+            onChange={(ev) => setTicker(ev.target.value)}
+            placeholder={t("tickerPlaceholder")}
             autoComplete="off"
             className="border border-line bg-field px-2 py-1 font-mono text-[11.5px] text-ink uppercase outline-none placeholder:text-dim placeholder:normal-case focus:border-accent"
           />
-          <button type="submit" disabled={edgar.status === "loading" || !ticker.trim()} className="type-action-secondary px-2.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)] disabled:opacity-50">
-            {edgar.status === "loading" ? "Fetching" : "Fetch"}
+          <button
+            type="submit"
+            disabled={edgar.status === "loading" || !ticker.trim()}
+            className="type-action-secondary px-2.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)] disabled:opacity-50"
+          >
+            {edgar.status === "loading" ? t("fetching") : t("fetch")}
           </button>
         </form>
         {edgar.status === "error" && <p className="font-mono text-[10px] text-loss">{edgar.error}</p>}
         {source.kind === "edgar" && (
           <div className="grid gap-1 pt-1">
             <p className="type-input-label">{source.company}</p>
-            <p className="font-mono text-[10px] text-muted">Fiscal years {histLabels.join(", ")}</p>
+            <p className="font-mono text-[10px] text-muted">{t("fiscalYears", { years: histLabels.join(", ") })}</p>
             {source.warnings.map((w) => (
               <p key={w} className="font-mono text-[10px] text-attention">
                 {w}
@@ -70,29 +77,29 @@ function Rail() {
           </div>
         )}
         <div className="pt-1.5">
-          <SecondaryButton onClick={resetSample}>Reset to sample</SecondaryButton>
+          <SecondaryButton onClick={resetSample}>{t("resetToSample")}</SecondaryButton>
         </div>
       </RailGroup>
-      <RailGroup title="Fiscal years">
-        <FiscalSelects fiscal={fiscal} onChange={setFiscal} of="Company" yearLabel="Latest fiscal year" />
+      <RailGroup title={t("groupFiscal")}>
+        <FiscalSelects fiscal={fiscal} onChange={setFiscal} of={t("of")} yearLabel={fiscalText("latestFiscalYear")} />
       </RailGroup>
       {latest && (
-        <RailGroup title="Latest year ratios">
+        <RailGroup title={t("groupRatios")}>
           <dl className="grid grid-cols-[1fr_auto] gap-x-2 gap-y-1">
             {(
               [
-                ["Revenue", fmtMoney(latest.revenue)],
-                ["Revenue growth", fmtRate(latest.revenue_growth)],
-                ["Gross margin", fmtRate(latest.gross_margin)],
-                ["R&D, % sales", fmtRate(latest.rd_pct)],
-                ["SG&A, % sales", fmtRate(latest.sga_pct)],
-                ["EBITDA margin", fmtRate(latest.ebitda_margin)],
-                ["Adj. EBITDA margin", fmtRate(latest.adj_ebitda_margin)],
+                [t("ratioRevenue"), fmtMoney(latest.revenue)],
+                [t("ratioRevenueGrowth"), fmtRate(latest.revenue_growth)],
+                [t("ratioGrossMargin"), fmtRate(latest.gross_margin)],
+                [t("ratioRd"), fmtRate(latest.rd_pct)],
+                [t("ratioSga"), fmtRate(latest.sga_pct)],
+                [t("ratioEbitdaMargin"), fmtRate(latest.ebitda_margin)],
+                [t("ratioAdjEbitdaMargin"), fmtRate(latest.adj_ebitda_margin)],
               ] as const
             ).map(([k, v]) => (
               <div key={k} className="contents">
                 <dt className="type-input-label">{k}</dt>
-                <dd className="text-right font-mono text-[11.5px] text-ink">{v}</dd>
+                <dd className="text-end font-mono text-[11.5px] text-ink">{v}</dd>
               </div>
             ))}
           </dl>
@@ -104,15 +111,20 @@ function Rail() {
 
 function ForecastScreen({ children, needsResult = true }: { children: ReactNode; needsResult?: boolean }) {
   const { activate, ready, result, status, error, money } = useForecast();
+  const t = useTranslations("forecast");
   useEffect(() => activate(), [activate]);
   const bar =
     status === "error" ? (
-      <Notice tone="loss" title="Forecast didn't run" role="alert">
+      <Notice tone="loss" title={t("didntRun")} role="alert">
         {error}
       </Notice>
     ) : undefined;
   const body = !ready ? (
-    status === "error" ? <EmptyState title="No forecast yet">Check that the API is running, then reload.</EmptyState> : <LoadingTiles />
+    status === "error" ? (
+      <EmptyState title={t("noForecast")}>{t("noForecastBody")}</EmptyState>
+    ) : (
+      <LoadingTiles />
+    )
   ) : needsResult && !result ? (
     <LoadingTiles />
   ) : (
@@ -139,10 +151,11 @@ export function HistoricalsStep() {
 function Historicals() {
   const { label: mu } = useMoney();
   const { history, setHistory, histLabels: cols } = useForecast();
+  const t = useTranslations("forecast");
   return (
     <Tiles>
       {HISTORY_GROUPS.map((g) => (
-        <Tile key={g.title} span={g.rows.length > 10 ? 6 : 6} title={withMoney(g.title, mu)}>
+        <Tile key={g.titleKey} span={6} title={withMoney(t(g.titleKey), mu)}>
           <EditableGrid rows={g.rows} columns={cols} values={history} onCommit={setHistory} />
         </Tile>
       ))}
@@ -150,6 +163,16 @@ function Historicals() {
   );
 }
 
+/**
+ * A row's label and each cell's screen-reader label.
+ *
+ * i18n-keys: forecast.h_*, forecast.rev_g, forecast.gm, forecast.rd
+ * i18n-keys: forecast.sga, forecast.tax, forecast.da, forecast.sbc
+ * i18n-keys: forecast.capex, forecast.ar_d, forecast.inv_d, forecast.ap_d
+ * i18n-keys: forecast.ocl_pct, forecast.def_pct, forecast.nca_pct
+ * i18n-keys: forecast.other_inc, forecast.divs, forecast.buybacks
+ * i18n-keys: forecast.ltd_chg, forecast.r_cash, forecast.r_debt, forecast.min_cash
+ */
 function EditableGrid({
   rows,
   columns,
@@ -157,13 +180,15 @@ function EditableGrid({
   onCommit,
   extra,
 }: {
-  rows: { key: string; label: string }[];
+  rows: string[];
   columns: string[];
   values: Record<string, number[]>;
   onCommit: (key: string, col: number, value: number) => void;
   extra?: (key: string) => ReactNode;
 }) {
   const { label: mu } = useMoney();
+  const t = useTranslations("forecast");
+  const rowLabel = (key: string) => withMoney(t(key), mu);
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -171,7 +196,7 @@ function EditableGrid({
           <tr>
             <th />
             {columns.map((c) => (
-              <th key={c} scope="col" className="px-1 py-1 text-right font-mono text-[10.5px] font-normal text-muted">
+              <th key={c} scope="col" className="px-1 py-1 text-end font-mono text-[10.5px] font-normal text-muted">
                 {c}
               </th>
             ))}
@@ -179,17 +204,17 @@ function EditableGrid({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.key}>
-              <th scope="row" className="type-input-label py-0.5 pr-2 text-left text-[9px] font-normal whitespace-nowrap">
-                {withMoney(r.label, mu)}
+          {rows.map((key) => (
+            <tr key={key}>
+              <th scope="row" className="type-input-label py-0.5 pe-2 text-start text-[9px] font-normal whitespace-nowrap">
+                {rowLabel(key)}
               </th>
               {columns.map((c, i) => (
                 <td key={c} className="px-1 py-0.5">
-                  <CellInput label={`${withMoney(r.label, mu)}, ${c}`} value={values[r.key]?.[i] ?? NaN} onCommit={(v) => onCommit(r.key, i, v)} />
+                  <CellInput label={t("cellLabel", { row: rowLabel(key), column: c })} value={values[key]?.[i] ?? NaN} onCommit={(v) => onCommit(key, i, v)} />
                 </td>
               ))}
-              {extra && <td className="py-0.5 pl-2 whitespace-nowrap">{extra(r.key)}</td>}
+              {extra && <td className="py-0.5 ps-2 whitespace-nowrap">{extra(key)}</td>}
             </tr>
           ))}
         </tbody>
@@ -209,18 +234,23 @@ export function AssumptionsStep() {
 function Assumptions() {
   const { label: mu } = useMoney();
   const { assumptions, setAssumption, fillAssumption, seeded, reseed, fwdLabels: cols } = useForecast();
+  const t = useTranslations("forecast");
   return (
     <Tiles>
       <Notice
         tone="info"
-        title="Suggested values"
+        title={t("suggestedTitle")}
         className="col-span-12"
-        actions={<SecondaryButton onClick={reseed} disabled={!seeded}>Use all suggestions</SecondaryButton>}
+        actions={
+          <SecondaryButton onClick={reseed} disabled={!seeded}>
+            {t("useAllSuggestions")}
+          </SecondaryButton>
+        }
       >
-        Suggestions come from the historicals. Click one to use it for every year, or edit any year directly.
+        {t("suggestedBody")}
       </Notice>
       {ASSUMPTION_GROUPS.map((g) => (
-        <Tile key={g.title} span={6} title={withMoney(g.title, mu)}>
+        <Tile key={g.titleKey} span={6} title={withMoney(t(g.titleKey), mu)}>
           <EditableGrid
             rows={g.rows}
             columns={cols}
@@ -231,7 +261,7 @@ function Assumptions() {
                 <button
                   type="button"
                   onClick={() => fillAssumption(key, seeded[key])}
-                  title="Use for every year"
+                  title={t("useForEveryYear")}
                   className="font-mono text-[10px] text-accent hover:underline"
                 >
                   {fmtInput(seeded[key], 1)}
@@ -255,51 +285,63 @@ function statementRows(res: ForecastRun, keys: [string, string, Row["kind"]?, bo
   }));
 }
 
+type Schedules = {
+  ppe: Row[];
+  retained: Row[];
+  workingCapital: Row[];
+  cycleDays: number[];
+  interest: Row[];
+  revolver: Row[];
+};
+
 /** Rows for a forecast-years-only schedule. */
 const fwdRow = (label: string, values: number[], kind?: Row["kind"], total?: boolean): Row => ({ label, values, kind, total });
 
-function statementTables(res: ForecastRun) {
-  return {
+function useStatementTables(): (res: ForecastRun) => { income: Row[]; balance: Row[]; cash: Row[] } {
+  const t = useTranslations("forecast");
+  return (res) => ({
     income: statementRows(res, [
-      ["revenue", "Revenue"],
-      ["gross_profit", "Gross profit"],
-      ["rd", "R&D"],
-      ["sga", "SG&A"],
-      ["ebit", "EBIT", undefined, true],
-      ["interest_inc", "Interest income"],
-      ["interest_exp", "Interest expense"],
-      ["pretax", "Pre-tax income"],
-      ["taxes", "Taxes"],
-      ["net_income", "Net income", undefined, true],
-      ["ebitda", "EBITDA"],
-      ["ebitda_margin", "EBITDA margin", "rate"],
+      ["revenue", t("rowRevenue")],
+      ["gross_profit", t("rowGrossProfit")],
+      ["rd", t("rowRd")],
+      ["sga", t("rowSga")],
+      ["ebit", t("rowEbit"), undefined, true],
+      ["interest_inc", t("rowInterestIncome")],
+      ["interest_exp", t("rowInterestExpense")],
+      ["pretax", t("rowPretax")],
+      ["taxes", t("rowTaxes")],
+      ["net_income", t("rowNetIncome"), undefined, true],
+      ["ebitda", t("rowEbitda")],
+      ["ebitda_margin", t("rowEbitdaMargin"), "rate"],
     ]),
     balance: statementRows(res, [
-      ["cash", "Cash"],
-      ["ar", "Receivables"],
-      ["inventory", "Inventory"],
-      ["ppe_net", "PP&E, net"],
-      ["total_assets", "Total assets", undefined, true],
-      ["ap", "Payables"],
-      ["revolver", "Revolver"],
-      ["ltd", "Long-term debt"],
-      ["total_liab", "Total liabilities"],
-      ["total_equity", "Total equity"],
-      ["balance_check", "Balance check"],
+      ["cash", t("rowCash")],
+      ["ar", t("rowAr")],
+      ["inventory", t("rowInventory")],
+      ["ppe_net", t("rowPpeNet")],
+      ["total_assets", t("rowTotalAssets"), undefined, true],
+      ["ap", t("rowAp")],
+      ["revolver", t("rowRevolver")],
+      ["ltd", t("rowLtd")],
+      ["total_liab", t("rowTotalLiab")],
+      ["total_equity", t("rowTotalEquity")],
+      ["balance_check", t("rowBalanceCheck")],
     ]),
     cash: statementRows(res, [
-      ["cfo", "Operating cash flow"],
-      ["cfi", "Investing cash flow"],
-      ["cff", "Financing cash flow"],
-      ["net_cash_chg", "Net change in cash", undefined, true],
-      ["delta_nwc", "Change in NWC"],
-      ["revolver_draw", "Revolver draw"],
+      ["cfo", t("rowCfo")],
+      ["cfi", t("rowCfi")],
+      ["cff", t("rowCff")],
+      ["net_cash_chg", t("rowNetCashChange"), undefined, true],
+      ["delta_nwc", t("rowDeltaNwc")],
+      ["revolver_draw", t("rowRevolverDraw")],
     ]),
-  };
+  });
 }
 
 /** Supporting schedules, derived exactly from the three statements. */
-function scheduleTables(res: ForecastRun, assumptions: Record<string, number[]>) {
+function useScheduleTables(): (res: ForecastRun, assumptions: Record<string, number[]>) => Schedules {
+  const t = useTranslations("forecast");
+  return (res, assumptions) => {
   const y = res.years;
   const ltm = res.ltm;
   const at = (key: string, i: number) => assumptions[key]?.[i] ?? NaN;
@@ -307,39 +349,40 @@ function scheduleTables(res: ForecastRun, assumptions: Record<string, number[]>)
   const prevDebt = y.map((_, i) => (i === 0 ? ltm.ltd : y[i - 1].ltd) ?? 0);
   return {
     ppe: [
-      fwdRow("Opening PP&E", y.map((r) => r.ppe_beg ?? 0)),
+      fwdRow(t("rowOpeningPpe"), y.map((r) => r.ppe_beg ?? 0)),
       // Capex isn't reported separately: the roll-forward implies it exactly
-      fwdRow("Capex", y.map((r) => (r.ppe_end ?? 0) - (r.ppe_beg ?? 0) + (r.da ?? 0))),
-      fwdRow("Depreciation", y.map((r) => r.da ?? 0), "outflow"),
-      fwdRow("Closing PP&E", y.map((r) => r.ppe_end ?? 0), undefined, true),
+      fwdRow(t("rowCapex"), y.map((r) => (r.ppe_end ?? 0) - (r.ppe_beg ?? 0) + (r.da ?? 0))),
+      fwdRow(t("rowDepreciation"), y.map((r) => r.da ?? 0), "outflow"),
+      fwdRow(t("rowClosingPpe"), y.map((r) => r.ppe_end ?? 0), undefined, true),
     ],
     retained: [
-      fwdRow("Opening retained earnings", y.map((r) => r.re_beg ?? 0)),
-      fwdRow("Net income", y.map((r) => r.net_income ?? 0)),
-      fwdRow("Dividends and buybacks", y.map((r) => (r.re_beg ?? 0) + (r.net_income ?? 0) - (r.re_end ?? 0)), "outflow"),
-      fwdRow("Closing retained earnings", y.map((r) => r.re_end ?? 0), undefined, true),
+      fwdRow(t("rowOpeningRe"), y.map((r) => r.re_beg ?? 0)),
+      fwdRow(t("rowNetIncome"), y.map((r) => r.net_income ?? 0)),
+      fwdRow(t("rowDividendsBuybacks"), y.map((r) => (r.re_beg ?? 0) + (r.net_income ?? 0) - (r.re_end ?? 0)), "outflow"),
+      fwdRow(t("rowClosingRe"), y.map((r) => r.re_end ?? 0), undefined, true),
     ],
     workingCapital: [
-      fwdRow("Receivables", y.map((r) => r.ar ?? 0)),
-      fwdRow("Inventory", y.map((r) => r.inventory ?? 0)),
-      fwdRow("Payables", y.map((r) => r.ap ?? 0), "outflow"),
-      fwdRow("Net working capital", y.map((r) => r.nwc ?? 0), undefined, true),
-      fwdRow("Change in NWC", y.map((r) => r.delta_nwc ?? 0)),
+      fwdRow(t("rowReceivables"), y.map((r) => r.ar ?? 0)),
+      fwdRow(t("rowInventory"), y.map((r) => r.inventory ?? 0)),
+      fwdRow(t("rowPayables"), y.map((r) => r.ap ?? 0), "outflow"),
+      fwdRow(t("rowNwc"), y.map((r) => r.nwc ?? 0), undefined, true),
+      fwdRow(t("rowDeltaNwc"), y.map((r) => r.delta_nwc ?? 0)),
     ],
     cycleDays: y.map((_, i) => at("ar_d", i) + at("inv_d", i) - at("ap_d", i)),
     interest: [
-      fwdRow("Opening cash", prevCash),
-      fwdRow("Rate on cash", y.map((_, i) => at("r_cash", i) / 100), "rate"),
-      fwdRow("Interest income", y.map((r) => r.interest_inc ?? 0)),
-      fwdRow("Opening debt", prevDebt),
-      fwdRow("Rate on debt", y.map((_, i) => at("r_debt", i) / 100), "rate"),
-      fwdRow("Interest expense", y.map((r) => r.interest_exp ?? 0), "outflow", true),
+      fwdRow(t("rowOpeningCash"), prevCash),
+      fwdRow(t("rowRateOnCash"), y.map((_, i) => at("r_cash", i) / 100), "rate"),
+      fwdRow(t("rowInterestIncome"), y.map((r) => r.interest_inc ?? 0)),
+      fwdRow(t("rowOpeningDebt"), prevDebt),
+      fwdRow(t("rowRateOnDebt"), y.map((_, i) => at("r_debt", i) / 100), "rate"),
+      fwdRow(t("rowInterestExpense"), y.map((r) => r.interest_exp ?? 0), "outflow", true),
     ],
     revolver: [
-      fwdRow("Draw / (repay)", y.map((r) => r.revolver_draw ?? 0)),
-      fwdRow("Closing revolver", y.map((r) => r.revolver ?? 0), undefined, true),
-      fwdRow("Closing cash", y.map((r) => r.cash ?? 0)),
+      fwdRow(t("rowDrawRepay"), y.map((r) => r.revolver_draw ?? 0)),
+      fwdRow(t("rowClosingRevolver"), y.map((r) => r.revolver ?? 0), undefined, true),
+      fwdRow(t("rowClosingCash"), y.map((r) => r.cash ?? 0)),
     ],
+  };
   };
 }
 
@@ -354,43 +397,76 @@ export function StatementsStep() {
 function Statements() {
   const { label: mu, money } = useMoney();
   const { result: res, assumptions, source, histLabels, fwdLabels: fwd } = useForecast();
+  const t = useTranslations("forecast");
+  const x = useTranslations("export");
+  const fiscalText = useTranslations("fiscal");
+  const statementTables = useStatementTables();
+  const scheduleTables = useScheduleTables();
   if (!res) return null;
-  const cols = [histLabels.at(-1) ?? "LTM", ...fwd];
+  const tables = statementTables(res);
+  const schedules = scheduleTables(res, assumptions);
+  const cols = [histLabels.at(-1) ?? fiscalText("ltm"), ...fwd];
   const last = res.years.at(-1);
   const maxGap = Math.max(0, ...res.forecast_balance_gaps.map(Math.abs));
-  const t = statementTables(res);
-  const s = scheduleTables(res, assumptions);
-  const company = source.kind === "edgar" ? source.ticker : "sample";
+  const company = source.kind === "edgar" ? source.ticker : t("sampleCompany");
   const everything = () => [
-    tableSheet("Income statement", cols, t.income),
-    tableSheet("Balance sheet", cols, t.balance),
-    tableSheet("Cash flow", cols, t.cash),
-    tableSheet("PP&E", fwd, s.ppe),
-    tableSheet("Retained earnings", fwd, s.retained),
-    tableSheet("Working capital", fwd, s.workingCapital),
-    tableSheet("Interest", fwd, s.interest),
-    tableSheet("Revolver", fwd, s.revolver),
+    tableSheet(x("sheetIncomeStatement"), cols, tables.income),
+    tableSheet(x("sheetBalanceSheet"), cols, tables.balance),
+    tableSheet(x("sheetCashFlow"), cols, tables.cash),
+    tableSheet(x("sheetPpe"), fwd, schedules.ppe),
+    tableSheet(x("sheetRetainedEarnings"), fwd, schedules.retained),
+    tableSheet(x("sheetWorkingCapital"), fwd, schedules.workingCapital),
+    tableSheet(x("sheetInterest"), fwd, schedules.interest),
+    tableSheet(x("sheetRevolver"), fwd, schedules.revolver),
   ];
+  const lastCol = cols.at(-1) ?? "";
   return (
     <Tiles>
-      <Kpi title={`Revenue ${cols.at(-1)}`} value={fmtMoney(last?.revenue)} sub={`CAGR ${fmtRate(res.revenue_cagr)}`} lead />
-      <Kpi title={`EBITDA ${cols.at(-1)}`} value={fmtMoney(last?.ebitda)} sub={`margin ${fmtRate(last?.ebitda_margin)}`} />
-      <Kpi title={`Net income ${cols.at(-1)}`} value={fmtMoney(last?.net_income)} sub={`margin ${fmtRate(last?.net_margin)}`} />
-      <Kpi title={`Cash ${cols.at(-1)}`} value={fmtMoney(last?.cash)} sub={mu} />
-      <Kpi title="Balance sheet" value={res.balanced ? "Balances" : "Doesn't balance"} sub={`largest gap ${fmtMoney(maxGap)} ${mu}`} tone={res.balanced ? "gain" : "loss"} />
-      <Kpi title="Opening gap" value={fmtMoney(res.opening_balance_gap)} sub={`in the historicals, ${mu}`} tone={Math.abs(res.opening_balance_gap) > 0.5 ? "attention" : undefined} />
+      <Kpi title={t("kpiRevenue", { year: lastCol })} value={fmtMoney(last?.revenue)} sub={t("cagrSub", { cagr: fmtRate(res.revenue_cagr) })} lead />
+      <Kpi title={t("kpiEbitda", { year: lastCol })} value={fmtMoney(last?.ebitda)} sub={t("marginSub", { margin: fmtRate(last?.ebitda_margin) })} />
+      <Kpi title={t("kpiNetIncome", { year: lastCol })} value={fmtMoney(last?.net_income)} sub={t("marginSub", { margin: fmtRate(last?.net_margin) })} />
+      <Kpi title={t("kpiCash", { year: lastCol })} value={fmtMoney(last?.cash)} sub={mu} />
+      <Kpi
+        title={t("kpiBalanceSheet")}
+        value={res.balanced ? t("balances") : t("doesntBalance")}
+        sub={t("largestGap", { gap: fmtMoney(maxGap), money: mu })}
+        tone={res.balanced ? "gain" : "loss"}
+      />
+      <Kpi
+        title={t("kpiOpeningGap")}
+        value={fmtMoney(res.opening_balance_gap)}
+        sub={t("openingGapSub", { money: mu })}
+        tone={Math.abs(res.opening_balance_gap) > 0.5 ? "attention" : undefined}
+      />
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
-        <p className="type-body">The three statements and every supporting schedule in one workbook.</p>
-        <DownloadButton label="3-statement model" onDownload={() => downloadWorkbook(`${company}_3statement_model.xlsx`, everything(), money)} />
+        <p className="type-body">{t("modelNote")}</p>
+        <DownloadButton label={t("modelDownload")} onDownload={() => downloadWorkbook(x("fileThreeStatement", { company }), everything(), money)} />
       </div>
-      <Tile span={12} title="Income statement" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("income_statement.xlsx", [tableSheet("Income statement", cols, t.income)], money)} />}>
-        <DataTable caption="Forecast income statement" columns={cols} rows={t.income} />
+      <Tile
+        span={12}
+        title={t("tileIncomeStatement")}
+        unit={mu}
+        action={
+          <DownloadButton onDownload={() => downloadWorkbook(x("fileIncomeStatement"), [tableSheet(x("sheetIncomeStatement"), cols, tables.income)], money)} />
+        }
+      >
+        <DataTable caption={t("chartIncomeStatement")} columns={cols} rows={tables.income} />
       </Tile>
-      <Tile span={6} title="Balance sheet" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("balance_sheet.xlsx", [tableSheet("Balance sheet", cols, t.balance)], money)} />}>
-        <DataTable caption="Forecast balance sheet" columns={cols} rows={t.balance} />
+      <Tile
+        span={6}
+        title={t("tileBalanceSheet")}
+        unit={mu}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileBalanceSheet"), [tableSheet(x("sheetBalanceSheet"), cols, tables.balance)], money)} />}
+      >
+        <DataTable caption={t("chartBalanceSheet")} columns={cols} rows={tables.balance} />
       </Tile>
-      <Tile span={6} title="Cash flow" unit={mu} action={<DownloadButton onDownload={() => downloadWorkbook("cash_flow.xlsx", [tableSheet("Cash flow", cols, t.cash)], money)} />}>
-        <DataTable caption="Forecast cash flow" columns={cols} rows={t.cash} />
+      <Tile
+        span={6}
+        title={t("tileCashFlow")}
+        unit={mu}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileForecastCashFlow"), [tableSheet(x("sheetCashFlow"), cols, tables.cash)], money)} />}
+      >
+        <DataTable caption={t("chartCashFlow")} columns={cols} rows={tables.cash} />
       </Tile>
     </Tiles>
   );
@@ -407,54 +483,58 @@ export function SchedulesStep() {
 function Schedules() {
   const { label: mu, money } = useMoney();
   const { result: res, assumptions, fwdLabels: fwd } = useForecast();
+  const t = useTranslations("forecast");
+  const x = useTranslations("export");
+  const scheduleTables = useScheduleTables();
   if (!res) return null;
   const s = scheduleTables(res, assumptions);
   const y = res.years.at(-1);
   const bridge = y
     ? [
-        { label: "EBITDA", value: y.ebitda ?? 0, isTotal: true },
-        { label: "D&A", value: (y.ebit ?? 0) - (y.ebitda ?? 0), isTotal: false },
-        { label: "Int. income", value: y.interest_inc ?? 0, isTotal: false },
-        { label: "Int. expense", value: y.interest_exp ?? 0, isTotal: false },
-        { label: "Other", value: (y.pretax ?? 0) - (y.ebit ?? 0) - (y.interest_inc ?? 0) - (y.interest_exp ?? 0), isTotal: false },
-        { label: "Taxes", value: (y.net_income ?? 0) - (y.pretax ?? 0), isTotal: false },
-        { label: "Net income", value: y.net_income ?? 0, isTotal: true },
+        { label: t("bridgeEbitda"), value: y.ebitda ?? 0, isTotal: true },
+        { label: t("bridgeDa"), value: (y.ebit ?? 0) - (y.ebitda ?? 0), isTotal: false },
+        { label: t("bridgeIntIncome"), value: y.interest_inc ?? 0, isTotal: false },
+        { label: t("bridgeIntExpense"), value: y.interest_exp ?? 0, isTotal: false },
+        { label: t("bridgeOther"), value: (y.pretax ?? 0) - (y.ebit ?? 0) - (y.interest_inc ?? 0) - (y.interest_exp ?? 0), isTotal: false },
+        { label: t("bridgeTaxes"), value: (y.net_income ?? 0) - (y.pretax ?? 0), isTotal: false },
+        { label: t("bridgeNetIncome"), value: y.net_income ?? 0, isTotal: true },
       ]
     : [];
   const all = () => [
-    tableSheet("PP&E", fwd, s.ppe),
-    tableSheet("Retained earnings", fwd, s.retained),
-    tableSheet("Working capital", fwd, s.workingCapital),
-    tableSheet("Interest", fwd, s.interest),
-    tableSheet("Revolver", fwd, s.revolver),
+    tableSheet(x("sheetPpe"), fwd, s.ppe),
+    tableSheet(x("sheetRetainedEarnings"), fwd, s.retained),
+    tableSheet(x("sheetWorkingCapital"), fwd, s.workingCapital),
+    tableSheet(x("sheetInterest"), fwd, s.interest),
+    tableSheet(x("sheetRevolver"), fwd, s.revolver),
   ];
+  const lastFwd = fwd.at(-1) ?? "";
   return (
     <Tiles>
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
-        <p className="type-body">Each schedule is derived from the statements, so it ties to them exactly.</p>
-        <DownloadButton label="All schedules" onDownload={() => downloadWorkbook("supporting_schedules.xlsx", all(), money)} />
+        <p className="type-body">{t("schedulesNote")}</p>
+        <DownloadButton label={t("allSchedules")} onDownload={() => downloadWorkbook(x("fileSchedules"), all(), money)} />
       </div>
-      <Tile span={6} title="PP&E roll-forward" unit={mu}>
-        <DataTable caption="PP&E roll-forward" columns={fwd} rows={s.ppe} />
+      <Tile span={6} title={t("tilePpe")} unit={mu}>
+        <DataTable caption={t("chartPpe")} columns={fwd} rows={s.ppe} />
       </Tile>
-      <Tile span={6} title="Retained earnings" unit={mu}>
-        <DataTable caption="Retained earnings roll-forward" columns={fwd} rows={s.retained} />
+      <Tile span={6} title={t("tileRetained")} unit={mu}>
+        <DataTable caption={t("chartRetained")} columns={fwd} rows={s.retained} />
       </Tile>
-      <Tile span={6} title="Working capital" unit={mu}>
-        <DataTable caption="Working capital schedule" columns={fwd} rows={s.workingCapital} />
+      <Tile span={6} title={t("tileWorkingCapital")} unit={mu}>
+        <DataTable caption={t("chartWorkingCapital")} columns={fwd} rows={s.workingCapital} />
         <p className="font-mono text-[10.5px] text-muted">
-          Cash conversion cycle {s.cycleDays.map((d) => (Number.isFinite(d) ? `${fmtNumber(d, 0)}d` : "n/a")).join(" · ")}
+          {t("cycleDays", { days: s.cycleDays.map((d) => (Number.isFinite(d) ? `${fmtNumber(d, 0)}d` : fmtNumber(null))).join(" · ") })}
         </p>
       </Tile>
-      <Tile span={6} title="Interest" unit={mu}>
-        <DataTable caption="Interest schedule" columns={fwd} rows={s.interest} />
+      <Tile span={6} title={t("tileInterest")} unit={mu}>
+        <DataTable caption={t("chartInterest")} columns={fwd} rows={s.interest} />
       </Tile>
-      <Tile span={6} title="Revolver" unit={`model plug, ${mu}`}>
-        <DataTable caption="Revolver schedule" columns={fwd} rows={s.revolver} />
-        <p className="type-body text-[9px]">The revolver draws when closing cash would fall below the minimum cash balance.</p>
+      <Tile span={6} title={t("tileRevolver")} unit={t("modelPlug", { money: mu })}>
+        <DataTable caption={t("chartRevolver")} columns={fwd} rows={s.revolver} />
+        <p className="type-body text-[9px]">{t("revolverNote")}</p>
       </Tile>
-      <Tile span={6} title={`EBITDA to net income, ${fwd.at(-1)}`} unit={mu}>
-        <Waterfall label={`EBITDA to net income bridge for ${fwd.at(-1)}`} steps={bridge} />
+      <Tile span={6} title={t("tileBridge", { year: lastFwd })} unit={mu}>
+        <Waterfall label={t("chartBridge", { year: lastFwd })} steps={bridge} />
       </Tile>
     </Tiles>
   );
@@ -471,11 +551,13 @@ export function SimulationStep() {
 function Simulation() {
   const { label: mu, money } = useMoney();
   const { result: res, simPaths, fwdLabels: cols } = useForecast();
+  const t = useTranslations("forecast");
+  const x = useTranslations("export");
   const sim = res?.simulation;
-  if (!res || !sim) return <EmptyState title="No simulation">The forecast ran without a simulation.</EmptyState>;
+  if (!res || !sim) return <EmptyState title={t("noSimulation")}>{t("noSimulationBody")}</EmptyState>;
   const fan = (b: typeof sim.revenue_bands, det: number[], name: string) => (
     <LineChart
-      label={`${name} simulation fan`}
+      label={t("chartFan", { name })}
       xLabels={cols}
       yFormat={(v) => fmtNumber(v, 0)}
       bands={[
@@ -483,63 +565,88 @@ function Simulation() {
         { lower: b.p25, upper: b.p75, color: "var(--color-accent)", opacity: 0.28 },
       ]}
       lines={[
-        { name: "P50", values: b.p50, color: "var(--color-accent)" },
-        { name: "Plan", values: det, color: "var(--color-muted)", dashed: true, width: 1.5 },
+        { name: t("seriesP50"), values: b.p50, color: "var(--color-accent)" },
+        { name: t("seriesPlan"), values: det, color: "var(--color-muted)", dashed: true, width: 1.5 },
       ]}
     />
   );
+  const lastCol = cols.at(-1) ?? "";
+  // i18n-keys: forecast.case*
+  const caseKey = (scenario: string) => (scenario === "Bull" ? "caseBull" : scenario === "Bear" ? "caseBear" : "caseBase");
   return (
     <Tiles>
-      <Kpi title={`Revenue ${cols.at(-1)}`} value={fmtMoney(sim.revenue_final.median)} sub={`plan ${fmtMoney(sim.revenue_final.deterministic)} ${mu}`} lead />
-      <Kpi title="Revenue P5 / P95" value={fmtMoney(sim.revenue_final.p5)} sub={`to ${fmtMoney(sim.revenue_final.p95)} ${mu}`} />
-      <Kpi title={`EBITDA ${cols.at(-1)}`} value={fmtMoney(sim.ebitda_final.median)} sub={`plan ${fmtMoney(sim.ebitda_final.deterministic)} ${mu}`} />
-      <Kpi title="EBITDA P5 / P95" value={fmtMoney(sim.ebitda_final.p5)} sub={`to ${fmtMoney(sim.ebitda_final.p95)} ${mu}`} />
-      <Kpi title="Simulated growth" value={fmtRate(sim.growth_final_mean)} sub="mean, final year" />
-      <Kpi title="Paths" value={fmtCount(sim.n)} sub={`requested ${fmtCount(simPaths)}`} />
+      <Kpi
+        title={t("kpiRevenue", { year: lastCol })}
+        value={fmtMoney(sim.revenue_final.median)}
+        sub={t("planSub", { value: fmtMoney(sim.revenue_final.deterministic), money: mu })}
+        lead
+      />
+      <Kpi title={t("kpiRevenueRange")} value={fmtMoney(sim.revenue_final.p5)} sub={t("toValue", { value: fmtMoney(sim.revenue_final.p95), money: mu })} />
+      <Kpi
+        title={t("kpiEbitda", { year: lastCol })}
+        value={fmtMoney(sim.ebitda_final.median)}
+        sub={t("planSub", { value: fmtMoney(sim.ebitda_final.deterministic), money: mu })}
+      />
+      <Kpi title={t("kpiEbitdaRange")} value={fmtMoney(sim.ebitda_final.p5)} sub={t("toValue", { value: fmtMoney(sim.ebitda_final.p95), money: mu })} />
+      <Kpi title={t("kpiSimulatedGrowth")} value={fmtRate(sim.growth_final_mean)} sub={t("meanFinalYear")} />
+      <Kpi title={t("kpiPaths")} value={fmtCount(sim.n)} sub={t("requestedSub", { count: fmtCount(simPaths) })} />
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
-        <p className="type-body">Percentile bands for revenue and EBITDA each year, and the target probabilities.</p>
+        <p className="type-body">{t("simulationNote")}</p>
         <DownloadButton
           onDownload={() =>
-            downloadWorkbook("simulation_results.xlsx", [
-              sheet("Revenue bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.revenue_bands[q]]), {
-                columns: ["text", ...cols.map(() => "money" as const)],
-              }),
-              sheet("EBITDA bands", ["Percentile", ...cols], (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.ebitda_bands[q]]), {
-                columns: ["text", ...cols.map(() => "money" as const)],
-              }),
-              sheet("Targets", [`EBITDA target (${mu})`, "Probability", "Case"], sim.target_probabilities.map((t) => [t.target, t.probability, t.scenario]), {
-                columns: ["money", "percent", "text"],
-              }),
-            ], money)
+            downloadWorkbook(
+              x("fileSimulation"),
+              [
+                sheet(
+                  x("sheetRevenueBands"),
+                  [x("colPercentile"), ...cols],
+                  (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.revenue_bands[q]]),
+                  { columns: ["text", ...cols.map(() => "money" as const)] },
+                ),
+                sheet(
+                  x("sheetEbitdaBands"),
+                  [x("colPercentile"), ...cols],
+                  (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.ebitda_bands[q]]),
+                  { columns: ["text", ...cols.map(() => "money" as const)] },
+                ),
+                sheet(
+                  x("sheetTargets"),
+                  [x("colEbitdaTarget", { money: mu }), x("colProbability"), x("colCase")],
+                  sim.target_probabilities.map((p) => [p.target, p.probability, t(caseKey(p.scenario))]),
+                  { columns: ["money", "percent", "text"] },
+                ),
+              ],
+              money,
+            )
           }
         />
       </div>
-      <Tile span={6} title="Revenue fan" unit={`${mu} · P5-P95, P25-P75, median, plan`}>
-        {fan(sim.revenue_bands, res.years.map((y) => y.revenue ?? NaN), "Revenue")}
+      <Tile span={6} title={t("tileRevenueFan")} unit={t("fanUnit", { money: mu })}>
+        {fan(sim.revenue_bands, res.years.map((y) => y.revenue ?? NaN), t("seriesRevenue"))}
       </Tile>
-      <Tile span={6} title="EBITDA fan" unit={`${mu} · P5-P95, P25-P75, median, plan`}>
-        {fan(sim.ebitda_bands, res.years.map((y) => y.ebitda ?? NaN), "EBITDA")}
+      <Tile span={6} title={t("tileEbitdaFan")} unit={t("fanUnit", { money: mu })}>
+        {fan(sim.ebitda_bands, res.years.map((y) => y.ebitda ?? NaN), t("seriesEbitda"))}
       </Tile>
-      <Tile span={12} title={`Chance of reaching EBITDA in ${cols.at(-1)}`} unit="share of paths at or above target">
+      <Tile span={12} title={t("tileTargets", { year: lastCol })} unit={t("targetsUnit")}>
         <table className="w-full border-collapse font-mono text-[11.5px]">
           <tbody>
-            {sim.target_probabilities.map((t) => (
-              <tr key={t.target}>
-                <th scope="row" className="w-48 border-b border-grid py-1.5 text-left font-normal text-ink">
-                  {fmtMoney(t.target)} {mu}{" "}
-                  <span className={`chip ml-1 ${t.scenario === "Bull" ? "text-gain" : t.scenario === "Bear" ? "text-loss" : "text-dim"}`}>
-                    {t.scenario.toLowerCase()}
+            {sim.target_probabilities.map((p) => (
+              <tr key={p.target}>
+                <th scope="row" className="w-48 border-b border-grid py-1.5 text-start font-normal text-ink">
+                  {fmtMoney(p.target)} {mu}{" "}
+                  <span className={`chip ms-1 ${p.scenario === "Bull" ? "text-gain" : p.scenario === "Bear" ? "text-loss" : "text-dim"}`}>
+                    {t(caseKey(p.scenario))}
                   </span>
                 </th>
                 <td className="border-b border-grid py-1.5">
-                  <div className="h-3 bg-accent" style={{ width: `${Math.max(0.5, t.probability * 100)}%`, opacity: 0.35 + 0.65 * t.probability }} />
+                  <div className="h-3 bg-accent" style={{ width: `${Math.max(0.5, p.probability * 100)}%`, opacity: 0.35 + 0.65 * p.probability }} />
                 </td>
-                <td className="w-20 border-b border-grid py-1.5 text-right text-bright">{fmtRate(t.probability)}</td>
+                <td className="w-20 border-b border-grid py-1.5 text-end text-bright">{fmtRate(p.probability)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className="type-body text-[9px]">Targets run from 80% to 120% of plan EBITDA: above plan is the bull case, below plan the bear case.</p>
+        <p className="type-body text-[9px]">{t("targetsNote")}</p>
       </Tile>
     </Tiles>
   );

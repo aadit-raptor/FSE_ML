@@ -5,19 +5,19 @@ import { useId, useRef, useState } from "react";
 import { fmtInput } from "@/lib/format";
 import { parseNumber } from "@/lib/locale";
 import { validate, type FieldSpec } from "@/lib/fields";
-import { fieldUnit } from "@/lib/money";
+import { useFieldProblem, useUnitLabel } from "@/lib/i18n/useFieldText";
 
 import { useMoney } from "./MoneyScope";
 
 type Props = {
   spec: FieldSpec;
+  /** The visible label, from the translation files (PLAN.md 2.3b) */
+  label: string;
   value: number;
   onCommit: (value: number) => void;
   disabled?: boolean;
   /** Edited since the last model run */
   changed?: boolean;
-  /** Override the label from the spec */
-  label?: string;
 };
 
 /**
@@ -27,13 +27,15 @@ type Props = {
  * reflect a half-typed number (typing "20" into Hold must not run hold 2).
  * Arrow up/down step by spec.step.
  */
-export function NumberField({ spec, value, onCommit, disabled, changed, label }: Props) {
+export function NumberField({ spec, label, value, onCommit, disabled, changed }: Props) {
   const id = useId();
   const { money } = useMoney();
+  const problemText = useFieldProblem();
+  const unitLabel = useUnitLabel();
   const [draft, setDraft] = useState<string | null>(null);
   const beforeEdit = useRef(value);
   const shown = draft ?? fmtInput(value, spec.decimals);
-  const error = draft === null ? null : validate(spec, parseNumber(draft));
+  const error = draft === null ? null : problemText(validate(spec, parseNumber(draft)));
 
   const commitText = (text: string) => {
     setDraft(text);
@@ -56,7 +58,7 @@ export function NumberField({ spec, value, onCommit, disabled, changed, label }:
     <div className="grid gap-0.5 py-px">
       <div className="grid grid-cols-[1fr_68px_minmax(24px,auto)] items-center gap-1.5">
         <label htmlFor={id} className={`type-input-label ${disabled ? "opacity-45" : ""}`}>
-          {label ?? spec.label}
+          {label}
         </label>
         <input
           id={id}
@@ -79,14 +81,14 @@ export function NumberField({ spec, value, onCommit, disabled, changed, label }:
               nudge(e.key === "ArrowUp" ? 1 : -1);
             }
           }}
-          className={`border bg-field px-1.5 py-0.5 text-right font-mono text-[11.5px] outline-none focus:border-accent disabled:opacity-45 ${
+          className={`border bg-field px-1.5 py-0.5 text-end font-mono text-[11.5px] outline-none focus:border-accent disabled:opacity-45 ${
             error ? "border-loss text-loss" : changed ? "border-attention text-attention" : "border-line text-ink"
           }`}
         />
-        <span className={`font-mono text-[10px] text-[#56636a] ${disabled ? "opacity-45" : ""}`}>{fieldUnit(spec.unit, money)}</span>
+        <span className={`font-mono text-[10px] text-[#56636a] ${disabled ? "opacity-45" : ""}`}>{unitLabel(spec.unit, money)}</span>
       </div>
       {error && (
-        <p id={`${id}-err`} className="text-right font-mono text-[10px] text-loss">
+        <p id={`${id}-err`} className="text-end font-mono text-[10px] text-loss">
           {error}
         </p>
       )}

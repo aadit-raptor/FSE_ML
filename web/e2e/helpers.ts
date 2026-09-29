@@ -47,6 +47,33 @@ export async function simulationSettled(page: Page) {
   await expect(page.getByText("Running simulation")).toHaveCount(0, { timeout: 45_000 });
 }
 
+export type Grouping = "locale" | "thousands" | "lakh";
+
+/**
+ * Sign in as a development user of this account's own, and give it a locale.
+ * The locale chooses the number and date format (PLAN.md 2.3a) and the
+ * interface language and its direction (PLAN.md 2.3b), so a spec that wants
+ * one of those signs in with its own user and never touches the shared e2e
+ * account.
+ */
+export async function signInAs(page: Page, user: string, locale: string, grouping: Grouping = "locale") {
+  await page.goto("/sign-in");
+  await page.getByLabel("Development user").fill(user);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/(deal|account)/);
+  await page.goto("/account");
+  await page.getByLabel("Country").selectOption(locale.slice(-2));
+  await page.getByLabel("Currency").selectOption("USD");
+  await page.getByLabel("Number and date format").fill(locale);
+  await page.getByLabel("Digit grouping").selectOption(grouping);
+  await page.getByLabel("Time zone").selectOption("Europe/London");
+  const saved = page.waitForResponse((r) => r.url().endsWith("/api/account") && r.request().method() === "POST" && r.ok());
+  await page.getByRole("button", { name: /^Save/ }).click();
+  await saved;
+  // Settings live on the account: start from the defaults
+  await page.request.put("/api/account/settings", { data: { settings: {} }, headers: await asUser(page) });
+}
+
 /** Where the signed-in browser state from e2e/auth.setup.ts is kept. */
 export const SIGNED_IN_STATE = "e2e/.auth/signed-in.json";
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -12,8 +13,9 @@ import { DIGIT_GROUPINGS, type DigitGrouping, formatNumber, LOCALE_SUGGESTIONS }
 /**
  * The account screen (PLAN.md 1.4): who is signed in, and the answers every
  * figure in the app depends on -- country, currency, locale, time zone and
- * (PLAN.md 2.3a) how long numbers are grouped. A new account is sent here by the shell and can't reach the deal
- * screens until it has answered.
+ * (PLAN.md 2.3a) how long numbers are grouped. The locale also chooses the
+ * interface language and its direction (PLAN.md 2.3b). A new account is sent
+ * here by the shell and can't reach the deal screens until it has answered.
  *
  * The lists come from the browser's own CLDR data (Intl), not a list of
  * "supported" countries: any country and any currency must work (PLAN.md
@@ -22,6 +24,8 @@ import { DIGIT_GROUPINGS, type DigitGrouping, formatNumber, LOCALE_SUGGESTIONS }
 
 const FALLBACK_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CNY", "INR", "BRL", "ZAR", "AUD", "CAD"];
 const FALLBACK_ZONES = ["UTC", "Europe/London", "America/New_York", "Asia/Tokyo", "Asia/Kolkata"];
+
+const FIELD = "border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent";
 
 function supportedValues(key: "currency" | "timeZone", fallback: string[]): string[] {
   const intl = Intl as typeof Intl & { supportedValuesOf?: (k: string) => string[] };
@@ -65,7 +69,7 @@ function suggested(): Profile {
   }
   return {
     country: region,
-    preferred_currency: "",  // no browser answer for this: the account chooses
+    preferred_currency: "", // no browser answer for this: the account chooses
     locale: language,
     time_zone: resolved.timeZone || "UTC",
     digit_grouping: "locale",
@@ -75,6 +79,8 @@ function suggested(): Profile {
 export function AccountScreen() {
   const { label, mode, signOut } = useSession();
   const { profile, subject, loaded, needsProfile, save, error } = useProfile();
+  const t = useTranslations("account");
+  const localeText = useTranslations("locale");
   const router = useRouter();
 
   // Edits sit on top of what the account already has (or, for a new account,
@@ -91,7 +97,9 @@ export function AccountScreen() {
   if (!loaded) {
     return (
       <div className="grid h-full place-items-center">
-        <p className="type-step" role="status">Loading your account</p>
+        <p className="type-step" role="status">
+          {t("loading")}
+        </p>
       </div>
     );
   }
@@ -108,56 +116,46 @@ export function AccountScreen() {
   return (
     <div className="grid max-w-[720px] content-start gap-4 p-6">
       <div className="grid gap-1.5">
-        <h1 className="type-result-title text-[14px]">{first ? "Finish setting up your account" : "Account"}</h1>
-        <p className="type-body">
-          {first
-            ? "Every figure in the app is shown in your currency, your number format and your time zone, and defaults are chosen for where you work. Tell us once; you can change it here any time."
-            : "How figures are shown, and which defaults you start from."}
-        </p>
+        <h1 className="type-result-title text-[14px]">{first ? t("firstTitle") : t("title")}</h1>
+        <p className="type-body">{first ? t("firstIntro") : t("intro")}</p>
       </div>
 
       {error && (
-        <Notice tone="loss" title="Not saved" role="alert">
+        <Notice tone="loss" title={t("notSaved")} role="alert">
           {error}
         </Notice>
       )}
 
       <dl className="grid grid-cols-[120px_1fr] gap-x-4 gap-y-1 border border-line bg-panel px-3 py-2.5">
-        <dt className="type-input-group">Signed in as</dt>
-        <dd className="font-mono text-[11px] text-ink" data-account="label">{label ?? "—"}</dd>
-        <dt className="type-input-group">Account id</dt>
-        <dd className="font-mono text-[11px] text-muted" data-account="subject">{subject ?? "—"}</dd>
-        <dt className="type-input-group">Sign-in</dt>
-        <dd className="font-mono text-[11px] text-muted">{mode === "clerk" ? "Clerk" : "Development (local only)"}</dd>
+        <dt className="type-input-group">{t("signedInAs")}</dt>
+        <dd className="font-mono text-[11px] text-ink" data-account="label">
+          {label ?? t("unknown")}
+        </dd>
+        <dt className="type-input-group">{t("accountId")}</dt>
+        <dd className="font-mono text-[11px] text-muted" data-account="subject">
+          {subject ?? t("unknown")}
+        </dd>
+        <dt className="type-input-group">{t("signInMethod")}</dt>
+        <dd className="font-mono text-[11px] text-muted">{mode === "clerk" ? t("signInClerk") : t("signInDev")}</dd>
       </dl>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="grid gap-1.5">
-          <span className="type-input-group">Country</span>
-          <select
-            aria-label="Country"
-            value={draft.country}
-            onChange={(e) => set("country")(e.target.value)}
-            className="border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
-          >
-            <option value="">Choose a country</option>
+          <span className="type-input-group">{t("country")}</span>
+          <select aria-label={t("country")} value={draft.country} onChange={(e) => set("country")(e.target.value)} className={FIELD}>
+            <option value="">{t("chooseCountry")}</option>
             {countryList.map((c) => (
               <option key={c.code} value={c.code}>
-                {c.name} ({c.code})
+                {t("countryOption", { name: c.name, code: c.code })}
               </option>
             ))}
           </select>
         </label>
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">Currency</span>
-          <select
-            aria-label="Currency"
-            value={draft.preferred_currency}
-            onChange={(e) => set("preferred_currency")(e.target.value)}
-            className="border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
-          >
-            <option value="">Choose a currency</option>
+          <span className="type-input-group">{t("currency")}</span>
+          <select aria-label={t("currency")} value={draft.preferred_currency} onChange={(e) => set("preferred_currency")(e.target.value)} className={FIELD}>
+            <option value="">{t("chooseCurrency")}</option>
             {currencyList.map((code) => (
               <option key={code} value={code}>
                 {code}
@@ -167,14 +165,14 @@ export function AccountScreen() {
         </label>
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">Number and date format</span>
+          <span className="type-input-group">{t("numberFormat")}</span>
           <input
-            aria-label="Number and date format"
+            aria-label={t("numberFormat")}
             list="locale-options"
             value={draft.locale}
             autoComplete="off"
             onChange={(e) => set("locale")(e.target.value)}
-            className="border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
+            className={FIELD}
           />
           <datalist id="locale-options">
             {(typeof navigator === "undefined" ? [] : navigator.languages).map((tag) => (
@@ -187,32 +185,25 @@ export function AccountScreen() {
         </label>
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">Digit grouping</span>
+          <span className="type-input-group">{t("digitGrouping")}</span>
           <select
-            aria-label="Digit grouping"
+            aria-label={t("digitGrouping")}
             value={draft.digit_grouping}
             onChange={(e) => set("digit_grouping")(e.target.value as DigitGrouping)}
-            className="border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
+            className={FIELD}
           >
             {DIGIT_GROUPINGS.map((g) => (
               <option key={g.value} value={g.value}>
-                {g.label} · {groupingExample(draft.locale, g.value)}
+                {t("groupingOption", { label: localeText(g.labelKey), example: groupingExample(draft.locale, g.value) })}
               </option>
             ))}
           </select>
         </label>
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">Time zone</span>
-          <select
-            aria-label="Time zone"
-            value={draft.time_zone}
-            onChange={(e) => set("time_zone")(e.target.value)}
-            className="border border-line bg-field px-2 py-1.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
-          >
-            {!zoneList.includes(draft.time_zone) && draft.time_zone && (
-              <option value={draft.time_zone}>{draft.time_zone}</option>
-            )}
+          <span className="type-input-group">{t("timeZone")}</span>
+          <select aria-label={t("timeZone")} value={draft.time_zone} onChange={(e) => set("time_zone")(e.target.value)} className={FIELD}>
+            {!zoneList.includes(draft.time_zone) && draft.time_zone && <option value={draft.time_zone}>{draft.time_zone}</option>}
             {zoneList.map((zone) => (
               <option key={zone} value={zone}>
                 {zone}
@@ -224,9 +215,9 @@ export function AccountScreen() {
 
       <p className="type-body" data-account="preview">
         {/* Proof the answers are in use: the same amount, shown their way */}
-        {`1,234,567.89 in ${draft.preferred_currency || "your currency"} reads `}
-        <b className="font-mono text-ink">{formatExample(draft)}</b>
-        {` · today is ${formatToday(draft)}`}
+        {t("previewAmount", { currency: draft.preferred_currency || t("previewYourCurrency") })}
+        <b className="font-mono text-ink">{formatExample(draft, t("unknown"))}</b>
+        {t("previewToday", { today: formatToday(draft, t("unknown")) })}
       </p>
 
       <div className="flex items-center gap-3">
@@ -244,27 +235,27 @@ export function AccountScreen() {
             if (result.ok && first) router.replace(AFTER_SIGN_IN);
           }}
         >
-          {saving ? "Saving" : first ? "Save and start" : "Save"}
+          {saving ? t("saving") : first ? t("saveAndStart") : t("save")}
         </PrimaryButton>
         {saved && (
           <span role="status" className="font-mono text-[10px] text-gain" data-account="saved">
-            Saved
+            {t("saved")}
           </span>
         )}
         <div className="flex-1" />
-        <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
+        <SecondaryButton onClick={() => void signOut()}>{t("signOut")}</SecondaryButton>
       </div>
     </div>
   );
 }
 
-function formatExample(draft: Profile): string {
-  if (!draft.preferred_currency || !draft.locale) return "—";
+function formatExample(draft: Profile, unknown: string): string {
+  if (!draft.preferred_currency || !draft.locale) return unknown;
   try {
     const style = { locale: draft.locale, grouping: draft.digit_grouping };
     return formatNumber(1234567.89, { currency: draft.preferred_currency }, style);
   } catch {
-    return "—";
+    return unknown;
   }
 }
 
@@ -277,11 +268,10 @@ function groupingExample(locale: string, grouping: DigitGrouping): string {
   }
 }
 
-function formatToday(draft: Profile): string {
+function formatToday(draft: Profile, unknown: string): string {
   try {
-    return new Intl.DateTimeFormat(draft.locale, { dateStyle: "medium", timeZone: draft.time_zone })
-      .format(new Date());
+    return new Intl.DateTimeFormat(draft.locale, { dateStyle: "medium", timeZone: draft.time_zone }).format(new Date());
   } catch {
-    return "—";
+    return unknown;
   }
 }

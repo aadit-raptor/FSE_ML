@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -14,6 +15,8 @@ import { isPublicRoute } from "@/lib/auth/mode";
 import { setNumberStyle } from "@/lib/locale";
 
 import { CommandSearch } from "./CommandSearch";
+import { DocumentTitle } from "./DocumentTitle";
+import { browserLocale, I18nScope, ProfileI18nScope } from "./I18nScope";
 import { Shortcuts } from "./Shortcuts";
 import { StatusBar } from "./StatusBar";
 import { StepBar } from "./StepBar";
@@ -35,6 +38,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
  * What the visitor sees depends on whether they are signed in (PLAN.md 1.4).
  * Sign-in and sign-up get the bare canvas; everything else waits for a
  * session, so no screen ever starts loading a deal it has no token for.
+ *
+ * Words come from the translation files (PLAN.md 2.3b). Signed out there is no
+ * account to ask, so the browser's own language is used until there is one.
  */
 function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -46,59 +52,78 @@ function Shell({ children }: { children: React.ReactNode }) {
     if (ready && !signedIn && !publicPage) router.replace("/sign-in");
   }, [ready, signedIn, publicPage, router]);
 
-  if (publicPage) {
-    // No mode tabs: signed out, there is nothing behind them to open
+  if (publicPage || !ready || !signedIn) {
     return (
-      <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-        <header className="flex min-h-[42px] flex-none items-center border-b border-line bg-panel px-4">
-          <span className="type-brand">FSE/ML</span>
-        </header>
-        <main id="content" className="min-h-0 flex-1 overflow-auto">
-          {children}
-        </main>
-        <StatusBar />
-      </div>
+      <I18nScope locale={browserLocale()}>
+        {publicPage ? <PublicShell>{children}</PublicShell> : <SessionGate ready={ready} />}
+      </I18nScope>
     );
   }
 
-  if (!ready || !signedIn) {
-    return (
-      <div className="flex h-dvh flex-col items-center justify-center bg-canvas">
-        <p className="type-step" role="status">
-          {ready ? "Taking you to sign-in" : "Checking your session"}
-        </p>
-      </div>
-    );
-  }
-
+  // The outer scope is what `ProfileProvider` itself reads: it reports a
+  // failure to load the account, which has to be said in some language before
+  // the account can say which. `ProfileI18nScope` overrides it as soon as the
+  // profile arrives, and is the one that sets `lang` and `dir`.
   return (
-    <ProfileProvider>
-      <ProfileGate />
-      {/* Model state lives above the routes so it survives switching modes */}
-      <SettingsProvider>
-        <DealProvider>
-          <MonteCarloProvider>
-          <BacktestProvider>
-          <ForecastProvider>
-            <LocaleScope>
-              <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-                <TopBar />
-                <StepBar />
-                <main id="content" className="min-h-0 flex-1 overflow-auto">
-                  {children}
-                </main>
-                <StatusBar />
-              </div>
-            </LocaleScope>
-            {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
-            <CommandSearch />
-            <Shortcuts />
-          </ForecastProvider>
-          </BacktestProvider>
-          </MonteCarloProvider>
-        </DealProvider>
-      </SettingsProvider>
-    </ProfileProvider>
+    <I18nScope locale={browserLocale()} setsDocument={false}>
+      <ProfileProvider>
+        <ProfileI18nScope>
+          <ProfileGate />
+          <DocumentTitle />
+          {/* Model state lives above the routes so it survives switching modes */}
+          <SettingsProvider>
+            <DealProvider>
+              <MonteCarloProvider>
+                <BacktestProvider>
+                  <ForecastProvider>
+                    <LocaleScope>
+                      <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+                        <TopBar />
+                        <StepBar />
+                        <main id="content" className="min-h-0 flex-1 overflow-auto">
+                          {children}
+                        </main>
+                        <StatusBar />
+                      </div>
+                    </LocaleScope>
+                    {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
+                    <CommandSearch />
+                    <Shortcuts />
+                  </ForecastProvider>
+                </BacktestProvider>
+              </MonteCarloProvider>
+            </DealProvider>
+          </SettingsProvider>
+        </ProfileI18nScope>
+      </ProfileProvider>
+    </I18nScope>
+  );
+}
+
+/** Signed out: no mode tabs, because there is nothing behind them to open. */
+function PublicShell({ children }: { children: React.ReactNode }) {
+  const app = useTranslations("app");
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+      <header className="flex min-h-[42px] flex-none items-center border-b border-line bg-panel px-4">
+        <span className="type-brand">{app("brand")}</span>
+      </header>
+      <main id="content" className="min-h-0 flex-1 overflow-auto">
+        {children}
+      </main>
+      <StatusBar />
+    </div>
+  );
+}
+
+function SessionGate({ ready }: { ready: boolean }) {
+  const t = useTranslations("shell");
+  return (
+    <div className="flex h-dvh flex-col items-center justify-center bg-canvas">
+      <p className="type-step" role="status">
+        {ready ? t("goingToSignIn") : t("checkingSession")}
+      </p>
+    </div>
   );
 }
 
@@ -110,12 +135,13 @@ function Shell({ children }: { children: React.ReactNode }) {
  */
 function LocaleScope({ children }: { children: React.ReactNode }) {
   const { profile, loaded } = useProfile();
+  const t = useTranslations("shell");
   setNumberStyle(profile ? { locale: profile.locale, grouping: profile.digit_grouping } : null);
   if (!loaded) {
     return (
       <div className="flex h-dvh flex-col items-center justify-center bg-canvas">
         <p className="type-step" role="status">
-          Loading your account
+          {t("loadingAccount")}
         </p>
       </div>
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { currencyCodes, currencyName, type Money, MONEY_UNITS, type MoneyUnit } from "@/lib/money";
@@ -13,6 +14,7 @@ const SELECT =
  * "Deal currency", "Company money unit".
  */
 export function MoneySelects({ money, onChange, of }: { money: Money; onChange: (money: Money) => void; of: string }) {
+  const t = useTranslations("money");
   const codes = useMemo(() => {
     const all = currencyCodes();
     return all.includes(money.currency) ? all : [money.currency, ...all];
@@ -20,8 +22,8 @@ export function MoneySelects({ money, onChange, of }: { money: Money; onChange: 
   return (
     <>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">Currency</span>
-        <select aria-label={`${of} currency`} value={money.currency} onChange={(e) => onChange({ ...money, currency: e.target.value })} className={SELECT}>
+        <span className="type-input-label">{t("currency")}</span>
+        <select aria-label={t("currencyOf", { of })} value={money.currency} onChange={(e) => onChange({ ...money, currency: e.target.value })} className={SELECT}>
           {codes.map((c) => (
             <option key={c} value={c}>
               {currencyName(c)}
@@ -30,16 +32,16 @@ export function MoneySelects({ money, onChange, of }: { money: Money; onChange: 
         </select>
       </label>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">Amounts in</span>
+        <span className="type-input-label">{t("amountsIn")}</span>
         <select
-          aria-label={`${of} money unit`}
+          aria-label={t("unitOf", { of })}
           value={money.unit}
           onChange={(e) => onChange({ ...money, unit: e.target.value as MoneyUnit })}
           className={SELECT}
         >
           {MONEY_UNITS.map((u) => (
             <option key={u.value} value={u.value}>
-              {u.label}
+              {t(u.labelKey)}
             </option>
           ))}
         </select>

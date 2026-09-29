@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { DivergingBars, RangeRows, Scatter } from "@/components/charts/Bars";
@@ -12,13 +13,13 @@ import { useMoney } from "@/components/ui/MoneyScope";
 import { apiInputs } from "@/lib/deal/fields";
 import { downloadMonteCarloSample, downloadWorkbook, fraction, sheet } from "@/lib/export";
 import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
+import { useEngineLabel } from "@/lib/i18n/useEngineText";
 
 import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
 
 const pct0 = (v: number) => fmtRate(v, 0);
-const count = (share: number | null | undefined, n: number) => (isNum(share) ? fmtCount(share * n) : "n/a");
 
 function useResult() {
   const { run, hurdle } = useMonteCarlo();
@@ -35,38 +36,60 @@ export function DistributionStep() {
 
 function Distribution() {
   const { r, hurdle, ranFor } = useResult();
+  const t = useTranslations("montecarlo");
   const s = r.summary;
   const staleClass = useStaleClass();
   const p = r.params as Record<string, number>;
+  const count = (share: number | null | undefined, n: number) => (isNum(share) ? fmtCount(share * n) : fmtCount(null));
   const assumptions: [string, string][] = [
-    ["Revenue growth", `${fmtRate(p.growth_mean)} ± ${fmtRate(p.growth_std)}`],
-    ["Exit multiple", `${fmtMultiple(p.exit_mean, 1)} ± ${fmtMultiple(p.exit_std, 2)}`],
-    ["Interest rate", `${fmtRate(p.interest_mean, 2)} ± ${fmtRate(p.interest_std, 2)}`],
-    ["Gross margin", `${fmtRate(p.gross_margin_mean)} ± ${fmtRate(p.gross_margin_std)}`],
-    ["Debt / EV, senior share", `${fmtRate(p.debt_pct)}, ${fmtRate(p.senior_pct)}`],
-    ["Fees: transaction, financing", `${fmtRate(p.transaction_fees_pct, 2)}, ${fmtRate(p.financing_fees_pct, 2)}`],
-    ["Opex, D&A, capex, NWC", `${fmtRate(p.opex_pct)}, ${fmtRate(p.da_pct)}, ${fmtRate(p.capex_pct)}, ${fmtRate(p.nwc_pct)}`],
-    ["Tax rate", fmtRate(p.tax_rate)],
+    [t("assumptionGrowth"), t("plusMinus", { mean: fmtRate(p.growth_mean), std: fmtRate(p.growth_std) })],
+    [t("assumptionExit"), t("plusMinus", { mean: fmtMultiple(p.exit_mean, 1), std: fmtMultiple(p.exit_std, 2) })],
+    [t("assumptionRate"), t("plusMinus", { mean: fmtRate(p.interest_mean, 2), std: fmtRate(p.interest_std, 2) })],
+    [t("assumptionMargin"), t("plusMinus", { mean: fmtRate(p.gross_margin_mean), std: fmtRate(p.gross_margin_std) })],
+    [t("assumptionDebt"), t("twoValues", { first: fmtRate(p.debt_pct), second: fmtRate(p.senior_pct) })],
+    [t("assumptionFees"), t("twoValues", { first: fmtRate(p.transaction_fees_pct, 2), second: fmtRate(p.financing_fees_pct, 2) })],
+    [
+      t("assumptionCosts"),
+      t("fourValues", { first: fmtRate(p.opex_pct), second: fmtRate(p.da_pct), third: fmtRate(p.capex_pct), fourth: fmtRate(p.nwc_pct) }),
+    ],
+    [t("assumptionTax"), fmtRate(p.tax_rate)],
   ];
+  const presetName = r.scenario ? t(SCENARIOS.find((x) => x.id === r.scenario)?.labelKey ?? "noPreset") : t("noPreset");
 
   return (
     <div className={staleClass}>
       <Tiles>
-        <Kpi title="Mean IRR" value={fmtRate(s.mean_irr)} sub={`median ${fmtRate(s.median_irr)}`} lead />
-        <Kpi title={`P(IRR > ${pct0(hurdle)})`} value={fmtRate(s.p_above_hurdle)} sub={`${count(s.p_above_hurdle, r.n)} of ${fmtCount(r.n)}`} />
-        <Kpi title="P5" value={fmtRate(s.p5_irr)} sub="1 in 20 below" />
-        <Kpi title="P95" value={fmtRate(s.p95_irr)} sub="1 in 20 above" />
-        <Kpi title="Wipeout" value={fmtRate(s.wipeout_rate, 3)} sub={`${count(s.wipeout_rate, r.n)} paths`} tone={(s.wipeout_rate ?? 0) > 0.05 ? "loss" : undefined} />
-        <Kpi title="Run time" value={`${Math.round(r.elapsed_ms)} ms`} sub={`${ranFor.seed === null ? "random seed" : `seed ${ranFor.seed}`} · ${r.scenario ?? "no preset"}`} />
+        <Kpi title={t("kpiMeanIrr")} value={fmtRate(s.mean_irr)} sub={t("kpiMedianSub", { median: fmtRate(s.median_irr) })} lead />
+        <Kpi
+          title={t("kpiAboveHurdle", { hurdle: pct0(hurdle) })}
+          value={fmtRate(s.p_above_hurdle)}
+          sub={t("kpiAboveHurdleSub", { count: count(s.p_above_hurdle, r.n), total: fmtCount(r.n) })}
+        />
+        <Kpi title={t("kpiP5")} value={fmtRate(s.p5_irr)} sub={t("oneInTwentyBelow")} />
+        <Kpi title={t("kpiP95")} value={fmtRate(s.p95_irr)} sub={t("oneInTwentyAbove")} />
+        <Kpi
+          title={t("kpiWipeout")}
+          value={fmtRate(s.wipeout_rate, 3)}
+          sub={t("wipeoutSub", { count: count(s.wipeout_rate, r.n) })}
+          tone={(s.wipeout_rate ?? 0) > 0.05 ? "loss" : undefined}
+        />
+        <Kpi
+          title={t("kpiRunTime")}
+          value={t("runTimeValue", { ms: Math.round(r.elapsed_ms) })}
+          sub={t("runTimeSub", {
+            seed: ranFor.seed === null ? t("seedRandom") : t("seedFixed", { seed: String(ranFor.seed) }),
+            preset: presetName,
+          })}
+        />
 
         <Tile
           span={7}
-          title="IRR distribution"
-          unit={`${fmtCount(r.n)} paths`}
+          title={t("tileIrrDistribution")}
+          unit={t("pathsUnit", { count: fmtCount(r.n) })}
           action={
             <DownloadButton
-              label="10k paths"
-              title={ranFor.seed === null ? "Random seed: the file is a fresh draw with the same inputs" : "The paths behind these results"}
+              label={t("sample10k")}
+              title={ranFor.seed === null ? t("sampleRandomTitle") : t("sampleSeededTitle")}
               onDownload={() =>
                 downloadMonteCarloSample({
                   mc: { ...ranFor.sim, ebitda: ranFor.deal.ebitda, entry_mult: ranFor.deal.entry_mult, hold: ranFor.deal.hold },
@@ -80,48 +103,48 @@ function Distribution() {
           }
         >
           <Histogram
-            label="Simulated IRR distribution"
+            label={t("chartIrrDistribution")}
             edges={r.irr_histogram.edges}
             density={r.irr_histogram.density}
             highlightFrom={hurdle}
             format={pct0}
             markers={[
-              ...(isNum(s.p5_irr) ? [{ value: s.p5_irr, label: `P5 ${fmtRate(s.p5_irr)}` }] : []),
-              { value: hurdle, label: `Hurdle ${pct0(hurdle)}`, tone: "attention" as const, dashed: true },
-              ...(isNum(s.p95_irr) ? [{ value: s.p95_irr, label: `P95 ${fmtRate(s.p95_irr)}` }] : []),
+              ...(isNum(s.p5_irr) ? [{ value: s.p5_irr, label: t("markerP5", { value: fmtRate(s.p5_irr) }) }] : []),
+              { value: hurdle, label: t("markerHurdle", { value: pct0(hurdle) }), tone: "attention" as const, dashed: true },
+              ...(isNum(s.p95_irr) ? [{ value: s.p95_irr, label: t("markerP95", { value: fmtRate(s.p95_irr) }) }] : []),
             ]}
           />
         </Tile>
-        <Tile span={5} title="IRR by percentile" unit="share of paths below">
+        <Tile span={5} title={t("tileIrrByPercentile")} unit={t("shareBelow")}>
           <LineChart
-            label="IRR at each percentile"
-            xLabels={r.irr_cdf.percentiles.map((q) => `P${fmtNumber(q, 0)}`)}
+            label={t("chartIrrPercentile")}
+            xLabels={r.irr_cdf.percentiles.map((q) => t("percentile", { value: fmtNumber(q, 0) }))}
             xTickEvery={25}
             lines={[{ name: "", values: r.irr_cdf.values, color: "var(--color-accent)" }]}
-            hlines={[{ value: hurdle, label: `Hurdle ${pct0(hurdle)}`, tone: "attention" }]}
+            hlines={[{ value: hurdle, label: t("markerHurdle", { value: pct0(hurdle) }), tone: "attention" }]}
             yFormat={pct0}
             endLabels={false}
           />
         </Tile>
-        <Tile span={6} title="MOIC distribution" unit="x">
+        <Tile span={6} title={t("tileMoicDistribution")} unit="x">
           <Histogram
-            label="Simulated MOIC distribution"
+            label={t("chartMoicDistribution")}
             edges={r.moic_histogram.edges}
             density={r.moic_histogram.density}
             highlightFrom={1}
             format={(v) => fmtMultiple(v, 1)}
-            markers={[{ value: 1, label: "1.0x money back", tone: "attention", dashed: true }]}
+            markers={[{ value: 1, label: t("markerMoneyBack"), tone: "attention", dashed: true }]}
           />
         </Tile>
-        <Tile span={6} title="What was simulated" unit="mean ± std dev">
+        <Tile span={6} title={t("tileWhatSimulated")} unit={t("meanPlusMinus")}>
           <table className="w-full border-collapse font-mono text-[11px]">
             <tbody>
               {assumptions.map(([k, v]) => (
                 <tr key={k}>
-                  <th scope="row" className="type-input-label border-b border-grid py-1.5 text-left text-[9px] font-normal text-soft">
+                  <th scope="row" className="type-input-label border-b border-grid py-1.5 text-start text-[9px] font-normal text-soft">
                     {k}
                   </th>
-                  <td className="border-b border-grid py-1.5 text-right text-ink">{v}</td>
+                  <td className="border-b border-grid py-1.5 text-end text-ink">{v}</td>
                 </tr>
               ))}
             </tbody>
@@ -143,23 +166,32 @@ export function ScenariosStep() {
 function Scenarios() {
   const { money } = useMoney();
   const { scen, hurdle, r } = useResult();
+  const t = useTranslations("montecarlo");
+  const x = useTranslations("export");
   const staleClass = useStaleClass();
-  const rows = SCENARIOS.map((sc) => ({ ...sc, st: scen.scenarios[sc.id] })).filter((x) => x.st);
+  const rows = SCENARIOS.map((sc) => ({ ...sc, label: t(sc.labelKey), st: scen.scenarios[sc.id] })).filter((y) => y.st);
   return (
     <div className={staleClass}>
       <Tiles>
         {rows.map(({ id, label, st }) => (
-          <Kpi key={id} title={label} value={fmtRate(st.mean_irr)} sub={`${fmtRate(st.p_above_hurdle)} clear the hurdle`} lead={id === "base"} tone={(st.mean_irr ?? 0) < 0 ? "loss" : undefined} />
+          <Kpi
+            key={id}
+            title={label}
+            value={fmtRate(st.mean_irr)}
+            sub={t("clearHurdleSub", { share: fmtRate(st.p_above_hurdle) })}
+            lead={id === "base"}
+            tone={(st.mean_irr ?? 0) < 0 ? "loss" : undefined}
+          />
         ))}
-        <Kpi title="Paths each" value={fmtCount(r.n)} sub="same seed for all four" />
-        <Kpi title="Hurdle" value={pct0(scen.hurdle)} sub="from the rail" />
+        <Kpi title={t("kpiPathsEach")} value={fmtCount(r.n)} sub={t("sameSeed")} />
+        <Kpi title={t("kpiHurdle")} value={pct0(scen.hurdle)} sub={t("fromTheRail")} />
         <MacroRegime />
 
-        <Tile span={7} title="IRR range by scenario" unit="P5 to P95, mean · share above hurdle">
+        <Tile span={7} title={t("tileIrrRange")} unit={t("irrRangeUnit")}>
           <RangeRows
-            label="IRR range for each scenario"
+            label={t("chartIrrRange")}
             format={pct0}
-            threshold={{ value: hurdle, label: "Hurdle" }}
+            threshold={{ value: hurdle, label: t("kpiHurdle") }}
             rows={rows.map(({ label, st }) => ({
               label,
               low: st.p5_irr ?? 0,
@@ -171,23 +203,36 @@ function Scenarios() {
         </Tile>
         <Tile
           span={5}
-          title="Scenario table"
-          unit="IRR unless noted"
+          title={t("tileScenarioTable")}
+          unit={t("irrUnlessNoted")}
           action={
             <DownloadButton
               onDownload={() =>
-                downloadWorkbook("scenario_comparison.xlsx", [
-                  sheet(
-                    "Scenarios",
-                    ["Scenario", "Mean IRR", "Median IRR", "P5 IRR", "P95 IRR", "P(IRR > hurdle)", "Wipeout", "MOIC P50"],
-                    rows.map(({ label, st }) => [
-                      label,
-                      ...[st.mean_irr, st.median_irr, st.p5_irr, st.p95_irr, st.p_above_hurdle, st.wipeout_rate].map((v) => fraction(v)),
-                      st.moic_box.p50,
-                    ]),
-                    { columns: ["text", "percent", "percent", "percent", "percent", "percent", "percent", "multiple"] },
-                  ),
-                ], money)
+                downloadWorkbook(
+                  x("fileScenarios"),
+                  [
+                    sheet(
+                      x("sheetScenarios"),
+                      [
+                        x("colScenario"),
+                        x("colMeanIrr"),
+                        x("colMedianIrr"),
+                        x("colP5Irr"),
+                        x("colP95Irr"),
+                        x("colAboveHurdle"),
+                        x("colWipeout"),
+                        x("colMoicP50"),
+                      ],
+                      rows.map(({ label, st }) => [
+                        label,
+                        ...[st.mean_irr, st.median_irr, st.p5_irr, st.p95_irr, st.p_above_hurdle, st.wipeout_rate].map((v) => fraction(v)),
+                        st.moic_box.p50,
+                      ]),
+                      { columns: ["text", "percent", "percent", "percent", "percent", "percent", "percent", "multiple"] },
+                    ),
+                  ],
+                  money,
+                )
               }
             />
           }
@@ -196,8 +241,8 @@ function Scenarios() {
             <thead>
               <tr className="text-muted">
                 <th />
-                {["Mean", "P5", "P95", "Wipeout", "MOIC P50"].map((h) => (
-                  <th key={h} scope="col" className="border-b border-grid px-1.5 py-1 text-right font-normal">
+                {[t("colMean"), t("kpiP5"), t("kpiP95"), t("colWipeout"), t("colMoicP50")].map((h) => (
+                  <th key={h} scope="col" className="border-b border-grid px-1.5 py-1 text-end font-normal">
                     {h}
                   </th>
                 ))}
@@ -206,27 +251,28 @@ function Scenarios() {
             <tbody>
               {rows.map(({ id, label, st }) => (
                 <tr key={id} className={id === "base" ? "text-bright" : "text-ink"}>
-                  <th scope="row" className="type-input-label border-b border-grid py-1.5 text-left text-[9px] font-normal text-soft">
+                  <th scope="row" className="type-input-label border-b border-grid py-1.5 text-start text-[9px] font-normal text-soft">
                     {label}
                   </th>
                   {[st.mean_irr, st.p5_irr, st.p95_irr].map((v, i) => (
-                    <td key={i} className={`border-b border-grid px-1.5 py-1.5 text-right ${(v ?? 0) < 0 ? "text-loss" : ""}`}>
+                    <td key={i} className={`border-b border-grid px-1.5 py-1.5 text-end ${(v ?? 0) < 0 ? "text-loss" : ""}`}>
                       {fmtRate(v)}
                     </td>
                   ))}
-                  <td className="border-b border-grid px-1.5 py-1.5 text-right">{fmtRate(st.wipeout_rate, 2)}</td>
-                  <td className="border-b border-grid px-1.5 py-1.5 text-right">{fmtMultiple(st.moic_box.p50)}</td>
+                  <td className="border-b border-grid px-1.5 py-1.5 text-end">{fmtRate(st.wipeout_rate, 2)}</td>
+                  <td className="border-b border-grid px-1.5 py-1.5 text-end">{fmtMultiple(st.moic_box.p50)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="type-body text-[9px]">Multipliers for each preset are in Settings, Scenario presets.</p>
+          <p className="type-body text-[9px]">{t("presetsNote")}</p>
         </Tile>
       </Tiles>
     </div>
   );
 }
 
+/** The simulation's own column names (simulation/vectorized_simulation.py), shown translated. */
 const DRIVERS = ["Growth", "Exit Multiple", "Interest", "Gross Margin"] as const;
 
 export function DriversStep() {
@@ -239,6 +285,8 @@ export function DriversStep() {
 
 function Drivers() {
   const { r } = useResult();
+  const t = useTranslations("montecarlo");
+  const driverName = useEngineLabel("driver");
   const staleClass = useStaleClass();
   const [driver, setDriver] = useState<(typeof DRIVERS)[number]>("Growth");
   const xs = (r.scatter[driver] ?? []).map((v) => v ?? NaN);
@@ -250,20 +298,20 @@ function Drivers() {
   return (
     <div className={staleClass}>
       <Tiles>
-        <Tile span={5} title="What moves IRR" unit="rank correlation">
+        <Tile span={5} title={t("tileWhatMovesIrr")} unit={t("rankCorrelation")}>
           <DivergingBars
-            label="Spearman rank correlation of each driver with IRR"
+            label={t("chartSpearman")}
             domain={1}
             format={(v) => fmtNumber(v, 2, v > 0)}
-            rows={r.drivers.map((d) => ({ label: d.driver, value: d.spearman_rho ?? 0 }))}
+            rows={r.drivers.map((d) => ({ label: driverName(d.driver), value: d.spearman_rho ?? 0 }))}
           />
-          <p className="type-body text-[9px]">+1 means IRR rises whenever the driver does; 0 means no link.</p>
+          <p className="type-body text-[9px]">{t("spearmanNote")}</p>
         </Tile>
         <Tile
           span={7}
-          title={`IRR against ${driver.toLowerCase()}`}
+          title={t("tileIrrAgainst", { driver: driverName(driver).toLowerCase() })}
           aside={
-            <span className="flex gap-px bg-line" role="radiogroup" aria-label="Driver">
+            <span className="flex gap-px bg-line" role="radiogroup" aria-label={t("driver")}>
               {DRIVERS.map((d) => (
                 <button
                   key={d}
@@ -273,14 +321,14 @@ function Drivers() {
                   onClick={() => setDriver(d)}
                   className={`type-action-secondary px-2 py-1 text-[8.5px] ${d === driver ? "bg-raised text-bright" : "bg-canvas text-muted hover:text-ink"}`}
                 >
-                  {d}
+                  {driverName(d)}
                 </button>
               ))}
             </span>
           }
         >
           <Scatter
-            label={`Sample of simulated IRR against ${driver}`}
+            label={t("chartScatter", { driver: driverName(driver) })}
             xs={xs}
             ys={ys}
             fit={isNum(fit?.slope) && isNum(fit?.intercept) ? { slope: fit.slope, intercept: fit.intercept } : undefined}
@@ -288,18 +336,20 @@ function Drivers() {
             yFormat={(v) => fmtRate(v / 100, 0)}
           />
           <p className="type-body text-[9px]">
-            {fmtCount(xs.length)} sampled paths; amber line is the least-squares fit
-            {isNum(fit?.r) ? ` (r = ${fmtNumber(fit.r, 2)})` : ""}.
+            {t("scatterNote", {
+              count: fmtCount(xs.length),
+              fit: isNum(fit?.r) ? t("scatterFit", { r: fmtNumber(fit.r, 2) }) : "",
+            })}
           </p>
         </Tile>
-        <Tile span={12} title="Correlations in the simulated paths" unit="Pearson">
+        <Tile span={12} title={t("tileCorrelations")} unit={t("pearson")}>
           <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
             <thead>
               <tr>
                 <th />
                 {corr.labels.map((l) => (
-                  <th key={l} scope="col" className="px-2 py-1 text-right font-normal text-muted">
-                    {l}
+                  <th key={l} scope="col" className="px-2 py-1 text-end font-normal text-muted">
+                    {driverName(l)}
                   </th>
                 ))}
               </tr>
@@ -307,11 +357,11 @@ function Drivers() {
             <tbody>
               {corr.matrix.map((row, i) => (
                 <tr key={corr.labels[i]}>
-                  <th scope="row" className="type-input-label px-2 py-1 text-left text-[9px] font-normal text-soft">
-                    {corr.labels[i]}
+                  <th scope="row" className="type-input-label px-2 py-1 text-start text-[9px] font-normal text-soft">
+                    {driverName(corr.labels[i])}
                   </th>
                   {row.map((v, j) => (
-                    <td key={j} className="px-2 py-1 text-right" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
+                    <td key={j} className="px-2 py-1 text-end" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
                       {fmtNumber(v, 2)}
                     </td>
                   ))}
@@ -335,20 +385,21 @@ export function HeatmapStep() {
 
 function Heatmap() {
   const { r, hurdle } = useResult();
+  const t = useTranslations("montecarlo");
   const staleClass = useStaleClass();
   const h = r.heatmap;
   return (
     <div className={staleClass}>
       <Tiles>
         <p className="type-body col-span-12 bg-canvas px-3 py-2 text-[9.5px]">{h.note}</p>
-        <Tile span={12} title="IRR by growth and exit multiple" unit="rows exit multiple, columns revenue growth">
+        <Tile span={12} title={t("tileHeatmap")} unit={t("heatmapUnit")}>
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
               <thead>
                 <tr>
-                  <th className="px-2 py-1 text-right font-normal text-muted">Exit</th>
+                  <th className="px-2 py-1 text-end font-normal text-muted">{t("colExit")}</th>
                   {h.growth.map((g) => (
-                    <th key={g} scope="col" className="px-2 py-1 text-right font-normal text-muted">
+                    <th key={g} scope="col" className="px-2 py-1 text-end font-normal text-muted">
                       {fmtRate(g, 1)}
                     </th>
                   ))}
@@ -357,11 +408,11 @@ function Heatmap() {
               <tbody>
                 {h.irr.map((row, i) => (
                   <tr key={h.exit_multiple[i]}>
-                    <th scope="row" className="px-2 py-1 text-right font-normal text-muted">
+                    <th scope="row" className="px-2 py-1 text-end font-normal text-muted">
                       {fmtMultiple(h.exit_multiple[i], 1)}
                     </th>
                     {row.map((v, j) => (
-                      <td key={j} className="px-2 py-1.5 text-right" style={isNum(v) ? { background: heat(v, hurdle, 0.25) } : undefined}>
+                      <td key={j} className="px-2 py-1.5 text-end" style={isNum(v) ? { background: heat(v, hurdle, 0.25) } : undefined}>
                         {fmtRate(v)}
                       </td>
                     ))}

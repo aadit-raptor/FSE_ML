@@ -58,27 +58,31 @@ export function dealFiscal(inputs: DealInputs): { endMonth: number; year: number
 
 export type { FieldSpec };
 
-/** Bounds mirror DealInputsIn in api/schemas.py. */
+/**
+ * Bounds mirror DealInputsIn in api/schemas.py. The label of each field is in
+ * the `fields` namespace of the translation files, under the same key
+ * (PLAN.md 2.3b).
+ */
 export const FIELDS: Record<NumericDealKey, FieldSpec> = {
-  ebitda: { label: "EBITDA", unit: MONEY, step: 5, decimals: 1, min: 0, exclusiveMin: true },
-  entry_mult: { label: "Entry multiple", unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true },
-  exit_mult: { label: "Exit multiple", unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true },
-  hold: { label: "Hold", unit: "yr", step: 1, decimals: 0, min: 1, max: 15, integer: true },
-  growth: { label: "Revenue growth", unit: "%", step: 0.5, decimals: 1, min: -50, max: 100 },
-  gross_margin: { label: "Gross margin", unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
-  opex: { label: "Opex", unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
-  tax: { label: "Tax rate", unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
-  da: { label: "D&A", unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
-  debt_pct: { label: "Debt / EV", unit: "%", step: 1, decimals: 1, min: 0, max: 99 },
-  senior_pct: { label: "Senior share", unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
-  base_rate: { label: "Senior rate", unit: "%", step: 0.25, decimals: 2, min: 0, max: 50 },
-  mezz_spread: { label: "Mezz spread", unit: "%", step: 0.25, decimals: 2, min: 0, max: 50 },
-  capex: { label: "Capex", unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
-  nwc: { label: "NWC change", unit: "%", step: 0.25, decimals: 2, min: -100, max: 100 },
-  mincash: { label: "Minimum cash", unit: MONEY, step: 5, decimals: 1, min: 0 },
-  ar_days: { label: "Receivable days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
-  inv_days: { label: "Inventory days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
-  ap_days: { label: "Payable days", unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
+  ebitda: { unit: MONEY, step: 5, decimals: 1, min: 0, exclusiveMin: true },
+  entry_mult: { unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true },
+  exit_mult: { unit: "x", step: 0.5, decimals: 1, min: 0, exclusiveMin: true },
+  hold: { unit: "yr", step: 1, decimals: 0, min: 1, max: 15, integer: true },
+  growth: { unit: "%", step: 0.5, decimals: 1, min: -50, max: 100 },
+  gross_margin: { unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
+  opex: { unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
+  tax: { unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
+  da: { unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
+  debt_pct: { unit: "%", step: 1, decimals: 1, min: 0, max: 99 },
+  senior_pct: { unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
+  base_rate: { unit: "%", step: 0.25, decimals: 2, min: 0, max: 50 },
+  mezz_spread: { unit: "%", step: 0.25, decimals: 2, min: 0, max: 50 },
+  capex: { unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
+  nwc: { unit: "%", step: 0.25, decimals: 2, min: -100, max: 100 },
+  mincash: { unit: MONEY, step: 5, decimals: 1, min: 0 },
+  ar_days: { unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
+  inv_days: { unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
+  ap_days: { unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
 };
 
 export { changedKeys, validate };

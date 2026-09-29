@@ -1,10 +1,14 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 /** Input rail on the left, a status bar slot and results on the right. */
 export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNode; children: ReactNode }) {
+  const t = useTranslations("ui");
   return (
     <div className="grid h-full min-h-0 grid-cols-[270px_1fr]">
-      <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-panel" aria-label="Inputs">
+      <aside className="flex min-h-0 flex-col overflow-y-auto border-e border-line bg-panel" aria-label={t("inputs")}>
         {rail}
       </aside>
       <div className="min-h-0 overflow-y-auto">
@@ -28,9 +32,9 @@ export function RailGroup({ title, children, aside }: { title: string; children:
 }
 
 const TONES = {
-  attention: { bg: "bg-[#1b1710]", rule: "shadow-[inset_3px_0_0_var(--color-attention)]", title: "type-alert" },
-  loss: { bg: "bg-[#1d1413]", rule: "shadow-[inset_3px_0_0_var(--color-loss)]", title: "type-alert text-loss" },
-  info: { bg: "bg-raised", rule: "shadow-[inset_3px_0_0_var(--color-accent)]", title: "type-alert text-accent" },
+  attention: { bg: "bg-[#1b1710]", rule: "shadow-[inset_3px_0_0_var(--color-attention)]", titleClass: "type-alert" },
+  loss: { bg: "bg-[#1d1413]", rule: "shadow-[inset_3px_0_0_var(--color-loss)]", titleClass: "type-alert text-loss" },
+  info: { bg: "bg-raised", rule: "shadow-[inset_3px_0_0_var(--color-accent)]", titleClass: "type-alert text-accent" },
 };
 
 /** Full-width bar: changes waiting to run, errors, or an open model finding. */
@@ -52,9 +56,9 @@ export function Notice({
   const t = TONES[tone];
   return (
     <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-1 px-3 py-2 ${t.bg} ${t.rule} ${className}`} role={role}>
-      <span className={t.title}>{title}</span>
+      <span className={t.titleClass}>{title}</span>
       {children && <span className="type-body min-w-0 flex-1">{children}</span>}
-      {actions && <span className="ml-auto flex items-center gap-2">{actions}</span>}
+      {actions && <span className="ms-auto flex items-center gap-2">{actions}</span>}
     </div>
   );
 }
@@ -105,8 +109,9 @@ export function EmptyState({ title, children, action }: { title: string; childre
 
 /** Tile grid placeholder while results load. */
 export function LoadingTiles() {
+  const t = useTranslations("ui");
   return (
-    <div className="grid grid-cols-12 content-start gap-px bg-line" aria-busy="true" aria-label="Loading results">
+    <div className="grid grid-cols-12 content-start gap-px bg-line" aria-busy="true" aria-label={t("loadingResults")}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="col-span-2 grid h-[86px] content-start gap-2 bg-canvas px-3 py-2.5">
           <div className="h-2.5 w-16 bg-raised" />

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { DataTable } from "@/components/charts/DataTable";
 import { SensitivityTable } from "@/components/charts/HeatTable";
 import { StackedBars } from "@/components/charts/StackedBars";
@@ -10,30 +12,33 @@ import { useMoney } from "@/components/ui/MoneyScope";
 import { dealFiscal } from "@/lib/deal/fields";
 import { downloadWorkbook, fraction, sheet } from "@/lib/export";
 import { fmtMoney, fmtMultiple, fmtRate } from "@/lib/format";
+import { useEngineLabel } from "@/lib/i18n/useEngineText";
+import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 
 import { useDeal } from "../DealProvider";
 import { DealField, DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
-import { baseCell, debtSeries, hurdleSub, totals, yearLabels } from "./shared";
+import { baseCell, debtSeries, debtYears, totals, useHurdleSub } from "./shared";
 
 export function ReturnsStep() {
   const { run } = useDeal();
+  const t = useTranslations("deal");
   return (
     <DealScreen
       rail={
         <>
-          <RailGroup title="Entry and exit">
+          <RailGroup title={t("groupEntryExit")}>
             <DealField name="ebitda" />
             <DealField name="entry_mult" />
             <DealField name="exit_mult" />
             <DealField name="hold" />
           </RailGroup>
-          <RailGroup title="Operations">
+          <RailGroup title={t("groupOperations")}>
             <DealField name="growth" />
             <DealField name="gross_margin" />
             <DealField name="opex" />
             <DealField name="tax" />
           </RailGroup>
-          <RailGroup title="Capital structure">
+          <RailGroup title={t("groupCapital")}>
             <DealField name="debt_pct" />
             <DealField name="senior_pct" />
             <DealField name="base_rate" />
@@ -50,45 +55,60 @@ export function ReturnsStep() {
 function ReturnsResults() {
   const { label: mu, money } = useMoney();
   const { inputs, run, hurdle } = useDeal();
+  const t = useTranslations("deal");
+  const x = useTranslations("export");
+  const units = useTranslations("units");
+  const hurdleSub = useHurdleSub();
+  const fiscalLabels = useFiscalLabels();
+  const trancheName = useEngineLabel("tranche");
+  const bridgeAxis = useEngineLabel("bridgeAxis");
   const res = run.result!;
   const r = res.returns;
   const om = res.operating_model;
   const base = baseCell(res, inputs.exit_mult, inputs.hold);
   const begin = totals(res, "total_beginning_debt");
   const fiscal = dealFiscal(inputs);
-  const years = yearLabels(om.revenue?.length ?? 0, fiscal);
+  const years = fiscalLabels.deal(om.revenue?.length ?? 0, fiscal);
 
   return (
     <Tiles>
-      <Kpi title="IRR" value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
-      <Kpi title="MOIC" value={fmtMultiple(r.moic)} sub={`${r.holding_period ?? inputs.hold} yr hold`} />
-      <Kpi title="Equity in" value={fmtMoney(r.entry_equity)} sub={`${mu} at close`} />
-      <Kpi title="Equity out" value={fmtMoney(r.net_exit_equity)} sub={`${mu} at exit`} />
-      <Kpi title="Exit EV" value={fmtMoney(r.exit_ev)} sub={`${fmtMultiple(r.exit_multiple, 1)} on ${fmtMoney(r.exit_ebitda)} EBITDA`} />
-      <Kpi title="Net debt at exit" value={fmtMoney(r.net_debt_at_exit)} sub={`from ${fmtMoney(begin[0])} ${mu}`} />
+      <Kpi title={t("kpiIrr")} value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
+      <Kpi title={t("kpiMoic")} value={fmtMultiple(r.moic)} sub={units("holdYears", { years: r.holding_period ?? inputs.hold })} />
+      <Kpi title={t("kpiEquityIn")} value={fmtMoney(r.entry_equity)} sub={t("atClose", { money: mu })} />
+      <Kpi title={t("kpiEquityOut")} value={fmtMoney(r.net_exit_equity)} sub={t("atExit", { money: mu })} />
+      <Kpi
+        title={t("kpiExitEv")}
+        value={fmtMoney(r.exit_ev)}
+        sub={t("exitEvSub", { multiple: fmtMultiple(r.exit_multiple, 1), ebitda: fmtMoney(r.exit_ebitda) })}
+      />
+      <Kpi title={t("kpiNetDebtAtExit")} value={fmtMoney(r.net_debt_at_exit)} sub={t("fromDebt", { debt: fmtMoney(begin[0]), money: mu })} />
 
-      <Tile span={6} title="Equity bridge" unit={mu}>
+      <Tile span={6} title={t("tileEquityBridge")} unit={mu}>
         <Waterfall
-          label={`Equity bridge from ${fmtMoney(r.entry_equity)} to ${fmtMoney(r.net_exit_equity)} ${mu}`}
+          label={t("equityBridgeFrom", { from: fmtMoney(r.entry_equity), to: fmtMoney(r.net_exit_equity), money: mu })}
           // `key` is the API's short axis label (Entry, Fees, EBITDA growth, Multiple, Deleverage, Exit)
-          steps={res.bridge_steps.map((s) => ({ label: s.key, value: s.value ?? 0, isTotal: s.is_total }))}
+          steps={res.bridge_steps.map((s) => ({ label: bridgeAxis(s.key), value: s.value ?? 0, isTotal: s.is_total }))}
         />
       </Tile>
       <Tile
         span={6}
-        title="IRR sensitivity"
-        unit="exit multiple / hold"
+        title={t("tileIrrSensitivity")}
+        unit={t("sensitivityUnit")}
         action={
           <DownloadButton
             onDownload={() =>
-              downloadWorkbook("irr_sensitivity.xlsx", [
-                sheet(
-                  "IRR sensitivity",
-                  ["Exit multiple", ...res.exit_sensitivity.holding_periods.map((h) => `${h}y`)],
-                  res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => fraction(v))]),
-                  { columns: ["multiple", ...res.exit_sensitivity.holding_periods.map(() => "percent" as const)] },
-                ),
-              ], money)
+              downloadWorkbook(
+                x("fileIrrSensitivity"),
+                [
+                  sheet(
+                    x("sheetIrrSensitivity"),
+                    [x("colExitMultiple"), ...res.exit_sensitivity.holding_periods.map((h) => units("holdColumn", { years: h }))],
+                    res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => fraction(v))]),
+                    { columns: ["multiple", ...res.exit_sensitivity.holding_periods.map(() => "percent" as const)] },
+                  ),
+                ],
+                money,
+              )
             }
           />
         }
@@ -101,21 +121,21 @@ function ReturnsResults() {
           baseRow={base.row}
           baseCol={base.col}
         />
-        <p className="type-body text-[9px]">Every cell is a full model run for that exit multiple and hold. Ranges are set in Settings, Deal defaults.</p>
+        <p className="type-body text-[9px]">{t("sensitivityNote")}</p>
       </Tile>
-      <Tile span={6} title="Debt paydown" unit={`by tranche, ${mu}`}>
-        <StackedBars {...debtSeries(res, fiscal)} />
+      <Tile span={6} title={t("tileDebtPaydown")} unit={t("byTranche", { money: mu })}>
+        <StackedBars {...debtSeries(res, fiscalLabels.deal(debtYears(res), fiscal), { close: t("close"), chart: t("debtBalanceByTranche"), trancheName })} />
       </Tile>
-      <Tile span={6} title="Operating summary" unit={mu}>
+      <Tile span={6} title={t("tileOperatingSummary")} unit={mu}>
         <DataTable
-          caption="Operating summary by year"
+          caption={t("operatingSummaryByYear")}
           columns={years}
           rows={[
-            { label: "Revenue", values: om.revenue ?? [] },
-            { label: "EBITDA", values: om.ebitda ?? [] },
-            { label: "EBITDA margin", values: om.ebitda_margin ?? [], kind: "rate" },
-            { label: "Interest", values: om.interest_expense ?? [], kind: "outflow" },
-            { label: "Levered FCF", values: res.cash_flow.levered_fcf ?? [], total: true },
+            { label: t("rowRevenue"), values: om.revenue ?? [] },
+            { label: t("rowEbitda"), values: om.ebitda ?? [] },
+            { label: t("rowEbitdaMargin"), values: om.ebitda_margin ?? [], kind: "rate" },
+            { label: t("rowInterest"), values: om.interest_expense ?? [], kind: "outflow" },
+            { label: t("rowLeveredFcf"), values: res.cash_flow.levered_fcf ?? [], total: true },
           ]}
         />
       </Tile>

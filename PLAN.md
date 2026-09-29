@@ -126,7 +126,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.1 | Honest labels on inception-era parts (do early) | — | ☑ |
 | 2.2 | Currency and money units everywhere | 1.5 | ☑ |
 | 2.3a | Locale: numbers, dates, fiscal years, Excel formats | 2.2 | ☑ |
-| 2.3b | Locale: interface text in translation files, right-to-left | 2.3a | ☐ |
+| 2.3b | Locale: interface text in translation files, right-to-left | 2.3a | ☑ |
 | 2.4 | Global debt structures and interest rates | 2.2 | ☐ |
 | 2.5 | Global tax rules | 2.2 | ☐ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
@@ -458,14 +458,20 @@ can check it.
     locales and ad-hoc `toFixed` (`tests/test_no_hardcoded_locale.py`);
     e2e `locale.spec.ts` in `en-US`, `de-DE` and `en-IN`, March year-end
     deal and company.
-  - **2.3b (next):** all interface text into translation files
-    (`next-intl`, taking its locale from the profile with no locale in the
-    URL, so `src/proxy.ts` and its CSP stay as they are, and reusing
-    `lib/locale.ts` for numbers), English complete, right-to-left layout
-    checked, the CI check against visible text outside translation files,
-    and the three-locale e2e run again once the text is translated.
-    Native digits (Arabic-Indic, Devanagari) are decided there: 2.3a keeps
-    Latin digits everywhere so the mono columns align.
+  - **2.3b (done):** all interface text in translation files
+    (`next-intl` 4, one catalogue per language in `web/messages`, the
+    language and the text direction taken from the account's locale with no
+    locale in the URL, so `src/proxy.ts` and its CSP are untouched, and
+    `lib/locale.ts` still does the numbers); English complete (1,090 keys);
+    right-to-left checked with an Arabic account, the layout mirroring on
+    logical CSS properties while figures stay left-to-right islands;
+    three CI checks -- no interface text in `web/src`
+    (`tests/test_no_hardcoded_text.py`), every key asked for exists and
+    every message is used (`tests/test_translations.py`), and every label
+    the engine produces has a key; the three-locale e2e run plus
+    `e2e/text.spec.ts`. Native digits (Arabic-Indic, Devanagari) stay out:
+    figures keep Latin digits so the mono columns align, and 7.8 may
+    revisit it with the languages.
 
 ### 2.4 Global debt structures and interest rates
 - **Why:** today there's one fixed-rate senior loan plus one mezzanine tranche.
@@ -805,7 +811,22 @@ enough for the free server.
 ### 7.8 More languages
 - **Claude does:** full translations for a first set chosen when the task
   starts (e.g. Spanish, French, German, Japanese, Hindi, Arabic); translated
-  help and glossary; CI fails on missing translation keys.
+  help and glossary; CI fails on missing translation keys (2.3b's
+  `tests/test_translations.py` already fails when a language file's keys or
+  placeholders don't match English's).
+- **Three things 2.3b left safe only while English is the one catalogue**, and
+  which the second one makes real:
+  - `lib/format.ts`'s `setMissingText` and `lib/export.ts`'s
+    `setDownloadFailedMessage` are module values, like 2.3a's number style. On
+    the server they are always English today, because nothing there knows the
+    account; with two catalogues, two requests rendering at once could hand
+    each other's wording over. Move them into the provider, or keep them
+    client-only.
+  - `browserLocale()` (components/shell/I18nScope.tsx) is `en` on the server
+    and the browser's own language in the browser, so the signed-out pages'
+    server HTML and first client render would disagree once the words differ.
+  - `setDownloadFailedMessage` fills `{status}` with one `String.replace`, not
+    ICU, so a translation using the placeholder twice fills only the first.
 - **Done when:** e2e key journeys pass in each added language.
 
 ---

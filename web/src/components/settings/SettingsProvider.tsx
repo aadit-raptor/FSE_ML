@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "@/lib/api/client";
@@ -64,6 +65,10 @@ function knownChanges(settings: Settings, defaults: Settings): Settings {
  * saved back shortly after it's made.
  */
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("settings");
+  const saveFailed = t("saveFailed");
+  const loadFailed = t("loadFailed");
+  const rejected = t("rejected");
   const [defaults, setDefaults] = useState<Settings | null>(null);
   const [overrides, setOverrides] = useState<Settings>({});
   const [loaded, setLoaded] = useState(false);
@@ -90,14 +95,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (account.data) clearLegacy();
         setOverrides(start);
         setSaveState(account.data ? "saved" : "error");
-        if (!account.data) setError("Can't load your saved settings; changes won't be kept.");
+        if (!account.data) setError(saveFailed);
         setLoaded(true);
       })
-      .catch(() => !cancelled && setError("Can't load settings from the API."));
+      .catch(() => !cancelled && setError(loadFailed));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [saveFailed, loadFailed]);
 
   // Save to the account shortly after each change
   useEffect(() => {
@@ -134,7 +139,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             setError(undefined);
           } else {
             const d = (err as { detail?: unknown } | undefined)?.detail;
-            setError(typeof d === "string" ? d : "Settings rejected by the API.");
+            setError(typeof d === "string" ? d : rejected);
           }
         })
         .catch(() => {});
@@ -143,7 +148,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [overrides, defaults]);
+  }, [overrides, defaults, rejected]);
 
   const set = useCallback(
     (key: string, value: SettingValue) => {

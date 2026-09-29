@@ -120,8 +120,8 @@ Severity (ECC):
 Also check the project's own list: money keys for new money figures,
 `RUN_PATHS` for new model endpoints, `PUBLIC_PATHS` never widened by
 accident, nothing personal or deal-related in logs, CSP hosts for new
-third-party calls, the three places a new Python package goes (CLAUDE.md
-"Gotchas").
+third-party calls, every new word in `web/messages/en.json` rather than in a
+component, the three places a new Python package goes (CLAUDE.md "Gotchas").
 
 ### 6. Verify (ECC "verification loop")
 Every line of the task's "Done when" gets evidence: test output, a CI run, a
