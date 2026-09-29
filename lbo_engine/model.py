@@ -175,6 +175,11 @@ class LBOParams:
     # --- Capital structure (full deal mode) ---
     capital_structure: Optional[CapitalStructure] = None
     senior_amort_pct: float = 0.05      # senior mandatory amortisation, % of principal a year
+    # Arrangement fees the individual facilities charge (M), on top of the
+    # deal-level financing_fees_pct (PLAN.md 2.4). Its own line rather than a
+    # replacement, so setting one never silently switches the other off; 0.0
+    # for every deal without per-tranche fees.
+    tranche_fees: float = 0.0
 
     # --- Operating model ---
     revenue_growth: float = 0.05
@@ -266,6 +271,17 @@ class LBOResult:
 # Core orchestrator
 # ---------------------------------------------------------------------------
 
+def _accrued(debt_result: DebtScheduleResult) -> Optional[List[float]]:
+    """Interest that accrued to principal this run, or None when none did.
+
+    None rather than a list of zeros on purpose: it keeps the cash flow
+    model on the expression it used before PIK existed, so a deal with no PIK
+    tranche is bit-for-bit unchanged.
+    """
+    accrued = debt_result.total_pik_interest
+    return accrued if any(accrued) else None
+
+
 def run_lbo(params: LBOParams) -> LBOResult:
     """
     Run a complete LBO model from inputs to returns.
@@ -334,7 +350,8 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # overstates IRR and MOIC.
     entry_costs = (entry_ev * params.transaction_fees_pct
                    + total_debt * params.financing_fees_pct
-                   + params.other_uses)
+                   + params.other_uses
+                   + params.tranche_fees)
     # The business keeps minimum_cash from day one (the debt model opens with
     # it), so sponsor equity funds it too. Leaving it out overstated IRR and
     # MOIC and left a bridge residual equal to the minimum cash (finding 1).
@@ -409,6 +426,11 @@ def run_lbo(params: LBOParams) -> LBOResult:
 
     interest_pass1 = debt_result_pass1.total_interest_expense
     result.interest_pass1 = interest_pass1
+    # Interest that accrued to principal rather than being paid: added back in
+    # the next pass's cash flow, the same way interest itself is fed to the
+    # next pass's P&L. None whenever nothing accrues, so a structure of
+    # cash-pay tranches runs the expression it always did.
+    pik_current = _accrued(debt_result_pass1)
 
     # ------------------------------------------------------------------
     # Step 5: Subsequent passes — converge interest
@@ -431,7 +453,8 @@ def run_lbo(params: LBOParams) -> LBOResult:
             interest_income_rate=0.005,
         )
 
-        cf_iter = run_cashflow_model(op_iter, cf_assumptions, cs)
+        cf_iter = run_cashflow_model(op_iter, cf_assumptions, cs,
+                                     non_cash_interest=pik_current)
 
         debt_iter = run_debt_model(
             cs,
@@ -442,6 +465,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
         )
 
         interest_new = debt_iter.total_interest_expense
+        pik_current = _accrued(debt_iter)
 
         # Check convergence
         max_delta = max(

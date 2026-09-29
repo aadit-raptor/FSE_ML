@@ -9,7 +9,8 @@ from api.schemas import (
 from api.serialize import to_json
 from core.deal import (
     DEAL_MONEY_KEYS, SOURCES_USES_MONEY_KEYS, DealInputs, bridge_steps,
-    capital_structure_from_multiples, in_millions, run_deal, sources_and_uses,
+    capital_structure_from_multiples, capital_structure_summary, in_millions,
+    run_deal, sources_and_uses, sources_and_uses_for,
 )
 from core.money import in_unit, rescale, to_millions
 
@@ -26,10 +27,20 @@ def post_sources_and_uses(req: SourcesUsesRequest):
     cfg = resolve_settings(req.settings)
     unit = req.money.unit
     cfg = {**cfg, "other_uses": to_millions(cfg["other_uses"], unit)}
-    su = sources_and_uses(to_millions(req.ebitda, unit), req.entry_mult, req.senior_x, req.mezz_x, cfg,
-                          mincash=to_millions(req.mincash, unit))
-    debt_pct, senior_pct = capital_structure_from_multiples(
-        req.ebitda, req.entry_mult, req.senior_x, req.mezz_x)
+    if req.tranches:
+        # Sized facility by facility: each one is its own source, and their
+        # arrangement fees are their own use of funds (PLAN.md 2.4)
+        deal, cfg = in_millions(
+            DealInputs(ebitda=req.ebitda, entry_mult=req.entry_mult, mincash=req.mincash,
+                       unit=unit, tranches=[t.model_dump() for t in req.tranches]),
+            resolve_settings(req.settings))
+        su = sources_and_uses_for(deal, cfg)
+        debt_pct, senior_pct = None, None
+    else:
+        su = sources_and_uses(to_millions(req.ebitda, unit), req.entry_mult, req.senior_x, req.mezz_x, cfg,
+                              mincash=to_millions(req.mincash, unit))
+        debt_pct, senior_pct = capital_structure_from_multiples(
+            req.ebitda, req.entry_mult, req.senior_x, req.mezz_x)
     su = rescale(to_json(su), in_unit(1.0, unit), SOURCES_USES_MONEY_KEYS)
     return {**su, "debt_pct": debt_pct, "senior_pct": senior_pct, "money": req.money}
 
@@ -63,5 +74,6 @@ def post_run(req: DealRunRequest):
         ],
         "exit_sensitivity": to_json(result.exit_sensitivity),
         "interest_converged": result.interest_converged,
+        "capital_structure": capital_structure_summary(deal),
     }
     return {**rescale(answer, in_unit(1.0, req.inputs.unit), DEAL_MONEY_KEYS), "money": req.inputs.money()}

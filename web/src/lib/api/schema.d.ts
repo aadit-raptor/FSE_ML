@@ -1100,6 +1100,8 @@ export interface components {
             mandatory_repay?: (number | null)[];
             /** Net Income */
             net_income?: (number | null)[];
+            /** Non Cash Interest */
+            non_cash_interest?: (number | null)[];
             /** Years */
             years?: number[];
         };
@@ -1311,6 +1313,11 @@ export interface components {
              */
             tax: number;
             /**
+             * Tranches
+             * @description The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate and mezz_spread entirely, and is swept in the order it is given.
+             */
+            tranches?: components["schemas"]["TrancheIn"][];
+            /**
              * Unit
              * @description The deal's money figures are thousands, millions or billions
              * @default millions
@@ -1364,6 +1371,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
              *     }
@@ -1405,6 +1413,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
              *     }
@@ -1422,6 +1431,11 @@ export interface components {
         DealRunResponse: {
             /** Bridge Steps */
             bridge_steps: components["schemas"]["BridgeStep"][];
+            /**
+             * Capital Structure
+             * @description One row per facility, when the deal lists its tranches (PLAN.md 2.4); empty for a deal sized by debt_pct and senior_pct
+             */
+            capital_structure?: components["schemas"]["TrancheSummary"][];
             cash_flow: components["schemas"]["CashFlowResult"];
             /**
              * Debt Schedule
@@ -2175,6 +2189,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
              *     }
@@ -2484,6 +2499,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
              *     }
@@ -2603,6 +2619,11 @@ export interface components {
             settings: {
                 [key: string]: number | boolean;
             };
+            /**
+             * Tranches
+             * @description The deal's facilities (PLAN.md 2.4). Given, they are the sources of debt and senior_x / mezz_x are ignored.
+             */
+            tranches?: components["schemas"]["TrancheIn"][];
         };
         /** SourcesUsesResponse */
         SourcesUsesResponse: {
@@ -2621,13 +2642,19 @@ export interface components {
             equity_purchase_price: number;
             /** Financing Fees */
             financing_fees: number;
-            /** Mezz Debt */
-            mezz_debt: number;
+            /**
+             * Mezz Debt
+             * @description Only when the deal is sized by percentages
+             */
+            mezz_debt?: number | null;
             money: components["schemas"]["Money"];
             /** Other Uses */
             other_uses: number;
-            /** Senior Debt */
-            senior_debt: number;
+            /**
+             * Senior Debt
+             * @description Only when the deal is sized by percentages
+             */
+            senior_debt?: number | null;
             /**
              * Senior Pct
              * @description Implied senior / total debt (%)
@@ -2635,10 +2662,26 @@ export interface components {
             senior_pct?: number | null;
             /** Sponsor Equity */
             sponsor_equity: number;
+            /**
+             * Total Debt
+             * @description Debt drawn at close, when listed by tranche
+             */
+            total_debt?: number | null;
             /** Total Sources */
             total_sources: number;
             /** Total Uses */
             total_uses: number;
+            /**
+             * Tranche Fees
+             * @description Arrangement fees the facilities charge at close
+             * @default 0
+             */
+            tranche_fees: number;
+            /**
+             * Tranches
+             * @description One source per facility, when the deal lists its tranches
+             */
+            tranches?: components["schemas"]["TrancheSource"][];
             /** Transaction Fees */
             transaction_fees: number;
         };
@@ -2667,6 +2710,7 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
              *     }
@@ -2807,22 +2851,237 @@ export interface components {
             /** Value */
             value: number;
         };
+        /**
+         * TrancheIn
+         * @description One facility in the deal's debt structure (PLAN.md 2.4, core/debt.py).
+         *
+         *     ``amount`` is the facility's full size, in the deal's currency and unit.
+         *     For a revolver that is the commitment, of which ``drawn_pct`` is drawn at
+         *     close: only the drawn part is a source of funds, and only the undrawn part
+         *     pays a commitment fee.
+         *
+         *     Pricing is fixed (``fixed_rate``) or floating, where the all-in rate for a
+         *     year is ``max(reference, floor) + margin`` -- the floor bites on the
+         *     reference before the margin, as a loan agreement writes it.
+         *     ``reference_path`` gives the reference year by year and repeats its last
+         *     year when the deal runs longer; empty, the flat ``reference_level`` stands
+         *     for every year.
+         */
+        TrancheIn: {
+            /**
+             * Allow Redraw
+             * @description Draws to cover a cash shortfall (revolver)
+             * @default false
+             */
+            allow_redraw: boolean;
+            /**
+             * Amort Pct
+             * @description % of the original principal repaid a year
+             * @default 0
+             */
+            amort_pct: number;
+            /**
+             * Amort Schedule
+             * @description Repayment a year; overrides amort_pct
+             */
+            amort_schedule?: number[];
+            /**
+             * Amount
+             * @description Facility size (in the deal's currency and unit)
+             * @default 0
+             */
+            amount: number;
+            /**
+             * Commitment Fee Pct
+             * @description Yearly fee on the undrawn commitment (%)
+             * @default 0
+             */
+            commitment_fee_pct: number;
+            /**
+             * Drawn Pct
+             * @description % of the facility drawn at close
+             * @default 100
+             */
+            drawn_pct: number;
+            /**
+             * Fixed Rate
+             * @description All-in rate (%) when not floating
+             * @default 0
+             */
+            fixed_rate: number;
+            /**
+             * Floating
+             * @default false
+             */
+            floating: boolean;
+            /**
+             * Floor
+             * @description Floor on the reference (%)
+             * @default 0
+             */
+            floor: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "amortising_term_loan" | "institutional_term_loan" | "unitranche" | "second_lien" | "senior_notes" | "pik_notes" | "vendor_loan" | "revolver" | "shareholder_loan";
+            /**
+             * Margin
+             * @description Margin over the reference (%)
+             * @default 0
+             */
+            margin: number;
+            /**
+             * Maturity Years
+             * @default 7
+             */
+            maturity_years: number;
+            /** Name */
+            name: string;
+            /**
+             * Pik Share
+             * @description % of the coupon that accrues to principal
+             * @default 0
+             */
+            pik_share: number;
+            /**
+             * Reference Level
+             * @description The reference rate (%) when no path is given
+             * @default 0
+             */
+            reference_level: number;
+            /**
+             * Reference Path
+             * @description The reference rate (%) year by year
+             */
+            reference_path?: number[];
+            /**
+             * Reference Rate
+             * @default custom
+             * @enum {string}
+             */
+            reference_rate: "SOFR" | "SONIA" | "ESTR" | "EURIBOR" | "TONA" | "SARON" | "BBSY" | "MIBOR" | "custom";
+            /**
+             * Sweep
+             * @description Takes the cash sweep
+             * @default false
+             */
+            sweep: boolean;
+            /**
+             * Sweep Priority
+             * @description 0 = its position in the list
+             * @default 0
+             */
+            sweep_priority: number;
+            /**
+             * Sweep Share
+             * @description % of the cash available it may take
+             * @default 100
+             */
+            sweep_share: number;
+            /**
+             * Upfront Fee Pct
+             * @description Arrangement fee at close (%)
+             * @default 0
+             */
+            upfront_fee_pct: number;
+        };
+        /** TrancheSource */
+        TrancheSource: {
+            /** Amount */
+            amount: number;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * TrancheSummary
+         * @description One row per facility, for the capital-structure table.
+         */
+        TrancheSummary: {
+            /**
+             * Amount
+             * @description Drawn at close, in the deal's currency and unit
+             */
+            amount: number;
+            /**
+             * Commitment
+             * @description Facility limit, when part of it is undrawn
+             */
+            commitment?: number | null;
+            /** Floating */
+            floating: boolean;
+            /** Kind */
+            kind: string;
+            /** Maturity Years */
+            maturity_years: number;
+            /** Name */
+            name: string;
+            /**
+             * Pik Share
+             * @description % of the coupon that accrues to principal
+             */
+            pik_share: number;
+            /**
+             * Rate
+             * @description Year-one all-in rate, as a decimal
+             */
+            rate: number;
+            /** Reference Rate */
+            reference_rate: string | null;
+            /**
+             * Sweep Share
+             * @description % of the cash sweep it takes; 0 when it does not sweep
+             */
+            sweep_share: number;
+            /** X Ebitda */
+            x_ebitda: number;
+        };
         /** TrancheYear */
         TrancheYear: {
             /** Beginning Balance */
             beginning_balance: number | null;
+            /**
+             * Cash Interest
+             * @description The part of the coupon actually paid
+             */
+            cash_interest?: number | null;
             /** Cash Sweep */
             cash_sweep: number | null;
+            /**
+             * Commitment Fee
+             * @description Charged on the undrawn commitment
+             */
+            commitment_fee?: number | null;
             /** Ending Balance */
             ending_balance: number | null;
             /** Interest Expense */
             interest_expense: number | null;
-            /** Interest Rate */
+            /**
+             * Interest Rate
+             * @description The year's all-in rate, as a decimal
+             */
             interest_rate: number | null;
             /** Mandatory Repayment */
             mandatory_repayment: number | null;
+            /**
+             * Pik Interest
+             * @description The part that accrues to principal
+             */
+            pik_interest?: number | null;
+            /**
+             * Redrawn
+             * @description Drawn in the year to cover a cash shortfall
+             */
+            redrawn?: number | null;
             /** Tranche Name */
             tranche_name: string;
+            /**
+             * Undrawn
+             * @description Commitment nobody has taken down
+             */
+            undrawn?: number | null;
             /** Year */
             year: number;
         };

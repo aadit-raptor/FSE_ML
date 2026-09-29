@@ -32,16 +32,26 @@ def assert_min_cash_funded(returns, bridge, golden, mincash, rel=REL, abs_=ABS):
     assert abs(bridge["residual"]) <= 0.011
 
 
-def assert_close(got, expected, path="result", rel=REL, abs_=ABS):
+def assert_close(got, expected, path="result", rel=REL, abs_=ABS, extra=frozenset()):
+    """``got`` matches the recorded ``expected``, to within floating-point noise.
+
+    ``extra`` names keys the model has gained since the snapshot was taken.
+    They may be present in ``got`` and absent from ``expected``; every other
+    difference in the key set still fails, so a field added by accident is
+    still caught. Nothing in ``expected`` may go missing either way.
+    """
     if isinstance(expected, dict):
-        assert isinstance(got, dict) and set(got) == set(expected), \
-            f"{path}: keys differ {sorted(set(got) ^ set(expected))[:5]}"
+        assert isinstance(got, dict), f"{path}: {got!r} is not a mapping"
+        missing = set(expected) - set(got)
+        added = set(got) - set(expected) - set(extra)
+        assert not missing and not added, \
+            f"{path}: keys differ {sorted(missing | added)[:5]}"
         for k in expected:
-            assert_close(got[k], expected[k], f"{path}.{k}", rel, abs_)
+            assert_close(got[k], expected[k], f"{path}.{k}", rel, abs_, extra)
     elif isinstance(expected, list):
         assert isinstance(got, list) and len(got) == len(expected), f"{path}: length differs"
         for i, (g, e) in enumerate(zip(got, expected)):
-            assert_close(g, e, f"{path}[{i}]", rel, abs_)
+            assert_close(g, e, f"{path}[{i}]", rel, abs_, extra)
     elif isinstance(expected, bool) or expected is None or isinstance(expected, str):
         assert got == expected, f"{path}: {got!r} != {expected!r}"
     elif isinstance(expected, (int, float)):

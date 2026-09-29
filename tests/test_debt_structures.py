@@ -305,14 +305,41 @@ def test_spelling_out_todays_structure_as_tranches_gives_the_same_answer():
 
 
 @pytest.mark.parametrize("hold", [3, 4, 5, 6, 7])
-def test_the_equivalent_structure_matches_at_every_sensitivity_hold(hold):
-    """The exit-sensitivity grid reruns the deal at each hold, so the two paths
-    have to agree at every one of them."""
+def test_the_equivalent_structure_matches_at_every_hold(hold):
+    """Whatever the hold, the deal's own answer is identical -- returns, debt
+    schedule and the sensitivity grid's own column."""
     d = DealInputs(hold=hold)
     plain = run_deal(d, cfg())
     explicit = run_deal(dataclasses.replace(d, tranches=equivalent_tranches(d, cfg())), cfg())
     assert explicit.returns.irr == plain.returns.irr
-    assert explicit.exit_sensitivity == plain.exit_sensitivity
+    assert explicit.debt_schedule.total_ending_debt == plain.debt_schedule.total_ending_debt
+    grid = plain.exit_sensitivity
+    col = grid["holding_periods"].index(hold)
+    assert [row[col] for row in explicit.exit_sensitivity["table"]] == [row[col] for row in grid["table"]]
+
+
+def test_an_explicit_structure_does_not_stretch_its_maturities_with_the_hold():
+    """The sensitivity grid's *other* columns differ between the two paths, on
+    purpose.
+
+    The old sizing gives the mezzanine ``maturity_years = hold``, so when the
+    grid reruns the deal at three or seven years the bullet moves with it and
+    the tranche is always repaid at exit -- out of cash the model never earns
+    (CLAUDE.md "Model findings", finding 11). A facility written out
+    explicitly matures when its agreement says, whatever the sponsor's hold:
+    exiting early leaves it outstanding, and it is deducted as net debt like
+    any other borrowing. That is the honest reading, so the two grids agree
+    only in the column the deal actually ran.
+    """
+    d = DealInputs(hold=5)
+    plain = run_deal(d, cfg())
+    explicit = run_deal(dataclasses.replace(d, tranches=equivalent_tranches(d, cfg())), cfg())
+    grid = plain.exit_sensitivity
+    three = grid["holding_periods"].index(3)
+    # Exiting at three years leaves the mezzanine outstanding, so the explicit
+    # structure carries more net debt out and returns less
+    assert [row[three] for row in explicit.exit_sensitivity["table"]] != [row[three] for row in grid["table"]]
+    assert explicit.exit_sensitivity["table"][0][three] < grid["table"][0][three]
 
 
 # ---------------------------------------------------------------------------
@@ -339,7 +366,10 @@ def test_every_reference_rate_prices_the_same_way(reference):
                        floating=True, reference_rate=reference, reference_level=3.5,
                        margin=4.0, maturity_years=7)
     r = run([spec])
-    assert [t.interest_rate for t in rows(r, "Loan")] == [0.075] * 5
+    # 3.5/100 + 4.0/100 is 0.07500000000000001, not 0.075: the sum of two
+    # divided percentages, which is exactly the expression the engine has
+    # always used for a rate over a reference. Compare as a number.
+    assert [t.interest_rate for t in rows(r, "Loan")] == pytest.approx([0.075] * 5)
 
 
 # ---------------------------------------------------------------------------
@@ -370,7 +400,7 @@ def test_a_shareholder_loan_can_sit_behind_everything_and_accrue():
                               fixed_rate=8.0, pik_share=100.0, sweep=False, maturity_years=10)
     r = run([senior, shareholder])
     sl = rows(r, "Shareholder loan")
-    assert [t.beginning_balance for t in sl] == [100.0, 108.0, 116.64, 125.9712, 136.0489]
+    assert [t.beginning_balance for t in sl] == [100.0, 108.0, 116.64, 125.97, 136.05]
     assert r.debt_schedule.total_ending_debt[-1] > 0
 
 
@@ -378,17 +408,21 @@ def test_a_shareholder_loan_can_sit_behind_everything_and_accrue():
 # Money: tranche amounts are in the deal's unit
 # ---------------------------------------------------------------------------
 def test_tranche_amounts_are_read_in_the_deals_unit():
-    """The same deal in thousands: every amount is a thousand times larger and
-    the rates, and so the IRR, are identical."""
+    """The same deal counted in thousands: every amount is a thousand times
+    larger, and after `in_millions` -- the conversion every router does -- the
+    engine sees the identical deal."""
+    from core.deal import in_millions
+
     millions = DealInputs(tranches=[SONIA_LOAN])
     thousands = DealInputs(
         unit="thousands", ebitda=100_000.0,
         tranches=[dataclasses.replace(SONIA_LOAN, amount=400_000.0)],
     )
-    a, b = run_deal(millions, cfg()), run_deal(thousands, cfg())
+    a = run_deal(*in_millions(millions, cfg()))
+    b = run_deal(*in_millions(thousands, cfg()))
     assert a.returns.irr == b.returns.irr
     assert [t.interest_rate for t in rows(b, "GBP term loan")] == [0.07, 0.065, 0.065, 0.08, 0.09]
-    # The engine always runs in millions, so the schedule comes back in millions
+    # The engine always runs in millions, whatever unit the deal arrived in
     assert rows(b, "GBP term loan")[0].beginning_balance == 400.0
 
 

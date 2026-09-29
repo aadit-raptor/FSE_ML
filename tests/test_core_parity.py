@@ -43,6 +43,19 @@ def plain(x):
     return x
 
 
+# Output the model gained after the snapshot was taken (PLAN.md 2.4): the
+# split of the interest line into what is paid and what accrues, what a
+# committed facility costs to keep open, and the cash flow's add-back for the
+# part nobody paid. Every one of them is zero for the recorded deals -- which
+# `test_the_new_debt_fields_are_all_zero_in_the_snapshot_cases` checks -- so
+# they are allowed to be present and nothing else in the key set may move.
+TRANCHE_FIELDS = frozenset({
+    "cash_interest", "pik_interest", "commitment_fee", "undrawn", "redrawn",
+    "total_cash_interest", "total_pik_interest", "total_commitment_fees",
+    "non_cash_interest",
+})
+
+
 def cfg_from(recorded):
     return resolve_config({k: v for k, v in recorded.items() if k in DEFAULTS})
 
@@ -72,7 +85,32 @@ def test_deal_matches_streamlit(case):
     else:
         parts += ["returns", "equity_bridge"]
     for part in parts:
-        assert_close(plain(getattr(r, part)), g[part])
+        assert_close(plain(getattr(r, part)), g[part], extra=TRANCHE_FIELDS)
+
+
+@pytest.mark.parametrize("case", sorted(GOLDEN["deal"]))
+def test_the_new_debt_fields_say_nothing_new_in_the_snapshot_cases(case):
+    """The 2.4 fields the parity check allows through are allowed **because**
+    they add nothing for a deal financed the old way: nothing accrues, nothing
+    is committed and undrawn, and so every coupon is paid in cash. If that ever
+    stops being true here, the allow-list is hiding a real change."""
+    g = GOLDEN["deal"][case]
+    d = deal_from(g["inputs"])
+    params = dataclasses.replace(build_lbo_params(d, cfg_from(g["cfg"])), n_iterations=3, interest_tolerance=0.5)
+    r = run_lbo(params)
+    debt, cf = r.debt_schedule, r.cash_flow
+
+    nothing = ["total_pik_interest", "total_commitment_fees"]
+    for name in nothing:
+        assert getattr(debt, name) == [0.0] * len(debt.years), name
+    assert cf.non_cash_interest == [0.0] * len(cf.years)
+    # Every coupon is paid, so the cash split is the whole interest line
+    assert debt.total_cash_interest == debt.total_interest_expense
+
+    for records in debt.schedule.values():
+        for rec in records:
+            assert (rec.pik_interest, rec.commitment_fee, rec.undrawn, rec.redrawn) == (0.0, 0.0, 0.0, 0.0)
+            assert rec.cash_interest == rec.interest_expense
 
 
 # ---------------------------------------------------------------------------
