@@ -46,9 +46,9 @@ def post_run(req: MonteCarloRequest):
     corr = empirical_correlations(sample)
     scatter = sample[SCATTER_COLUMNS].head(req.scatter_points)
     g_vals, em_vals, grid = growth_exit_heatmap(params, mc, deal)
-    # The scalar parameters the run used. A deal's tranches are its own input,
-    # already on the caller's screen, and in millions here.
-    params_json = {k: v for k, v in to_json(params).items() if k != "tranches"}
+    # The scalar parameters the run used. A deal's tranches and tax rules are
+    # its own inputs, already on the caller's screen, and in millions here.
+    params_json = {k: v for k, v in to_json(params).items() if k not in ("tranches", "tax_rules")}
     return {
         "n": params.n,
         "elapsed_ms": elapsed_ms,

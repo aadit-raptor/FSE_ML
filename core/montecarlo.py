@@ -14,6 +14,7 @@ from scipy.stats import spearmanr
 from analytics.risk_metrics import calculate_risk_metrics
 from core.config import build_corr_matrix
 from core.deal import DealInputs, entry_costs
+from core.tax import rules_from_deal
 from core.debt import (
     build_capital_structure, check_specs, financing_fees, shift_references, simulation_tranches,
     total_debt as tranche_debt,
@@ -89,6 +90,7 @@ def build_sim_params(mc: MCInputs, deal: DealInputs, cfg: Mapping) -> Simulation
         clip_irr=bool(cfg['mc_clip_irr']),
         corr_matrix=build_corr_matrix(cfg),
         tranches=tranches,
+        tax_rules=rules_from_deal(deal),
     )
 
 
@@ -206,7 +208,7 @@ def growth_exit_heatmap(params: SimulationParams, mc: MCInputs, deal: DealInputs
     for i, em in enumerate(em_vals):
         for j, g in enumerate(g_vals):
             r = run_lbo(LBOParams(
-                capital_structure=structure, tranche_fees=fees,
+                capital_structure=structure, tranche_fees=fees, tax_rules=params.tax_rules,
                 entry_ebitda=params.entry_ebitda, entry_multiple=params.entry_multiple,
                 exit_multiple=float(em), holding_period=int(params.holding_period),
                 debt_pct=params.debt_pct, senior_pct=params.senior_pct,

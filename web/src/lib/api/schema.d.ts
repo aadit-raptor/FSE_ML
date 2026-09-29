@@ -159,6 +159,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/deal/tax-presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tax Presets
+         * @description Country presets for a deal's tax rules, each with its source and the
+         *     date it was checked. A starting point, not advice: every field stays
+         *     editable once applied.
+         */
+        get: operations["get_tax_presets_api_deal_tax_presets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deals": {
         parameters: {
             query?: never;
@@ -1313,6 +1335,56 @@ export interface components {
              */
             tax: number;
             /**
+             * Tax Interest Limit
+             * @description Interest deductibility: none, a share of EBITDA (never below tax_interest_limit_amount), or a fixed amount
+             * @default none
+             * @enum {string}
+             */
+            tax_interest_limit: "none" | "ebitda_share" | "fixed";
+            /**
+             * Tax Interest Limit Amount
+             * @description The fixed cap, or the allowance always deductible (in currency and unit)
+             * @default 0
+             */
+            tax_interest_limit_amount: number;
+            /**
+             * Tax Interest Limit Pct
+             * @description Share of EBITDA (%)
+             * @default 30
+             */
+            tax_interest_limit_pct: number;
+            /**
+             * Tax Loss Carryforward
+             * @description Carry tax losses forward
+             * @default false
+             */
+            tax_loss_carryforward: boolean;
+            /**
+             * Tax Loss Limit Amount
+             * @description Profit losses may offset in full each year (in currency and unit)
+             * @default 0
+             */
+            tax_loss_limit_amount: number;
+            /**
+             * Tax Loss Limit Pct
+             * @description Share of profit above the allowance losses may offset (%)
+             * @default 100
+             */
+            tax_loss_limit_pct: number;
+            /**
+             * Tax Minimum Pct
+             * @description Minimum tax on book profit (%)
+             * @default 0
+             */
+            tax_minimum_pct: number;
+            /**
+             * Tax Preset
+             * @description The country preset last applied (ISO 3166 code), a label only; the rules below are what the model reads
+             * @default
+             * @enum {string}
+             */
+            tax_preset: "" | "US" | "GB" | "DE" | "FR" | "NL" | "IE" | "IN" | "JP" | "AU" | "CA" | "SG";
+            /**
              * Tranches
              * @description The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate and mezz_spread entirely, and is swept in the order it is given.
              */
@@ -1371,6 +1443,14 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
              *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
@@ -1413,6 +1493,14 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
              *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
@@ -1451,6 +1539,8 @@ export interface components {
             money: components["schemas"]["Money"];
             operating_model: components["schemas"]["OperatingModelResult"];
             returns: components["schemas"]["ReturnsResult"];
+            /** @description The tax computation year by year, when the deal has tax rules (PLAN.md 2.5); none for a flat rate on positive profit */
+            tax?: components["schemas"]["TaxSchedule"] | null;
             /** Tranches */
             tranches: {
                 [key: string]: components["schemas"]["TrancheYear"][];
@@ -2189,6 +2279,14 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
              *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
@@ -2499,6 +2597,14 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
              *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
@@ -2710,6 +2816,14 @@ export interface components {
              *       "opex": 18,
              *       "senior_pct": 70,
              *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
              *       "tranches": [],
              *       "unit": "millions",
              *       "wsp_mode": false
@@ -2837,6 +2951,74 @@ export interface components {
             task: string;
             /** Workflow */
             workflow: string;
+        };
+        /**
+         * TaxPresetOut
+         * @description A country's headline tax rules, as a starting point (core/tax.py).
+         *     Percentages as numbers like 25.0; amounts in millions of ``currency``.
+         */
+        TaxPresetOut: {
+            /**
+             * As Of
+             * @description When the numbers were last checked (YYYY-MM)
+             */
+            as_of: string;
+            /**
+             * Code
+             * @description ISO 3166-1 alpha-2 country code
+             */
+            code: string;
+            /**
+             * Currency
+             * @description The currency of the amounts (ISO 4217)
+             */
+            currency: string;
+            /** Interest Limit */
+            interest_limit: string;
+            /** Interest Limit Amount */
+            interest_limit_amount: number;
+            /** Interest Limit Pct */
+            interest_limit_pct: number;
+            /** Loss Carryforward */
+            loss_carryforward: boolean;
+            /** Loss Limit Amount */
+            loss_limit_amount: number;
+            /** Loss Limit Pct */
+            loss_limit_pct: number;
+            /** Minimum Pct */
+            minimum_pct: number;
+            /** Note */
+            note: string;
+            /** Rate */
+            rate: number;
+            /** Source */
+            source: string;
+        };
+        /** TaxPresetsResponse */
+        TaxPresetsResponse: {
+            /** Presets */
+            presets: components["schemas"]["TaxPresetOut"][];
+        };
+        /** TaxSchedule */
+        TaxSchedule: {
+            /** Interest Carried */
+            interest_carried?: unknown[];
+            /** Interest Deductible */
+            interest_deductible?: unknown[];
+            /** Losses Carried */
+            losses_carried?: unknown[];
+            /** Losses Used */
+            losses_used?: unknown[];
+            /** Minimum Tax Topup */
+            minimum_tax_topup?: unknown[];
+            /** Regular Tax */
+            regular_tax?: unknown[];
+            /** Taxable Income */
+            taxable_income?: unknown[];
+            /** Taxes */
+            taxes?: unknown[];
+            /** Years */
+            years?: number[];
         };
         /** TermDifference */
         TermDifference: {
@@ -3507,6 +3689,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_tax_presets_api_deal_tax_presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxPresetsResponse"];
                 };
             };
             /** @description A usage limit was reached */

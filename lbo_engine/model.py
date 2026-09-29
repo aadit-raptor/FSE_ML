@@ -72,6 +72,7 @@ from lbo_engine.operating_model import (
     complete_income_statement,
     build_generic_assumptions,
 )
+from lbo_engine.tax import TaxRules, TaxSchedule, tax_schedule
 from lbo_engine.cashflow_model import (
     CashFlowAssumptions,
     CashFlowResult,
@@ -187,6 +188,10 @@ class LBOParams:
     opex_pct: float = 0.18
     da_pct: float = 0.04
     tax_rate: float = 0.25
+    # The deal's tax rules beyond the flat rate (PLAN.md 2.5, lbo_engine/tax.py).
+    # None, or rules with nothing switched on, keeps the flat rate on positive
+    # EBT exactly as before.
+    tax_rules: Optional[TaxRules] = None
 
     # --- Cash flow ---
     capex_pct: float = 0.04
@@ -243,6 +248,10 @@ class LBOResult:
     returns: Optional[ReturnsResult] = None
     equity_bridge: Optional[Dict] = None
     exit_sensitivity: Optional[Dict] = None
+
+    # The tax computation, when the deal has tax rules (PLAN.md 2.5); None
+    # for a flat rate on positive EBT
+    tax: Optional[TaxSchedule] = None
 
     # Convergence diagnostics
     interest_pass1: List[float] = field(default_factory=list)
@@ -404,14 +413,29 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # ------------------------------------------------------------------
     op_result = run_operating_model(op_assumptions)
 
+    # A deal's tax rules decide each year's tax from the year's EBITDA, EBIT
+    # and net interest; with none, complete_income_statement keeps its flat
+    # rate on positive EBT (taxes=None)
+    rules = params.tax_rules if params.tax_rules is not None and params.tax_rules.active else None
+
+    def ruled_taxes(op, interest):
+        if rules is None:
+            return None
+        income = round(params.minimum_cash * 0.005, 4)
+        return tax_schedule(ebitda=op.ebitda, ebit=op.ebit,
+                            net_interest=[x - income for x in interest],
+                            tax_rate=op_assumptions.tax_rate, rules=rules)
+
     # Complete income statement with zero interest for first pass
     zero_interest = [0.0] * params.holding_period
+    tax_current = ruled_taxes(op_result, zero_interest)
     op_result_pass1 = complete_income_statement(
         op_result,
         interest_expense=zero_interest,
         tax_rate=op_assumptions.tax_rate,
         minimum_cash=params.minimum_cash,
         interest_income_rate=0.005,
+        taxes=tax_current.taxes if tax_current else None,
     )
 
     cf_result_pass1 = run_cashflow_model(op_result_pass1, cf_assumptions, cs)
@@ -445,12 +469,14 @@ def run_lbo(params: LBOParams) -> LBOResult:
         # Fresh operating model result (run_operating_model is pure)
         op_iter = run_operating_model(op_assumptions)
 
+        tax_current = ruled_taxes(op_iter, interest_current)
         op_iter = complete_income_statement(
             op_iter,
             interest_expense=interest_current,
             tax_rate=op_assumptions.tax_rate,
             minimum_cash=params.minimum_cash,
             interest_income_rate=0.005,
+            taxes=tax_current.taxes if tax_current else None,
         )
 
         cf_iter = run_cashflow_model(op_iter, cf_assumptions, cs,
@@ -554,6 +580,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # Populate result
     # ------------------------------------------------------------------
     result.operating_model = final_op_result
+    result.tax = tax_current
     result.cash_flow = final_cf_result
     result.debt_schedule = final_debt_result
     result.returns = returns

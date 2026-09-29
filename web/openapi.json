@@ -1161,6 +1161,83 @@
             "title": "Tax",
             "type": "number"
           },
+          "tax_interest_limit": {
+            "default": "none",
+            "description": "Interest deductibility: none, a share of EBITDA (never below tax_interest_limit_amount), or a fixed amount",
+            "enum": [
+              "none",
+              "ebitda_share",
+              "fixed"
+            ],
+            "title": "Tax Interest Limit",
+            "type": "string"
+          },
+          "tax_interest_limit_amount": {
+            "default": 0.0,
+            "description": "The fixed cap, or the allowance always deductible (in currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Tax Interest Limit Amount",
+            "type": "number"
+          },
+          "tax_interest_limit_pct": {
+            "default": 30.0,
+            "description": "Share of EBITDA (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tax Interest Limit Pct",
+            "type": "number"
+          },
+          "tax_loss_carryforward": {
+            "default": false,
+            "description": "Carry tax losses forward",
+            "title": "Tax Loss Carryforward",
+            "type": "boolean"
+          },
+          "tax_loss_limit_amount": {
+            "default": 0.0,
+            "description": "Profit losses may offset in full each year (in currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Tax Loss Limit Amount",
+            "type": "number"
+          },
+          "tax_loss_limit_pct": {
+            "default": 100.0,
+            "description": "Share of profit above the allowance losses may offset (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tax Loss Limit Pct",
+            "type": "number"
+          },
+          "tax_minimum_pct": {
+            "default": 0.0,
+            "description": "Minimum tax on book profit (%)",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tax Minimum Pct",
+            "type": "number"
+          },
+          "tax_preset": {
+            "default": "",
+            "description": "The country preset last applied (ISO 3166 code), a label only; the rules below are what the model reads",
+            "enum": [
+              "",
+              "US",
+              "GB",
+              "DE",
+              "FR",
+              "NL",
+              "IE",
+              "IN",
+              "JP",
+              "AU",
+              "CA",
+              "SG"
+            ],
+            "title": "Tax Preset",
+            "type": "string"
+          },
           "tranches": {
             "description": "The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate and mezz_spread entirely, and is swept in the order it is given.",
             "items": {
@@ -1266,6 +1343,14 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
               "tranches": [],
               "unit": "millions",
               "wsp_mode": false
@@ -1314,6 +1399,14 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
               "tranches": [],
               "unit": "millions",
               "wsp_mode": false
@@ -1385,6 +1478,17 @@
           },
           "returns": {
             "$ref": "#/components/schemas/ReturnsResult"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaxSchedule"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The tax computation year by year, when the deal has tax rules (PLAN.md 2.5); none for a flat rate on positive profit"
           },
           "tranches": {
             "additionalProperties": {
@@ -3739,6 +3843,14 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
               "tranches": [],
               "unit": "millions",
               "wsp_mode": false
@@ -4859,6 +4971,14 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
               "tranches": [],
               "unit": "millions",
               "wsp_mode": false
@@ -5276,6 +5396,14 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
               "tranches": [],
               "unit": "millions",
               "wsp_mode": false
@@ -5524,6 +5652,152 @@
           "workflow"
         ],
         "title": "TaskRun",
+        "type": "object"
+      },
+      "TaxPresetOut": {
+        "description": "A country's headline tax rules, as a starting point (core/tax.py).\nPercentages as numbers like 25.0; amounts in millions of ``currency``.",
+        "properties": {
+          "as_of": {
+            "description": "When the numbers were last checked (YYYY-MM)",
+            "title": "As Of",
+            "type": "string"
+          },
+          "code": {
+            "description": "ISO 3166-1 alpha-2 country code",
+            "title": "Code",
+            "type": "string"
+          },
+          "currency": {
+            "description": "The currency of the amounts (ISO 4217)",
+            "title": "Currency",
+            "type": "string"
+          },
+          "interest_limit": {
+            "title": "Interest Limit",
+            "type": "string"
+          },
+          "interest_limit_amount": {
+            "title": "Interest Limit Amount",
+            "type": "number"
+          },
+          "interest_limit_pct": {
+            "title": "Interest Limit Pct",
+            "type": "number"
+          },
+          "loss_carryforward": {
+            "title": "Loss Carryforward",
+            "type": "boolean"
+          },
+          "loss_limit_amount": {
+            "title": "Loss Limit Amount",
+            "type": "number"
+          },
+          "loss_limit_pct": {
+            "title": "Loss Limit Pct",
+            "type": "number"
+          },
+          "minimum_pct": {
+            "title": "Minimum Pct",
+            "type": "number"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "number"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "currency",
+          "rate",
+          "interest_limit",
+          "interest_limit_pct",
+          "interest_limit_amount",
+          "loss_carryforward",
+          "loss_limit_pct",
+          "loss_limit_amount",
+          "minimum_pct",
+          "source",
+          "note",
+          "as_of"
+        ],
+        "title": "TaxPresetOut",
+        "type": "object"
+      },
+      "TaxPresetsResponse": {
+        "properties": {
+          "presets": {
+            "items": {
+              "$ref": "#/components/schemas/TaxPresetOut"
+            },
+            "title": "Presets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "presets"
+        ],
+        "title": "TaxPresetsResponse",
+        "type": "object"
+      },
+      "TaxSchedule": {
+        "properties": {
+          "interest_carried": {
+            "items": {},
+            "title": "Interest Carried",
+            "type": "array"
+          },
+          "interest_deductible": {
+            "items": {},
+            "title": "Interest Deductible",
+            "type": "array"
+          },
+          "losses_carried": {
+            "items": {},
+            "title": "Losses Carried",
+            "type": "array"
+          },
+          "losses_used": {
+            "items": {},
+            "title": "Losses Used",
+            "type": "array"
+          },
+          "minimum_tax_topup": {
+            "items": {},
+            "title": "Minimum Tax Topup",
+            "type": "array"
+          },
+          "regular_tax": {
+            "items": {},
+            "title": "Regular Tax",
+            "type": "array"
+          },
+          "taxable_income": {
+            "items": {},
+            "title": "Taxable Income",
+            "type": "array"
+          },
+          "taxes": {
+            "items": {},
+            "title": "Taxes",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "title": "TaxSchedule",
         "type": "object"
       },
       "TermDifference": {
@@ -6795,6 +7069,43 @@
           }
         ],
         "summary": "Post Sources And Uses",
+        "tags": [
+          "deal"
+        ]
+      }
+    },
+    "/api/deal/tax-presets": {
+      "get": {
+        "description": "Country presets for a deal's tax rules, each with its source and the\ndate it was checked. A starting point, not advice: every field stays\neditable once applied.",
+        "operationId": "get_tax_presets_api_deal_tax_presets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxPresetsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Tax Presets",
         "tags": [
           "deal"
         ]

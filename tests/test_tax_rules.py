@@ -185,11 +185,19 @@ def test_a_capped_deal_pays_more_tax_and_its_schedule_adds_up():
 
 
 def test_a_loss_making_deal_keeps_its_losses_when_they_carry_forward():
-    """Debt at 90% of EV at 12% loses money for the first years; carried
-    forward, those losses cut the later tax bill, and the IRR rises."""
-    heavy = dict(debt_pct=90.0, base_rate=12.0)
-    lost = run_deal(DealInputs(**heavy), cfg())
-    kept = run_deal(DealInputs(**heavy, tax_loss_carryforward=True), cfg())
+    """Debt at 80% of EV at 12% loses money in year one; the company grows
+    20% a year, so the loss, carried forward, cuts year two's tax, and the
+    IRR rises.
+
+    The senior loan here does not amortise. With the default 5% a year, year
+    two's cash is below the mandatory repayment, the model funds the gap out
+    of nothing (CLAUDE.md "Model findings", 11), and the tax saved vanishes
+    into that gap: the IRR would not move at all.
+    """
+    heavy = dict(debt_pct=80.0, base_rate=12.0, growth=20.0, hold=7)
+    no_amort = resolve_config({"def_senior_amort": 0.0})
+    lost = run_deal(DealInputs(**heavy), no_amort)
+    kept = run_deal(DealInputs(**heavy, tax_loss_carryforward=True), no_amort)
     assert min(lost.operating_model.ebt) < 0
     assert sum(kept.operating_model.taxes) < sum(lost.operating_model.taxes)
     assert kept.returns.irr > lost.returns.irr
@@ -245,15 +253,18 @@ def test_changing_preset_changes_the_tax_as_predicted():
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize("deal", [
     CAPPED,
-    DealInputs(debt_pct=90.0, base_rate=12.0, tax_loss_carryforward=True, tax_loss_limit_pct=60.0),
-    DealInputs(debt_pct=90.0, base_rate=12.0, tax_loss_carryforward=True, tax_minimum_pct=15.0),
+    # Losses in year one, profits after (see the loss-making deal above)
+    DealInputs(debt_pct=80.0, base_rate=12.0, growth=20.0, hold=7,
+               tax_loss_carryforward=True, tax_loss_limit_pct=60.0),
+    DealInputs(debt_pct=80.0, base_rate=12.0, growth=20.0, hold=7,
+               tax_loss_carryforward=True, tax_minimum_pct=15.0),
 ], ids=["interest cap", "capped losses", "minimum tax"])
 def test_a_simulated_path_at_the_mean_lands_on_the_deal_models_tax(deal):
     from core.montecarlo import MCInputs, build_sim_params
     from simulation.vectorized_simulation import _run_vectorized_core
 
     params = dataclasses.replace(
-        build_sim_params(MCInputs(n=1, rate_mean=deal.base_rate), deal, cfg()), n_interest_passes=50)
+        build_sim_params(MCInputs(n=1, rate_mean=deal.base_rate, hold=deal.hold), deal, cfg()), n_interest_passes=50)
     draws = {"growth": np.array([deal.growth / 100]), "exit_multiple": np.array([deal.exit_mult]),
              "interest": np.array([params.interest_mean]),
              "gross_margin": np.array([deal.gross_margin / 100]), "ebitda_shock": np.array([0.0])}
@@ -263,13 +274,18 @@ def test_a_simulated_path_at_the_mean_lands_on_the_deal_models_tax(deal):
 
 
 def test_the_simulation_feels_the_rules():
+    """The same paths with and without the cap: a cap only ever adds tax, so
+    no path does better with it, and most do worse -- the rest are paths whose
+    rate draw keeps interest under 30% of EBITDA (about a quarter of them)."""
     from core.montecarlo import MCInputs, build_sim_params
     from simulation.vectorized_simulation import run_vectorized_simulation_full
 
-    def mean_irr(deal):
-        return run_vectorized_simulation_full(build_sim_params(MCInputs(n=4000), deal, cfg()), seed=3).irr.mean()
+    def irr(deal):
+        return run_vectorized_simulation_full(build_sim_params(MCInputs(n=4000), deal, cfg()), seed=3).irr
 
-    assert mean_irr(CAPPED) < mean_irr(DealInputs()) - 0.002
+    free, capped = irr(DealInputs()), irr(CAPPED)
+    assert (capped <= free + 1e-12).all()
+    assert (capped < free).mean() > 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -321,3 +337,17 @@ def test_a_deal_without_rules_stores_exactly_what_it_stored_before():
     assert not any(k.startswith("tax_") for k in stored)
     kept = store.clean_inputs({"ebitda": 50, "tax_loss_carryforward": True})
     assert kept["tax_loss_carryforward"] is True and "tax_minimum_pct" not in kept
+
+
+def test_the_heatmap_applies_the_rules():
+    """Each cell is a deal-model run, so it is taxed the deal's way: the cap
+    lowers every cell, and a cell is exactly run_deal's IRR for that growth
+    and exit multiple."""
+    from core.montecarlo import MCInputs, build_sim_params, growth_exit_heatmap
+
+    mc = MCInputs(n=1000)
+    _, _, free = growth_exit_heatmap(build_sim_params(mc, DealInputs(), cfg()), mc, DealInputs())
+    g, em, capped = growth_exit_heatmap(build_sim_params(mc, CAPPED, cfg()), mc, CAPPED)
+    assert (capped < free).all()
+    deal = dataclasses.replace(CAPPED, growth=float(g[3]) * 100, exit_mult=float(em[2]))
+    assert capped[2, 3] == pytest.approx(run_deal(deal, cfg()).returns.irr, rel=1e-9)

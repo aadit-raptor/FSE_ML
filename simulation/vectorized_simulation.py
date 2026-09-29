@@ -68,6 +68,7 @@ import pandas as pd
 from dataclasses import dataclass, field
 from typing import Optional, List
 
+from lbo_engine.tax import TaxRules, tax_schedule
 from simulation.tranches import run_tranche_schedule
 
 
@@ -227,6 +228,11 @@ class SimulationParams:
     # simulation, untouched. A list replaces all four, and the rate draw then
     # moves only the floating facilities (simulation/tranches.py).
     tranches: tuple = ()
+
+    # The deal's tax rules beyond the flat rate (PLAN.md 2.5, lbo_engine/tax.py),
+    # the same function the deal model uses. None keeps the flat rate on
+    # positive EBT, and the expression that computes it, untouched.
+    tax_rules: Optional[TaxRules] = None
 
 
 # ---------------------------------------------------------------------------
@@ -504,14 +510,16 @@ def _run_vectorized_core(
         ebitda_final = ebitda_yr[:, -1]   # (N,) exit year EBITDA
 
         # ---- Income statement (EBIT → Net Income) ----
-        # Uses interest_expense from previous pass
+        # Uses interest_expense from previous pass. A deal's tax rules decide
+        # each year's tax from the whole schedule (PLAN.md 2.5).
         net_income_yr = np.zeros((N, n_yr))
         ebit_yr       = np.zeros((N, n_yr))
+        ruled = _ruled_taxes(p, ebitda_yr, da_yr, interest_expense)
 
         for t in range(n_yr):
             ebit  = ebitda_yr[:, t] - da_yr[:, t]
             ebt   = ebit - interest_expense[:, t]
-            taxes = np.maximum(ebt, 0.0) * p.tax_rate
+            taxes = np.maximum(ebt, 0.0) * p.tax_rate if ruled is None else ruled[t]
             net_income_yr[:, t] = ebt - taxes
             ebit_yr[:, t] = ebit
 
@@ -604,6 +612,20 @@ def _run_vectorized_core(
     }
 
 
+def _ruled_taxes(p: SimulationParams, ebitda_yr, da_yr, interest_yr):
+    """Each year's tax under the deal's tax rules, a list of (N,) arrays; None
+    when it has none, so callers keep the flat rate on positive EBT."""
+    if p.tax_rules is None or not p.tax_rules.active:
+        return None
+    n_yr = p.holding_period
+    return tax_schedule(
+        ebitda=[ebitda_yr[:, t] for t in range(n_yr)],
+        ebit=[ebitda_yr[:, t] - da_yr[:, t] for t in range(n_yr)],
+        net_interest=[interest_yr[:, t] for t in range(n_yr)],
+        tax_rate=[p.tax_rate] * n_yr, rules=p.tax_rules,
+    ).taxes
+
+
 def _operating_paths(p: SimulationParams, draws: dict):
     """Revenue, EBITDA and D&A for every path and year, shape (N, n_yr).
 
@@ -663,7 +685,9 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
     non_cash = np.zeros((N, n_yr))
     for _ in range(p.n_interest_passes):
         ebt = ebitda_yr - da_yr - interest
-        net_income = ebt - np.maximum(ebt, 0.0) * p.tax_rate
+        ruled = _ruled_taxes(p, ebitda_yr, da_yr, interest)
+        taxes = np.maximum(ebt, 0.0) * p.tax_rate if ruled is None else np.column_stack(ruled)
+        net_income = ebt - taxes
         fcf = (net_income + da_yr - revenue_yr * p.capex_pct - revenue_yr * p.nwc_pct
                + non_cash)
         schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash)

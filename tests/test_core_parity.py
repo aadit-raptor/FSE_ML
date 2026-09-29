@@ -131,8 +131,8 @@ def test_simulation_params_match_streamlit(case):
     # `tranches` joined the parameters in PLAN.md 2.4b. The recorded deals list
     # none, so it must be empty here -- which is what keeps them on the
     # two-bucket path the snapshot recorded.
-    assert params.tranches == ()
-    assert_close(plain(params), g["sim_params"], extra={"tranches"})
+    assert params.tranches == () and params.tax_rules is None
+    assert_close(plain(params), g["sim_params"], extra={"tranches", "tax_rules"})
 
 
 # ---------------------------------------------------------------------------
