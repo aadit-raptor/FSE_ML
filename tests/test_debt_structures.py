@@ -677,3 +677,45 @@ def test_no_input_anywhere_can_be_infinity_or_not_a_number():
                            headers={"Content-Type": "application/json"})
         assert resp.status_code == 422, f"ebitda {value}: {resp.status_code} {resp.text[:200]}"
         assert json.loads(resp.text)["detail"][0]["loc"] == ["body", "inputs", "ebitda"]
+
+
+def test_the_web_editor_offers_the_same_kinds_and_presets_as_the_model():
+    """The Debt step's editor starts a new facility from lib/deal/capital.ts's
+    KIND_PRESETS, a copy of PRESETS here (the editor needs them before any
+    call to the API). A kind added or a preset changed on one side only would
+    have the screen build a facility the model then shapes differently."""
+    import json
+    import pathlib
+    import re
+
+    from core.debt import PRESETS
+
+    source = pathlib.Path(__file__).parents[1].joinpath("web", "src", "lib", "deal", "capital.ts").read_text(encoding="utf-8")
+    block = source.split("// presets-begin", 1)[1].split("// presets-end", 1)[0]
+    body = block[block.index("= {") + 2: block.rindex("}") + 1]
+    as_json = re.sub(r",(\s*[}\]])", r"\1", re.sub(r"([{,]\s*)([A-Za-z_]+):", r'\1"\2":', body))
+    web = json.loads(as_json)
+    assert web == {kind: dict(preset) for kind, preset in PRESETS.items()}
+    kinds = re.search(r"TRANCHE_KINDS: TrancheKind\[\] = \[(.*?)\];", source, re.S).group(1)
+    assert re.findall(r'"(\w+)"', kinds) == list(TRANCHE_TYPES)
+    rates = re.search(r"REFERENCE_RATES: ReferenceRate\[\] = \[(.*?)\];", source, re.S).group(1)
+    assert re.findall(r'"(\w+)"', rates) == list(REFERENCE_RATES)
+
+
+def test_the_deal_risk_score_reads_a_listed_deals_own_debt():
+    """The screen sends senior and mezzanine multiples from the percentages;
+    a deal that lists its facilities does not use them, so its leverage and
+    rate come from the facilities. Written out, today's structure scores
+    exactly as before: 4.2x + 1.8x of EBITDA, at 6.5% and 10.5% blended by
+    size, (4.2 x 6.5 + 1.8 x 10.5) / 6.0 = 7.7%."""
+    from core.deal import risk_model_inputs
+
+    pct = risk_model_inputs(DealInputs(), 4.2, 1.8)
+    listed = risk_model_inputs(DealInputs(tranches=equivalent_tranches(DealInputs(), cfg())), 0.0, 0.0)
+    assert listed == pytest.approx(pct)
+    assert listed["rate"] == pytest.approx(7.7)
+    # One more facility: 1.0x more leverage, and its 12% in the blend
+    pik = TrancheSpec(name="PIK", kind="pik_notes", amount=100.0, fixed_rate=12.0, pik_share=100.0)
+    more = risk_model_inputs(DealInputs(tranches=[*equivalent_tranches(DealInputs(), cfg()), pik]), 4.2, 1.8)
+    assert more["leverage"] == pytest.approx(7.0)
+    assert more["rate"] == pytest.approx((600 * 7.7 + 100 * 12.0) / 700)

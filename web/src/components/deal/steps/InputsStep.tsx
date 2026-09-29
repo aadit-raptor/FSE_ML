@@ -8,17 +8,19 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
-import { multiplesFromPct } from "@/lib/deal/capital";
-import { fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
+import { debtShareOfEv, drawnDebt, floatingCount, multiplesFromPct } from "@/lib/deal/capital";
+import type { Tranche } from "@/lib/deal/fields";
+import { fmtCount, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
+import { useEngineLabel } from "@/lib/i18n/useEngineText";
 
 import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
-import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup } from "../DealScreen";
+import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup, TranchesOnDebtStep } from "../DealScreen";
 import { useHurdleSub } from "./shared";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
 
-function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number, mincash: number) {
+function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number, mincash: number, tranches: Tranche[]) {
   const { overrides } = useSettings();
   const { money } = useMoney();
   const [su, setSu] = useState<SourcesUses | null>(null);
@@ -27,7 +29,8 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
     const id = setTimeout(() => {
       api
         .POST("/api/deal/sources-and-uses", {
-          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides, money },
+          // A deal that lists its facilities is sourced by them (core/deal.py sources_and_uses_for)
+          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides, money, ...(tranches.length ? { tranches } : {}) },
           signal: ctrl.signal,
         })
         .then(({ data }) => data && setSu(data))
@@ -37,7 +40,7 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides, money]);
+  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides, money, tranches]);
   return su;
 }
 
@@ -46,7 +49,9 @@ export function InputsStep() {
   const t = useTranslations("deal");
   const hurdleSub = useHurdleSub();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
-  const su = useSourcesAndUses(inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash);
+  const su = useSourcesAndUses(inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash, inputs.tranches);
+  const listed = inputs.tranches.length > 0;
+  const trancheName = useEngineLabel("tranche");
   const r = run.result?.returns;
   const ev = inputs.ebitda * inputs.entry_mult;
   const { label: mu } = useMoney();
@@ -75,10 +80,16 @@ export function InputsStep() {
             <DealField name="tax" />
           </RailGroup>
           <RailGroup title={t("groupFinancing")}>
-            <DebtMultipleField tranche="senior" />
-            <DebtMultipleField tranche="mezz" />
-            <DealField name="base_rate" />
-            <DealField name="mezz_spread" />
+            {inputs.tranches.length ? (
+              <TranchesOnDebtStep />
+            ) : (
+              <>
+                <DebtMultipleField tranche="senior" />
+                <DebtMultipleField tranche="mezz" />
+                <DealField name="base_rate" />
+                <DealField name="mezz_spread" />
+              </>
+            )}
           </RailGroup>
         </>
       }
@@ -90,19 +101,35 @@ export function InputsStep() {
           <Kpi title={t("kpiIrr")} value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
           <Kpi title={t("kpiMoic")} value={fmtMultiple(r.moic)} sub={units("holdYears", { years: inputs.hold })} />
           <Kpi title={t("kpiEnterpriseValue")} value={fmtMoney(ev)} sub={t("evSub", { multiple: fmtMultiple(inputs.entry_mult, 1), money: mu })} />
-          <Kpi title={t("kpiTotalDebt")} value={fmtMoney((ev * inputs.debt_pct) / 100)} sub={t("shareOfEv", { share: fmtPct(inputs.debt_pct) })} />
-          <Kpi title={t("kpiSponsorEquity")} value={fmtMoney(su?.sponsor_equity)} sub={t("inclFees", { money: mu })} />
           <Kpi
-            title={t("kpiSeniorShare")}
-            value={fmtPct(inputs.senior_pct)}
-            sub={t("seniorMezzSub", { senior: fmtMultiple(seniorX, 1), mezz: fmtMultiple(mezzX, 1) })}
+            title={t("kpiTotalDebt")}
+            value={fmtMoney(listed ? drawnDebt(inputs.tranches) : (ev * inputs.debt_pct) / 100)}
+            sub={t("shareOfEv", { share: fmtPct(debtShareOfEv(inputs)) })}
           />
+          <Kpi title={t("kpiSponsorEquity")} value={fmtMoney(su?.sponsor_equity)} sub={t("inclFees", { money: mu })} />
+          {listed ? (
+            <Kpi
+              title={t("kpiFacilities")}
+              value={fmtCount(inputs.tranches.length)}
+              sub={t("floatingSub", { count: floatingCount(inputs.tranches) })}
+            />
+          ) : (
+            <Kpi
+              title={t("kpiSeniorShare")}
+              value={fmtPct(inputs.senior_pct)}
+              sub={t("seniorMezzSub", { senior: fmtMultiple(seniorX, 1), mezz: fmtMultiple(mezzX, 1) })}
+            />
+          )}
 
           <Tile span={6} title={t("tileSources")} unit={mu}>
             <SuTable
               rows={[
-                [t("rowSeniorTermLoan"), su?.senior_debt],
-                [t("rowMezzanine"), su?.mezz_debt],
+                ...(listed
+                  ? (su?.tranches ?? []).map((tr): [string, number] => [trancheName(tr.name), tr.amount])
+                  : ([
+                      [t("rowSeniorTermLoan"), su?.senior_debt],
+                      [t("rowMezzanine"), su?.mezz_debt],
+                    ] as [string, number | null | undefined][])),
                 [t("rowSponsorEquity"), su?.sponsor_equity],
               ]}
               total={[t("rowTotalSources"), su?.total_sources]}
@@ -119,6 +146,7 @@ export function InputsStep() {
                 [t("rowPurchasePrice"), su?.equity_purchase_price],
                 [t("rowTransactionFees"), su?.transaction_fees],
                 [t("rowFinancingFees"), su?.financing_fees],
+                ...(listed ? [[t("rowTrancheFees"), su?.tranche_fees] as [string, number | undefined]] : []),
                 [t("rowOtherUses"), su?.other_uses],
                 [t("rowCashToBalanceSheet"), su?.cash_to_balance_sheet],
               ]}
@@ -127,7 +155,7 @@ export function InputsStep() {
           </Tile>
           <DealRisk />
           <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-3">
-            <p className="type-body">{t("debtSizedNote")}</p>
+            <p className="type-body">{listed ? t("debtListedNote") : t("debtSizedNote")}</p>
             <Link href="/deal/debt" className="type-action-secondary px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
               {t("nextDebt")}
             </Link>

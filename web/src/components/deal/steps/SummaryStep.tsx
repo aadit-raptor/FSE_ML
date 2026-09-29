@@ -17,6 +17,7 @@ import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/li
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useUnitLabel } from "@/lib/i18n/useFieldText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
+import { MONEY } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
 import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
@@ -38,6 +39,8 @@ export function SummaryStep() {
   const fields = useTranslations("fields");
   const unitLabel = useUnitLabel();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
+  const listed = inputs.tranches.length > 0;
+  const trancheName = useEngineLabel("tranche");
   return (
     <DealScreen
       rail={
@@ -45,7 +48,16 @@ export function SummaryStep() {
           {ASSUMPTIONS.map((g) => (
             <RailGroup key={g.titleKey} title={t(g.titleKey)}>
               <dl className="grid grid-cols-[1fr_auto] gap-x-2 gap-y-1">
-                {g.keys.map((k) => (
+                {listed && g.titleKey === "groupCapital"
+                  ? inputs.tranches.map((tr, i) => (
+                      <div key={i} className="contents">
+                        <dt className="type-input-label truncate">{trancheName(tr.name)}</dt>
+                        <dd className="text-end font-mono text-[11.5px] text-ink">
+                          {fmtMoney(tr.amount)} <span className="text-[10px] text-[#56636a]">{unitLabel(MONEY, money)}</span>
+                        </dd>
+                      </div>
+                    ))
+                  : g.keys.map((k) => (
                   <div key={k} className="contents">
                     <dt className="type-input-label">{fields(k)}</dt>
                     <dd className="text-end font-mono text-[11.5px] text-ink">
@@ -58,11 +70,16 @@ export function SummaryStep() {
           ))}
           <div className="grid gap-2 px-3.5 py-3">
             <p className="type-body">
-              {t("summaryDebtNote", {
-                senior: fmtMultiple(seniorX, 1),
-                mezz: fmtMultiple(mezzX, 1),
-                method: inputs.wsp_mode ? t("methodFromDays") : t("methodShareOfRevenue"),
-              })}
+              {listed
+                ? t("summaryListedNote", {
+                    count: inputs.tranches.length,
+                    method: inputs.wsp_mode ? t("methodFromDays") : t("methodShareOfRevenue"),
+                  })
+                : t("summaryDebtNote", {
+                    senior: fmtMultiple(seniorX, 1),
+                    mezz: fmtMultiple(mezzX, 1),
+                    method: inputs.wsp_mode ? t("methodFromDays") : t("methodShareOfRevenue"),
+                  })}
             </p>
             <Link href="/deal/inputs" className="type-action-secondary justify-self-start px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
               {t("editInputs")}

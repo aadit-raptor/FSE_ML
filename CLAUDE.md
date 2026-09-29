@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-29 (PLAN.md 2.4a: debt structures of any shape and floating rates). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-30 (PLAN.md 2.4b: the simulation and the screen for debt structures). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -300,13 +300,42 @@ engine always used, and no upfront fee, so the flat `fin_fee_pct` still
 applies. Per-tranche upfront fees are **their own line** beside it
 (`LBOParams.tranche_fees`), never a replacement, so setting one never switches
 the other off. A structure raising more than the deal costs is a **422**
-(`UnfinanceableStructure`, handled in `api/main.py` so a background job is
-refused the same way); its message names the deal's figures, so it is returned
-and never logged. `db/deals.py` `OMIT_WHEN_DEFAULT` (was `LABEL_DEFAULTS`)
+(`UnfinanceableStructure`, handled in `api/main.py`, and caught by
+`jobs/runner.py` for a background job, which never reaches that handler); its
+message names the deal's figures, so it is returned and never logged. `db/deals.py` `OMIT_WHEN_DEFAULT` (was `LABEL_DEFAULTS`)
 stores the list only when a deal has one, so existing deals keep their exact
-bytes and an API from before 2.4 still opens them. **Still to come in 2.4b**:
-the simulation's rate uncertainty on floating tranches only, and the screen
-that adds and removes them.
+bytes and an API from before 2.4 still opens them.
+
+Debt structures, the simulation and the screen (PLAN.md 2.4b): the Monte
+Carlo simulation's output is **pinned** in `tests/test_montecarlo_baseline.py`
+(recorded before 2.4b touched it; never re-record to go green). Its
+two-bucket path is untouched; a deal with tranches takes
+`_run_tranche_core`, whose debt is `simulation/tranches.py` -- the deal
+model's schedule on arrays, no rounding. `SimulationParams.tranches` holds
+`SimulationTranche`s built by `core.debt.simulation_tranches` (market
+conventions stay in `core/debt.py`). **The rate draw moves floating
+facilities only**: `max(reference + (draw - interest_mean), floor) +
+margin`, floored after the shock and before the margin. A scenario's rate
+multiplier moves `interest_mean`, so `apply_scenario` adds the change to
+every floating reference (`shift_references`), and the heatmap passes it as
+`reference_shift`; the heatmap runs on the deal's own structure.
+`equivalent_tranches` writes the senior loan as **floating** at the base
+rate (the deal model sees the same rate; the simulation always moved it),
+so a converted deal simulates exactly as before, path by path. The Monte
+Carlo answer's `params` echo leaves the tranches out (they are the deal's
+own input, in millions there). Web: the Debt step's rail is
+`steps/TrancheList.tsx` (the list order **is** the sweep order; a move
+clears `sweep_priority`), the "Use explicit tranches" button
+(`lib/deal/capital.ts` `equivalentTranches`, a line-for-line mirror), a
+capital-structure tile and schedule rows for PIK, fees and draws only when
+non-zero. `KIND_PRESETS` mirrors `core.debt.PRESETS` (a test reads the
+block between `presets-begin`/`-end`). The Inputs, Returns and Summary steps
+show `TranchesOnDebtStep` instead of the percentage fields a listed deal
+ignores; sources & uses, the risk score (`risk_model_inputs`) and the Live
+sliders read the facilities. Monte Carlo's stale check compares the list by
+content (`changedKeys`), and its rail says when the rate draw moves nothing.
+`e2e/tranches.spec.ts` proves every edit by output. Carried-forward items
+from the 2.4 reviews are listed under PLAN.md 2.4.
 
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
@@ -343,10 +372,10 @@ development cycle in **docs/WORKFLOW.md** (ECC merged with these rules), and
 tasks 0.2 (own domain, when the user has bought one), 0.3 (cycle gates in CI)
 and 11.4 (owner's handbook). 0.3 is done (CI gates, below). 2.3 is done: **2.3a** (locale
 formats and fiscal years) and **2.3b** (interface text in translation files,
-right to left), both below. 2.4 was split the same way: **2.4a is done** (the
-model — debt structures of any shape and floating rates, below). **Next is
-2.4b** (the simulation's rate uncertainty on floating tranches, and the screen
-that adds and removes them); 0.2 jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
+right to left), both below. 2.4 was split the same way and is done: **2.4a**
+(the model — debt structures of any shape and floating rates) and **2.4b**
+(the simulation and the Debt step's editor), both below. **Next is 2.5**
+(global tax rules); 0.2 jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -464,6 +493,18 @@ golden snapshot is untouched and parity tests explain every departure.
     columns differ from the percentage path's, which repays the mezzanine at
     whatever hold it reruns — see `tests/test_debt_structures.py`
     `test_an_explicit_structure_does_not_stretch_its_maturities_with_the_hold`.
+    The simulation's tranche path (2.4b) follows the deal model here too.
+
+12. **Open (found in PLAN.md 2.4b, needs the user's approval): the
+    two-bucket simulation throws away cash once the debt is repaid.**
+    `simulation/vectorized_simulation.py` resets the cash balance to
+    `minimum_cash` every year, so on a path where the sweep has repaid every
+    tranche the surplus disappears instead of reaching exit equity (the deal
+    model keeps it: `ending_cash = minimum_cash + unswept`). It never happens
+    on the default deal (600 of debt against about 50 a year of cash), but it
+    understates IRR for low-leverage deals. The tranche path keeps the cash,
+    as the deal model does; fixing the two-bucket path would move the pinned
+    simulation (`tests/test_montecarlo_baseline.py`), so it waits for approval.
 
 ### Waiting on the user
 
@@ -491,7 +532,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/` | FastAPI app (`api/main.py`), routers per mode (plus `export.py` for Excel downloads), schemas generated from engine dataclasses |
 | `api/auth.py` | Who is calling: Clerk session tokens verified locally against the instance's JWKS, plus the development sign-in for local runs and CI. `PUBLIC_PATHS` lists what works signed out |
 | `lbo_engine/` | Deterministic LBO engine (operating model, cash flow, debt, returns) |
-| `simulation/vectorized_simulation.py` | Vectorized Monte Carlo engine |
+| `simulation/vectorized_simulation.py`, `simulation/tranches.py` | Vectorized Monte Carlo engine; the tranche path's debt schedule (PLAN.md 2.4b) |
 | `analytics/` | Risk metrics |
 | `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
@@ -518,7 +559,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -769,6 +810,19 @@ Skills load when a session starts: install first, then open a new session.
   `tests/golden_compare.py` compares key sets, so it must be named in
   `TRANCHE_FIELDS` in `tests/test_core_parity.py` **and** shown to add nothing
   for the recorded deals. Never edit `tests/golden/golden.json`.
+- A change to the simulation (`simulation/`) must leave
+  `tests/test_montecarlo_baseline.py` green; a new tranche mechanic goes in
+  **both** `lbo_engine/debt_model.py` and `simulation/tranches.py`, and a
+  structure exercising it joins `STRUCTURES` in
+  `tests/test_montecarlo_tranches.py`, which holds each path at the mean to
+  the deal model. Pick a structure where the mechanic reaches exit: a
+  revolver's fee washed out when the revolver ended fully drawn, and the
+  first version of that test missed a deleted fee.
+- A `<fieldset>` (every `RailGroup`) is as wide as its widest unbreakable
+  content, and a grid's `1fr` column as wide as its widest item: a long name
+  in the rail widens the whole rail. Use `grid-cols-[minmax(0,1fr)]` and
+  `min-w-0` with `truncate` (`TrancheList.tsx`); check with
+  `aside.scrollWidth` via `javascript_tool`, since screenshots time out.
 - A new money figure in a deal, simulation or backtest answer must be added
   to that answer's money-key list (`DEAL_MONEY_KEYS` and so on), or a deal
   in thousands shows it a thousand times too small; `tests/test_money.py`'s

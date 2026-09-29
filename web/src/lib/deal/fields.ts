@@ -2,8 +2,8 @@ import type { Schemas } from "@/lib/api/client";
 import { changedKeys, type FieldSpec, validate } from "@/lib/fields";
 import { DEFAULT_MONEY, MONEY } from "@/lib/money";
 
-/** One facility in the deal's debt (PLAN.md 2.4). The editor is 2.4b; until then a
- *  deal gets these through the API, and the screens have to carry them faithfully. */
+/** One facility in the deal's debt (PLAN.md 2.4), as the API takes it. The Debt step edits
+ *  them (components/deal/steps/TrancheList.tsx); lib/deal/capital.ts has the kinds. */
 export type Tranche = Schemas["TrancheIn"];
 
 export type DealInputs = Required<Schemas["DealInputsIn"]>;

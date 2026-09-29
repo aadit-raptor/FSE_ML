@@ -147,11 +147,31 @@ export function WspToggle() {
   );
 }
 
+/**
+ * Where a deal that lists its facilities edits its debt. The percentage fields
+ * would do nothing for it (the model reads the list instead), so the screens
+ * that show them point here rather than keep a control that changes nothing.
+ */
+export function TranchesOnDebtStep() {
+  const { inputs } = useDeal();
+  const t = useTranslations("deal");
+  return (
+    <div className="grid gap-1.5 py-1">
+      <p className="type-body text-[9px]">{t("tranchesOnDebtStep", { count: inputs.tranches.length })}</p>
+      <Link href="/deal/debt" className="type-action-secondary justify-self-start px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
+        {t("editTranches")}
+      </Link>
+    </div>
+  );
+}
+
 /** A changed input, named and valued the way the rail shows it. */
 export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof DealInputs]) => string {
   const fields = useTranslations("fields");
+  const t = useTranslations("deal");
   return useCallback(
     (key, v) => {
+      if (Array.isArray(v)) return t("facilityCount", { count: v.length });
       if (key === "fiscal_year_end_month" && typeof v === "number") return monthName(v);
       if (key === "first_fiscal_year") return v === null ? fields("none") : String(v);
       if (typeof v === "boolean") return v ? fields("on") : fields("off");
@@ -159,7 +179,7 @@ export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof
       const spec = FIELDS[key as NumericDealKey];
       return spec ? `${fmtInput(v, spec.decimals)}${spec.unit === "%" ? "%" : spec.unit === "x" ? "x" : ""}` : String(v);
     },
-    [fields],
+    [fields, t],
   );
 }
 

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { useDeal } from "@/components/deal/DealProvider";
+import { debtShareOfEv } from "@/lib/deal/capital";
 import { apiInputs } from "@/lib/deal/fields";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { useMoney } from "@/components/ui/MoneyScope";
@@ -61,7 +62,7 @@ function Live() {
     exit_mean: clamp(sim.exit_mean, 4, 20),
     interest_mean: clamp(sim.rate_mean, 1, 15),
     gross_margin_mean: clamp(sim.gm_mean, 10, 80),
-    debt_pct: clamp(deal.debt_pct, 20, 90),
+    debt_pct: clamp(debtShareOfEv(deal), 20, 90),
     exit_std: clamp(sim.exit_std, 0.3, 5),
   });
   const [sliders, setSliders] = useState<Sliders>(initial);

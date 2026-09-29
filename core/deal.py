@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from typing import Mapping, Optional
 
 from core.debt import (
-    build_capital_structure, check_specs, coerce, financing_fees, summary,
+    blended_rate as tranche_rate, build_capital_structure, check_specs, coerce, financing_fees, summary,
     total_debt as tranche_debt, unique_names,
 )
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT, to_millions
@@ -209,7 +209,20 @@ def risk_model_inputs(d: DealInputs, senior_x, mezz_x) -> dict:
 
     The detector expects the all-in debt rate, so senior and mezz rates are
     blended by amount rather than passing the senior rate.
+
+    A deal that lists its facilities is scored on them: what is drawn at
+    close, and the year-one rate blended by what is drawn. The multiples the
+    screen sends describe the percentages, which such a deal does not use.
     """
+    if d.tranches:
+        drawn = tranche_debt(d.tranches)
+        return dict(
+            entry_mult=d.entry_mult,
+            leverage=drawn / max(d.ebitda, 1e-9),
+            growth_pct=d.growth,
+            ebitda_margin=d.gross_margin - d.opex + d.da,
+            rate=tranche_rate(d.tranches) * 100 if drawn > 0 else d.base_rate,
+        )
     total_debt_abs = (senior_x + mezz_x) * d.ebitda
     total_x = senior_x + mezz_x
     blended_rate = ((senior_x * d.base_rate

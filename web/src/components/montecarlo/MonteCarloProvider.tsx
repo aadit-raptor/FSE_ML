@@ -7,7 +7,7 @@ import { useDeal } from "@/components/deal/DealProvider";
 import { useDealChange, useDealLabel } from "@/components/deal/DealScreen";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import type { Schemas } from "@/lib/api/client";
-import { apiInputs, type DealInputs } from "@/lib/deal/fields";
+import { apiInputs, changedKeys, type DealInputs } from "@/lib/deal/fields";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtInput } from "@/lib/format";
 import { describeJob, type Job, JobFailed, type JobMessages, runJob } from "@/lib/jobs";
@@ -96,7 +96,9 @@ function simFromSettings(s: Settings): SimInputs {
 }
 
 /** Deal inputs the simulation reads (core/montecarlo.py::build_sim_params); others don't make it stale. */
-const SIM_DEAL_KEYS: (keyof DealInputs)[] = ["ebitda", "entry_mult", "hold", "opex", "da", "tax", "capex", "nwc", "debt_pct", "senior_pct", "mezz_spread"];
+const SIM_DEAL_KEYS: (keyof DealInputs)[] = [
+  "ebitda", "entry_mult", "hold", "opex", "da", "tax", "capex", "nwc", "debt_pct", "senior_pct", "mezz_spread", "tranches",
+];
 
 type Snapshot = { sim: SimInputs; deal: DealInputs; settings: Settings; scenario: Scenario | null; seed: number | null };
 
@@ -254,8 +256,10 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
         out.push(`${t(CHANGE_LABEL_KEY[k])} ${fmtInput(prev.sim[k], d)} → ${fmtInput(sim[k], d)}`);
       }
     });
+    // changedKeys compares the facility list by content, not by identity
+    const moved = changedKeys(prev.deal, deal);
     SIM_DEAL_KEYS.forEach((k) => {
-      if (prev.deal[k] !== deal[k]) out.push(`${dealLabel(k)} ${dealChange(k, prev.deal[k])} → ${dealChange(k, deal[k])}`);
+      if (moved.includes(k)) out.push(`${dealLabel(k)} ${dealChange(k, prev.deal[k])} → ${dealChange(k, deal[k])}`);
     });
     const presetName = (s: Scenario | null) => (s ? t(SCENARIOS.find((x) => x.id === s)!.labelKey) : t("noPreset"));
     if (prev.scenario !== scenario) out.push(t("changeScenario", { from: presetName(prev.scenario), to: presetName(scenario) }));

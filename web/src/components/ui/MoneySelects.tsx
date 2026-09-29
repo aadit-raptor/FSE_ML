@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { currencyCodes, currencyName, type Money, MONEY_UNITS, type MoneyUnit } from "@/lib/money";
 
-const SELECT =
+export const SELECT_CLASS =
   "min-w-0 border border-line bg-field px-1 py-0.5 font-mono text-[11px] text-ink outline-none focus:border-accent";
 
 /**
@@ -23,7 +23,7 @@ export function MoneySelects({ money, onChange, of }: { money: Money; onChange: 
     <>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
         <span className="type-input-label">{t("currency")}</span>
-        <select aria-label={t("currencyOf", { of })} value={money.currency} onChange={(e) => onChange({ ...money, currency: e.target.value })} className={SELECT}>
+        <select aria-label={t("currencyOf", { of })} value={money.currency} onChange={(e) => onChange({ ...money, currency: e.target.value })} className={SELECT_CLASS}>
           {codes.map((c) => (
             <option key={c} value={c}>
               {currencyName(c)}
@@ -37,7 +37,7 @@ export function MoneySelects({ money, onChange, of }: { money: Money; onChange: 
           aria-label={t("unitOf", { of })}
           value={money.unit}
           onChange={(e) => onChange({ ...money, unit: e.target.value as MoneyUnit })}
-          className={SELECT}
+          className={SELECT_CLASS}
         >
           {MONEY_UNITS.map((u) => (
             <option key={u.value} value={u.value}>
