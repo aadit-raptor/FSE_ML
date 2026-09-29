@@ -130,6 +130,9 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | Neon IP allow list, longer restore window | 12.2 |
 | Paid AI provider with no training on inputs, for confidential documents | 12.4 |
 | Company sign-in (SSO) | 12.6 |
+| No cap on deals per account or saved versions per deal: automatic checkpoints are bounded, explicit saves are not, and a deal with twelve facilities is about 20 KB, so one account could fill Neon's free 0.5 GB in hours (found reviewing 2.4a) | 1.6 follow-up |
+| `sens_*` settings are unbounded and the deal endpoints have no timeout: `sensitivity_holding_periods` builds `range(lo, hi + 1)` unchecked, and `/api/deal/run` is not in `RUN_PATHS`, so a raised `sens_hp_max` makes one request hold a thread for seconds (found reviewing 2.4a; predates it) | 1.6 follow-up |
+| Exception messages still reach the JSON logs and Sentry: `JsonFormatter` includes `formatException` and `scrub_event` clears frame variables but not `exception.values[].value`, though both say type-and-traceback only. Nothing leaks today, because every refusal is returned rather than raised, but the hardening is worth doing | 10.2 |
 
 ## What's public in this repository (reviewed 2026-09-17)
 

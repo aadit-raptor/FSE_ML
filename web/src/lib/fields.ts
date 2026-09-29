@@ -28,7 +28,19 @@ export function validate(spec: FieldSpec, v: number): FieldProblem | null {
   return null;
 }
 
-/** Keys whose values differ between two flat records. */
+/**
+ * Keys whose values differ between two records.
+ *
+ * Most inputs are numbers, strings or booleans, where identity is the answer.
+ * A few are lists -- the deal's debt facilities (PLAN.md 2.4) -- and a new
+ * array is never identical to the old one, so those are compared by content;
+ * otherwise every edit anywhere would report the debt as changed too, and an
+ * edit inside the list would not be reported at all.
+ */
 export function changedKeys<T extends object>(a: T, b: T): (keyof T)[] {
-  return (Object.keys(a) as (keyof T)[]).filter((k) => a[k] !== b[k]);
+  return (Object.keys(a) as (keyof T)[]).filter((k) => {
+    const x = a[k], y = b[k];
+    if (Array.isArray(x) || Array.isArray(y)) return JSON.stringify(x) !== JSON.stringify(y);
+    return x !== y;
+  });
 }

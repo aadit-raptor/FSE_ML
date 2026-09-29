@@ -199,12 +199,18 @@ def unique_names(specs: Sequence[TrancheSpec]) -> list:
     would otherwise overwrite each other and the second one's schedule would
     vanish. The second becomes "Term loan (2)".
     """
-    seen: dict = {}
+    taken: set = set()
     names = []
     for spec in specs:
         base = spec.name.strip() or spec.kind
-        seen[base] = seen.get(base, 0) + 1
-        names.append(base if seen[base] == 1 else f"{base} ({seen[base]})")
+        name, n = base, 1
+        # Counting occurrences is not enough: a user who has already named a
+        # facility "Term loan (2)" would collide with the second "Term loan".
+        while name in taken:
+            n += 1
+            name = f"{base} ({n})"
+        taken.add(name)
+        names.append(name)
     return names
 
 
@@ -290,6 +296,16 @@ def blended_rate(specs: Sequence[TrancheSpec]) -> float:
     return sum(spec.drawn * spec.rate_in_year(1) for spec in specs) / drawn
 
 
+class UnfinanceableStructure(ValueError):
+    """The tranches ask for more than the deal costs.
+
+    A refusal the caller can act on, not a fault: the API answers 422 with the
+    message (api/main.py). It carries the deal's own figures, so it goes to
+    the person who typed them and **never to a log** -- CLAUDE.md's rule that
+    deal contents stay out of logs and Sentry.
+    """
+
+
 def check_specs(specs: Sequence[TrancheSpec], entry_ev: float, entry_costs: float) -> None:
     """Refuse a structure the sponsor could not fund, with a sentence saying
     what to change.
@@ -301,7 +317,7 @@ def check_specs(specs: Sequence[TrancheSpec], entry_ev: float, entry_costs: floa
     drawn = total_debt(specs)
     needed = entry_ev + entry_costs
     if drawn > needed:
-        raise ValueError(
+        raise UnfinanceableStructure(
             f"The tranches raise more than the deal costs: {drawn:,.1f} of debt against "
             f"{needed:,.1f} of enterprise value and fees, which would leave the sponsor "
             f"with a negative equity cheque. Reduce a tranche's size, or raise the entry "
@@ -315,17 +331,25 @@ def equivalent_tranches(deal, cfg: Mapping) -> list:
     """The senior + mezzanine structure a deal's percentages imply, as an
     explicit tranche list.
 
-    Running this must give **exactly** the answer the percentages give: it is
-    what the deal screen's "use explicit tranches" button starts from, and a
-    user who converts and changes nothing must see no number move. Two details
-    make that exact rather than nearly exact:
+    Running this gives **exactly** the answer the percentages give -- returns,
+    debt schedule and the sensitivity grid's own column -- because it is what
+    the deal screen's "use explicit tranches" button starts from, and a user
+    who converts and changes nothing should see their deal unchanged. Two
+    details make that exact rather than nearly exact:
 
     * the mezzanine is written as a **margin over the senior rate**, which is
       what it has always been (``interest_rate + mezz_spread`` in the engine),
       so the arithmetic is the same expression rather than a rounded copy of
       its result;
-    * neither tranche carries an upfront fee, so ``financing_fees`` stays
-      ``None`` and the deal's flat financing-fee setting still applies.
+    * neither tranche carries an upfront fee, so no arrangement fee is added
+      and the deal's flat financing-fee setting still applies on its own.
+
+    The one place the two paths part company is the exit-sensitivity grid's
+    *other* columns. Sizing by percentages gives the mezzanine a maturity
+    equal to the hold, so the bullet follows the grid to three or seven years
+    and the tranche is always repaid at exit; a facility written out
+    explicitly matures when its agreement says. See
+    ``tests/test_debt_structures.py`` and CLAUDE.md "Model findings", 11.
     """
     entry_ev = deal.ebitda * deal.entry_mult
     debt = entry_ev * deal.debt_pct / 100

@@ -24,7 +24,11 @@ SettingValue = Union[float, int, bool]
 
 
 class Strict(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    # JSON lets a caller write Infinity or NaN, and Pydantic accepts them as
+    # floats by default. They survive every bound (NaN compares false against
+    # ge and le) and only fail deep inside the model, as a 500 whose traceback
+    # carries the deal's own figures into the log. Refuse them at the edge.
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
 def _path_cap(maximum: int):
@@ -82,6 +86,9 @@ ReferenceRate = Literal[
 Rate = Annotated[float, Field(ge=-5, le=50)]
 # Long enough for any facility's life; also bounds what a stored deal can hold
 MAX_TRANCHE_YEARS = 30
+# Larger than any deal anyone will model, in any currency and unit, and small
+# enough that the arithmetic never runs out of floating-point range
+MAX_MONEY = 1e15
 
 
 class TrancheIn(Strict):
@@ -101,7 +108,8 @@ class TrancheIn(Strict):
     """
     name: str = Field(min_length=1, max_length=60)
     kind: TrancheKind
-    amount: float = Field(0.0, ge=0, description="Facility size (in the deal's currency and unit)")
+    amount: float = Field(0.0, ge=0, le=MAX_MONEY,
+                          description="Facility size (in the deal's currency and unit)")
     drawn_pct: float = Field(100.0, ge=0, le=100, description="% of the facility drawn at close")
     floating: bool = False
     fixed_rate: Rate = Field(0.0, description="All-in rate (%) when not floating")
@@ -113,8 +121,9 @@ class TrancheIn(Strict):
     floor: Rate = Field(0.0, description="Floor on the reference (%)")
     maturity_years: int = Field(7, ge=1, le=MAX_TRANCHE_YEARS, strict=True)
     amort_pct: float = Field(0.0, ge=0, le=100, description="% of the original principal repaid a year")
-    amort_schedule: List[float] = Field(default_factory=list, max_length=MAX_TRANCHE_YEARS,
-                                        description="Repayment a year; overrides amort_pct")
+    amort_schedule: List[Annotated[float, Field(ge=0, le=MAX_MONEY)]] = Field(
+        default_factory=list, max_length=MAX_TRANCHE_YEARS,
+        description="Repayment a year; overrides amort_pct")
     upfront_fee_pct: float = Field(0.0, ge=0, le=10, description="Arrangement fee at close (%)")
     commitment_fee_pct: float = Field(0.0, ge=0, le=5, description="Yearly fee on the undrawn commitment (%)")
     sweep: bool = Field(False, description="Takes the cash sweep")
@@ -122,13 +131,6 @@ class TrancheIn(Strict):
     pik_share: float = Field(0.0, ge=0, le=100, description="% of the coupon that accrues to principal")
     sweep_priority: int = Field(0, ge=0, le=99, strict=True, description="0 = its position in the list")
     allow_redraw: bool = Field(False, description="Draws to cover a cash shortfall (revolver)")
-
-    @field_validator("amort_schedule")
-    @classmethod
-    def _repayments_are_not_negative(cls, value: List[float]) -> List[float]:
-        if any(x < 0 for x in value):
-            raise ValueError("a repayment cannot be negative")
-        return value
 
 
 # Each tranche multiplies the work of a run: the exit-sensitivity grid reruns

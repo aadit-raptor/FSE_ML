@@ -5,7 +5,7 @@ inside page_deal_inputs). Inputs use the same units as the wizard: percentages
 as numbers like 60.0, money in the deal's currency and unit (core/money.py;
 US dollar millions unless the deal says otherwise).
 """
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from typing import Mapping, Optional
 
 from core.debt import (

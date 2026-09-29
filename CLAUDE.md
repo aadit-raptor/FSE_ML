@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-27 (PLAN.md 2.3b: interface text in translation files, right to left). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-29 (PLAN.md 2.4a: debt structures of any shape and floating rates). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -222,7 +222,7 @@ and latest year (EDGAR reads them from the latest 10-K; a 52/53-week year
 ending in a month's first week counts as the month before). Years are named
 by the year they end in: "FY2025" for December, else "FY2024/25"
 (`lib/fiscal.ts`). **Stored and sent only when set** (`db/deals.py`
-`LABEL_DEFAULTS`, web `apiInputs()`), so old deals are unchanged and an API
+`OMIT_WHEN_DEFAULT`, web `apiInputs()`), so old deals are unchanged and an API
 from before 2.3a (a deploy rolling out, a rollback) still answers every deal
 that doesn't use them; API answers always carry them. Excel: a sheet sends
 `row_formats` / `column_formats` (`money`, `percent` as fractions,
@@ -269,6 +269,45 @@ comment, `i18n-keys: nav.*` (one `i18n-keys:` per line). `e2e/text.spec.ts`
 reads the expected words out of `en.json` and checks the mirrored layout with
 an Arabic account.
 
+Debt structures and interest rates, the model (PLAN.md 2.4a): a deal's debt is
+a **list of facilities** (`core/debt.py`, `DealInputs.tranches`) instead of one
+senior loan plus a mezzanine tranche. Nine kinds -- amortising and
+institutional term loans, unitranche, second lien, senior notes, PIK notes,
+vendor loan, revolver, shareholder loan -- are **presets over one dataclass**
+(`PRESETS`), not nine code paths; only three mechanics are new. **PIK**: a
+share of the coupon accrues to principal, stays an expense in the P&L, and
+comes back as `cash_flow.non_cash_interest` beside D&A, riding the same
+convergence loop as interest. **The revolver**: `amount` is the commitment and
+`drawn_pct` is drawn at close, so only the drawn part is a source of funds and
+only the undrawn part pays a commitment fee (a cash cost, so it joins interest
+expense); `allow_redraw` funds a cash shortfall instead of inventing cash
+(finding 11). **The sweep share**: a facility takes at most its agreed share of
+the cash available and what it leaves flows to the next one. Pricing lives in
+`core/debt.py`, never in the engine: a floating tranche's rate for a year is
+`max(reference, floor) + margin` -- the floor bites on the reference **before**
+the margin -- and `lbo_engine` gets a plain `rate_path`, so PLAN.md 4.2 can
+fill `reference_path` from market data without touching the engine. A path
+shorter than the run **repeats its last year** (the sensitivity grid reruns at
+holds of 3-7). Every engine default is an exact no-op (`pik_share` 0.0,
+`sweep_share` 1.0, no `commitment`, empty `rate_path`), so a deal sized by
+percentages is bit-for-bit unchanged and **`tests/golden/golden.json` is
+untouched**; `assert_close` takes an `extra` allow-list for the fields the
+model has gained, and a test checks each adds nothing for the recorded deals,
+so the allow-list can't hide a real change. `equivalent_tranches` writes
+today's structure out explicitly and gives the identical answer -- the
+mezzanine as a **margin over the senior rate**, which is the expression the
+engine always used, and no upfront fee, so the flat `fin_fee_pct` still
+applies. Per-tranche upfront fees are **their own line** beside it
+(`LBOParams.tranche_fees`), never a replacement, so setting one never switches
+the other off. A structure raising more than the deal costs is a **422**
+(`UnfinanceableStructure`, handled in `api/main.py` so a background job is
+refused the same way); its message names the deal's figures, so it is returned
+and never logged. `db/deals.py` `OMIT_WHEN_DEFAULT` (was `LABEL_DEFAULTS`)
+stores the list only when a deal has one, so existing deals keep their exact
+bytes and an API from before 2.4 still opens them. **Still to come in 2.4b**:
+the simulation's rate uncertainty on floating tranches only, and the screen
+that adds and removes them.
+
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
 put the table in the job summary and fail below their line in
@@ -304,8 +343,10 @@ development cycle in **docs/WORKFLOW.md** (ECC merged with these rules), and
 tasks 0.2 (own domain, when the user has bought one), 0.3 (cycle gates in CI)
 and 11.4 (owner's handbook). 0.3 is done (CI gates, below). 2.3 is done: **2.3a** (locale
 formats and fiscal years) and **2.3b** (interface text in translation files,
-right to left), both below. **Next is 2.4** (global debt structures and
-interest rates); 0.2 jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
+right to left), both below. 2.4 was split the same way: **2.4a is done** (the
+model — debt structures of any shape and floating rates, below). **Next is
+2.4b** (the simulation's rate uncertainty on floating tranches, and the screen
+that adds and removes them); 0.2 jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -408,6 +449,22 @@ golden snapshot is untouched and parity tests explain every departure.
     and interest are off by up to 5,000. Fixing it changes the golden
     numbers, so it waits for approval.
 
+11. **Open (found in PLAN.md 2.4, needs the user's approval): a cash
+    shortfall is funded out of nothing.** `lbo_engine/debt_model.py` step 7
+    sets `ending_cash = minimum_cash + unswept` whatever happened, so a year
+    with negative levered free cash flow, or one whose mandatory repayments
+    exceed the cash in hand, quietly restores the balance to the minimum. The
+    default deal hits it in year 5, where the mezzanine bullet
+    (`maturity_years == hold`) is repaid in full with nothing funding it.
+    A deal with a **revolver** now funds the shortfall honestly (a tranche
+    with `allow_redraw` draws against its commitment), but every other deal
+    still invents the cash, because fixing it generally would move every
+    existing deal's numbers. Related: an explicit tranche list keeps its
+    maturities whatever the hold, so the exit-sensitivity grid's other
+    columns differ from the percentage path's, which repays the mezzanine at
+    whatever hold it reruns — see `tests/test_debt_structures.py`
+    `test_an_explicit_structure_does_not_stretch_its_maturities_with_the_hold`.
+
 ### Waiting on the user
 
 - PLAN.md 1.7 follow-up: the GitHub settings in DEPLOY.md "CI and GitHub
@@ -455,12 +512,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ops/betterstack.py` | Better Stack uptime monitors, status page and incidents, as code (`monitoring.yml` syncs it) |
 | `web/src/lib/locale.ts`, `web/src/lib/format.ts`, `web/src/lib/fiscal.ts`, `web/src/components/ui/FiscalSelects.tsx` | Locale (PLAN.md 2.3a): number, date and input formats from the account's locale and grouping; fiscal year labels and their controls |
 | `web/messages/en.json`, `web/src/lib/i18n/`, `web/src/components/shell/I18nScope.tsx`, `web/src/components/shell/DocumentTitle.tsx` | Interface text (PLAN.md 2.3b): the catalogue; which language and direction a locale gets, the message loader, the page titles, and the hooks for fiscal labels, field text, engine labels and the honest labels |
+| `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (553 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -670,7 +728,8 @@ Skills load when a session starts: install first, then open a new session.
   strings with special spaces as escapes (`"21,2\u00a0%"`).
 - A new field on `DealInputsIn` must also go on `core.deal.DealInputs`
   (every router builds it with `DealInputs(**model_dump())`), and a field
-  that is only a label belongs in `db/deals.py` `LABEL_DEFAULTS` and web
+  that is only a label, or that old deals should not gain, belongs in
+  `db/deals.py` `OMIT_WHEN_DEFAULT` and web
   `apiInputs()`, or old deals gain a version and a rollback breaks them.
 - Deal defaults: the API uses stored 60% debt / 70% senior; the retired
   Streamlit wizard derived 42% / ~81% from 3.4x + 0.8x debt multiples, which is
@@ -703,6 +762,13 @@ Skills load when a session starts: install first, then open a new session.
 - `jobs` owners are subjects; the drill uses `system:drill`, which no sign-in
   can produce. The conftest gives every test a fresh `MemoryQueue` and turns
   the runner thread off; tests run jobs with `Runner.run_next()`.
+- A new tranche mechanic in `lbo_engine/` must default to an **exact no-op**
+  (`x * 1.0`, `+ 0.0`, an empty path), or every deal sized by percentages
+  moves. A new *field* on `TrancheYearRecord`, `DebtScheduleResult`,
+  `CashFlowResult` or `SimulationParams` can't be a no-op at all:
+  `tests/golden_compare.py` compares key sets, so it must be named in
+  `TRANCHE_FIELDS` in `tests/test_core_parity.py` **and** shown to add nothing
+  for the recorded deals. Never edit `tests/golden/golden.json`.
 - A new money figure in a deal, simulation or backtest answer must be added
   to that answer's money-key list (`DEAL_MONEY_KEYS` and so on), or a deal
   in thousands shows it a thousand times too small; `tests/test_money.py`'s

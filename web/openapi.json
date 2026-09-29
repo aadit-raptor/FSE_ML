@@ -5580,6 +5580,8 @@
           "amort_schedule": {
             "description": "Repayment a year; overrides amort_pct",
             "items": {
+              "maximum": 1000000000000000.0,
+              "minimum": 0.0,
               "type": "number"
             },
             "maxItems": 30,
@@ -5589,6 +5591,7 @@
           "amount": {
             "default": 0.0,
             "description": "Facility size (in the deal's currency and unit)",
+            "maximum": 1000000000000000.0,
             "minimum": 0.0,
             "title": "Amount",
             "type": "number"

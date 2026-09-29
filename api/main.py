@@ -10,6 +10,8 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -23,6 +25,8 @@ from api import usage
 from api.limits import LimitExceeded, LimitRefusal, LimitsMiddleware, enforce_user_limits
 from api.security import CORS_ALLOW_HEADERS, SecurityHeadersMiddleware, cors_origins
 from api.github_oidc import require_workflow
+from core.debt import UnfinanceableStructure
+from core.montecarlo import TranchesNotSimulatedYet
 from api.routers import (
     account, backtesting, deal, deals, export, forecasting, integrations, jobs, montecarlo,
     scheduled,
@@ -124,6 +128,45 @@ def create_app() -> FastAPI:
     @app.exception_handler(LimitExceeded)
     async def limit_exceeded(request: Request, exc: LimitExceeded):
         return JSONResponse(exc.body, status_code=429, headers=exc.headers)
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request: Request, exc: RequestValidationError):
+        """Which field was wrong and why -- without quoting what was sent.
+
+        FastAPI's own handler echoes the offending value back. Two reasons not
+        to: a value from a deal is deal content, and it has no business in an
+        error body that a proxy or a browser extension may log; and a value
+        JSON cannot represent (Infinity, NaN) makes the answer itself fail to
+        serialise, turning a refusal into a 500 whose traceback then carries
+        the figures into the log. `loc` and `msg` say everything the caller
+        needs to fix it.
+        """
+        told = [{k: v for k, v in error.items() if k in ("type", "loc", "msg")}
+                for error in exc.errors()]
+        return JSONResponse({"detail": jsonable_encoder(told)}, status_code=422)
+
+    @app.exception_handler(UnfinanceableStructure)
+    async def unfinanceable_structure(request: Request, exc: UnfinanceableStructure):
+        """A debt structure the sponsor could not fund: the caller's mistake,
+        so it is a refusal with a sentence saying what to change rather than a
+        fault. Answered here rather than in each router so a run submitted as
+        a background job is refused the same way.
+
+        The message names the deal's own figures, so it goes in the answer to
+        the person who typed them and nowhere else: returning a JSONResponse
+        rather than raising keeps it out of the error log and out of Sentry.
+        """
+        return JSONResponse({"detail": str(exc)}, status_code=422)
+
+    @app.exception_handler(TranchesNotSimulatedYet)
+    async def tranches_not_simulated_yet(request: Request, exc: TranchesNotSimulatedYet):
+        """A deal whose debt is listed facility by facility, sent to the
+        simulation, which cannot yet finance it that way (PLAN.md 2.4b).
+
+        Returned rather than raised, so it stays out of the error log: it is
+        a limitation to tell the caller about, not a fault.
+        """
+        return JSONResponse({"detail": str(exc)}, status_code=422)
 
     @app.exception_handler(DatabaseUnavailable)
     async def database_unavailable(request: Request, exc: DatabaseUnavailable):

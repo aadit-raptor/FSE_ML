@@ -138,7 +138,7 @@ export function InputsStep() {
   );
 }
 
-function SuTable({ rows, total }: { rows: [string, number | undefined][]; total: [string, number | undefined] }) {
+function SuTable({ rows, total }: { rows: [string, number | null | undefined][]; total: [string, number | null | undefined] }) {
   return (
     <table className="w-full border-collapse font-mono text-[11.5px]">
       <tbody>

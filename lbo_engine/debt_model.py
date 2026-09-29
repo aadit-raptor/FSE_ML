@@ -237,18 +237,10 @@ def run_debt_model(
         # ------------------------------------------------------------------
         # Step 2: Mandatory amortization per tranche
         # ------------------------------------------------------------------
-        mandatory = {}
-        for t in tranches:
-            # Cannot repay more than current balance
-            sched = t.mandatory_repayment(year, n, beg_balances[t.name])
-            mandatory[t.name] = min(sched, beg_balances[t.name])
-
-        total_mandatory = sum(mandatory.values())
-
-        # ------------------------------------------------------------------
-        # Step 3: Interest on beginning balance
+        # Interest comes first because a repayment has to settle what the year
+        # accrued as well as the principal (PLAN.md 2.4).
         #
-        # The coupon splits three ways (PLAN.md 2.4):
+        # The coupon splits three ways:
         #   pik    accrues to principal instead of being paid  (pik_share)
         #   cash   is paid out of the year's cash flow
         #   fee    is charged on whatever is committed but undrawn
@@ -256,7 +248,6 @@ def run_debt_model(
         # expense and still shields tax; it is the cash flow that gets it back
         # (cashflow_model's non_cash_interest). At the defaults pik is 0.0 and
         # fee is 0.0, so this is arithmetically identical to what came before.
-        # ------------------------------------------------------------------
         interest, pik, fees = {}, {}, {}
         for t in tranches:
             coupon = t.annual_interest(beg_balances[t.name], year)
@@ -265,6 +256,26 @@ def run_debt_model(
             interest[t.name] = coupon + fees[t.name]
 
         total_interest = sum(interest.values())
+
+        # ------------------------------------------------------------------
+        # Step 3: Mandatory amortization per tranche
+        #
+        # What is owed at maturity is the opening balance **plus what this
+        # year accrued**: redeeming a PIK note pays its principal and the
+        # coupon that rolled into it. Repaying only the opening balance would
+        # leave the year's accrual behind as a balance nothing ever repays,
+        # still sitting in net debt years after the note was redeemed. For a
+        # tranche that accrues nothing this is `beg + 0.0`, exactly the
+        # balance, so nothing about an ordinary deal changes.
+        # ------------------------------------------------------------------
+        mandatory = {}
+        for t in tranches:
+            owed = beg_balances[t.name] + pik[t.name]
+            # Cannot repay more than is outstanding
+            sched = t.mandatory_repayment(year, n, owed)
+            mandatory[t.name] = min(sched, owed)
+
+        total_mandatory = sum(mandatory.values())
 
         # ------------------------------------------------------------------
         # Step 4: Cash available for sweep
@@ -306,11 +317,16 @@ def run_debt_model(
                 break
             # Balance after mandatory amortization
             balance_post_mandatory = beg_balances[t.name] - mandatory[t.name]
-            # A tranche takes at most its agreed share of the cash available;
-            # what it leaves flows on to the next one, and whatever no tranche
-            # takes stays on the balance sheet. sweep_share is 1.0 unless the
-            # facility says otherwise, and `x * 1.0` is exactly `x`.
-            swept = min(remaining_sweep * t.sweep_share, balance_post_mandatory)
+            # A tranche takes at most its agreed share of **the cash the
+            # business had available**, not of whatever the tranche above it
+            # left: two facilities that each take half take half each, rather
+            # than a half and a quarter. It is still capped by what is left
+            # and by its own balance, so the tranches can never take more
+            # between them than there was. Whatever none of them takes stays
+            # on the balance sheet. sweep_share is 1.0 unless the facility
+            # says otherwise, and available_sweep * 1.0 is exactly
+            # available_sweep, which is never below remaining_sweep.
+            swept = min(available_sweep * t.sweep_share, remaining_sweep, balance_post_mandatory)
             sweep[t.name] = round(max(swept, 0.0), 4)
             remaining_sweep -= sweep[t.name]
 

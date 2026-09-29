@@ -465,3 +465,234 @@ def test_build_lbo_params_only_builds_a_structure_when_there_are_tranches():
     assert build_lbo_params(DealInputs(), cfg()).capital_structure is None
     built = build_lbo_params(DealInputs(tranches=[SONIA_LOAN]), cfg()).capital_structure
     assert built is not None and built.total_debt == 400.0
+
+
+# ---------------------------------------------------------------------------
+# A structure the sponsor could not fund is a refusal, not a fault
+# ---------------------------------------------------------------------------
+def test_a_structure_that_raises_more_than_the_deal_costs_is_refused():
+    """Sizing debt as a share of EV was capped at 99%, so the equity cheque
+    could never go negative. A tranche list has no such cap."""
+    from core.debt import UnfinanceableStructure
+
+    with pytest.raises(UnfinanceableStructure, match="negative equity cheque"):
+        run([dataclasses.replace(SONIA_LOAN, amount=99_999.0)])
+
+
+def test_the_api_refuses_it_with_a_sentence_and_keeps_it_out_of_the_logs(caplog):
+    """422 with something the user can act on, not a 500.
+
+    And the message names the deal's own figures, so it must reach the person
+    who typed them and nobody else: an unhandled error would put the whole
+    traceback, those figures included, into the request log and into Sentry,
+    which CLAUDE.md forbids for anything from a deal.
+    """
+    import logging
+
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)   # conftest signs every test in
+    with caplog.at_level(logging.DEBUG):
+        resp = client.post("/api/deal/run", json={"inputs": {"tranches": [
+            {"name": "Far too big", "kind": "unitranche", "amount": 99_999.0}]}})
+    assert resp.status_code == 422
+    assert "negative equity cheque" in resp.json()["detail"]
+    logged = " ".join(r.getMessage() for r in caplog.records)
+    assert "99,999" not in logged and "Far too big" not in logged and "Traceback" not in logged
+
+
+# ---------------------------------------------------------------------------
+# Findings from the review of the first commit
+# ---------------------------------------------------------------------------
+def test_each_tranches_sweep_share_is_a_share_of_the_cash_available():
+    """Two facilities that each take 50% take 50% each, not 50% and 25%.
+
+    The share is of the cash the business has available, which is what the
+    field says and what a credit agreement means. Applying it to whatever is
+    left after the tranche above quietly halves every facility down the
+    order, and one tranche alone cannot tell the two readings apart.
+    """
+    a = TrancheSpec(name="Loan A", kind="institutional_term_loan", amount=150.0,
+                    fixed_rate=6.0, sweep=True, sweep_share=50.0, sweep_priority=1,
+                    maturity_years=7)
+    b = dataclasses.replace(a, name="Loan B", sweep_priority=2)
+    r = run([a, b], mincash=10.0)
+    debt = r.debt_schedule
+    for t in range(5):
+        available = debt.available_for_sweep[t]
+        if available <= 0 or rows(r, "Loan A")[t].ending_balance == 0:
+            continue
+        assert rows(r, "Loan A")[t].cash_sweep == pytest.approx(available * 0.5, abs=0.01)
+        assert rows(r, "Loan B")[t].cash_sweep == pytest.approx(available * 0.5, abs=0.01)
+
+
+def test_a_sweep_share_never_takes_more_cash_than_there_is():
+    """Three facilities at 50% each cannot take 150% of the cash between them."""
+    specs = [TrancheSpec(name=f"Loan {i}", kind="institutional_term_loan", amount=150.0,
+                         fixed_rate=6.0, sweep=True, sweep_share=50.0, sweep_priority=i,
+                         maturity_years=7) for i in (1, 2, 3)]
+    r = run(specs, mincash=10.0)
+    debt = r.debt_schedule
+    for t in range(5):
+        assert debt.total_cash_sweep[t] <= debt.available_for_sweep[t] + 0.01
+
+
+def test_a_pik_note_that_matures_inside_the_hold_is_repaid_in_full():
+    """The bullet settles principal *and* the year's accrual.
+
+    Repaying only the opening balance leaves that year's accrued interest
+    behind as a phantom balance that nothing ever repays -- it would still be
+    sitting in net debt at exit, years after the note was redeemed.
+
+      year 3 opens at 242.0 and accrues 24.2, so redemption costs 266.2
+    """
+    note = dataclasses.replace(PIK_NOTE, maturity_years=3)
+    r = run([note])
+    sched = rows(r, "PIK notes")
+    assert sched[2].beginning_balance == 242.0
+    assert sched[2].pik_interest == 24.2
+    assert sched[2].mandatory_repayment == 266.2
+    assert sched[2].ending_balance == 0.0
+    # And it stays gone
+    assert [t.ending_balance for t in sched[3:]] == [0.0, 0.0]
+    assert [t.interest_expense for t in sched[3:]] == [0.0, 0.0]
+
+
+def test_two_facilities_with_the_same_name_are_both_modelled():
+    """The debt schedule is keyed by name, so two facilities that end up with
+    the same one would share a balance and the second's debt would vanish from
+    the model -- overstating returns with nothing to show for it."""
+    from core.debt import unique_names
+
+    specs = [
+        TrancheSpec(name="Term loan", kind="institutional_term_loan", amount=200.0, fixed_rate=6.0),
+        TrancheSpec(name="Term loan", kind="institutional_term_loan", amount=100.0, fixed_rate=6.0),
+        TrancheSpec(name="Term loan (2)", kind="second_lien", amount=50.0, fixed_rate=9.0),
+    ]
+    names = unique_names(specs)
+    assert len(set(names)) == 3, names
+    r = run(specs)
+    assert len(r.debt_schedule.schedule) == 3
+    assert r.debt_schedule.total_beginning_debt[0] == 350.0
+
+
+def test_a_revolver_draws_against_its_commitment_to_cover_a_shortfall():
+    """A year that cannot fund its own repayments draws on the facility that
+    exists for exactly that, instead of the balance sheet finding the money
+    from nowhere (CLAUDE.md "Model findings", 11)."""
+    heavy = TrancheSpec(name="Term loan", kind="amortising_term_loan", amount=350.0,
+                        fixed_rate=6.0, amort_pct=30.0, sweep=True, sweep_priority=1,
+                        maturity_years=7)
+    rcf = TrancheSpec(name="RCF", kind="revolver", amount=120.0, drawn_pct=0.0,
+                      fixed_rate=5.0, commitment_fee_pct=0.5, allow_redraw=True,
+                      sweep=False, sweep_priority=2, maturity_years=6)
+    r = run([heavy, rcf], mincash=20.0)
+    drawn = [t.redrawn for t in rows(r, "RCF")]
+    assert drawn[0] > 0, "the first year cannot fund 105 of amortisation and should draw"
+    # What it draws it owes, and the fee falls as the line is used
+    balances = [t.ending_balance for t in rows(r, "RCF")]
+    assert balances[0] == pytest.approx(drawn[0], abs=0.01)
+    fees = [t.commitment_fee for t in rows(r, "RCF")]
+    assert fees[1] < fees[0], "a drawn line has less undrawn commitment to charge for"
+    assert rows(r, "RCF")[1].undrawn == pytest.approx(120.0 - balances[0], abs=0.01)
+
+
+def test_a_revolver_never_draws_past_its_commitment():
+    small = TrancheSpec(name="RCF", kind="revolver", amount=10.0, drawn_pct=0.0,
+                        fixed_rate=5.0, allow_redraw=True, sweep=False, maturity_years=6)
+    heavy = TrancheSpec(name="Term loan", kind="amortising_term_loan", amount=350.0,
+                        fixed_rate=6.0, amort_pct=30.0, sweep=True, sweep_priority=1,
+                        maturity_years=7)
+    r = run([heavy, small], mincash=20.0)
+    assert max(t.ending_balance for t in rows(r, "RCF")) <= 10.0
+
+
+@pytest.mark.parametrize("payload", [
+    {"name": "a", "kind": "unitranche", "amount": float("inf")},
+    {"name": "a", "kind": "unitranche", "amount": float("nan")},
+    {"name": "a", "kind": "unitranche", "amount": 10.0, "amort_schedule": [float("nan")]},
+    {"name": "a", "kind": "unitranche", "amount": 10.0, "fixed_rate": float("inf")},
+])
+def test_a_figure_that_is_not_a_number_is_refused_not_run(payload):
+    """JSON lets a caller write Infinity and NaN, and they travel all the way
+    into the engine: the model then throws somewhere deep, the answer is a
+    500, and the traceback -- with the deal's own figures in it -- lands in
+    the log. They are refused at the edge instead."""
+    import json
+
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    resp = client.post("/api/deal/run",
+                       content=json.dumps({"inputs": {"tranches": [payload]}}),
+                       headers={"Content-Type": "application/json"})
+    assert resp.status_code == 422, resp.text
+
+
+def test_a_facility_larger_than_any_real_deal_is_refused_at_the_edge():
+    """Bounded where it arrives, so the answer names the field.
+
+    A facility bigger than the deal is already refused by the structure check,
+    but only once the sizes are compared -- so a big enough EBITDA hides it,
+    and figures this size make the arithmetic lose its meaning long before
+    anything complains. The bound on the field itself says which field.
+    """
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    # An EBITDA large enough that the structure check would be satisfied
+    resp = client.post("/api/deal/run", json={"inputs": {
+        "ebitda": 1e299, "entry_mult": 10.0,
+        "tranches": [{"name": "a", "kind": "unitranche", "amount": 1e300}]}})
+    assert resp.status_code == 422, resp.text
+    assert resp.json()["detail"][0]["loc"] == ["body", "inputs", "tranches", 0, "amount"]
+
+
+def test_a_simulation_refuses_a_deal_it_would_finance_differently():
+    """Monte Carlo still sizes debt from the percentages (PLAN.md 2.4b adds
+    the tranche path), so running it on a deal that lists facilities would
+    quietly simulate a different structure. Saying so beats being wrong."""
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    body = {"mc": {"n": 2000}, "deal": {"tranches": [
+        {"name": "Unitranche", "kind": "unitranche", "amount": 400.0, "fixed_rate": 9.0}]}}
+    for path in ("/api/montecarlo/run", "/api/montecarlo/scenarios"):
+        resp = client.post(path, json=body)
+        assert resp.status_code == 422, path
+        assert "tranche" in resp.json()["detail"].lower()
+    # Without tranches it runs as before
+    assert client.post("/api/montecarlo/run", json={"mc": {"n": 2000}}).status_code == 200
+
+
+def test_no_input_anywhere_can_be_infinity_or_not_a_number():
+    """`Strict` refuses non-finite numbers for every input model, not just a
+    tranche's.
+
+    Most fields have an upper bound, which happens to catch Infinity and NaN
+    on the way past (every comparison against NaN is false, so it fails the
+    lower bound too). Some have only a lower one -- a deal's EBITDA is `gt=0`
+    and nothing more -- and there Infinity sails through into the engine and
+    comes back as a 500 with the deal's figures in the traceback.
+    """
+    import json
+
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    client = TestClient(app)
+    for value in ("Infinity", "NaN", "-Infinity"):
+        body = '{"inputs": {"ebitda": %s}}' % value
+        resp = client.post("/api/deal/run", content=body,
+                           headers={"Content-Type": "application/json"})
+        assert resp.status_code == 422, f"ebitda {value}: {resp.status_code} {resp.text[:200]}"
+        assert json.loads(resp.text)["detail"][0]["loc"] == ["body", "inputs", "ebitda"]
