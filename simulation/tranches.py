@@ -64,13 +64,26 @@ class SimulationTranche:
     upfront_fee: float = 0.0               # M, paid at close by the sponsor
 
 
-def tranche_rates(t: SimulationTranche, shock: np.ndarray, n_years: int) -> np.ndarray:
-    """The facility's rate on every path in every year, shape (N, n_years)."""
-    path = [t.rates[min(y, len(t.rates) - 1)] for y in range(n_years)]
-    base = np.tile(np.asarray(path, dtype=float), (len(shock), 1))
+def rate_in_year(t: SimulationTranche, shock: np.ndarray, y: int):
+    """The facility's rate in year ``y`` (0-indexed) on every path: an (N,)
+    array for a floating facility, a plain number for a fixed one.
+
+    Computed one year at a time on purpose. Holding every facility's rate for
+    every path and year at once is twelve (N, hold) arrays at the API's caps
+    (12 facilities, 100,000 paths, a 15-year hold): about 190 MB more than
+    the two-bucket path, on a free server with 512 MB.
+    """
+    base = t.rates[min(y, len(t.rates) - 1)]
     if not t.floating:
         return base
-    return np.maximum(base + shock[:, None], t.floor) + t.margin
+    return np.maximum(base + shock, t.floor) + t.margin
+
+
+def tranche_rates(t: SimulationTranche, shock: np.ndarray, n_years: int) -> np.ndarray:
+    """The facility's rate on every path in every year, shape (N, n_years):
+    ``rate_in_year`` stacked, for tests and inspection."""
+    return np.column_stack([np.broadcast_to(rate_in_year(t, shock, y), shock.shape)
+                            for y in range(n_years)]).astype(float)
 
 
 def _scheduled(t: SimulationTranche, year: int, owed: np.ndarray) -> np.ndarray:
@@ -94,15 +107,16 @@ class ScheduleResult:
 
 def run_tranche_schedule(
     tranches: Sequence[SimulationTranche],
-    rates: Sequence[np.ndarray],
+    shock: np.ndarray,
     fcf: np.ndarray,
     minimum_cash: float,
 ) -> ScheduleResult:
     """The year-by-year schedule on every path at once.
 
     ``fcf`` is levered free cash flow before any principal, shape
-    (N, n_years); ``rates`` is ``tranche_rates`` for each tranche. Each step
-    matches ``lbo_engine.debt_model.run_debt_model`` in standard mode.
+    (N, n_years); ``shock`` is each path's move in reference rates, shape
+    (N,). Each step matches ``lbo_engine.debt_model.run_debt_model`` in
+    standard mode.
     """
     N, n_years = fcf.shape
     balances = [np.full(N, t.amount, dtype=float) for t in tranches]
@@ -119,7 +133,7 @@ def run_tranche_schedule(
         # undrawn commitment is a cash cost beside it
         pik, mandatory = [], []
         for i, t in enumerate(tranches):
-            coupon = beginning[i] * rates[i][:, y]
+            coupon = beginning[i] * rate_in_year(t, shock, y)
             fee = (np.maximum(t.commitment - beginning[i], 0.0) * t.commitment_fee_pct
                    if t.commitment is not None else 0.0)
             pik.append(coupon * t.pik_share)

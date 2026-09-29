@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 import { useSettings, num } from "@/components/settings/SettingsProvider";
 import { SELECT_CLASS } from "@/components/ui/MoneySelects";
@@ -29,7 +29,7 @@ import { useDeal } from "../DealProvider";
 // Bounds mirror TrancheIn in api/schemas.py
 const pct = (max: number, min = 0, step = 0.25): FieldSpec => ({ unit: "%", step, decimals: 2, min, max });
 const SPECS = {
-  amount: { unit: MONEY, step: 5, decimals: 1, min: 0 } satisfies FieldSpec,
+  amount: { unit: MONEY, step: 5, decimals: 1, min: 0, max: 1e15 } satisfies FieldSpec,
   drawn_pct: pct(100, 0, 5),
   fixed_rate: pct(50, -5),
   reference: pct(50, -5),
@@ -75,13 +75,25 @@ export function TrancheList() {
   const kinds = useTranslations("trancheKinds");
   const [open, setOpen] = useState<number | null>(null);
   const [adding, setAdding] = useState<TrancheKind>("senior_notes");
+  const listId = useId();
   const tranches = inputs.tranches.map(fullTranche);
+  // Rows are keyed by position, so a move or a removal remounts them: put the
+  // keyboard back on the row that moved (or the one that took its place)
+  const headers = useRef<(HTMLButtonElement | null)[]>([]);
+  const focusNext = useRef<number | null>(null);
+  useEffect(() => {
+    const i = focusNext.current;
+    if (i === null) return;
+    focusNext.current = null;
+    headers.current[Math.min(i, tranches.length - 1)]?.focus();
+  });
 
   const write = (next: FullTranche[]) => setFields({ tranches: next });
   const update = (i: number, patch: Partial<FullTranche>) => write(tranches.map((x, j) => (j === i ? { ...x, ...patch } : x)));
   const remove = (i: number) => {
     write(tranches.filter((_, j) => j !== i));
     setOpen(null);
+    focusNext.current = i;
   };
   // The list is the sweep order, so a move clears any explicit priority
   const move = (i: number, by: -1 | 1) => {
@@ -89,6 +101,7 @@ export function TrancheList() {
     [next[i], next[i + by]] = [next[i + by], next[i]];
     write(next);
     setOpen(i + by);
+    focusNext.current = i + by;
   };
 
   return (
@@ -99,8 +112,12 @@ export function TrancheList() {
         {tranches.map((tr, i) => (
           <li key={i} className="border-b border-line">
             <button
+              ref={(el) => {
+                headers.current[i] = el;
+              }}
               type="button"
               aria-expanded={open === i}
+              aria-controls={open === i ? `${listId}-${i}` : undefined}
               onClick={() => setOpen(open === i ? null : i)}
               className="flex w-full items-baseline justify-between gap-2 py-1.5 text-start hover:text-bright"
             >
@@ -111,6 +128,7 @@ export function TrancheList() {
             </button>
             {open === i && (
               <TrancheFields
+                id={`${listId}-${i}`}
                 tranche={tr}
                 onChange={(patch) => update(i, patch)}
                 onKind={(kind) => write(tranches.map((x, j) => (j === i ? withKind(x, kind) : x)))}
@@ -153,11 +171,13 @@ export function TrancheList() {
 
 /** i18n-keys: fields.tranche_*, referenceRates.*, trancheKinds.* */
 function TrancheFields({
+  id,
   tranche: tr,
   onChange,
   onKind,
   actions,
 }: {
+  id: string;
   tranche: FullTranche;
   onChange: (patch: Partial<FullTranche>) => void;
   onKind: (kind: TrancheKind) => void;
@@ -167,6 +187,9 @@ function TrancheFields({
   const kinds = useTranslations("trancheKinds");
   const rates = useTranslations("referenceRates");
   const nameId = useId();
+  // The API needs a name: an emptied field waits for the next letter, and
+  // leaving it empty puts the last name back
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
   const field = (key: keyof typeof SPECS & keyof FullTranche, disabled?: boolean) => (
     <NumberField
       spec={SPECS[key]}
@@ -178,17 +201,21 @@ function TrancheFields({
   );
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-0.5 ps-2">
+    <div id={id} className="grid grid-cols-[minmax(0,1fr)] gap-0.5 ps-2">
       <div className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
         <label htmlFor={nameId} className="type-input-label">
           {fields("tranche_name")}
         </label>
         <input
           id={nameId}
-          value={tr.name}
+          value={nameDraft ?? tr.name}
           maxLength={60}
           autoComplete="off"
-          onChange={(e) => onChange({ name: e.target.value })}
+          onChange={(e) => {
+            setNameDraft(e.target.value);
+            if (e.target.value.trim()) onChange({ name: e.target.value });
+          }}
+          onBlur={() => setNameDraft(null)}
           className="min-w-0 border border-line bg-field px-1.5 py-0.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
         />
       </div>

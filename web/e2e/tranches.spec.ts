@@ -114,8 +114,44 @@ test.describe("Debt facilities", () => {
       await expect(page.getByLabel("Debt / EV", { exact: true })).toHaveCount(0);
     }
     await stepLink(page, "Deal inputs").click();
-    await expect(tile(page, "Sources")).toContainText("Mezzanine");
     await expect(kpi(page, "Facilities")).toHaveText("2");
+    // Sourced by the facilities: the percentage deal has no facility-fees line
+    await expect(tile(page, "Uses")).toContainText("Facility fees");
+  });
+
+  test("a facility's pricing, sweep and kind each reach the model", async ({ page }) => {
+    await useExplicitTranches(page);
+    await expect(kpi(page, "Interest, year 1")).toHaveText("46.2");
+
+    // The floor bites on the reference before the margin: 6.5% under an 8%
+    // floor is 8% + 4% = 12% on 180, so 27.3 + 21.6. Flooring the all-in
+    // 10.5% instead would change nothing.
+    await facility(page, /^Mezzanine · Second lien/).click();
+    await setField(page, "Floor on reference", "8");
+    await expect(kpi(page, "Interest, year 1")).toHaveText("48.9");
+    await setField(page, "Floor on reference", "0");
+    await setField(page, "Margin", "6");
+    await expect(kpi(page, "Interest, year 1")).toHaveText("49.8");
+    await setField(page, "Margin", "4");
+    await expect(kpi(page, "Interest, year 1")).toHaveText("46.2");
+
+    // Without the senior loan in the sweep, the mezzanine takes the cash
+    await facility(page, /^Mezzanine · Second lien/).click();
+    await facility(page, /^Senior Term Loan · Amortising term loan/).click();
+    await page.getByRole("switch", { name: "Takes the cash sweep" }).click();
+    await dealSettled(page);
+    await expect(scheduleRow(page, "Senior term loan", "Cash sweep")).not.toContainText(/[1-9]/);
+    await expect(scheduleRow(page, "Mezzanine", "Cash sweep")).toContainText("16.9");
+    await expect(kpi(page, "Debt at exit")).toHaveText("315.0");
+
+    // As a revolver the same facility is a commitment of 420, nothing drawn,
+    // paying 0.5% on what is undrawn
+    await page.getByRole("combobox", { name: "Kind", exact: true }).selectOption({ label: "Revolving credit facility" });
+    await dealSettled(page);
+    await expect(kpi(page, "Debt at close")).toHaveText("180.0");
+    await expect(tile(page, "Capital structure")).toContainText("of 420.0");
+    await expect(scheduleRow(page, "Senior term loan", "Commitment fee")).toContainText("2.1");
+    await expect(kpi(page, "Interest, year 1")).toHaveText("21.0");
   });
 
   test("Monte Carlo simulates the facilities: the same answer written out, a new one with PIK notes", async ({ page }) => {
@@ -127,7 +163,10 @@ test.describe("Debt facilities", () => {
     await stepLink(page, "Debt & cash flow").click();
     await dealSettled(page);
     await page.getByRole("button", { name: "Use explicit tranches" }).click();
+    // A facility edit makes the simulation stale, like any input it reads
+    await expect(modeTab(page, "Monte Carlo")).toContainText("stale");
     await modeTab(page, "Monte Carlo").click();
+    await expect(page.getByText("Debt facilities 0 facilities → 2 facilities")).toBeVisible();
     await expect(page.getByTestId("rate-tranches-note")).toContainText("the 2 floating facilities");
     await page.getByRole("button", { name: "Run Monte Carlo" }).click();
     await simulationSettled(page);
@@ -140,6 +179,7 @@ test.describe("Debt facilities", () => {
     await modeTab(page, "Monte Carlo").click();
     await page.getByRole("button", { name: "Run Monte Carlo" }).click();
     await simulationSettled(page);
-    await expect(kpi(page, "Mean IRR")).not.toHaveText("18.0%");
+    await expect(kpi(page, "Mean IRR")).toHaveText("19.3%");
+    await expect(kpi(page, "P(IRR > 20%)")).toHaveText("51.4%");
   });
 });

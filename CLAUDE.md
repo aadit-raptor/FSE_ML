@@ -334,6 +334,13 @@ show `TranchesOnDebtStep` instead of the percentage fields a listed deal
 ignores; sources & uses, the risk score (`risk_model_inputs`) and the Live
 sliders read the facilities. Monte Carlo's stale check compares the list by
 content (`changedKeys`), and its rail says when the rate draw moves nothing.
+A listed deal's rates centre on each facility's own reference, not the
+rail's rate mean, so written-out and percentage simulations agree exactly
+only while the base rate equals that mean (the defaults). `mc_n_passes` is
+bounded 1-10 at the API (`api/deps.py`): each pass reruns the simulation
+while holding the one slot. The tranche path computes each year's rate as it
+goes; holding every facility's rates at once cost about 140 MB more at the
+caps (12 facilities, 100,000 paths, 15 years).
 `e2e/tranches.spec.ts` proves every edit by output. Carried-forward items
 from the 2.4 reviews are listed under PLAN.md 2.4.
 
@@ -505,6 +512,14 @@ golden snapshot is untouched and parity tests explain every departure.
     understates IRR for low-leverage deals. The tranche path keeps the cash,
     as the deal model does; fixing the two-bucket path would move the pinned
     simulation (`tests/test_montecarlo_baseline.py`), so it waits for approval.
+
+13. **Open (found in the PLAN.md 2.4b review, needs the user's approval): the
+    simulation ignores the deal's minimum cash.** `build_sim_params` never
+    sets `minimum_cash_pct`, so both simulation paths run with no minimum
+    cash, while the deal model keeps `mincash` on the balance sheet and has
+    sponsor equity fund it (finding 1). A deal with minimum cash therefore
+    simulates a slightly smaller equity cheque, and a revolver deal draws
+    less. Wiring it in moves every simulation of such a deal.
 
 ### Waiting on the user
 
@@ -823,6 +838,11 @@ Skills load when a session starts: install first, then open a new session.
   in the rail widens the whole rail. Use `grid-cols-[minmax(0,1fr)]` and
   `min-w-0` with `truncate` (`TrancheList.tsx`); check with
   `aside.scrollWidth` via `javascript_tool`, since screenshots time out.
+- Playwright's `getByLabel(x, { exact: true })` never finds a `<select>`
+  wrapped in its `<label>` (the label's text includes every option); use
+  `getByRole("combobox", { name: x, exact: true })`. The full browser suite
+  times out in places when something else is using the machine (a pytest
+  run, review agents); rerun the failed specs alone before suspecting code.
 - A new money figure in a deal, simulation or backtest answer must be added
   to that answer's money-key list (`DEAL_MONEY_KEYS` and so on), or a deal
   in thousands shows it a thousand times too small; `tests/test_money.py`'s

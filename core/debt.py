@@ -404,7 +404,10 @@ def equivalent_tranches(deal, cfg: Mapping) -> list:
       has always moved the senior rate with its rate draw, and moves only
       floating facilities once they are listed (PLAN.md 2.4b). Written as
       fixed, the senior loan would stop feeling the draw the moment a user
-      converted, and the simulation would change under them.
+      converted, and the simulation would change under them. The paths match
+      exactly when the deal's base rate equals the Monte Carlo rail's rate
+      mean (both 6.5% by default): the percentages path centres the senior
+      rate on the rail's mean, a listed facility on its own reference.
 
     The one place the two paths part company is the exit-sensitivity grid's
     *other* columns. Sizing by percentages gives the mezzanine a maturity

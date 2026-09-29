@@ -93,10 +93,17 @@ export function newTranche(kind: TrancheKind, name: string): FullTranche {
   return { ...SPEC_DEFAULTS, ...KIND_PRESETS[kind], name, kind };
 }
 
-/** The same facility as another kind: the new kind's shape, keeping its name, size and pricing. */
+/** Every field some kind's preset sets: what a change of kind resets. */
+const SHAPE_FIELDS = new Set(Object.values(KIND_PRESETS).flatMap((p) => Object.keys(p)));
+
+/**
+ * The same facility as another kind: the new kind's shape (the preset's
+ * fields, or TrancheSpec's defaults where the preset says nothing), and
+ * everything else -- name, size, pricing, fees, schedule, sweep share -- kept.
+ */
 export function withKind(t: FullTranche, kind: TrancheKind): FullTranche {
-  const { name, amount, fixed_rate, reference_rate, reference_level, reference_path, margin, floor } = t;
-  return { ...newTranche(kind, name), amount, fixed_rate, reference_rate, reference_level, reference_path, margin, floor };
+  const kept = Object.fromEntries(Object.entries(t).filter(([k]) => !SHAPE_FIELDS.has(k)));
+  return { ...newTranche(kind, t.name), ...kept, kind };
 }
 
 /** A facility as the API sent it back (defaults left out), with every field present. */

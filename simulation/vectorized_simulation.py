@@ -68,7 +68,7 @@ import pandas as pd
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from simulation.tranches import run_tranche_schedule, tranche_rates
+from simulation.tranches import run_tranche_schedule
 
 
 # ---------------------------------------------------------------------------
@@ -653,8 +653,10 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
     entry_equity = entry_ev + entry_costs - total_debt
     minimum_cash = entry_ev * p.minimum_cash_pct
 
+    # The draw is clipped to [0.01, 0.30] before this, so with a wide rate
+    # spread the shock is not quite centred on zero -- as the two-bucket
+    # path's senior rate is not quite centred on its mean
     shock = draws["interest"] - p.interest_mean
-    rates = [tranche_rates(t, shock, n_yr) for t in p.tranches]
     revenue_yr, ebitda_yr, da_yr = _operating_paths(p, draws)
 
     interest = np.zeros((N, n_yr))
@@ -664,7 +666,7 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
         net_income = ebt - np.maximum(ebt, 0.0) * p.tax_rate
         fcf = (net_income + da_yr - revenue_yr * p.capex_pct - revenue_yr * p.nwc_pct
                + non_cash)
-        schedule = run_tranche_schedule(p.tranches, rates, fcf, minimum_cash)
+        schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash)
         interest, non_cash = schedule.interest, schedule.non_cash
 
     net_debt_at_exit = schedule.ending_debt - schedule.ending_cash
@@ -847,6 +849,9 @@ def get_scenario_params(
 
     Scenarios shift the mean of each distribution to reflect different
     macroeconomic environments. Volatility (std) is unchanged.
+
+    Not used by the API, and not tranche-aware: core.montecarlo.apply_scenario
+    is the one that also moves floating facilities' reference rates.
 
     Parameters
     ----------
