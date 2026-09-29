@@ -801,6 +801,20 @@
             "title": "Net Income",
             "type": "array"
           },
+          "non_cash_interest": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Non Cash Interest",
+            "type": "array"
+          },
           "years": {
             "items": {
               "type": "integer"
@@ -1147,6 +1161,15 @@
             "title": "Tax",
             "type": "number"
           },
+          "tranches": {
+            "description": "The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate and mezz_spread entirely, and is swept in the order it is given.",
+            "items": {
+              "$ref": "#/components/schemas/TrancheIn"
+            },
+            "maxItems": 12,
+            "title": "Tranches",
+            "type": "array"
+          },
           "unit": {
             "default": "millions",
             "description": "The deal's money figures are thousands, millions or billions",
@@ -1243,6 +1266,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tranches": [],
               "unit": "millions",
               "wsp_mode": false
             }
@@ -1290,6 +1314,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tranches": [],
               "unit": "millions",
               "wsp_mode": false
             }
@@ -1323,6 +1348,14 @@
               "$ref": "#/components/schemas/BridgeStep"
             },
             "title": "Bridge Steps",
+            "type": "array"
+          },
+          "capital_structure": {
+            "description": "One row per facility, when the deal lists its tranches (PLAN.md 2.4); empty for a deal sized by debt_pct and senior_pct",
+            "items": {
+              "$ref": "#/components/schemas/TrancheSummary"
+            },
+            "title": "Capital Structure",
             "type": "array"
           },
           "cash_flow": {
@@ -3706,6 +3739,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tranches": [],
               "unit": "millions",
               "wsp_mode": false
             }
@@ -4825,6 +4859,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tranches": [],
               "unit": "millions",
               "wsp_mode": false
             }
@@ -5064,6 +5099,15 @@
             "default": {},
             "title": "Settings",
             "type": "object"
+          },
+          "tranches": {
+            "description": "The deal's facilities (PLAN.md 2.4). Given, they are the sources of debt and senior_x / mezz_x are ignored.",
+            "items": {
+              "$ref": "#/components/schemas/TrancheIn"
+            },
+            "maxItems": 12,
+            "title": "Tranches",
+            "type": "array"
           }
         },
         "title": "SourcesUsesRequest",
@@ -5104,8 +5148,16 @@
             "type": "number"
           },
           "mezz_debt": {
-            "title": "Mezz Debt",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when the deal is sized by percentages",
+            "title": "Mezz Debt"
           },
           "money": {
             "$ref": "#/components/schemas/Money"
@@ -5115,8 +5167,16 @@
             "type": "number"
           },
           "senior_debt": {
-            "title": "Senior Debt",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when the deal is sized by percentages",
+            "title": "Senior Debt"
           },
           "senior_pct": {
             "anyOf": [
@@ -5134,6 +5194,18 @@
             "title": "Sponsor Equity",
             "type": "number"
           },
+          "total_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Debt drawn at close, when listed by tranche",
+            "title": "Total Debt"
+          },
           "total_sources": {
             "title": "Total Sources",
             "type": "number"
@@ -5142,14 +5214,26 @@
             "title": "Total Uses",
             "type": "number"
           },
+          "tranche_fees": {
+            "default": 0.0,
+            "description": "Arrangement fees the facilities charge at close",
+            "title": "Tranche Fees",
+            "type": "number"
+          },
+          "tranches": {
+            "description": "One source per facility, when the deal lists its tranches",
+            "items": {
+              "$ref": "#/components/schemas/TrancheSource"
+            },
+            "title": "Tranches",
+            "type": "array"
+          },
           "transaction_fees": {
             "title": "Transaction Fees",
             "type": "number"
           }
         },
         "required": [
-          "senior_debt",
-          "mezz_debt",
           "sponsor_equity",
           "total_sources",
           "equity_purchase_price",
@@ -5192,6 +5276,7 @@
               "opex": 18.0,
               "senior_pct": 70.0,
               "tax": 25.0,
+              "tranches": [],
               "unit": "millions",
               "wsp_mode": false
             }
@@ -5474,6 +5559,302 @@
         "title": "TermDifference",
         "type": "object"
       },
+      "TrancheIn": {
+        "additionalProperties": false,
+        "description": "One facility in the deal's debt structure (PLAN.md 2.4, core/debt.py).\n\n``amount`` is the facility's full size, in the deal's currency and unit.\nFor a revolver that is the commitment, of which ``drawn_pct`` is drawn at\nclose: only the drawn part is a source of funds, and only the undrawn part\npays a commitment fee.\n\nPricing is fixed (``fixed_rate``) or floating, where the all-in rate for a\nyear is ``max(reference, floor) + margin`` -- the floor bites on the\nreference before the margin, as a loan agreement writes it.\n``reference_path`` gives the reference year by year and repeats its last\nyear when the deal runs longer; empty, the flat ``reference_level`` stands\nfor every year.",
+        "properties": {
+          "allow_redraw": {
+            "default": false,
+            "description": "Draws to cover a cash shortfall (revolver)",
+            "title": "Allow Redraw",
+            "type": "boolean"
+          },
+          "amort_pct": {
+            "default": 0.0,
+            "description": "% of the original principal repaid a year",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Amort Pct",
+            "type": "number"
+          },
+          "amort_schedule": {
+            "description": "Repayment a year; overrides amort_pct",
+            "items": {
+              "maximum": 1000000000000000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "maxItems": 30,
+            "title": "Amort Schedule",
+            "type": "array"
+          },
+          "amount": {
+            "default": 0.0,
+            "description": "Facility size (in the deal's currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Amount",
+            "type": "number"
+          },
+          "commitment_fee_pct": {
+            "default": 0.0,
+            "description": "Yearly fee on the undrawn commitment (%)",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Commitment Fee Pct",
+            "type": "number"
+          },
+          "drawn_pct": {
+            "default": 100.0,
+            "description": "% of the facility drawn at close",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Drawn Pct",
+            "type": "number"
+          },
+          "fixed_rate": {
+            "default": 0.0,
+            "description": "All-in rate (%) when not floating",
+            "maximum": 50.0,
+            "minimum": -5.0,
+            "title": "Fixed Rate",
+            "type": "number"
+          },
+          "floating": {
+            "default": false,
+            "title": "Floating",
+            "type": "boolean"
+          },
+          "floor": {
+            "default": 0.0,
+            "description": "Floor on the reference (%)",
+            "maximum": 50.0,
+            "minimum": -5.0,
+            "title": "Floor",
+            "type": "number"
+          },
+          "kind": {
+            "enum": [
+              "amortising_term_loan",
+              "institutional_term_loan",
+              "unitranche",
+              "second_lien",
+              "senior_notes",
+              "pik_notes",
+              "vendor_loan",
+              "revolver",
+              "shareholder_loan"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "margin": {
+            "default": 0.0,
+            "description": "Margin over the reference (%)",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Margin",
+            "type": "number"
+          },
+          "maturity_years": {
+            "default": 7,
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Maturity Years",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "pik_share": {
+            "default": 0.0,
+            "description": "% of the coupon that accrues to principal",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Pik Share",
+            "type": "number"
+          },
+          "reference_level": {
+            "default": 0.0,
+            "description": "The reference rate (%) when no path is given",
+            "maximum": 50.0,
+            "minimum": -5.0,
+            "title": "Reference Level",
+            "type": "number"
+          },
+          "reference_path": {
+            "description": "The reference rate (%) year by year",
+            "items": {
+              "maximum": 50.0,
+              "minimum": -5.0,
+              "type": "number"
+            },
+            "maxItems": 30,
+            "title": "Reference Path",
+            "type": "array"
+          },
+          "reference_rate": {
+            "default": "custom",
+            "enum": [
+              "SOFR",
+              "SONIA",
+              "ESTR",
+              "EURIBOR",
+              "TONA",
+              "SARON",
+              "BBSY",
+              "MIBOR",
+              "custom"
+            ],
+            "title": "Reference Rate",
+            "type": "string"
+          },
+          "sweep": {
+            "default": false,
+            "description": "Takes the cash sweep",
+            "title": "Sweep",
+            "type": "boolean"
+          },
+          "sweep_priority": {
+            "default": 0,
+            "description": "0 = its position in the list",
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Sweep Priority",
+            "type": "integer"
+          },
+          "sweep_share": {
+            "default": 100.0,
+            "description": "% of the cash available it may take",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Sweep Share",
+            "type": "number"
+          },
+          "upfront_fee_pct": {
+            "default": 0.0,
+            "description": "Arrangement fee at close (%)",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Upfront Fee Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "TrancheIn",
+        "type": "object"
+      },
+      "TrancheSource": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "amount"
+        ],
+        "title": "TrancheSource",
+        "type": "object"
+      },
+      "TrancheSummary": {
+        "description": "One row per facility, for the capital-structure table.",
+        "properties": {
+          "amount": {
+            "description": "Drawn at close, in the deal's currency and unit",
+            "title": "Amount",
+            "type": "number"
+          },
+          "commitment": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Facility limit, when part of it is undrawn",
+            "title": "Commitment"
+          },
+          "floating": {
+            "title": "Floating",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "maturity_years": {
+            "title": "Maturity Years",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pik_share": {
+            "description": "% of the coupon that accrues to principal",
+            "title": "Pik Share",
+            "type": "number"
+          },
+          "rate": {
+            "description": "Year-one all-in rate, as a decimal",
+            "title": "Rate",
+            "type": "number"
+          },
+          "reference_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Rate"
+          },
+          "sweep_share": {
+            "description": "% of the cash sweep it takes; 0 when it does not sweep",
+            "title": "Sweep Share",
+            "type": "number"
+          },
+          "x_ebitda": {
+            "title": "X Ebitda",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "amount",
+          "x_ebitda",
+          "rate",
+          "floating",
+          "reference_rate",
+          "maturity_years",
+          "sweep_share",
+          "pik_share"
+        ],
+        "title": "TrancheSummary",
+        "type": "object"
+      },
       "TrancheYear": {
         "properties": {
           "beginning_balance": {
@@ -5487,6 +5868,18 @@
             ],
             "title": "Beginning Balance"
           },
+          "cash_interest": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The part of the coupon actually paid",
+            "title": "Cash Interest"
+          },
           "cash_sweep": {
             "anyOf": [
               {
@@ -5497,6 +5890,18 @@
               }
             ],
             "title": "Cash Sweep"
+          },
+          "commitment_fee": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Charged on the undrawn commitment",
+            "title": "Commitment Fee"
           },
           "ending_balance": {
             "anyOf": [
@@ -5529,6 +5934,7 @@
                 "type": "null"
               }
             ],
+            "description": "The year's all-in rate, as a decimal",
             "title": "Interest Rate"
           },
           "mandatory_repayment": {
@@ -5542,9 +5948,45 @@
             ],
             "title": "Mandatory Repayment"
           },
+          "pik_interest": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The part that accrues to principal",
+            "title": "Pik Interest"
+          },
+          "redrawn": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Drawn in the year to cover a cash shortfall",
+            "title": "Redrawn"
+          },
           "tranche_name": {
             "title": "Tranche Name",
             "type": "string"
+          },
+          "undrawn": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Commitment nobody has taken down",
+            "title": "Undrawn"
           },
           "year": {
             "title": "Year",

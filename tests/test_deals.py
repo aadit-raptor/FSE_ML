@@ -26,9 +26,10 @@ INPUTS = {"ebitda": 240.0, "entry_mult": 9.0, "exit_mult": 10.5, "hold": 6, "gro
           "senior_pct": 75.0, "base_rate": 5.25, "mezz_spread": 4.5, "capex": 3.0, "nwc": 0.5,
           "mincash": 15.0, "wsp_mode": False, "ar_days": 45.0, "inv_days": 30.0, "ap_days": 60.0,
           "currency": "EUR", "unit": "thousands",
-          "fiscal_year_end_month": 12, "first_fiscal_year": None}
+          "fiscal_year_end_month": 12, "first_fiscal_year": None, "tranches": []}
 # Every field of DealInputsIn, as the API answers: the fiscal year labels
-# (PLAN.md 2.3a) are stored only when set but always come back
+# (PLAN.md 2.3a) and the tranche list (PLAN.md 2.4) are stored only when set
+# but always come back
 SETTINGS = {"tx_fee_pct": 3.0}
 
 
@@ -88,7 +89,50 @@ def test_stored_inputs_are_complete_even_when_a_caller_sends_a_few():
     cleaned = store.clean_inputs({"ebitda": 50})
     assert cleaned["ebitda"] == 50 and cleaned["exit_mult"] == 11.0
     # Every field but the fiscal year labels, which are stored only when set
-    assert set(cleaned) == set(INPUTS) - set(store.LABEL_DEFAULTS)
+    assert set(cleaned) == set(INPUTS) - set(store.OMIT_WHEN_DEFAULT)
+
+
+def test_a_deal_with_no_tranches_stores_exactly_what_it_stored_before():
+    """The tranche list is stored only when the deal has one (PLAN.md 2.4).
+
+    Two things depend on it: an existing deal keeps the bytes it already has,
+    so it gains no version on its next autosave, and an API from before
+    tranches -- a deploy still rolling out, or a rollback -- still opens it,
+    because DealInputsIn forbids keys it does not know.
+    """
+    assert "tranches" not in store.clean_inputs({"ebitda": 50})
+    assert "tranches" not in store.clean_inputs({"ebitda": 50, "tranches": []})
+
+
+def test_a_deal_that_has_tranches_stores_them():
+    stored = store.clean_inputs({"ebitda": 50, "tranches": [
+        {"name": "Unitranche", "kind": "unitranche", "amount": 300.0, "floating": True,
+         "reference_rate": "SONIA", "reference_level": 4.0, "margin": 6.0, "floor": 1.0,
+         "sweep": True},
+    ]})
+    assert [t["name"] for t in stored["tranches"]] == ["Unitranche"]
+    assert stored["tranches"][0]["margin"] == 6.0 and stored["tranches"][0]["floor"] == 1.0
+
+
+def test_a_tranche_the_model_cannot_run_is_refused_before_it_is_stored():
+    with pytest.raises(store.InvalidDeal, match="kind"):
+        store.clean_inputs({"tranches": [{"name": "Mystery", "kind": "not_a_tranche"}]})
+    with pytest.raises(store.InvalidDeal, match="reference_rate"):
+        store.clean_inputs({"tranches": [
+            {"name": "Loan", "kind": "unitranche", "reference_rate": "LIBOR"}]})
+    with pytest.raises(store.InvalidDeal, match="drawn"):
+        # Only a revolver leaves part of itself undrawn
+        store.clean_inputs({"tranches": [
+            {"name": "Loan", "kind": "unitranche", "amount": 100.0, "drawn_pct": 40.0}]})
+
+
+def test_more_tranches_than_a_run_can_carry_are_refused():
+    """Each facility multiplies the work of a run, because the sensitivity grid
+    reruns the whole model per holding period (api/schemas.py MAX_TRANCHES)."""
+    one = {"name": "Loan", "kind": "unitranche", "amount": 10.0}
+    assert len(store.clean_inputs({"tranches": [one] * 12})["tranches"]) == 12
+    with pytest.raises(store.InvalidDeal):
+        store.clean_inputs({"tranches": [one] * 13})
 
 
 @pytest.mark.parametrize("name", ["", "   ", "x" * 121])
@@ -383,6 +427,28 @@ def test_a_version_is_a_few_hundred_bytes(fresh_db, sign_in):  # noqa: ARG001
         ).scalar()
     # 0.5 GB holds on the order of a million versions at this size
     assert row_bytes < 900, row_bytes
+
+
+def test_a_version_of_a_deal_with_tranches_is_still_small(fresh_db, sign_in):  # noqa: ARG001
+    """A facility is a couple of hundred bytes, so a real structure still
+    leaves room for hundreds of thousands of versions in the free 0.5 GB."""
+    sign_in("user_anna")
+    tranches = [
+        {"name": "Term loan B", "kind": "institutional_term_loan", "amount": 400.0,
+         "floating": True, "reference_rate": "SOFR", "reference_path": [4.5, 4.0, 3.5, 3.0, 3.0],
+         "floor": 1.0, "margin": 4.0, "amort_pct": 1.0, "sweep": True},
+        {"name": "PIK notes", "kind": "pik_notes", "amount": 150.0, "fixed_rate": 12.0,
+         "pik_share": 100.0, "maturity_years": 9},
+        {"name": "Revolver", "kind": "revolver", "amount": 100.0, "drawn_pct": 25.0,
+         "fixed_rate": 5.0, "commitment_fee_pct": 0.5, "sweep": True},
+    ]
+    deal = client.post("/api/deals", json={"name": "Structured", "inputs": {**INPUTS, "tranches": tranches},
+                                           "settings": SETTINGS}).json()
+    with db_engine.connect() as conn:
+        row_bytes = conn.execute(text(
+            "SELECT pg_column_size(v.*) FROM deal_versions v WHERE deal_id = :id"), {"id": deal["id"]}
+        ).scalar()
+    assert row_bytes < 900 + 300 * len(tranches), row_bytes
 
 
 # ---------------------------------------------------------------------------

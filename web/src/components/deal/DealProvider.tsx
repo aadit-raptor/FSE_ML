@@ -7,7 +7,7 @@ import { api, type Schemas } from "@/lib/api/client";
 import { useProfile } from "@/components/auth/ProfileProvider";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import { MoneyScope } from "@/components/ui/MoneyScope";
-import { apiInputs, changedKeys, DEFAULT_INPUTS, type DealInputs, type DealRun } from "@/lib/deal/fields";
+import { apiInputs, changedKeys, DEFAULT_INPUTS, tranchesInUnit, type DealInputs, type DealRun } from "@/lib/deal/fields";
 import { type Money, unitFactor } from "@/lib/money";
 
 /** Debounce between the last edit and an automatic rerun. */
@@ -189,10 +189,15 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     (next: Money) => {
       setInputs((prev) => {
         const k = unitFactor(prev.unit, next.unit);
-        // Keep the deal the same size in its new unit
+        // Keep the deal the same size in its new unit -- every facility too,
+        // or the debt would shrink or grow by a factor of a thousand
         return k === 1
           ? { ...prev, currency: next.currency }
-          : { ...prev, currency: next.currency, unit: next.unit, ebitda: prev.ebitda * k, mincash: prev.mincash * k };
+          : {
+              ...prev, currency: next.currency, unit: next.unit,
+              ebitda: prev.ebitda * k, mincash: prev.mincash * k,
+              tranches: tranchesInUnit(prev.tranches, k),
+            };
       });
       const k = unitFactor(inputs.unit, next.unit);
       if (k !== 1 && otherUses !== 0) setSetting("other_uses", otherUses * k);

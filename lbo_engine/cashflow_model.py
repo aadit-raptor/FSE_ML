@@ -142,6 +142,11 @@ class CashFlowResult:
 
     mandatory_repay: List[float] = field(default_factory=list)
 
+    # Interest the business books but does not pay: the part of a PIK coupon
+    # that accrues to principal instead (PLAN.md 2.4). It sits beside D&A as
+    # an add-back, and is zero for a structure of ordinary cash-pay tranches.
+    non_cash_interest: List[float] = field(default_factory=list)
+
     levered_fcf: List[float] = field(default_factory=list)
     cumulative_fcf: List[float] = field(default_factory=list)
 
@@ -164,6 +169,7 @@ def run_cashflow_model(
     op_result: OperatingModelResult,
     cf_assumptions: CashFlowAssumptions,
     capital_structure: Optional[CapitalStructure] = None,
+    non_cash_interest: Optional[List[float]] = None,
 ) -> CashFlowResult:
     """
     Compute year-by-year levered free cash flow.
@@ -202,6 +208,12 @@ def run_cashflow_model(
                            - capex[t]
                            - delta_nwc[t]
                            - mandatory[t]   (if include_mandatory_repayments)
+                           + non_cash_interest[t]  (if given)
+
+    non_cash_interest is interest the income statement has already deducted
+    but nobody paid -- a PIK coupon accruing to principal (PLAN.md 2.4). It is
+    added back exactly the way D&A is. Left out, the expression is the one
+    this model has always used.
     """
 
     n = op_result.holding_period
@@ -239,8 +251,14 @@ def run_cashflow_model(
             for tranche in capital_structure.tranches:
                 mandatory += tranche.mandatory_repayment(year, n)
 
+        # --- Interest booked but not paid (PIK) ---
+        accrued = non_cash_interest[t] if non_cash_interest else 0.0
+
         # --- Levered FCF ---
-        lfcf = net_income + da - capex - delta_nwc - mandatory
+        if non_cash_interest:
+            lfcf = net_income + da + accrued - capex - delta_nwc - mandatory
+        else:
+            lfcf = net_income + da - capex - delta_nwc - mandatory
         cumulative += lfcf
 
         # --- Store ---
@@ -252,6 +270,7 @@ def run_cashflow_model(
         result.delta_nwc.append(round(delta_nwc, 2))
         result.delta_nwc_pct.append(cf_assumptions.nwc_pct[t])
         result.mandatory_repay.append(round(mandatory, 2))
+        result.non_cash_interest.append(round(accrued, 2))
         result.levered_fcf.append(round(lfcf, 2))
         result.cumulative_fcf.append(round(cumulative, 2))
 

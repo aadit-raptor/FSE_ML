@@ -8,6 +8,10 @@ US dollar millions unless the deal says otherwise).
 from dataclasses import dataclass, replace
 from typing import Mapping, Optional
 
+from core.debt import (
+    build_capital_structure, check_specs, coerce, financing_fees, summary,
+    total_debt as tranche_debt, unique_names,
+)
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT, to_millions
 from lbo_engine.model import LBOParams, run_lbo
 
@@ -44,6 +48,17 @@ class DealInputs:
     # counts years from 1 whatever they say
     fiscal_year_end_month: int = 12
     first_fiscal_year: Optional[int] = None
+    # The deal's debt, tranche by tranche (PLAN.md 2.4, core/debt.py). Empty
+    # keeps the two-tranche sizing above -- debt_pct, senior_pct, base_rate and
+    # mezz_spread -- which is how every deal before 2.4 is financed. A tranche
+    # list replaces all four: it says what each facility is, costs and repays.
+    tranches: tuple = ()
+
+    def __post_init__(self):
+        # Routers build DealInputs(**model_dump()), so tranches arrive as
+        # dicts; replace() runs this again on the way to millions, so it has
+        # to leave specs it has already built alone.
+        self.tranches = coerce(self.tranches)
 
 
 # Money inputs, in the deal's unit
@@ -58,6 +73,7 @@ def in_millions(d: DealInputs, cfg: Mapping) -> tuple[DealInputs, dict]:
     then gives exactly the millions answer, scaled (core.money.rescale)."""
     moved = {k: to_millions(getattr(d, k), d.unit) for k in MONEY_INPUTS}
     cfg = {**cfg, **{k: to_millions(cfg[k], d.unit) for k in MONEY_SETTINGS if k in cfg}}
+    moved["tranches"] = tuple(t.in_millions(d.unit) for t in d.tranches)
     return replace(d, **moved, unit="millions"), cfg
 
 
@@ -76,6 +92,11 @@ DEAL_MONEY_KEYS = frozenset({
     "total_beginning_debt", "total_mandatory_repayment", "total_cash_sweep", "total_ending_debt",
     "total_interest_expense", "cash_balance", "available_for_sweep", "beginning_balance",
     "mandatory_repayment", "cash_sweep", "ending_balance",
+    # Tranche detail (PLAN.md 2.4). A money figure left out here comes back a
+    # thousand times too small in a deal counted in thousands.
+    "cash_interest", "pik_interest", "commitment_fee", "undrawn", "redrawn",
+    "total_cash_interest", "total_pik_interest", "total_commitment_fees",
+    "non_cash_interest", "amount", "commitment",
     # equity bridge
     "entry_costs", "ebitda_growth", "multiple_expansion", "deleveraging", "exit_equity",
     "total_gain", "residual", "value",
@@ -84,6 +105,8 @@ DEAL_MONEY_KEYS = frozenset({
 SOURCES_USES_MONEY_KEYS = frozenset({
     "senior_debt", "mezz_debt", "sponsor_equity", "total_sources", "equity_purchase_price",
     "transaction_fees", "financing_fees", "other_uses", "cash_to_balance_sheet", "total_uses", "check",
+    # Per tranche (PLAN.md 2.4)
+    "tranche_fees", "amount", "commitment", "total_debt",
 })
 
 
@@ -140,6 +163,47 @@ def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash
     }
 
 
+def sources_and_uses_for(d: DealInputs, cfg: Mapping) -> dict:
+    """Sources & uses for a deal financed by an explicit tranche list.
+
+    One source per tranche instead of the senior/mezzanine pair, and the
+    tranches' own upfront fees as their own use of funds beside the deal's
+    flat financing fee (core/debt.py ``financing_fees`` explains why the two
+    are separate lines rather than one).
+    """
+    entry_ev = d.ebitda * d.entry_mult
+    names = unique_names(d.tranches)
+    drawn = tranche_debt(d.tranches)
+    tx_fees = entry_ev * cfg["tx_fee_pct"] / 100
+    fin_fees = drawn * cfg["fin_fee_pct"] / 100
+    tranche_fees = financing_fees(d.tranches)
+    total_uses = entry_ev + tx_fees + fin_fees + tranche_fees + cfg["other_uses"] + d.mincash
+    sponsor_eq = max(total_uses - drawn, 0)
+    total_sources = drawn + sponsor_eq
+    check = total_sources - total_uses
+    return {
+        "tranches": [{"name": name, "kind": t.kind, "amount": t.drawn}
+                     for t, name in zip(d.tranches, names)],
+        "total_debt": drawn,
+        "sponsor_equity": sponsor_eq,
+        "total_sources": total_sources,
+        "equity_purchase_price": entry_ev,
+        "transaction_fees": tx_fees,
+        "financing_fees": fin_fees,
+        "tranche_fees": tranche_fees,
+        "other_uses": cfg["other_uses"],
+        "cash_to_balance_sheet": d.mincash,
+        "total_uses": total_uses,
+        "check": check,
+        "balanced": abs(check) < 1,
+    }
+
+
+def capital_structure_summary(d: DealInputs) -> list:
+    """One row per tranche for the screen: size, price, maturity, sweep, PIK."""
+    return summary(d.tranches, unique_names(d.tranches), d.ebitda)
+
+
 def risk_model_inputs(d: DealInputs, senior_x, mezz_x) -> dict:
     """Inputs for the anomaly detector's deal risk score.
 
@@ -188,7 +252,14 @@ INTEREST_TOLERANCE = 0.001   # millions (the engine always runs in millions)
 
 
 def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
+    structure, fees = None, 0.0
+    if d.tranches:
+        structure = build_capital_structure(d.tranches, d.ebitda, int(d.hold))
+        fees = financing_fees(d.tranches)
+        check_specs(d.tranches, d.ebitda * d.entry_mult,
+                    entry_costs(d.ebitda * d.entry_mult, tranche_debt(d.tranches), cfg) + fees)
     return LBOParams(
+        capital_structure=structure, tranche_fees=fees,
         entry_ebitda=d.ebitda, entry_multiple=d.entry_mult,
         exit_multiple=d.exit_mult, holding_period=int(d.hold),
         debt_pct=d.debt_pct/100, senior_pct=d.senior_pct/100,
