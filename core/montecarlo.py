@@ -50,7 +50,28 @@ def mc_in_millions(mc: MCInputs, deal: DealInputs, cfg: Mapping):
     return mc, deal, cfg
 
 
+class TranchesNotSimulatedYet(ValueError):
+    """The simulation cannot yet finance a deal the way its tranches say.
+
+    The vectorised engine still sizes debt from ``debt_pct``, ``senior_pct``,
+    ``base_rate`` and ``mezz_spread`` (PLAN.md 2.4b adds the tranche path and
+    the rate uncertainty that only moves floating facilities). Running anyway
+    would simulate a *different* capital structure from the one on screen and
+    say nothing about it -- the kind of control that looks right and quietly
+    answers the wrong question. Refusing says so instead.
+    """
+
+
+def check_simulatable(deal: DealInputs) -> None:
+    if deal.tranches:
+        raise TranchesNotSimulatedYet(
+            "This deal lists its debt facility by facility, and the simulation still sizes debt "
+            "from the debt and senior percentages, so it would simulate a different structure. "
+            "Simulate a deal sized by percentages, or wait for the tranche-aware simulation.")
+
+
 def build_sim_params(mc: MCInputs, deal: DealInputs, cfg: Mapping) -> SimulationParams:
+    check_simulatable(deal)
     return SimulationParams(
         n=int(mc.n), entry_ebitda=mc.ebitda, entry_multiple=mc.entry_mult,
         holding_period=int(mc.hold),

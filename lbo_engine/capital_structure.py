@@ -109,6 +109,18 @@ class Tranche:
     sweep_priority: int = 99                  # Lower = swept first
     currency: str = "USD"
 
+    # --- Global debt structures (PLAN.md 2.4) -------------------------------
+    # Every default below is an exact no-op, so a tranche built the old way
+    # gives bit-for-bit the same schedule as before. core/debt.py resolves a
+    # floating tranche's reference rate, floor and margin into rate_path, so
+    # this module never needs to know what SONIA is.
+    rate_path: tuple = ()                     # All-in rate per year, decimal; empty = interest_rate
+    pik_share: float = 0.0                    # 0-1, share of the coupon that accrues to principal
+    sweep_share: float = 1.0                  # 0-1, share of the cash available this tranche may take
+    commitment: Optional[float] = None        # Facility limit (revolver); None = nothing undrawn
+    commitment_fee_pct: float = 0.0           # Decimal, charged on the undrawn commitment
+    allow_redraw: bool = False                # Draws to cover a cash shortfall (revolver)
+
     # -------------------------------------------------------------------
     # Derived properties
     # -------------------------------------------------------------------
@@ -123,7 +135,35 @@ class Tranche:
         """Proceeds after upfront fee (M)."""
         return round(self.amount - self.fee_amount, 4)
 
-    def mandatory_repayment(self, year: int, holding_period: int) -> float:
+    def rate_in_year(self, year: int) -> float:
+        """The all-in rate for a year (1-indexed), as a decimal.
+
+        A tranche with no rate path charges ``interest_rate`` every year, which
+        is what every tranche did before PLAN.md 2.4. A path shorter than the
+        run repeats its last year (core/debt.py explains why).
+        """
+        if not self.rate_path:
+            return self.interest_rate
+        return self.rate_path[min(year, len(self.rate_path)) - 1]
+
+    def undrawn(self, beginning_balance: float) -> float:
+        """The part of the facility nobody has drawn (M). Zero unless the
+        tranche is a committed line with a limit above its balance."""
+        if self.commitment is None:
+            return 0.0
+        return max(self.commitment - beginning_balance, 0.0)
+
+    def commitment_fee(self, beginning_balance: float) -> float:
+        """The yearly fee on the undrawn commitment (M).
+
+        A revolver charges for standing ready, whether or not it is drawn. The
+        fee is a cash financing cost, so it joins interest expense rather than
+        the fees paid at close.
+        """
+        return round(self.undrawn(beginning_balance) * self.commitment_fee_pct, 4)
+
+    def mandatory_repayment(self, year: int, holding_period: int,
+                            beginning_balance: Optional[float] = None) -> float:
         """
         Mandatory principal repayment in a given year (M).
 
@@ -134,6 +174,14 @@ class Tranche:
         holding_period : int
             Total holding period in years. Used to detect final year
             bullet for amortizing tranches.
+        beginning_balance : float, optional
+            Balance at the start of the year. A bullet repays whatever is
+            outstanding; passing the balance is what makes that right for a
+            tranche whose principal has *grown* (PIK). Left out, the original
+            principal stands, which is the same number for every tranche whose
+            balance only ever shrinks -- so every deal from before PLAN.md 2.4
+            is unaffected (run_debt_model caps the answer at the balance
+            either way).
 
         Returns
         -------
@@ -143,7 +191,7 @@ class Tranche:
         if self.amort_type == "bullet":
             # Pay full outstanding balance only at maturity
             if year == self.maturity_years:
-                return self.amount   # Simplified: full original amount
+                return self.amount if beginning_balance is None else beginning_balance
             return 0.0
 
         elif self.amort_type == "amortizing":
@@ -168,25 +216,30 @@ class Tranche:
                 f"Unknown amort_type '{self.amort_type}' on tranche '{self.name}'."
             )
 
-    def annual_interest(self, beginning_balance: float) -> float:
+    def annual_interest(self, beginning_balance: float, year: int = 1) -> float:
         """
         Interest expense for a year given the beginning-of-year balance.
 
         In the BK model, interest is calculated on beginning balance.
-        This is standard for term loans. PIK instruments would add to
-        principal — that extension can be added here if needed.
+        This is standard for term loans. How much of it is actually paid in
+        cash is the caller's business: ``pik_share`` of it accrues to
+        principal instead (see run_debt_model).
 
         Parameters
         ----------
         beginning_balance : float
             Outstanding principal at start of the year (M).
+        year : int
+            1-indexed projection year, for a tranche whose rate moves
+            (``rate_path``). A tranche with no path charges the same rate
+            every year, so the default reproduces the old behaviour exactly.
 
         Returns
         -------
         float
             Interest expense (M).
         """
-        return round(beginning_balance * self.interest_rate, 4)
+        return round(beginning_balance * self.rate_in_year(year), 4)
 
 
 # ---------------------------------------------------------------------------

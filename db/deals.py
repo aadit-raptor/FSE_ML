@@ -102,13 +102,25 @@ def clean_name(name: Any, *, what: str = "name", limit: int = MAX_NAME_LENGTH) -
 # so deals saved before them stay byte-for-byte the same (no extra version on
 # their next autosave) and an API rolled back to before them only refuses
 # deals that really set a fiscal year
-LABEL_DEFAULTS = {"fiscal_year_end_month": 12, "first_fiscal_year": None}
+# Fields stored only when the deal actually sets them. Two reasons, both
+# about deals that already exist: a stored deal keeps exactly the bytes it had
+# (no new version on the next autosave, and the free 0.5 GB lasts), and an API
+# from before the field -- a deploy still rolling out, or a rollback -- still
+# answers every deal that does not use it, because DealInputsIn forbids
+# unknown keys.
+OMIT_WHEN_DEFAULT = {
+    # Labels only (PLAN.md 2.3a)
+    "fiscal_year_end_month": 12,
+    "first_fiscal_year": None,
+    # The deal's facilities (PLAN.md 2.4); empty means sized by percentages
+    "tranches": [],
+}
 
 
 def clean_inputs(inputs: Mapping) -> dict:
     """Deal inputs, complete: missing fields take the API's defaults now, so
     the stored deal doesn't change if those defaults do later. The fiscal
-    year labels are the exception (``LABEL_DEFAULTS``)."""
+    fields in ``OMIT_WHEN_DEFAULT`` are the exception."""
     from api.schemas import DealInputsIn  # the one definition of a deal's inputs
 
     try:
@@ -117,7 +129,8 @@ def clean_inputs(inputs: Mapping) -> dict:
         first = exc.errors()[0]
         where = ".".join(str(p) for p in first.get("loc", ())) or "inputs"
         raise InvalidDeal(f"inputs.{where}: {first.get('msg', 'invalid')}") from None
-    return {k: v for k, v in cleaned.items() if k not in LABEL_DEFAULTS or v != LABEL_DEFAULTS[k]}
+    return {k: v for k, v in cleaned.items()
+            if k not in OMIT_WHEN_DEFAULT or v != OMIT_WHEN_DEFAULT[k]}
 
 
 def clean_settings(settings: Optional[Mapping]) -> dict:

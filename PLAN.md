@@ -127,7 +127,8 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.2 | Currency and money units everywhere | 1.5 | ☑ |
 | 2.3a | Locale: numbers, dates, fiscal years, Excel formats | 2.2 | ☑ |
 | 2.3b | Locale: interface text in translation files, right-to-left | 2.3a | ☑ |
-| 2.4 | Global debt structures and interest rates | 2.2 | ☐ |
+| 2.4a | Debt structures and interest rates: the model | 2.2 | ☑ |
+| 2.4b | Debt structures: simulation and the screen | 2.4a | ☐ |
 | 2.5 | Global tax rules | 2.2 | ☐ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
 | 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☐ |
@@ -136,7 +137,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 3.1 | Model version on every result | 1.5 | ☐ |
 | 3.2 | Written methodology | — | ☐ |
 | 3.3 | Audit history | 1.5 | ☐ |
-| 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4, 2.5 | ☐ |
+| 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☐ |
 | **4** | **Global market data platform** | | |
 | 4.1 | Company filings from many countries | 1.9, 2.6 | ☐ |
 | 4.2 | Economic data by country, and exchange rates | 1.9 | ☐ |
@@ -164,7 +165,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☐ |
 | 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☐ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
-| 7.5 | Lender view with regional conventions | 2.4, 5.3 | ☐ |
+| 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☐ |
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
 | 7.8 | More languages | 2.3b | ☐ |
@@ -488,6 +489,27 @@ can check it.
 - **Done when:** hand-checked cases (3.4) pass for a floating SONIA loan with a
   floor, a PIK note and a unitranche; the current two-tranche deal reproduces
   today's results exactly; the UI adds and removes tranches (e2e).
+- **Split (2026-09-29), too big for one session:**
+  - **2.4a (done):** the model. A deal's debt is a list of facilities
+    (`core/debt.py`, `DealInputs.tranches`); the nine kinds are presets over
+    one dataclass, with three new mechanics -- interest accruing to principal
+    (PIK), a revolver's undrawn commitment, its fee and its draw against a
+    cash shortfall, and a per-facility share of the cash sweep. A floating
+    rate is `max(reference, floor) + margin` resolved in `core/debt.py`, so
+    `lbo_engine` sees only a rate path and 4.2 can fill it from market data.
+    Hand-checked cases in `tests/test_debt_structures.py` for the floating
+    SONIA loan with a floor, the PIK note and the unitranche, each with its
+    arithmetic in the docstring; `equivalent_tranches` writes today's senior +
+    mezzanine out explicitly and gives the identical answer, and
+    `tests/golden/golden.json` is untouched. Stored only when a deal has one
+    (`OMIT_WHEN_DEFAULT`), so existing deals and a rollback are unaffected.
+  - **2.4b:** the simulation's rate uncertainty applied to **floating
+    tranches only** (`simulation/vectorized_simulation.py` keeps its
+    two-bucket path untouched and gains a tranche path beside it; pin the
+    simulation's output first, because nothing pins it today), the Monte
+    Carlo heatmap taking the structure, and the Debt step's editor for
+    adding, reordering and removing facilities, with the browser test that
+    proves it by output.
 
 ### 2.5 Global tax rules
 - **Claude does:** per-deal corporate rate; interest deductibility limit (none,
@@ -1044,7 +1066,7 @@ when a limit is actually reached or before charging customers.
 | 177 places across `core/`, `api/`, `lbo_engine/`, `ml/`, `web/src` | Money shown as "$M" | 2.2 (done: deal currency and unit; CI check against new dollar signs) |
 | 11 places in `web/src` | Number formats fixed to `en-US` | 2.3a (done: account locale and grouping; CI check) |
 | `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
-| `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4 |
+| `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4a — still the default when a deal lists no tranches; `core/debt.py` now takes any structure |
 | `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |
 | `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source | 2.1, 4.3, 4.4 |
 | `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in | 4.4 |

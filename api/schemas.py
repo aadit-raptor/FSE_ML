@@ -8,7 +8,7 @@ Every response that holds money says which currency and unit it is in.
 """
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
 from api.limits import MAX_FORECAST_PATHS, MAX_SIMULATION_PATHS
@@ -24,7 +24,11 @@ SettingValue = Union[float, int, bool]
 
 
 class Strict(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    # JSON lets a caller write Infinity or NaN, and Pydantic accepts them as
+    # floats by default. They survive every bound (NaN compares false against
+    # ge and le) and only fail deep inside the model, as a 500 whose traceback
+    # carries the deal's own figures into the log. Refuse them at the edge.
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
 def _path_cap(maximum: int):
@@ -69,6 +73,73 @@ class Money(Strict):
 # ---------------------------------------------------------------------------
 # Shared inputs
 # ---------------------------------------------------------------------------
+TrancheKind = Literal[
+    "amortising_term_loan", "institutional_term_loan", "unitranche", "second_lien",
+    "senior_notes", "pik_notes", "vendor_loan", "revolver", "shareholder_loan",
+]
+ReferenceRate = Literal[
+    "SOFR", "SONIA", "ESTR", "EURIBOR", "TONA", "SARON", "BBSY", "MIBOR", "custom",
+]
+# A rate can be below zero: ESTR and SARON have both spent years there, and a
+# floor of zero is a term someone negotiates, not a law of arithmetic. Bounding
+# these at zero would make the model wrong outside the dollar and the pound.
+Rate = Annotated[float, Field(ge=-5, le=50)]
+# Long enough for any facility's life; also bounds what a stored deal can hold
+MAX_TRANCHE_YEARS = 30
+# Larger than any deal anyone will model, in any currency and unit, and small
+# enough that the arithmetic never runs out of floating-point range
+MAX_MONEY = 1e15
+
+
+class TrancheIn(Strict):
+    """One facility in the deal's debt structure (PLAN.md 2.4, core/debt.py).
+
+    ``amount`` is the facility's full size, in the deal's currency and unit.
+    For a revolver that is the commitment, of which ``drawn_pct`` is drawn at
+    close: only the drawn part is a source of funds, and only the undrawn part
+    pays a commitment fee.
+
+    Pricing is fixed (``fixed_rate``) or floating, where the all-in rate for a
+    year is ``max(reference, floor) + margin`` -- the floor bites on the
+    reference before the margin, as a loan agreement writes it.
+    ``reference_path`` gives the reference year by year and repeats its last
+    year when the deal runs longer; empty, the flat ``reference_level`` stands
+    for every year.
+    """
+    name: str = Field(min_length=1, max_length=60)
+    kind: TrancheKind
+    amount: float = Field(0.0, ge=0, le=MAX_MONEY,
+                          description="Facility size (in the deal's currency and unit)")
+    drawn_pct: float = Field(100.0, ge=0, le=100, description="% of the facility drawn at close")
+    floating: bool = False
+    fixed_rate: Rate = Field(0.0, description="All-in rate (%) when not floating")
+    reference_rate: ReferenceRate = "custom"
+    reference_level: Rate = Field(0.0, description="The reference rate (%) when no path is given")
+    reference_path: List[Rate] = Field(default_factory=list, max_length=MAX_TRANCHE_YEARS,
+                                       description="The reference rate (%) year by year")
+    margin: float = Field(0.0, ge=0, le=50, description="Margin over the reference (%)")
+    floor: Rate = Field(0.0, description="Floor on the reference (%)")
+    maturity_years: int = Field(7, ge=1, le=MAX_TRANCHE_YEARS, strict=True)
+    amort_pct: float = Field(0.0, ge=0, le=100, description="% of the original principal repaid a year")
+    amort_schedule: List[Annotated[float, Field(ge=0, le=MAX_MONEY)]] = Field(
+        default_factory=list, max_length=MAX_TRANCHE_YEARS,
+        description="Repayment a year; overrides amort_pct")
+    upfront_fee_pct: float = Field(0.0, ge=0, le=10, description="Arrangement fee at close (%)")
+    commitment_fee_pct: float = Field(0.0, ge=0, le=5, description="Yearly fee on the undrawn commitment (%)")
+    sweep: bool = Field(False, description="Takes the cash sweep")
+    sweep_share: float = Field(100.0, ge=0, le=100, description="% of the cash available it may take")
+    pik_share: float = Field(0.0, ge=0, le=100, description="% of the coupon that accrues to principal")
+    sweep_priority: int = Field(0, ge=0, le=99, strict=True, description="0 = its position in the list")
+    allow_redraw: bool = Field(False, description="Draws to cover a cash shortfall (revolver)")
+
+
+# Each tranche multiplies the work of a run: the exit-sensitivity grid reruns
+# the whole model once per holding period, so the schedule is built five times
+# over. Twelve facilities is more than any real structure and keeps a run well
+# inside the timeout (api/limits.py).
+MAX_TRANCHES = 12
+
+
 class DealInputsIn(Strict):
     """Deal wizard inputs.
 
@@ -107,6 +178,25 @@ class DealInputsIn(Strict):
         None, ge=1900, le=2200, strict=True,
         description="Fiscal year of the first projected year, named by the year it ends in; "
                     "none labels years Y1, Y2 ...")
+    tranches: List[TrancheIn] = Field(
+        default_factory=list, max_length=MAX_TRANCHES,
+        description="The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the "
+                    "two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate "
+                    "and mezz_spread entirely, and is swept in the order it is given.")
+
+    @model_validator(mode="after")
+    def _only_a_committed_line_is_partly_drawn(self) -> "DealInputsIn":
+        """A term loan or a bond is drawn in full on day one; it is a revolver
+        that leaves part of itself undrawn and pays to keep it available. A
+        term loan with drawn_pct below 100 is almost always someone meaning to
+        make the facility smaller, so say that rather than quietly funding
+        less than the deal needs."""
+        for tranche in self.tranches:
+            if tranche.drawn_pct < 100 and tranche.kind != "revolver":
+                raise ValueError(
+                    f"{tranche.name}: only a revolving credit facility can be partly drawn at "
+                    f"close. Set drawn_pct to 100, or reduce the facility's size.")
+        return self
 
     def money(self) -> "Money":
         return Money(currency=self.currency, unit=self.unit)
@@ -153,13 +243,27 @@ class SourcesUsesRequest(Strict):
     senior_x: float = Field(3.4, ge=0, description="Senior debt (x EBITDA)")
     mezz_x: float = Field(0.8, ge=0, description="Mezz debt (x EBITDA)")
     mincash: float = Field(0.0, ge=0, description="Minimum cash left on the balance sheet")
+    tranches: List[TrancheIn] = Field(
+        default_factory=list, max_length=MAX_TRANCHES,
+        description="The deal's facilities (PLAN.md 2.4). Given, they are the sources of debt "
+                    "and senior_x / mezz_x are ignored.")
     settings: Dict[str, SettingValue] = {}
     money: Money = Money()
 
 
+class TrancheSource(BaseModel):
+    name: str
+    kind: str
+    amount: float
+
+
 class SourcesUsesResponse(BaseModel):
-    senior_debt: float
-    mezz_debt: float
+    senior_debt: Optional[float] = Field(None, description="Only when the deal is sized by percentages")
+    mezz_debt: Optional[float] = Field(None, description="Only when the deal is sized by percentages")
+    tranches: List[TrancheSource] = Field(
+        default_factory=list, description="One source per facility, when the deal lists its tranches")
+    total_debt: Optional[float] = Field(None, description="Debt drawn at close, when listed by tranche")
+    tranche_fees: float = Field(0.0, description="Arrangement fees the facilities charge at close")
     sponsor_equity: float
     total_sources: float
     equity_purchase_price: float
@@ -218,7 +322,29 @@ class TrancheYear(BaseModel):
     cash_sweep: Optional[float]
     ending_balance: Optional[float]
     interest_expense: Optional[float]
-    interest_rate: Optional[float]
+    interest_rate: Optional[float] = Field(description="The year's all-in rate, as a decimal")
+    # Global debt structures (PLAN.md 2.4). Zero for a facility that pays its
+    # whole coupon in cash and has nothing undrawn.
+    cash_interest: Optional[float] = Field(None, description="The part of the coupon actually paid")
+    pik_interest: Optional[float] = Field(None, description="The part that accrues to principal")
+    commitment_fee: Optional[float] = Field(None, description="Charged on the undrawn commitment")
+    undrawn: Optional[float] = Field(None, description="Commitment nobody has taken down")
+    redrawn: Optional[float] = Field(None, description="Drawn in the year to cover a cash shortfall")
+
+
+class TrancheSummary(BaseModel):
+    """One row per facility, for the capital-structure table."""
+    name: str
+    kind: str
+    amount: float = Field(description="Drawn at close, in the deal's currency and unit")
+    commitment: Optional[float] = Field(None, description="Facility limit, when part of it is undrawn")
+    x_ebitda: float
+    rate: float = Field(description="Year-one all-in rate, as a decimal")
+    floating: bool
+    reference_rate: Optional[str]
+    maturity_years: int
+    sweep_share: float = Field(description="% of the cash sweep it takes; 0 when it does not sweep")
+    pik_share: float = Field(description="% of the coupon that accrues to principal")
 
 
 class DealRunResponse(BaseModel):
@@ -227,6 +353,10 @@ class DealRunResponse(BaseModel):
     cash_flow: model_from_dataclass(CashFlowResult)
     debt_schedule: Dict[str, object] = Field(description="Totals per year; per-tranche detail in tranches")
     tranches: Dict[str, List[TrancheYear]]
+    capital_structure: List[TrancheSummary] = Field(
+        default_factory=list,
+        description="One row per facility, when the deal lists its tranches (PLAN.md 2.4); "
+                    "empty for a deal sized by debt_pct and senior_pct")
     equity_bridge: EquityBridge
     bridge_steps: List[BridgeStep]
     exit_sensitivity: ExitSensitivity

@@ -2,6 +2,10 @@ import type { Schemas } from "@/lib/api/client";
 import { changedKeys, type FieldSpec, validate } from "@/lib/fields";
 import { DEFAULT_MONEY, MONEY } from "@/lib/money";
 
+/** One facility in the deal's debt (PLAN.md 2.4). The editor is 2.4b; until then a
+ *  deal gets these through the API, and the screens have to carry them faithfully. */
+export type Tranche = Schemas["TrancheIn"];
+
 export type DealInputs = Required<Schemas["DealInputsIn"]>;
 export type DealRun = Schemas["DealRunResponse"];
 /** Fiscal year labels (PLAN.md 2.3a): not model inputs, set in their own rail group */
@@ -34,6 +38,7 @@ export const DEFAULT_INPUTS: DealInputs = {
   unit: DEFAULT_MONEY.unit,
   fiscal_year_end_month: 12,
   first_fiscal_year: null,
+  tranches: [],
 };
 
 /**
@@ -42,13 +47,24 @@ export const DEFAULT_INPUTS: DealInputs = {
  * answering every deal that doesn't use them.
  */
 export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
-  const { fiscal_year_end_month, first_fiscal_year, ...rest } = inputs;
+  const { fiscal_year_end_month, first_fiscal_year, tranches, ...rest } = inputs;
   // The generated type lists every defaulted field as present; the API fills in the ones left out
   return {
     ...rest,
     ...(fiscal_year_end_month !== DEFAULT_INPUTS.fiscal_year_end_month ? { fiscal_year_end_month } : {}),
     ...(first_fiscal_year !== null ? { first_fiscal_year } : {}),
+    ...(tranches.length ? { tranches } : {}),
   } as Schemas["DealInputsIn"];
+}
+
+/** The tranche list with every amount in a new unit, so a deal keeps its size. */
+export function tranchesInUnit(tranches: Tranche[], k: number): Tranche[] {
+  if (k === 1) return tranches;
+  return tranches.map((t) => ({
+    ...t,
+    amount: (t.amount ?? 0) * k,
+    ...(t.amort_schedule?.length ? { amort_schedule: t.amort_schedule.map((x) => x * k) } : {}),
+  }));
 }
 
 /** The deal's fiscal years, for labels. */

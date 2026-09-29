@@ -205,11 +205,11 @@ def leaves(value, path=""):
         yield path, value
 
 
-def assert_same_leaves(converted: dict, raw: dict, rel=5e-3):
+def assert_same_leaves(converted: dict, raw: dict, rel=5e-3, abs_=0.5):
     got, want = dict(leaves(converted)), dict(leaves(raw))
     assert got.keys() == want.keys()
     wrong = {p: (got[p], want[p]) for p in got
-             if got[p] != pytest.approx(want[p], rel=rel, abs=0.5)}
+             if got[p] != pytest.approx(want[p], rel=rel, abs=abs_)}
     assert not wrong, wrong
 
 
@@ -226,6 +226,65 @@ def test_a_deal_answer_converts_every_money_figure_and_nothing_else(monkeypatch)
     raw_engine(monkeypatch, deal_router)
     monkeypatch.setattr(deal_router, "in_millions", lambda d, cfg: (d, cfg))
     assert_same_leaves(converted, without_money(post("/api/deal/run", body)))
+
+
+# A deal financed facility by facility (PLAN.md 2.4). Every amount is money in
+# the deal's own unit, so a tranche field missing from DEAL_MONEY_KEYS shows a
+# thousands deal a thousand times too small.
+def tranches(k=1.0):
+    return [
+        {"name": "Term loan B", "kind": "institutional_term_loan", "amount": 400.0 * k,
+         "floating": True, "reference_rate": "SOFR", "reference_path": [4.5, 4.0, 3.5, 3.0, 3.0],
+         "floor": 1.0, "margin": 4.0, "amort_pct": 1.0, "upfront_fee_pct": 2.0,
+         "sweep": True, "maturity_years": 7},
+        {"name": "PIK notes", "kind": "pik_notes", "amount": 150.0 * k,
+         "fixed_rate": 12.0, "pik_share": 100.0, "maturity_years": 9},
+        {"name": "Revolver", "kind": "revolver", "amount": 100.0 * k, "drawn_pct": 25.0,
+         "fixed_rate": 5.0, "commitment_fee_pct": 0.5, "sweep": True, "maturity_years": 6},
+    ]
+
+
+def test_a_tranche_deal_answer_converts_every_money_figure_and_nothing_else(monkeypatch):
+    import api.routers.deal as deal_router
+    body = {"inputs": deal("EUR", "thousands", ebitda=100_000.0, mincash=10_000.0,
+                           tranches=tranches(1000.0)),
+            "settings": {"other_uses": 2_000.0}}
+    converted = without_money(post("/api/deal/run", body))
+    raw_engine(monkeypatch, deal_router)
+    monkeypatch.setattr(deal_router, "in_millions", lambda d, cfg: (d, cfg))
+    # The engine rounds money to two decimals of a million (CLAUDE.md "Model
+    # findings", 10), which is 10 in thousands. A small figure -- a commitment
+    # fee of 0.375M -- therefore lands on 0.38M converted and on 375 run raw,
+    # so the comparison allows the rounding it cannot avoid.
+    assert_same_leaves(converted, without_money(post("/api/deal/run", body)), abs_=10.0)
+
+
+def test_a_tranche_deal_in_thousands_answers_as_in_millions_times_a_thousand():
+    millions = post("/api/deal/run", {"inputs": deal("USD", "millions", tranches=tranches())})
+    thousands = post("/api/deal/run", {"inputs": deal(
+        "USD", "thousands", ebitda=100_000.0, mincash=10_000.0, tranches=tranches(1000.0))})
+    # Rates, multiples and shares are unitless, so the returns are identical
+    assert thousands["returns"]["irr"] == pytest.approx(millions["returns"]["irr"], rel=1e-9)
+    for name, rows in millions["tranches"].items():
+        for i, row in enumerate(rows):
+            other = thousands["tranches"][name][i]
+            assert other["beginning_balance"] == pytest.approx(row["beginning_balance"] * 1000, rel=1e-6)
+            assert other["pik_interest"] == pytest.approx(row["pik_interest"] * 1000, rel=1e-6)
+            assert other["undrawn"] == pytest.approx(row["undrawn"] * 1000, rel=1e-6)
+            # The rate is not money and must not be scaled
+            assert other["interest_rate"] == row["interest_rate"]
+
+
+def test_tranche_sources_and_uses_convert_every_money_figure_and_nothing_else(monkeypatch):
+    import api.routers.deal as deal_router
+    body = {"ebitda": 100_000.0, "entry_mult": 10.0, "mincash": 5_000.0,
+            "tranches": tranches(1000.0), "settings": {"other_uses": 2_000.0},
+            "money": {"currency": "EUR", "unit": "thousands"}}
+    converted = without_money(post("/api/deal/sources-and-uses", body))
+    raw_engine(monkeypatch, deal_router)
+    monkeypatch.setattr(deal_router, "in_millions", lambda d, cfg: (d, cfg))
+    monkeypatch.setattr(deal_router, "to_millions", lambda v, unit: v)
+    assert_same_leaves(converted, without_money(post("/api/deal/sources-and-uses", body)))
 
 
 def test_sources_and_uses_convert_every_money_figure_and_nothing_else(monkeypatch):

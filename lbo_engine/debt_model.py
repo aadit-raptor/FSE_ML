@@ -71,6 +71,14 @@ class TrancheYearRecord:
     ending_balance: float
     interest_expense: float
     interest_rate: float
+    # Global debt structures (PLAN.md 2.4). All zero for a tranche that pays
+    # its whole coupon in cash and has nothing undrawn, which is every tranche
+    # the model could build before.
+    cash_interest: float = 0.0        # the part of the coupon actually paid
+    pik_interest: float = 0.0         # the part that accrues to principal
+    commitment_fee: float = 0.0       # charged on the undrawn commitment
+    undrawn: float = 0.0              # commitment nobody has taken down
+    redrawn: float = 0.0              # drawn during the year to cover a shortfall
 
 
 # ---------------------------------------------------------------------------
@@ -105,6 +113,13 @@ class DebtScheduleResult:
     total_interest_expense: List[float] = field(default_factory=list)
     cash_balance: List[float] = field(default_factory=list)   # balance sheet cash each year
     available_for_sweep: List[float] = field(default_factory=list)
+
+    # Global debt structures (PLAN.md 2.4): the split of the interest line, and
+    # what a committed facility costs to keep open. All zeros for a structure
+    # of ordinary cash-pay tranches.
+    total_cash_interest: List[float] = field(default_factory=list)
+    total_pik_interest: List[float] = field(default_factory=list)
+    total_commitment_fees: List[float] = field(default_factory=list)
 
     @property
     def net_debt_at_exit(self) -> float:
@@ -222,22 +237,45 @@ def run_debt_model(
         # ------------------------------------------------------------------
         # Step 2: Mandatory amortization per tranche
         # ------------------------------------------------------------------
-        mandatory = {}
+        # Interest comes first because a repayment has to settle what the year
+        # accrued as well as the principal (PLAN.md 2.4).
+        #
+        # The coupon splits three ways:
+        #   pik    accrues to principal instead of being paid  (pik_share)
+        #   cash   is paid out of the year's cash flow
+        #   fee    is charged on whatever is committed but undrawn
+        # Interest expense is the whole coupon plus the fee -- PIK is still an
+        # expense and still shields tax; it is the cash flow that gets it back
+        # (cashflow_model's non_cash_interest). At the defaults pik is 0.0 and
+        # fee is 0.0, so this is arithmetically identical to what came before.
+        interest, pik, fees = {}, {}, {}
         for t in tranches:
-            # Cannot repay more than current balance
-            sched = t.mandatory_repayment(year, n)
-            mandatory[t.name] = min(sched, beg_balances[t.name])
-
-        total_mandatory = sum(mandatory.values())
-
-        # ------------------------------------------------------------------
-        # Step 3: Interest on beginning balance
-        # ------------------------------------------------------------------
-        interest = {}
-        for t in tranches:
-            interest[t.name] = t.annual_interest(beg_balances[t.name])
+            coupon = t.annual_interest(beg_balances[t.name], year)
+            pik[t.name] = round(coupon * t.pik_share, 4)
+            fees[t.name] = t.commitment_fee(beg_balances[t.name])
+            interest[t.name] = coupon + fees[t.name]
 
         total_interest = sum(interest.values())
+
+        # ------------------------------------------------------------------
+        # Step 3: Mandatory amortization per tranche
+        #
+        # What is owed at maturity is the opening balance **plus what this
+        # year accrued**: redeeming a PIK note pays its principal and the
+        # coupon that rolled into it. Repaying only the opening balance would
+        # leave the year's accrual behind as a balance nothing ever repays,
+        # still sitting in net debt years after the note was redeemed. For a
+        # tranche that accrues nothing this is `beg + 0.0`, exactly the
+        # balance, so nothing about an ordinary deal changes.
+        # ------------------------------------------------------------------
+        mandatory = {}
+        for t in tranches:
+            owed = beg_balances[t.name] + pik[t.name]
+            # Cannot repay more than is outstanding
+            sched = t.mandatory_repayment(year, n, owed)
+            mandatory[t.name] = min(sched, owed)
+
+        total_mandatory = sum(mandatory.values())
 
         # ------------------------------------------------------------------
         # Step 4: Cash available for sweep
@@ -279,8 +317,16 @@ def run_debt_model(
                 break
             # Balance after mandatory amortization
             balance_post_mandatory = beg_balances[t.name] - mandatory[t.name]
-            # Sweep amount is capped at remaining balance
-            swept = min(remaining_sweep, balance_post_mandatory)
+            # A tranche takes at most its agreed share of **the cash the
+            # business had available**, not of whatever the tranche above it
+            # left: two facilities that each take half take half each, rather
+            # than a half and a quarter. It is still capped by what is left
+            # and by its own balance, so the tranches can never take more
+            # between them than there was. Whatever none of them takes stays
+            # on the balance sheet. sweep_share is 1.0 unless the facility
+            # says otherwise, and available_sweep * 1.0 is exactly
+            # available_sweep, which is never below remaining_sweep.
+            swept = min(available_sweep * t.sweep_share, remaining_sweep, balance_post_mandatory)
             sweep[t.name] = round(max(swept, 0.0), 4)
             remaining_sweep -= sweep[t.name]
 
@@ -288,20 +334,38 @@ def run_debt_model(
 
         # ------------------------------------------------------------------
         # Step 6: Ending balances
+        # Interest paid in kind is added to principal rather than paid out.
         # ------------------------------------------------------------------
         end_balances = {}
         for t in tranches:
-            end_bal = beg_balances[t.name] - mandatory[t.name] - sweep[t.name]
+            end_bal = beg_balances[t.name] - mandatory[t.name] - sweep[t.name] + pik[t.name]
             end_balances[t.name] = round(max(end_bal, 0.0), 4)
-
-        total_end = sum(end_balances.values())
 
         # ------------------------------------------------------------------
         # Step 7: Ending cash balance
         # Cash = minimum_cash + any unswept excess
         # In BK, cash stays at minimum_cash = USD 118M throughout.
+        #
+        # A committed revolver draws to cover a shortfall rather than letting
+        # the balance sheet find the cash from nowhere. Only a structure that
+        # has one enters this branch, so every deal without a revolver behaves
+        # exactly as before -- including the one that leaves a shortfall
+        # unfunded (CLAUDE.md "Model findings", finding 11).
         # ------------------------------------------------------------------
         unswept = remaining_sweep   # any cash that couldn't be used (debt fully repaid)
+        redrawn = {t.name: 0.0 for t in tranches}
+        shortfall = minimum_cash - (cash_in_hand - total_mandatory)
+        if shortfall > 0 and any(t.allow_redraw and t.commitment is not None for t in tranches):
+            for t in tranches:
+                if shortfall <= 0 or not (t.allow_redraw and t.commitment is not None):
+                    continue
+                headroom = max(t.commitment - end_balances[t.name], 0.0)
+                draw = round(min(shortfall, headroom), 4)
+                redrawn[t.name] = draw
+                end_balances[t.name] = round(end_balances[t.name] + draw, 4)
+                shortfall -= draw
+
+        total_end = sum(end_balances.values())
         ending_cash = minimum_cash + unswept
         cash = ending_cash          # carry forward to next year
 
@@ -317,7 +381,12 @@ def run_debt_model(
                 cash_sweep=round(sweep[t.name], 2),
                 ending_balance=round(end_balances[t.name], 2),
                 interest_expense=round(interest[t.name], 2),
-                interest_rate=t.interest_rate,
+                interest_rate=t.rate_in_year(year),
+                cash_interest=round(interest[t.name] - pik[t.name], 2),
+                pik_interest=round(pik[t.name], 2),
+                commitment_fee=round(fees[t.name], 2),
+                undrawn=round(t.undrawn(beg_balances[t.name]), 2),
+                redrawn=round(redrawn[t.name], 2),
             )
             result.schedule[t.name].append(record)
 
@@ -331,6 +400,10 @@ def run_debt_model(
         result.total_interest_expense.append(round(total_interest, 2))
         result.cash_balance.append(round(ending_cash, 2))
         result.available_for_sweep.append(round(available_sweep, 2))
+        total_pik = sum(pik.values())
+        result.total_pik_interest.append(round(total_pik, 2))
+        result.total_cash_interest.append(round(total_interest - total_pik, 2))
+        result.total_commitment_fees.append(round(sum(fees.values()), 2))
 
         # Update running balances for next year
         balances = end_balances
