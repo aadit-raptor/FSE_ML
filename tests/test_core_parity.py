@@ -128,7 +128,11 @@ def test_simulation_params_match_streamlit(case):
     params = build_sim_params(mc, deal_from(i), cfg)
     if g["preset"]:
         params = apply_scenario(g["preset"].lower(), params, cfg)
-    assert_close(plain(params), g["sim_params"])
+    # `tranches` joined the parameters in PLAN.md 2.4b. The recorded deals list
+    # none, so it must be empty here -- which is what keeps them on the
+    # two-bucket path the snapshot recorded.
+    assert params.tranches == ()
+    assert_close(plain(params), g["sim_params"], extra={"tranches"})
 
 
 # ---------------------------------------------------------------------------

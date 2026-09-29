@@ -123,8 +123,8 @@ class TrancheSpec:
         """The arrangement fee paid at close (money)."""
         return self.amount * self.upfront_fee_pct / 100
 
-    def rate_in_year(self, year: int) -> float:
-        """The all-in rate for ``year`` (1-indexed), as a decimal.
+    def reference_in_year(self, year: int) -> float:
+        """The reference rate for ``year`` (1-indexed), as a decimal.
 
         A path shorter than the deal's hold **repeats its last year** rather
         than running out. That matters because the exit-sensitivity grid reruns
@@ -133,11 +133,20 @@ class TrancheSpec:
         six and seven. Repeating is the honest answer: extrapolating a trend
         would make the grid depend on a curve nobody supplied.
         """
+        path = self.reference_path or (self.reference_level,)
+        return path[min(year, len(path)) - 1] / 100
+
+    def rate_in_year(self, year: int, shift: float = 0.0) -> float:
+        """The all-in rate for ``year`` (1-indexed), as a decimal.
+
+        ``shift`` moves a floating facility's reference rate before the floor
+        (a Monte Carlo scenario's rate stress, ``core/montecarlo.py``); a fixed
+        facility ignores it. At the default, ``reference + 0.0`` is exactly the
+        reference, so nothing else moves.
+        """
         if not self.floating:
             return self.fixed_rate / 100
-        path = self.reference_path or (self.reference_level,)
-        reference = path[min(year, len(path)) - 1] / 100
-        return max(reference, self.floor / 100) + self.margin / 100
+        return max(self.reference_in_year(year) + shift, self.floor / 100) + self.margin / 100
 
     def in_millions(self, unit: str) -> "TrancheSpec":
         """The same tranche with its money in millions, the unit the engine
@@ -214,9 +223,14 @@ def unique_names(specs: Sequence[TrancheSpec]) -> list:
     return names
 
 
-def to_tranche(spec: TrancheSpec, name: str, hold: int, priority: int) -> Tranche:
+def to_tranche(spec: TrancheSpec, name: str, hold: int, priority: int,
+               reference_shift: float = 0.0) -> Tranche:
     """``spec`` as the engine's ``Tranche``: rates resolved year by year, and
-    the amortisation written the way ``debt_model`` reads it."""
+    the amortisation written the way ``debt_model`` reads it.
+
+    ``reference_shift`` moves a floating facility's reference rate before the
+    floor (``TrancheSpec.rate_in_year``); the Monte Carlo heatmap passes a
+    scenario's rate stress through it."""
     if spec.amort_schedule:
         amort_type, amort_pct = "custom", 0.0
     elif spec.amort_pct:
@@ -229,8 +243,8 @@ def to_tranche(spec: TrancheSpec, name: str, hold: int, priority: int) -> Tranch
     return Tranche(
         name=name,
         amount=spec.drawn,
-        interest_rate=spec.rate_in_year(1),
-        rate_path=tuple(spec.rate_in_year(y) for y in range(1, years + 1)),
+        interest_rate=spec.rate_in_year(1, reference_shift),
+        rate_path=tuple(spec.rate_in_year(y, reference_shift) for y in range(1, years + 1)),
         maturity_years=int(spec.maturity_years),
         amort_type=amort_type,
         amort_pct=amort_pct,
@@ -254,15 +268,56 @@ def to_tranche(spec: TrancheSpec, name: str, hold: int, priority: int) -> Tranch
 SENSITIVITY_HEADROOM = range(10)
 
 
-def build_capital_structure(specs: Sequence[TrancheSpec], ebitda: float, hold: int) -> CapitalStructure:
+def build_capital_structure(specs: Sequence[TrancheSpec], ebitda: float, hold: int,
+                            reference_shift: float = 0.0) -> CapitalStructure:
     """The engine's capital structure for a list of tranche specs, in the order
     the user put them in: first in the list is swept first."""
     names = unique_names(specs)
     return CapitalStructure(
-        tranches=[to_tranche(spec, name, hold, i + 1)
+        tranches=[to_tranche(spec, name, hold, i + 1, reference_shift)
                   for i, (spec, name) in enumerate(zip(specs, names))],
         ltm_ebitda=ebitda,
     )
+
+
+def simulation_tranches(specs: Sequence[TrancheSpec], hold: int) -> tuple:
+    """The tranches as the Monte Carlo simulation reads them (PLAN.md 2.4b).
+
+    Built through ``to_tranche``, so the amortisation, sweep order, commitment
+    and PIK mean exactly what they mean to the deal model. What the engine's
+    ``Tranche`` cannot carry is kept apart: a floating facility's **reference
+    path, floor and margin**, because the simulation moves the reference path
+    by path and only then applies the floor and the margin. A fixed facility
+    carries its coupon, which no draw moves.
+    """
+    from simulation.tranches import SimulationTranche
+
+    out = []
+    for i, (spec, name) in enumerate(zip(specs, unique_names(specs))):
+        t = to_tranche(spec, name, hold, i + 1)
+        if spec.floating:
+            rates = tuple(spec.reference_in_year(y) for y in range(1, max(int(hold), 1) + 1))
+        else:
+            rates = (spec.fixed_rate / 100,)
+        out.append(SimulationTranche(
+            name=name, amount=t.amount, rates=rates, floating=bool(spec.floating),
+            floor=spec.floor / 100, margin=spec.margin / 100,
+            maturity_years=t.maturity_years, amort_type=t.amort_type, amort_pct=t.amort_pct,
+            amort_schedule=tuple(t.amort_schedule), sweep=t.is_cash_sweep,
+            sweep_share=t.sweep_share, sweep_priority=t.sweep_priority, pik_share=t.pik_share,
+            commitment=t.commitment, commitment_fee_pct=t.commitment_fee_pct,
+            allow_redraw=t.allow_redraw, upfront_fee=spec.upfront_fee,
+        ))
+    return tuple(out)
+
+
+def shift_references(tranches: Sequence, shift: float) -> tuple:
+    """Simulation tranches with every floating reference moved by ``shift``
+    (a decimal); fixed ones as they were. A Monte Carlo scenario's rate stress
+    reaches a floating facility this way (``core.montecarlo.apply_scenario``)."""
+    return tuple(
+        replace(t, rates=tuple(r + shift for r in t.rates)) if t.floating else t
+        for t in tranches)
 
 
 def total_debt(specs: Sequence[TrancheSpec]) -> float:
@@ -342,7 +397,14 @@ def equivalent_tranches(deal, cfg: Mapping) -> list:
       so the arithmetic is the same expression rather than a rounded copy of
       its result;
     * neither tranche carries an upfront fee, so no arrangement fee is added
-      and the deal's flat financing-fee setting still applies on its own.
+      and the deal's flat financing-fee setting still applies on its own;
+    * **both are floating**, the senior loan at the base rate plus nothing.
+      The deal model sees the same rate either way (``max(base, 0) + 0``,
+      and the base rate is never negative), but the Monte Carlo simulation
+      has always moved the senior rate with its rate draw, and moves only
+      floating facilities once they are listed (PLAN.md 2.4b). Written as
+      fixed, the senior loan would stop feeling the draw the moment a user
+      converted, and the simulation would change under them.
 
     The one place the two paths part company is the exit-sensitivity grid's
     *other* columns. Sizing by percentages gives the mezzanine a maturity
@@ -359,7 +421,8 @@ def equivalent_tranches(deal, cfg: Mapping) -> list:
     return [
         TrancheSpec(
             name="Senior Term Loan", kind="amortising_term_loan", amount=senior,
-            fixed_rate=deal.base_rate, amort_pct=cfg["def_senior_amort"],
+            floating=True, reference_rate="custom", reference_level=deal.base_rate,
+            amort_pct=cfg["def_senior_amort"],
             sweep=True, sweep_priority=1, maturity_years=hold,
         ),
         TrancheSpec(

@@ -654,25 +654,6 @@ def test_a_facility_larger_than_any_real_deal_is_refused_at_the_edge():
     assert resp.json()["detail"][0]["loc"] == ["body", "inputs", "tranches", 0, "amount"]
 
 
-def test_a_simulation_refuses_a_deal_it_would_finance_differently():
-    """Monte Carlo still sizes debt from the percentages (PLAN.md 2.4b adds
-    the tranche path), so running it on a deal that lists facilities would
-    quietly simulate a different structure. Saying so beats being wrong."""
-    from fastapi.testclient import TestClient
-
-    from api.main import app
-
-    client = TestClient(app)
-    body = {"mc": {"n": 2000}, "deal": {"tranches": [
-        {"name": "Unitranche", "kind": "unitranche", "amount": 400.0, "fixed_rate": 9.0}]}}
-    for path in ("/api/montecarlo/run", "/api/montecarlo/scenarios"):
-        resp = client.post(path, json=body)
-        assert resp.status_code == 422, path
-        assert "tranche" in resp.json()["detail"].lower()
-    # Without tranches it runs as before
-    assert client.post("/api/montecarlo/run", json={"mc": {"n": 2000}}).status_code == 200
-
-
 def test_no_input_anywhere_can_be_infinity_or_not_a_number():
     """`Strict` refuses non-finite numbers for every input model, not just a
     tranche's.
