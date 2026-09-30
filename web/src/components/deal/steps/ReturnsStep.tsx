@@ -16,11 +16,11 @@ import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 
 import { useDeal } from "../DealProvider";
-import { DealField, DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
+import { DealField, DealScreen, LoadingTiles, RailGroup, TranchesOnDebtStep } from "../DealScreen";
 import { baseCell, debtSeries, debtYears, totals, useHurdleSub } from "./shared";
 
 export function ReturnsStep() {
-  const { run } = useDeal();
+  const { inputs, run } = useDeal();
   const t = useTranslations("deal");
   return (
     <DealScreen
@@ -39,10 +39,16 @@ export function ReturnsStep() {
             <DealField name="tax" />
           </RailGroup>
           <RailGroup title={t("groupCapital")}>
-            <DealField name="debt_pct" />
-            <DealField name="senior_pct" />
-            <DealField name="base_rate" />
-            <DealField name="mezz_spread" />
+            {inputs.tranches.length ? (
+              <TranchesOnDebtStep />
+            ) : (
+              <>
+                <DealField name="debt_pct" />
+                <DealField name="senior_pct" />
+                <DealField name="base_rate" />
+                <DealField name="mezz_spread" />
+              </>
+            )}
           </RailGroup>
         </>
       }

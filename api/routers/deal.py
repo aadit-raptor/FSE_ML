@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from api.deps import resolve_settings
 from api.observability import model_timer
 from api.schemas import (
-    DealRunRequest, DealRunResponse, SourcesUsesRequest, SourcesUsesResponse,
+    DealRunRequest, DealRunResponse, SourcesUsesRequest, SourcesUsesResponse, TaxPresetsResponse,
 )
 from api.serialize import to_json
 from core.deal import (
@@ -13,6 +13,7 @@ from core.deal import (
     run_deal, sources_and_uses, sources_and_uses_for,
 )
 from core.money import in_unit, rescale, to_millions
+from core.tax import PRESETS as TAX_PRESETS
 
 router = APIRouter(prefix="/deal", tags=["deal"])
 
@@ -45,6 +46,14 @@ def post_sources_and_uses(req: SourcesUsesRequest):
     return {**su, "debt_pct": debt_pct, "senior_pct": senior_pct, "money": req.money}
 
 
+@router.get("/tax-presets", response_model=TaxPresetsResponse)
+def get_tax_presets():
+    """Country presets for a deal's tax rules, each with its source and the
+    date it was checked. A starting point, not advice: every field stays
+    editable once applied."""
+    return {"presets": [to_json(p) for p in TAX_PRESETS]}
+
+
 @router.post("/run", response_model=DealRunResponse)
 def post_run(req: DealRunRequest):
     """Run the full LBO model: operating model, cash flow, debt, returns.
@@ -75,5 +84,6 @@ def post_run(req: DealRunRequest):
         "exit_sensitivity": to_json(result.exit_sensitivity),
         "interest_converged": result.interest_converged,
         "capital_structure": capital_structure_summary(deal),
+        "tax": to_json(result.tax),
     }
     return {**rescale(answer, in_unit(1.0, req.inputs.unit), DEAL_MONEY_KEYS), "money": req.inputs.money()}

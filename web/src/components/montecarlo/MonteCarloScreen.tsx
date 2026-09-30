@@ -3,9 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useEffect, type ReactNode } from "react";
 
+import { useDeal } from "@/components/deal/DealProvider";
 import { DealField } from "@/components/deal/DealScreen";
 import { NumberField } from "@/components/ui/NumberField";
 import { EmptyState, LoadingTiles, Notice, PrimaryButton, RailGroup, Screen, Switch } from "@/components/ui/Screen";
+import { floatingCount } from "@/lib/deal/capital";
 import type { FieldSpec } from "@/lib/fields";
 import { useProvenance } from "@/lib/i18n/useProvenance";
 
@@ -22,6 +24,7 @@ function SimField({ name }: { name: SimKey }) {
 /** i18n-keys: montecarlo.presetNone */
 function Rail() {
   const { scenario, setScenario, seed, setSeed } = useMonteCarlo();
+  const { inputs: deal } = useDeal();
   const t = useTranslations("montecarlo");
   const provenance = useProvenance();
   return (
@@ -71,6 +74,12 @@ function Rail() {
       <RailGroup title={t("groupInterestRate")}>
         <SimField name="rate_mean" />
         <SimField name="rate_std" />
+        {/* A deal listing its facilities: the draw moves only the floating ones (PLAN.md 2.4b) */}
+        {deal.tranches.length > 0 && (
+          <p className="type-body pt-1.5 text-[9px]" data-testid="rate-tranches-note">
+            {t("rateTranchesNote", { count: floatingCount(deal.tranches) })}
+          </p>
+        )}
       </RailGroup>
       <RailGroup title={t("groupGrossMargin")}>
         <SimField name="gm_mean" />

@@ -413,3 +413,26 @@ def test_real_upstash_round_trip():
     assert first.add([("runs", 2, 120)]) == {"runs": 2}
     assert second.add([("runs", 3, 120), ("other", 1, 120)]) == {"runs": 5, "other": 1}
     assert second.commands_today and second.commands_today >= usage.redis_commands_for_sync(2)
+
+
+@pytest.mark.parametrize("passes", [0, 11, 1000, 2.5, True])
+def test_the_simulations_interest_passes_are_bounded(passes):
+    """Each pass reruns the whole simulation and holds the one simulation
+    slot, so the setting takes the Settings screen's own range, 1 to 10."""
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    resp = TestClient(app).post("/api/montecarlo/run", json={"mc": {"n": 1000}, "settings": {"mc_n_passes": passes}})
+    assert resp.status_code == 422, resp.text
+    assert "mc_n_passes" in resp.text
+
+
+def test_the_settings_range_of_interest_passes_still_runs():
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    for passes in (1, 10):
+        resp = TestClient(app).post("/api/montecarlo/run", json={"mc": {"n": 1000}, "settings": {"mc_n_passes": passes}})
+        assert resp.status_code == 200, resp.text

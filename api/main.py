@@ -26,7 +26,6 @@ from api.limits import LimitExceeded, LimitRefusal, LimitsMiddleware, enforce_us
 from api.security import CORS_ALLOW_HEADERS, SecurityHeadersMiddleware, cors_origins
 from api.github_oidc import require_workflow
 from core.debt import UnfinanceableStructure
-from core.montecarlo import TranchesNotSimulatedYet
 from api.routers import (
     account, backtesting, deal, deals, export, forecasting, integrations, jobs, montecarlo,
     scheduled,
@@ -149,22 +148,13 @@ def create_app() -> FastAPI:
     async def unfinanceable_structure(request: Request, exc: UnfinanceableStructure):
         """A debt structure the sponsor could not fund: the caller's mistake,
         so it is a refusal with a sentence saying what to change rather than a
-        fault. Answered here rather than in each router so a run submitted as
-        a background job is refused the same way.
+        fault. Answered here rather than in each router; a run submitted as a
+        background job never reaches this handler, so ``jobs/runner.py``
+        refuses it the same way itself.
 
         The message names the deal's own figures, so it goes in the answer to
         the person who typed them and nowhere else: returning a JSONResponse
         rather than raising keeps it out of the error log and out of Sentry.
-        """
-        return JSONResponse({"detail": str(exc)}, status_code=422)
-
-    @app.exception_handler(TranchesNotSimulatedYet)
-    async def tranches_not_simulated_yet(request: Request, exc: TranchesNotSimulatedYet):
-        """A deal whose debt is listed facility by facility, sent to the
-        simulation, which cannot yet finance it that way (PLAN.md 2.4b).
-
-        Returned rather than raised, so it stays out of the error log: it is
-        a limitation to tell the caller about, not a fault.
         """
         return JSONResponse({"detail": str(exc)}, status_code=422)
 

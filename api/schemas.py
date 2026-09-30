@@ -19,6 +19,7 @@ from core.forecasting import ForecastYear, HistoricalYear
 from lbo_engine.cashflow_model import CashFlowResult
 from lbo_engine.operating_model import OperatingModelResult
 from lbo_engine.returns import ReturnsResult
+from lbo_engine.tax import TaxSchedule
 
 SettingValue = Union[float, int, bool]
 
@@ -183,6 +184,29 @@ class DealInputsIn(Strict):
         description="The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the "
                     "two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate "
                     "and mezz_spread entirely, and is swept in the order it is given.")
+    # Tax rules beyond the flat rate (PLAN.md 2.5, core/tax.py). Every default
+    # is off; they are stored and sent only when set (db/deals.py).
+    # A label, so any two-letter code is accepted: validating it against
+    # today's presets would make every saved deal naming a preset retired
+    # later unreadable
+    tax_preset: str = Field(
+        "", pattern=r"^([A-Z]{2})?$",
+        description="The country preset last applied (ISO 3166 code), a label only; "
+                    "the rules below are what the model reads")
+    tax_interest_limit: Literal["none", "ebitda_share", "fixed"] = Field(
+        "none", description="Interest deductibility: none, a share of EBITDA (never below "
+                            "tax_interest_limit_amount), or a fixed amount (tax_interest_limit_amount "
+                            "a year; left at 0, no interest is deductible)")
+    tax_interest_limit_pct: float = Field(30.0, ge=0, le=100, description="Share of EBITDA (%)")
+    tax_interest_limit_amount: float = Field(
+        0.0, ge=0, le=MAX_MONEY,
+        description="The fixed cap, or the allowance always deductible (in currency and unit)")
+    tax_loss_carryforward: bool = Field(False, description="Carry tax losses forward")
+    tax_loss_limit_pct: float = Field(
+        100.0, ge=0, le=100, description="Share of profit above the allowance losses may offset (%)")
+    tax_loss_limit_amount: float = Field(
+        0.0, ge=0, le=MAX_MONEY, description="Profit losses may offset in full each year (in currency and unit)")
+    tax_minimum_pct: float = Field(0.0, ge=0, le=100, description="Minimum tax on book profit (%)")
 
     @model_validator(mode="after")
     def _only_a_committed_line_is_partly_drawn(self) -> "DealInputsIn":
@@ -361,7 +385,32 @@ class DealRunResponse(BaseModel):
     bridge_steps: List[BridgeStep]
     exit_sensitivity: ExitSensitivity
     interest_converged: bool
+    tax: Optional[model_from_dataclass(TaxSchedule)] = Field(
+        None, description="The tax computation year by year, when the deal has tax rules "
+                          "(PLAN.md 2.5); none for a flat rate on positive profit")
     money: Money
+
+
+class TaxPresetOut(BaseModel):
+    """A country's headline tax rules, as a starting point (core/tax.py).
+    Percentages as numbers like 25.0; amounts in millions of ``currency``."""
+    code: str = Field(description="ISO 3166-1 alpha-2 country code")
+    currency: str = Field(description="The currency of the amounts (ISO 4217)")
+    rate: float
+    interest_limit: str
+    interest_limit_pct: float
+    interest_limit_amount: float
+    loss_carryforward: bool
+    loss_limit_pct: float
+    loss_limit_amount: float
+    minimum_pct: float
+    source: str
+    note: str
+    as_of: str = Field(description="When the numbers were last checked (YYYY-MM)")
+
+
+class TaxPresetsResponse(BaseModel):
+    presets: List[TaxPresetOut]
 
 
 # ---------------------------------------------------------------------------

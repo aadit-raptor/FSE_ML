@@ -318,7 +318,7 @@ def test_surrogate_when_available():
     assert terms["holding period"]["model_value"] == 5
     assert terms["opex / revenue"]["model_value"] == pytest.approx(0.18)
     assert terms["opex / revenue"]["value"] == pytest.approx(0.27)
-    assert len(terms) == 10 and len(body["term_differences"]) < len(terms)
+    assert len(terms) == 11 and len(body["term_differences"]) < len(terms)
 
 
 def test_training_terms_list_every_fixed_term():
@@ -333,13 +333,19 @@ def test_training_terms_list_every_fixed_term():
              "mezz_spread": deal.mezz_spread / 100, "interest_std": mc.rate_std / 100,
              "transaction_fees_pct": DEFAULTS["tx_fee_pct"] / 100,
              "financing_fees_pct": DEFAULTS["fin_fee_pct"] / 100, "other_uses": DEFAULTS["other_uses"]}
-    assert len(training_terms(mc, deal, DEFAULTS, fixed)) == 10
+    assert len(training_terms(mc, deal, DEFAULTS, fixed)) == 11
     assert training_term_differences(mc, deal, DEFAULTS, fixed) == []
     fixed["tax_rate"] = 0.30
     all_terms = training_terms(mc, deal, DEFAULTS, fixed)
-    assert len(all_terms) == 10
+    assert len(all_terms) == 11
     assert [t["term"] for t in training_term_differences(mc, deal, DEFAULTS, fixed)] == ["tax rate"]
     assert next(t for t in all_terms if t["term"] == "tax rate")["model_value"] == 0.30
+    # The surrogate knows only a flat rate: tax rules (PLAN.md 2.5) are named,
+    # counted, as a difference
+    fixed["tax_rate"] = deal.tax / 100
+    ruled = DealInputs(tax_interest_limit="ebitda_share", tax_loss_carryforward=True)
+    diff = training_term_differences(mc, ruled, DEFAULTS, fixed)
+    assert [(t["term"], t["value"]) for t in diff] == [("tax rules", 2.0)]
 
 
 def test_surrogate_tail_threshold():

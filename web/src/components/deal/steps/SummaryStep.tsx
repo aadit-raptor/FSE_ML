@@ -17,6 +17,7 @@ import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/li
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useUnitLabel } from "@/lib/i18n/useFieldText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
+import { MONEY } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
 import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
@@ -38,6 +39,8 @@ export function SummaryStep() {
   const fields = useTranslations("fields");
   const unitLabel = useUnitLabel();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
+  const listed = inputs.tranches.length > 0;
+  const trancheName = useEngineLabel("tranche");
   return (
     <DealScreen
       rail={
@@ -45,7 +48,16 @@ export function SummaryStep() {
           {ASSUMPTIONS.map((g) => (
             <RailGroup key={g.titleKey} title={t(g.titleKey)}>
               <dl className="grid grid-cols-[1fr_auto] gap-x-2 gap-y-1">
-                {g.keys.map((k) => (
+                {listed && g.titleKey === "groupCapital"
+                  ? inputs.tranches.map((tr, i) => (
+                      <div key={i} className="contents">
+                        <dt className="type-input-label truncate">{trancheName(tr.name)}</dt>
+                        <dd className="text-end font-mono text-[11.5px] text-ink">
+                          {fmtMoney(tr.amount)} <span className="text-[10px] text-[#56636a]">{unitLabel(MONEY, money)}</span>
+                        </dd>
+                      </div>
+                    ))
+                  : g.keys.map((k) => (
                   <div key={k} className="contents">
                     <dt className="type-input-label">{fields(k)}</dt>
                     <dd className="text-end font-mono text-[11.5px] text-ink">
@@ -58,11 +70,16 @@ export function SummaryStep() {
           ))}
           <div className="grid gap-2 px-3.5 py-3">
             <p className="type-body">
-              {t("summaryDebtNote", {
-                senior: fmtMultiple(seniorX, 1),
-                mezz: fmtMultiple(mezzX, 1),
-                method: inputs.wsp_mode ? t("methodFromDays") : t("methodShareOfRevenue"),
-              })}
+              {listed
+                ? t("summaryListedNote", {
+                    count: inputs.tranches.length,
+                    method: inputs.wsp_mode ? t("methodFromDays") : t("methodShareOfRevenue"),
+                  })
+                : t("summaryDebtNote", {
+                    senior: fmtMultiple(seniorX, 1),
+                    mezz: fmtMultiple(mezzX, 1),
+                    method: inputs.wsp_mode ? t("methodFromDays") : t("methodShareOfRevenue"),
+                  })}
             </p>
             <Link href="/deal/inputs" className="type-action-secondary justify-self-start px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
               {t("editInputs")}
@@ -109,6 +126,22 @@ function SummaryResults() {
     { label: t("rowNetIncome"), values: om.net_income ?? [], total: true },
     { label: t("rowEbitdaMargin"), values: om.ebitda_margin ?? [], kind: "rate" },
   ];
+  // The deal's tax rules at work (PLAN.md 2.5); a deal with none has no tax
+  // block. The minimum-tax row shows only when it ever raises the tax.
+  const tx = res.tax;
+  const taxRows: Row[] | null = tx
+    ? [
+        { label: t("rowTaxableIncome"), values: tx.taxable_income ?? [] },
+        { label: t("rowInterestDeducted"), values: tx.interest_deductible ?? [] },
+        { label: t("rowInterestCarried"), values: tx.interest_carried ?? [] },
+        { label: t("rowLossesUsed"), values: tx.losses_used ?? [] },
+        { label: t("rowLossesCarried"), values: tx.losses_carried ?? [] },
+        ...((tx.minimum_tax_topup ?? []).some((v) => (v ?? 0) > 0)
+          ? [{ label: t("rowMinimumTaxTopup"), values: tx.minimum_tax_topup ?? [] }]
+          : []),
+        { label: t("rowTaxes"), values: tx.taxes ?? [], kind: "outflow", total: true },
+      ]
+    : null;
   const cashRows: Row[] = [
     { label: t("rowNetIncome"), values: cf.net_income ?? [] },
     { label: t("rowDa"), values: cf.da ?? [] },
@@ -170,6 +203,7 @@ function SummaryResults() {
   );
   const allSheets = () => [
     tableSheet(x("sheetPl"), years, incomeRows),
+    ...(taxRows ? [tableSheet(x("sheetTax"), years, taxRows)] : []),
     tableSheet(x("sheetCashFlow"), years, cashRows),
     tableSheet(x("sheetDebtSchedule"), years, debtRows),
     ...Object.entries(res.tranches).map(([name, rows]) =>
@@ -221,6 +255,16 @@ function SummaryResults() {
       >
         <DataTable caption={t("incomeStatementByYear")} columns={years} rows={incomeRows} />
       </Tile>
+      {taxRows && (
+        <Tile
+          span={12}
+          title={t("tileTax")}
+          unit={mu}
+          action={<DownloadButton onDownload={() => downloadWorkbook(x("fileTax"), [tableSheet(x("sheetTax"), years, taxRows)], money)} />}
+        >
+          <DataTable caption={t("taxByYear")} columns={years} rows={taxRows} />
+        </Tile>
+      )}
       <Tile
         span={6}
         title={t("tileCashFlow")}

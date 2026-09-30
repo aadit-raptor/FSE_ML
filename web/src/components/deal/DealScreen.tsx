@@ -11,7 +11,7 @@ import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton, Switch } fro
 import { multiplesFromPct, pctFromMultiples } from "@/lib/deal/capital";
 import { FIELDS, type DealInputs, type FieldSpec, type NumericDealKey } from "@/lib/deal/fields";
 import { fmtInput } from "@/lib/format";
-import { monthName } from "@/lib/locale";
+import { monthName, regionName } from "@/lib/locale";
 
 import { type DealSaveState, useDeal } from "./DealProvider";
 
@@ -75,13 +75,13 @@ const SAVE_KEY: Record<DealSaveState, string> = { unsaved: "saveNotSaved", savin
 const SAVE_TONE: Record<DealSaveState, string> = { unsaved: "text-attention", saving: "text-dim", saved: "text-dim", error: "text-loss" };
 
 /** i18n-keys: fields.* */
-export function DealField({ name, disabled }: { name: NumericDealKey; disabled?: boolean }) {
+export function DealField({ name, disabled, label }: { name: NumericDealKey; disabled?: boolean; label?: string }) {
   const { inputs, setField, pending, autoUpdate } = useDeal();
   const fields = useTranslations("fields");
   return (
     <NumberField
       spec={FIELDS[name]}
-      label={fields(name)}
+      label={label ?? fields(name)}
       value={inputs[name]}
       onCommit={(v) => setField(name, v)}
       disabled={disabled}
@@ -147,11 +147,34 @@ export function WspToggle() {
   );
 }
 
+/**
+ * Where a deal that lists its facilities edits its debt. The percentage fields
+ * would do nothing for it (the model reads the list instead), so the screens
+ * that show them point here rather than keep a control that changes nothing.
+ */
+export function TranchesOnDebtStep() {
+  const { inputs } = useDeal();
+  const t = useTranslations("deal");
+  return (
+    <div className="grid gap-1.5 py-1">
+      <p className="type-body text-[9px]">{t("tranchesOnDebtStep", { count: inputs.tranches.length })}</p>
+      <Link href="/deal/debt" className="type-action-secondary justify-self-start px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
+        {t("editTranches")}
+      </Link>
+    </div>
+  );
+}
+
 /** A changed input, named and valued the way the rail shows it. */
 export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof DealInputs]) => string {
   const fields = useTranslations("fields");
+  const t = useTranslations("deal");
   return useCallback(
     (key, v) => {
+      if (Array.isArray(v)) return t("facilityCount", { count: v.length });
+      // i18n-keys: deal.taxLimit_*
+      if (key === "tax_interest_limit" && typeof v === "string") return t(`taxLimit_${v}`);
+      if (key === "tax_preset" && typeof v === "string") return v ? regionName(v) : t("taxPresetNone");
       if (key === "fiscal_year_end_month" && typeof v === "number") return monthName(v);
       if (key === "first_fiscal_year") return v === null ? fields("none") : String(v);
       if (typeof v === "boolean") return v ? fields("on") : fields("off");
@@ -159,7 +182,7 @@ export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof
       const spec = FIELDS[key as NumericDealKey];
       return spec ? `${fmtInput(v, spec.decimals)}${spec.unit === "%" ? "%" : spec.unit === "x" ? "x" : ""}` : String(v);
     },
-    [fields],
+    [fields, t],
   );
 }
 
