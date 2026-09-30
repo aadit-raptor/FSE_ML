@@ -184,18 +184,23 @@ Google → "Use custom credentials"), email sign-in works without.
 3. **Cloudflare → variater.com → DNS → Records**: add those three records,
    each **DNS only**. Wait until both dashboards say the domain is verified
    and the certificate is issued (minutes, sometimes an hour).
-4. **Keys** (Clerk → production instance → API keys):
-   - Vercel → Environment Variables, **Production scope only**:
-     `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` = `pk_live_…`,
-     `CLERK_SECRET_KEY` = `sk_live_…`, and `FSE_API_URL` =
-     `https://api.variater.com`. Leave the Preview values alone.
-   - Render → `fse-api` → Environment: `CLERK_PUBLISHABLE_KEY` = `pk_live_…`
-     (Render redeploys by itself). Leave `fse-api-staging` alone.
-5. Claude merges the 0.2 pull request. Its production build picks up the new
-   keys, and from then on `fse-ml.vercel.app` and `www.` redirect every path
-   to `https://variater.com` (`web/next.config.ts`). Until it lands, sign-in
-   on the old address fails (the API already expects the production
-   instance's tokens), so do step 4 just before the merge.
+4. **Vercel keys** (Clerk → production instance → API keys). Vercel →
+   Environment Variables, **Production scope only**:
+   `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` = `pk_live_…`,
+   `CLERK_SECRET_KEY` = `sk_live_…`, and `FSE_API_URL` =
+   `https://api.variater.com`. Leave the Preview values alone. Nothing
+   changes yet: Vercel applies them on the next production build. Check
+   that `FSE_CORS_ORIGINS` is **not** set on Render's `fse-api` (it would
+   replace the new default origin).
+5. Claude merges the 0.2 pull request and waits for Vercel's production
+   build. From then on `fse-ml.vercel.app` and `www.` redirect every path to
+   `https://variater.com` (`web/next.config.ts`). Hold other merges to
+   `main` from step 4 until step 6 is done.
+6. **Render key, straight after the build**: Render → `fse-api` →
+   Environment, `CLERK_PUBLISHABLE_KEY` = `pk_live_…` (Render redeploys by
+   itself). Leave `fse-api-staging` alone. Sign-in fails between the Vercel
+   build and the end of Render's redeploy (a few minutes): the API trusts one
+   Clerk instance at a time.
 
 **What moved with it:** CORS (`api/security.py`), the Better Stack monitors
 and status page's name and link (`ops/betterstack.py`; the monitors keep their
@@ -222,6 +227,14 @@ don't clash with Clerk's `clkmail`; add them when that task starts.
 
 Roll back production when a deploy breaks it. Pick the fastest route that
 fits; all are free.
+
+**Since the own domain (PLAN.md 0.2)** the Clerk keys and the code travel
+together: production's web build carries `pk_live_` baked in and `fse-api`
+trusts only that instance. Rolling back to anything built before the 0.2
+merge (a Vercel instant rollback, or reverting the 0.2 merge) also means
+putting the development keys back on Vercel Production and `fse-api`
+together, and the old domain setup back; otherwise sign-in breaks. Prefer
+rolling forward for anything that touches 0.2.
 
 **A. Git revert (no dashboard, always works, leaves a record).** This is the
 default.
