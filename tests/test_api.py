@@ -318,7 +318,7 @@ def test_surrogate_when_available():
     assert terms["holding period"]["model_value"] == 5
     assert terms["opex / revenue"]["model_value"] == pytest.approx(0.18)
     assert terms["opex / revenue"]["value"] == pytest.approx(0.27)
-    assert len(terms) == 11 and len(body["term_differences"]) < len(terms)
+    assert len(terms) == 13 and len(body["term_differences"]) < len(terms)
 
 
 def test_training_terms_list_every_fixed_term():
@@ -333,11 +333,11 @@ def test_training_terms_list_every_fixed_term():
              "mezz_spread": deal.mezz_spread / 100, "interest_std": mc.rate_std / 100,
              "transaction_fees_pct": DEFAULTS["tx_fee_pct"] / 100,
              "financing_fees_pct": DEFAULTS["fin_fee_pct"] / 100, "other_uses": DEFAULTS["other_uses"]}
-    assert len(training_terms(mc, deal, DEFAULTS, fixed)) == 11
+    assert len(training_terms(mc, deal, DEFAULTS, fixed)) == 13
     assert training_term_differences(mc, deal, DEFAULTS, fixed) == []
     fixed["tax_rate"] = 0.30
     all_terms = training_terms(mc, deal, DEFAULTS, fixed)
-    assert len(all_terms) == 11
+    assert len(all_terms) == 13
     assert [t["term"] for t in training_term_differences(mc, deal, DEFAULTS, fixed)] == ["tax rate"]
     assert next(t for t in all_terms if t["term"] == "tax rate")["model_value"] == 0.30
     # The surrogate knows only a flat rate: tax rules (PLAN.md 2.5) are named,

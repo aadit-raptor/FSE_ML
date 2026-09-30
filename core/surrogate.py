@@ -44,6 +44,10 @@ def training_terms(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping)
         # Trained on a flat rate: every rule a deal switches on (PLAN.md 2.5)
         # is something the estimate cannot see
         ("tax rules", float(tax_rules_on(deal)), 0.0, "count", 0),
+        # Trained without leases (PLAN.md 2.6): a leased deal's value and net
+        # debt move in ways the estimate cannot see
+        ("lease cost", deal.lease_cost, 0.0, "money", 0),
+        ("lease liability", deal.lease_liability, 0.0, "money", 0),
     ]
     return [{"term": name, "value": yours, "model_value": model, "unit": unit,
              "decimals": decimals}

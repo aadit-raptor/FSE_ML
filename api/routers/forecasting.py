@@ -58,6 +58,7 @@ def post_seed(req: HistoryRequest):
         "historical_metrics": to_json(historical_metrics(history, n)),
         "seeded_assumptions": to_json(seed_assumptions(ltm, req.money.unit)),
         "money": req.money,
+        "accounting_standard": req.accounting_standard,
     }
 
 
@@ -99,4 +100,5 @@ def post_run(req: ForecastRunRequest):
         "balanced": abs(gap0) <= tolerance and all(abs(g) <= tolerance for g in model_gaps),
         "simulation": simulation,
         "money": req.money,
+        "accounting_standard": req.accounting_standard,
     }

@@ -10,7 +10,11 @@ import numpy as np
 import time
 import re
 from typing import Optional, Dict, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from core.accounting import (
+    ANNUAL_FORMS, IFRS, LEASE_ITEMS, LINE_ITEMS, NAMESPACE, US_GAAP, US_GAAP_ITEMS, lease_figures,
+)
 
 EDGAR_BASE   = "https://data.sec.gov"
 COMPANY_URL  = f"{EDGAR_BASE}/submissions/CIK{{cik}}.json"
@@ -27,143 +31,25 @@ HEADERS = {
 }
 
 
-# XBRL tag mappings: field_name -> list of possible GAAP tags in priority order
-TAG_MAP = {
-    'revenue': [
-        'Revenues',
-        'RevenueFromContractWithCustomerExcludingAssessedTax',
-        'SalesRevenueNet',
-        'RevenueFromContractWithCustomerIncludingAssessedTax',
-    ],
-    'cost_of_revenue': [
-        'CostOfRevenue',
-        'CostOfGoodsSold',
-        'CostOfGoodsAndServicesSold',
-    ],
-    'gross_profit': [
-        'GrossProfit',
-    ],
-    'research_and_development': [
-        'ResearchAndDevelopmentExpense',
-        'ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost',
-    ],
-    'selling_general_admin': [
-        'SellingGeneralAndAdministrativeExpense',
-    ],
-    # Filers that tag the two halves separately (MSFT); summed into SG&A
-    'selling_marketing': ['SellingAndMarketingExpense'],
-    'general_admin': ['GeneralAndAdministrativeExpense'],
-    'operating_income': [
-        'OperatingIncomeLoss',
-    ],
-    'interest_expense': [
-        'InterestExpense',
-        'InterestAndDebtExpense',
-        'InterestExpenseNonoperating',
-        'InterestExpenseDebt',
-    ],
-    'interest_income': [
-        'InterestAndDividendIncomeOperating',
-        'InvestmentIncomeInterest',
-        'InvestmentIncomeInterestAndDividend',
-    ],
-    'income_tax_expense': [
-        'IncomeTaxExpenseBenefit',
-    ],
-    'net_income': [
-        'NetIncomeLoss',
-        'NetIncomeLossAvailableToCommonStockholdersBasic',
-    ],
-    'depreciation_amortization': [
-        'DepreciationDepletionAndAmortization',
-        'DepreciationAndAmortization',
-        'DepreciationAmortizationAndAccretionNet',
-        'Depreciation',
-    ],
-    'stock_based_compensation': [
-        'ShareBasedCompensation',
-        'AllocatedShareBasedCompensationExpense',
-    ],
-    'capital_expenditures': [
-        'PaymentsToAcquirePropertyPlantAndEquipment',
-        'CapitalExpendituresIncurredButNotYetPaid',
-    ],
-    'cash_and_equivalents': [
-        'CashAndCashEquivalentsAtCarryingValue',
-        'CashCashEquivalentsAndShortTermInvestments',
-    ],
-    'accounts_receivable': [
-        'AccountsReceivableNetCurrent',
-        'ReceivablesNetCurrent',
-        'AccountsNotesAndLoansReceivableNetCurrent',
-    ],
-    'inventories': [
-        'InventoryNet',
-        'InventoryGross',
-    ],
-    'other_current_assets': [
-        'OtherAssetsCurrent',
-        'PrepaidExpenseAndOtherAssetsCurrent',
-    ],
-    'property_plant_equipment': [
-        'PropertyPlantAndEquipmentNet',
-    ],
-    'other_noncurrent_assets': [
-        'OtherAssetsNoncurrent',
-        'IntangibleAssetsNetExcludingGoodwill',
-    ],
-    'accounts_payable': [
-        'AccountsPayableCurrent',
-        'AccountsPayableTradeCurrent',
-        'AccountsPayableAndAccruedLiabilitiesCurrent',
-    ],
-    'other_current_liabilities': [
-        'OtherLiabilitiesCurrent',
-        'AccruedLiabilitiesCurrent',
-    ],
-    'deferred_revenue': [
-        'DeferredRevenueCurrent',
-        'ContractWithCustomerLiabilityCurrent',
-    ],
-    'debt_total': [                      # includes current maturities
-        'LongTermDebt',
-        'LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities',
-    ],
-    'debt_noncurrent': [
-        'LongTermDebtNoncurrent',
-        'LongTermDebtAndCapitalLeaseObligations',
-    ],
-    'debt_current': [
-        'LongTermDebtCurrent',
-        'LongTermDebtAndCapitalLeaseObligationsCurrent',
-        'DebtCurrent',
-    ],
-    'common_stock_equity': [
-        'StockholdersEquity',
-        'CommonStockholdersEquity',
-    ],
-    'retained_earnings': [
-        'RetainedEarningsAccumulatedDeficit',
-    ],
-    'dividends_paid': [
-        'PaymentsOfDividendsCommonStock',
-        'PaymentsOfDividends',
-    ],
-    'share_repurchases': [
-        'PaymentsForRepurchaseOfCommonStock',
-    ],
-    # Reported totals: the balance sheet is reconciled to these
-    'total_assets': ['Assets'],
-    'total_liabilities': ['Liabilities'],
-    'total_current_liabilities': ['LiabilitiesCurrent'],
-    'total_liabilities_and_equity': ['LiabilitiesAndStockholdersEquity'],
-    'equity_incl_nci': [
-        'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest',
-    ],
-    'aoci': ['AccumulatedOtherComprehensiveIncomeLossNetOfTax'],
-    # For filers with no cost-of-revenue concept (e.g. restaurants)
-    'costs_and_expenses': ['CostsAndExpenses'],
-}
+# Line items per accounting standard (PLAN.md 2.6): core/accounting.py holds
+# the us-gaap and ifrs-full concepts for every field, in priority order.
+# TAG_MAP stays the US GAAP map under its old name.
+TAG_MAP = US_GAAP_ITEMS
+
+
+@dataclass(frozen=True)
+class _Source:
+    """Which statements a filer's facts are read from: the taxonomy, the
+    currency they are reported in and the annual report forms."""
+    standard: str
+    namespace: str
+    currency: str
+    forms: tuple
+    report: str     # what the warnings call the annual report
+
+
+US_SOURCE = _Source(US_GAAP, NAMESPACE[US_GAAP], "USD", ANNUAL_FORMS[US_GAAP], "10-K")
+
 
 # Helper / derivation inputs whose absence is normal for many filers, so a
 # missing tag is not reported to the user as a data gap.
@@ -185,6 +71,11 @@ class ExtractedFinancials:
     warnings: List[str]
     # Month the filer's fiscal year ends (PLAN.md 2.3a); None if unknown
     fiscal_year_end_month: Optional[int] = None
+    # The standard the statements follow and their currency (PLAN.md 2.6)
+    accounting_standard: str = US_GAAP
+    currency: str = "USD"
+    # lease_cost and lease_liability, one value per year (core.accounting)
+    leases: Dict[str, List[float]] = field(default_factory=dict)
 
 
 def _get_cik_from_ticker(ticker: str) -> Optional[str]:
@@ -202,28 +93,29 @@ def _get_cik_from_ticker(ticker: str) -> Optional[str]:
         raise ValueError(f"Could not find CIK for ticker '{ticker}': {e}")
 
 
-def _get_annual_values(facts_data: dict, tag: str, 
-                        years_wanted: List[int]) -> Optional[List[float]]:
+def _get_annual_values(facts_data: dict, tag: str,
+                        years_wanted: List[int], src: _Source = US_SOURCE) -> Optional[List[float]]:
     """
     Extract annual values for a specific XBRL tag.
     Returns values indexed to years_wanted list (None where missing).
     """
-    us_gaap = facts_data.get('facts', {}).get('us-gaap', {})
-    if tag not in us_gaap:
+    concepts = facts_data.get('facts', {}).get(src.namespace, {})
+    if tag not in concepts:
         return None
 
-    tag_data = us_gaap[tag]
+    tag_data = concepts[tag]
     units = tag_data.get('units', {})
 
-    # Most financial data is in USD
-    usd_data = units.get('USD', [])
+    # The statements' own currency: US dollars for a 10-K, whatever a
+    # foreign filer reports in for a 20-F
+    usd_data = units.get(src.currency, [])
     if not usd_data:
         return None
 
-    # Filter for annual 10-K filings only
+    # Filter for annual reports only
     annual = [
         entry for entry in usd_data
-        if entry.get('form') in ('10-K', '10-K/A')
+        if entry.get('form') in src.forms
         and entry.get('fp') == 'FY'
         and 'end' in entry
     ]
@@ -253,12 +145,12 @@ def _get_annual_values(facts_data: dict, tag: str,
     return result
 
 
-def _latest_10k_end(facts_data: dict) -> Optional[str]:
-    """Period-end date (YYYY-MM-DD) of the latest 10-K balance sheet."""
-    us_gaap = facts_data.get('facts', {}).get('us-gaap', {})
-    for tag in ('Assets', 'LiabilitiesAndStockholdersEquity'):
-        ends = [e['end'] for e in us_gaap.get(tag, {}).get('units', {}).get('USD', [])
-                if e.get('form') in ('10-K', '10-K/A')
+def _latest_10k_end(facts_data: dict, src: _Source = US_SOURCE) -> Optional[str]:
+    """Period-end date (YYYY-MM-DD) of the latest annual balance sheet."""
+    concepts = facts_data.get('facts', {}).get(src.namespace, {})
+    for tag in ('Assets', 'LiabilitiesAndStockholdersEquity', 'EquityAndLiabilities'):
+        ends = [e['end'] for e in concepts.get(tag, {}).get('units', {}).get(src.currency, [])
+                if e.get('form') in src.forms
                 and e.get('fp') == 'FY' and 'end' in e]
         if ends:
             return max(ends)
@@ -270,13 +162,13 @@ def _latest_10k_end(facts_data: dict) -> Optional[str]:
 _FIRST_WEEK = 7
 
 
-def _fiscal_year_end(facts_data: dict) -> Optional[tuple]:
+def _fiscal_year_end(facts_data: dict, src: _Source = US_SOURCE) -> Optional[tuple]:
     """(year, month) the filer's latest fiscal year really ends in, or None.
 
     Fiscal years are named by the year they end in, so a 52/53-week year
     ending 2025-01-03 is the fiscal year that ended December 2024.
     """
-    end = _latest_10k_end(facts_data)
+    end = _latest_10k_end(facts_data, src)
     if end is None:
         return None
     year, month, day = int(end[:4]), int(end[5:7]), int(end[8:10])
@@ -285,12 +177,12 @@ def _fiscal_year_end(facts_data: dict) -> Optional[tuple]:
     return year, month
 
 
-def _latest_fiscal_year(facts_data: dict) -> Optional[int]:
-    """Latest fiscal year (by period-end year) with a 10-K balance sheet."""
-    us_gaap = facts_data.get('facts', {}).get('us-gaap', {})
-    for tag in ('Assets', 'LiabilitiesAndStockholdersEquity'):
-        rows = [e for e in us_gaap.get(tag, {}).get('units', {}).get('USD', [])
-                if e.get('form') in ('10-K', '10-K/A')
+def _latest_fiscal_year(facts_data: dict, src: _Source = US_SOURCE) -> Optional[int]:
+    """Latest fiscal year (by period-end year) with an annual balance sheet."""
+    concepts = facts_data.get('facts', {}).get(src.namespace, {})
+    for tag in ('Assets', 'LiabilitiesAndStockholdersEquity', 'EquityAndLiabilities'):
+        rows = [e for e in concepts.get(tag, {}).get('units', {}).get(src.currency, [])
+                if e.get('form') in src.forms
                 and e.get('fp') == 'FY' and 'end' in e]
         if rows:
             return max(int(e['end'][:4]) for e in rows)
@@ -392,6 +284,47 @@ def _reconcile_balance_sheet(x: dict, n: int, warnings: List[str]) -> None:
                         f"balance sheet inputs")
 
 
+def _merged(facts_data: dict, tags: List[str], years_wanted: List[int], src: _Source) -> list:
+    """One value per year, each year from the highest-priority tag with a
+    value for THAT year (None where no tag has one)."""
+    merged = [None] * len(years_wanted)
+    for tag in tags:
+        values = _get_annual_values(facts_data, tag, years_wanted, src)
+        if values:
+            merged = [m if m is not None else v for m, v in zip(merged, values)]
+        if all(m is not None for m in merged):
+            break
+    return merged
+
+
+def _leases(facts_data: dict, years_wanted: List[int], src: _Source) -> Dict[str, List[float]]:
+    """The lease cost and liability per year (core.accounting.LEASE_ITEMS),
+    0.0 where the filing tags none."""
+    items = {name: [v or 0.0 for v in _merged(facts_data, tags, years_wanted, src)]
+             for name, tags in LEASE_ITEMS[src.standard].items()}
+    return lease_figures(items)
+
+
+def _source(facts_data: dict) -> _Source:
+    """US GAAP from a 10-K in US dollars when the filer has one; otherwise
+    IFRS (a foreign private issuer's 20-F or 40-F) in the currency its
+    balance sheet is reported in (PLAN.md 2.6)."""
+    facts = facts_data.get('facts', {})
+    if _latest_fiscal_year(facts_data, US_SOURCE) is not None:
+        return US_SOURCE
+    ifrs = facts.get(NAMESPACE[IFRS], {})
+    counts: Dict[str, int] = {}
+    for tag in ('Assets', 'Revenue', 'EquityAndLiabilities'):
+        for unit, rows in ifrs.get(tag, {}).get('units', {}).items():
+            if re.fullmatch(r'[A-Z]{3}', unit):
+                counts[unit] = counts.get(unit, 0) + sum(
+                    1 for e in rows if e.get('form') in ANNUAL_FORMS[IFRS] and e.get('fp') == 'FY')
+    if counts and max(counts.values()) > 0:
+        currency = max(counts, key=counts.get)
+        return _Source(IFRS, NAMESPACE[IFRS], currency, ANNUAL_FORMS[IFRS], "annual report")
+    return US_SOURCE
+
+
 def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     """
     Main function: fetch and return the last n_years of annual financials
@@ -429,12 +362,13 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     resp = requests.get(facts_url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     facts_data = resp.json()
+    src = _source(facts_data)
 
     # Step 4: Fiscal years to fetch, ending at the latest 10-K actually filed.
     # A calendar window (previous n years) missed fiscal years that end
     # mid-year (MSFT's FY ending June 2026 in September 2026) and, early in a
     # year, would request a year not yet filed.
-    latest_fy = _latest_fiscal_year(facts_data) or (pd.Timestamp.now().year - 1)
+    latest_fy = _latest_fiscal_year(facts_data, src) or (pd.Timestamp.now().year - 1)
     years_wanted = list(range(latest_fy - n_years + 1, latest_fy + 1))
 
     # Step 5: Extract each field using TAG_MAP priority order
@@ -443,14 +377,8 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     # years whenever a filer switched tags mid-window (KO's debt moved off
     # LongTermDebt after 2023).
     extracted = {}
-    for field_name, tags in TAG_MAP.items():
-        merged = [None] * n_years
-        for tag in tags:
-            values = _get_annual_values(facts_data, tag, years_wanted)
-            if values:
-                merged = [m if m is not None else v for m, v in zip(merged, values)]
-            if all(m is not None for m in merged):
-                break
+    for field_name, tags in LINE_ITEMS[src.standard].items():
+        merged = _merged(facts_data, tags, years_wanted, src)
         if any(m is not None for m in merged):
             extracted[field_name] = merged
         if field_name not in extracted:
@@ -510,7 +438,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
         fy, amt = folded[-1]
         warnings.append(f"Operating costs not separately tagged ({amt:,.0f}M in "
                         f"FY{fy}) folded into SG&A so operating income matches "
-                        f"the 10-K")
+                        f"the {src.report}")
 
     # Compute gross profit from revenue - COGS if not available directly
     if all(v == 0 for v in extracted.get('gross_profit', [0]*n_years)):
@@ -532,7 +460,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     # Label the years as the filer's fiscal years: the lookups above key them
     # by the calendar year the period ends in, one too many for a 52/53-week
     # year that ends in early January
-    year_end = _fiscal_year_end(facts_data)
+    year_end = _fiscal_year_end(facts_data, src)
     shift = year_end[0] - latest_fy if year_end and year_end[0] < latest_fy else 0
     return ExtractedFinancials(
         ticker=ticker,
@@ -541,6 +469,9 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
         data=extracted,
         warnings=warnings,
         fiscal_year_end_month=year_end[1] if year_end else None,
+        accounting_standard=src.standard,
+        currency=src.currency,
+        leases=_leases(facts_data, years_wanted, src),
     )
 
 
