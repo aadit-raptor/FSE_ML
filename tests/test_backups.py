@@ -48,7 +48,11 @@ INPUTS = {"ebitda": 240.0, "entry_mult": 9.0, "exit_mult": 10.5, "hold": 6, "gro
           "senior_pct": 75.0, "base_rate": 5.25, "mezz_spread": 4.5, "capex": 3.0, "nwc": 0.5,
           "mincash": 15.0, "wsp_mode": False, "ar_days": 45.0, "inv_days": 30.0, "ap_days": 60.0,
           "currency": "NOK", "unit": "thousands",
-          "fiscal_year_end_month": 12, "first_fiscal_year": None, "tranches": []}
+          "fiscal_year_end_month": 12, "first_fiscal_year": None, "tranches": [],
+          # Tax rules (PLAN.md 2.5), all off: stored only when set, always answered
+          "tax_preset": "", "tax_interest_limit": "none", "tax_interest_limit_pct": 30.0,
+          "tax_interest_limit_amount": 0.0, "tax_loss_carryforward": False,
+          "tax_loss_limit_pct": 100.0, "tax_loss_limit_amount": 0.0, "tax_minimum_pct": 0.0}
 # Every field of DealInputsIn, as the API answers: the fiscal year labels
 # (PLAN.md 2.3a) are stored only when set but always come back
 SETTINGS = {"tx_fee_pct": 3.0}

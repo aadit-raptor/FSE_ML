@@ -96,10 +96,15 @@ def tax_schedule(
     net_interest: Sequence,
     tax_rate: Sequence[float],
     rules: TaxRules,
+    detail: bool = True,
 ) -> TaxSchedule:
     """Tax for each year under ``rules``; see the module docstring for the
     order. ``net_interest`` is interest expense less interest income, so
-    profit before tax is ``ebit - net_interest``."""
+    profit before tax is ``ebit - net_interest``.
+
+    ``detail=False`` keeps only ``taxes``: the simulation needs nothing else,
+    and on 100,000 paths the other seven lists cost about 47 MB of a free
+    server's 512 (PLAN.md 2.5 security review)."""
     out = TaxSchedule()
     interest_carried = 0.0
     losses = 0.0
@@ -139,6 +144,9 @@ def tax_schedule(
         minimum = np.maximum(b - i, 0.0) * rules.minimum_tax_rate
         topup = np.maximum(minimum - regular, 0.0)
 
+        out.taxes.append(_plain(regular + topup))
+        if not detail:
+            continue
         out.years.append(t + 1)
         out.taxable_income.append(_plain(taxable))
         out.interest_deductible.append(_plain(deductible))
@@ -147,5 +155,4 @@ def tax_schedule(
         out.losses_carried.append(_plain(losses + 0.0 * b))
         out.regular_tax.append(_plain(regular))
         out.minimum_tax_topup.append(_plain(topup))
-        out.taxes.append(_plain(regular + topup))
     return out

@@ -112,8 +112,9 @@ PRESETS: Tuple[TaxPreset, ...] = (
                "s.4h (interest barrier, 30% of EBITDA); EStG s.10d (EUR 1m, then 70% for "
                "2024 to 2027)",
         note="The EUR 3m interest threshold is modelled as an allowance; in law, interest above "
-             "it loses the exemption entirely. The loss share returns to 60% from 2028. Trade "
-             "tax depends on the municipality.",
+             "it loses the exemption entirely. The loss share returns to 60% from 2028, and "
+             "the corporate rate falls a point a year from 2028 to 10% in 2032: the rate here "
+             "is today's, for every year. Trade tax depends on the municipality.",
     ),
     TaxPreset(
         code="FR", currency="EUR", rate=25.0,
@@ -121,7 +122,8 @@ PRESETS: Tuple[TaxPreset, ...] = (
         loss_limit_pct=50.0, loss_limit_amount=1.0,
         source="CGI art. 219 (25%); art. 212 bis (30% of tax EBITDA or EUR 3m, the higher); "
                "art. 209 (EUR 1m, then 50%)",
-        note="The social contribution and temporary surtaxes on large companies are left out.",
+        note="The social contribution and temporary surtaxes on large companies are left out, "
+             "and so is the 5% a year by which disallowed interest carried forward is reduced.",
     ),
     TaxPreset(
         code="NL", currency="EUR", rate=25.8,
@@ -148,14 +150,15 @@ PRESETS: Tuple[TaxPreset, ...] = (
              "model does not track.",
     ),
     TaxPreset(
-        code="JP", currency="JPY", rate=30.62,
-        interest_limit="ebitda_share", interest_limit_pct=20.0, interest_limit_amount=20.0,
+        code="JP", currency="JPY", rate=29.74,
         loss_limit_pct=50.0,
-        source="Corporation Tax Act (23.2%) with local taxes (effective 30.62%); Special "
-               "Taxation Measures Act art. 66-5-2 (earnings stripping, 20% of adjusted income, "
-               "JPY 20m threshold); CTA art. 57 (50% for large companies)",
-        note="The JPY 20m threshold is modelled as an allowance. Losses expire after ten "
-             "years, which the model does not track.",
+        source="Corporation Tax Act (23.2%) with local taxes (standard effective rate 29.74%, "
+               "Ministry of Finance); CTA art. 57 (losses offset up to 50% for large companies)",
+        note="Tokyo's excess local rates bring the effective rate to about 30.6%, and the "
+             "defence special corporation tax from April 2026 adds to it. The earnings "
+             "stripping rule (20% of adjusted income) reaches only interest to related "
+             "parties or debt they fund or guarantee, so no limit is set. Losses expire "
+             "after ten years, which the model does not track.",
     ),
     TaxPreset(
         code="AU", currency="AUD", rate=30.0,

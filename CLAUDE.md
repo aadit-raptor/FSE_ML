@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-30 (PLAN.md 2.4b: the simulation and the screen for debt structures). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-09-30 (PLAN.md 2.5: global tax rules). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -344,6 +344,38 @@ caps (12 facilities, 100,000 paths, 15 years).
 `e2e/tranches.spec.ts` proves every edit by output. Carried-forward items
 from the 2.4 reviews are listed under PLAN.md 2.4.
 
+Tax rules (PLAN.md 2.5): a deal's tax is its rate plus optional rules,
+`DealInputs.tax_*` (all off by default, stored and sent only when set, like
+the fiscal labels). **One mechanic for the deal model and the simulation**:
+`lbo_engine/tax.py` `tax_schedule` uses only arithmetic and
+`np.minimum`/`np.maximum`, so it runs on one deal's numbers and on arrays of
+paths alike. Each year: net interest is claimed with what earlier years could
+not deduct, against a cap of a share of EBITDA never below an allowance
+(`ebitda_share`) or a fixed amount (`fixed`), and the rest is carried forward
+without expiry (net interest *income* is taxed, not capped); profit for tax is
+EBIT less the deductible interest; a loss is carried forward and a profit
+absorbs losses up to an allowance plus a share of the excess; tax is the rate
+on what is left, raised to the minimum tax on book profit. **With no rule on
+nothing calls it**: `complete_income_statement` takes `taxes=None` and keeps
+its flat-rate expression, the two-bucket simulation keeps its line, so the
+golden snapshot and the pinned simulation do not move. `run_lbo` puts the
+schedule on `LBOResult.tax`; the deal answer's `tax` block is `null` without
+rules. Country presets are `core/tax.py` `PRESETS` (source, note of what is
+simplified, `as_of`), served by `GET /api/deal/tax-presets`; the web applies
+one client-side (`steps/TaxRules.tsx`, mirroring `apply_preset`), and a
+preset's amounts come across **only in its own currency** (no exchange rates
+until 4.2). The screen says "check with a tax adviser" beside them. Rates are
+headline rates as of 2026-01; each preset's note says what it leaves out.
+Decisions from the 2.5 reviews: `tax_preset` is any two-letter code, not a
+list of today's presets, so retiring one never makes a saved deal
+unreadable; choosing "No preset" switches every rule off (the rate stays);
+the simulation asks `tax_schedule(..., detail=False)` for the taxes alone,
+which keeps a run at the caps with every rule on to about 200 MB traced; the
+Live sliders' surrogate knows only a flat rate, so `core/surrogate.py` lists
+"tax rules" (how many are on) among the terms that differ from its training
+deal; a `fixed` limit left at 0 disallows all interest, as the API's field
+description says.
+
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
 put the table in the job summary and fail below their line in
@@ -381,8 +413,9 @@ and 11.4 (owner's handbook). 0.3 is done (CI gates, below). 2.3 is done: **2.3a*
 formats and fiscal years) and **2.3b** (interface text in translation files,
 right to left), both below. 2.4 was split the same way and is done: **2.4a**
 (the model — debt structures of any shape and floating rates) and **2.4b**
-(the simulation and the Debt step's editor), both below. **Next is 2.5**
-(global tax rules); 0.2 jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
+(the simulation and the Debt step's editor), both below. 2.5 is done (tax
+rules, below). **Next is 2.6** (accounting standards, IFRS and US GAAP); 0.2
+jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
@@ -569,12 +602,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/src/lib/locale.ts`, `web/src/lib/format.ts`, `web/src/lib/fiscal.ts`, `web/src/components/ui/FiscalSelects.tsx` | Locale (PLAN.md 2.3a): number, date and input formats from the account's locale and grouping; fiscal year labels and their controls |
 | `web/messages/en.json`, `web/src/lib/i18n/`, `web/src/components/shell/I18nScope.tsx`, `web/src/components/shell/DocumentTitle.tsx` | Interface text (PLAN.md 2.3b): the catalogue; which language and direction a locale gets, the message loader, the page titles, and the hooks for fiscal labels, field text, engine labels and the honest labels |
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
+| `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -833,6 +867,14 @@ Skills load when a session starts: install first, then open a new session.
   the deal model. Pick a structure where the mechanic reaches exit: a
   revolver's fee washed out when the revolver ended fully drawn, and the
   first version of that test missed a deleted fee.
+- A saving the model makes in a year whose cash is below its mandatory
+  repayments vanishes into the cash finding 11 invents, so the IRR does not
+  move. A test that wants a tax saving (or any extra cash) to reach the
+  returns needs a year with cash left to sweep: `tests/test_tax_rules.py`
+  uses a fast-growing deal whose senior loan does not amortise.
+- The local database (`python -m db.local`) picks a new port when it restarts
+  after an unclean stop, and its log shows recovery first; wait for
+  `pg_isready` and use the port in `.localdb/postmaster.pid`.
 - A `<fieldset>` (every `RailGroup`) is as wide as its widest unbreakable
   content, and a grid's `1fr` column as wide as its widest item: a long name
   in the rail widens the whole rail. Use `grid-cols-[minmax(0,1fr)]` and

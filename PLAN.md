@@ -129,7 +129,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.3b | Locale: interface text in translation files, right-to-left | 2.3a | ☑ |
 | 2.4a | Debt structures and interest rates: the model | 2.2 | ☑ |
 | 2.4b | Debt structures: simulation and the screen | 2.4a | ☑ |
-| 2.5 | Global tax rules | 2.2 | ☐ |
+| 2.5 | Global tax rules | 2.2 | ☑ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
 | 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☐ |
 | 2.8 | Risk warnings computed, not written in | 2.1 | ☐ |
@@ -547,6 +547,19 @@ can check it.
   presets with source and date, marked "check with a tax adviser".
 - **Done when:** hand-checked cases pass for a 30%-of-EBITDA interest cap and for
   losses carried forward; changing preset changes results as predicted (test).
+- **Done (2026-09-30):** the rules are `lbo_engine/tax.py`, one function for the
+  deal model and the simulation (numbers or arrays of paths), called only when
+  a rule is on, so every existing deal and the golden snapshot are untouched.
+  Interest limit (a share of EBITDA never below an allowance, or a fixed cap)
+  with the refused interest carried forward; losses carried forward under an
+  allowance plus a share of the excess; a minimum tax on book profit. Eleven
+  country presets in `core/tax.py` (US, GB, DE, FR, NL, IE, IN, JP, AU, CA, SG),
+  each with its source, what it simplifies and the date it was checked; a
+  preset's amounts apply only in its own currency. Hand-checked cases in
+  `tests/test_tax_rules.py`; Ireland's year-one tax is exactly half the UK's
+  on the same deal (the prediction test); `e2e/tax.spec.ts` proves the screen
+  by output. Not modelled, and said so in each preset's note: loss expiry,
+  state and local taxes, group relief, small-profits rates.
 
 ### 2.6 Accounting standards (IFRS and US GAAP)
 - **Claude does:** accounting standard per company and deal; mapping from each

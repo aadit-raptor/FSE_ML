@@ -7,7 +7,7 @@ import { SELECT_CLASS } from "@/components/ui/MoneySelects";
 import { Switch } from "@/components/ui/Screen";
 import { api, type Schemas } from "@/lib/api/client";
 import { type DealInputs, TAX_RULE_DEFAULTS } from "@/lib/deal/fields";
-import { regionName } from "@/lib/locale";
+import { monthYear, regionName } from "@/lib/locale";
 import { unitFactor } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
@@ -19,12 +19,17 @@ type InterestLimit = DealInputs["tax_interest_limit"];
 /** i18n-keys: deal.taxLimit_none, deal.taxLimit_ebitda_share, deal.taxLimit_fixed */
 const INTEREST_LIMITS: InterestLimit[] = ["none", "ebitda_share", "fixed"];
 
-// The presets never change while the app runs: ask once
+// The presets never change while the app runs: ask once, and keep only a
+// real answer. A failed one (the free API still waking, a refusal) is not
+// kept, so the next time the step opens asks again.
 let presetsOnce: Promise<Preset[]> | null = null;
 function loadPresets(): Promise<Preset[]> {
   presetsOnce ??= api
     .GET("/api/deal/tax-presets")
-    .then(({ data }) => data?.presets ?? [])
+    .then(({ data }) => {
+      if (!data) throw new Error("no presets");
+      return data.presets;
+    })
     .catch(() => {
       presetsOnce = null;
       return [];
@@ -69,7 +74,7 @@ export function TaxRules() {
     const k = inputs.currency === p.currency ? unitFactor("millions", inputs.unit) : 0;
     setFields({
       tax: p.rate,
-      tax_preset: p.code as DealInputs["tax_preset"],
+      tax_preset: p.code,
       tax_interest_limit: p.interest_limit as InterestLimit,
       tax_interest_limit_pct: p.interest_limit_pct,
       tax_interest_limit_amount: p.interest_limit_amount * k,
@@ -79,7 +84,11 @@ export function TaxRules() {
       tax_minimum_pct: p.minimum_pct,
     });
   };
-  const amountsSkipped =
+  // A preset's amounts are in its own currency and are never converted to
+  // another (no exchange rates until PLAN.md 4.2): say so whenever the deal's
+  // currency differs, whether the amounts were withheld or the deal changed
+  // currency after the preset was applied
+  const otherCurrency =
     preset !== undefined && preset.currency !== inputs.currency && (preset.interest_limit_amount > 0 || preset.loss_limit_amount > 0);
 
   return (
@@ -88,6 +97,8 @@ export function TaxRules() {
         <span className="type-input-label">{fields("tax_preset")}</span>
         <select value={inputs.tax_preset} onChange={(e) => apply(e.target.value)} className={SELECT_CLASS}>
           <option value="">{t("taxPresetNone")}</option>
+          {/* A saved deal's preset, named even before the list arrives (or if it never does) */}
+          {inputs.tax_preset && !preset && <option value={inputs.tax_preset}>{regionName(inputs.tax_preset)}</option>}
           {presets.map((p) => (
             <option key={p.code} value={p.code}>
               {regionName(p.code)}
@@ -122,11 +133,15 @@ export function TaxRules() {
         <p className="type-alert text-[9px]">{t("taxAdviser")}</p>
         {preset && (
           <p className="type-body text-[9px]">
-            {t("taxPresetSource", { country: regionName(preset.code), date: preset.as_of, source: preset.source })}
+            {t("taxPresetSource", { country: regionName(preset.code), date: monthYear(preset.as_of), source: preset.source })}
             {preset.note && ` ${preset.note}`}
           </p>
         )}
-        {amountsSkipped && <p className="type-body text-[9px] text-attention">{t("taxAmountsNotApplied", { currency: preset.currency })}</p>}
+        {otherCurrency && (
+          <p className="type-body text-[9px] text-attention">
+            {t("taxAmountsCurrency", { preset: preset.currency, deal: inputs.currency })}
+          </p>
+        )}
       </div>
     </>
   );

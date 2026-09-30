@@ -258,7 +258,17 @@ def test_changing_preset_changes_the_tax_as_predicted():
                tax_loss_carryforward=True, tax_loss_limit_pct=60.0),
     DealInputs(debt_pct=80.0, base_rate=12.0, growth=20.0, hold=7,
                tax_loss_carryforward=True, tax_minimum_pct=15.0),
-], ids=["interest cap", "capped losses", "minimum tax"])
+    DealInputs(debt_pct=80.0, base_rate=12.0, growth=20.0, hold=7, tax_interest_limit="fixed",
+               tax_interest_limit_amount=60.0, tax_loss_carryforward=True,
+               tax_loss_limit_pct=50.0, tax_loss_limit_amount=5.0),
+    # Facility by facility, through the tranche path's own cash flow
+    DealInputs(tranches=[
+        {"name": "TLB", "kind": "institutional_term_loan", "amount": 450.0, "floating": True,
+         "reference_level": 5.0, "margin": 4.0, "amort_pct": 1.0, "sweep": True},
+        {"name": "RCF", "kind": "revolver", "amount": 100.0, "drawn_pct": 0.0, "floating": True,
+         "reference_level": 5.0, "margin": 3.0, "commitment_fee_pct": 0.5, "allow_redraw": True}],
+        tax_interest_limit="ebitda_share", tax_loss_carryforward=True, tax_minimum_pct=15.0),
+], ids=["interest cap", "capped losses", "minimum tax", "fixed cap and loss allowance", "tranches"])
 def test_a_simulated_path_at_the_mean_lands_on_the_deal_models_tax(deal):
     from core.montecarlo import MCInputs, build_sim_params
     from simulation.vectorized_simulation import _run_vectorized_core
@@ -271,6 +281,33 @@ def test_a_simulated_path_at_the_mean_lands_on_the_deal_models_tax(deal):
     out = _run_vectorized_core(params, draws)
     r = run_deal(deal, cfg())
     assert out["IRR"][0] == pytest.approx(r.returns.irr, abs=2e-4)
+
+
+def test_the_simulation_keeps_only_the_tax_and_it_is_the_same_tax():
+    """The simulation asks for the taxes alone (``detail=False``) to spare
+    memory on 100,000 paths; they must be exactly the full schedule's."""
+    rules = TaxRules(interest_limit="ebitda_share", interest_limit_share=0.30,
+                     loss_carryforward=True, loss_limit_share=0.6, minimum_tax_rate=0.15)
+    args = dict(ebitda=[100, 50, 120], ebit=[80, -20, 110], net_interest=[40, 45, 30],
+                tax_rate=[RATE] * 3, rules=rules)
+    full, lean = tax_schedule(**args), tax_schedule(**args, detail=False)
+    assert lean.taxes == full.taxes
+    assert lean.taxable_income == [] and lean.losses_carried == []
+
+
+def test_every_hold_in_the_exit_grid_is_taxed_by_the_rules():
+    """The exit-sensitivity grid reruns the whole model at other holds; each
+    rerun must carry the deal's rules, so a column equals a deal run at that
+    hold."""
+    r = run_deal(CAPPED, cfg())
+    grid = r.exit_sensitivity
+    col = grid["holding_periods"].index(3)
+    row = min(range(len(grid["exit_multiples"])),
+              key=lambda i: abs(grid["exit_multiples"][i] - CAPPED.exit_mult))
+    three = run_deal(dataclasses.replace(CAPPED, hold=3, exit_mult=grid["exit_multiples"][row]), cfg())
+    assert grid["table"][row][col] == pytest.approx(three.returns.irr, abs=1e-6)
+    free = run_deal(DealInputs(), cfg()).exit_sensitivity
+    assert grid["table"][row][col] < free["table"][row][col]
 
 
 def test_the_simulation_feels_the_rules():
@@ -319,9 +356,17 @@ def test_a_deal_run_reports_its_tax_schedule_in_the_deals_unit():
 @pytest.mark.parametrize("bad", [
     {"tax_interest_limit": "sometimes"}, {"tax_interest_limit_pct": 150.0},
     {"tax_loss_limit_pct": -1.0}, {"tax_minimum_pct": 101.0}, {"tax_interest_limit_amount": -5.0},
+    {"tax_preset": "GBR"}, {"tax_preset": "gb"},
 ])
 def test_impossible_rules_are_refused(bad):
     assert client().post("/api/deal/run", json={"inputs": bad}).status_code == 422
+
+
+def test_a_deal_naming_a_preset_that_no_longer_exists_still_runs():
+    """The preset is a label; the rules are what the model reads. Retiring a
+    preset must not make a saved deal that names it unreadable."""
+    resp = client().post("/api/deal/run", json={"inputs": {"tax_preset": "ZZ"}})
+    assert resp.status_code == 200, resp.text
 
 
 def test_the_simulation_endpoint_takes_the_rules():

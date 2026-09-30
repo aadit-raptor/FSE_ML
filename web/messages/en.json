@@ -244,7 +244,7 @@
     "taxLimit_fixed": "Fixed amount",
     "taxAdviser": "Presets are a starting point, not advice: check with a tax adviser.",
     "taxPresetSource": "{country}, checked {date}: {source}.",
-    "taxAmountsNotApplied": "This preset's amounts are in {currency} and this deal is not, so they were left at 0: enter them in the deal's currency.",
+    "taxAmountsCurrency": "This preset's amounts are in {preset} and this deal is in {deal}. Amounts are never converted between currencies: check the two amounts above.",
     "groupFinancing": "Financing, x EBITDA",
     "groupCapital": "Capital structure",
     "groupCashFlow": "Cash flow, % of revenue",

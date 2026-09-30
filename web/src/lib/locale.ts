@@ -51,6 +51,19 @@ export function numberStyle(): NumberStyle {
   return current;
 }
 
+/** A "YYYY-MM" month in the account's language ("2026-01" -> "January 2026"); the text itself if it is not one. */
+export function monthYear(isoMonth: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(isoMonth);
+  if (!m) return isoMonth;
+  try {
+    return new Intl.DateTimeFormat(latin(current.locale), { month: "long", year: "numeric", timeZone: "UTC" }).format(
+      new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, 1)),
+    );
+  } catch {
+    return isoMonth;
+  }
+}
+
 /** A country's name in the account's language, from its ISO 3166-1 code ("GB" -> "United Kingdom"). */
 export function regionName(code: string): string {
   try {

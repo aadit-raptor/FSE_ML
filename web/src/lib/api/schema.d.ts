@@ -1336,7 +1336,7 @@ export interface components {
             tax: number;
             /**
              * Tax Interest Limit
-             * @description Interest deductibility: none, a share of EBITDA (never below tax_interest_limit_amount), or a fixed amount
+             * @description Interest deductibility: none, a share of EBITDA (never below tax_interest_limit_amount), or a fixed amount (tax_interest_limit_amount a year; left at 0, no interest is deductible)
              * @default none
              * @enum {string}
              */
@@ -1381,9 +1381,8 @@ export interface components {
              * Tax Preset
              * @description The country preset last applied (ISO 3166 code), a label only; the rules below are what the model reads
              * @default
-             * @enum {string}
              */
-            tax_preset: "" | "US" | "GB" | "DE" | "FR" | "NL" | "IE" | "IN" | "JP" | "AU" | "CA" | "SG";
+            tax_preset: string;
             /**
              * Tranches
              * @description The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the two-tranche sizing above; a list replaces debt_pct, senior_pct, base_rate and mezz_spread entirely, and is swept in the order it is given.

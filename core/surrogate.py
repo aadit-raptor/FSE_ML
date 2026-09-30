@@ -16,6 +16,12 @@ from core.montecarlo import MCInputs
 TAIL_UNRELIABLE_WIPEOUT = 0.02
 
 
+def tax_rules_on(deal: DealInputs) -> int:
+    """How many tax rules beyond the flat rate the deal switches on."""
+    return ((deal.tax_interest_limit != "none") + bool(deal.tax_loss_carryforward)
+            + (deal.tax_minimum_pct > 0))
+
+
 def training_terms(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping):
     """Every term held fixed while the surrogate was trained, beside this deal's value.
 
@@ -35,6 +41,9 @@ def training_terms(mc: MCInputs, deal: DealInputs, cfg: Mapping, fixed: Mapping)
         ("transaction fees", cfg["tx_fee_pct"] / 100, fixed["transaction_fees_pct"], "percent", 1),
         ("financing fees", cfg["fin_fee_pct"] / 100, fixed["financing_fees_pct"], "percent", 1),
         ("other uses", cfg["other_uses"], fixed["other_uses"], "money", 0),
+        # Trained on a flat rate: every rule a deal switches on (PLAN.md 2.5)
+        # is something the estimate cannot see
+        ("tax rules", float(tax_rules_on(deal)), 0.0, "count", 0),
     ]
     return [{"term": name, "value": yours, "model_value": model, "unit": unit,
              "decimals": decimals}

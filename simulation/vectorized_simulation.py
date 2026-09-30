@@ -622,7 +622,7 @@ def _ruled_taxes(p: SimulationParams, ebitda_yr, da_yr, interest_yr):
         ebitda=[ebitda_yr[:, t] for t in range(n_yr)],
         ebit=[ebitda_yr[:, t] - da_yr[:, t] for t in range(n_yr)],
         net_interest=[interest_yr[:, t] for t in range(n_yr)],
-        tax_rate=[p.tax_rate] * n_yr, rules=p.tax_rules,
+        tax_rate=[p.tax_rate] * n_yr, rules=p.tax_rules, detail=False,
     ).taxes
 
 

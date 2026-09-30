@@ -16,7 +16,6 @@ from api.limits import MAX_FORECAST_PATHS, MAX_SIMULATION_PATHS
 from api.serialize import model_from_dataclass
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT
 from core.forecasting import ForecastYear, HistoricalYear
-from core.tax import PRESETS as TAX_PRESETS
 from lbo_engine.cashflow_model import CashFlowResult
 from lbo_engine.operating_model import OperatingModelResult
 from lbo_engine.returns import ReturnsResult
@@ -141,9 +140,6 @@ class TrancheIn(Strict):
 # inside the timeout (api/limits.py).
 MAX_TRANCHES = 12
 
-# The country presets' codes (core/tax.py), and "" for none
-TAX_PRESET_CODES = tuple(["", *(p.code for p in TAX_PRESETS)])
-
 
 class DealInputsIn(Strict):
     """Deal wizard inputs.
@@ -190,12 +186,17 @@ class DealInputsIn(Strict):
                     "and mezz_spread entirely, and is swept in the order it is given.")
     # Tax rules beyond the flat rate (PLAN.md 2.5, core/tax.py). Every default
     # is off; they are stored and sent only when set (db/deals.py).
-    tax_preset: Literal[TAX_PRESET_CODES] = Field(
-        "", description="The country preset last applied (ISO 3166 code), a label only; "
-                        "the rules below are what the model reads")
+    # A label, so any two-letter code is accepted: validating it against
+    # today's presets would make every saved deal naming a preset retired
+    # later unreadable
+    tax_preset: str = Field(
+        "", pattern=r"^([A-Z]{2})?$",
+        description="The country preset last applied (ISO 3166 code), a label only; "
+                    "the rules below are what the model reads")
     tax_interest_limit: Literal["none", "ebitda_share", "fixed"] = Field(
         "none", description="Interest deductibility: none, a share of EBITDA (never below "
-                            "tax_interest_limit_amount), or a fixed amount")
+                            "tax_interest_limit_amount), or a fixed amount (tax_interest_limit_amount "
+                            "a year; left at 0, no interest is deductible)")
     tax_interest_limit_pct: float = Field(30.0, ge=0, le=100, description="Share of EBITDA (%)")
     tax_interest_limit_amount: float = Field(
         0.0, ge=0, le=MAX_MONEY,

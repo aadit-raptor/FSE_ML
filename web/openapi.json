@@ -1163,7 +1163,7 @@
           },
           "tax_interest_limit": {
             "default": "none",
-            "description": "Interest deductibility: none, a share of EBITDA (never below tax_interest_limit_amount), or a fixed amount",
+            "description": "Interest deductibility: none, a share of EBITDA (never below tax_interest_limit_amount), or a fixed amount (tax_interest_limit_amount a year; left at 0, no interest is deductible)",
             "enum": [
               "none",
               "ebitda_share",
@@ -1221,20 +1221,7 @@
           "tax_preset": {
             "default": "",
             "description": "The country preset last applied (ISO 3166 code), a label only; the rules below are what the model reads",
-            "enum": [
-              "",
-              "US",
-              "GB",
-              "DE",
-              "FR",
-              "NL",
-              "IE",
-              "IN",
-              "JP",
-              "AU",
-              "CA",
-              "SG"
-            ],
+            "pattern": "^([A-Z]{2})?$",
             "title": "Tax Preset",
             "type": "string"
           },
