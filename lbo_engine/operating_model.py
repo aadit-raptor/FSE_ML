@@ -47,7 +47,7 @@ Burger King reference (conservative scenario, FYE 6/30):
 """
 
 from dataclasses import dataclass, field
-from typing import List, Literal, Dict
+from typing import List, Literal, Dict, Optional
 import numpy as np
 
 
@@ -311,6 +311,7 @@ def complete_income_statement(
     tax_rate: List[float],
     minimum_cash: float = 0.0,
     interest_income_rate: float = 0.005,
+    taxes: Optional[List[float]] = None,
 ) -> OperatingModelResult:
     """
     Complete the P&L below EBIT once interest expense is available.
@@ -336,6 +337,11 @@ def complete_income_statement(
 
     interest_income_rate : float
         Rate earned on minimum cash balance. BK: 0.5%.
+
+    taxes : list[float], optional
+        Each year's tax, when a deal's tax rules decide it (PLAN.md 2.5,
+        lbo_engine/tax.py). Left out, tax is the rate on positive EBT, exactly
+        as before.
 
     Returns
     -------
@@ -377,18 +383,18 @@ def complete_income_statement(
         # EBT
         ebt = ebit - interest_expense[t] + int_income
 
-        # Tax (only on positive EBT)
-        taxes = max(ebt, 0) * tax_rate[t]
+        # Tax (only on positive EBT), unless the deal's tax rules decided it
+        tax = max(ebt, 0) * tax_rate[t] if taxes is None else taxes[t]
 
         # Net income
-        net_income = ebt - taxes
+        net_income = ebt - tax
 
         result.interest_expense.append(round(interest_expense[t], 2))
         result.interest_income.append(round(int_income, 4))
         result.ebt.append(round(ebt, 2))
         result.ebt_margin.append(round(ebt / rev, 6))
         result.tax_rate.append(tax_rate[t])
-        result.taxes.append(round(taxes, 2))
+        result.taxes.append(round(tax, 2))
         result.net_income.append(round(net_income, 2))
         result.net_margin.append(round(net_income / rev, 6))
 

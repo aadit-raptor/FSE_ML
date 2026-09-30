@@ -10,6 +10,7 @@ import { LineChart } from "@/components/charts/LineChart";
 import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
+import { floatingCount } from "@/lib/deal/capital";
 import { apiInputs } from "@/lib/deal/fields";
 import { downloadMonteCarloSample, downloadWorkbook, fraction, sheet } from "@/lib/export";
 import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
@@ -46,7 +47,10 @@ function Distribution() {
     [t("assumptionExit"), t("plusMinus", { mean: fmtMultiple(p.exit_mean, 1), std: fmtMultiple(p.exit_std, 2) })],
     [t("assumptionRate"), t("plusMinus", { mean: fmtRate(p.interest_mean, 2), std: fmtRate(p.interest_std, 2) })],
     [t("assumptionMargin"), t("plusMinus", { mean: fmtRate(p.gross_margin_mean), std: fmtRate(p.gross_margin_std) })],
-    [t("assumptionDebt"), t("twoValues", { first: fmtRate(p.debt_pct), second: fmtRate(p.senior_pct) })],
+    // A deal listing its facilities is financed by them; the percentages are not read
+    ranFor.deal.tranches.length
+      ? [t("assumptionFacilities"), t("facilitiesValue", { count: ranFor.deal.tranches.length, floating: floatingCount(ranFor.deal.tranches) })]
+      : [t("assumptionDebt"), t("twoValues", { first: fmtRate(p.debt_pct), second: fmtRate(p.senior_pct) })],
     [t("assumptionFees"), t("twoValues", { first: fmtRate(p.transaction_fees_pct, 2), second: fmtRate(p.financing_fees_pct, 2) })],
     [
       t("assumptionCosts"),

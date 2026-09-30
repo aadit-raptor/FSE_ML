@@ -68,6 +68,9 @@ import pandas as pd
 from dataclasses import dataclass, field
 from typing import Optional, List
 
+from lbo_engine.tax import TaxRules, tax_schedule
+from simulation.tranches import run_tranche_schedule
+
 
 # ---------------------------------------------------------------------------
 # Simulation parameters
@@ -218,6 +221,18 @@ class SimulationParams:
     # Convergence
     n_interest_passes: int = 2
     clip_irr: bool = True
+
+    # The deal's debt, facility by facility (PLAN.md 2.4b; core.debt builds
+    # them). Empty keeps the two-bucket structure above -- debt_pct,
+    # senior_pct, mezz_spread, senior_amort_pct -- and its path through the
+    # simulation, untouched. A list replaces all four, and the rate draw then
+    # moves only the floating facilities (simulation/tranches.py).
+    tranches: tuple = ()
+
+    # The deal's tax rules beyond the flat rate (PLAN.md 2.5, lbo_engine/tax.py),
+    # the same function the deal model uses. None keeps the flat rate on
+    # positive EBT, and the expression that computes it, untouched.
+    tax_rules: Optional[TaxRules] = None
 
 
 # ---------------------------------------------------------------------------
@@ -415,7 +430,14 @@ def _run_vectorized_core(
                 Returns are computed from pass 2.
 
     Returns dict of arrays all shape (N,).
+
+    A deal that lists its tranches takes ``_run_tranche_core`` instead; the
+    body below is the two-bucket path, unchanged since before PLAN.md 2.4b
+    and pinned by tests/test_montecarlo_baseline.py.
     """
+    if params.tranches:
+        return _run_tranche_core(params, draws)
+
     N = params.n
     n_yr = params.holding_period
     p = params
@@ -488,14 +510,16 @@ def _run_vectorized_core(
         ebitda_final = ebitda_yr[:, -1]   # (N,) exit year EBITDA
 
         # ---- Income statement (EBIT → Net Income) ----
-        # Uses interest_expense from previous pass
+        # Uses interest_expense from previous pass. A deal's tax rules decide
+        # each year's tax from the whole schedule (PLAN.md 2.5).
         net_income_yr = np.zeros((N, n_yr))
         ebit_yr       = np.zeros((N, n_yr))
+        ruled = _ruled_taxes(p, ebitda_yr, da_yr, interest_expense)
 
         for t in range(n_yr):
             ebit  = ebitda_yr[:, t] - da_yr[:, t]
             ebt   = ebit - interest_expense[:, t]
-            taxes = np.maximum(ebt, 0.0) * p.tax_rate
+            taxes = np.maximum(ebt, 0.0) * p.tax_rate if ruled is None else ruled[t]
             net_income_yr[:, t] = ebt - taxes
             ebit_yr[:, t] = ebit
 
@@ -584,6 +608,112 @@ def _run_vectorized_core(
         "Interest":      interest,
         "Gross Margin":  gross_margin,
         "EBITDA Shock":  ebitda_shock,
+        "Net Debt Exit": net_debt_at_exit,
+    }
+
+
+def _ruled_taxes(p: SimulationParams, ebitda_yr, da_yr, interest_yr):
+    """Each year's tax under the deal's tax rules, a list of (N,) arrays; None
+    when it has none, so callers keep the flat rate on positive EBT."""
+    if p.tax_rules is None or not p.tax_rules.active:
+        return None
+    n_yr = p.holding_period
+    return tax_schedule(
+        ebitda=[ebitda_yr[:, t] for t in range(n_yr)],
+        ebit=[ebitda_yr[:, t] - da_yr[:, t] for t in range(n_yr)],
+        net_interest=[interest_yr[:, t] for t in range(n_yr)],
+        tax_rate=[p.tax_rate] * n_yr, rules=p.tax_rules, detail=False,
+    ).taxes
+
+
+def _operating_paths(p: SimulationParams, draws: dict):
+    """Revenue, EBITDA and D&A for every path and year, shape (N, n_yr).
+
+    The same expressions as the two-bucket path's operating model, so a deal
+    written out as tranches starts from the identical numbers.
+    """
+    growth, gross_margin, ebitda_shock = draws["growth"], draws["gross_margin"], draws["ebitda_shock"]
+    ebitda_margin = np.clip(gross_margin - p.opex_pct + p.da_pct, 0.02, 0.95)
+    revenue = p.entry_ebitda / ebitda_margin
+    shape = (p.n, p.holding_period)
+    revenue_yr, ebitda_yr, da_yr = np.zeros(shape), np.zeros(shape), np.zeros(shape)
+    for t in range(p.holding_period):
+        revenue = revenue * (1.0 + growth)
+        if t == 1:   # the one-year EBITDA shock, in year 2 as in the two-bucket path
+            margin = np.clip(ebitda_margin * (1.0 + ebitda_shock), 0.02, 0.95)
+        else:
+            margin = ebitda_margin
+        revenue_yr[:, t] = revenue
+        ebitda_yr[:, t] = revenue * margin
+        da_yr[:, t] = revenue * p.da_pct
+    return revenue_yr, ebitda_yr, da_yr
+
+
+def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
+    """The simulation for a deal financed tranche by tranche (PLAN.md 2.4b).
+
+    The operating model, taxes, cash flow, interest passes, exit and returns
+    are the two-bucket path's; the debt is ``simulation/tranches.py``'s
+    schedule. Two differences follow from the deal model rather than from the
+    two-bucket path's shortcuts:
+
+    * the rate draw is a **shock to reference rates**: each path moves every
+      floating facility's reference by ``interest - interest_mean`` and leaves
+      fixed facilities alone (a scenario's rate stress reaches the references
+      through ``core.montecarlo.apply_scenario``);
+    * interest paid in kind is an expense in the P&L and is added back in the
+      cash flow, and cash left once the sweep has repaid everything it may
+      stays on the balance sheet, as ``lbo_engine`` does.
+    """
+    N, n_yr = p.n, p.holding_period
+    entry_ev = p.entry_ebitda * p.entry_multiple
+    total_debt = sum(t.amount for t in p.tranches)
+    entry_costs = (entry_ev * p.transaction_fees_pct
+                   + total_debt * p.financing_fees_pct
+                   + p.other_uses
+                   + sum(t.upfront_fee for t in p.tranches))
+    entry_equity = entry_ev + entry_costs - total_debt
+    minimum_cash = entry_ev * p.minimum_cash_pct
+
+    # The draw is clipped to [0.01, 0.30] before this, so with a wide rate
+    # spread the shock is not quite centred on zero -- as the two-bucket
+    # path's senior rate is not quite centred on its mean
+    shock = draws["interest"] - p.interest_mean
+    revenue_yr, ebitda_yr, da_yr = _operating_paths(p, draws)
+
+    interest = np.zeros((N, n_yr))
+    non_cash = np.zeros((N, n_yr))
+    for _ in range(p.n_interest_passes):
+        ebt = ebitda_yr - da_yr - interest
+        ruled = _ruled_taxes(p, ebitda_yr, da_yr, interest)
+        taxes = np.maximum(ebt, 0.0) * p.tax_rate if ruled is None else np.column_stack(ruled)
+        net_income = ebt - taxes
+        fcf = (net_income + da_yr - revenue_yr * p.capex_pct - revenue_yr * p.nwc_pct
+               + non_cash)
+        schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash)
+        interest, non_cash = schedule.interest, schedule.non_cash
+
+    net_debt_at_exit = schedule.ending_debt - schedule.ending_cash
+    exit_ebitda = ebitda_yr[:, -1]
+    exit_ev = exit_ebitda * draws["exit_multiple"]
+    exit_equity = np.maximum(exit_ev - net_debt_at_exit, 0.0)
+    entry_equity_arr = np.full(N, entry_equity)
+    moic = exit_equity / np.maximum(entry_equity_arr, 1e-10)
+    irr = _vectorized_irr(entry_equity_arr, exit_equity, n_yr)
+    if p.clip_irr:
+        irr = np.clip(irr, -1.0, 5.0)
+
+    return {
+        "IRR":           irr,
+        "MOIC":          moic,
+        "Exit Equity":   exit_equity,
+        "Exit EV":       exit_ev,
+        "Exit EBITDA":   exit_ebitda,
+        "Growth":        draws["growth"],
+        "Exit Multiple": draws["exit_multiple"],
+        "Interest":      draws["interest"],
+        "Gross Margin":  draws["gross_margin"],
+        "EBITDA Shock":  draws["ebitda_shock"],
         "Net Debt Exit": net_debt_at_exit,
     }
 
@@ -743,6 +873,9 @@ def get_scenario_params(
 
     Scenarios shift the mean of each distribution to reflect different
     macroeconomic environments. Volatility (std) is unchanged.
+
+    Not used by the API, and not tranche-aware: core.montecarlo.apply_scenario
+    is the one that also moves floating facilities' reference rates.
 
     Parameters
     ----------

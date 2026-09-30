@@ -37,6 +37,7 @@ from pydantic import ValidationError
 from sqlalchemy import and_, delete, func, insert, select, update
 
 from core.config import DEFAULTS
+from core.tax import RULE_DEFAULTS
 from db.engine import connect, transaction
 from db.models import Deal, DealVersion, User, utc_now
 
@@ -114,6 +115,8 @@ OMIT_WHEN_DEFAULT = {
     "first_fiscal_year": None,
     # The deal's facilities (PLAN.md 2.4); empty means sized by percentages
     "tranches": [],
+    # Tax rules (PLAN.md 2.5), each stored only when switched on or changed
+    **RULE_DEFAULTS,
 }
 
 

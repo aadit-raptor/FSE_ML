@@ -128,8 +128,8 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.3a | Locale: numbers, dates, fiscal years, Excel formats | 2.2 | ☑ |
 | 2.3b | Locale: interface text in translation files, right-to-left | 2.3a | ☑ |
 | 2.4a | Debt structures and interest rates: the model | 2.2 | ☑ |
-| 2.4b | Debt structures: simulation and the screen | 2.4a | ☐ |
-| 2.5 | Global tax rules | 2.2 | ☐ |
+| 2.4b | Debt structures: simulation and the screen | 2.4a | ☑ |
+| 2.5 | Global tax rules | 2.2 | ☑ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
 | 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☐ |
 | 2.8 | Risk warnings computed, not written in | 2.1 | ☐ |
@@ -218,11 +218,31 @@ is run.
   deal shows 21.2% IRR; URLs are in CLAUDE.md.
 
 ### 0.2 Your own domain
+- **Decided 2026-10-01:** the product is named **Variater** (a coined
+  spelling: `variator.com` has been taken since 2000, and "variator" is a
+  scooter part). **`variater.com` is bought** at Cloudflare Registrar, one
+  year at cost, auto-renew on, DNS at Cloudflare, no records yet. Other
+  endings (`.in`, `.app`) wait for the public launch. Trademark: an Indian
+  filing (IP India, form TM-A, class 42, "proposed to be used") before the
+  public launch; `Variater™` until then; no ® until registered.
+- **Rename scope (proposed; confirm at the start of 0.2):** only what people
+  see -- the brand `app.brand` in `web/messages/en.json` ("FSE/ML"), page
+  titles, README, the Better Stack status page, Clerk's sign-in branding.
+  Internal names stay: `FSE_*` settings and GitHub secrets, the `fse_app` /
+  `fse_api` database roles (migration 0005), the backup file format, the
+  Vercel, Render and Neon service names, the repository and its folder.
+- **Still to decide at the start of 0.2:** map today's development-instance
+  accounts to their new Clerk ids, or drop them as test data.
 - **You first:**
-  - buy the domain. Cloudflare Registrar is recommended: it charges the
-    registry's price with no markup, renewals don't jump and DNS is free.
-    Porkbun is a good alternative. Prefer `.com`; `.app` is fine (HTTPS only);
-  - keep its DNS at the registrar (Cloudflare) and tell Claude the name;
+  - ~~buy the domain~~ (done: `variater.com`, Cloudflare);
+  - keep its DNS at the registrar (Cloudflare);
+  - (done 2026-10-01: Clerk production instance for `variater.com` created
+    by cloning the development one; its five CNAMEs -- `clerk`, `accounts`,
+    `clkmail`, `clk._domainkey`, `clk2._domainkey` -- are in Cloudflare,
+    DNS only, and resolve publicly. Its keys are **not** in Vercel or Render
+    yet: they go in at the switch-over, since a production instance can't
+    serve `fse-ml.vercel.app`. Google sign-in still needs custom OAuth
+    credentials.)
   - in Clerk, create the **production instance** for that domain (a Clerk
     production instance can't use `*.vercel.app`), and put its keys in
     Vercel and Render;
@@ -503,13 +523,42 @@ can check it.
     mezzanine out explicitly and gives the identical answer, and
     `tests/golden/golden.json` is untouched. Stored only when a deal has one
     (`OMIT_WHEN_DEFAULT`), so existing deals and a rollback are unaffected.
-  - **2.4b:** the simulation's rate uncertainty applied to **floating
-    tranches only** (`simulation/vectorized_simulation.py` keeps its
-    two-bucket path untouched and gains a tranche path beside it; pin the
-    simulation's output first, because nothing pins it today), the Monte
-    Carlo heatmap taking the structure, and the Debt step's editor for
-    adding, reordering and removing facilities, with the browser test that
-    proves it by output.
+  - **2.4b (done):** the simulation and the screen. The Monte Carlo
+    simulation's output is pinned first (`tests/test_montecarlo_baseline.py`),
+    and its two-bucket path is untouched; a tranche path beside it
+    (`simulation/tranches.py`) is the deal model's debt schedule vectorised.
+    The rate draw is a shock to reference rates and moves **floating
+    facilities only** (`max(reference + shock, floor) + margin`); a
+    scenario's rate stress reaches them through their references; PIK is
+    added back in the simulated cash flow; the heatmap runs on the deal's
+    structure. Today's structure written out simulates exactly as the
+    percentages, path by path. The Debt step lists the facilities (add,
+    edit, reorder -- the list is the sweep order -- and remove), shows a
+    capital-structure table and the PIK, fee and draw rows a facility has;
+    the other deal steps point to it instead of offering the percentage
+    fields a listed deal ignores. `e2e/tranches.spec.ts` proves each edit by
+    output (convert, add PIK notes, remove, reorder, save and reopen, Monte
+    Carlo).
+  - **Carried forward, not 2.4's job** (recorded from the 2.4 reviews):
+    1. No cap on deals per account or saved versions per deal (a deal with
+       twelve full facilities is about 20 KB): wants a per-account deal cap, a
+       version cap and a byte budget checked at the write (1.6's
+       `api/limits.py`, or 9.2).
+    2. `sens_*` settings are unbounded and `/api/deal/run` has no timeout
+       (`sens_hp_max` of 200 with 50 exit steps does not finish): bound them
+       at the request edge and put the deal endpoints under the 100 s cap.
+    3. Exception messages still reach the logs and Sentry
+       (`api/observability.py`'s `JsonFormatter` uses `formatException`;
+       `scrub_event` keeps `exception.values[].value`): drop the message,
+       keep the type. Nothing in 2.4 leaks today; every refusal is a
+       returned 422.
+    4. A shareholder loan is treated as debt at exit; whether it joins the
+       sponsor's proceeds instead is a modelling decision for the user.
+    5. Cross-currency facilities: `TrancheSpec.currency` exists but the API
+       does not expose it; revisit after 4.2's exchange rates.
+    6. Excel export of the capital structure (`api/routers/export.py`): 7.3.
+    7. The backtest never sees tranches (`core/backtesting.py` builds
+       `LBOParams` from a plain dict): 2.7 rewrites that screen.
 
 ### 2.5 Global tax rules
 - **Claude does:** per-deal corporate rate; interest deductibility limit (none,
@@ -518,6 +567,19 @@ can check it.
   presets with source and date, marked "check with a tax adviser".
 - **Done when:** hand-checked cases pass for a 30%-of-EBITDA interest cap and for
   losses carried forward; changing preset changes results as predicted (test).
+- **Done (2026-09-30):** the rules are `lbo_engine/tax.py`, one function for the
+  deal model and the simulation (numbers or arrays of paths), called only when
+  a rule is on, so every existing deal and the golden snapshot are untouched.
+  Interest limit (a share of EBITDA never below an allowance, or a fixed cap)
+  with the refused interest carried forward; losses carried forward under an
+  allowance plus a share of the excess; a minimum tax on book profit. Eleven
+  country presets in `core/tax.py` (US, GB, DE, FR, NL, IE, IN, JP, AU, CA, SG),
+  each with its source, what it simplifies and the date it was checked; a
+  preset's amounts apply only in its own currency. Hand-checked cases in
+  `tests/test_tax_rules.py`; Ireland's year-one tax is exactly half the UK's
+  on the same deal (the prediction test); `e2e/tax.spec.ts` proves the screen
+  by output. Not modelled, and said so in each preset's note: loss expiry,
+  state and local taxes, group relief, small-profits rates.
 
 ### 2.6 Accounting standards (IFRS and US GAAP)
 - **Claude does:** accounting standard per company and deal; mapping from each

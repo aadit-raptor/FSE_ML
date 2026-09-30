@@ -9,10 +9,11 @@ from dataclasses import dataclass, replace
 from typing import Mapping, Optional
 
 from core.debt import (
-    build_capital_structure, check_specs, coerce, financing_fees, summary,
+    blended_rate as tranche_rate, build_capital_structure, check_specs, coerce, financing_fees, summary,
     total_debt as tranche_debt, unique_names,
 )
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT, to_millions
+from core.tax import TAX_MONEY_INPUTS, rules_from_deal
 from lbo_engine.model import LBOParams, run_lbo
 
 
@@ -53,6 +54,16 @@ class DealInputs:
     # mezz_spread -- which is how every deal before 2.4 is financed. A tranche
     # list replaces all four: it says what each facility is, costs and repays.
     tranches: tuple = ()
+    # Tax rules beyond the flat rate above (PLAN.md 2.5, core/tax.py). Every
+    # default is off, so a deal that sets none is taxed exactly as before.
+    tax_preset: str = ""                    # the country preset applied, a label only
+    tax_interest_limit: str = "none"        # "none" | "ebitda_share" | "fixed"
+    tax_interest_limit_pct: float = 30.0    # % of EBITDA
+    tax_interest_limit_amount: float = 0.0  # money: the fixed cap, or the allowance
+    tax_loss_carryforward: bool = False
+    tax_loss_limit_pct: float = 100.0       # % of profit above the allowance
+    tax_loss_limit_amount: float = 0.0      # money offset in full each year
+    tax_minimum_pct: float = 0.0            # % of book profit
 
     def __post_init__(self):
         # Routers build DealInputs(**model_dump()), so tranches arrive as
@@ -62,7 +73,7 @@ class DealInputs:
 
 
 # Money inputs, in the deal's unit
-MONEY_INPUTS = ("ebitda", "mincash")
+MONEY_INPUTS = ("ebitda", "mincash", *TAX_MONEY_INPUTS)
 # Settings that are money amounts (the rest are rates, multiples and counts)
 MONEY_SETTINGS = ("other_uses", "def_ebitda", "def_mincash")
 
@@ -97,6 +108,9 @@ DEAL_MONEY_KEYS = frozenset({
     "cash_interest", "pik_interest", "commitment_fee", "undrawn", "redrawn",
     "total_cash_interest", "total_pik_interest", "total_commitment_fees",
     "non_cash_interest", "amount", "commitment",
+    # Tax rules (PLAN.md 2.5): the tax block's money
+    "taxable_income", "interest_deductible", "interest_carried", "losses_used",
+    "losses_carried", "regular_tax", "minimum_tax_topup",
     # equity bridge
     "entry_costs", "ebitda_growth", "multiple_expansion", "deleveraging", "exit_equity",
     "total_gain", "residual", "value",
@@ -209,7 +223,20 @@ def risk_model_inputs(d: DealInputs, senior_x, mezz_x) -> dict:
 
     The detector expects the all-in debt rate, so senior and mezz rates are
     blended by amount rather than passing the senior rate.
+
+    A deal that lists its facilities is scored on them: what is drawn at
+    close, and the year-one rate blended by what is drawn. The multiples the
+    screen sends describe the percentages, which such a deal does not use.
     """
+    if d.tranches:
+        drawn = tranche_debt(d.tranches)
+        return dict(
+            entry_mult=d.entry_mult,
+            leverage=drawn / max(d.ebitda, 1e-9),
+            growth_pct=d.growth,
+            ebitda_margin=d.gross_margin - d.opex + d.da,
+            rate=tranche_rate(d.tranches) * 100 if drawn > 0 else d.base_rate,
+        )
     total_debt_abs = (senior_x + mezz_x) * d.ebitda
     total_x = senior_x + mezz_x
     blended_rate = ((senior_x * d.base_rate
@@ -259,7 +286,7 @@ def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
         check_specs(d.tranches, d.ebitda * d.entry_mult,
                     entry_costs(d.ebitda * d.entry_mult, tranche_debt(d.tranches), cfg) + fees)
     return LBOParams(
-        capital_structure=structure, tranche_fees=fees,
+        capital_structure=structure, tranche_fees=fees, tax_rules=rules_from_deal(d),
         entry_ebitda=d.ebitda, entry_multiple=d.entry_mult,
         exit_multiple=d.exit_mult, holding_period=int(d.hold),
         debt_pct=d.debt_pct/100, senior_pct=d.senior_pct/100,

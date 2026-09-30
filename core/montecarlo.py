@@ -13,7 +13,12 @@ from scipy.stats import spearmanr
 
 from analytics.risk_metrics import calculate_risk_metrics
 from core.config import build_corr_matrix
-from core.deal import DealInputs
+from core.deal import DealInputs, entry_costs
+from core.tax import rules_from_deal
+from core.debt import (
+    build_capital_structure, check_specs, financing_fees, shift_references, simulation_tranches,
+    total_debt as tranche_debt,
+)
 from simulation.vectorized_simulation import SimulationParams, run_vectorized_simulation_full
 
 SCENARIOS = ["recession", "base", "bull", "stagflation"]
@@ -50,28 +55,22 @@ def mc_in_millions(mc: MCInputs, deal: DealInputs, cfg: Mapping):
     return mc, deal, cfg
 
 
-class TranchesNotSimulatedYet(ValueError):
-    """The simulation cannot yet finance a deal the way its tranches say.
-
-    The vectorised engine still sizes debt from ``debt_pct``, ``senior_pct``,
-    ``base_rate`` and ``mezz_spread`` (PLAN.md 2.4b adds the tranche path and
-    the rate uncertainty that only moves floating facilities). Running anyway
-    would simulate a *different* capital structure from the one on screen and
-    say nothing about it -- the kind of control that looks right and quietly
-    answers the wrong question. Refusing says so instead.
-    """
-
-
-def check_simulatable(deal: DealInputs) -> None:
-    if deal.tranches:
-        raise TranchesNotSimulatedYet(
-            "This deal lists its debt facility by facility, and the simulation still sizes debt "
-            "from the debt and senior percentages, so it would simulate a different structure. "
-            "Simulate a deal sized by percentages, or wait for the tranche-aware simulation.")
-
-
 def build_sim_params(mc: MCInputs, deal: DealInputs, cfg: Mapping) -> SimulationParams:
-    check_simulatable(deal)
+    """The simulation's parameters for a deal, its Monte Carlo inputs and
+    Settings.
+
+    A deal that lists its tranches is simulated with them (PLAN.md 2.4b): the
+    same structure the deal screen shows, refused the same way when it raises
+    more than the deal costs. ``debt_pct``, ``senior_pct`` and ``mezz_spread``
+    are still filled in, and ignored by the tranche path.
+    """
+    tranches = ()
+    if deal.tranches:
+        entry_ev = mc.ebitda * mc.entry_mult
+        check_specs(deal.tranches, entry_ev,
+                    entry_costs(entry_ev, tranche_debt(deal.tranches), cfg)
+                    + financing_fees(deal.tranches))
+        tranches = simulation_tranches(deal.tranches, int(mc.hold))
     return SimulationParams(
         n=int(mc.n), entry_ebitda=mc.ebitda, entry_multiple=mc.entry_mult,
         holding_period=int(mc.hold),
@@ -90,11 +89,20 @@ def build_sim_params(mc: MCInputs, deal: DealInputs, cfg: Mapping) -> Simulation
         n_interest_passes=int(cfg['mc_n_passes']),
         clip_irr=bool(cfg['mc_clip_irr']),
         corr_matrix=build_corr_matrix(cfg),
+        tranches=tranches,
+        tax_rules=rules_from_deal(deal),
     )
 
 
 def apply_scenario(scenario: str, base_params: SimulationParams, cfg: Mapping) -> SimulationParams:
-    """Shift distribution means by a scenario preset's settings multipliers."""
+    """Shift distribution means by a scenario preset's settings multipliers.
+
+    For a deal listing its tranches, the rate draw is a shock around
+    ``interest_mean`` to each floating facility's reference rate, so a
+    scenario that moves the mean would otherwise move nothing. The change in
+    the mean is added to every floating reference instead: stagflation's
+    higher rates reach floating debt, and fixed debt does not care.
+    """
     p = copy.deepcopy(base_params)
     if scenario == "bull":
         p.growth_mean       *= cfg["bull_growth_mult"]
@@ -115,6 +123,8 @@ def apply_scenario(scenario: str, base_params: SimulationParams, cfg: Mapping) -
         p.exit_mean         *= cfg["stag_exit_mult"]
         p.interest_mean     *= cfg["stag_rate_mult"]
         p.gross_margin_mean *= cfg["stag_margin_mult"]
+    if p.tranches:
+        p.tranches = shift_references(p.tranches, p.interest_mean - base_params.interest_mean)
     return p
 
 
@@ -174,6 +184,10 @@ def growth_exit_heatmap(params: SimulationParams, mc: MCInputs, deal: DealInputs
     the interest loop included) at the simulation's mean assumptions for
     that growth and exit multiple. The Streamlit version was a fee-free
     closed form with exit debt assumed at 70% of entry debt (finding 3).
+
+    A deal that lists its tranches runs on them, with a scenario's rate stress
+    on the floating ones (the move in ``interest_mean`` from the rail's own
+    rate mean). Left out, every cell would quietly revert to the percentages.
     """
     from core.deal import INTEREST_TOLERANCE, MAX_INTEREST_PASSES
     from lbo_engine.model import LBOParams, run_lbo
@@ -184,10 +198,17 @@ def growth_exit_heatmap(params: SimulationParams, mc: MCInputs, deal: DealInputs
     em_vals = np.linspace(
         max(params.exit_mean - 2*params.exit_std, 2.0),
         params.exit_mean + 2*params.exit_std, 7)
+    structure, fees = None, 0.0
+    if deal.tranches:
+        shift = params.interest_mean - mc.rate_mean / 100
+        structure = build_capital_structure(deal.tranches, params.entry_ebitda,
+                                            int(params.holding_period), reference_shift=shift)
+        fees = financing_fees(deal.tranches)
     irr_grid = np.zeros((len(em_vals), len(g_vals)))
     for i, em in enumerate(em_vals):
         for j, g in enumerate(g_vals):
             r = run_lbo(LBOParams(
+                capital_structure=structure, tranche_fees=fees, tax_rules=params.tax_rules,
                 entry_ebitda=params.entry_ebitda, entry_multiple=params.entry_multiple,
                 exit_multiple=float(em), holding_period=int(params.holding_period),
                 debt_pct=params.debt_pct, senior_pct=params.senior_pct,

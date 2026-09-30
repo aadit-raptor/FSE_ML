@@ -36,6 +36,7 @@ from pydantic import ValidationError
 
 from api.limits import holding_simulation_slot
 from api.observability import log_event, model_run_listener
+from core.debt import UnfinanceableStructure
 from jobs import queue as q
 from jobs.kinds import KINDS, JobKind
 from jobs.queue import JobQueue, JobRecord
@@ -148,6 +149,11 @@ class Runner:
             error, status_code = _message(exc), 422
         except HTTPException as exc:
             error, status_code = str(exc.detail), exc.status_code
+        except UnfinanceableStructure as exc:
+            # The caller's structure, refused with the sentence the endpoint
+            # gives (api/main.py). It names the deal's figures, so it goes to
+            # the job's owner and never to the log.
+            error, status_code = str(exc), 422
         except Exception:  # noqa: BLE001 - reported, and the job says it failed
             log_event("job_failed", logging.ERROR, exc_info=True, job=str(job.id), kind=job.kind)
             error, status_code = UNEXPECTED, 500
