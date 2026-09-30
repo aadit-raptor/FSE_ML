@@ -178,14 +178,28 @@ would notice it breaking.
   attribution trailer: ECC's installer turns it off by default, and this
   project keeps it on.
 - **PR** from `.github/pull_request_template.md`: the task, the plan, the
-  "Done when" evidence, the review result, the user's checks. CI green, then
-  merge with "Create a merge commit".
+  "Done when" evidence, the review result, the user's checks. Claude opens
+  it with `gh pr create` and turns on auto-merge with
+  `gh pr merge <n> --auto --merge`: GitHub merges it (a merge commit) only
+  once all 12 required checks on `main` are green. A red check means
+  nothing merges; Claude fixes the cause and pushes again.
 - **PR titles** use the same types (`pr.yml` checks them): the title becomes
   the merge commit's message on `main`.
-- **After the merge:** bring staging level with a pull request from `main`
-  to `staging`, titled `chore: bring staging level with main`, which the
-  user merges (Claude can't push to `staging` or merge). Wait for
-  `staging.yml`, then check production (`/api/health` shows the new commit).
+- **After the merge:** Claude opens the pull request from `main` to
+  `staging`, titled `chore: bring staging level with main`, and merges it
+  (`gh pr merge <n> --merge`; its content already passed CI on `main`).
+  Then Claude waits for `staging.yml`, checks production (`/api/health`
+  shows the new commit) and reports.
+- **Claude stops and asks before merging** when the PR changes model logic
+  (`core/`, `lbo_engine/`, `simulation/`, `tests/golden/`) without the
+  user's recorded approval, a migration drops or rewrites data, or it
+  changes sign-in, security headers or backups in a way the task didn't
+  describe. Outside accounts (Clerk, Vercel, Render, DNS, keys) stay the
+  user's: they are the task's "You first" items, done before the session.
+- **One prompt per task.** The user pastes the handoff prompt; the session
+  runs the whole cycle to a live, verified release and ends with the next
+  prompt. It asks the user only for a decision the task can't make alone or
+  an outside-account step.
 - Rollback is DEPLOY.md "Rollback".
 
 ### 8. Remember (ECC "remember and improve")

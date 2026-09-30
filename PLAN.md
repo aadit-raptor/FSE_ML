@@ -47,11 +47,14 @@ Start each session with this prompt (swap in the task number):
 > and its "You first" items are in place; if not, stop and tell me what's
 > missing. Follow PLAN.md's guiding principles (free plans only) and
 > CLAUDE.md's working rules (branch, tests that check real output,
-> mutation-check new tests, PR, CI green, merge). When done, tick the task in
-> PLAN.md's status table in the same PR and tell me what to check. Then tell
-> me to start a new session, and give me the ready-to-paste prompt for the
-> next task (this same prompt with the next task number), plus anything I must
-> do first for it.
+> mutation-check new tests, PR, CI green). Ship it yourself end to end
+> (docs/WORKFLOW.md step 7): open the PR, auto-merge it once the checks are
+> green, bring staging level with main, and verify staging and production.
+> Only stop to ask me for a decision the task can't make alone or an
+> outside-account step. Tick the task in PLAN.md's status table in the same
+> PR. When it is live, tell me what changed and what to check, then give me
+> the ready-to-paste prompt for the next task (this same prompt with the
+> next task number), plus anything I must do first for it.
 
 **Rules**
 - Do the lowest-numbered open task whose "Needs" are done.
@@ -63,8 +66,8 @@ Start each session with this prompt (swap in the task number):
   *name*.
 - **"Done when"** is the acceptance test; Claude shows evidence for each line.
 - A task too big for one session is split into lettered parts (3.1a, 3.1b).
-- **Every session ends with a handoff:** once the PR is merged and PLAN.md is
-  ticked, Claude tells the user to start a new session and gives the exact
+- **Every session ends with a handoff:** once the PR is merged (by Claude,
+  through auto-merge), staging is level and production is checked, Claude tells the user to start a new session and gives the exact
   prompt for the next open task (lowest number whose "Needs" are done),
   including that task's "You first" items so the user can prepare them.
 - **Stay inside free limits.** Each task notes the limits that matter. Claude
