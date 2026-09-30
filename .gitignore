@@ -22,3 +22,6 @@ coverage.json
 coverage.xml
 diff-cover.md
 base-floor.txt
+
+# Claude Code: personal permissions (not shared)
+.claude/settings.local.json

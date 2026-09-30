@@ -35,10 +35,11 @@ Production deploys automatically from `main`, staging from `staging` (PLAN.md
 `commit`, and the status bar says `· staging` on staging. After a push to
 `staging`, `.github/workflows/staging.yml` waits for both staging copies to run
 that commit and runs the live browser checks there (needs the GitHub secret
-`VERCEL_AUTOMATION_BYPASS_SECRET`). After merging to `main`, bring staging
-level with a pull request from `main` to `staging` titled `chore: bring
-staging level with main`, which the user merges (Claude can't push to
-`staging` or merge). Rollback: DEPLOY.md "Rollback" (default
+`VERCEL_AUTOMATION_BYPASS_SECRET`). Claude ships end to end
+(docs/WORKFLOW.md step 7): `gh pr create`, `gh pr merge --auto --merge`
+(GitHub merges once the 12 required checks are green), then a PR from
+`main` to `staging` titled `chore: bring staging level with main`, merged
+by Claude, then the `staging.yml` and `/api/health` checks. Rollback: DEPLOY.md "Rollback" (default
 is a git revert PR). The free API sleeps after 15 minutes
 idle and takes about a minute to wake. Read-only checks against the live site:
 `E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
@@ -718,11 +719,15 @@ rules below. Where they differ, the rules below win.
 
 @docs/WORKFLOW.md
 
-- **`main` is protected.** Every change: branch → PR → CI (`core`, `ml`, `web`, `e2e`, `docker` jobs)
-  green → merge with **"Create a merge commit"**. Direct pushes to `main` fail.
-  The GitHub CLI is installed but not signed in (`gh auth status`), and
-  signing it in needs the user's credentials: open and merge PRs through the
-  browser, or run `gh auth login` first.
+- **`main` is protected.** Every change: branch → PR → the 12 required
+  checks green → merge commit. Direct pushes to `main` fail. `staging` has no
+  protection; it only ever receives `main`. **Claude merges** (decided
+  2026-10-01, the user wants one prompt per task): the GitHub CLI is signed
+  in by the user with a token limited to this repository, the repository
+  allows auto-merge, and the user's `.claude/settings.local.json` allows the
+  `gh pr` / `gh run` commands (Claude may not grant itself permissions). The
+  stop-and-ask cases are in docs/WORKFLOW.md step 7. If `gh auth status`
+  says signed out, fall back to giving the user browser steps.
 - **Keep model logic as is** unless the user approves a change. Record new
   findings in this file instead of silently fixing them.
 - **Parity:** `tests/test_core_parity.py` and `tests/test_api.py` pin results to
