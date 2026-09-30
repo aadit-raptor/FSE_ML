@@ -12,7 +12,7 @@ import { SIGNED_IN_STATE } from "./e2e/helpers";
  *
  * Live (read-only checks against a deployed site, no servers started):
  *
- *   npm run test:live                       # https://fse-ml.vercel.app
+ *   npm run test:live                       # https://variater.com
  *   E2E_BASE_URL=https://… npm run test:live
  *   E2E_EXPECT_ENV=staging                  # the environment /api/health must report
  *   VERCEL_AUTOMATION_BYPASS_SECRET=…       # to open Vercel preview (staging) URLs
@@ -24,7 +24,7 @@ import { SIGNED_IN_STATE } from "./e2e/helpers";
  */
 const isCI = !!process.env.CI;
 const live = process.env.E2E_LIVE === "1";
-const liveUrl = process.env.E2E_BASE_URL ?? "https://fse-ml.vercel.app";
+const liveUrl = process.env.E2E_BASE_URL ?? "https://variater.com";
 // Vercel previews sit behind Vercel login. VERCEL_AUTOMATION_BYPASS_SECRET
 // lets the staging checks in; e2e/live.spec.ts trades it once for Vercel's
 // bypass cookie and never sends it to other hosts (Clerk, Sentry). Production

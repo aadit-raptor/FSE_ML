@@ -21,7 +21,7 @@ const apiOrigin = (
 // than ship a proxy that points at localhost. Rewrites are resolved at build
 // time, so the variable must be set before deploying.
 if (process.env.VERCEL_ENV === "production" && !process.env.FSE_API_URL) {
-  throw new Error("Set FSE_API_URL (e.g. https://fse-api.onrender.com) in the Vercel project settings.");
+  throw new Error("Set FSE_API_URL (e.g. https://api.variater.com) in the Vercel project settings.");
 }
 
 // Sign-in (PLAN.md 1.4). A deployed copy must have a Clerk instance: without
@@ -37,6 +37,8 @@ if ((process.env.VERCEL_ENV === "production" || isPreview) && !process.env.NEXT_
 // bundle at build time. No DSN (local, CI) means no Sentry.
 const fseEnv = process.env.VERCEL_ENV === "production" ? "production" : isPreview ? "staging" : "local";
 
+const OLD_HOSTS = ["fse-ml\\.vercel\\.app", "www\\.variater\\.com"];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   env: {
@@ -49,6 +51,19 @@ const nextConfig: NextConfig = {
   // a nonce, in src/proxy.ts.
   async headers() {
     return [{ source: "/((?!api/).*)", headers: SECURITY_HEADERS }];
+  },
+  // The site's own domain (PLAN.md 0.2). Vercel keeps answering on the old
+  // project address, and www is added beside the apex: both send every path
+  // (the query string rides along) to the same path on the domain, so old
+  // links and bookmarks keep working. Preview hosts never match, so staging
+  // is untouched. A host value is a regular expression, hence the escapes.
+  async redirects() {
+    return OLD_HOSTS.map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host }],
+      destination: "https://variater.com/:path*",
+      permanent: true,
+    }));
   },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];

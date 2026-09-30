@@ -34,7 +34,7 @@ jobs:
         id: database
         continue-on-error: true
         working-directory: .
-        run: python3 ops/check_database.py https://fse-api.onrender.com --require-restricted-role
+        run: python3 ops/check_database.py https://api.variater.com --require-restricted-role
       # Usage counters shared through Upstash, which answers and is under
       # today's command budget (PLAN.md 1.6). PING only: not billed.
       - name: Production usage limits check
@@ -42,7 +42,7 @@ jobs:
         continue-on-error: true
         working-directory: .
         run: |
-          curl -fsS -m 120 https://fse-api.onrender.com/api/health/limits | tee limits.json; echo
+          curl -fsS -m 120 https://api.variater.com/api/health/limits | tee limits.json; echo
           jq -e '.store == "upstash" and .upstash.reachable and (.upstash.over_budget | not)' limits.json
       # Security headers, content security policy and CORS on the web app
       # and the API (PLAN.md 1.7)
@@ -50,7 +50,7 @@ jobs:
         id: headers
         continue-on-error: true
         working-directory: .
-        run: python3 ops/check_headers.py --web https://fse-ml.vercel.app --api https://fse-api.onrender.com
+        run: python3 ops/check_headers.py --web https://variater.com --api https://api.variater.com
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:live

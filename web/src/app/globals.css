@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * FSE/ML design tokens. Agreed in step 1 (see CLAUDE.md, "Design system"):
+ * Variater design tokens. Agreed in step 1 (see CLAUDE.md, "Design system"):
  * Tape colours, zoned type, thickened Michroma for inputs, square corners.
  * Screens use only these tokens and the type roles below.
  */

@@ -1,7 +1,7 @@
 """Header scan of a deployed copy (PLAN.md 1.7): security headers, the content
 security policy and CORS, on the web app and the API.
 
-    python3 ops/check_headers.py --web https://fse-ml.vercel.app --api https://fse-api.onrender.com
+    python3 ops/check_headers.py --web https://variater.com --api https://api.variater.com
 
 - Web: ``/sign-in`` (a page anyone may open) is fetched twice. It must carry a
   strict content security policy with a fresh nonce each time, HSTS, nosniff,

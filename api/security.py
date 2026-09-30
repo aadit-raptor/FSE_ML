@@ -143,7 +143,7 @@ def _apply(headers: MutableHeaders, csp: str) -> None:
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
-PRODUCTION_WEB_ORIGIN = "https://fse-ml.vercel.app"
+PRODUCTION_WEB_ORIGIN = "https://variater.com"  # PLAN.md 0.2; www and the old address redirect here
 LOCAL_WEB_ORIGIN = "http://localhost:3000"
 
 # Browser origins allowed per environment when FSE_CORS_ORIGINS is unset.
