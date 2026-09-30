@@ -207,13 +207,18 @@ IFRS_ITEMS: dict[str, list[str]] = {
 LINE_ITEMS = {US_GAAP: US_GAAP_ITEMS, IFRS: IFRS_ITEMS}
 
 # Leases (money a year, and the liability at the year end). ``lease_cost`` is
-# what the leases cost in cash a year: under IFRS 16 the lease payments
-# (principal and interest, shown in financing); under US GAAP the operating
-# lease cost, which sits in operating expenses.
+# what the leases cost in cash a year. Under IFRS 16 that is the principal
+# repaid on lease liabilities (in financing) plus the interest on them, which
+# filers tag separately and not always (``lease_interest``; without it the
+# cost is the principal only, and the EDGAR answer says so). Under US GAAP it
+# is the operating lease cost, which sits in operating expenses. A filing's
+# cost comes from **one** concept for every year (ml/edgar_extractor.py), so
+# a forward payment never sits beside a past cost.
 LEASE_ITEMS: dict[str, dict[str, list[str]]] = {
     IFRS: {
         'lease_cost': ['PaymentsOfLeaseLiabilitiesClassifiedAsFinancingActivities',
                        'PaymentsOfLeaseLiabilities'],
+        'lease_interest': ['InterestExpenseOnLeaseLiabilities'],
         'lease_liability': ['LeaseLiabilities'],
         'lease_liability_current': ['CurrentLeaseLiabilities'],
         'lease_liability_noncurrent': ['NoncurrentLeaseLiabilities'],
@@ -223,6 +228,8 @@ LEASE_ITEMS: dict[str, dict[str, list[str]]] = {
         # rent expense, or at least next year's payments due
         'lease_cost': ['OperatingLeaseCost', 'OperatingLeasePayments', 'LeaseAndRentalExpense',
                        'LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths'],
+        # The operating lease cost already includes the interest-like part
+        'lease_interest': [],
         'lease_liability': ['OperatingLeaseLiability'],
         'lease_liability_current': ['OperatingLeaseLiabilityCurrent'],
         'lease_liability_noncurrent': ['OperatingLeaseLiabilityNoncurrent'],
@@ -238,7 +245,9 @@ def lease_figures(items: dict[str, list[float]]) -> dict[str, list[float]]:
     parts = [c + n for c, n in zip(items.get('lease_liability_current') or [],
                                    items.get('lease_liability_noncurrent') or [])]
     liability = [t or p for t, p in zip(total, parts)] if total and parts else (total or parts)
-    return {'lease_cost': list(items.get('lease_cost') or []), 'lease_liability': liability}
+    cost = list(items.get('lease_cost') or [])
+    interest = list(items.get('lease_interest') or [0.0] * len(cost))
+    return {'lease_cost': [c + i for c, i in zip(cost, interest)], 'lease_liability': liability}
 
 
 # ---------------------------------------------------------------------------

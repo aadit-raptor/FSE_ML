@@ -76,6 +76,10 @@ class ExtractedFinancials:
     currency: str = "USD"
     # lease_cost and lease_liability, one value per year (core.accounting)
     leases: Dict[str, List[float]] = field(default_factory=dict)
+    # The concept the lease cost was read from, the same for every year
+    lease_cost_basis: str = ""
+    # Whether the filing tags interest on lease liabilities (IFRS 16)
+    lease_interest_tagged: bool = False
 
 
 def _get_cik_from_ticker(ticker: str) -> Optional[str]:
@@ -297,12 +301,28 @@ def _merged(facts_data: dict, tags: List[str], years_wanted: List[int], src: _So
     return merged
 
 
-def _leases(facts_data: dict, years_wanted: List[int], src: _Source) -> Dict[str, List[float]]:
+def _single_tag(facts_data: dict, tags: List[str], years_wanted: List[int], src: _Source):
+    """(values, tag) from one concept for every year: the first with a value
+    for the latest year, else the first with any. Mixing concepts year by
+    year would put a forward payment beside a past cost."""
+    found = [(tag, _get_annual_values(facts_data, tag, years_wanted, src)) for tag in tags]
+    found = [(tag, v) for tag, v in found if v and any(x is not None for x in v)]
+    if not found:
+        return [None] * len(years_wanted), ""
+    tag, values = next(((tag, v) for tag, v in found if v[-1] is not None), found[0])
+    return values, tag
+
+
+def _leases(facts_data: dict, years_wanted: List[int], src: _Source):
     """The lease cost and liability per year (core.accounting.LEASE_ITEMS),
-    0.0 where the filing tags none."""
+    0.0 where the filing tags none; the concept the cost came from; and
+    whether interest on lease liabilities is tagged."""
     items = {name: [v or 0.0 for v in _merged(facts_data, tags, years_wanted, src)]
-             for name, tags in LEASE_ITEMS[src.standard].items()}
-    return lease_figures(items)
+             for name, tags in LEASE_ITEMS[src.standard].items() if name != 'lease_cost'}
+    cost, basis = _single_tag(facts_data, LEASE_ITEMS[src.standard]['lease_cost'], years_wanted, src)
+    items['lease_cost'] = [v or 0.0 for v in cost]
+    interest_tagged = any(items.get('lease_interest') or [])
+    return lease_figures(items), basis, interest_tagged
 
 
 def _source(facts_data: dict) -> _Source:
@@ -461,6 +481,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
     # by the calendar year the period ends in, one too many for a 52/53-week
     # year that ends in early January
     year_end = _fiscal_year_end(facts_data, src)
+    leases, lease_basis, interest_tagged = _leases(facts_data, years_wanted, src)
     shift = year_end[0] - latest_fy if year_end and year_end[0] < latest_fy else 0
     return ExtractedFinancials(
         ticker=ticker,
@@ -471,7 +492,7 @@ def fetch_financials(ticker: str, n_years: int = 5) -> ExtractedFinancials:
         fiscal_year_end_month=year_end[1] if year_end else None,
         accounting_standard=src.standard,
         currency=src.currency,
-        leases=_leases(facts_data, years_wanted, src),
+        leases=leases, lease_cost_basis=lease_basis, lease_interest_tagged=interest_tagged,
     )
 
 

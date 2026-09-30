@@ -174,13 +174,16 @@ def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash
     """Sources & uses of funds for a deal financed with senior + mezz multiples.
 
     Minimum cash left on the balance sheet at close is a use of funds, as in
-    the engine (finding 1). A deal priced post-IFRS 16 values the business
-    with its leases and pays that value less the lease liability it takes
-    over (PLAN.md 2.6); the debt multiples stay multiples of ``ebitda``.
+    the engine (finding 1). With leases (PLAN.md 2.6) everything is sized on
+    the EBITDA the deal is valued on, as the engine sizes it: the entry EV,
+    and the debt multiples, which the screen derives from ``debt_pct``; a
+    deal priced post-IFRS 16 pays that EV less the lease liability it takes
+    over.
     """
-    entry_ev       = ebitda * entry_mult if leases is None else valuation_ebitda(leases) * entry_mult
+    base           = ebitda if leases is None else valuation_ebitda(leases)
+    entry_ev       = base * entry_mult
     assumed        = 0.0 if leases is None else leases.debt_like
-    total_debt_abs = (senior_x + mezz_x) * ebitda
+    total_debt_abs = (senior_x + mezz_x) * base
     tx_fees        = entry_ev * cfg['tx_fee_pct'] / 100
     fin_fees       = total_debt_abs * cfg['fin_fee_pct'] / 100
     total_uses     = entry_ev - assumed + tx_fees + fin_fees + cfg['other_uses'] + mincash
@@ -189,8 +192,8 @@ def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash
     total_sources  = total_debt_abs + sponsor_eq
     check          = total_sources - total_uses
     return {
-        "senior_debt": senior_x * ebitda,
-        "mezz_debt": mezz_x * ebitda,
+        "senior_debt": senior_x * base,
+        "mezz_debt": mezz_x * base,
         "sponsor_equity": sponsor_eq,
         "total_sources": total_sources,
         "equity_purchase_price": entry_ev - assumed,

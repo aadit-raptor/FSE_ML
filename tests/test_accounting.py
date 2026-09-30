@@ -400,3 +400,82 @@ def test_the_heatmap_values_the_leases_too():
     post = ifrs(POST_IFRS16)
     as_if_none = dataclasses.replace(post, lease_view=POST_IFRS16, lease_liability=0.0, lease_cost=10.0)
     assert not np.allclose(grid(post), grid(as_if_none))
+
+
+# Every standard and view: the screen's sources and uses and "use explicit
+# tranches" must describe the deal the model runs (review of 2.6a)
+CASES = [(IFRS, PRE_IFRS16), (IFRS, POST_IFRS16), (US_GAAP, PRE_IFRS16), (US_GAAP, POST_IFRS16)]
+
+
+@pytest.mark.parametrize("standard, view", CASES)
+def test_sources_and_uses_match_the_deal_model_in_every_view(standard, view):
+    """The screen sends the percentages as multiples of EBITDA; the debt and
+    the sponsor equity it shows must be the run's."""
+    d = deal(accounting_standard=standard, lease_view=view, lease_cost=20.0, lease_liability=120.0)
+    r = run_deal(d, resolve_config({}))
+    body = client.post("/api/deal/sources-and-uses", json={
+        "ebitda": d.ebitda, "entry_mult": d.entry_mult, "senior_x": 10 * 0.6 * 0.7,
+        "mezz_x": 10 * 0.6 * 0.3, "accounting_standard": standard, "lease_view": view,
+        "lease_cost": 20.0, "lease_liability": 120.0}).json()
+    assert body["senior_debt"] + body["mezz_debt"] == pytest.approx(r.capital_structure.total_debt, abs=0.01)
+    assert body["sponsor_equity"] == pytest.approx(r.returns.entry_equity, abs=0.01)
+
+
+@pytest.mark.parametrize("standard, view", CASES)
+def test_writing_a_leased_deal_out_as_tranches_changes_nothing(standard, view):
+    from core.debt import equivalent_tranches
+
+    d = deal(accounting_standard=standard, lease_view=view, lease_cost=20.0, lease_liability=120.0)
+    cfg = resolve_config({})
+    explicit = run_deal(dataclasses.replace(d, tranches=equivalent_tranches(d, cfg)), cfg)
+    r = run_deal(d, cfg)
+    assert explicit.returns.irr == pytest.approx(r.returns.irr, abs=1e-9)
+    assert explicit.returns.entry_equity == pytest.approx(r.returns.entry_equity, abs=1e-9)
+
+
+def test_ifrs_lease_cost_adds_the_interest_when_the_filing_tags_it():
+    """Under IFRS 16 the cash cost of leases is the principal repaid plus the
+    interest on the liability; SAP's 20-F tags only the principal (299) for
+    2025, so the answer says the cost is principal only."""
+    from core.accounting import lease_figures
+
+    got = lease_figures({"lease_cost": [299.0, 310.0], "lease_interest": [0.0, 25.0],
+                         "lease_liability": [1684.0, 1700.0]})
+    assert got["lease_cost"] == [299.0, 335.0]
+
+
+def test_the_sap_answer_says_its_lease_cost_is_principal_only(monkeypatch):
+    serve_filing(monkeypatch, "sap", 1000184, "SAP", "SAP SE")
+    body = client.get("/api/edgar/SAP").json()
+    assert any("principal" in w and "interest" in w for w in body["warnings"])
+
+
+def test_a_lease_cost_comes_from_one_concept_for_every_year(monkeypatch):
+    """Mixing concepts year by year would put a forward payment beside a past
+    cost. McDonald's tags no lease cost, so every year is next year's
+    payments due, and the answer says so."""
+    ee = serve_filing(monkeypatch, "mcd", 63908, "MCD", "MCDONALDS CORP")
+    x = ee.fetch_financials("MCD", n_years=3)
+    assert x.lease_cost_basis == "LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths"
+    # The 2023, 2024 and 2025 10-Ks, by hand
+    assert x.leases["lease_cost"] == [pytest.approx(1126.3), pytest.approx(1087.0), pytest.approx(1200.0)]
+    body = client.get("/api/edgar/MCD").json()
+    assert any("payments due" in w for w in body["warnings"])
+
+
+def test_the_lease_cost_concept_is_the_first_with_the_latest_year():
+    """A filer that switched concepts: the preferred one has only the latest
+    year, an older one has every year. Every year comes from the preferred
+    one, never a mix of the two."""
+    from ml.edgar_extractor import US_SOURCE, _single_tag
+
+    def rows(values):
+        return {"units": {"USD": [{"end": f"{y}-12-31", "val": v * 1e6, "form": "10-K", "fp": "FY",
+                                   "filed": f"{y + 1}-02-01"} for y, v in values.items()]}}
+
+    facts = {"facts": {"us-gaap": {"OperatingLeaseCost": rows({2025: 50.0}),
+                                   "LeaseAndRentalExpense": rows({2023: 40.0, 2024: 45.0, 2025: 48.0}),
+                                   "OperatingLeasePayments": rows({2023: 30.0})}}}
+    tags = ["OperatingLeaseCost", "OperatingLeasePayments", "LeaseAndRentalExpense"]
+    values, tag = _single_tag(facts, tags, [2023, 2024, 2025], US_SOURCE)
+    assert tag == "OperatingLeaseCost" and values == [None, None, 50.0]

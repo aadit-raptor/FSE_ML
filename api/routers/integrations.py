@@ -167,6 +167,13 @@ def get_edgar(ticker: str):
     if not latest_liability:
         warnings.append(f"The filing tags no lease liability for FY{extracted.years[-1] if extracted.years else ''}: "
                         "enter it from the annual report if the company leases")
+    latest_cost = (leases.get("lease_cost") or [0.0])[-1]
+    if latest_cost and extracted.accounting_standard == "ifrs" and not extracted.lease_interest_tagged:
+        warnings.append("The lease cost is the principal repaid on lease liabilities only: the filing "
+                        "tags no interest on them, so add it from the annual report's lease note")
+    if extracted.lease_cost_basis == "LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths":
+        warnings.append("The filing tags no lease cost: the lease cost shown is each year's lease "
+                        "payments due over the next twelve months")
     data = extracted.data
     deal_inputs = {
         # EBITDA as the standard reports it: before lease costs under IFRS 16

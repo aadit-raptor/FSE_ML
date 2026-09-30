@@ -9,7 +9,7 @@ import { useMoney } from "@/components/ui/MoneyScope";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { debtShareOfEv, drawnDebt, floatingCount, multiplesFromPct } from "@/lib/deal/capital";
-import { type LEASE_DEFAULTS, leaseInputs, type Tranche } from "@/lib/deal/fields";
+import { DEFAULT_INPUTS, type LEASE_DEFAULTS, leaseInputs, type Tranche } from "@/lib/deal/fields";
 import { fmtCount, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 
@@ -57,7 +57,12 @@ export function InputsStep() {
   const t = useTranslations("deal");
   const hurdleSub = useHurdleSub();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
-  const leases = useMemo(() => leaseInputs(inputs), [inputs]);
+  // Memoised on the four values, so an edit elsewhere doesn't refetch sources and uses
+  const { accounting_standard, lease_view, lease_cost, lease_liability } = inputs;
+  const leases = useMemo(
+    () => leaseInputs({ ...DEFAULT_INPUTS, accounting_standard, lease_view, lease_cost, lease_liability }),
+    [accounting_standard, lease_view, lease_cost, lease_liability],
+  );
   const su = useSourcesAndUses(
     inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash, inputs.tranches,
     leases,

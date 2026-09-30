@@ -406,7 +406,18 @@ forms) -- US GAAP from a 10-K in USD when the filer has one, else IFRS from a
 recorded in `tests/fixtures/edgar/` (trimmed to mapped concepts and annual
 rows): SAP's 20-F maps figure by figure, McDonald's 10-K must equal
 `mcd_expected_before_2_6.json`. A forecast request takes the company's
-`accounting_standard` as a label and echoes it. 2.6b (the screen) is next.
+`accounting_standard` as a label and echoes it (the web sends it only when a
+filing set one, so an older API never sees it). Decisions from the 2.6a
+review: with leases **everything a percentage sizes is sized on the
+valuation EBITDA**, as the engine does -- sources and uses (the screen's debt
+multiples too) and `equivalent_tranches` (and its web mirror,
+`lib/deal/capital.ts` `valuationEbitda`), each tested against `run_deal` in
+all four standard/view pairs; a filing's lease cost comes from **one
+concept for every year** (`_single_tag`), and an IFRS cost adds interest on
+lease liabilities when tagged, else the answer says it is principal only;
+McDonald's tags no lease cost, so its cost is next year's payments due and
+the answer says so. Left as is: the capital-structure summary's multiples
+and the risk score read the EBITDA as entered. 2.6b (the screen) is next.
 
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
