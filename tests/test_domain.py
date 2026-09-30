@@ -23,6 +23,7 @@ OLD_HOSTS = ("fse-ml.vercel.app", "fse-api.onrender.com")
 ALLOWED = {
     "web/next.config.ts": "the redirect from the old address",
     "web/e2e/live.spec.ts": "checks the old address redirects",
+    "web/e2e/domain.spec.ts": "checks the redirect rule by Host header",
     "tests/test_domain.py": "this file",
     "tests/test_security.py": "checks the old origin is refused",
     "CLAUDE.md": "history",
