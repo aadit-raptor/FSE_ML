@@ -51,6 +51,15 @@ export function numberStyle(): NumberStyle {
   return current;
 }
 
+/** A country's name in the account's language, from its ISO 3166-1 code ("GB" -> "United Kingdom"). */
+export function regionName(code: string): string {
+  try {
+    return new Intl.DisplayNames([current.locale], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 function latin(locale: string): string {
   try {
     return new Intl.Locale(locale, { numberingSystem: "latn" }).toString();

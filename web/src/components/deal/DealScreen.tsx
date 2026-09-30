@@ -11,7 +11,7 @@ import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton, Switch } fro
 import { multiplesFromPct, pctFromMultiples } from "@/lib/deal/capital";
 import { FIELDS, type DealInputs, type FieldSpec, type NumericDealKey } from "@/lib/deal/fields";
 import { fmtInput } from "@/lib/format";
-import { monthName } from "@/lib/locale";
+import { monthName, regionName } from "@/lib/locale";
 
 import { type DealSaveState, useDeal } from "./DealProvider";
 
@@ -75,13 +75,13 @@ const SAVE_KEY: Record<DealSaveState, string> = { unsaved: "saveNotSaved", savin
 const SAVE_TONE: Record<DealSaveState, string> = { unsaved: "text-attention", saving: "text-dim", saved: "text-dim", error: "text-loss" };
 
 /** i18n-keys: fields.* */
-export function DealField({ name, disabled }: { name: NumericDealKey; disabled?: boolean }) {
+export function DealField({ name, disabled, label }: { name: NumericDealKey; disabled?: boolean; label?: string }) {
   const { inputs, setField, pending, autoUpdate } = useDeal();
   const fields = useTranslations("fields");
   return (
     <NumberField
       spec={FIELDS[name]}
-      label={fields(name)}
+      label={label ?? fields(name)}
       value={inputs[name]}
       onCommit={(v) => setField(name, v)}
       disabled={disabled}
@@ -172,6 +172,9 @@ export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof
   return useCallback(
     (key, v) => {
       if (Array.isArray(v)) return t("facilityCount", { count: v.length });
+      // i18n-keys: deal.taxLimit_*
+      if (key === "tax_interest_limit" && typeof v === "string") return t(`taxLimit_${v}`);
+      if (key === "tax_preset" && typeof v === "string") return v ? regionName(v) : t("taxPresetNone");
       if (key === "fiscal_year_end_month" && typeof v === "number") return monthName(v);
       if (key === "first_fiscal_year") return v === null ? fields("none") : String(v);
       if (typeof v === "boolean") return v ? fields("on") : fields("off");

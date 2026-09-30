@@ -10,6 +10,24 @@ export type DealInputs = Required<Schemas["DealInputsIn"]>;
 export type DealRun = Schemas["DealRunResponse"];
 /** Fiscal year labels (PLAN.md 2.3a): not model inputs, set in their own rail group */
 export type FiscalDealKey = "fiscal_year_end_month" | "first_fiscal_year";
+
+/**
+ * Tax rules beyond the flat rate (PLAN.md 2.5), all off: core/tax.py
+ * RULE_DEFAULTS. Stored and sent only when they differ, as the API stores them.
+ */
+export const TAX_RULE_DEFAULTS = {
+  tax_preset: "",
+  tax_interest_limit: "none",
+  tax_interest_limit_pct: 30,
+  tax_interest_limit_amount: 0,
+  tax_loss_carryforward: false,
+  tax_loss_limit_pct: 100,
+  tax_loss_limit_amount: 0,
+  tax_minimum_pct: 0,
+} as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
+type TaxRuleKey = keyof typeof TAX_RULE_DEFAULTS;
+/** Money among the tax rules, converted with the deal when its unit changes */
+export const TAX_MONEY_KEYS = ["tax_interest_limit_amount", "tax_loss_limit_amount"] as const;
 export type NumericDealKey = Exclude<{ [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs], FiscalDealKey>;
 
 /** Matches the API's DealInputsIn defaults (api/schemas.py). */
@@ -39,6 +57,7 @@ export const DEFAULT_INPUTS: DealInputs = {
   fiscal_year_end_month: 12,
   first_fiscal_year: null,
   tranches: [],
+  ...TAX_RULE_DEFAULTS,
 };
 
 /**
@@ -47,7 +66,10 @@ export const DEFAULT_INPUTS: DealInputs = {
  * answering every deal that doesn't use them.
  */
 export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
-  const { fiscal_year_end_month, first_fiscal_year, tranches, ...rest } = inputs;
+  const { fiscal_year_end_month, first_fiscal_year, tranches, ...all } = inputs;
+  const rest = Object.fromEntries(
+    Object.entries(all).filter(([k, v]) => !(k in TAX_RULE_DEFAULTS) || v !== TAX_RULE_DEFAULTS[k as TaxRuleKey]),
+  );
   // The generated type lists every defaulted field as present; the API fills in the ones left out
   return {
     ...rest,
@@ -99,6 +121,12 @@ export const FIELDS: Record<NumericDealKey, FieldSpec> = {
   ar_days: { unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
   inv_days: { unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
   ap_days: { unit: "d", step: 1, decimals: 0, min: 0, max: 365 },
+  // Tax rules (PLAN.md 2.5); bounds mirror DealInputsIn
+  tax_interest_limit_pct: { unit: "%", step: 1, decimals: 1, min: 0, max: 100 },
+  tax_interest_limit_amount: { unit: MONEY, step: 1, decimals: 1, min: 0, max: 1e15 },
+  tax_loss_limit_pct: { unit: "%", step: 5, decimals: 1, min: 0, max: 100 },
+  tax_loss_limit_amount: { unit: MONEY, step: 1, decimals: 1, min: 0, max: 1e15 },
+  tax_minimum_pct: { unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
 };
 
 export { changedKeys, validate };

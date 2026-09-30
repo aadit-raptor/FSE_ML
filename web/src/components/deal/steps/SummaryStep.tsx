@@ -126,6 +126,22 @@ function SummaryResults() {
     { label: t("rowNetIncome"), values: om.net_income ?? [], total: true },
     { label: t("rowEbitdaMargin"), values: om.ebitda_margin ?? [], kind: "rate" },
   ];
+  // The deal's tax rules at work (PLAN.md 2.5); a deal with none has no tax
+  // block. The minimum-tax row shows only when it ever raises the tax.
+  const tx = res.tax;
+  const taxRows: Row[] | null = tx
+    ? [
+        { label: t("rowTaxableIncome"), values: tx.taxable_income ?? [] },
+        { label: t("rowInterestDeducted"), values: tx.interest_deductible ?? [] },
+        { label: t("rowInterestCarried"), values: tx.interest_carried ?? [] },
+        { label: t("rowLossesUsed"), values: tx.losses_used ?? [] },
+        { label: t("rowLossesCarried"), values: tx.losses_carried ?? [] },
+        ...((tx.minimum_tax_topup ?? []).some((v) => (v ?? 0) > 0)
+          ? [{ label: t("rowMinimumTaxTopup"), values: tx.minimum_tax_topup ?? [] }]
+          : []),
+        { label: t("rowTaxes"), values: tx.taxes ?? [], kind: "outflow", total: true },
+      ]
+    : null;
   const cashRows: Row[] = [
     { label: t("rowNetIncome"), values: cf.net_income ?? [] },
     { label: t("rowDa"), values: cf.da ?? [] },
@@ -187,6 +203,7 @@ function SummaryResults() {
   );
   const allSheets = () => [
     tableSheet(x("sheetPl"), years, incomeRows),
+    ...(taxRows ? [tableSheet(x("sheetTax"), years, taxRows)] : []),
     tableSheet(x("sheetCashFlow"), years, cashRows),
     tableSheet(x("sheetDebtSchedule"), years, debtRows),
     ...Object.entries(res.tranches).map(([name, rows]) =>
@@ -238,6 +255,16 @@ function SummaryResults() {
       >
         <DataTable caption={t("incomeStatementByYear")} columns={years} rows={incomeRows} />
       </Tile>
+      {taxRows && (
+        <Tile
+          span={12}
+          title={t("tileTax")}
+          unit={mu}
+          action={<DownloadButton onDownload={() => downloadWorkbook(x("fileTax"), [tableSheet(x("sheetTax"), years, taxRows)], money)} />}
+        >
+          <DataTable caption={t("taxByYear")} columns={years} rows={taxRows} />
+        </Tile>
+      )}
       <Tile
         span={6}
         title={t("tileCashFlow")}

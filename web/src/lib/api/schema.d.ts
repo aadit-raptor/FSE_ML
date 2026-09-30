@@ -3002,21 +3002,21 @@ export interface components {
         /** TaxSchedule */
         TaxSchedule: {
             /** Interest Carried */
-            interest_carried?: unknown[];
+            interest_carried?: (number | null)[];
             /** Interest Deductible */
-            interest_deductible?: unknown[];
+            interest_deductible?: (number | null)[];
             /** Losses Carried */
-            losses_carried?: unknown[];
+            losses_carried?: (number | null)[];
             /** Losses Used */
-            losses_used?: unknown[];
+            losses_used?: (number | null)[];
             /** Minimum Tax Topup */
-            minimum_tax_topup?: unknown[];
+            minimum_tax_topup?: (number | null)[];
             /** Regular Tax */
-            regular_tax?: unknown[];
+            regular_tax?: (number | null)[];
             /** Taxable Income */
-            taxable_income?: unknown[];
+            taxable_income?: (number | null)[];
             /** Taxes */
-            taxes?: unknown[];
+            taxes?: (number | null)[];
             /** Years */
             years?: number[];
         };

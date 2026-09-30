@@ -17,6 +17,7 @@ import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
 import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup, TranchesOnDebtStep } from "../DealScreen";
 import { useHurdleSub } from "./shared";
+import { TaxRules } from "./TaxRules";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
 
@@ -77,7 +78,9 @@ export function InputsStep() {
             <DealField name="growth" />
             <DealField name="gross_margin" />
             <DealField name="opex" />
-            <DealField name="tax" />
+          </RailGroup>
+          <RailGroup title={t("groupTax")}>
+            <TaxRules />
           </RailGroup>
           <RailGroup title={t("groupFinancing")}>
             {inputs.tranches.length ? (

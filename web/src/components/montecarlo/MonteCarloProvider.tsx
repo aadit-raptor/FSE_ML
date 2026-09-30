@@ -98,6 +98,8 @@ function simFromSettings(s: Settings): SimInputs {
 /** Deal inputs the simulation reads (core/montecarlo.py::build_sim_params); others don't make it stale. */
 const SIM_DEAL_KEYS: (keyof DealInputs)[] = [
   "ebitda", "entry_mult", "hold", "opex", "da", "tax", "capex", "nwc", "debt_pct", "senior_pct", "mezz_spread", "tranches",
+  "tax_interest_limit", "tax_interest_limit_pct", "tax_interest_limit_amount", "tax_loss_carryforward",
+  "tax_loss_limit_pct", "tax_loss_limit_amount", "tax_minimum_pct",
 ];
 
 type Snapshot = { sim: SimInputs; deal: DealInputs; settings: Settings; scenario: Scenario | null; seed: number | null };

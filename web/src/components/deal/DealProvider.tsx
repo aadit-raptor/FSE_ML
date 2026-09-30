@@ -197,6 +197,8 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
               ...prev, currency: next.currency, unit: next.unit,
               ebitda: prev.ebitda * k, mincash: prev.mincash * k,
               tranches: tranchesInUnit(prev.tranches, k),
+              tax_interest_limit_amount: prev.tax_interest_limit_amount * k,
+              tax_loss_limit_amount: prev.tax_loss_limit_amount * k,
             };
       });
       const k = unitFactor(inputs.unit, next.unit);

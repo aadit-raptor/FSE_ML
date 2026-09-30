@@ -5750,42 +5750,114 @@
       "TaxSchedule": {
         "properties": {
           "interest_carried": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Interest Carried",
             "type": "array"
           },
           "interest_deductible": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Interest Deductible",
             "type": "array"
           },
           "losses_carried": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Losses Carried",
             "type": "array"
           },
           "losses_used": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Losses Used",
             "type": "array"
           },
           "minimum_tax_topup": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Minimum Tax Topup",
             "type": "array"
           },
           "regular_tax": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Regular Tax",
             "type": "array"
           },
           "taxable_income": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Taxable Income",
             "type": "array"
           },
           "taxes": {
-            "items": {},
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "title": "Taxes",
             "type": "array"
           },

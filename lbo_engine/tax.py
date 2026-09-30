@@ -72,15 +72,17 @@ class TaxSchedule:
     """The tax computation year by year (M). Lists of numbers for a deal,
     lists of arrays of paths in the simulation."""
 
+    # Annotated as numbers for the API's schema; in the simulation each entry
+    # is an array of paths instead (a dataclass does not check)
     years: List[int] = field(default_factory=list)
-    taxable_income: list = field(default_factory=list)
-    interest_deductible: list = field(default_factory=list)
-    interest_carried: list = field(default_factory=list)   # disallowed, at the year's end
-    losses_used: list = field(default_factory=list)
-    losses_carried: list = field(default_factory=list)     # at the year's end
-    regular_tax: list = field(default_factory=list)
-    minimum_tax_topup: list = field(default_factory=list)
-    taxes: list = field(default_factory=list)
+    taxable_income: List[float] = field(default_factory=list)
+    interest_deductible: List[float] = field(default_factory=list)
+    interest_carried: List[float] = field(default_factory=list)   # disallowed, at the year's end
+    losses_used: List[float] = field(default_factory=list)
+    losses_carried: List[float] = field(default_factory=list)     # at the year's end
+    regular_tax: List[float] = field(default_factory=list)
+    minimum_tax_topup: List[float] = field(default_factory=list)
+    taxes: List[float] = field(default_factory=list)
 
 
 def _plain(x):
