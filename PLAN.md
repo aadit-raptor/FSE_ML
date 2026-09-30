@@ -218,11 +218,31 @@ is run.
   deal shows 21.2% IRR; URLs are in CLAUDE.md.
 
 ### 0.2 Your own domain
+- **Decided 2026-10-01:** the product is named **Variater** (a coined
+  spelling: `variator.com` has been taken since 2000, and "variator" is a
+  scooter part). **`variater.com` is bought** at Cloudflare Registrar, one
+  year at cost, auto-renew on, DNS at Cloudflare, no records yet. Other
+  endings (`.in`, `.app`) wait for the public launch. Trademark: an Indian
+  filing (IP India, form TM-A, class 42, "proposed to be used") before the
+  public launch; `Variater™` until then; no ® until registered.
+- **Rename scope (proposed; confirm at the start of 0.2):** only what people
+  see -- the brand `app.brand` in `web/messages/en.json` ("FSE/ML"), page
+  titles, README, the Better Stack status page, Clerk's sign-in branding.
+  Internal names stay: `FSE_*` settings and GitHub secrets, the `fse_app` /
+  `fse_api` database roles (migration 0005), the backup file format, the
+  Vercel, Render and Neon service names, the repository and its folder.
+- **Still to decide at the start of 0.2:** map today's development-instance
+  accounts to their new Clerk ids, or drop them as test data.
 - **You first:**
-  - buy the domain. Cloudflare Registrar is recommended: it charges the
-    registry's price with no markup, renewals don't jump and DNS is free.
-    Porkbun is a good alternative. Prefer `.com`; `.app` is fine (HTTPS only);
-  - keep its DNS at the registrar (Cloudflare) and tell Claude the name;
+  - ~~buy the domain~~ (done: `variater.com`, Cloudflare);
+  - keep its DNS at the registrar (Cloudflare);
+  - (done 2026-10-01: Clerk production instance for `variater.com` created
+    by cloning the development one; its five CNAMEs -- `clerk`, `accounts`,
+    `clkmail`, `clk._domainkey`, `clk2._domainkey` -- are in Cloudflare,
+    DNS only, and resolve publicly. Its keys are **not** in Vercel or Render
+    yet: they go in at the switch-over, since a production instance can't
+    serve `fse-ml.vercel.app`. Google sign-in still needs custom OAuth
+    credentials.)
   - in Clerk, create the **production instance** for that domain (a Clerk
     production instance can't use `*.vercel.app`), and put its keys in
     Vercel and Render;

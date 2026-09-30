@@ -414,8 +414,10 @@ formats and fiscal years) and **2.3b** (interface text in translation files,
 right to left), both below. 2.4 was split the same way and is done: **2.4a**
 (the model — debt structures of any shape and floating rates) and **2.4b**
 (the simulation and the Debt step's editor), both below. 2.5 is done (tax
-rules, below). **Next is 2.6** (accounting standards, IFRS and US GAAP); 0.2
-jumps the queue once the domain is bought. End every task session with the handoff described in PLAN.md: tell the
+rules, below). **Next is 2.6** (accounting standards, IFRS and US GAAP), except that **0.2 jumps the
+queue**: the domain **`variater.com` was bought on 2026-10-01** (Cloudflare)
+and the product is being renamed **Variater** (scope and open questions in
+PLAN.md 0.2). End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
