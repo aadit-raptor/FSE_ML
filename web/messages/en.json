@@ -197,7 +197,11 @@
     "tranche_sweep": "Takes the cash sweep",
     "tranche_sweep_share": "Share of the sweep",
     "tranche_pik_share": "Coupon paid in kind",
-    "tranche_allow_redraw": "Draws to cover a shortfall"
+    "tranche_allow_redraw": "Draws to cover a shortfall",
+    "accounting_standard": "Accounting standard",
+    "lease_view": "Priced on",
+    "lease_cost": "Lease cost a year",
+    "lease_liability": "Lease liability"
   },
   "trancheKinds": {
     "amortising_term_loan": "Amortising term loan",
@@ -493,7 +497,27 @@
     "rowCashInterest": "Cash interest",
     "rowPikAccrued": "PIK accrued",
     "rowCommitmentFee": "Commitment fee",
-    "rowRedrawn": "Drawn in year"
+    "rowRedrawn": "Drawn in year",
+    "groupAccounting": "Accounting and leases",
+    "standard_": "Not stated",
+    "standard_ifrs": "IFRS",
+    "standard_us_gaap": "US GAAP",
+    "leaseView_": "The standard's own ({own})",
+    "leaseView_pre_ifrs16": "Pre-IFRS 16",
+    "leaseView_post_ifrs16": "Post-IFRS 16",
+    "leaseNote": "EBITDA is as the standard reports it: before lease costs under IFRS 16, after them under US GAAP. Pre-IFRS 16 values EBITDA after lease costs and leaves the leases out of net debt; post-IFRS 16 values it before them and counts the lease liability as debt. Lease cost and liability are held flat over the hold.",
+    "tileLeases": "Leases",
+    "leasesSub": "Priced {view}",
+    "rowOperatingEbitda": "EBITDA after lease costs",
+    "rowValuationEbitda": "EBITDA the multiple values",
+    "rowEntryEv": "Entry EV",
+    "rowLeaseCost": "Lease cost a year",
+    "rowLeaseLiability": "Lease liability",
+    "rowNetDebtAtEntry": "Net debt at entry",
+    "leasesAsDebt": "Counted as debt at entry and exit",
+    "leasesNotDebt": "Not counted as debt",
+    "rowPurchasePriceLessLeases": "Purchase price, less leases taken over",
+    "rowEbitdaAfterLeases": "EBITDA after lease costs"
   },
   "montecarlo": {
     "groupFromDeal": "From the deal",
@@ -943,7 +967,10 @@
     "targetsNote": "Targets run from 80% to 120% of plan EBITDA: above plan is the bull case, below plan the bear case.",
     "caseBull": "bull",
     "caseBear": "bear",
-    "caseBase": "base"
+    "caseBase": "base",
+    "groupStandard": "Accounting standard",
+    "useInDeal": "Use in deal",
+    "useInDealNote": "Sets the deal's EBITDA ({ebitda}), currency, standard and leases from the latest year."
   },
   "settings": {
     "def_ebitda": "EBITDA",
@@ -1239,5 +1266,20 @@
   },
   "format": {
     "missing": "n/a"
+  },
+  "standards": {
+    "ifrs": {
+      "rowInterestExpense": "Finance costs",
+      "rowInterestIncome": "Finance income",
+      "rowPretaxIncome": "Profit before tax",
+      "rowPretax": "Profit before tax",
+      "rowTaxes": "Income tax expense",
+      "rowNetIncome": "Profit for the year",
+      "rowAr": "Trade and other receivables",
+      "rowAp": "Trade and other payables",
+      "kpiNetIncome": "Profit for the year {year}",
+      "bridgeNetIncome": "Profit for the year",
+      "rowInterest": "Finance costs"
+    }
   }
 }

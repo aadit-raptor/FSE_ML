@@ -178,9 +178,11 @@ export function drawnDebt(tranches: Schemas["TrancheIn"][]): number {
 }
 
 /** Total debt as a share of EV (%), whichever way the deal sizes it. */
-export function debtShareOfEv(inputs: { ebitda: number; entry_mult: number; debt_pct: number; tranches: Schemas["TrancheIn"][] }): number {
+export function debtShareOfEv(
+  inputs: { ebitda: number; entry_mult: number; debt_pct: number; tranches: Schemas["TrancheIn"][] } & LeaseFields,
+): number {
   if (!inputs.tranches.length) return inputs.debt_pct;
-  const ev = inputs.ebitda * inputs.entry_mult;
+  const ev = valuationEbitda(inputs) * inputs.entry_mult;
   return ev > 0 ? (drawnDebt(inputs.tranches) / ev) * 100 : 0;
 }
 

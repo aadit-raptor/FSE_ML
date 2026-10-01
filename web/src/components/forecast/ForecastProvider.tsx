@@ -16,7 +16,18 @@ const SIM_PATHS = 20000;
 /** Assumptions that are money amounts (the rest are rates, shares and days) */
 const MONEY_ASSUMPTIONS = ["other_inc", "divs", "buybacks", "ltd_chg", "min_cash"];
 
-type Source = { kind: "sample" } | { kind: "edgar"; ticker: string; company: string; years: number[]; warnings: string[] };
+type Source =
+  | { kind: "sample" }
+  | {
+      kind: "edgar";
+      ticker: string;
+      company: string;
+      years: number[];
+      warnings: string[];
+      /** The latest year as deal inputs (PLAN.md 2.6); none from an API before 2.6 */
+      dealInputs?: Schemas["EdgarDealInputs"];
+    };
+export type Standard = Schemas["HistoryRequest"]["accounting_standard"];
 
 type ForecastContext = {
   ready: boolean;
@@ -39,6 +50,9 @@ type ForecastContext = {
   /** The company's fiscal year-end and its latest historical fiscal year (PLAN.md 2.3a); labels only */
   fiscal: Fiscal;
   setFiscal: (fiscal: Fiscal) => void;
+  /** The standard the company reports under (PLAN.md 2.6): a filing says, the user may change it */
+  standard: Standard;
+  setStandard: (standard: Standard) => void;
   /** Column labels: history oldest first ("FY2023/24" ... or "LTM-2" ... "LTM"), then forecast years */
   histLabels: string[];
   fwdLabels: string[];
@@ -68,8 +82,6 @@ function detail(err: unknown, fallback: string): string {
   if (Array.isArray(d)) return d.map((x: { loc?: unknown[]; msg?: string }) => `${x.loc?.slice(1).join(".")}: ${x.msg}`).join("; ");
   return fallback;
 }
-
-type Standard = Schemas["HistoryRequest"]["accounting_standard"];
 
 /**
  * A request body with the company's accounting standard (PLAN.md 2.6), only when a filing gave one:
@@ -188,6 +200,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
     setHistoryState(defaults.history);
     setAssumptions(spread(defaults.seeded_assumptions, defaults.n_fwd));
     setSource({ kind: "sample" });
+    setStandard("");
     setFiscal(NO_FISCAL_YEAR);
     setEdgar({ status: "idle" });
   }, [defaults]);
@@ -208,13 +221,17 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
         const scaled = Object.fromEntries(Object.entries(history).map(([k, v]) => [k, v.map((x) => x * unitFactor(money.unit, data.money.unit))]));
         const merged = { ...scaled, ...Object.fromEntries(Object.entries(data.history).filter(([, v]) => v.length === nHist)) };
         setMoneyState(data.money);
-        setStandard(data.accounting_standard);
+        // An API from before 2.6 (a rollout, a rollback) names no standard
+        setStandard(data.accounting_standard ?? "");
         setHistoryState(merged);
-        setSource({ kind: "edgar", ticker: data.ticker, company: data.company_name, years: data.years, warnings: data.warnings });
+        setSource({
+          kind: "edgar", ticker: data.ticker, company: data.company_name, years: data.years, warnings: data.warnings,
+          dealInputs: data.deal_inputs,
+        });
         // Filings name each fiscal year by the year it ends in (api/routers/integrations.py)
         setFiscal({ endMonth: data.fiscal_year_end_month ?? 12, year: data.years.at(-1) ?? null });
         const seeded = await api.POST("/api/forecasting/seed", {
-          body: withStandard({ history: merged, money: data.money }, data.accounting_standard),
+          body: withStandard({ history: merged, money: data.money }, data.accounting_standard ?? ""),
         });
         if (seeded.data) setAssumptions(spread(seeded.data.seeded_assumptions, nFwd));
         setEdgar({ status: "idle" });
@@ -247,6 +264,8 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       setMoney,
       fiscal,
       setFiscal,
+      standard,
+      setStandard,
       histLabels,
       fwdLabels,
       fetchEdgar,
@@ -259,7 +278,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       simPaths: SIM_PATHS,
       activate,
     }),
-    [defaults, nHist, nFwd, history, assumptions, setHistory, setAssumption, fillAssumption, reseed, resetSample, source, money, setMoney, fiscal, histLabels, fwdLabels, fetchEdgar, edgar, seedInfo, run, activate],
+    [defaults, nHist, nFwd, history, assumptions, setHistory, setAssumption, fillAssumption, reseed, resetSample, source, money, setMoney, fiscal, standard, histLabels, fwdLabels, fetchEdgar, edgar, seedInfo, run, activate],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
