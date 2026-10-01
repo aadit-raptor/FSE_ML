@@ -17,8 +17,8 @@ There are two copies of the app, both on free plans.
 | | Production | Staging |
 |---|---|---|
 | Git branch | `main` | `staging` |
-| Web | Vercel production, https://fse-ml.vercel.app | Vercel preview of the `staging` branch: https://fse-ml-git-staging-aadit7.vercel.app (and a per-commit preview URL). Behind Vercel login |
-| API | Render `fse-api`, https://fse-api.onrender.com | Render `fse-api-staging`, https://fse-api-staging.onrender.com |
+| Web | Vercel production, https://variater.com (`www.` and the old https://fse-ml.vercel.app redirect to it) | Vercel preview of the `staging` branch: https://fse-ml-git-staging-aadit7.vercel.app (and a per-commit preview URL). Behind Vercel login |
+| API | Render `fse-api`, https://api.variater.com (it still answers on https://fse-api.onrender.com) | Render `fse-api-staging`, https://fse-api-staging.onrender.com |
 | `/api/health` | `"environment": "production"` | `"environment": "staging"`; the status bar says `API ok · v0.1.0 · staging` |
 | Browser checks | `.github/workflows/live.yml`, daily | `.github/workflows/staging.yml`, after every push to `staging` |
 
@@ -30,9 +30,9 @@ talks to the production API: `web/next.config.ts` picks the API by
 
 | Variable | Where | Production | Staging | Local |
 |---|---|---|---|---|
-| `FSE_API_URL` | Vercel (Production scope) | `https://fse-api.onrender.com` (required; the build fails without it) | ignored on previews | default `http://127.0.0.1:8000` |
+| `FSE_API_URL` | Vercel (Production scope) | `https://api.variater.com` (required; the build fails without it) | ignored on previews | default `http://127.0.0.1:8000` |
 | `FSE_STAGING_API_URL` | Vercel (Preview scope), optional | — | default `https://fse-api-staging.onrender.com` | — |
-| `FSE_CORS_ORIGINS` | Render service, optional | default `https://fse-ml.vercel.app`; replaces it when set | default none (previews use the proxy) | default `http://localhost:3000` |
+| `FSE_CORS_ORIGINS` | Render service, optional | default `https://variater.com`; replaces it when set | default none (previews use the proxy) | default `http://localhost:3000` |
 | `FRED_API_KEY` | Render service | optional (ML image only) | optional | `.env` |
 | `FSE_ENV` | Render service, optional | derived: `production` | derived from the `-staging` service name | `local` |
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
@@ -138,9 +138,13 @@ Free plan, no card.
 Nothing about the person is stored in this database except Clerk's user id
 (`db/models.py`), and the API never logs it.
 
-While Clerk's keys are `pk_test_`/`sk_test_` the instance is a **development**
-one: free, limited to 100 users, and it shows Clerk's development banner.
-Moving to a production instance needs a custom domain (PLAN.md 12).
+**Two Clerk instances.** Production uses Clerk's **production** instance for
+`variater.com` (keys `pk_live_`/`sk_live_`, section 5); staging, previews and
+local runs keep the **development** instance (`pk_test_`/`sk_test_`: free,
+limited to 100 users, Clerk's development banner), because a production
+instance only serves its own domain and staging stays on Vercel's preview
+addresses. So the `pk_live_` key goes in Vercel's **Production** scope and on
+`fse-api` only; Preview and `fse-api-staging` keep the `pk_test_` key.
 
 **The development sign-in.** Without a Clerk key the web app and the API fall
 back to signing in as `dev:<name>`, which is what local runs and the browser
@@ -155,10 +159,82 @@ longer open to anyone who finds the URL. Large Monte Carlo runs (up to
 until usage limits arrive (PLAN.md 1.6). `FSE_CORS_ORIGINS` on Render can
 also restrict which websites' browsers may call it directly.
 
+## 5. Own domain (variater.com)
+
+PLAN.md 0.2. Production is **https://variater.com** (web) and
+**https://api.variater.com** (API); staging is unchanged. The domain is
+registered at Cloudflare and its DNS stays there. Every record below is
+**DNS only (grey cloud)**, never proxied: Vercel and Render then issue their
+own certificates, and the security headers and CSP stay theirs.
+
+**Clerk production instance** (done 2026-10-01): made by cloning the
+development one; its five CNAMEs (`clerk`, `accounts`, `clkmail`,
+`clk._domainkey`, `clk2._domainkey`) are in Cloudflare. Google sign-in on it
+needs your own Google OAuth client (Clerk → Configure → SSO connections →
+Google → "Use custom credentials"), email sign-in works without.
+
+**Switch-over, in this order:**
+
+1. **Vercel → fse-ml → Settings → Domains**: add `variater.com`, and accept
+   Vercel's offer to add `www.variater.com` redirecting to it. Vercel shows
+   the records to create (typically `A @ 216.198.79.1`, or `76.76.21.21`, and
+   `CNAME www → <something>.vercel-dns….com`): use exactly what it shows.
+2. **Render → fse-api → Settings → Custom Domains**: add `api.variater.com`.
+   Record: `CNAME api → fse-api.onrender.com`.
+3. **Cloudflare → variater.com → DNS → Records**: add those three records,
+   each **DNS only**. Wait until both dashboards say the domain is verified
+   and the certificate is issued (minutes, sometimes an hour).
+4. **Vercel keys** (Clerk → production instance → API keys). Vercel →
+   Environment Variables, **Production scope only**:
+   `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` = `pk_live_…`,
+   `CLERK_SECRET_KEY` = `sk_live_…`, and `FSE_API_URL` =
+   `https://api.variater.com`. Leave the Preview values alone. Nothing
+   changes yet: Vercel applies them on the next production build. Check
+   that `FSE_CORS_ORIGINS` is **not** set on Render's `fse-api` (it would
+   replace the new default origin).
+5. Claude merges the 0.2 pull request and waits for Vercel's production
+   build. From then on `fse-ml.vercel.app` and `www.` redirect every path to
+   `https://variater.com` (`web/next.config.ts`). Hold other merges to
+   `main` from step 4 until step 6 is done.
+6. **Render key, straight after the build**: Render → `fse-api` →
+   Environment, `CLERK_PUBLISHABLE_KEY` = `pk_live_…` (Render redeploys by
+   itself). Leave `fse-api-staging` alone. Sign-in fails between the Vercel
+   build and the end of Render's redeploy (a few minutes): the API trusts one
+   Clerk instance at a time.
+
+**What moved with it:** CORS (`api/security.py`), the Better Stack monitors
+and status page's name and link (`ops/betterstack.py`; the monitors keep their
+internal names, which is how the sync finds them), the header scan and the
+database and limits checks (`live.yml`), the scheduled jobs (`scheduled.yml`),
+the live browser checks (`web/playwright.config.ts`). `tests/test_domain.py`
+fails if anything the project runs names an old host again. Clerk's hosts in
+the CSP come from the publishable key, so they moved by themselves.
+
+**Accounts (decided 2026-10-01).** A new Clerk instance gives everyone a new
+user id, so accounts, saved deals and settings made on the development
+instance are **test data and are dropped**: nobody but the owner had used the
+site. Their rows stay in the database, unreachable, and cost a few kilobytes.
+Staging still uses the development instance, so they remain usable there.
+
+**Sentry**: if a project's *Allowed Domains* is set (Settings → Security &
+Privacy), add `variater.com`; the default `*` needs nothing.
+
+**Later, not now:** Resend (PLAN.md emails) will ask for its own records on a
+subdomain such as `send.variater.com` (SPF `TXT`, DKIM `TXT`, an `MX`). They
+don't clash with Clerk's `clkmail`; add them when that task starts.
+
 ## Rollback
 
 Roll back production when a deploy breaks it. Pick the fastest route that
 fits; all are free.
+
+**Since the own domain (PLAN.md 0.2)** the Clerk keys and the code travel
+together: production's web build carries `pk_live_` baked in and `fse-api`
+trusts only that instance. Rolling back to anything built before the 0.2
+merge (a Vercel instant rollback, or reverting the 0.2 merge) also means
+putting the development keys back on Vercel Production and `fse-api`
+together, and the old domain setup back; otherwise sign-in breaks. Prefer
+rolling forward for anything that touches 0.2.
 
 **A. Git revert (no dashboard, always works, leaves a record).** This is the
 default.
@@ -234,8 +310,8 @@ Screens show times in the viewer's time zone (`formatForViewer` in
 
 | Monitor | URL | Every | Alerts after |
 |---|---|---|---|
-| Website | `https://fse-ml.vercel.app/healthz` (keyword `"service":"FSE/ML web"`) | 3 min | 2 min failing |
-| Model API | `https://fse-api.onrender.com/api/health` (keyword `"status":"ok"`) | 30 min | 60 s timeout + 4 min rechecking |
+| Website | `https://variater.com/healthz` (keyword `"service":"FSE/ML web"`) | 3 min | 2 min failing |
+| Model API | `https://api.variater.com/api/health` (keyword `"status":"ok"`) | 30 min | 60 s timeout + 4 min rechecking |
 
 A check that reaches a sleeping API waits while it wakes (about a minute);
 Better Stack only opens an incident if it is still failing after the
@@ -433,7 +509,7 @@ themselves: "Least-privilege database role" below has the `fse_app` and
 `fse_api` statements.
 
 Then point `DATABASE_URL` on the Render service at the restored database and
-redeploy. Check with `python3 ops/check_database.py https://fse-api.onrender.com`
+redeploy. Check with `python3 ops/check_database.py https://api.variater.com`
 — it reports migrations current **and** `role: restricted`, which only passes
 if the grants above landed — and by opening a saved deal: its IRR must be what
 it was.
@@ -650,12 +726,12 @@ Swagger page at `/api/docs`.
 production and `staging.yml` after each staging deploy. By hand:
 
 ```bash
-python3 ops/check_headers.py --web https://fse-ml.vercel.app --api https://fse-api.onrender.com
+python3 ops/check_headers.py --web https://variater.com --api https://api.variater.com
 ```
 
 **CORS.** The web app calls the API through its own proxy, so the browser
 never needs CORS. The API allows only exact HTTPS origins: by default
-`https://fse-ml.vercel.app` in production, none on staging and
+`https://variater.com` in production, none on staging and
 `http://localhost:3000` locally. A wildcard, a path or plain `http://` in
 `FSE_CORS_ORIGINS` is dropped (and logged as `cors_origin_refused`), never
 widened.
@@ -715,7 +791,7 @@ shows `"migrations": {"revision": "0005", …}` or later):
    the owner string back in `DATABASE_URL` and deploy at once: the live
    app can't reach its data until you do.
 5. **Check.** Open `https://fse-api-staging.onrender.com/api/health/database`
-   (production: `https://fse-api.onrender.com/api/health/database`); wait
+   (production: `https://api.variater.com/api/health/database`); wait
    for the free service to wake. It should show `"status": "ok"` and
    `"role": {"status": "restricted", "privileges": []}`. If it shows an
    authentication error, the password or user in step 4 is wrong: put the

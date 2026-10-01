@@ -1,4 +1,4 @@
-# FSE/ML — LBO analysis platform
+# Variater — LBO analysis platform
 
 Deal model, Monte Carlo simulation, backtesting against historical LBOs,
 3-statement company forecasting (with SEC EDGAR autofill) and settings.

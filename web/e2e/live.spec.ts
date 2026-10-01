@@ -79,4 +79,15 @@ test.describe("live site", () => {
     expect(resp.status()).toBe(401);
     expect(await resp.text()).not.toContain("irr");
   });
+
+  // PLAN.md 0.2: the old address and www lead to the domain (e2e/domain.spec.ts
+  // checks the rule itself). Production only; no bypass secret goes to them.
+  test("the old address and www redirect to the domain", async ({ request }) => {
+    test.skip(process.env.E2E_EXPECT_ENV !== "production", "production hosts only");
+    for (const old of ["https://fse-ml.vercel.app", "https://www.variater.com"]) {
+      const resp = await request.get(`${old}/deal/returns?tab=2`, { maxRedirects: 0 });
+      expect([301, 307, 308], old).toContain(resp.status());
+      expect(resp.headers()["location"], old).toBe("https://variater.com/deal/returns?tab=2");
+    }
+  });
 });

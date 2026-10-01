@@ -11,7 +11,7 @@ Please report security problems **privately**, not in a public issue:
 You'll get an acknowledgement within 7 days. Please give us a reasonable time
 to fix the problem before telling anyone else, and don't access other
 people's data, run denial-of-service tests or send automated scans at the
-live site (https://fse-ml.vercel.app, https://fse-api.onrender.com) beyond
+live site (https://variater.com, https://api.variater.com) beyond
 what is needed to show the problem. Those run on free plans and are easy to
 knock over.
 

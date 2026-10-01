@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-09-30 (PLAN.md 2.5: global tax rules). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-01 (PLAN.md 0.2: own domain, renamed Variater). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -25,8 +25,8 @@ sign in.
 
 | What | URL | Host (free plan) |
 |---|---|---|
-| Web app | https://fse-ml.vercel.app | Vercel Hobby, project `fse-ml`, root directory `web`, `FSE_API_URL` set |
-| API | https://fse-api.onrender.com (health: `/api/health`) | Render free web service `fse-api` from `render.yaml` |
+| Web app | https://variater.com (`www.` and the old https://fse-ml.vercel.app redirect here) | Vercel Hobby, project `fse-ml`, root directory `web`, `FSE_API_URL` = `https://api.variater.com` |
+| API | https://api.variater.com (health: `/api/health`; also still answers on fse-api.onrender.com) | Render free web service `fse-api` from `render.yaml` |
 | Staging web | Vercel preview of the `staging` branch (behind Vercel login) | same Vercel project; previews always use the staging API (`web/next.config.ts`) |
 | Staging API | https://fse-api-staging.onrender.com | Render free web service `fse-api-staging`, made by hand, deploys from `staging` |
 
@@ -63,8 +63,13 @@ database (either would burn Neon's 100 free compute hours);
 against the free 0.5 GB (warning at 80%). It runs daily from `live.yml` and
 after each staging deploy.
 
-Accounts (PLAN.md 1.4, DEPLOY.md "Accounts and sign-in"): **Clerk** free
-development instance, email and Google sign-in. **Every API call except
+Accounts (PLAN.md 1.4, DEPLOY.md "Accounts and sign-in"): **Clerk**, email
+and Google sign-in. Since 0.2 **production uses Clerk's production instance
+for `variater.com`** (`pk_live_`, Vercel Production scope and `fse-api` only);
+staging, previews and local runs keep the free development instance
+(`pk_test_`), since a production instance serves only its own domain.
+Development-instance accounts were **dropped as test data** (decided
+2026-10-01), not mapped. **Every API call except
 `/api/health*` and the schema needs a signed-in user** — the dependency is on
 `include_router`, so a new route is protected unless it is added to
 `api.auth.PUBLIC_PATHS`. The browser sends Clerk's session token as a bearer
@@ -415,10 +420,22 @@ formats and fiscal years) and **2.3b** (interface text in translation files,
 right to left), both below. 2.4 was split the same way and is done: **2.4a**
 (the model — debt structures of any shape and floating rates) and **2.4b**
 (the simulation and the Debt step's editor), both below. 2.5 is done (tax
-rules, below). **Next is 2.6** (accounting standards, IFRS and US GAAP), except that **0.2 jumps the
-queue**: the domain **`variater.com` was bought on 2026-10-01** (Cloudflare)
-and the product is being renamed **Variater** (scope and open questions in
-PLAN.md 0.2). End every task session with the handoff described in PLAN.md: tell the
+rules, below). 0.2 is done (own domain, below). **Next is 2.6** (accounting
+standards, IFRS and US GAAP).
+
+Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
+**Variater**; production is `https://variater.com` and
+`https://api.variater.com`, DNS at Cloudflare, **every record DNS only** (grey
+cloud) so Vercel and Render issue the certificates. `web/next.config.ts`
+redirects every path on `fse-ml.vercel.app` and `www.` to the domain (308);
+staging is untouched. **Only the visible brand was renamed** (decided
+2026-10-01): `app.brand`, page titles, README, the status page's name.
+Internal names stay: `FSE_*` variables and secrets, the `fse_app`/`fse_api`
+roles, the `fse`-prefixed keys, service names, the repository, the
+`"service":"FSE/ML web"` health keyword the uptime monitor matches, and the
+Better Stack monitors' own names (the sync finds them by name; it patches the
+status page's name and link). `tests/test_domain.py` fails if anything the
+project runs names an old host. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
 
