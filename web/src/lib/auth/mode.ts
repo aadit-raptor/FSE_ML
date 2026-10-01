@@ -26,6 +26,15 @@ export function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
+/**
+ * The app's own sign-in and sign-up pages, in the Variater design. Clerk is
+ * told about them (proxy.ts, the root layout): left unsaid, a production
+ * instance sends signed-out visitors to its hosted Account Portal
+ * (accounts.<domain>), a different-looking page.
+ */
+export const SIGN_IN_URL = "/sign-in";
+export const SIGN_UP_URL = "/sign-up";
+
 /** Where a signed-in visitor lands once their account is complete. */
 export const AFTER_SIGN_IN = "/deal/inputs";
 /** Sign-up finishes on the account screen, which asks for country and currency. */
