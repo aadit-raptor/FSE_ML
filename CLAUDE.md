@@ -69,7 +69,10 @@ for `variater.com`** (`pk_live_`, Vercel Production scope and `fse-api` only);
 staging, previews and local runs keep the free development instance
 (`pk_test_`), since a production instance serves only its own domain.
 Development-instance accounts were **dropped as test data** (decided
-2026-10-01), not mapped. **Every API call except
+2026-10-01), not mapped. Google sign-in on production uses the Google Cloud project
+`variater`'s own OAuth client (DEPLOY.md "Own domain"); `/privacy` is a public
+page Google's consent screen links to, and every claim on it mirrors the
+code, so a change to what is stored or who handles it changes that page. **Every API call except
 `/api/health*` and the schema needs a signed-in user** — the dependency is on
 `include_router`, so a new route is protected unless it is added to
 `api.auth.PUBLIC_PATHS`. The browser sends Clerk's session token as a bearer
