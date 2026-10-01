@@ -19,7 +19,7 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { devUserFromCookies } from "@/lib/auth/dev";
-import { AUTH_MODE, CLERK_PUBLISHABLE_KEY, isPublicRoute } from "@/lib/auth/mode";
+import { AUTH_MODE, CLERK_PUBLISHABLE_KEY, isPublicRoute, SIGN_IN_URL, SIGN_UP_URL } from "@/lib/auth/mode";
 import { contentSecurityPolicy, newNonce } from "@/lib/security/headers";
 
 const CSP = "Content-Security-Policy";
@@ -52,10 +52,14 @@ function development(request: NextRequest) {
 
 // clerkMiddleware() is only built when there is an instance for it to check
 export default AUTH_MODE === "clerk"
-  ? clerkMiddleware(async (auth, request) => {
-      if (!isPublicRoute(request.nextUrl.pathname)) await auth.protect();
-      return withPolicy(request);
-    })
+  ? clerkMiddleware(
+      async (auth, request) => {
+        if (!isPublicRoute(request.nextUrl.pathname)) await auth.protect();
+        return withPolicy(request);
+      },
+      // Signed out, protect() redirects here: our page, not Clerk's hosted portal
+      { signInUrl: SIGN_IN_URL, signUpUrl: SIGN_UP_URL },
+    )
   : development;
 
 export const config = {

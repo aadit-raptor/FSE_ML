@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { JetBrains_Mono, Michroma, Orbitron } from "next/font/google";
 
 import { AppShell } from "@/components/shell/AppShell";
-import { AUTH_MODE } from "@/lib/auth/mode";
+import { AUTH_MODE, SIGN_IN_URL, SIGN_UP_URL } from "@/lib/auth/mode";
 import { APP_BRAND, APP_DESCRIPTION } from "@/lib/i18n/titles";
 
 import "./globals.css";
@@ -35,5 +35,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Clerk's provider only goes in when there is an instance to talk to; without
   // one the app uses the development sign-in (lib/auth/mode.ts)
   // `dynamic` puts the nonce on Clerk's script tags
-  return AUTH_MODE === "clerk" ? <ClerkProvider dynamic>{shell}</ClerkProvider> : shell;
+  return AUTH_MODE === "clerk" ? (
+    <ClerkProvider dynamic signInUrl={SIGN_IN_URL} signUpUrl={SIGN_UP_URL}>
+      {shell}
+    </ClerkProvider>
+  ) : shell;
 }
