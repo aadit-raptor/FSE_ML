@@ -1,9 +1,9 @@
 {
   "app": {
-    "brand": "FSE/ML",
+    "brand": "Variater",
     "description": "LBO modelling: deal returns, Monte Carlo simulation, backtesting and forecasting.",
     "notFoundTitle": "Screen not found",
-    "notFoundBody": "That address isn't a screen in FSE/ML. Use the menu above or search with Ctrl K.",
+    "notFoundBody": "That address isn't a screen in Variater. Use the menu above or search with Ctrl K.",
     "notFoundAction": "Go to deal inputs",
     "screenErrorTitle": "This screen hit an error",
     "screenErrorBody": "Your inputs are kept. Try again, or switch screens with the menu above.",

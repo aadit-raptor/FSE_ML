@@ -44,8 +44,8 @@ RENDER_HOURS_RESERVED = 250
 WAKE_TOLERANCE_S = 180
 
 STATUS_PAGE = {
-    "company_name": "FSE/ML",
-    "company_url": "https://fse-ml.vercel.app",
+    "company_name": "Variater",
+    "company_url": "https://variater.com",
     "subdomain": os.environ.get("BETTERSTACK_STATUS_SUBDOMAIN", "fse-ml"),
     "timezone": "UTC",
 }
@@ -56,7 +56,7 @@ MONITORS = [
         # Signed-out pages answer 404 or redirect to sign-in (PLAN.md 1.4), so
         # the monitor checks the app's public health route instead
         # (web/src/app/healthz/route.ts; tests/test_betterstack.py pins both)
-        "url": "https://fse-ml.vercel.app/healthz",
+        "url": "https://variater.com/healthz",
         "monitor_type": "keyword",
         "required_keyword": '"service":"FSE/ML web"',
         "check_frequency": 180,
@@ -72,7 +72,7 @@ MONITORS = [
     },
     {
         "pronounceable_name": "FSE/ML API (production)",
-        "url": "https://fse-api.onrender.com/api/health",
+        "url": "https://api.variater.com/api/health",
         "monitor_type": "keyword",
         "required_keyword": '"status":"ok"',
         "check_frequency": 1800,
@@ -193,6 +193,14 @@ def sync(request: Requester, dry_run: bool = False, log=print) -> dict:
         if dry_run:
             return ids
         page = request("POST", f"{API}/v2/status-pages", STATUS_PAGE)["data"]
+    else:
+        # The subdomain is the page's identity; the rest (a rename, PLAN.md
+        # 0.2) is patched onto the page people already follow
+        changed = {k: v for k, v in STATUS_PAGE.items() if page["attributes"].get(k) != v}
+        if changed:
+            log(f"update status page: {sorted(changed)}")
+            if not dry_run:
+                request("PATCH", f"{API}/v2/status-pages/{page['id']}", changed)
     resources = list_all(request, f"{API}/v2/status-pages/{page['id']}/resources")
     shown = {str(r["attributes"].get("resource_id")) for r in resources
              if r["attributes"].get("resource_type") == "Monitor"}
