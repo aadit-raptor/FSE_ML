@@ -30,7 +30,9 @@ INPUTS = {"ebitda": 240.0, "entry_mult": 9.0, "exit_mult": 10.5, "hold": 6, "gro
           # Tax rules (PLAN.md 2.5), all off: stored only when set, always answered
           "tax_preset": "", "tax_interest_limit": "none", "tax_interest_limit_pct": 30.0,
           "tax_interest_limit_amount": 0.0, "tax_loss_carryforward": False,
-          "tax_loss_limit_pct": 100.0, "tax_loss_limit_amount": 0.0, "tax_minimum_pct": 0.0}
+          "tax_loss_limit_pct": 100.0, "tax_loss_limit_amount": 0.0, "tax_minimum_pct": 0.0,
+          # Accounting standard and leases (PLAN.md 2.6), the same way
+          "accounting_standard": "", "lease_view": "", "lease_cost": 0.0, "lease_liability": 0.0}
 # Every field of DealInputsIn, as the API answers: the fiscal year labels
 # (PLAN.md 2.3a) and the tranche list (PLAN.md 2.4) are stored only when set
 # but always come back
