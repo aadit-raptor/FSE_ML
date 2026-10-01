@@ -985,6 +985,17 @@
         "additionalProperties": false,
         "description": "Deal wizard inputs.\n\ndebt_pct and senior_pct default to the model's stored defaults (60% / 70%).\nThe Streamlit wizard instead derives them on load from its financing\ninputs -- 3.4x senior + 0.8x mezz EBITDA, i.e. 42% and ~81% -- which is why\nits default deal shows a lower IRR. Use /deal/sources-and-uses to derive\nthem from debt multiples the same way.",
         "properties": {
+          "accounting_standard": {
+            "default": "",
+            "description": "The standard the EBITDA follows (PLAN.md 2.6): 'ifrs' (before lease costs, IFRS 16), 'us_gaap' (after operating lease costs), or '' for not stated",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "ap_days": {
             "default": 60.0,
             "maximum": 365.0,
@@ -1113,6 +1124,33 @@
             "minimum": 0.0,
             "title": "Inv Days",
             "type": "number"
+          },
+          "lease_cost": {
+            "default": 0.0,
+            "description": "What the leases cost a year (in currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Lease Cost",
+            "type": "number"
+          },
+          "lease_liability": {
+            "default": 0.0,
+            "description": "The lease liability at close (in currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Lease Liability",
+            "type": "number"
+          },
+          "lease_view": {
+            "default": "",
+            "description": "How the deal is priced: 'pre_ifrs16' (EBITDA after lease costs, leases not debt), 'post_ifrs16' (EBITDA before lease costs, the lease liability counted with net debt), or '' for the standard's own view",
+            "enum": [
+              "",
+              "pre_ifrs16",
+              "post_ifrs16"
+            ],
+            "title": "Lease View",
+            "type": "string"
           },
           "mezz_spread": {
             "default": 4.0,
@@ -1309,6 +1347,7 @@
           "inputs": {
             "$ref": "#/components/schemas/DealInputsIn",
             "default": {
+              "accounting_standard": "",
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
@@ -1324,6 +1363,9 @@
               "growth": 5.0,
               "hold": 5,
               "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
               "mezz_spread": 4.0,
               "mincash": 0.0,
               "nwc": 1.0,
@@ -1365,6 +1407,7 @@
           "inputs": {
             "$ref": "#/components/schemas/DealInputsIn",
             "default": {
+              "accounting_standard": "",
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
@@ -1380,6 +1423,9 @@
               "growth": 5.0,
               "hold": 5,
               "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
               "mezz_spread": 4.0,
               "mincash": 0.0,
               "nwc": 1.0,
@@ -1456,6 +1502,17 @@
           "interest_converged": {
             "title": "Interest Converged",
             "type": "boolean"
+          },
+          "leases": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeaseSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the deal's leases did to its value (PLAN.md 2.6); none without leases"
           },
           "money": {
             "$ref": "#/components/schemas/Money"
@@ -1781,11 +1838,75 @@
         "title": "DriverSensitivity",
         "type": "object"
       },
+      "EdgarDealInputs": {
+        "description": "The latest year of a filing as deal inputs: EBITDA as the standard\nreports it (operating profit plus D&A) and the leases, in the filing's\ncurrency and in millions.",
+        "properties": {
+          "accounting_standard": {
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "ebitda": {
+            "title": "Ebitda",
+            "type": "number"
+          },
+          "lease_cost": {
+            "title": "Lease Cost",
+            "type": "number"
+          },
+          "lease_liability": {
+            "title": "Lease Liability",
+            "type": "number"
+          },
+          "unit": {
+            "enum": [
+              "thousands",
+              "millions",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ebitda",
+          "currency",
+          "unit",
+          "accounting_standard",
+          "lease_cost",
+          "lease_liability"
+        ],
+        "title": "EdgarDealInputs",
+        "type": "object"
+      },
       "EdgarResponse": {
         "properties": {
+          "accounting_standard": {
+            "default": "us_gaap",
+            "description": "The standard the statements follow: us_gaap (10-K) or ifrs (20-F, 40-F)",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "company_name": {
             "title": "Company Name",
             "type": "string"
+          },
+          "deal_inputs": {
+            "$ref": "#/components/schemas/EdgarDealInputs",
+            "description": "The latest year as deal inputs (PLAN.md 2.6)"
           },
           "fiscal_year_end_month": {
             "anyOf": [
@@ -1812,9 +1933,20 @@
             "title": "History",
             "type": "object"
           },
+          "leases": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "lease_cost and lease_liability, one value per year, oldest first",
+            "title": "Leases",
+            "type": "object"
+          },
           "money": {
             "$ref": "#/components/schemas/Money",
-            "description": "SEC filings are read in US dollars, in millions"
+            "description": "The filing's own currency (US dollars for a 10-K), in millions"
           },
           "ticker": {
             "title": "Ticker",
@@ -1841,7 +1973,8 @@
           "years",
           "history",
           "warnings",
-          "money"
+          "money",
+          "deal_inputs"
         ],
         "title": "EdgarResponse",
         "type": "object"
@@ -2169,6 +2302,17 @@
       "ForecastRunRequest": {
         "additionalProperties": false,
         "properties": {
+          "accounting_standard": {
+            "default": "",
+            "description": "The standard the company reports under (PLAN.md 2.6): a label, echoed back",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "assumptions": {
             "additionalProperties": {
               "items": {
@@ -2221,6 +2365,16 @@
       },
       "ForecastRunResponse": {
         "properties": {
+          "accounting_standard": {
+            "default": "",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "balanced": {
             "title": "Balanced",
             "type": "boolean"
@@ -3430,6 +3584,17 @@
       "HistoryRequest": {
         "additionalProperties": false,
         "properties": {
+          "accounting_standard": {
+            "default": "",
+            "description": "The standard the company reports under (PLAN.md 2.6): a label, echoed back",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "history": {
             "additionalProperties": {
               "items": {
@@ -3618,6 +3783,68 @@
           "created_at"
         ],
         "title": "JobOut",
+        "type": "object"
+      },
+      "LeaseSummary": {
+        "properties": {
+          "accounting_standard": {
+            "title": "Accounting Standard",
+            "type": "string"
+          },
+          "counted_as_debt": {
+            "description": "Whether the lease liability is counted with net debt",
+            "title": "Counted As Debt",
+            "type": "boolean"
+          },
+          "entry_ev": {
+            "title": "Entry Ev",
+            "type": "number"
+          },
+          "lease_cost": {
+            "title": "Lease Cost",
+            "type": "number"
+          },
+          "lease_liability": {
+            "title": "Lease Liability",
+            "type": "number"
+          },
+          "net_debt_at_entry": {
+            "description": "Debt at close less minimum cash, plus leases when counted",
+            "title": "Net Debt At Entry",
+            "type": "number"
+          },
+          "operating_ebitda": {
+            "description": "EBITDA after lease costs: what the operating model grows",
+            "title": "Operating Ebitda",
+            "type": "number"
+          },
+          "valuation_ebitda": {
+            "description": "EBITDA the entry and exit multiples are applied to",
+            "title": "Valuation Ebitda",
+            "type": "number"
+          },
+          "view": {
+            "enum": [
+              "",
+              "pre_ifrs16",
+              "post_ifrs16"
+            ],
+            "title": "View",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accounting_standard",
+          "view",
+          "counted_as_debt",
+          "operating_ebitda",
+          "valuation_ebitda",
+          "lease_cost",
+          "lease_liability",
+          "entry_ev",
+          "net_debt_at_entry"
+        ],
+        "title": "LeaseSummary",
         "type": "object"
       },
       "LimitInfo": {
@@ -3809,6 +4036,7 @@
           "deal": {
             "$ref": "#/components/schemas/DealInputsIn",
             "default": {
+              "accounting_standard": "",
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
@@ -3824,6 +4052,9 @@
               "growth": 5.0,
               "hold": 5,
               "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
               "mezz_spread": 4.0,
               "mincash": 0.0,
               "nwc": 1.0,
@@ -4937,6 +5168,7 @@
           "deal": {
             "$ref": "#/components/schemas/DealInputsIn",
             "default": {
+              "accounting_standard": "",
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
@@ -4952,6 +5184,9 @@
               "growth": 5.0,
               "hold": 5,
               "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
               "mezz_spread": 4.0,
               "mincash": 0.0,
               "nwc": 1.0,
@@ -5049,6 +5284,16 @@
       },
       "SeedResponse": {
         "properties": {
+          "accounting_standard": {
+            "default": "",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "historical_metrics": {
             "items": {
               "$ref": "#/components/schemas/HistoricalMetrics"
@@ -5149,6 +5394,17 @@
       "SourcesUsesRequest": {
         "additionalProperties": false,
         "properties": {
+          "accounting_standard": {
+            "default": "",
+            "description": "The standard the EBITDA follows (PLAN.md 2.6): 'ifrs' (before lease costs, IFRS 16), 'us_gaap' (after operating lease costs), or '' for not stated",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
           "ebitda": {
             "default": 100.0,
             "exclusiveMinimum": 0.0,
@@ -5160,6 +5416,33 @@
             "exclusiveMinimum": 0.0,
             "title": "Entry Mult",
             "type": "number"
+          },
+          "lease_cost": {
+            "default": 0.0,
+            "description": "What the leases cost a year (in currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Lease Cost",
+            "type": "number"
+          },
+          "lease_liability": {
+            "default": 0.0,
+            "description": "The lease liability at close (in currency and unit)",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Lease Liability",
+            "type": "number"
+          },
+          "lease_view": {
+            "default": "",
+            "description": "How the deal is priced: 'pre_ifrs16' (EBITDA after lease costs, leases not debt), 'post_ifrs16' (EBITDA before lease costs, the lease liability counted with net debt), or '' for the standard's own view",
+            "enum": [
+              "",
+              "pre_ifrs16",
+              "post_ifrs16"
+            ],
+            "title": "Lease View",
+            "type": "string"
           },
           "mezz_x": {
             "default": 0.8,
@@ -5247,11 +5530,18 @@
             "title": "Debt Pct"
           },
           "equity_purchase_price": {
+            "description": "Entry EV less any lease liability taken over",
             "title": "Equity Purchase Price",
             "type": "number"
           },
           "financing_fees": {
             "title": "Financing Fees",
+            "type": "number"
+          },
+          "lease_liability": {
+            "default": 0.0,
+            "description": "Lease liability taken over with the business, when counted as debt",
+            "title": "Lease Liability",
             "type": "number"
           },
           "mezz_debt": {
@@ -5362,6 +5652,7 @@
           "deal": {
             "$ref": "#/components/schemas/DealInputsIn",
             "default": {
+              "accounting_standard": "",
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
@@ -5377,6 +5668,9 @@
               "growth": 5.0,
               "hold": 5,
               "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
               "mezz_spread": 4.0,
               "mincash": 0.0,
               "nwc": 1.0,
@@ -7876,7 +8170,7 @@
     },
     "/api/edgar/{ticker}": {
       "get": {
-        "description": "Historical financials for a US-listed company, as forecasting inputs.",
+        "description": "Historical financials of a company filing with the SEC, as forecasting and deal\ninputs: a US filer's 10-K (US GAAP) or a foreign filer's 20-F or 40-F (IFRS),\nin the statements' own currency.",
         "operationId": "get_edgar_api_edgar__ticker__get",
         "parameters": [
           {

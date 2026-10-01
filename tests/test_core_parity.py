@@ -132,7 +132,11 @@ def test_simulation_params_match_streamlit(case):
     # none, so it must be empty here -- which is what keeps them on the
     # two-bucket path the snapshot recorded.
     assert params.tranches == () and params.tax_rules is None
-    assert_close(plain(params), g["sim_params"], extra={"tranches", "tax_rules"})
+    # The lease fields (PLAN.md 2.6) are allowed through because they are
+    # exactly nothing for the recorded deals, which have no leases
+    assert params.lease_ebitda_addback == 0.0 and params.lease_liability == 0.0
+    assert_close(plain(params), g["sim_params"],
+                 extra={"tranches", "tax_rules", "lease_ebitda_addback", "lease_liability"})
 
 
 # ---------------------------------------------------------------------------

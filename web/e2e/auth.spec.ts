@@ -116,3 +116,13 @@ test("one account never sees another's answers", async ({ page }) => {
   await expect(page.locator('[data-account="subject"]')).toHaveText(`dev:${second}`);
   await expect(page.getByLabel("Currency")).toHaveValue("");
 });
+
+// Google's consent screen links to it, so it must open for anyone (PLAN.md 0.2)
+test("the privacy policy opens signed out, and says what is stored", async ({ page }) => {
+  const resp = await page.goto("/privacy");
+  expect(resp?.status()).toBe(200);
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole("heading", { name: "Privacy policy" })).toBeVisible();
+  await expect(page.getByText("never your name or email address", { exact: false })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Modes" })).toHaveCount(0);
+});

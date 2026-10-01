@@ -170,8 +170,15 @@ own certificates, and the security headers and CSP stay theirs.
 **Clerk production instance** (done 2026-10-01): made by cloning the
 development one; its five CNAMEs (`clerk`, `accounts`, `clkmail`,
 `clk._domainkey`, `clk2._domainkey`) are in Cloudflare. Google sign-in on it
-needs your own Google OAuth client (Clerk → Configure → SSO connections →
-Google → "Use custom credentials"), email sign-in works without.
+needs your own Google OAuth client. **Done 2026-10-02:** Google Cloud
+project `variater` (owner pagare.aadit@gmail.com), Google Auth Platform app
+"Variater" (External), Web client "Variater (Clerk)" with origin
+`https://variater.com` and redirect `https://clerk.variater.com/v1/oauth_callback`,
+its ID and secret in Clerk Production → SSO connections → Google. Branding
+links the home page and `https://variater.com/privacy`, which is public
+(`web/src/lib/auth/mode.ts` `PUBLIC_ROUTES`) because Google requires it before
+the app can be published. A new secret: Google Cloud → Clients → the client →
+Add secret, then paste it into Clerk.
 
 **Switch-over, in this order:**
 

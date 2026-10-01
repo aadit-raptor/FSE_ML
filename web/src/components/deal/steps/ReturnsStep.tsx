@@ -10,10 +10,12 @@ import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { dealFiscal } from "@/lib/deal/fields";
+import type { Schemas } from "@/lib/api/client";
 import { downloadWorkbook, fraction, sheet } from "@/lib/export";
 import { fmtMoney, fmtMultiple, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
+import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 
 import { useDeal } from "../DealProvider";
 import { DealField, DealScreen, LoadingTiles, RailGroup, TranchesOnDebtStep } from "../DealScreen";
@@ -75,6 +77,8 @@ function ReturnsResults() {
   const begin = totals(res, "total_beginning_debt");
   const fiscal = dealFiscal(inputs);
   const years = fiscalLabels.deal(om.revenue?.length ?? 0, fiscal);
+  const std = useStandardLabel(inputs.accounting_standard);
+  const leases = res.leases;
 
   return (
     <Tiles>
@@ -138,13 +142,46 @@ function ReturnsResults() {
           columns={years}
           rows={[
             { label: t("rowRevenue"), values: om.revenue ?? [] },
-            { label: t("rowEbitda"), values: om.ebitda ?? [] },
+            // With leases the model grows EBITDA after lease costs (PLAN.md 2.6), whatever the standard
+            { label: leases ? t("rowEbitdaAfterLeases") : t("rowEbitda"), values: om.ebitda ?? [] },
             { label: t("rowEbitdaMargin"), values: om.ebitda_margin ?? [], kind: "rate" },
-            { label: t("rowInterest"), values: om.interest_expense ?? [], kind: "outflow" },
+            { label: std("rowInterest", t("rowInterest")), values: om.interest_expense ?? [], kind: "outflow" },
             { label: t("rowLeveredFcf"), values: res.cash_flow.levered_fcf ?? [], total: true },
           ]}
         />
       </Tile>
+      {leases && <LeasesTile leases={leases} />}
     </Tiles>
+  );
+}
+
+/** What the deal's leases did to its value (PLAN.md 2.6): the answer's `leases` block. */
+function LeasesTile({ leases }: { leases: NonNullable<Schemas["DealRunResponse"]["leases"]> }) {
+  const { label: mu } = useMoney();
+  const t = useTranslations("deal");
+  const rows: [string, number][] = [
+    [t("rowLeaseCost"), leases.lease_cost],
+    [t("rowOperatingEbitda"), leases.operating_ebitda],
+    [t("rowValuationEbitda"), leases.valuation_ebitda],
+    [t("rowEntryEv"), leases.entry_ev],
+    [t("rowLeaseLiability"), leases.lease_liability],
+    [t("rowNetDebtAtEntry"), leases.net_debt_at_entry],
+  ];
+  return (
+    <Tile span={6} title={t("tileLeases")} unit={mu} aside={<span className="chip">{t("leasesSub", { view: t(`leaseView_${leases.view}`) })}</span>}>
+      <table className="w-full border-collapse font-mono text-[11.5px]" data-testid="leases">
+        <tbody>
+          {rows.map(([label, v]) => (
+            <tr key={label}>
+              <th scope="row" className="type-input-label border-b border-grid py-1.5 text-start font-normal text-soft">
+                {label}
+              </th>
+              <td className="border-b border-grid py-1.5 text-end text-ink">{fmtMoney(v)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="type-body pt-1.5 text-[9px]">{leases.counted_as_debt ? t("leasesAsDebt") : t("leasesNotDebt")}</p>
+    </Tile>
   );
 }

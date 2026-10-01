@@ -197,7 +197,11 @@
     "tranche_sweep": "Takes the cash sweep",
     "tranche_sweep_share": "Share of the sweep",
     "tranche_pik_share": "Coupon paid in kind",
-    "tranche_allow_redraw": "Draws to cover a shortfall"
+    "tranche_allow_redraw": "Draws to cover a shortfall",
+    "accounting_standard": "Accounting standard",
+    "lease_view": "Priced on",
+    "lease_cost": "Lease cost a year",
+    "lease_liability": "Lease liability"
   },
   "trancheKinds": {
     "amortising_term_loan": "Amortising term loan",
@@ -493,7 +497,27 @@
     "rowCashInterest": "Cash interest",
     "rowPikAccrued": "PIK accrued",
     "rowCommitmentFee": "Commitment fee",
-    "rowRedrawn": "Drawn in year"
+    "rowRedrawn": "Drawn in year",
+    "groupAccounting": "Accounting and leases",
+    "standard_": "Not stated",
+    "standard_ifrs": "IFRS",
+    "standard_us_gaap": "US GAAP",
+    "leaseView_": "The standard's own ({own})",
+    "leaseView_pre_ifrs16": "Pre-IFRS 16",
+    "leaseView_post_ifrs16": "Post-IFRS 16",
+    "leaseNote": "EBITDA is as the standard reports it: before lease costs under IFRS 16, after them under US GAAP. Pre-IFRS 16 values EBITDA after lease costs and leaves the leases out of net debt; post-IFRS 16 values it before them and counts the lease liability as debt. Lease cost and liability are held flat over the hold.",
+    "tileLeases": "Leases",
+    "leasesSub": "Priced {view}",
+    "rowOperatingEbitda": "EBITDA after lease costs",
+    "rowValuationEbitda": "EBITDA the multiple values",
+    "rowEntryEv": "Entry EV",
+    "rowLeaseCost": "Lease cost a year",
+    "rowLeaseLiability": "Lease liability",
+    "rowNetDebtAtEntry": "Net debt at entry",
+    "leasesAsDebt": "Counted as debt at entry and exit",
+    "leasesNotDebt": "Not counted as debt",
+    "rowPurchasePriceLessLeases": "Purchase price, less leases taken over",
+    "rowEbitdaAfterLeases": "EBITDA after lease costs"
   },
   "montecarlo": {
     "groupFromDeal": "From the deal",
@@ -943,7 +967,10 @@
     "targetsNote": "Targets run from 80% to 120% of plan EBITDA: above plan is the bull case, below plan the bear case.",
     "caseBull": "bull",
     "caseBear": "bear",
-    "caseBase": "base"
+    "caseBase": "base",
+    "groupStandard": "Accounting standard",
+    "useInDeal": "Use in deal",
+    "useInDealNote": "Sets the deal's EBITDA ({ebitda}), currency, standard and leases from the latest year."
   },
   "settings": {
     "def_ebitda": "EBITDA",
@@ -1239,5 +1266,40 @@
   },
   "format": {
     "missing": "n/a"
+  },
+  "standards": {
+    "ifrs": {
+      "rowInterestExpense": "Finance costs",
+      "rowInterestIncome": "Finance income",
+      "rowPretaxIncome": "Profit before tax",
+      "rowPretax": "Profit before tax",
+      "rowTaxes": "Income tax expense",
+      "rowNetIncome": "Profit for the year",
+      "rowAr": "Trade and other receivables",
+      "rowAp": "Trade and other payables",
+      "kpiNetIncome": "Profit for the year {year}",
+      "bridgeNetIncome": "Profit for the year",
+      "rowInterest": "Finance costs"
+    }
+  },
+  "privacy": {
+    "title": "Privacy policy",
+    "updated": "Last updated {date}",
+    "intro": "Variater is a tool for modelling leveraged buyouts. This page says what it keeps about you, who handles it for us, and how to have it removed.",
+    "storedTitle": "What we keep",
+    "storedSignIn": "Sign-in is run by Clerk. Clerk holds your email address and, if you sign in with Google, the name and picture Google shares. Variater's own database keeps only Clerk's id for you, never your name or email address.",
+    "storedProfile": "The four answers you give when you sign up: country, preferred currency, number format and time zone.",
+    "storedDeals": "The deals you save, their earlier versions and your settings. Nothing from a deal is ever written to a log or an error report.",
+    "googleTitle": "Signing in with Google",
+    "google": "Google shares your name, email address and profile picture with Clerk, only so that you can sign in. Variater asks for nothing else from your Google account and never reads your Google data.",
+    "processorsTitle": "Who handles it for us",
+    "processors": "Clerk (sign-in), Vercel (the website), Render (the model API), Neon (the database, in the United States), Supabase (encrypted nightly backups), Upstash (usage counters, keyed by a one-way hash of your id), Sentry (error reports, with deal contents removed) and Better Stack (uptime checks).",
+    "notTitle": "What we don't do",
+    "not": "No advertising, no selling or sharing of your data, and no tracking cookies: the only cookies are the ones that keep you signed in.",
+    "keepTitle": "How long we keep it",
+    "keep": "Your deals and settings stay until you delete them or ask us to delete your account. Encrypted backups are rotated and the oldest is at most a year old.",
+    "contactTitle": "Removing your data, and questions",
+    "contact": "To have your account and everything in it deleted, or to ask anything about this policy, open an issue at {link}.",
+    "back": "Back to Variater"
   }
 }

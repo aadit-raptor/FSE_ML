@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-01 (PLAN.md 0.2: own domain, renamed Variater). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-01 (PLAN.md 2.6a: accounting standards, the model; 0.2: own domain, renamed Variater). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -69,7 +69,10 @@ for `variater.com`** (`pk_live_`, Vercel Production scope and `fse-api` only);
 staging, previews and local runs keep the free development instance
 (`pk_test_`), since a production instance serves only its own domain.
 Development-instance accounts were **dropped as test data** (decided
-2026-10-01), not mapped. **Every API call except
+2026-10-01), not mapped. Google sign-in on production uses the Google Cloud project
+`variater`'s own OAuth client (DEPLOY.md "Own domain"); `/privacy` is a public
+page Google's consent screen links to, and every claim on it mirrors the
+code, so a change to what is stored or who handles it changes that page. **Every API call except
 `/api/health*` and the schema needs a signed-in user** — the dependency is on
 `include_router`, so a new route is protected unless it is added to
 `api.auth.PUBLIC_PATHS`. The browser sends Clerk's session token as a bearer
@@ -382,6 +385,65 @@ Live sliders' surrogate knows only a flat rate, so `core/surrogate.py` lists
 deal; a `fixed` limit left at 0 disallows all interest, as the API's field
 description says.
 
+Accounting standards, the model (PLAN.md 2.6a): a deal says which standard its
+EBITDA follows (`accounting_standard`: `ifrs`, `us_gaap` or "") and may carry
+leases (`lease_cost` a year, `lease_liability` at close) and a `lease_view`
+(`pre_ifrs16` or `post_ifrs16`; "" = the standard's own, post for IFRS). All
+off by default and stored only when set (`OMIT_WHEN_DEFAULT`).
+`core/accounting.py` `lease_terms` turns them into three numbers: the
+**operating EBITDA** (always after lease costs: an IFRS figure less the lease
+cost; rent is cash under either standard, so the operating model and cash
+flows never depend on the view), a **valuation add-back** (the lease cost,
+post view only) added where EBITDA meets a multiple, at entry, exit and in
+every exit-grid cell, and the **lease liability counted with net debt** at
+entry and exit (post view only). `LBOParams` and `SimulationParams` carry the
+last two as `lease_ebitda_addback`/`lease_liability`, 0.0 by default, which
+is bit-for-bit: the golden snapshot and the pinned simulation don't move.
+Both are held flat over the hold (renewals), which the screen says. Sources
+and uses pay EV less the liability taken over; tranches are sized on the
+operating EBITDA; IFRS lease cost at or above EBITDA is a 422
+(`InvalidLeases`, a kind of `UnfinanceableStructure`, so the same handler and
+job refusal). The MC `params` echo leaves the lease fields out
+(`ECHO_LEFT_OUT`). **Line items** per standard live in `core/accounting.py`
+(`US_GAAP_ITEMS` is the old `TAG_MAP`, `IFRS_ITEMS`, `LEASE_ITEMS`);
+`ml/edgar_extractor.py` picks the source (`_Source`: taxonomy, currency,
+forms) -- US GAAP from a 10-K in USD when the filer has one, else IFRS from a
+20-F/40-F in the currency its statements use -- and the EDGAR answer carries
+`money` in that currency, `accounting_standard`, `leases` and `deal_inputs`
+(EBITDA = operating profit + D&A, as the standard reports it). Real filings
+recorded in `tests/fixtures/edgar/` (trimmed to mapped concepts and annual
+rows): SAP's 20-F maps figure by figure, McDonald's 10-K must equal
+`mcd_expected_before_2_6.json`. A forecast request takes the company's
+`accounting_standard` as a label and echoes it (the web sends it only when a
+filing set one, so an older API never sees it). Decisions from the 2.6a
+review: with leases **everything a percentage sizes is sized on the
+valuation EBITDA**, as the engine does -- sources and uses (the screen's debt
+multiples too) and `equivalent_tranches` (and its web mirror,
+`lib/deal/capital.ts` `valuationEbitda`), each tested against `run_deal` in
+all four standard/view pairs; a filing's lease cost comes from **one
+concept for every year** (`_single_tag`), and an IFRS cost adds interest on
+lease liabilities when tagged, else the answer says it is principal only;
+McDonald's tags no lease cost, so its cost is next year's payments due and
+the answer says so. Left as is: the capital-structure summary's multiples
+and the risk score read the EBITDA as entered.
+
+Accounting standards, the screen (PLAN.md 2.6b): Deal → Inputs has an
+"Accounting and leases" rail group (`steps/LeaseRules.tsx`); the EV and debt
+tiles and `debtShareOfEv` use `valuationEbitda` (`lib/deal/capital.ts`, the
+mirror of `lease_terms`); Returns shows a Leases tile from the answer's
+`leases` block. **Statement labels follow the standard**: call sites keep
+`t("rowNetIncome")` (so the catalogue check still sees the key) and wrap it,
+`std("rowNetIncome", t("rowNetIncome"))`, where `useStandardLabel(standard)`
+returns the `standards.<standard>.<key>` message when there is one; a new
+IFRS word is a new key there, nothing else. With leases the deal's EBITDA
+rows read "EBITDA after lease costs" (that is what the model grows). The
+forecast company's standard is set by an EDGAR filing and editable; "Use in
+deal" converts the deal to the filing's unit (`setMoney`) and then sets its
+EBITDA, standard and leases. Older-API safety: lease fields are sent only
+when set (`apiInputs`, `leaseInputs`), the forecast's standard only when one
+is known (`withStandard`), and an EDGAR answer without `deal_inputs` or
+`accounting_standard` (e2e/locale.spec.ts replays one) still works.
+
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
 put the table in the job summary and fail below their line in
@@ -420,8 +482,9 @@ formats and fiscal years) and **2.3b** (interface text in translation files,
 right to left), both below. 2.4 was split the same way and is done: **2.4a**
 (the model — debt structures of any shape and floating rates) and **2.4b**
 (the simulation and the Debt step's editor), both below. 2.5 is done (tax
-rules, below). 0.2 is done (own domain, below). **Next is 2.6** (accounting
-standards, IFRS and US GAAP).
+rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
+standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
+**Next is 2.7** (backtest becomes plan vs actual for any deal).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -623,12 +686,13 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/messages/en.json`, `web/src/lib/i18n/`, `web/src/components/shell/I18nScope.tsx`, `web/src/components/shell/DocumentTitle.tsx` | Interface text (PLAN.md 2.3b): the catalogue; which language and direction a locale gets, the message loader, the page titles, and the hooks for fiscal labels, field text, engine labels and the honest labels |
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
+| `core/accounting.py`, `ml/edgar_extractor.py`, `tests/fixtures/edgar/` | Accounting standards (PLAN.md 2.6): each standard's line items and the lease rule; the filing reader for 10-K (US GAAP) and 20-F/40-F (IFRS); real recorded filings (SAP, McDonald's) |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 

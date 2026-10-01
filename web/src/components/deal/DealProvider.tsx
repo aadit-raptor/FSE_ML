@@ -7,7 +7,9 @@ import { api, type Schemas } from "@/lib/api/client";
 import { useProfile } from "@/components/auth/ProfileProvider";
 import { num, type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import { MoneyScope } from "@/components/ui/MoneyScope";
-import { apiInputs, changedKeys, DEFAULT_INPUTS, TAX_MONEY_KEYS, tranchesInUnit, type DealInputs, type DealRun } from "@/lib/deal/fields";
+import {
+  apiInputs, changedKeys, DEFAULT_INPUTS, LEASE_MONEY_KEYS, TAX_MONEY_KEYS, tranchesInUnit, type DealInputs, type DealRun,
+} from "@/lib/deal/fields";
 import { type Money, unitFactor } from "@/lib/money";
 
 /** Debounce between the last edit and an automatic rerun. */
@@ -197,7 +199,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
               ...prev, currency: next.currency, unit: next.unit,
               ebitda: prev.ebitda * k, mincash: prev.mincash * k,
               tranches: tranchesInUnit(prev.tranches, k),
-              ...Object.fromEntries(TAX_MONEY_KEYS.map((key) => [key, prev[key] * k])),
+              ...Object.fromEntries([...TAX_MONEY_KEYS, ...LEASE_MONEY_KEYS].map((key) => [key, prev[key] * k])),
             };
       });
       const k = unitFactor(inputs.unit, next.unit);

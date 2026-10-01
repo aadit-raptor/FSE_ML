@@ -117,6 +117,11 @@ OMIT_WHEN_DEFAULT = {
     "tranches": [],
     # Tax rules (PLAN.md 2.5), each stored only when switched on or changed
     **RULE_DEFAULTS,
+    # Accounting standard and leases (PLAN.md 2.6), stored only when set
+    "accounting_standard": "",
+    "lease_view": "",
+    "lease_cost": 0.0,
+    "lease_liability": 0.0,
 }
 
 

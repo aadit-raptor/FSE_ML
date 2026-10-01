@@ -346,7 +346,9 @@ export interface paths {
         };
         /**
          * Get Edgar
-         * @description Historical financials for a US-listed company, as forecasting inputs.
+         * @description Historical financials of a company filing with the SEC, as forecasting and deal
+         *     inputs: a US filer's 10-K (US GAAP) or a foreign filer's 20-F or 40-F (IFRS),
+         *     in the statements' own currency.
          */
         get: operations["get_edgar_api_edgar__ticker__get"];
         put?: never;
@@ -1207,6 +1209,13 @@ export interface components {
          */
         DealInputsIn: {
             /**
+             * Accounting Standard
+             * @description The standard the EBITDA follows (PLAN.md 2.6): 'ifrs' (before lease costs, IFRS 16), 'us_gaap' (after operating lease costs), or '' for not stated
+             * @default
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
+            /**
              * Ap Days
              * @default 60
              */
@@ -1298,6 +1307,25 @@ export interface components {
              * @default 30
              */
             inv_days: number;
+            /**
+             * Lease Cost
+             * @description What the leases cost a year (in currency and unit)
+             * @default 0
+             */
+            lease_cost: number;
+            /**
+             * Lease Liability
+             * @description The lease liability at close (in currency and unit)
+             * @default 0
+             */
+            lease_liability: number;
+            /**
+             * Lease View
+             * @description How the deal is priced: 'pre_ifrs16' (EBITDA after lease costs, leases not debt), 'post_ifrs16' (EBITDA before lease costs, the lease liability counted with net debt), or '' for the standard's own view
+             * @default
+             * @enum {string}
+             */
+            lease_view: "" | "pre_ifrs16" | "post_ifrs16";
             /**
              * Mezz Spread
              * @description Mezz spread over senior (%)
@@ -1421,6 +1449,7 @@ export interface components {
         DealRiskRequest: {
             /**
              * @default {
+             *       "accounting_standard": "",
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
@@ -1436,6 +1465,9 @@ export interface components {
              *       "growth": 5,
              *       "hold": 5,
              *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
              *       "mezz_spread": 4,
              *       "mincash": 0,
              *       "nwc": 1,
@@ -1471,6 +1503,7 @@ export interface components {
         DealRunRequest: {
             /**
              * @default {
+             *       "accounting_standard": "",
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
@@ -1486,6 +1519,9 @@ export interface components {
              *       "growth": 5,
              *       "hold": 5,
              *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
              *       "mezz_spread": 4,
              *       "mincash": 0,
              *       "nwc": 1,
@@ -1535,6 +1571,8 @@ export interface components {
             exit_sensitivity: components["schemas"]["ExitSensitivity"];
             /** Interest Converged */
             interest_converged: boolean;
+            /** @description What the deal's leases did to its value (PLAN.md 2.6); none without leases */
+            leases?: components["schemas"]["LeaseSummary"] | null;
             money: components["schemas"]["Money"];
             operating_model: components["schemas"]["OperatingModelResult"];
             returns: components["schemas"]["ReturnsResult"];
@@ -1636,10 +1674,45 @@ export interface components {
             /** Spearman Rho */
             spearman_rho: number | null;
         };
+        /**
+         * EdgarDealInputs
+         * @description The latest year of a filing as deal inputs: EBITDA as the standard
+         *     reports it (operating profit plus D&A) and the leases, in the filing's
+         *     currency and in millions.
+         */
+        EdgarDealInputs: {
+            /**
+             * Accounting Standard
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
+            /** Currency */
+            currency: string;
+            /** Ebitda */
+            ebitda: number;
+            /** Lease Cost */
+            lease_cost: number;
+            /** Lease Liability */
+            lease_liability: number;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "thousands" | "millions" | "billions";
+        };
         /** EdgarResponse */
         EdgarResponse: {
+            /**
+             * Accounting Standard
+             * @description The standard the statements follow: us_gaap (10-K) or ifrs (20-F, 40-F)
+             * @default us_gaap
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
             /** Company Name */
             company_name: string;
+            /** @description The latest year as deal inputs (PLAN.md 2.6) */
+            deal_inputs: components["schemas"]["EdgarDealInputs"];
             /**
              * Fiscal Year End Month
              * @description Month the filer's fiscal year ends; years are named by the year they end in
@@ -1652,7 +1725,14 @@ export interface components {
             history: {
                 [key: string]: number[];
             };
-            /** @description SEC filings are read in US dollars, in millions */
+            /**
+             * Leases
+             * @description lease_cost and lease_liability, one value per year, oldest first
+             */
+            leases?: {
+                [key: string]: number[];
+            };
+            /** @description The filing's own currency (US dollars for a 10-K), in millions */
             money: components["schemas"]["Money"];
             /** Ticker */
             ticker: string;
@@ -1752,6 +1832,13 @@ export interface components {
         /** ForecastRunRequest */
         ForecastRunRequest: {
             /**
+             * Accounting Standard
+             * @description The standard the company reports under (PLAN.md 2.6): a label, echoed back
+             * @default
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
+            /**
              * Assumptions
              * @description assumption key -> one value per forecast year
              */
@@ -1786,6 +1873,12 @@ export interface components {
         };
         /** ForecastRunResponse */
         ForecastRunResponse: {
+            /**
+             * Accounting Standard
+             * @default
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
             /** Balanced */
             balanced: boolean;
             /**
@@ -2041,6 +2134,13 @@ export interface components {
         /** HistoryRequest */
         HistoryRequest: {
             /**
+             * Accounting Standard
+             * @description The standard the company reports under (PLAN.md 2.6): a label, echoed back
+             * @default
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
+            /**
              * History
              * @description field key -> one value per historical year, oldest first
              */
@@ -2129,6 +2229,42 @@ export interface components {
              * @enum {string}
              */
             status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
+        /** LeaseSummary */
+        LeaseSummary: {
+            /** Accounting Standard */
+            accounting_standard: string;
+            /**
+             * Counted As Debt
+             * @description Whether the lease liability is counted with net debt
+             */
+            counted_as_debt: boolean;
+            /** Entry Ev */
+            entry_ev: number;
+            /** Lease Cost */
+            lease_cost: number;
+            /** Lease Liability */
+            lease_liability: number;
+            /**
+             * Net Debt At Entry
+             * @description Debt at close less minimum cash, plus leases when counted
+             */
+            net_debt_at_entry: number;
+            /**
+             * Operating Ebitda
+             * @description EBITDA after lease costs: what the operating model grows
+             */
+            operating_ebitda: number;
+            /**
+             * Valuation Ebitda
+             * @description EBITDA the entry and exit multiples are applied to
+             */
+            valuation_ebitda: number;
+            /**
+             * View
+             * @enum {string}
+             */
+            view: "" | "pre_ifrs16" | "post_ifrs16";
         };
         /** LimitInfo */
         LimitInfo: {
@@ -2257,6 +2393,7 @@ export interface components {
         MonteCarloRequest: {
             /**
              * @default {
+             *       "accounting_standard": "",
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
@@ -2272,6 +2409,9 @@ export interface components {
              *       "growth": 5,
              *       "hold": 5,
              *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
              *       "mezz_spread": 4,
              *       "mincash": 0,
              *       "nwc": 1,
@@ -2575,6 +2715,7 @@ export interface components {
         ScenariosRequest: {
             /**
              * @default {
+             *       "accounting_standard": "",
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
@@ -2590,6 +2731,9 @@ export interface components {
              *       "growth": 5,
              *       "hold": 5,
              *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
              *       "mezz_spread": 4,
              *       "mincash": 0,
              *       "nwc": 1,
@@ -2650,6 +2794,12 @@ export interface components {
         };
         /** SeedResponse */
         SeedResponse: {
+            /**
+             * Accounting Standard
+             * @default
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
             /** Historical Metrics */
             historical_metrics: components["schemas"]["HistoricalMetrics"][];
             ltm: components["schemas"]["HistoricalYear"];
@@ -2683,6 +2833,13 @@ export interface components {
         /** SourcesUsesRequest */
         SourcesUsesRequest: {
             /**
+             * Accounting Standard
+             * @description The standard the EBITDA follows (PLAN.md 2.6): 'ifrs' (before lease costs, IFRS 16), 'us_gaap' (after operating lease costs), or '' for not stated
+             * @default
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
+            /**
              * Ebitda
              * @default 100
              */
@@ -2692,6 +2849,25 @@ export interface components {
              * @default 10
              */
             entry_mult: number;
+            /**
+             * Lease Cost
+             * @description What the leases cost a year (in currency and unit)
+             * @default 0
+             */
+            lease_cost: number;
+            /**
+             * Lease Liability
+             * @description The lease liability at close (in currency and unit)
+             * @default 0
+             */
+            lease_liability: number;
+            /**
+             * Lease View
+             * @description How the deal is priced: 'pre_ifrs16' (EBITDA after lease costs, leases not debt), 'post_ifrs16' (EBITDA before lease costs, the lease liability counted with net debt), or '' for the standard's own view
+             * @default
+             * @enum {string}
+             */
+            lease_view: "" | "pre_ifrs16" | "post_ifrs16";
             /**
              * Mezz X
              * @description Mezz debt (x EBITDA)
@@ -2743,10 +2919,19 @@ export interface components {
              * @description Implied total debt / EV (%)
              */
             debt_pct?: number | null;
-            /** Equity Purchase Price */
+            /**
+             * Equity Purchase Price
+             * @description Entry EV less any lease liability taken over
+             */
             equity_purchase_price: number;
             /** Financing Fees */
             financing_fees: number;
+            /**
+             * Lease Liability
+             * @description Lease liability taken over with the business, when counted as debt
+             * @default 0
+             */
+            lease_liability: number;
             /**
              * Mezz Debt
              * @description Only when the deal is sized by percentages
@@ -2794,6 +2979,7 @@ export interface components {
         SurrogateRequest: {
             /**
              * @default {
+             *       "accounting_standard": "",
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
@@ -2809,6 +2995,9 @@ export interface components {
              *       "growth": 5,
              *       "hold": 5,
              *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
              *       "mezz_spread": 4,
              *       "mincash": 0,
              *       "nwc": 1,

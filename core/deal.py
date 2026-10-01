@@ -12,6 +12,7 @@ from core.debt import (
     blended_rate as tranche_rate, build_capital_structure, check_specs, coerce, financing_fees, summary,
     total_debt as tranche_debt, unique_names,
 )
+from core.accounting import LeaseTerms, lease_terms, valuation_ebitda
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT, to_millions
 from core.tax import TAX_MONEY_INPUTS, rules_from_deal
 from lbo_engine.model import LBOParams, run_lbo
@@ -64,6 +65,14 @@ class DealInputs:
     tax_loss_limit_pct: float = 100.0       # % of profit above the allowance
     tax_loss_limit_amount: float = 0.0      # money offset in full each year
     tax_minimum_pct: float = 0.0            # % of book profit
+    # Accounting standard and leases (PLAN.md 2.6, core/accounting.py). The
+    # EBITDA above is as the standard reports it: before lease costs under
+    # IFRS 16, after them under US GAAP. No lease cost and no liability, the
+    # defaults, leave the deal exactly as before whatever the standard says.
+    accounting_standard: str = ""           # "" | "ifrs" | "us_gaap"
+    lease_view: str = ""                    # "" (the standard's own) | "pre_ifrs16" | "post_ifrs16"
+    lease_cost: float = 0.0                 # money a year
+    lease_liability: float = 0.0            # money at close
 
     def __post_init__(self):
         # Routers build DealInputs(**model_dump()), so tranches arrive as
@@ -73,7 +82,7 @@ class DealInputs:
 
 
 # Money inputs, in the deal's unit
-MONEY_INPUTS = ("ebitda", "mincash", *TAX_MONEY_INPUTS)
+MONEY_INPUTS = ("ebitda", "mincash", *TAX_MONEY_INPUTS, "lease_cost", "lease_liability")
 # Settings that are money amounts (the rest are rates, multiples and counts)
 MONEY_SETTINGS = ("other_uses", "def_ebitda", "def_mincash")
 
@@ -111,6 +120,9 @@ DEAL_MONEY_KEYS = frozenset({
     # Tax rules (PLAN.md 2.5): the tax block's money
     "taxable_income", "interest_deductible", "interest_carried", "losses_used",
     "losses_carried", "regular_tax", "minimum_tax_topup",
+    # Leases (PLAN.md 2.6): the leases block's money
+    "operating_ebitda", "valuation_ebitda", "lease_cost", "lease_liability", "entry_ev",
+    "net_debt_at_entry",
     # equity bridge
     "entry_costs", "ebitda_growth", "multiple_expansion", "deleveraging", "exit_equity",
     "total_gain", "residual", "value",
@@ -121,6 +133,8 @@ SOURCES_USES_MONEY_KEYS = frozenset({
     "transaction_fees", "financing_fees", "other_uses", "cash_to_balance_sheet", "total_uses", "check",
     # Per tranche (PLAN.md 2.4)
     "tranche_fees", "amount", "commitment", "total_debt",
+    # Leases taken over with the business (PLAN.md 2.6)
+    "lease_liability",
 })
 
 
@@ -146,27 +160,44 @@ def entry_costs(entry_ev, total_debt, cfg: Mapping):
             + cfg['other_uses'])
 
 
-def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash: float = 0.0) -> dict:
+def leases_of(d: DealInputs) -> LeaseTerms:
+    """The deal's leases in engine terms (core/accounting.py)."""
+    return lease_terms(d.ebitda, d.accounting_standard, d.lease_view, d.lease_cost, d.lease_liability)
+
+
+def has_leases(d: DealInputs) -> bool:
+    return bool(d.lease_cost or d.lease_liability)
+
+
+def sources_and_uses(ebitda, entry_mult, senior_x, mezz_x, cfg: Mapping, mincash: float = 0.0,
+                     leases: Optional[LeaseTerms] = None) -> dict:
     """Sources & uses of funds for a deal financed with senior + mezz multiples.
 
     Minimum cash left on the balance sheet at close is a use of funds, as in
-    the engine (finding 1).
+    the engine (finding 1). With leases (PLAN.md 2.6) everything is sized on
+    the EBITDA the deal is valued on, as the engine sizes it: the entry EV,
+    and the debt multiples, which the screen derives from ``debt_pct``; a
+    deal priced post-IFRS 16 pays that EV less the lease liability it takes
+    over.
     """
-    entry_ev       = ebitda * entry_mult
-    total_debt_abs = (senior_x + mezz_x) * ebitda
+    base           = ebitda if leases is None else valuation_ebitda(leases)
+    entry_ev       = base * entry_mult
+    assumed        = 0.0 if leases is None else leases.debt_like
+    total_debt_abs = (senior_x + mezz_x) * base
     tx_fees        = entry_ev * cfg['tx_fee_pct'] / 100
     fin_fees       = total_debt_abs * cfg['fin_fee_pct'] / 100
-    total_uses     = entry_ev + tx_fees + fin_fees + cfg['other_uses'] + mincash
+    total_uses     = entry_ev - assumed + tx_fees + fin_fees + cfg['other_uses'] + mincash
     # Equity is the plug that balances Sources against Uses, fees included
     sponsor_eq     = max(total_uses - total_debt_abs, 0)
     total_sources  = total_debt_abs + sponsor_eq
     check          = total_sources - total_uses
     return {
-        "senior_debt": senior_x * ebitda,
-        "mezz_debt": mezz_x * ebitda,
+        "senior_debt": senior_x * base,
+        "mezz_debt": mezz_x * base,
         "sponsor_equity": sponsor_eq,
         "total_sources": total_sources,
-        "equity_purchase_price": entry_ev,
+        "equity_purchase_price": entry_ev - assumed,
+        "lease_liability": assumed,
         "transaction_fees": tx_fees,
         "financing_fees": fin_fees,
         "other_uses": cfg['other_uses'],
@@ -185,13 +216,15 @@ def sources_and_uses_for(d: DealInputs, cfg: Mapping) -> dict:
     flat financing fee (core/debt.py ``financing_fees`` explains why the two
     are separate lines rather than one).
     """
-    entry_ev = d.ebitda * d.entry_mult
+    leases = leases_of(d)
+    entry_ev = valuation_ebitda(leases) * d.entry_mult if has_leases(d) else d.ebitda * d.entry_mult
+    assumed = leases.debt_like
     names = unique_names(d.tranches)
     drawn = tranche_debt(d.tranches)
     tx_fees = entry_ev * cfg["tx_fee_pct"] / 100
     fin_fees = drawn * cfg["fin_fee_pct"] / 100
     tranche_fees = financing_fees(d.tranches)
-    total_uses = entry_ev + tx_fees + fin_fees + tranche_fees + cfg["other_uses"] + d.mincash
+    total_uses = entry_ev - assumed + tx_fees + fin_fees + tranche_fees + cfg["other_uses"] + d.mincash
     sponsor_eq = max(total_uses - drawn, 0)
     total_sources = drawn + sponsor_eq
     check = total_sources - total_uses
@@ -201,7 +234,8 @@ def sources_and_uses_for(d: DealInputs, cfg: Mapping) -> dict:
         "total_debt": drawn,
         "sponsor_equity": sponsor_eq,
         "total_sources": total_sources,
-        "equity_purchase_price": entry_ev,
+        "equity_purchase_price": entry_ev - assumed,
+        "lease_liability": assumed,
         "transaction_fees": tx_fees,
         "financing_fees": fin_fees,
         "tranche_fees": tranche_fees,
@@ -279,15 +313,22 @@ INTEREST_TOLERANCE = 0.001   # millions (the engine always runs in millions)
 
 
 def build_lbo_params(d: DealInputs, cfg: Mapping) -> LBOParams:
+    # Leases (PLAN.md 2.6): the engine grows EBITDA after lease costs and is
+    # told what to add back and count as debt. No leases: the deal's own
+    # EBITDA and two zeros, exactly as before.
+    leases = leases_of(d)
+    ebitda = leases.operating_ebitda
+    entry_ev = (ebitda + leases.valuation_addback) * d.entry_mult
     structure, fees = None, 0.0
     if d.tranches:
-        structure = build_capital_structure(d.tranches, d.ebitda, int(d.hold))
+        structure = build_capital_structure(d.tranches, ebitda, int(d.hold))
         fees = financing_fees(d.tranches)
-        check_specs(d.tranches, d.ebitda * d.entry_mult,
-                    entry_costs(d.ebitda * d.entry_mult, tranche_debt(d.tranches), cfg) + fees)
+        check_specs(d.tranches, entry_ev - leases.debt_like,
+                    entry_costs(entry_ev, tranche_debt(d.tranches), cfg) + fees)
     return LBOParams(
         capital_structure=structure, tranche_fees=fees, tax_rules=rules_from_deal(d),
-        entry_ebitda=d.ebitda, entry_multiple=d.entry_mult,
+        lease_ebitda_addback=leases.valuation_addback, lease_liability=leases.debt_like,
+        entry_ebitda=ebitda, entry_multiple=d.entry_mult,
         exit_multiple=d.exit_mult, holding_period=int(d.hold),
         debt_pct=d.debt_pct/100, senior_pct=d.senior_pct/100,
         mezz_spread=d.mezz_spread/100, interest_rate=d.base_rate/100,
@@ -323,6 +364,25 @@ def sensitivity_holding_periods(cfg: Mapping) -> list:
 def run_deal(d: DealInputs, cfg: Mapping):
     """Run the full LBO model for the deal wizard inputs."""
     return run_lbo(build_lbo_params(d, cfg))
+
+
+def lease_summary(d: DealInputs, result) -> Optional[dict]:
+    """What the deal's leases did to its value (PLAN.md 2.6), or None for a
+    deal without leases. Money in the unit the deal ran in."""
+    if not has_leases(d):
+        return None
+    t = leases_of(d)
+    return {
+        "accounting_standard": d.accounting_standard,
+        "view": t.view,
+        "counted_as_debt": t.debt_like > 0,
+        "operating_ebitda": t.operating_ebitda,
+        "valuation_ebitda": valuation_ebitda(t),
+        "lease_cost": d.lease_cost,
+        "lease_liability": d.lease_liability,
+        "entry_ev": valuation_ebitda(t) * d.entry_mult,
+        "net_debt_at_entry": result.capital_structure.total_debt - d.mincash + t.debt_like,
+    }
 
 
 def bridge_steps(br):

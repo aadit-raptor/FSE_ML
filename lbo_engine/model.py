@@ -193,6 +193,15 @@ class LBOParams:
     # EBT exactly as before.
     tax_rules: Optional[TaxRules] = None
 
+    # --- Leases (PLAN.md 2.6, core/accounting.py) ---
+    # entry_ebitda is always EBITDA after lease costs, the cash the business
+    # earns. A deal priced post-IFRS 16 adds its lease cost back where EBITDA
+    # is multiplied into a value (entry and exit) and counts the lease
+    # liability with net debt at both ends. 0.0 for every other deal, which
+    # leaves each expression exactly as it was.
+    lease_ebitda_addback: float = 0.0   # M a year
+    lease_liability: float = 0.0        # M, held flat over the hold
+
     # --- Cash flow ---
     capex_pct: float = 0.04
     nwc_pct: float = 0.01
@@ -334,7 +343,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
         cs = params.capital_structure
     else:
         # Generic simulation mode — build two-tranche structure
-        entry_ev = params.entry_ebitda * params.entry_multiple
+        entry_ev = (params.entry_ebitda + params.lease_ebitda_addback) * params.entry_multiple
         cs = build_simple_two_tranche_structure(
             enterprise_value=entry_ev,
             ltm_ebitda=params.entry_ebitda,
@@ -351,7 +360,7 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # ------------------------------------------------------------------
     # Step 2: Transaction (solve sponsor equity, build S&U)
     # ------------------------------------------------------------------
-    entry_ev = params.entry_ebitda * params.entry_multiple
+    entry_ev = (params.entry_ebitda + params.lease_ebitda_addback) * params.entry_multiple
     total_debt = cs.total_debt
     # Sponsor equity is the plug that balances Sources and Uses, and Uses
     # include fees -- the same definition as solve_sponsor_equity() in the
@@ -365,6 +374,8 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # it), so sponsor equity funds it too. Leaving it out overstated IRR and
     # MOIC and left a bridge residual equal to the minimum cash (finding 1).
     equity = entry_ev + entry_costs + params.minimum_cash - total_debt
+    # Leases the buyer takes over are part of the price it doesn't pay in cash
+    equity = equity - params.lease_liability
 
     # For generic deals we skip the full transaction module
     # and just compute equity directly. The full transaction module
@@ -517,8 +528,8 @@ def run_lbo(params: LBOParams) -> LBOResult:
         exit_multiple=params.exit_multiple,
         holding_period=params.holding_period,
         entry_equity=entry_equity,
-        exit_ebitda=final_op_result.exit_ebitda,
-        net_debt_at_exit=final_debt_result.net_debt_at_exit,
+        exit_ebitda=final_op_result.exit_ebitda + params.lease_ebitda_addback,
+        net_debt_at_exit=final_debt_result.net_debt_at_exit + params.lease_liability,
         management_option_pool_pct=params.management_option_pool_pct,
     )
 
@@ -527,18 +538,18 @@ def run_lbo(params: LBOParams) -> LBOResult:
     # ------------------------------------------------------------------
     # Step 7: Equity bridge
     # ------------------------------------------------------------------
-    entry_ebitda = params.entry_ebitda
+    entry_ebitda = params.entry_ebitda + params.lease_ebitda_addback
     entry_multiple = params.entry_multiple
-    net_debt_at_entry = cs.total_debt - params.minimum_cash
+    net_debt_at_entry = cs.total_debt - params.minimum_cash + params.lease_liability
 
     bridge = compute_equity_bridge(
         entry_equity=entry_equity,
         entry_ebitda=entry_ebitda,
         entry_multiple=entry_multiple,
         net_debt_at_entry=net_debt_at_entry,
-        exit_ebitda=final_op_result.exit_ebitda,
+        exit_ebitda=final_op_result.exit_ebitda + params.lease_ebitda_addback,
         exit_multiple=params.exit_multiple,
-        net_debt_at_exit=final_debt_result.net_debt_at_exit,
+        net_debt_at_exit=final_debt_result.net_debt_at_exit + params.lease_liability,
         management_option_pool_pct=params.management_option_pool_pct,
         entry_costs=entry_costs,
     )
@@ -560,15 +571,16 @@ def run_lbo(params: LBOParams) -> LBOResult:
         exits_by_hold = {}
         for hp in holds:
             if hp == params.holding_period:
-                exits_by_hold[hp] = (entry_equity, final_op_result.exit_ebitda,
-                                     final_debt_result.net_debt_at_exit)
+                exits_by_hold[hp] = (entry_equity,
+                                     final_op_result.exit_ebitda + params.lease_ebitda_addback,
+                                     final_debt_result.net_debt_at_exit + params.lease_liability)
             else:
                 other = run_lbo(dataclasses.replace(
                     params, holding_period=hp, compute_sensitivity=False))
                 # Entry equity doesn't depend on the hold
                 exits_by_hold[hp] = (entry_equity,
-                                     other.operating_model.exit_ebitda,
-                                     other.debt_schedule.net_debt_at_exit)
+                                     other.operating_model.exit_ebitda + params.lease_ebitda_addback,
+                                     other.debt_schedule.net_debt_at_exit + params.lease_liability)
         sensitivity = compute_exit_sensitivity_by_hold(
             exits_by_hold=exits_by_hold,
             holding_periods=holds,

@@ -121,11 +121,26 @@ export function fullTranche(t: Schemas["TrancheIn"]): FullTranche {
  * Carlo simulation has always moved them. Their names are the engine's, so
  * the schedule tiles keep their titles.
  */
+type LeaseFields = Pick<Schemas["DealInputsIn"], "accounting_standard" | "lease_view" | "lease_cost" | "lease_liability">;
+
+/**
+ * The EBITDA a deal is valued on (PLAN.md 2.6), a line-for-line mirror of core/accounting.py
+ * lease_terms: after lease costs for an IFRS figure, with them added back when priced
+ * post-IFRS 16. A deal without leases gets its own EBITDA.
+ */
+export function valuationEbitda(inputs: { ebitda: number } & LeaseFields): number {
+  const cost = inputs.lease_cost ?? 0;
+  const ifrs = inputs.accounting_standard === "ifrs";
+  const view = inputs.lease_view || (ifrs ? "post_ifrs16" : "pre_ifrs16");
+  const operating = ifrs ? inputs.ebitda - cost : inputs.ebitda;
+  return view === "post_ifrs16" ? operating + cost : operating;
+}
+
 export function equivalentTranches(
-  inputs: { ebitda: number; entry_mult: number; debt_pct: number; senior_pct: number; base_rate: number; mezz_spread: number; hold: number },
+  inputs: { ebitda: number; entry_mult: number; debt_pct: number; senior_pct: number; base_rate: number; mezz_spread: number; hold: number } & LeaseFields,
   seniorAmortPct: number,
 ): FullTranche[] {
-  const debt = (inputs.ebitda * inputs.entry_mult * inputs.debt_pct) / 100;
+  const debt = (valuationEbitda(inputs) * inputs.entry_mult * inputs.debt_pct) / 100;
   const round2 = (x: number) => Math.round(x * 100) / 100;
   const senior = round2((debt * inputs.senior_pct) / 100);
   const mezz = round2(debt * (1 - inputs.senior_pct / 100));
@@ -163,9 +178,11 @@ export function drawnDebt(tranches: Schemas["TrancheIn"][]): number {
 }
 
 /** Total debt as a share of EV (%), whichever way the deal sizes it. */
-export function debtShareOfEv(inputs: { ebitda: number; entry_mult: number; debt_pct: number; tranches: Schemas["TrancheIn"][] }): number {
+export function debtShareOfEv(
+  inputs: { ebitda: number; entry_mult: number; debt_pct: number; tranches: Schemas["TrancheIn"][] } & LeaseFields,
+): number {
   if (!inputs.tranches.length) return inputs.debt_pct;
-  const ev = inputs.ebitda * inputs.entry_mult;
+  const ev = valuationEbitda(inputs) * inputs.entry_mult;
   return ev > 0 ? (drawnDebt(inputs.tranches) / ev) * 100 : 0;
 }
 
