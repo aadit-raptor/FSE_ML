@@ -15,6 +15,7 @@ import { downloadWorkbook, fraction, sheet, tableSheet } from "@/lib/export";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
+import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 import { useUnitLabel } from "@/lib/i18n/useFieldText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { MONEY } from "@/lib/money";
@@ -110,6 +111,9 @@ function SummaryResults() {
   const r = res.returns;
   const years = fiscalLabels.deal(om.revenue?.length ?? 0, dealFiscal(inputs));
   const br = res.equity_bridge;
+  // Labels follow the deal's accounting standard; with leases EBITDA is after lease costs (PLAN.md 2.6)
+  const std = useStandardLabel(inputs.accounting_standard);
+  const ebitdaLabel = res.leases ? t("rowEbitdaAfterLeases") : t("rowEbitda");
   const revenue = (om.revenue ?? []).map((v) => v ?? 0);
   const cogs = (om.cogs ?? []).map((v) => Math.abs(v ?? 0));
 
@@ -117,13 +121,13 @@ function SummaryResults() {
     { label: t("rowRevenue"), values: om.revenue ?? [] },
     { label: t("rowGrossProfit"), values: om.gross_profit ?? [] },
     { label: t("rowOpex"), values: om.opex ?? [], kind: "outflow" },
-    { label: t("rowEbitda"), values: om.ebitda ?? [], total: true },
+    { label: ebitdaLabel, values: om.ebitda ?? [], total: true },
     { label: t("rowDa"), values: om.da ?? [], kind: "outflow" },
     { label: t("rowEbit"), values: om.ebit ?? [] },
-    { label: t("rowInterestExpense"), values: om.interest_expense ?? [], kind: "outflow" },
-    { label: t("rowPretaxIncome"), values: om.ebt ?? [] },
-    { label: t("rowTaxes"), values: om.taxes ?? [], kind: "outflow" },
-    { label: t("rowNetIncome"), values: om.net_income ?? [], total: true },
+    { label: std("rowInterestExpense", t("rowInterestExpense")), values: om.interest_expense ?? [], kind: "outflow" },
+    { label: std("rowPretaxIncome", t("rowPretaxIncome")), values: om.ebt ?? [] },
+    { label: std("rowTaxes", t("rowTaxes")), values: om.taxes ?? [], kind: "outflow" },
+    { label: std("rowNetIncome", t("rowNetIncome")), values: om.net_income ?? [], total: true },
     { label: t("rowEbitdaMargin"), values: om.ebitda_margin ?? [], kind: "rate" },
   ];
   // The deal's tax rules at work (PLAN.md 2.5); a deal with none has no tax
@@ -139,11 +143,11 @@ function SummaryResults() {
         ...((tx.minimum_tax_topup ?? []).some((v) => (v ?? 0) > 0)
           ? [{ label: t("rowMinimumTaxTopup"), values: tx.minimum_tax_topup ?? [] }]
           : []),
-        { label: t("rowTaxes"), values: tx.taxes ?? [], kind: "outflow", total: true },
+        { label: std("rowTaxes", t("rowTaxes")), values: tx.taxes ?? [], kind: "outflow", total: true },
       ]
     : null;
   const cashRows: Row[] = [
-    { label: t("rowNetIncome"), values: cf.net_income ?? [] },
+    { label: std("rowNetIncome", t("rowNetIncome")), values: cf.net_income ?? [] },
     { label: t("rowDa"), values: cf.da ?? [] },
     { label: t("rowCapex"), values: cf.capex ?? [], kind: "outflow" },
     { label: t("rowChangeInNwc"), values: cf.delta_nwc ?? [], kind: "outflow" },
@@ -189,7 +193,7 @@ function SummaryResults() {
   const sbc = revenue.map((v) => (v * sbcPct) / 100);
   const adj = (om.ebitda ?? []).map((v, i) => (v ?? 0) + (sbc[i] ?? 0));
   const adjRows: Row[] = [
-    { label: t("rowEbitda"), values: om.ebitda ?? [] },
+    { label: ebitdaLabel, values: om.ebitda ?? [] },
     { label: t("rowStockBasedComp"), values: sbc },
     { label: t("rowAdjustedEbitda"), values: adj, total: true },
     { label: t("rowAdjustedMargin"), values: adj.map((v, i) => (revenue[i] ? v / revenue[i] : NaN)), kind: "rate" },

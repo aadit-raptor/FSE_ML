@@ -133,7 +133,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.4a | Debt structures and interest rates: the model | 2.2 | ☑ |
 | 2.4b | Debt structures: simulation and the screen | 2.4a | ☑ |
 | 2.5 | Global tax rules | 2.2 | ☑ |
-| 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☐ |
+| 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☑ |
 | 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☐ |
 | 2.8 | Risk warnings computed, not written in | 2.1 | ☐ |
 | **3** | **Trust in the numbers** | | |
@@ -604,10 +604,15 @@ can check it.
     `lease_liability` (off by default, stored only when set) move EBITDA and
     net debt as `tests/test_accounting.py`'s hand-checked case predicts, in
     the deal model, the exit grid, sources and uses and the simulation.
-  - **2.6b:** the screen: the standard and lease controls on the deal, the
-    forecast company's standard, adaptable labels ("Finance costs", "Profit
-    for the year" under IFRS), "use in deal" from an EDGAR filing, e2e by
-    output.
+  - **2.6b (done):** the screen. The Inputs step's "Accounting and leases"
+    rail group (`steps/LeaseRules.tsx`: standard, lease cost, liability,
+    view); EV and debt tiles on the valuation EBITDA; sources and uses say
+    when the price is less leases taken over; a Leases tile on Returns;
+    statement labels follow the standard (`lib/i18n/useStandardLabel.ts`,
+    the `standards` namespace: "Finance costs", "Profit for the year" under
+    IFRS); the forecast company's standard (set by a filing, editable) and
+    "Use in deal" from an EDGAR filing. `e2e/accounting.spec.ts` proves each
+    control by output (mutation-checked).
 
 ### 2.7 Backtest becomes "plan vs actual" for any deal
 - **Claude does:** pick any saved deal as the plan; enter or upload actual yearly

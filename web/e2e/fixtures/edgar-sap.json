@@ -1,0 +1,182 @@
+{
+ "ticker": "SAP",
+ "company_name": "SAP SE",
+ "years": [
+  2023,
+  2024,
+  2025
+ ],
+ "history": {
+  "h_rev": [
+   31207.0,
+   34176.0,
+   36800.0
+  ],
+  "h_cogs": [
+   -8674.0,
+   -9243.0,
+   -9986.0
+  ],
+  "h_rd": [
+   -6324.0,
+   -6514.0,
+   -6633.0
+  ],
+  "h_sga": [
+   -10410.0,
+   -13754.0,
+   -10564.0
+  ],
+  "h_int_exp": [
+   -1313.0,
+   -1031.0,
+   -1377.0
+  ],
+  "h_int_inc": [
+   857.0,
+   1429.0,
+   1911.0
+  ],
+  "h_other": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "h_tax": [
+   -1741.0,
+   -1614.0,
+   -2944.0
+  ],
+  "h_da": [
+   1373.0,
+   1280.0,
+   1311.0
+  ],
+  "h_sbc": [
+   2220.0,
+   2385.0,
+   1695.0
+  ],
+  "h_cash": [
+   8124.0,
+   9609.0,
+   8220.0
+  ],
+  "h_ar": [
+   6322.0,
+   6774.0,
+   6675.0
+  ],
+  "h_inv": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "h_ocurr": [
+   2374.0,
+   2682.0,
+   3212.0
+  ],
+  "h_ppe": [
+   4276.0,
+   4493.0,
+   4497.0
+  ],
+  "h_nca": [
+   2505.0,
+   2706.0,
+   2282.0
+  ],
+  "h_lta": [
+   44730.0,
+   47973.0,
+   45476.0
+  ],
+  "h_ap": [
+   1783.0,
+   1988.0,
+   2431.0
+  ],
+  "h_ocl": [
+   6740.0,
+   7477.0,
+   6804.0
+  ],
+  "h_def": [
+   4975.0,
+   5978.0,
+   6581.0
+  ],
+  "h_ltd": [
+   7755.0,
+   9385.0,
+   6150.0
+  ],
+  "h_ncl": [
+   3672.0,
+   3603.0,
+   3322.0
+  ],
+  "h_cs": [
+   -1418.0,
+   -1793.0,
+   -2453.0
+  ],
+  "h_re": [
+   42457.0,
+   42907.0,
+   47345.0
+  ],
+  "h_oci": [
+   2367.0,
+   4692.0,
+   182.0
+  ],
+  "h_capex": [
+   785.0,
+   797.0,
+   739.0
+  ],
+  "h_divs": [
+   2395.0,
+   2565.0,
+   2743.0
+  ],
+  "h_buybacks": [
+   949.0,
+   2106.0,
+   1937.0
+  ]
+ },
+ "warnings": [
+  "Could not extract 'inventories' \u2014 will show as 0",
+  "Operating costs not separately tagged (52M in FY2025) folded into SG&A so operating income matches the annual report",
+  "The lease cost is the principal repaid on lease liabilities only: the filing tags no interest on them, so add it from the annual report's lease note"
+ ],
+ "fiscal_year_end_month": 12,
+ "money": {
+  "currency": "EUR",
+  "unit": "millions"
+ },
+ "accounting_standard": "ifrs",
+ "leases": {
+  "lease_cost": [
+   332.0,
+   310.0,
+   299.0
+  ],
+  "lease_liability": [
+   1621.0,
+   1715.0,
+   1684.0
+  ]
+ },
+ "deal_inputs": {
+  "ebitda": 10928.0,
+  "currency": "EUR",
+  "unit": "millions",
+  "accounting_standard": "ifrs",
+  "lease_cost": 299.0,
+  "lease_liability": 1684.0
+ }
+}

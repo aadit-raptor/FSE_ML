@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { DataTable, type Row } from "@/components/charts/DataTable";
@@ -12,17 +13,23 @@ import { EmptyState, LoadingTiles, Notice, RailGroup, Screen, SecondaryButton } 
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { MoneyScope, useMoney } from "@/components/ui/MoneyScope";
 import { FiscalSelects } from "@/components/ui/FiscalSelects";
-import { MoneySelects } from "@/components/ui/MoneySelects";
+import { MoneySelects, SELECT_CLASS } from "@/components/ui/MoneySelects";
 import { downloadWorkbook, sheet, tableSheet } from "@/lib/export";
 import { ASSUMPTION_GROUPS, HISTORY_GROUPS } from "@/lib/forecast";
 import { fmtCount, fmtInput, fmtMoney, fmtNumber, fmtRate, isNum } from "@/lib/format";
+import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 import { withMoney } from "@/lib/money";
 
-import { type ForecastRun, useForecast } from "./ForecastProvider";
+import { useDeal } from "@/components/deal/DealProvider";
+import type { Schemas } from "@/lib/api/client";
+
+import { type ForecastRun, type Standard, useForecast } from "./ForecastProvider";
 
 function Rail() {
-  const { source, fetchEdgar, edgar, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels } = useForecast();
+  const { source, fetchEdgar, edgar, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels, standard, setStandard } =
+    useForecast();
   const t = useTranslations("forecast");
+  const dealText = useTranslations("deal");
   const fiscalText = useTranslations("fiscal");
   const [ticker, setTicker] = useState("");
   const latest = metrics?.at(-1);
@@ -36,6 +43,18 @@ function Rail() {
       </div>
       <RailGroup title={t("groupReportingCurrency")}>
         <MoneySelects money={money} onChange={setMoney} of={t("of")} />
+      </RailGroup>
+      <RailGroup title={t("groupStandard")}>
+        <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
+          <span className="type-input-label">{t("groupStandard")}</span>
+          <select value={standard} onChange={(e) => setStandard(e.target.value as Standard)} className={SELECT_CLASS}>
+            {STANDARDS.map((s) => (
+              <option key={s} value={s}>
+                {dealText(`standard_${s}`)}
+              </option>
+            ))}
+          </select>
+        </label>
       </RailGroup>
       <RailGroup title={t("groupEdgar")}>
         <form
@@ -74,6 +93,7 @@ function Rail() {
                 {w}
               </p>
             ))}
+            {source.dealInputs && <UseInDeal inputs={source.dealInputs} />}
           </div>
         )}
         <div className="pt-1.5">
@@ -106,6 +126,39 @@ function Rail() {
         </RailGroup>
       )}
     </>
+  );
+}
+
+/** i18n-keys: deal.standard_, deal.standard_ifrs, deal.standard_us_gaap */
+const STANDARDS: Standard[] = ["", "ifrs", "us_gaap"];
+
+/**
+ * A filing's latest year as the open deal's inputs (PLAN.md 2.6): its EBITDA as the standard
+ * reports it, its currency and unit, its standard and its leases. The deal's other money is
+ * converted to the filing's unit first, so nothing else changes size.
+ */
+function UseInDeal({ inputs }: { inputs: Schemas["EdgarDealInputs"] }) {
+  const { setMoney, setFields } = useDeal();
+  const router = useRouter();
+  const t = useTranslations("forecast");
+  return (
+    <div className="grid gap-1 pt-1.5">
+      <SecondaryButton
+        onClick={() => {
+          setMoney({ currency: inputs.currency, unit: inputs.unit });
+          setFields({
+            ebitda: Number(inputs.ebitda.toFixed(6)),
+            accounting_standard: inputs.accounting_standard,
+            lease_cost: Number(inputs.lease_cost.toFixed(6)),
+            lease_liability: Number(inputs.lease_liability.toFixed(6)),
+          });
+          router.push("/deal/inputs");
+        }}
+      >
+        {t("useInDeal")}
+      </SecondaryButton>
+      <p className="font-mono text-[10px] text-muted">{t("useInDealNote", { ebitda: fmtMoney(inputs.ebitda) })}</p>
+    </div>
   );
 }
 
@@ -299,6 +352,7 @@ const fwdRow = (label: string, values: number[], kind?: Row["kind"], total?: boo
 
 function useStatementTables(): (res: ForecastRun) => { income: Row[]; balance: Row[]; cash: Row[] } {
   const t = useTranslations("forecast");
+  const std = useStandardLabel(useForecast().standard);
   return (res) => ({
     income: statementRows(res, [
       ["revenue", t("rowRevenue")],
@@ -306,21 +360,21 @@ function useStatementTables(): (res: ForecastRun) => { income: Row[]; balance: R
       ["rd", t("rowRd")],
       ["sga", t("rowSga")],
       ["ebit", t("rowEbit"), undefined, true],
-      ["interest_inc", t("rowInterestIncome")],
-      ["interest_exp", t("rowInterestExpense")],
-      ["pretax", t("rowPretax")],
-      ["taxes", t("rowTaxes")],
-      ["net_income", t("rowNetIncome"), undefined, true],
+      ["interest_inc", std("rowInterestIncome", t("rowInterestIncome"))],
+      ["interest_exp", std("rowInterestExpense", t("rowInterestExpense"))],
+      ["pretax", std("rowPretax", t("rowPretax"))],
+      ["taxes", std("rowTaxes", t("rowTaxes"))],
+      ["net_income", std("rowNetIncome", t("rowNetIncome")), undefined, true],
       ["ebitda", t("rowEbitda")],
       ["ebitda_margin", t("rowEbitdaMargin"), "rate"],
     ]),
     balance: statementRows(res, [
       ["cash", t("rowCash")],
-      ["ar", t("rowAr")],
+      ["ar", std("rowAr", t("rowAr"))],
       ["inventory", t("rowInventory")],
       ["ppe_net", t("rowPpeNet")],
       ["total_assets", t("rowTotalAssets"), undefined, true],
-      ["ap", t("rowAp")],
+      ["ap", std("rowAp", t("rowAp"))],
       ["revolver", t("rowRevolver")],
       ["ltd", t("rowLtd")],
       ["total_liab", t("rowTotalLiab")],
@@ -341,6 +395,7 @@ function useStatementTables(): (res: ForecastRun) => { income: Row[]; balance: R
 /** Supporting schedules, derived exactly from the three statements. */
 function useScheduleTables(): (res: ForecastRun, assumptions: Record<string, number[]>) => Schedules {
   const t = useTranslations("forecast");
+  const std = useStandardLabel(useForecast().standard);
   return (res, assumptions) => {
   const y = res.years;
   const ltm = res.ltm;
@@ -357,7 +412,7 @@ function useScheduleTables(): (res: ForecastRun, assumptions: Record<string, num
     ],
     retained: [
       fwdRow(t("rowOpeningRe"), y.map((r) => r.re_beg ?? 0)),
-      fwdRow(t("rowNetIncome"), y.map((r) => r.net_income ?? 0)),
+      fwdRow(std("rowNetIncome", t("rowNetIncome")), y.map((r) => r.net_income ?? 0)),
       fwdRow(t("rowDividendsBuybacks"), y.map((r) => (r.re_beg ?? 0) + (r.net_income ?? 0) - (r.re_end ?? 0)), "outflow"),
       fwdRow(t("rowClosingRe"), y.map((r) => r.re_end ?? 0), undefined, true),
     ],
@@ -372,10 +427,10 @@ function useScheduleTables(): (res: ForecastRun, assumptions: Record<string, num
     interest: [
       fwdRow(t("rowOpeningCash"), prevCash),
       fwdRow(t("rowRateOnCash"), y.map((_, i) => at("r_cash", i) / 100), "rate"),
-      fwdRow(t("rowInterestIncome"), y.map((r) => r.interest_inc ?? 0)),
+      fwdRow(std("rowInterestIncome", t("rowInterestIncome")), y.map((r) => r.interest_inc ?? 0)),
       fwdRow(t("rowOpeningDebt"), prevDebt),
       fwdRow(t("rowRateOnDebt"), y.map((_, i) => at("r_debt", i) / 100), "rate"),
-      fwdRow(t("rowInterestExpense"), y.map((r) => r.interest_exp ?? 0), "outflow", true),
+      fwdRow(std("rowInterestExpense", t("rowInterestExpense")), y.map((r) => r.interest_exp ?? 0), "outflow", true),
     ],
     revolver: [
       fwdRow(t("rowDrawRepay"), y.map((r) => r.revolver_draw ?? 0)),
@@ -396,9 +451,10 @@ export function StatementsStep() {
 
 function Statements() {
   const { label: mu, money } = useMoney();
-  const { result: res, assumptions, source, histLabels, fwdLabels: fwd } = useForecast();
+  const { result: res, assumptions, source, histLabels, fwdLabels: fwd, standard } = useForecast();
   const t = useTranslations("forecast");
   const x = useTranslations("export");
+  const std = useStandardLabel(standard);
   const fiscalText = useTranslations("fiscal");
   const statementTables = useStatementTables();
   const scheduleTables = useScheduleTables();
@@ -424,7 +480,7 @@ function Statements() {
     <Tiles>
       <Kpi title={t("kpiRevenue", { year: lastCol })} value={fmtMoney(last?.revenue)} sub={t("cagrSub", { cagr: fmtRate(res.revenue_cagr) })} lead />
       <Kpi title={t("kpiEbitda", { year: lastCol })} value={fmtMoney(last?.ebitda)} sub={t("marginSub", { margin: fmtRate(last?.ebitda_margin) })} />
-      <Kpi title={t("kpiNetIncome", { year: lastCol })} value={fmtMoney(last?.net_income)} sub={t("marginSub", { margin: fmtRate(last?.net_margin) })} />
+      <Kpi title={std("kpiNetIncome", t("kpiNetIncome", { year: lastCol }), { year: lastCol })} value={fmtMoney(last?.net_income)} sub={t("marginSub", { margin: fmtRate(last?.net_margin) })} />
       <Kpi title={t("kpiCash", { year: lastCol })} value={fmtMoney(last?.cash)} sub={mu} />
       <Kpi
         title={t("kpiBalanceSheet")}
@@ -482,9 +538,10 @@ export function SchedulesStep() {
 
 function Schedules() {
   const { label: mu, money } = useMoney();
-  const { result: res, assumptions, fwdLabels: fwd } = useForecast();
+  const { result: res, assumptions, fwdLabels: fwd, standard } = useForecast();
   const t = useTranslations("forecast");
   const x = useTranslations("export");
+  const std = useStandardLabel(standard);
   const scheduleTables = useScheduleTables();
   if (!res) return null;
   const s = scheduleTables(res, assumptions);
@@ -497,7 +554,7 @@ function Schedules() {
         { label: t("bridgeIntExpense"), value: y.interest_exp ?? 0, isTotal: false },
         { label: t("bridgeOther"), value: (y.pretax ?? 0) - (y.ebit ?? 0) - (y.interest_inc ?? 0) - (y.interest_exp ?? 0), isTotal: false },
         { label: t("bridgeTaxes"), value: (y.net_income ?? 0) - (y.pretax ?? 0), isTotal: false },
-        { label: t("bridgeNetIncome"), value: y.net_income ?? 0, isTotal: true },
+        { label: std("bridgeNetIncome", t("bridgeNetIncome")), value: y.net_income ?? 0, isTotal: true },
       ]
     : [];
   const all = () => [

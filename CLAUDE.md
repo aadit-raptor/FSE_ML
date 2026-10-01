@@ -422,7 +422,24 @@ concept for every year** (`_single_tag`), and an IFRS cost adds interest on
 lease liabilities when tagged, else the answer says it is principal only;
 McDonald's tags no lease cost, so its cost is next year's payments due and
 the answer says so. Left as is: the capital-structure summary's multiples
-and the risk score read the EBITDA as entered. 2.6b (the screen) is next.
+and the risk score read the EBITDA as entered.
+
+Accounting standards, the screen (PLAN.md 2.6b): Deal → Inputs has an
+"Accounting and leases" rail group (`steps/LeaseRules.tsx`); the EV and debt
+tiles and `debtShareOfEv` use `valuationEbitda` (`lib/deal/capital.ts`, the
+mirror of `lease_terms`); Returns shows a Leases tile from the answer's
+`leases` block. **Statement labels follow the standard**: call sites keep
+`t("rowNetIncome")` (so the catalogue check still sees the key) and wrap it,
+`std("rowNetIncome", t("rowNetIncome"))`, where `useStandardLabel(standard)`
+returns the `standards.<standard>.<key>` message when there is one; a new
+IFRS word is a new key there, nothing else. With leases the deal's EBITDA
+rows read "EBITDA after lease costs" (that is what the model grows). The
+forecast company's standard is set by an EDGAR filing and editable; "Use in
+deal" converts the deal to the filing's unit (`setMoney`) and then sets its
+EBITDA, standard and leases. Older-API safety: lease fields are sent only
+when set (`apiInputs`, `leaseInputs`), the forecast's standard only when one
+is known (`withStandard`), and an EDGAR answer without `deal_inputs` or
+`accounting_standard` (e2e/locale.spec.ts replays one) still works.
 
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
@@ -463,8 +480,8 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 (the model — debt structures of any shape and floating rates) and **2.4b**
 (the simulation and the Debt step's editor), both below. 2.5 is done (tax
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
-standards, the model, below). **Next is 2.6b** (the accounting standard and
-leases on screen).
+standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
+**Next is 2.7** (backtest becomes plan vs actual for any deal).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and

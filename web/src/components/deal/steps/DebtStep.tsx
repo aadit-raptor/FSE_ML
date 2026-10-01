@@ -13,6 +13,7 @@ import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtMultiple, fmtPct, fmtRate, isNum } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
+import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 
 import { useDeal } from "../DealProvider";
 import { DealField, DealScreen, LoadingTiles, RailGroup, WspToggle } from "../DealScreen";
@@ -137,6 +138,7 @@ function DebtResults() {
   const x = useTranslations("export");
   const fiscalLabels = useFiscalLabels();
   const trancheName = useEngineLabel("tranche");
+  const std = useStandardLabel(inputs.accounting_standard);
   const res = run.result!;
   const begin = totals(res, "total_beginning_debt");
   const end = totals(res, "total_ending_debt");
@@ -175,7 +177,7 @@ function DebtResults() {
           caption={t("leveredFcfByYear")}
           columns={years}
           rows={[
-            { label: t("rowNetIncome"), values: cf.net_income ?? [] },
+            { label: std("rowNetIncome", t("rowNetIncome")), values: cf.net_income ?? [] },
             { label: t("rowDa"), values: cf.da ?? [] },
             { label: t("rowCapex"), values: cf.capex ?? [], kind: "outflow" },
             { label: t("rowChangeInNwc"), values: cf.delta_nwc ?? [], kind: "outflow" },

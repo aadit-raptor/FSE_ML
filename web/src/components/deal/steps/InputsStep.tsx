@@ -8,7 +8,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
-import { debtShareOfEv, drawnDebt, floatingCount, multiplesFromPct } from "@/lib/deal/capital";
+import { debtShareOfEv, drawnDebt, floatingCount, multiplesFromPct, valuationEbitda } from "@/lib/deal/capital";
 import { DEFAULT_INPUTS, type LEASE_DEFAULTS, leaseInputs, type Tranche } from "@/lib/deal/fields";
 import { fmtCount, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
@@ -17,6 +17,7 @@ import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
 import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup, TranchesOnDebtStep } from "../DealScreen";
 import { useHurdleSub } from "./shared";
+import { LeaseRules } from "./LeaseRules";
 import { TaxRules } from "./TaxRules";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
@@ -70,7 +71,8 @@ export function InputsStep() {
   const listed = inputs.tranches.length > 0;
   const trancheName = useEngineLabel("tranche");
   const r = run.result?.returns;
-  const ev = inputs.ebitda * inputs.entry_mult;
+  // A leased deal is valued on its EBITDA before or after lease costs, as it is priced (PLAN.md 2.6)
+  const ev = valuationEbitda(inputs) * inputs.entry_mult;
   const { label: mu } = useMoney();
   const units = useTranslations("units");
 
@@ -89,6 +91,9 @@ export function InputsStep() {
             <DealField name="entry_mult" />
             <DealField name="exit_mult" />
             <DealField name="hold" />
+          </RailGroup>
+          <RailGroup title={t("groupAccounting")}>
+            <LeaseRules />
           </RailGroup>
           <RailGroup title={t("groupOperations")}>
             <DealField name="growth" />
@@ -162,7 +167,7 @@ export function InputsStep() {
           >
             <SuTable
               rows={[
-                [t("rowPurchasePrice"), su?.equity_purchase_price],
+                [su?.lease_liability ? t("rowPurchasePriceLessLeases") : t("rowPurchasePrice"), su?.equity_purchase_price],
                 [t("rowTransactionFees"), su?.transaction_fees],
                 [t("rowFinancingFees"), su?.financing_fees],
                 ...(listed ? [[t("rowTrancheFees"), su?.tranche_fees] as [string, number | undefined]] : []),
