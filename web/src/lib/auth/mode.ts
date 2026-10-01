@@ -19,8 +19,8 @@ export type AuthMode = "clerk" | "dev";
 
 export const AUTH_MODE: AuthMode = CLERK_PUBLISHABLE_KEY ? "clerk" : "dev";
 
-/** Pages a signed-out visitor may open. */
-export const PUBLIC_ROUTES = ["/sign-in", "/sign-up"];
+/** Pages a signed-out visitor may open. The privacy policy too: Google's consent screen links to it. */
+export const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/privacy"];
 
 export function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
