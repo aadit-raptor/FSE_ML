@@ -113,7 +113,7 @@ which moved into Foundations (1.9) because later phases need them.
 |---|---|---|---|
 | **0** | **Online** | | |
 | 0.1 | Put the current app online (free) | — | ☑ |
-| 0.2 | Your own domain | 0.1, 1.4 | ☐ |
+| 0.2 | Your own domain | 0.1, 1.4 | ☑ |
 | 0.3 | Development cycle gates (coverage, PR checks) | — | ☑ |
 | **1** | **Foundations** | | |
 | 1.1 | Test copy (staging) and production | 0.1 | ☑ |
@@ -221,6 +221,8 @@ is run.
   deal shows 21.2% IRR; URLs are in CLAUDE.md.
 
 ### 0.2 Your own domain
+- **Done 2026-10-01** (DEPLOY.md "Own domain"): visible brand only renamed;
+  development-instance accounts dropped as test data (both decided with the user).
 - **Decided 2026-10-01:** the product is named **Variater** (a coined
   spelling: `variator.com` has been taken since 2000, and "variator" is a
   scooter part). **`variater.com` is bought** at Cloudflare Registrar, one

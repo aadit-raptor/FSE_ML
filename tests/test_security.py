@@ -112,22 +112,23 @@ def preflight(c, origin, headers="authorization,content-type"):
 
 def test_production_allows_only_the_app_origin(monkeypatch):
     c = app_client(monkeypatch, "production")
-    ok = preflight(c, "https://fse-ml.vercel.app")
+    ok = preflight(c, "https://variater.com")
     assert ok.status_code == 200
-    assert ok.headers["access-control-allow-origin"] == "https://fse-ml.vercel.app"
+    assert ok.headers["access-control-allow-origin"] == "https://variater.com"
     assert "access-control-allow-credentials" not in ok.headers
-    for origin in ("https://evil.example", "http://fse-ml.vercel.app", "http://localhost:3000",
-                   "https://fse-ml.vercel.app.evil.example"):
+    for origin in ("https://evil.example", "http://variater.com", "http://localhost:3000",
+                   "https://fse-ml.vercel.app", "https://www.variater.com",
+                   "https://variater.com.evil.example"):
         refused = preflight(c, origin)
         assert refused.status_code == 400, origin
         assert "access-control-allow-origin" not in refused.headers
     # A header the app doesn't send isn't allowed cross-origin
-    assert preflight(c, "https://fse-ml.vercel.app", "x-anything").status_code == 400
+    assert preflight(c, "https://variater.com", "x-anything").status_code == 400
 
 
 def test_staging_allows_no_cross_origin_calls(monkeypatch):
     c = app_client(monkeypatch, "staging")
-    assert preflight(c, "https://fse-ml.vercel.app").status_code == 400
+    assert preflight(c, "https://variater.com").status_code == 400
 
 
 def test_local_allows_the_dev_server(monkeypatch):
@@ -135,9 +136,9 @@ def test_local_allows_the_dev_server(monkeypatch):
     assert preflight(c, "http://localhost:3000").headers["access-control-allow-origin"] == "http://localhost:3000"
 
 
-@pytest.mark.parametrize("value", ["*", "https://*.vercel.app", "http://fse-ml.vercel.app",
-                                   "https://fse-ml.vercel.app/", "https://fse-ml.vercel.app/path",
-                                   "https://user:pw@fse-ml.vercel.app", "fse-ml.vercel.app",
+@pytest.mark.parametrize("value", ["*", "https://*.vercel.app", "http://variater.com",
+                                   "https://variater.com/", "https://variater.com/path",
+                                   "https://user:pw@variater.com", "variater.com",
                                    "http://localhost:3000"])
 def test_a_bad_origin_setting_locks_the_api_down_rather_than_opening_it(monkeypatch, value):
     monkeypatch.setenv("FSE_CORS_ORIGINS", value)

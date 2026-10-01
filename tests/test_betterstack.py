@@ -34,6 +34,9 @@ class FakeBetterStack:
             return {"data": {}}
         if path == "/v2/status-pages" and method == "GET":
             return {"data": [{"id": i, "attributes": a} for i, a in self.pages.items()]}
+        if path.startswith("/v2/status-pages/") and path.count("/") == 3 and method == "PATCH":
+            self.pages[path.rsplit("/", 1)[1]].update(body)
+            return {"data": {}}
         if path == "/v2/status-pages" and method == "POST":
             i = self._id()
             self.pages[i] = dict(body)
@@ -68,7 +71,7 @@ def test_web_monitor_checks_a_route_that_works_signed_out():
 
     web = Path(__file__).resolve().parents[1] / "web"
     [monitor] = [m for m in bs.MONITORS if m["_host"] == "vercel"]
-    assert monitor["url"] == "https://fse-ml.vercel.app/healthz"
+    assert monitor["url"] == "https://variater.com/healthz"
     route = (web / "src/app/healthz/route.ts").read_text(encoding="utf-8")
     assert monitor["required_keyword"] == '"service":"FSE/ML web"'
     assert 'service: "FSE/ML web"' in route
@@ -99,7 +102,7 @@ def test_sync_creates_then_is_idempotent():
     fake = FakeBetterStack()
     ids = bs.sync(fake, log=lambda _: None)
     assert set(ids) == {m["pronounceable_name"] for m in bs.MONITORS}
-    api = next(a for a in fake.monitors.values() if "onrender.com" in a["url"])
+    api = next(a for a in fake.monitors.values() if "/api/health" in a["url"])
     assert api["check_frequency"] == 1800 and api["required_keyword"] == '"status":"ok"'
     assert not any(k.startswith("_") for a in fake.monitors.values() for k in a)
     [page] = fake.pages.values()
@@ -115,7 +118,7 @@ def test_sync_creates_then_is_idempotent():
 def test_sync_updates_only_drifted_fields():
     fake = FakeBetterStack()
     bs.sync(fake, log=lambda _: None)
-    mid, api = next((i, a) for i, a in fake.monitors.items() if "onrender.com" in a["url"])
+    mid, api = next((i, a) for i, a in fake.monitors.items() if "/api/health" in a["url"])
     api["check_frequency"] = 180                                   # someone changed it by hand
     fake.writes.clear()
     bs.sync(fake, log=lambda _: None)
@@ -140,3 +143,18 @@ def test_cli_needs_token(monkeypatch, capsys):
     assert bs.main(["report"]) == 1
     assert "BETTERSTACK_API_TOKEN" in capsys.readouterr().out
     assert bs.main(["check"]) == 0
+
+
+def test_sync_updates_the_status_page_when_its_name_or_link_change():
+    """A rename (PLAN.md 0.2) must reach the existing public status page, not
+    create a second one: the page is matched by subdomain, the rest patched."""
+    fake = FakeBetterStack()
+    bs.sync(fake, log=lambda _: None)
+    [(pid, page)] = fake.pages.items()
+    page.update(company_name="Old name", company_url="https://old.example")
+    fake.writes.clear()
+    bs.sync(fake, log=lambda _: None)
+    assert fake.writes == [("PATCH", f"/v2/status-pages/{pid}",
+                            {"company_name": bs.STATUS_PAGE["company_name"],
+                             "company_url": bs.STATUS_PAGE["company_url"]})]
+    assert len(fake.pages) == 1
