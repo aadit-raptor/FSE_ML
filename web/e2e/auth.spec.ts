@@ -32,7 +32,7 @@ test("the web app's health route answers signed out, for the uptime monitor", as
   const resp = await request.get("/healthz", { maxRedirects: 0 });
   expect(resp.status()).toBe(200);
   // The keyword ops/betterstack.py's web monitor looks for
-  expect(await resp.text()).toContain('"service":"FSE/ML web"');
+  expect(await resp.text()).toContain('"service":"Variater web"');
   // Pages stay closed: the same kind of request to a screen doesn't get the app
   const page = await request.get("/deal/returns", { maxRedirects: 0 });
   expect(page.status()).not.toBe(200);
