@@ -63,11 +63,17 @@ test.describe("live site", () => {
     if (expected) expect(health.environment).toBe(expected);
   });
 
-  test("the deal screens ask for a sign-in", async ({ page }) => {
-    await page.goto("/deal/returns");
-    await expect(page).toHaveURL(/\/sign-in/);
-    await expect(kpi(page, "IRR")).toHaveCount(0);
-  });
+  // On the site's own sign-in page, in its design: not Clerk's hosted Account
+  // Portal (accounts.<domain>/sign-in), where an unconfigured production
+  // instance sends signed-out visitors
+  for (const path of ["/", "/deal/returns"]) {
+    test(`${path} asks for a sign-in on the site's own page`, async ({ page, baseURL }) => {
+      await page.goto(path);
+      await expect(page).toHaveURL(/\/sign-in/);
+      expect(new URL(page.url()).origin).toBe(new URL(baseURL!).origin);
+      await expect(kpi(page, "IRR")).toHaveCount(0);
+    });
+  }
 
   test("the live API refuses a call without a token", async ({ page }) => {
     const resp = await page.request.post("/api/deal/run", {
