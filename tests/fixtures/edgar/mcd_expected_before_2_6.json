@@ -1,0 +1,316 @@
+{
+ "extracted": {
+  "company_name": "MCDONALDS CORP",
+  "data": {
+   "accounts_payable": [
+    1103.0,
+    1029.0,
+    1149.0
+   ],
+   "accounts_receivable": [
+    2488.0,
+    2383.0,
+    2466.0
+   ],
+   "aoci": [
+    -2456.0,
+    -2553.0,
+    -2414.0
+   ],
+   "capital_expenditures": [
+    2357.0,
+    2775.0,
+    3365.0
+   ],
+   "cash_and_equivalents": [
+    4579.0,
+    1085.0,
+    774.0
+   ],
+   "common_stock": [
+    -65731.0,
+    -68078.0,
+    -69659.0
+   ],
+   "common_stock_equity": [
+    -4707.0,
+    -3797.0,
+    -1791.0
+   ],
+   "cost_of_revenue": [
+    11030.0,
+    11350.0,
+    11453.0
+   ],
+   "costs_and_expenses": [
+    13847.0,
+    14208.0,
+    14492.0
+   ],
+   "debt_current": [
+    2192.0,
+    0.0,
+    725.0
+   ],
+   "debt_noncurrent": [
+    37153.0,
+    38424.0,
+    39973.0
+   ],
+   "debt_total": [
+    39345.0,
+    38424.0,
+    39973.0
+   ],
+   "deferred_revenue": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "depreciation_amortization": [
+    382.0,
+    447.0,
+    457.0
+   ],
+   "dividends_paid": [
+    4533.0,
+    4870.0,
+    5115.0
+   ],
+   "equity_incl_nci": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "general_admin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "gross_profit": [
+    14464.0,
+    14570.0,
+    15432.0
+   ],
+   "income_tax_expense": [
+    2053.0,
+    2121.0,
+    2334.0
+   ],
+   "interest_expense": [
+    1361.0,
+    1506.0,
+    1582.0
+   ],
+   "interest_income": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "inventories": [
+    53.0,
+    56.0,
+    61.0
+   ],
+   "long_term_debt": [
+    39345.0,
+    38424.0,
+    40698.0
+   ],
+   "net_income": [
+    8469.0,
+    8223.0,
+    8563.0
+   ],
+   "operating_income": [
+    11647.0,
+    11712.0,
+    12393.0
+   ],
+   "other_current_assets": [
+    866.0,
+    1074.0,
+    863.0
+   ],
+   "other_current_liabilities": [
+    3564.0,
+    2832.0,
+    2487.0
+   ],
+   "other_longterm_assets": [
+    17635.0,
+    19194.0,
+    20779.0
+   ],
+   "other_noncurrent_assets": [
+    5618.0,
+    6095.0,
+    6331.0
+   ],
+   "other_noncurrent_liabilities": [
+    16842.0,
+    16694.0,
+    16972.0
+   ],
+   "property_plant_equipment": [
+    24908.0,
+    25295.0,
+    28241.0
+   ],
+   "research_and_development": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "retained_earnings": [
+    63480.0,
+    66834.0,
+    70282.0
+   ],
+   "revenue": [
+    25494.0,
+    25920.0,
+    26885.0
+   ],
+   "selling_general_admin": [
+    2817.0,
+    2858.0,
+    3039.0
+   ],
+   "selling_marketing": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "share_repurchases": [
+    3054.0,
+    2824.0,
+    2056.0
+   ],
+   "stock_based_compensation": [
+    175.0,
+    172.0,
+    165.0
+   ],
+   "total_assets": [
+    56147.0,
+    55182.0,
+    59515.0
+   ],
+   "total_current_liabilities": [
+    6859.0,
+    3861.0,
+    4361.0
+   ],
+   "total_liabilities": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "total_liabilities_and_equity": [
+    56147.0,
+    55182.0,
+    59515.0
+   ]
+  },
+  "fiscal_year_end_month": 12,
+  "ticker": "MCD",
+  "warnings": [
+   "Could not extract 'research_and_development' \u2014 will show as 0",
+   "Could not extract 'interest_income' \u2014 will show as 0",
+   "Could not extract 'deferred_revenue' \u2014 will show as 0",
+   "Cost of revenue derived from total costs and expenses less SG&A and R&D (no COGS tag reported): operating income is preserved, gross margin is approximate"
+  ],
+  "years": [
+   2023,
+   2024,
+   2025
+  ]
+ },
+ "history": {
+  "hist_h_ap_0": 1103.0,
+  "hist_h_ap_1": 1029.0,
+  "hist_h_ap_2": 1149.0,
+  "hist_h_ar_0": 2488.0,
+  "hist_h_ar_1": 2383.0,
+  "hist_h_ar_2": 2466.0,
+  "hist_h_buybacks_0": 3054.0,
+  "hist_h_buybacks_1": 2824.0,
+  "hist_h_buybacks_2": 2056.0,
+  "hist_h_capex_0": 2357.0,
+  "hist_h_capex_1": 2775.0,
+  "hist_h_capex_2": 3365.0,
+  "hist_h_cash_0": 4579.0,
+  "hist_h_cash_1": 1085.0,
+  "hist_h_cash_2": 774.0,
+  "hist_h_cogs_0": -11030.0,
+  "hist_h_cogs_1": -11350.0,
+  "hist_h_cogs_2": -11453.0,
+  "hist_h_cs_0": -65731.0,
+  "hist_h_cs_1": -68078.0,
+  "hist_h_cs_2": -69659.0,
+  "hist_h_da_0": 382.0,
+  "hist_h_da_1": 447.0,
+  "hist_h_da_2": 457.0,
+  "hist_h_def_0": 0.0,
+  "hist_h_def_1": 0.0,
+  "hist_h_def_2": 0.0,
+  "hist_h_divs_0": 4533.0,
+  "hist_h_divs_1": 4870.0,
+  "hist_h_divs_2": 5115.0,
+  "hist_h_int_exp_0": -1361.0,
+  "hist_h_int_exp_1": -1506.0,
+  "hist_h_int_exp_2": -1582.0,
+  "hist_h_int_inc_0": 0.0,
+  "hist_h_int_inc_1": 0.0,
+  "hist_h_int_inc_2": 0.0,
+  "hist_h_inv_0": 53.0,
+  "hist_h_inv_1": 56.0,
+  "hist_h_inv_2": 61.0,
+  "hist_h_lta_0": 17635.0,
+  "hist_h_lta_1": 19194.0,
+  "hist_h_lta_2": 20779.0,
+  "hist_h_ltd_0": 39345.0,
+  "hist_h_ltd_1": 38424.0,
+  "hist_h_ltd_2": 40698.0,
+  "hist_h_nca_0": 5618.0,
+  "hist_h_nca_1": 6095.0,
+  "hist_h_nca_2": 6331.0,
+  "hist_h_ncl_0": 16842.0,
+  "hist_h_ncl_1": 16694.0,
+  "hist_h_ncl_2": 16972.0,
+  "hist_h_oci_0": -2456.0,
+  "hist_h_oci_1": -2553.0,
+  "hist_h_oci_2": -2414.0,
+  "hist_h_ocl_0": 3564.0,
+  "hist_h_ocl_1": 2832.0,
+  "hist_h_ocl_2": 2487.0,
+  "hist_h_ocurr_0": 866.0,
+  "hist_h_ocurr_1": 1074.0,
+  "hist_h_ocurr_2": 863.0,
+  "hist_h_other_0": 0.0,
+  "hist_h_other_1": 0.0,
+  "hist_h_other_2": 0.0,
+  "hist_h_ppe_0": 24908.0,
+  "hist_h_ppe_1": 25295.0,
+  "hist_h_ppe_2": 28241.0,
+  "hist_h_rd_0": -0.0,
+  "hist_h_rd_1": -0.0,
+  "hist_h_rd_2": -0.0,
+  "hist_h_re_0": 63480.0,
+  "hist_h_re_1": 66834.0,
+  "hist_h_re_2": 70282.0,
+  "hist_h_rev_0": 25494.0,
+  "hist_h_rev_1": 25920.0,
+  "hist_h_rev_2": 26885.0,
+  "hist_h_sbc_0": 175.0,
+  "hist_h_sbc_1": 172.0,
+  "hist_h_sbc_2": 165.0,
+  "hist_h_sga_0": -2817.0,
+  "hist_h_sga_1": -2858.0,
+  "hist_h_sga_2": -3039.0,
+  "hist_h_tax_0": -2053.0,
+  "hist_h_tax_1": -2121.0,
+  "hist_h_tax_2": -2334.0
+ }
+}

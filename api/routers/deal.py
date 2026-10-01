@@ -9,8 +9,8 @@ from api.schemas import (
 from api.serialize import to_json
 from core.deal import (
     DEAL_MONEY_KEYS, SOURCES_USES_MONEY_KEYS, DealInputs, bridge_steps,
-    capital_structure_from_multiples, capital_structure_summary, in_millions,
-    run_deal, sources_and_uses, sources_and_uses_for,
+    capital_structure_from_multiples, capital_structure_summary, in_millions, lease_summary,
+    leases_of, run_deal, sources_and_uses, sources_and_uses_for,
 )
 from core.money import in_unit, rescale, to_millions
 from core.tax import PRESETS as TAX_PRESETS
@@ -28,18 +28,23 @@ def post_sources_and_uses(req: SourcesUsesRequest):
     cfg = resolve_settings(req.settings)
     unit = req.money.unit
     cfg = {**cfg, "other_uses": to_millions(cfg["other_uses"], unit)}
+    # Leases (PLAN.md 2.6): valued and taken over the way the deal model does
+    leases = dict(accounting_standard=req.accounting_standard, lease_view=req.lease_view,
+                  lease_cost=req.lease_cost, lease_liability=req.lease_liability)
     if req.tranches:
         # Sized facility by facility: each one is its own source, and their
         # arrangement fees are their own use of funds (PLAN.md 2.4)
         deal, cfg = in_millions(
             DealInputs(ebitda=req.ebitda, entry_mult=req.entry_mult, mincash=req.mincash,
-                       unit=unit, tranches=[t.model_dump() for t in req.tranches]),
+                       unit=unit, tranches=[t.model_dump() for t in req.tranches], **leases),
             resolve_settings(req.settings))
         su = sources_and_uses_for(deal, cfg)
         debt_pct, senior_pct = None, None
     else:
+        deal, _ = in_millions(DealInputs(ebitda=req.ebitda, unit=unit, **leases), cfg)
         su = sources_and_uses(to_millions(req.ebitda, unit), req.entry_mult, req.senior_x, req.mezz_x, cfg,
-                              mincash=to_millions(req.mincash, unit))
+                              mincash=to_millions(req.mincash, unit),
+                              leases=leases_of(deal) if (req.lease_cost or req.lease_liability) else None)
         debt_pct, senior_pct = capital_structure_from_multiples(
             req.ebitda, req.entry_mult, req.senior_x, req.mezz_x)
     su = rescale(to_json(su), in_unit(1.0, unit), SOURCES_USES_MONEY_KEYS)
@@ -85,5 +90,6 @@ def post_run(req: DealRunRequest):
         "interest_converged": result.interest_converged,
         "capital_structure": capital_structure_summary(deal),
         "tax": to_json(result.tax),
+        "leases": to_json(lease_summary(deal, result)),
     }
     return {**rescale(answer, in_unit(1.0, req.inputs.unit), DEAL_MONEY_KEYS), "money": req.inputs.money()}

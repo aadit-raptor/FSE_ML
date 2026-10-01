@@ -416,7 +416,12 @@ def equivalent_tranches(deal, cfg: Mapping) -> list:
     explicitly matures when its agreement says. See
     ``tests/test_debt_structures.py`` and CLAUDE.md "Model findings", 11.
     """
-    entry_ev = deal.ebitda * deal.entry_mult
+    # A leased deal's percentages apply to the EV it is valued at (PLAN.md 2.6),
+    # as the engine applies them; without leases this is the deal's own EBITDA
+    from core.accounting import lease_terms, valuation_ebitda
+    leases = lease_terms(deal.ebitda, deal.accounting_standard, deal.lease_view,
+                         deal.lease_cost, deal.lease_liability)
+    entry_ev = valuation_ebitda(leases) * deal.entry_mult
     debt = entry_ev * deal.debt_pct / 100
     senior = round(debt * deal.senior_pct / 100, 2)
     mezz = round(debt * (1 - deal.senior_pct / 100), 2)

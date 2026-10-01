@@ -61,6 +61,9 @@ CurrencyCode = Annotated[str, Field(pattern=r"^[A-Z]{3}$", min_length=3, max_len
 
 # How long numbers are grouped (PLAN.md 2.3a); db/users.py DIGIT_GROUPINGS
 DigitGrouping = Literal["locale", "thousands", "lakh"]
+# Accounting standard and lease view (PLAN.md 2.6, core/accounting.py); "" = not stated
+AccountingStandard = Literal["", "ifrs", "us_gaap"]
+LeaseView = Literal["", "pre_ifrs16", "post_ifrs16"]
 
 
 class Money(Strict):
@@ -207,6 +210,16 @@ class DealInputsIn(Strict):
     tax_loss_limit_amount: float = Field(
         0.0, ge=0, le=MAX_MONEY, description="Profit losses may offset in full each year (in currency and unit)")
     tax_minimum_pct: float = Field(0.0, ge=0, le=100, description="Minimum tax on book profit (%)")
+    accounting_standard: AccountingStandard = Field(
+        "", description="The standard the EBITDA follows (PLAN.md 2.6): 'ifrs' (before lease costs, IFRS 16), "
+                        "'us_gaap' (after operating lease costs), or '' for not stated")
+    lease_view: LeaseView = Field(
+        "", description="How the deal is priced: 'pre_ifrs16' (EBITDA after lease costs, leases not debt), "
+                        "'post_ifrs16' (EBITDA before lease costs, the lease liability counted with net debt), "
+                        "or '' for the standard's own view")
+    lease_cost: float = Field(0.0, ge=0, le=MAX_MONEY, description="What the leases cost a year (in currency and unit)")
+    lease_liability: float = Field(
+        0.0, ge=0, le=MAX_MONEY, description="The lease liability at close (in currency and unit)")
 
     @model_validator(mode="after")
     def _only_a_committed_line_is_partly_drawn(self) -> "DealInputsIn":
@@ -271,6 +284,16 @@ class SourcesUsesRequest(Strict):
         default_factory=list, max_length=MAX_TRANCHES,
         description="The deal's facilities (PLAN.md 2.4). Given, they are the sources of debt "
                     "and senior_x / mezz_x are ignored.")
+    accounting_standard: AccountingStandard = Field(
+        "", description="The standard the EBITDA follows (PLAN.md 2.6): 'ifrs' (before lease costs, IFRS 16), "
+                        "'us_gaap' (after operating lease costs), or '' for not stated")
+    lease_view: LeaseView = Field(
+        "", description="How the deal is priced: 'pre_ifrs16' (EBITDA after lease costs, leases not debt), "
+                        "'post_ifrs16' (EBITDA before lease costs, the lease liability counted with net debt), "
+                        "or '' for the standard's own view")
+    lease_cost: float = Field(0.0, ge=0, le=MAX_MONEY, description="What the leases cost a year (in currency and unit)")
+    lease_liability: float = Field(
+        0.0, ge=0, le=MAX_MONEY, description="The lease liability at close (in currency and unit)")
     settings: Dict[str, SettingValue] = {}
     money: Money = Money()
 
@@ -290,7 +313,8 @@ class SourcesUsesResponse(BaseModel):
     tranche_fees: float = Field(0.0, description="Arrangement fees the facilities charge at close")
     sponsor_equity: float
     total_sources: float
-    equity_purchase_price: float
+    equity_purchase_price: float = Field(description="Entry EV less any lease liability taken over")
+    lease_liability: float = Field(0.0, description="Lease liability taken over with the business, when counted as debt")
     transaction_fees: float
     financing_fees: float
     other_uses: float
@@ -371,6 +395,18 @@ class TrancheSummary(BaseModel):
     pik_share: float = Field(description="% of the coupon that accrues to principal")
 
 
+class LeaseSummary(BaseModel):
+    accounting_standard: str
+    view: LeaseView
+    counted_as_debt: bool = Field(description="Whether the lease liability is counted with net debt")
+    operating_ebitda: float = Field(description="EBITDA after lease costs: what the operating model grows")
+    valuation_ebitda: float = Field(description="EBITDA the entry and exit multiples are applied to")
+    lease_cost: float
+    lease_liability: float
+    entry_ev: float
+    net_debt_at_entry: float = Field(description="Debt at close less minimum cash, plus leases when counted")
+
+
 class DealRunResponse(BaseModel):
     returns: model_from_dataclass(ReturnsResult)
     operating_model: model_from_dataclass(OperatingModelResult)
@@ -388,6 +424,8 @@ class DealRunResponse(BaseModel):
     tax: Optional[model_from_dataclass(TaxSchedule)] = Field(
         None, description="The tax computation year by year, when the deal has tax rules "
                           "(PLAN.md 2.5); none for a flat rate on positive profit")
+    leases: Optional[LeaseSummary] = Field(
+        None, description="What the deal's leases did to its value (PLAN.md 2.6); none without leases")
     money: Money
 
 
@@ -527,6 +565,8 @@ class ForecastDefaultsResponse(BaseModel):
 class HistoryRequest(Strict):
     history: Dict[str, List[float]] = Field(description="field key -> one value per historical year, oldest first")
     money: Money = Field(Money(), description="The company's reporting currency and the unit its figures are in")
+    accounting_standard: AccountingStandard = Field(
+        "", description="The standard the company reports under (PLAN.md 2.6): a label, echoed back")
 
 
 class HistoricalMetrics(BaseModel):
@@ -544,6 +584,7 @@ class SeedResponse(BaseModel):
     historical_metrics: List[HistoricalMetrics]
     seeded_assumptions: Dict[str, float]
     money: Money
+    accounting_standard: AccountingStandard = ""
 
 
 class ForecastRunRequest(HistoryRequest):
@@ -595,6 +636,7 @@ class ForecastRunResponse(BaseModel):
     balanced: bool
     simulation: Optional[ForecastSimulation]
     money: Money
+    accounting_standard: AccountingStandard = ""
 
 
 # ---------------------------------------------------------------------------
@@ -768,6 +810,18 @@ class SurrogateResponse(BaseModel):
         description="Every term held fixed in training (model_value), beside this deal's value")
 
 
+class EdgarDealInputs(BaseModel):
+    """The latest year of a filing as deal inputs: EBITDA as the standard
+    reports it (operating profit plus D&A) and the leases, in the filing's
+    currency and in millions."""
+    ebitda: float
+    currency: str
+    unit: MoneyUnit
+    accounting_standard: AccountingStandard
+    lease_cost: float
+    lease_liability: float
+
+
 class EdgarResponse(BaseModel):
     ticker: str
     company_name: str
@@ -776,7 +830,12 @@ class EdgarResponse(BaseModel):
     warnings: List[str]
     fiscal_year_end_month: Optional[int] = Field(
         None, ge=1, le=12, description="Month the filer's fiscal year ends; years are named by the year they end in")
-    money: Money = Field(description="SEC filings are read in US dollars, in millions")
+    money: Money = Field(description="The filing's own currency (US dollars for a 10-K), in millions")
+    accounting_standard: AccountingStandard = Field(
+        "us_gaap", description="The standard the statements follow: us_gaap (10-K) or ifrs (20-F, 40-F)")
+    leases: Dict[str, List[float]] = Field(
+        default_factory=dict, description="lease_cost and lease_liability, one value per year, oldest first")
+    deal_inputs: EdgarDealInputs = Field(description="The latest year as deal inputs (PLAN.md 2.6)")
 
 
 # ---------------------------------------------------------------------------

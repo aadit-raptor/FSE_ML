@@ -234,6 +234,13 @@ class SimulationParams:
     # positive EBT, and the expression that computes it, untouched.
     tax_rules: Optional[TaxRules] = None
 
+    # Leases (PLAN.md 2.6), as in lbo_engine's LBOParams: entry_ebitda is after
+    # lease costs; a deal priced post-IFRS 16 adds the lease cost back where
+    # EBITDA becomes a value and counts the liability with net debt, at entry
+    # and at exit. 0.0 leaves both paths exactly as they were.
+    lease_ebitda_addback: float = 0.0
+    lease_liability: float = 0.0
+
 
 # ---------------------------------------------------------------------------
 # Simulation result
@@ -450,14 +457,14 @@ def _run_vectorized_core(
     ebitda_shock = draws["ebitda_shock"]     # (N,) applied in year 2 only
 
     # --- Entry values ---
-    entry_ev     = p.entry_ebitda * p.entry_multiple                  # scalar
+    entry_ev     = (p.entry_ebitda + p.lease_ebitda_addback) * p.entry_multiple  # scalar
     total_debt   = entry_ev * p.debt_pct                              # scalar
     senior_debt  = total_debt * p.senior_pct                          # scalar
     mezz_debt    = total_debt * (1.0 - p.senior_pct)                  # scalar
     entry_costs  = (entry_ev * p.transaction_fees_pct                 # scalar
                     + total_debt * p.financing_fees_pct
                     + p.other_uses)
-    entry_equity = entry_ev + entry_costs - total_debt                # scalar
+    entry_equity = entry_ev + entry_costs - total_debt - p.lease_liability  # scalar
     minimum_cash = entry_ev * p.minimum_cash_pct                      # scalar
 
     senior_rate  = interest                                           # (N,)
@@ -583,10 +590,10 @@ def _run_vectorized_core(
 
     # ---- Final values at exit ----
     remaining_debt   = senior_bal + mezz_bal           # (N,) at end of final year
-    net_debt_at_exit = remaining_debt - minimum_cash    # (N,)
+    net_debt_at_exit = remaining_debt - minimum_cash + p.lease_liability   # (N,)
 
     # ---- Exit valuation ----
-    exit_ev     = ebitda_final * exit_mult              # (N,)
+    exit_ev     = (ebitda_final + p.lease_ebitda_addback) * exit_mult    # (N,)
     exit_equity = np.maximum(exit_ev - net_debt_at_exit, 0.0)   # floor at 0
 
     # ---- Returns ----
@@ -666,13 +673,13 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
       stays on the balance sheet, as ``lbo_engine`` does.
     """
     N, n_yr = p.n, p.holding_period
-    entry_ev = p.entry_ebitda * p.entry_multiple
+    entry_ev = (p.entry_ebitda + p.lease_ebitda_addback) * p.entry_multiple
     total_debt = sum(t.amount for t in p.tranches)
     entry_costs = (entry_ev * p.transaction_fees_pct
                    + total_debt * p.financing_fees_pct
                    + p.other_uses
                    + sum(t.upfront_fee for t in p.tranches))
-    entry_equity = entry_ev + entry_costs - total_debt
+    entry_equity = entry_ev + entry_costs - total_debt - p.lease_liability
     minimum_cash = entry_ev * p.minimum_cash_pct
 
     # The draw is clipped to [0.01, 0.30] before this, so with a wide rate
@@ -693,9 +700,9 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
         schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash)
         interest, non_cash = schedule.interest, schedule.non_cash
 
-    net_debt_at_exit = schedule.ending_debt - schedule.ending_cash
+    net_debt_at_exit = schedule.ending_debt - schedule.ending_cash + p.lease_liability
     exit_ebitda = ebitda_yr[:, -1]
-    exit_ev = exit_ebitda * draws["exit_multiple"]
+    exit_ev = (exit_ebitda + p.lease_ebitda_addback) * draws["exit_multiple"]
     exit_equity = np.maximum(exit_ev - net_debt_at_exit, 0.0)
     entry_equity_arr = np.full(N, entry_equity)
     moic = exit_equity / np.maximum(entry_equity_arr, 1e-10)

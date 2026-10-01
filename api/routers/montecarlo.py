@@ -17,6 +17,8 @@ from core.montecarlo import (
 )
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
+ECHO_LEFT_OUT = ("tranches", "tax_rules", "lease_ebitda_addback", "lease_liability")
+
 router = APIRouter(prefix="/montecarlo", tags=["monte carlo"])
 
 SCATTER_COLUMNS = ["IRR", "MOIC", "Growth", "Exit Multiple", "Interest", "Gross Margin"]
@@ -46,9 +48,10 @@ def post_run(req: MonteCarloRequest):
     corr = empirical_correlations(sample)
     scatter = sample[SCATTER_COLUMNS].head(req.scatter_points)
     g_vals, em_vals, grid = growth_exit_heatmap(params, mc, deal)
-    # The scalar parameters the run used. A deal's tranches and tax rules are
-    # its own inputs, already on the caller's screen, and in millions here.
-    params_json = {k: v for k, v in to_json(params).items() if k not in ("tranches", "tax_rules")}
+    # The scalar parameters the run used. A deal's tranches, tax rules and
+    # leases are its own inputs, already on the caller's screen, and in
+    # millions here. (A leased deal's entry_ebitda is after lease costs.)
+    params_json = {k: v for k, v in to_json(params).items() if k not in ECHO_LEFT_OUT}
     return {
         "n": params.n,
         "elapsed_ms": elapsed_ms,

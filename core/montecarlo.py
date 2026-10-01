@@ -15,6 +15,7 @@ from analytics.risk_metrics import calculate_risk_metrics
 from core.config import build_corr_matrix
 from core.deal import DealInputs, entry_costs
 from core.tax import rules_from_deal
+from core.accounting import lease_terms
 from core.debt import (
     build_capital_structure, check_specs, financing_fees, shift_references, simulation_tranches,
     total_debt as tranche_debt,
@@ -64,15 +65,21 @@ def build_sim_params(mc: MCInputs, deal: DealInputs, cfg: Mapping) -> Simulation
     more than the deal costs. ``debt_pct``, ``senior_pct`` and ``mezz_spread``
     are still filled in, and ignored by the tranche path.
     """
+    # The rail's EBITDA is as the deal's standard reports it; the simulation
+    # grows it after lease costs and values it the way the deal is priced
+    # (PLAN.md 2.6). No leases: the rail's EBITDA and two zeros.
+    leases = lease_terms(mc.ebitda, deal.accounting_standard, deal.lease_view,
+                         deal.lease_cost, deal.lease_liability)
     tranches = ()
     if deal.tranches:
-        entry_ev = mc.ebitda * mc.entry_mult
-        check_specs(deal.tranches, entry_ev,
+        entry_ev = (leases.operating_ebitda + leases.valuation_addback) * mc.entry_mult
+        check_specs(deal.tranches, entry_ev - leases.debt_like,
                     entry_costs(entry_ev, tranche_debt(deal.tranches), cfg)
                     + financing_fees(deal.tranches))
         tranches = simulation_tranches(deal.tranches, int(mc.hold))
     return SimulationParams(
-        n=int(mc.n), entry_ebitda=mc.ebitda, entry_multiple=mc.entry_mult,
+        lease_ebitda_addback=leases.valuation_addback, lease_liability=leases.debt_like,
+        n=int(mc.n), entry_ebitda=leases.operating_ebitda, entry_multiple=mc.entry_mult,
         holding_period=int(mc.hold),
         growth_mean=mc.growth_mean/100, growth_std=mc.growth_std/100,
         exit_mean=mc.exit_mean, exit_std=mc.exit_std,
@@ -209,6 +216,8 @@ def growth_exit_heatmap(params: SimulationParams, mc: MCInputs, deal: DealInputs
         for j, g in enumerate(g_vals):
             r = run_lbo(LBOParams(
                 capital_structure=structure, tranche_fees=fees, tax_rules=params.tax_rules,
+                lease_ebitda_addback=params.lease_ebitda_addback,
+                lease_liability=params.lease_liability,
                 entry_ebitda=params.entry_ebitda, entry_multiple=params.entry_multiple,
                 exit_multiple=float(em), holding_period=int(params.holding_period),
                 debt_pct=params.debt_pct, senior_pct=params.senior_pct,

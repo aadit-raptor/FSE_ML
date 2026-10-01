@@ -137,7 +137,9 @@ def post_macro_regime():
 # ---------------------------------------------------------------------------
 @router.get("/edgar/{ticker}", response_model=EdgarResponse)
 def get_edgar(ticker: str):
-    """Historical financials for a US-listed company, as forecasting inputs."""
+    """Historical financials of a company filing with the SEC, as forecasting and deal
+    inputs: a US filer's 10-K (US GAAP) or a foreign filer's 20-F or 40-F (IFRS),
+    in the statements' own currency."""
     if not _installed("requests"):
         _unavailable("EDGAR autofill", "install requests")
     from ml.edgar_extractor import fetch_financials, financials_to_session_state
@@ -156,9 +158,33 @@ def get_edgar(ticker: str):
         field, year = key[len("hist_"):].rsplit("_", 1)
         history.setdefault(field, {})[int(year)] = value
     history = {f: [by_year[j] for j in sorted(by_year)] for f, by_year in history.items()}
+    # The extractor reads the statements in their own currency (US dollars for
+    # a 10-K) and divides by a million
+    money = {"currency": extracted.currency, "unit": "millions"}
+    leases = extracted.leases
+    warnings = list(extracted.warnings)
+    latest_liability = (leases.get("lease_liability") or [0.0])[-1]
+    if not latest_liability:
+        warnings.append(f"The filing tags no lease liability for FY{extracted.years[-1] if extracted.years else ''}: "
+                        "enter it from the annual report if the company leases")
+    latest_cost = (leases.get("lease_cost") or [0.0])[-1]
+    if latest_cost and extracted.accounting_standard == "ifrs" and not extracted.lease_interest_tagged:
+        warnings.append("The lease cost is the principal repaid on lease liabilities only: the filing "
+                        "tags no interest on them, so add it from the annual report's lease note")
+    if extracted.lease_cost_basis == "LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths":
+        warnings.append("The filing tags no lease cost: the lease cost shown is each year's lease "
+                        "payments due over the next twelve months")
+    data = extracted.data
+    deal_inputs = {
+        # EBITDA as the standard reports it: before lease costs under IFRS 16
+        "ebitda": (data.get("operating_income") or [0.0])[-1]
+                  + (data.get("depreciation_amortization") or [0.0])[-1],
+        **money, "accounting_standard": extracted.accounting_standard,
+        "lease_cost": (leases.get("lease_cost") or [0.0])[-1], "lease_liability": latest_liability,
+    }
     return {"ticker": ticker, "company_name": extracted.company_name,
             "years": list(extracted.years), "history": to_json(history),
-            "warnings": list(extracted.warnings),
+            "warnings": warnings,
             "fiscal_year_end_month": extracted.fiscal_year_end_month,
-            # The extractor reads the filings' USD facts and divides by a million
-            "money": {"currency": "USD", "unit": "millions"}}
+            "money": money, "accounting_standard": extracted.accounting_standard,
+            "leases": to_json(leases), "deal_inputs": to_json(deal_inputs)}

@@ -592,6 +592,22 @@ can check it.
   or after leases; leases as debt or not); adaptable labels.
 - **Done when:** a real IFRS filing maps to model inputs (test); the lease
   setting changes EBITDA and net debt as a hand-checked case predicts.
+- **Split, like 2.3 and 2.4:**
+  - **2.6a (done):** the model, the mapping and the API. `core/accounting.py`
+    holds each standard's line items (`us-gaap` and `ifrs-full` concepts) and
+    the lease rule; the EDGAR extractor reads a 20-F or 40-F in IFRS, in the
+    filing's own currency, and answers the standard, the leases and the latest
+    year as deal inputs. Pinned by two real filings recorded in
+    `tests/fixtures/edgar/`: SAP SE's 2025 20-F (IFRS, euros) maps to model
+    inputs figure by figure, and McDonald's 10-K extracts exactly as it did
+    before 2.6. A deal's `accounting_standard`, `lease_view`, `lease_cost` and
+    `lease_liability` (off by default, stored only when set) move EBITDA and
+    net debt as `tests/test_accounting.py`'s hand-checked case predicts, in
+    the deal model, the exit grid, sources and uses and the simulation.
+  - **2.6b:** the screen: the standard and lease controls on the deal, the
+    forecast company's standard, adaptable labels ("Finance costs", "Profit
+    for the year" under IFRS), "use in deal" from an EDGAR filing, e2e by
+    output.
 
 ### 2.7 Backtest becomes "plan vs actual" for any deal
 - **Claude does:** pick any saved deal as the plan; enter or upload actual yearly

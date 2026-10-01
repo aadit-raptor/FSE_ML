@@ -2,14 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { debtShareOfEv, drawnDebt, floatingCount, multiplesFromPct } from "@/lib/deal/capital";
-import type { Tranche } from "@/lib/deal/fields";
+import { DEFAULT_INPUTS, type LEASE_DEFAULTS, leaseInputs, type Tranche } from "@/lib/deal/fields";
 import { fmtCount, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 
@@ -21,7 +21,10 @@ import { TaxRules } from "./TaxRules";
 
 type SourcesUses = Schemas["SourcesUsesResponse"];
 
-function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, mezzX: number, mincash: number, tranches: Tranche[]) {
+function useSourcesAndUses(
+  ebitda: number, entryMult: number, seniorX: number, mezzX: number, mincash: number, tranches: Tranche[],
+  leases: Partial<typeof LEASE_DEFAULTS>,
+) {
   const { overrides } = useSettings();
   const { money } = useMoney();
   const [su, setSu] = useState<SourcesUses | null>(null);
@@ -31,7 +34,11 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
       api
         .POST("/api/deal/sources-and-uses", {
           // A deal that lists its facilities is sourced by them (core/deal.py sources_and_uses_for)
-          body: { ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides, money, ...(tranches.length ? { tranches } : {}) },
+          // The deal's leases too, only when set (PLAN.md 2.6): the generated type lists every defaulted field
+          body: {
+            ebitda, entry_mult: entryMult, senior_x: seniorX, mezz_x: mezzX, mincash, settings: overrides, money,
+            ...(tranches.length ? { tranches } : {}), ...leases,
+          } as Schemas["SourcesUsesRequest"],
           signal: ctrl.signal,
         })
         .then(({ data }) => data && setSu(data))
@@ -41,7 +48,7 @@ function useSourcesAndUses(ebitda: number, entryMult: number, seniorX: number, m
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides, money, tranches]);
+  }, [ebitda, entryMult, seniorX, mezzX, mincash, overrides, money, tranches, leases]);
   return su;
 }
 
@@ -50,7 +57,16 @@ export function InputsStep() {
   const t = useTranslations("deal");
   const hurdleSub = useHurdleSub();
   const { seniorX, mezzX } = multiplesFromPct(inputs.entry_mult, inputs.debt_pct, inputs.senior_pct);
-  const su = useSourcesAndUses(inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash, inputs.tranches);
+  // Memoised on the four values, so an edit elsewhere doesn't refetch sources and uses
+  const { accounting_standard, lease_view, lease_cost, lease_liability } = inputs;
+  const leases = useMemo(
+    () => leaseInputs({ ...DEFAULT_INPUTS, accounting_standard, lease_view, lease_cost, lease_liability }),
+    [accounting_standard, lease_view, lease_cost, lease_liability],
+  );
+  const su = useSourcesAndUses(
+    inputs.ebitda, inputs.entry_mult, Number(seniorX.toFixed(6)), Number(mezzX.toFixed(6)), inputs.mincash, inputs.tranches,
+    leases,
+  );
   const listed = inputs.tranches.length > 0;
   const trancheName = useEngineLabel("tranche");
   const r = run.result?.returns;

@@ -25,9 +25,23 @@ export const TAX_RULE_DEFAULTS = {
   tax_loss_limit_amount: 0,
   tax_minimum_pct: 0,
 } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
-type TaxRuleKey = keyof typeof TAX_RULE_DEFAULTS;
 /** Money among the tax rules, converted with the deal when its unit changes */
 export const TAX_MONEY_KEYS = ["tax_interest_limit_amount", "tax_loss_limit_amount"] as const;
+
+/**
+ * Accounting standard and leases (PLAN.md 2.6, core/accounting.py), all off: stored and sent only
+ * when they differ, like the tax rules, so an API from before them keeps answering every deal
+ * that doesn't use them.
+ */
+export const LEASE_DEFAULTS = {
+  accounting_standard: "",
+  lease_view: "",
+  lease_cost: 0,
+  lease_liability: 0,
+} as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
+/** Money among the leases, converted with the deal when its unit changes */
+export const LEASE_MONEY_KEYS = ["lease_cost", "lease_liability"] as const;
+const OMITTED_AT_DEFAULT: Record<string, unknown> = { ...TAX_RULE_DEFAULTS, ...LEASE_DEFAULTS };
 export type NumericDealKey = Exclude<{ [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs], FiscalDealKey>;
 
 /** Matches the API's DealInputsIn defaults (api/schemas.py). */
@@ -58,6 +72,7 @@ export const DEFAULT_INPUTS: DealInputs = {
   first_fiscal_year: null,
   tranches: [],
   ...TAX_RULE_DEFAULTS,
+  ...LEASE_DEFAULTS,
 };
 
 /**
@@ -68,7 +83,7 @@ export const DEFAULT_INPUTS: DealInputs = {
 export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
   const { fiscal_year_end_month, first_fiscal_year, tranches, ...all } = inputs;
   const rest = Object.fromEntries(
-    Object.entries(all).filter(([k, v]) => !(k in TAX_RULE_DEFAULTS) || v !== TAX_RULE_DEFAULTS[k as TaxRuleKey]),
+    Object.entries(all).filter(([k, v]) => !(k in OMITTED_AT_DEFAULT) || v !== OMITTED_AT_DEFAULT[k]),
   );
   // The generated type lists every defaulted field as present; the API fills in the ones left out
   return {
@@ -77,6 +92,15 @@ export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
     ...(first_fiscal_year !== null ? { first_fiscal_year } : {}),
     ...(tranches.length ? { tranches } : {}),
   } as Schemas["DealInputsIn"];
+}
+
+/** The deal's leases for another request (sources and uses), only those set, as apiInputs sends them. */
+export function leaseInputs(inputs: DealInputs): Partial<typeof LEASE_DEFAULTS> {
+  return Object.fromEntries(
+    (Object.keys(LEASE_DEFAULTS) as (keyof typeof LEASE_DEFAULTS)[])
+      .filter((k) => inputs[k] !== LEASE_DEFAULTS[k])
+      .map((k) => [k, inputs[k]]),
+  );
 }
 
 /** The tranche list with every amount in a new unit, so a deal keeps its size. */
@@ -127,6 +151,9 @@ export const FIELDS: Record<NumericDealKey, FieldSpec> = {
   tax_loss_limit_pct: { unit: "%", step: 5, decimals: 1, min: 0, max: 100 },
   tax_loss_limit_amount: { unit: MONEY, step: 1, decimals: 1, min: 0, max: 1e15 },
   tax_minimum_pct: { unit: "%", step: 0.5, decimals: 1, min: 0, max: 100 },
+  // Leases (PLAN.md 2.6); bounds mirror DealInputsIn
+  lease_cost: { unit: MONEY, step: 1, decimals: 1, min: 0, max: 1e15 },
+  lease_liability: { unit: MONEY, step: 5, decimals: 1, min: 0, max: 1e15 },
 };
 
 export { changedKeys, validate };

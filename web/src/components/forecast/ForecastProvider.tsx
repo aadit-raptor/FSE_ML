@@ -69,6 +69,17 @@ function detail(err: unknown, fallback: string): string {
   return fallback;
 }
 
+type Standard = Schemas["HistoryRequest"]["accounting_standard"];
+
+/**
+ * A request body with the company's accounting standard (PLAN.md 2.6), only when a filing gave one:
+ * an API from before it (a deploy rolling out, a rollback) refuses fields it doesn't know. The
+ * generated types list every defaulted field as present; the API fills in the one left out.
+ */
+function withStandard<T extends object>(body: T, standard: Standard): T & { accounting_standard: Standard } {
+  return (standard ? { ...body, accounting_standard: standard } : body) as T & { accounting_standard: Standard };
+}
+
 export function ForecastProvider({ children }: { children: React.ReactNode }) {
   const t = useTranslations("forecast");
   const e = useTranslations("errors");
@@ -80,6 +91,8 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
   const [source, setSource] = useState<Source>({ kind: "sample" });
   const [fiscal, setFiscal] = useState<Fiscal>(NO_FISCAL_YEAR);
   const [money, setMoneyState] = useState<Money>(DEFAULT_MONEY);
+  // The standard the company reports under (PLAN.md 2.6): a filing says, the sample says nothing
+  const [standard, setStandard] = useState<Standard>("");
   const [edgar, setEdgar] = useState<ForecastContext["edgar"]>({ status: "idle" });
   const [seedInfo, setSeedInfo] = useState<{ metrics: Metrics[]; seeded: Record<string, number> } | null>(null);
   const [run, setRun] = useState<{ status: ForecastContext["status"]; result?: ForecastRun; error?: string }>({ status: "idle" });
@@ -111,7 +124,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
     const ctrl = new AbortController();
     const id = setTimeout(() => {
       api
-        .POST("/api/forecasting/seed", { body: { history, money }, signal: ctrl.signal })
+        .POST("/api/forecasting/seed", { body: withStandard({ history, money }, standard), signal: ctrl.signal })
         .then(({ data }) => data && setSeedInfo({ metrics: data.historical_metrics, seeded: data.seeded_assumptions }))
         .catch(() => {});
     }, 300);
@@ -119,7 +132,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [history, money, defaults]);
+  }, [history, money, standard, defaults]);
 
   // The forecast reruns automatically, simulation included
   useEffect(() => {
@@ -129,7 +142,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       setRun((r) => ({ ...r, status: "running" }));
       try {
         const { data, error } = await api.POST("/api/forecasting/run", {
-          body: { history, assumptions, simulate: true, n_sim: SIM_PATHS, money },
+          body: withStandard({ history, assumptions, simulate: true, n_sim: SIM_PATHS, money }, standard),
           signal: ctrl.signal,
         });
         if (ctrl.signal.aborted) return;
@@ -142,7 +155,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [history, assumptions, money, defaults, t, e]);
+  }, [history, assumptions, money, standard, defaults, t, e]);
 
   const setHistory = useCallback((key: string, year: number, value: number) => {
     setHistoryState((h) => ({ ...h, [key]: (h[key] ?? []).map((v, i) => (i === year ? value : v)) }));
@@ -195,11 +208,14 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
         const scaled = Object.fromEntries(Object.entries(history).map(([k, v]) => [k, v.map((x) => x * unitFactor(money.unit, data.money.unit))]));
         const merged = { ...scaled, ...Object.fromEntries(Object.entries(data.history).filter(([, v]) => v.length === nHist)) };
         setMoneyState(data.money);
+        setStandard(data.accounting_standard);
         setHistoryState(merged);
         setSource({ kind: "edgar", ticker: data.ticker, company: data.company_name, years: data.years, warnings: data.warnings });
         // Filings name each fiscal year by the year it ends in (api/routers/integrations.py)
         setFiscal({ endMonth: data.fiscal_year_end_month ?? 12, year: data.years.at(-1) ?? null });
-        const seeded = await api.POST("/api/forecasting/seed", { body: { history: merged, money: data.money } });
+        const seeded = await api.POST("/api/forecasting/seed", {
+          body: withStandard({ history: merged, money: data.money }, data.accounting_standard),
+        });
         if (seeded.data) setAssumptions(spread(seeded.data.seeded_assumptions, nFwd));
         setEdgar({ status: "idle" });
       } catch {
