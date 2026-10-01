@@ -49,7 +49,7 @@ test.describe("live site", () => {
   test("the website answers its health check", async ({ page }) => {
     const resp = await page.request.get("/healthz", { headers: bypassHeaders, maxRedirects: 0 });
     expect(resp.status()).toBe(200);
-    expect(await resp.text()).toContain('"service":"FSE/ML web"');
+    expect(await resp.text()).toContain('"service":"Variater web"');
   });
 
   // E2E_EXPECT_ENV (production or staging) proves the site is wired to the

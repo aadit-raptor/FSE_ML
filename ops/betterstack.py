@@ -43,22 +43,28 @@ RENDER_HOURS_RESERVED = 250
 # Longest wake-up a monitor must ride out without alerting
 WAKE_TOLERANCE_S = 180
 
+# Where the status page used to be (fse-ml.betteruptime.com, before the rename)
+PREVIOUS_SUBDOMAINS = ("fse-ml",)
+
 STATUS_PAGE = {
     "company_name": "Variater",
     "company_url": "https://variater.com",
-    "subdomain": os.environ.get("BETTERSTACK_STATUS_SUBDOMAIN", "fse-ml"),
+    "subdomain": os.environ.get("BETTERSTACK_STATUS_SUBDOMAIN", "variater"),
     "timezone": "UTC",
 }
 
 MONITORS = [
     {
-        "pronounceable_name": "FSE/ML web (production)",
+        "pronounceable_name": "Variater web (production)",
+        "_previous_names": ["FSE/ML web (production)"],
         # Signed-out pages answer 404 or redirect to sign-in (PLAN.md 1.4), so
         # the monitor checks the app's public health route instead
         # (web/src/app/healthz/route.ts; tests/test_betterstack.py pins both)
         "url": "https://variater.com/healthz",
         "monitor_type": "keyword",
-        "required_keyword": '"service":"FSE/ML web"',
+        # The health route's own answer, whatever it names the service, so a
+        # rename never races the deploy that carries it
+        "required_keyword": '"status":"ok"',
         "check_frequency": 180,
         "request_timeout": 30,
         "confirmation_period": 120,
@@ -71,7 +77,8 @@ MONITORS = [
         "_public_name": "Website",
     },
     {
-        "pronounceable_name": "FSE/ML API (production)",
+        "pronounceable_name": "Variater API (production)",
+        "_previous_names": ["FSE/ML API (production)"],
         "url": "https://api.variater.com/api/health",
         "monitor_type": "keyword",
         "required_keyword": '"status":"ok"',
@@ -172,7 +179,8 @@ def sync(request: Requester, dry_run: bool = False, log=print) -> dict:
     for m in MONITORS:
         body = monitor_body(m)
         name = body["pronounceable_name"]
-        current = existing.get(name)
+        # A renamed monitor is found by an old name and renamed in place
+        current = next((existing[n] for n in [name, *m.get("_previous_names", [])] if n in existing), None)
         if current is None:
             log(f"create monitor: {name}")
             ids[name] = None if dry_run else request("POST", f"{API}/v2/monitors", body)["data"]["id"]
@@ -187,15 +195,16 @@ def sync(request: Requester, dry_run: bool = False, log=print) -> dict:
             log(f"monitor up to date: {name}")
 
     pages = list_all(request, f"{API}/v2/status-pages")
-    page = next((p for p in pages if p["attributes"].get("subdomain") == STATUS_PAGE["subdomain"]), None)
+    # The subdomain is the page's identity; a page at a previous one (the
+    # rename, PLAN.md 0.2) moves to the new one rather than being duplicated
+    known = [STATUS_PAGE["subdomain"], *PREVIOUS_SUBDOMAINS]
+    page = next((p for k in known for p in pages if p["attributes"].get("subdomain") == k), None)
     if page is None:
         log(f"create status page: {STATUS_PAGE['subdomain']}")
         if dry_run:
             return ids
         page = request("POST", f"{API}/v2/status-pages", STATUS_PAGE)["data"]
     else:
-        # The subdomain is the page's identity; the rest (a rename, PLAN.md
-        # 0.2) is patched onto the page people already follow
         changed = {k: v for k, v in STATUS_PAGE.items() if page["attributes"].get(k) != v}
         if changed:
             log(f"update status page: {sorted(changed)}")

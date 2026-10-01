@@ -294,7 +294,7 @@ Set up in PLAN.md 1.2, all on free plans.
 |---|---|---|
 | Errors (API and web) | Sentry organization `aadit-xc`, project `fse-api`; `SENTRY_DSN` holds that project's DSN on both Render services and in Vercel | API: `api/observability.py`; web: `web/src/lib/monitoring.ts`. Browser reports are titled `API <status> on <path>` and tagged `api_path`. Environment `production`, `staging` or `local`; release = git commit |
 | Logs | Render → service → **Logs** | One JSON line per request: `ts` (UTC), `request_id`, `method`, `route` (template, e.g. `/api/edgar/{ticker}`), `status`, `duration_ms`, `model_ms`; plus a `model_run` line per model run. Health checks aren't logged |
-| Uptime and status page | Better Stack, kept in `ops/betterstack.py` | Synced by `.github/workflows/monitoring.yml` when that file changes on `main` or `staging` (or run it by hand). Status page: `https://fse-ml.betteruptime.com` |
+| Uptime and status page | Better Stack, kept in `ops/betterstack.py` | Synced by `.github/workflows/monitoring.yml` when that file changes on `main` or `staging` (or run it by hand). Status page: `https://variater.betteruptime.com` (was fse-ml; the sync moved it in place) |
 | Staging alerts | `.github/workflows/staging.yml` | Staging has no scheduled check; each deploy is checked as soon as it is live and a failure raises a Better Stack incident |
 | Wrong answers in production | `.github/workflows/live.yml` (daily) | Raises a Better Stack incident when the browser checks fail |
 
@@ -317,7 +317,7 @@ Screens show times in the viewer's time zone (`formatForViewer` in
 
 | Monitor | URL | Every | Alerts after |
 |---|---|---|---|
-| Website | `https://variater.com/healthz` (keyword `"service":"FSE/ML web"`) | 3 min | 2 min failing |
+| Website | `https://variater.com/healthz` (keyword `"status":"ok"`) | 3 min | 2 min failing |
 | Model API | `https://api.variater.com/api/health` (keyword `"status":"ok"`) | 30 min | 60 s timeout + 4 min rechecking |
 
 A check that reaches a sleeping API waits while it wakes (about a minute);
