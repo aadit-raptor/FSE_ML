@@ -73,11 +73,11 @@ def test_web_monitor_checks_a_route_that_works_signed_out():
     [monitor] = [m for m in bs.MONITORS if m["_host"] == "vercel"]
     assert monitor["url"] == "https://variater.com/healthz"
     route = (web / "src/app/healthz/route.ts").read_text(encoding="utf-8")
-    assert monitor["required_keyword"] == '"service":"FSE/ML web"'
-    assert 'service: "FSE/ML web"' in route
+    assert monitor["required_keyword"] == '"status":"ok"'
+    assert 'status: "ok"' in route and 'service: "Variater web"' in route
     proxy = (web / "src/proxy.ts").read_text(encoding="utf-8")
     assert "(?!api|healthz|" in proxy, "the proxy must not send /healthz to sign-in"
-    assert monitor["required_keyword"] in (web / "e2e/auth.spec.ts").read_text(encoding="utf-8")
+    assert '"service":"Variater web"' in (web / "e2e/auth.spec.ts").read_text(encoding="utf-8")
 
 
 def test_awake_hours_model():
@@ -158,3 +158,28 @@ def test_sync_updates_the_status_page_when_its_name_or_link_change():
                             {"company_name": bs.STATUS_PAGE["company_name"],
                              "company_url": bs.STATUS_PAGE["company_url"]})]
     assert len(fake.pages) == 1
+
+
+def test_a_renamed_monitor_is_found_by_its_old_name_and_renamed_in_place():
+    """The rename to Variater (PLAN.md 0.2): the monitors already exist under
+    their FSE/ML names. The sync finds each by its old name and patches the
+    new one on, keeping its history and status-page slot, never a second
+    monitor."""
+    fake = FakeBetterStack()
+    for m in bs.MONITORS:
+        old = {**bs.monitor_body(m), "pronounceable_name": m["_previous_names"][0]}
+        fake.monitors[fake._id()] = old
+    bs.sync(fake, log=lambda _: None)
+    names = sorted(a["pronounceable_name"] for a in fake.monitors.values())
+    assert names == sorted(m["pronounceable_name"] for m in bs.MONITORS)
+    assert all(n.startswith("Variater") for n in names)
+
+
+def test_the_status_page_moves_to_its_new_address_in_place():
+    fake = FakeBetterStack()
+    pid = fake._id()
+    fake.pages[pid] = {**bs.STATUS_PAGE, "subdomain": "fse-ml", "company_name": "FSE/ML"}
+    bs.sync(fake, log=lambda _: None)
+    assert list(fake.pages) == [pid]
+    assert fake.pages[pid]["subdomain"] == "variater" == bs.STATUS_PAGE["subdomain"]
+    assert fake.pages[pid]["company_name"] == "Variater"

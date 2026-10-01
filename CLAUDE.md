@@ -494,10 +494,13 @@ redirects every path on `fse-ml.vercel.app` and `www.` to the domain (308);
 staging is untouched. **Only the visible brand was renamed** (decided
 2026-10-01): `app.brand`, page titles, README, the status page's name.
 Internal names stay: `FSE_*` variables and secrets, the `fse_app`/`fse_api`
-roles, the `fse`-prefixed keys, service names, the repository, the
-`"service":"FSE/ML web"` health keyword the uptime monitor matches, and the
-Better Stack monitors' own names (the sync finds them by name; it patches the
-status page's name and link). `tests/test_domain.py` fails if anything the
+roles, the `fse`-prefixed keys, service names and the repository. Renamed
+2026-10-02 because people see them: Clerk's application name (sign-in heading
+and the sender of its emails), the Better Stack monitors (alert emails; the
+sync finds each by `_previous_names`) and the status page
+(`variater.betteruptime.com`; a page at `PREVIOUS_SUBDOMAINS` is moved, not
+duplicated). The web monitor's keyword is `"status":"ok"`, so the health
+route's service name can change without racing its deploy. `tests/test_domain.py` fails if anything the
 project runs names an old host. End every task session with the handoff described in PLAN.md: tell the
 user to start a new session and give the ready-to-paste prompt for the next
 task.
