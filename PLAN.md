@@ -134,7 +134,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.4b | Debt structures: simulation and the screen | 2.4a | ☑ |
 | 2.5 | Global tax rules | 2.2 | ☑ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☑ |
-| 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☐ |
+| 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☑ |
 | 2.8 | Risk warnings computed, not written in | 2.1 | ☐ |
 | **3** | **Trust in the numbers** | | |
 | 3.1 | Model version on every result | 1.5 | ☐ |
@@ -563,7 +563,8 @@ can check it.
        does not expose it; revisit after 4.2's exchange rates.
     6. Excel export of the capital structure (`api/routers/export.py`): 7.3.
     7. The backtest never sees tranches (`core/backtesting.py` builds
-       `LBOParams` from a plain dict): 2.7 rewrites that screen.
+       `LBOParams` from a plain dict). Done in 2.7: plan vs actual runs the
+       saved deal itself, tranches, tax rules and leases included.
 
 ### 2.5 Global tax rules
 - **Claude does:** per-deal corporate rate; interest deductibility limit (none,
@@ -621,6 +622,16 @@ can check it.
   example library (4.5); the screen works with no library.
 - **Done when:** a user's own saved deal is backtested end to end (e2e); with the
   library off the screen still works (test); attribution still adds up.
+- **Done (2026-10-02):** `core/plan_actual.py` runs the saved deal through the
+  deal model (and simulates it around its own assumptions) against actuals
+  stored on the deal (`deals.actuals`, migration 0008, not versioned);
+  `POST /api/backtesting/plan-vs-actual`, `GET/PUT/DELETE
+  /api/deals/{id}/actuals`; partial years for a deal still held, an early exit
+  compared with the plan rerun at that hold, CSV upload and download. The four
+  examples are `core/examples.py` (`GET /api/backtesting/examples`,
+  `FSE_EXAMPLE_LIBRARY=0` hides them); `/api/backtesting/run` stays as the
+  golden parity record. Proof: `tests/test_plan_actual.py`,
+  `web/e2e/backtest.spec.ts`.
 
 ### 2.8 Risk warnings computed, not written in
 - **Claude does:** replace fixed statistics ("38% historical distress rate",
@@ -1158,12 +1169,12 @@ when a limit is actually reached or before charging customers.
 | `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |
 | `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source | 2.1, 4.3, 4.4 |
 | `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in | 4.4 |
-| `core/backtesting.py` `PRELOADED_DEALS` | Backtest limited to 4 US mega-deals (2006–2013), unsourced actuals, fixed ranges | 2.7, 4.5 |
+| `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5 |
 | `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8, 5.2 |
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
 | `ml/multiple_predictor.py` | 25 rows | 5.4 |
 | `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 |
 | `ml/macro_regime.py`, `ml/correlation_updater.py` | US-only FRED series (incl. ISM PMI, discontinued 2022) | 4.2, 5.7 |
 | `ml/surrogate/` | One fixed training deal; PyTorch runtime too large for free hosting | 5.8 |
-| `web/src` Backtest screens | Only the preloaded deals can be tested | 2.7 |
+| `web/src` Backtest screens | Only the preloaded deals can be tested | 2.7 (done: any saved deal) |
 | `render.yaml` and DEPLOY.md | Render free database would expire after 30 days; not used (Neon instead) | 1.3 |

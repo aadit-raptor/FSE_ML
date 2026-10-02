@@ -42,6 +42,7 @@ test.describe("Honest labels", () => {
 
   test("Backtest says its deals are examples, counted from the deal list", async ({ page }) => {
     await page.goto("/backtest/predicted");
+    await page.getByRole("radio", { name: /^Burger King/ }).click();
     const note = page.locator("#content").getByRole("note").filter({ hasText: "Examples, not evidence" });
     await expect(note).toContainText("4 example deals from the 2006–2013 US market; not a validation of the model");
     await stepLink(page, "Error attribution").click();

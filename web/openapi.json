@@ -105,6 +105,237 @@
         "title": "AccountSettings",
         "type": "object"
       },
+      "ActualExitIn": {
+        "additionalProperties": false,
+        "properties": {
+          "exit_ev": {
+            "description": "Enterprise value at exit",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Exit Ev",
+            "type": "number"
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": -100.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Actual IRR (%); left out, computed from the MOIC over the years held",
+            "title": "Irr"
+          },
+          "moic": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Actual MOIC; left out, exit equity over the equity cheque",
+            "title": "Moic"
+          },
+          "net_debt_at_exit": {
+            "description": "Net debt at exit, counted as the deal counts it (negative: net cash)",
+            "maximum": 1000000000000000.0,
+            "minimum": -1000000000000000.0,
+            "title": "Net Debt At Exit",
+            "type": "number"
+          },
+          "sponsor_equity_entry": {
+            "description": "The sponsor's equity cheque at entry",
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000000000.0,
+            "title": "Sponsor Equity Entry",
+            "type": "number"
+          }
+        },
+        "required": [
+          "exit_ev",
+          "net_debt_at_exit",
+          "sponsor_equity_entry"
+        ],
+        "title": "ActualExitIn",
+        "type": "object"
+      },
+      "ActualReturns": {
+        "properties": {
+          "entry_equity": {
+            "title": "Entry Equity",
+            "type": "number"
+          },
+          "exit_ebitda": {
+            "description": "The exit year's EBITDA plus the plan's lease add-back",
+            "title": "Exit Ebitda",
+            "type": "number"
+          },
+          "exit_equity": {
+            "title": "Exit Equity",
+            "type": "number"
+          },
+          "exit_ev": {
+            "title": "Exit Ev",
+            "type": "number"
+          },
+          "exit_multiple": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None when the exit EBITDA is not positive",
+            "title": "Exit Multiple"
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Irr"
+          },
+          "irr_given": {
+            "description": "True when the IRR was entered, false when computed",
+            "title": "Irr Given",
+            "type": "boolean"
+          },
+          "moic": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moic"
+          },
+          "moic_given": {
+            "title": "Moic Given",
+            "type": "boolean"
+          },
+          "net_debt_at_exit": {
+            "title": "Net Debt At Exit",
+            "type": "number"
+          },
+          "percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of the plan's simulated paths below the actual IRR (%)",
+            "title": "Percentile"
+          }
+        },
+        "required": [
+          "irr",
+          "moic",
+          "irr_given",
+          "moic_given",
+          "entry_equity",
+          "exit_ebitda",
+          "exit_multiple",
+          "exit_ev",
+          "net_debt_at_exit",
+          "exit_equity",
+          "percentile"
+        ],
+        "title": "ActualReturns",
+        "type": "object"
+      },
+      "ActualYearIn": {
+        "additionalProperties": false,
+        "description": "One year's reported results, on the same basis as the deal's EBITDA. A\nfigure left out (null) is not known; its variance is then left out too.",
+        "properties": {
+          "ebitda": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda"
+          },
+          "fcf": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Free cash flow after interest and tax, before debt repayment",
+            "title": "Fcf"
+          },
+          "net_income": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Income"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "total_debt": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Debt at the year's end",
+            "title": "Total Debt"
+          }
+        },
+        "title": "ActualYearIn",
+        "type": "object"
+      },
       "BacktestActualExit": {
         "additionalProperties": false,
         "properties": {
@@ -824,6 +1055,58 @@
           }
         },
         "title": "CashFlowResult",
+        "type": "object"
+      },
+      "DealActuals": {
+        "additionalProperties": false,
+        "description": "What happened to a deal: results for its first years (as many as are\nknown, up to its hold) and, once it has been sold, the exit.",
+        "properties": {
+          "currency": {
+            "description": "The currency the figures are in; must be the deal's",
+            "maxLength": 3,
+            "minLength": 3,
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "exit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActualExitIn"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Left out while the deal is still held"
+          },
+          "unit": {
+            "description": "thousands, millions or billions",
+            "enum": [
+              "thousands",
+              "millions",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "years": {
+            "description": "From the plan's year 1",
+            "items": {
+              "$ref": "#/components/schemas/ActualYearIn"
+            },
+            "maxItems": 15,
+            "minItems": 1,
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currency",
+          "unit",
+          "years"
+        ],
+        "title": "DealActuals",
         "type": "object"
       },
       "DealContent": {
@@ -2129,6 +2412,69 @@
           "deleveraging_pct"
         ],
         "title": "EquityBridge",
+        "type": "object"
+      },
+      "ExampleDeal": {
+        "properties": {
+          "actuals": {
+            "$ref": "#/components/schemas/DealActuals"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "geography": {
+            "title": "Geography",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/DealInputsIn"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "sector",
+          "geography",
+          "outcome",
+          "plan",
+          "actuals"
+        ],
+        "title": "ExampleDeal",
+        "type": "object"
+      },
+      "ExampleLibrary": {
+        "properties": {
+          "enabled": {
+            "description": "False when the example library is switched off",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/ExampleDeal"
+            },
+            "title": "Examples",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled",
+          "examples"
+        ],
+        "title": "ExampleLibrary",
         "type": "object"
       },
       "ExitSensitivity": {
@@ -4620,6 +4966,416 @@
         "title": "PercentileCurve",
         "type": "object"
       },
+      "PlanActualAttribution": {
+        "properties": {
+          "exit_ebitda": {
+            "title": "Exit Ebitda",
+            "type": "number"
+          },
+          "exit_multiple": {
+            "title": "Exit Multiple",
+            "type": "number"
+          },
+          "net_debt": {
+            "title": "Net Debt",
+            "type": "number"
+          }
+        },
+        "required": [
+          "exit_ebitda",
+          "exit_multiple",
+          "net_debt"
+        ],
+        "title": "PlanActualAttribution",
+        "type": "object"
+      },
+      "PlanActualRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actuals": {
+            "$ref": "#/components/schemas/DealActuals"
+          },
+          "histogram_bins": {
+            "default": 60,
+            "maximum": 400.0,
+            "minimum": 10.0,
+            "title": "Histogram Bins",
+            "type": "integer"
+          },
+          "n": {
+            "default": 30000,
+            "maximum": 100000.0,
+            "minimum": 1000.0,
+            "title": "N",
+            "type": "integer"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "description": "The deal that is the plan: a saved deal's inputs"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "description": "The plan's Settings overrides",
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "plan",
+          "actuals"
+        ],
+        "title": "PlanActualRequest",
+        "type": "object"
+      },
+      "PlanActualResponse": {
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActualReturns"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "actual_ebitda_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Actual Ebitda Margin",
+            "type": "array"
+          },
+          "attribution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanActualAttribution"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact split of actual minus plan exit equity; None while the deal is held"
+          },
+          "exit_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The year the deal was sold; None while held",
+            "title": "Exit Year"
+          },
+          "hold": {
+            "description": "The plan's holding period",
+            "title": "Hold",
+            "type": "integer"
+          },
+          "irr_histogram": {
+            "$ref": "#/components/schemas/Histogram"
+          },
+          "lease_addback": {
+            "description": "What leases add to the EBITDA a multiple is applied to",
+            "title": "Lease Addback",
+            "type": "number"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanReturns"
+          },
+          "plan_ebitda_margin": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Plan Ebitda Margin",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/PlanActualYear"
+            },
+            "title": "Years",
+            "type": "array"
+          },
+          "years_compared": {
+            "title": "Years Compared",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hold",
+          "years_compared",
+          "exit_year",
+          "years",
+          "plan",
+          "actual",
+          "attribution",
+          "lease_addback",
+          "plan_ebitda_margin",
+          "actual_ebitda_margin",
+          "irr_histogram",
+          "money"
+        ],
+        "title": "PlanActualResponse",
+        "type": "object"
+      },
+      "PlanActualYear": {
+        "properties": {
+          "actual_ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Ebitda"
+          },
+          "actual_fcf": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Fcf"
+          },
+          "actual_net_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Net Income"
+          },
+          "actual_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Revenue"
+          },
+          "actual_total_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Total Debt"
+          },
+          "plan_ebitda": {
+            "title": "Plan Ebitda",
+            "type": "number"
+          },
+          "plan_fcf": {
+            "description": "Before debt repayment, like a reported free cash flow",
+            "title": "Plan Fcf",
+            "type": "number"
+          },
+          "plan_net_income": {
+            "title": "Plan Net Income",
+            "type": "number"
+          },
+          "plan_revenue": {
+            "title": "Plan Revenue",
+            "type": "number"
+          },
+          "plan_total_debt": {
+            "title": "Plan Total Debt",
+            "type": "number"
+          },
+          "variance_ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance Ebitda"
+          },
+          "variance_fcf": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance Fcf"
+          },
+          "variance_net_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance Net Income"
+          },
+          "variance_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance Revenue"
+          },
+          "variance_total_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variance Total Debt"
+          },
+          "year_index": {
+            "title": "Year Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year_index",
+          "plan_revenue",
+          "plan_ebitda",
+          "plan_net_income",
+          "plan_fcf",
+          "plan_total_debt",
+          "actual_revenue",
+          "actual_ebitda",
+          "actual_net_income",
+          "actual_fcf",
+          "actual_total_debt",
+          "variance_revenue",
+          "variance_ebitda",
+          "variance_net_income",
+          "variance_fcf",
+          "variance_total_debt"
+        ],
+        "title": "PlanActualYear",
+        "type": "object"
+      },
+      "PlanReturns": {
+        "description": "The plan's returns for an exit in the actual exit year (the plan's own\nhold while the deal is held). IRRs are fractions.",
+        "properties": {
+          "entry_equity": {
+            "title": "Entry Equity",
+            "type": "number"
+          },
+          "exit_ebitda": {
+            "description": "The EBITDA the exit multiple is applied to (with any lease add-back)",
+            "title": "Exit Ebitda",
+            "type": "number"
+          },
+          "exit_equity": {
+            "title": "Exit Equity",
+            "type": "number"
+          },
+          "exit_ev": {
+            "title": "Exit Ev",
+            "type": "number"
+          },
+          "exit_multiple": {
+            "title": "Exit Multiple",
+            "type": "number"
+          },
+          "irr": {
+            "title": "Irr",
+            "type": "number"
+          },
+          "irr_mean": {
+            "description": "Mean IRR of the plan's simulated paths",
+            "title": "Irr Mean",
+            "type": "number"
+          },
+          "irr_p5": {
+            "title": "Irr P5",
+            "type": "number"
+          },
+          "irr_p95": {
+            "title": "Irr P95",
+            "type": "number"
+          },
+          "moic": {
+            "title": "Moic",
+            "type": "number"
+          },
+          "net_debt_at_exit": {
+            "title": "Net Debt At Exit",
+            "type": "number"
+          }
+        },
+        "required": [
+          "irr",
+          "moic",
+          "entry_equity",
+          "exit_ebitda",
+          "exit_multiple",
+          "exit_ev",
+          "net_debt_at_exit",
+          "exit_equity",
+          "irr_mean",
+          "irr_p5",
+          "irr_p95"
+        ],
+        "title": "PlanReturns",
+        "type": "object"
+      },
       "PreloadedDeal": {
         "properties": {
           "actual": {
@@ -5644,6 +6400,38 @@
           "money"
         ],
         "title": "SourcesUsesResponse",
+        "type": "object"
+      },
+      "StoredActuals": {
+        "properties": {
+          "actuals": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DealActuals"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None until actuals are saved for the deal"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UTC, ISO 8601",
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "actuals"
+        ],
+        "title": "StoredActuals",
         "type": "object"
       },
       "SurrogateRequest": {
@@ -7219,6 +8007,100 @@
         ]
       }
     },
+    "/api/backtesting/examples": {
+      "get": {
+        "description": "The example library: each example deal as a plan and its actuals.\nEmpty, and ``enabled`` false, when the library is switched off.",
+        "operationId": "get_examples_api_backtesting_examples_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExampleLibrary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Examples",
+        "tags": [
+          "backtesting"
+        ]
+      }
+    },
+    "/api/backtesting/plan-vs-actual": {
+      "post": {
+        "description": "Compare a deal's plan with its actual results and exit.\n\nThe plan runs through the deal model and is simulated around its own\nassumptions; money comes back in the plan's currency and unit, whatever\nunit the actuals were entered in.",
+        "operationId": "post_plan_vs_actual_api_backtesting_plan_vs_actual_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanActualRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanActualResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Plan Vs Actual",
+        "tags": [
+          "backtesting"
+        ]
+      }
+    },
     "/api/backtesting/run": {
       "post": {
         "description": "Predict a deal from its entry assumptions and compare with what happened.",
@@ -7749,6 +8631,189 @@
           }
         ],
         "summary": "Patch Deal",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/actuals": {
+      "delete": {
+        "description": "Forget the deal's actuals.",
+        "operationId": "delete_actuals_api_deals__deal_id__actuals_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredActuals"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Actuals",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "get": {
+        "description": "What actually happened to the deal, for plan vs actual; null until saved.",
+        "operationId": "get_actuals_api_deals__deal_id__actuals_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredActuals"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Actuals",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "put": {
+        "description": "Save the deal's actual results and exit, replacing what was there.\nNot a version of the deal: its plan and history are untouched.",
+        "operationId": "put_actuals_api_deals__deal_id__actuals_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealActuals"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredActuals"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Actuals",
         "tags": [
           "saved deals"
         ]

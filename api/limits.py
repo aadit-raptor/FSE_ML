@@ -74,14 +74,14 @@ ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused 
 # Requests that run a model or call an outside data source
 RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
-    "/api/backtesting/run", "/api/forecasting/run",
+    "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
     "/api/ml/deal-risk", "/api/ml/surrogate", "/api/ml/macro-regime",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
 # The memory-heavy runs: one at a time, with a timeout
 SIMULATION_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
-    "/api/backtesting/run", "/api/forecasting/run",
+    "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
 })
 UNLIMITED_PREFIX = "/api/health"
 

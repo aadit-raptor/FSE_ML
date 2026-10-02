@@ -5,11 +5,27 @@ import { useState } from "react";
 import { fmtInput } from "@/lib/format";
 import { parseNumber } from "@/lib/locale";
 
-/** Compact numeric cell for editable grids. Commits valid numbers; invalid text is marked and not applied. */
-export function CellInput({ value, onCommit, label, decimals = 1 }: { value: number; onCommit: (v: number) => void; label: string; decimals?: number }) {
+/**
+ * Compact numeric cell for editable grids. Commits valid numbers; invalid text is marked and not applied.
+ * With `onClear`, an emptied cell is a figure not known rather than an error.
+ */
+export function CellInput({
+  value,
+  onCommit,
+  onClear,
+  label,
+  decimals = 1,
+}: {
+  value: number;
+  onCommit: (v: number) => void;
+  onClear?: () => void;
+  label: string;
+  decimals?: number;
+}) {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (Number.isFinite(value) ? fmtInput(value, decimals) : "");
-  const invalid = draft !== null && !Number.isFinite(parseNumber(draft));
+  const blank = draft !== null && draft.trim() === "" && onClear !== undefined;
+  const invalid = draft !== null && !blank && !Number.isFinite(parseNumber(draft));
   return (
     <input
       aria-label={label}
@@ -19,6 +35,7 @@ export function CellInput({ value, onCommit, label, decimals = 1 }: { value: num
       value={shown}
       onChange={(e) => {
         setDraft(e.target.value);
+        if (onClear && e.target.value.trim() === "") return onClear();
         const n = parseNumber(e.target.value);
         if (Number.isFinite(n)) onCommit(n);
       }}

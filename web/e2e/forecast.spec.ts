@@ -2,26 +2,6 @@ import { expect, test } from "@playwright/test";
 
 import { kpi, stepLink } from "./helpers";
 
-test.describe("Backtest", () => {
-  test("each historical deal runs its own inputs (golden values)", async ({ page }) => {
-    await page.goto("/backtest/predicted");
-    await expect(kpi(page, "Predicted IRR")).toHaveText("12.1%");
-    await expect(kpi(page, "Actual IRR")).toHaveText("19.0%");
-    await expect(kpi(page, "Actual percentile")).toHaveText("71.5");
-
-    await page.getByRole("radio", { name: /^Dell/ }).click();
-    await expect(kpi(page, "Predicted IRR")).toHaveText("8.1%");
-    await stepLink(page, "Year by year").click();
-    await expect(page.locator("main table").first().locator("tbody tr").first()).toContainText("3,626.0");
-  });
-
-  test("attribution splits the exit equity gap into three parts", async ({ page }) => {
-    await page.goto("/backtest/attribution");
-    await expect(page.getByRole("img", { name: "Error attribution" })).toContainText("Net debt at exit");
-    await expect(page.getByText(/add up to actual minus predicted exit equity/)).toBeVisible();
-  });
-});
-
 test.describe("Forecast", () => {
   test("sample forecast matches the API and growth assumptions drive revenue", async ({ page }) => {
     await page.goto("/forecast/statements");

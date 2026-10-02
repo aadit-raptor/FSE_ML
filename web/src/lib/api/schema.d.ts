@@ -72,6 +72,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/backtesting/examples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Examples
+         * @description The example library: each example deal as a plan and its actuals.
+         *     Empty, and ``enabled`` false, when the library is switched off.
+         */
+        get: operations["get_examples_api_backtesting_examples_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backtesting/plan-vs-actual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Plan Vs Actual
+         * @description Compare a deal's plan with its actual results and exit.
+         *
+         *     The plan runs through the deal model and is simulated around its own
+         *     assumptions; money comes back in the plan's currency and unit, whatever
+         *     unit the actuals were entered in.
+         */
+        post: operations["post_plan_vs_actual_api_backtesting_plan_vs_actual_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backtesting/run": {
         parameters: {
             query?: never;
@@ -231,6 +276,35 @@ export interface paths {
          * @description Rename, archive or unarchive.
          */
         patch: operations["patch_deal_api_deals__deal_id__patch"];
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/actuals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Actuals
+         * @description What actually happened to the deal, for plan vs actual; null until saved.
+         */
+        get: operations["get_actuals_api_deals__deal_id__actuals_get"];
+        /**
+         * Put Actuals
+         * @description Save the deal's actual results and exit, replacing what was there.
+         *     Not a version of the deal: its plan and history are untouched.
+         */
+        put: operations["put_actuals_api_deals__deal_id__actuals_put"];
+        post?: never;
+        /**
+         * Delete Actuals
+         * @description Forget the deal's actuals.
+         */
+        delete: operations["delete_actuals_api_deals__deal_id__actuals_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/deals/{deal_id}/draft": {
@@ -899,6 +973,94 @@ export interface components {
                 [key: string]: number | boolean;
             };
         };
+        /** ActualExitIn */
+        ActualExitIn: {
+            /**
+             * Exit Ev
+             * @description Enterprise value at exit
+             */
+            exit_ev: number;
+            /**
+             * Irr
+             * @description Actual IRR (%); left out, computed from the MOIC over the years held
+             */
+            irr?: number | null;
+            /**
+             * Moic
+             * @description Actual MOIC; left out, exit equity over the equity cheque
+             */
+            moic?: number | null;
+            /**
+             * Net Debt At Exit
+             * @description Net debt at exit, counted as the deal counts it (negative: net cash)
+             */
+            net_debt_at_exit: number;
+            /**
+             * Sponsor Equity Entry
+             * @description The sponsor's equity cheque at entry
+             */
+            sponsor_equity_entry: number;
+        };
+        /** ActualReturns */
+        ActualReturns: {
+            /** Entry Equity */
+            entry_equity: number;
+            /**
+             * Exit Ebitda
+             * @description The exit year's EBITDA plus the plan's lease add-back
+             */
+            exit_ebitda: number;
+            /** Exit Equity */
+            exit_equity: number;
+            /** Exit Ev */
+            exit_ev: number;
+            /**
+             * Exit Multiple
+             * @description None when the exit EBITDA is not positive
+             */
+            exit_multiple: number | null;
+            /** Irr */
+            irr: number | null;
+            /**
+             * Irr Given
+             * @description True when the IRR was entered, false when computed
+             */
+            irr_given: boolean;
+            /** Moic */
+            moic: number | null;
+            /** Moic Given */
+            moic_given: boolean;
+            /** Net Debt At Exit */
+            net_debt_at_exit: number;
+            /**
+             * Percentile
+             * @description Share of the plan's simulated paths below the actual IRR (%)
+             */
+            percentile: number | null;
+        };
+        /**
+         * ActualYearIn
+         * @description One year's reported results, on the same basis as the deal's EBITDA. A
+         *     figure left out (null) is not known; its variance is then left out too.
+         */
+        ActualYearIn: {
+            /** Ebitda */
+            ebitda?: number | null;
+            /**
+             * Fcf
+             * @description Free cash flow after interest and tax, before debt repayment
+             */
+            fcf?: number | null;
+            /** Net Income */
+            net_income?: number | null;
+            /** Revenue */
+            revenue?: number | null;
+            /**
+             * Total Debt
+             * @description Debt at the year's end
+             */
+            total_debt?: number | null;
+        };
         /** BacktestActualExit */
         BacktestActualExit: {
             /** Exit Ev */
@@ -1128,6 +1290,31 @@ export interface components {
             non_cash_interest?: (number | null)[];
             /** Years */
             years?: number[];
+        };
+        /**
+         * DealActuals
+         * @description What happened to a deal: results for its first years (as many as are
+         *     known, up to its hold) and, once it has been sold, the exit.
+         */
+        DealActuals: {
+            /**
+             * Currency
+             * @description The currency the figures are in; must be the deal's
+             */
+            currency: string;
+            /** @description Left out while the deal is still held */
+            exit?: components["schemas"]["ActualExitIn"] | null;
+            /**
+             * Unit
+             * @description thousands, millions or billions
+             * @enum {string}
+             */
+            unit: "thousands" | "millions" | "billions";
+            /**
+             * Years
+             * @description From the plan's year 1
+             */
+            years: components["schemas"]["ActualYearIn"][];
         };
         /**
          * DealContent
@@ -1767,6 +1954,31 @@ export interface components {
             residual: number | null;
             /** Total Gain */
             total_gain: number | null;
+        };
+        /** ExampleDeal */
+        ExampleDeal: {
+            actuals: components["schemas"]["DealActuals"];
+            /** Description */
+            description: string;
+            /** Geography */
+            geography: string;
+            /** Name */
+            name: string;
+            /** Outcome */
+            outcome: string;
+            plan: components["schemas"]["DealInputsIn"];
+            /** Sector */
+            sector: string;
+        };
+        /** ExampleLibrary */
+        ExampleLibrary: {
+            /**
+             * Enabled
+             * @description False when the example library is switched off
+             */
+            enabled: boolean;
+            /** Examples */
+            examples: components["schemas"]["ExampleDeal"][];
         };
         /** ExitSensitivity */
         ExitSensitivity: {
@@ -2571,6 +2783,144 @@ export interface components {
             /** Values */
             values: number[];
         };
+        /** PlanActualAttribution */
+        PlanActualAttribution: {
+            /** Exit Ebitda */
+            exit_ebitda: number;
+            /** Exit Multiple */
+            exit_multiple: number;
+            /** Net Debt */
+            net_debt: number;
+        };
+        /** PlanActualRequest */
+        PlanActualRequest: {
+            actuals: components["schemas"]["DealActuals"];
+            /**
+             * Histogram Bins
+             * @default 60
+             */
+            histogram_bins: number;
+            /**
+             * N
+             * @default 30000
+             */
+            n: number;
+            /** @description The deal that is the plan: a saved deal's inputs */
+            plan: components["schemas"]["DealInputsIn"];
+            /**
+             * Settings
+             * @description The plan's Settings overrides
+             * @default {}
+             */
+            settings: {
+                [key: string]: number | boolean;
+            };
+        };
+        /** PlanActualResponse */
+        PlanActualResponse: {
+            actual: components["schemas"]["ActualReturns"] | null;
+            /** Actual Ebitda Margin */
+            actual_ebitda_margin: (number | null)[];
+            /** @description Exact split of actual minus plan exit equity; None while the deal is held */
+            attribution: components["schemas"]["PlanActualAttribution"] | null;
+            /**
+             * Exit Year
+             * @description The year the deal was sold; None while held
+             */
+            exit_year: number | null;
+            /**
+             * Hold
+             * @description The plan's holding period
+             */
+            hold: number;
+            irr_histogram: components["schemas"]["Histogram"];
+            /**
+             * Lease Addback
+             * @description What leases add to the EBITDA a multiple is applied to
+             */
+            lease_addback: number;
+            money: components["schemas"]["Money"];
+            plan: components["schemas"]["PlanReturns"];
+            /** Plan Ebitda Margin */
+            plan_ebitda_margin: (number | null)[];
+            /** Years */
+            years: components["schemas"]["PlanActualYear"][];
+            /** Years Compared */
+            years_compared: number;
+        };
+        /** PlanActualYear */
+        PlanActualYear: {
+            /** Actual Ebitda */
+            actual_ebitda: number | null;
+            /** Actual Fcf */
+            actual_fcf: number | null;
+            /** Actual Net Income */
+            actual_net_income: number | null;
+            /** Actual Revenue */
+            actual_revenue: number | null;
+            /** Actual Total Debt */
+            actual_total_debt: number | null;
+            /** Plan Ebitda */
+            plan_ebitda: number;
+            /**
+             * Plan Fcf
+             * @description Before debt repayment, like a reported free cash flow
+             */
+            plan_fcf: number;
+            /** Plan Net Income */
+            plan_net_income: number;
+            /** Plan Revenue */
+            plan_revenue: number;
+            /** Plan Total Debt */
+            plan_total_debt: number;
+            /** Variance Ebitda */
+            variance_ebitda: number | null;
+            /** Variance Fcf */
+            variance_fcf: number | null;
+            /** Variance Net Income */
+            variance_net_income: number | null;
+            /** Variance Revenue */
+            variance_revenue: number | null;
+            /** Variance Total Debt */
+            variance_total_debt: number | null;
+            /** Year Index */
+            year_index: number;
+        };
+        /**
+         * PlanReturns
+         * @description The plan's returns for an exit in the actual exit year (the plan's own
+         *     hold while the deal is held). IRRs are fractions.
+         */
+        PlanReturns: {
+            /** Entry Equity */
+            entry_equity: number;
+            /**
+             * Exit Ebitda
+             * @description The EBITDA the exit multiple is applied to (with any lease add-back)
+             */
+            exit_ebitda: number;
+            /** Exit Equity */
+            exit_equity: number;
+            /** Exit Ev */
+            exit_ev: number;
+            /** Exit Multiple */
+            exit_multiple: number;
+            /** Irr */
+            irr: number;
+            /**
+             * Irr Mean
+             * @description Mean IRR of the plan's simulated paths
+             */
+            irr_mean: number;
+            /** Irr P5 */
+            irr_p5: number;
+            /** Irr P95 */
+            irr_p95: number;
+            /** Moic */
+            moic: number;
+            /** Net Debt At Exit */
+            net_debt_at_exit: number;
+        };
         /** PreloadedDeal */
         PreloadedDeal: {
             /**
@@ -2974,6 +3324,16 @@ export interface components {
             tranches?: components["schemas"]["TrancheSource"][];
             /** Transaction Fees */
             transaction_fees: number;
+        };
+        /** StoredActuals */
+        StoredActuals: {
+            /** @description None until actuals are saved for the deal */
+            actuals: components["schemas"]["DealActuals"] | null;
+            /**
+             * Updated At
+             * @description UTC, ISO 8601
+             */
+            updated_at?: string | null;
         };
         /** SurrogateRequest */
         SurrogateRequest: {
@@ -3735,6 +4095,77 @@ export interface operations {
             };
         };
     };
+    get_examples_api_backtesting_examples_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExampleLibrary"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_plan_vs_actual_api_backtesting_plan_vs_actual_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanActualRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanActualResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     post_run_api_backtesting_run_post: {
         parameters: {
             query?: never;
@@ -4101,6 +4532,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_actuals_api_deals__deal_id__actuals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredActuals"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_actuals_api_deals__deal_id__actuals_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealActuals"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredActuals"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_actuals_api_deals__deal_id__actuals_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredActuals"];
                 };
             };
             /** @description Validation Error */
