@@ -799,7 +799,10 @@
     "colActual": "Actual",
     "rowIrr": "IRR",
     "rowMoic": "MOIC",
-    "rowExitMultiple": "Exit multiple"
+    "rowExitMultiple": "Exit multiple",
+    "currencyTitle": "Different currency",
+    "currencyBody": "These actuals were entered in {actual}; the deal is now in {deal}. Change the figures to {deal} and then count them in it, or the comparison is refused.",
+    "currencyAdopt": "Count them in {currency}"
   },
   "forecast": {
     "sampleCompany": "Sample company",

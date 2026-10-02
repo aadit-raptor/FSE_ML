@@ -243,6 +243,15 @@ function ActualsEditor() {
 
   return (
     <>
+      {actuals.money.currency !== plan.money.currency && (
+        <Notice
+          title={t("currencyTitle")}
+          role="alert"
+          actions={<SecondaryButton onClick={() => setActuals({ ...actuals, money: plan.money })}>{t("currencyAdopt", { currency: plan.money.currency })}</SecondaryButton>}
+        >
+          {t("currencyBody", { actual: actuals.money.currency, deal: plan.money.currency })}
+        </Notice>
+      )}
       {saveState === "error" && <Notice tone="loss" title={t("saveFailedTitle")} role="alert">{t("saveFailedBody")}</Notice>}
       {upload && (
         <Notice tone={upload.tone} title={t("csvTitle")} role={upload.tone === "loss" ? "alert" : "status"}>

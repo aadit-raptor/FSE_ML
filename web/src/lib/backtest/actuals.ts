@@ -16,7 +16,7 @@
  *
  * The header's first cell is ignored and the rest count the years. Exit lines take one value. A blank
  * cell is a figure not known. Comma, semicolon or tab separated; with a semicolon or a tab a decimal
- * comma is read too. Unknown lines are skipped and reported.
+ * comma is read too ("1.234,5"), and a number with no comma keeps its decimal point. Unknown lines are skipped and reported.
  */
 import type { Schemas } from "@/lib/api/client";
 import type { Money } from "@/lib/money";
@@ -168,7 +168,8 @@ export function csvNumber(text: string, decimalComma: boolean): Figure | typeof 
   if (s === "" || s === "-" || s === "–") return null;
   const negative = /^\(.*\)$/.test(s);
   if (negative) s = s.slice(1, -1);
-  if (decimalComma) s = s.replace(/\./g, "").replace(",", ".");
+  // A decimal comma only where a comma is written: "1234.5" in a semicolon file keeps its dot
+  if (decimalComma && s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
   else s = s.replace(/,/g, "");
   if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
   const n = Number(s);
