@@ -1,16 +1,29 @@
-"""Backtesting endpoints."""
+"""Backtesting endpoints.
+
+``/plan-vs-actual`` is the backtest (PLAN.md 2.7): any deal as the plan
+against what happened. ``/examples`` is the optional example library.
+``/deals`` and ``/run`` are the original backtest of the four example deals,
+kept as the Streamlit parity record (tests/golden) and for API callers.
+"""
 import numpy as np
 from fastapi import APIRouter, HTTPException
 
 from api.deps import resolve_settings
 from api.limits import simulation_slot
-from api.schemas import BacktestRequest, BacktestResponse, PreloadedDeal
+from api.schemas import (
+    BacktestRequest, BacktestResponse, ExampleLibrary, PlanActualRequest, PlanActualResponse, PreloadedDeal,
+)
 from api.observability import model_timer
 from api.serialize import histogram, to_json
 from core.backtesting import (
     BACKTEST_MONEY_KEYS, PRELOADED_DEALS, PRELOADED_MONEY, backtest_in_millions, backtest_summary,
 )
+from core.deal import DealInputs, in_millions
+from core.examples import examples, library_enabled
 from core.money import in_unit, rescale
+from core.plan_actual import (
+    PLAN_ACTUAL_MONEY_KEYS, ActualExit, Actuals, PlanActualMismatch, actuals_in_millions, compare,
+)
 
 router = APIRouter(prefix="/backtesting", tags=["backtesting"])
 
@@ -18,6 +31,8 @@ router = APIRouter(prefix="/backtesting", tags=["backtesting"])
 @router.get("/deals", response_model=list[PreloadedDeal])
 def get_deals():
     """Historical deals with their entry assumptions and actual results."""
+    if not library_enabled():
+        return []
     money = {"currency": PRELOADED_MONEY.currency, "unit": PRELOADED_MONEY.unit}
     return [{"name": name, **{k: v for k, v in deal.items() if k in PreloadedDeal.model_fields}, "money": money}
             for name, deal in PRELOADED_DEALS.items()]
@@ -59,3 +74,41 @@ def post_run(req: BacktestRequest):
         } for i in range(hold)],
     }
     return {**rescale(answer, in_unit(1.0, req.money.unit), BACKTEST_MONEY_KEYS), "money": req.money}
+
+
+@router.get("/examples", response_model=ExampleLibrary)
+def get_examples():
+    """The example library: each example deal as a plan and its actuals.
+    Empty, and ``enabled`` false, when the library is switched off."""
+    return {"enabled": library_enabled(), "examples": examples()}
+
+
+@router.post("/plan-vs-actual", response_model=PlanActualResponse)
+@simulation_slot
+def post_plan_vs_actual(req: PlanActualRequest):
+    """Compare a deal's plan with its actual results and exit.
+
+    The plan runs through the deal model and is simulated around its own
+    assumptions; money comes back in the plan's currency and unit, whatever
+    unit the actuals were entered in.
+    """
+    plan, acts = req.plan, req.actuals
+    if acts.currency != plan.currency:
+        raise HTTPException(
+            422, f"The actuals are in {acts.currency} and the deal in {plan.currency}: "
+                 f"enter the actuals in the deal's currency.")
+    cfg = resolve_settings(req.settings, check_correlations=True)
+    deal, cfg = in_millions(DealInputs(**plan.model_dump()), cfg)
+    actuals = actuals_in_millions(Actuals(
+        years=tuple(y.model_dump() for y in acts.years),
+        exit=ActualExit(**acts.exit.model_dump()) if acts.exit else None,
+    ), acts.unit)
+    try:
+        with model_timer("backtest.plan_vs_actual"):
+            answer = compare(deal, cfg, actuals, n=req.n)
+    except PlanActualMismatch as exc:
+        # The message names no figure, but like every refusal it is answered, not logged
+        raise HTTPException(422, str(exc)) from None
+    paths = answer.pop("irr_paths")
+    answer = {**to_json(answer), "irr_histogram": histogram(paths, req.histogram_bins)}
+    return {**rescale(answer, in_unit(1.0, plan.unit), PLAN_ACTUAL_MONEY_KEYS), "money": plan.money()}

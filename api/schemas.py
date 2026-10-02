@@ -734,6 +734,141 @@ class BacktestResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Plan vs actual (PLAN.md 2.7): any deal against what happened
+# ---------------------------------------------------------------------------
+ActualFigure = Optional[Annotated[float, Field(ge=-MAX_MONEY, le=MAX_MONEY)]]
+
+
+class ActualYearIn(Strict):
+    """One year's reported results, on the same basis as the deal's EBITDA. A
+    figure left out (null) is not known; its variance is then left out too."""
+    revenue: ActualFigure = None
+    ebitda: ActualFigure = None
+    net_income: ActualFigure = None
+    fcf: ActualFigure = Field(None, description="Free cash flow after interest and tax, before debt repayment")
+    total_debt: ActualFigure = Field(None, description="Debt at the year's end")
+
+
+class ActualExitIn(Strict):
+    exit_ev: float = Field(ge=0, le=MAX_MONEY, description="Enterprise value at exit")
+    net_debt_at_exit: float = Field(ge=-MAX_MONEY, le=MAX_MONEY,
+                                    description="Net debt at exit, counted as the deal counts it (negative: net cash)")
+    sponsor_equity_entry: float = Field(gt=0, le=MAX_MONEY, description="The sponsor's equity cheque at entry")
+    moic: Optional[float] = Field(None, ge=0, le=1000,
+                                  description="Actual MOIC; left out, exit equity over the equity cheque")
+    irr: Optional[float] = Field(None, ge=-100, le=10000,
+                                 description="Actual IRR (%); left out, computed from the MOIC over the years held")
+
+
+class DealActuals(Strict):
+    """What happened to a deal: results for its first years (as many as are
+    known, up to its hold) and, once it has been sold, the exit."""
+    currency: CurrencyCode = Field(description="The currency the figures are in; must be the deal's")
+    unit: MoneyUnit = Field(description="thousands, millions or billions")
+    years: List[ActualYearIn] = Field(min_length=1, max_length=15, description="From the plan's year 1")
+    exit: Optional[ActualExitIn] = Field(None, description="Left out while the deal is still held")
+
+
+class PlanActualRequest(Strict):
+    plan: DealInputsIn = Field(description="The deal that is the plan: a saved deal's inputs")
+    settings: Dict[str, SettingValue] = Field({}, description="The plan's Settings overrides")
+    actuals: DealActuals
+    n: SimulationPaths = Field(30000, ge=1000)
+    histogram_bins: int = Field(60, ge=10, le=400)
+
+
+class PlanActualYear(BaseModel):
+    year_index: int
+    plan_revenue: float
+    plan_ebitda: float
+    plan_net_income: float
+    plan_fcf: float = Field(description="Before debt repayment, like a reported free cash flow")
+    plan_total_debt: float
+    actual_revenue: Optional[float]
+    actual_ebitda: Optional[float]
+    actual_net_income: Optional[float]
+    actual_fcf: Optional[float]
+    actual_total_debt: Optional[float]
+    variance_revenue: Optional[float]
+    variance_ebitda: Optional[float]
+    variance_net_income: Optional[float]
+    variance_fcf: Optional[float]
+    variance_total_debt: Optional[float]
+
+
+class PlanReturns(BaseModel):
+    """The plan's returns for an exit in the actual exit year (the plan's own
+    hold while the deal is held). IRRs are fractions."""
+    irr: float
+    moic: float
+    entry_equity: float
+    exit_ebitda: float = Field(description="The EBITDA the exit multiple is applied to (with any lease add-back)")
+    exit_multiple: float
+    exit_ev: float
+    net_debt_at_exit: float
+    exit_equity: float
+    irr_mean: float = Field(description="Mean IRR of the plan's simulated paths")
+    irr_p5: float
+    irr_p95: float
+
+
+class ActualReturns(BaseModel):
+    irr: Optional[float]
+    moic: Optional[float]
+    irr_given: bool = Field(description="True when the IRR was entered, false when computed")
+    moic_given: bool
+    entry_equity: float
+    exit_ebitda: float = Field(description="The exit year's EBITDA plus the plan's lease add-back")
+    exit_multiple: Optional[float] = Field(description="None when the exit EBITDA is not positive")
+    exit_ev: float
+    net_debt_at_exit: float
+    exit_equity: float
+    percentile: Optional[float] = Field(description="Share of the plan's simulated paths below the actual IRR (%)")
+
+
+class PlanActualAttribution(BaseModel):
+    exit_ebitda: float
+    exit_multiple: float
+    net_debt: float
+
+
+class PlanActualResponse(BaseModel):
+    hold: int = Field(description="The plan's holding period")
+    years_compared: int
+    exit_year: Optional[int] = Field(description="The year the deal was sold; None while held")
+    years: List[PlanActualYear]
+    plan: PlanReturns
+    actual: Optional[ActualReturns]
+    attribution: Optional[PlanActualAttribution] = Field(
+        description="Exact split of actual minus plan exit equity; None while the deal is held")
+    lease_addback: float = Field(description="What leases add to the EBITDA a multiple is applied to")
+    plan_ebitda_margin: List[Optional[float]]
+    actual_ebitda_margin: List[Optional[float]]
+    irr_histogram: Histogram
+    money: Money
+
+
+class ExampleDeal(BaseModel):
+    name: str
+    description: str
+    sector: str
+    geography: str
+    outcome: str
+    plan: DealInputsIn
+    actuals: DealActuals
+
+
+class ExampleLibrary(BaseModel):
+    enabled: bool = Field(description="False when the example library is switched off")
+    examples: List[ExampleDeal]
+
+
+class StoredActuals(BaseModel):
+    actuals: Optional[DealActuals] = Field(description="None until actuals are saved for the deal")
+    updated_at: Optional[str] = Field(None, description="UTC, ISO 8601")
+
+
+# ---------------------------------------------------------------------------
 # Export
 # ---------------------------------------------------------------------------
 Cell = Union[float, int, str, bool, None]

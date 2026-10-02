@@ -12,8 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 
 from api.auth import AuthUser, require_user
 from api.schemas import (
-    AccountSettings, DealContent, DealCreate, DealDetail, DealDuplicate, DealList, DealPatch,
-    VersionDetail, VersionList, VersionSave, VersionSummary,
+    AccountSettings, DealActuals, DealContent, DealCreate, DealDetail, DealDuplicate, DealList, DealPatch,
+    StoredActuals, VersionDetail, VersionList, VersionSave, VersionSummary,
 )
 from db import deals as store
 from db.engine import is_configured as database_configured
@@ -121,6 +121,35 @@ def duplicate_deal(deal_id: uuid.UUID, req: Optional[DealDuplicate] = None,
     with _store():
         deal = store.duplicate_deal(user.subject, deal_id, req.name if req else None)
     return _detail(deal)
+
+
+# ---------------------------------------------------------------------------
+# Actuals (PLAN.md 2.7)
+# ---------------------------------------------------------------------------
+def _actuals(actuals, stamp) -> dict:
+    return {"actuals": actuals, "updated_at": _iso(stamp) if stamp else None}
+
+
+@router.get("/deals/{deal_id}/actuals", response_model=StoredActuals)
+def get_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    """What actually happened to the deal, for plan vs actual; null until saved."""
+    with _store():
+        return _actuals(*store.get_actuals(user.subject, deal_id))
+
+
+@router.put("/deals/{deal_id}/actuals", response_model=StoredActuals)
+def put_actuals(deal_id: uuid.UUID, req: DealActuals, user: AuthUser = Depends(require_user)):
+    """Save the deal's actual results and exit, replacing what was there.
+    Not a version of the deal: its plan and history are untouched."""
+    with _store():
+        return _actuals(*store.save_actuals(user.subject, deal_id, req.model_dump()))
+
+
+@router.delete("/deals/{deal_id}/actuals", response_model=StoredActuals)
+def delete_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    """Forget the deal's actuals."""
+    with _store():
+        return _actuals(*store.save_actuals(user.subject, deal_id, None))
 
 
 # ---------------------------------------------------------------------------

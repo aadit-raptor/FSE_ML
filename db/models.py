@@ -217,6 +217,11 @@ class Deal(Base):
                                                  server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
                                                  server_default=func.now())
+    # What actually happened (PLAN.md 2.7): yearly results and the exit, in
+    # api.schemas.DealActuals' shape. Not part of the plan, so not versioned
+    # and not copied by a duplicate; at most about a kilobyte.
+    actuals: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    actuals_updated_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
 
 
 VERSION_KINDS = ("created", "saved", "auto", "restored")
