@@ -397,8 +397,6 @@
     "riskUnusual": "unusual versus history",
     "riskInLine": "in line with history",
     "riskLeverage": "{leverage} leverage",
-    "riskFlags": "Risk flags",
-    "riskNoFlags": "No risk flags.",
     "riskSimilar": "Most similar historical deals",
     "riskSuccess": "success",
     "riskDistress": "distress",
@@ -1203,7 +1201,7 @@
     "backtestSpanRange": "{first}–{last} ",
     "riskSample": "Early estimate based on {deals} historical deals{span}",
     "riskSpan": " ({first}–{last})",
-    "riskDetail": ", mostly US, plus synthetic deals around the successes. The statistics in the flags are not yet sourced."
+    "riskDetail": ", mostly US, plus synthetic deals around the successes. It scores the deal's shape only; the risk warnings are computed from the deal and published data."
   },
   "engine": {
     "trancheSeniorTermLoan": "Senior term loan",
@@ -1339,5 +1337,18 @@
     "contactTitle": "Removing your data, and questions",
     "contact": "To have your account and everything in it deleted, or to ask anything about this policy, open an issue at {link}.",
     "back": "Back to Variater"
+  },
+  "warnings": {
+    "tile": "Risk warnings",
+    "unit": "computed from this deal and published data",
+    "none": "This deal raises none of the computed warnings: leverage, interest cover and repayments are inside the published lines.",
+    "sources": "Sources",
+    "dealModel": "this deal's own model run",
+    "sample": "{count} issuers, {first} to {last}",
+    "leverage_above_guidance": "Debt at close is {leverage} EBITDA, above the {threshold} beyond which European and US banking supervisors say leverage raises concerns for most industries.",
+    "implied_rating": "Year-one interest cover of {coverage} (EBIT over interest) falls in the {rating} band ({band_low} to {band_high}), a speculative grade. Companies rated {study_row} defaulted {default_pct} of the time within {years, plural, one {# year} other {# years}}, on average.",
+    "implied_rating_lowest": "Year-one interest cover of {coverage} (EBIT over interest) falls in the {rating} band (below {band_high}), the weakest there is. Companies rated {study_row} defaulted {default_pct} of the time within {years, plural, one {# year} other {# years}}, on average.",
+    "interest_exceeds_ebitda": "{count, plural, one {In {year} EBITDA does not cover interest:} other {In # years, the first {year}, EBITDA does not cover interest;}} the weakest, {worst_year}, covers {coverage}.",
+    "unfunded_repayment": "{count, plural, one {In {year}} other {In # years, the first {year},}} scheduled repayments exceed the cash the deal has: {unfunded} of the {repayment_due} due is unfunded ({unfunded_total} over the hold). The model fills the gap with cash nobody provides; a revolver that can be redrawn, or a later maturity, would fund it."
   }
 }

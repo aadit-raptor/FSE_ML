@@ -123,6 +123,8 @@ DEAL_MONEY_KEYS = frozenset({
     # Leases (PLAN.md 2.6): the leases block's money
     "operating_ebitda", "valuation_ebitda", "lease_cost", "lease_liability", "entry_ev",
     "net_debt_at_entry",
+    # Risk warnings (PLAN.md 2.8): core.risk_warnings.WARNING_MONEY_KEYS
+    "unfunded", "unfunded_total", "repayment_due",
     # equity bridge
     "entry_costs", "ebitda_growth", "multiple_expansion", "deleveraging", "exit_equity",
     "total_gain", "residual", "value",

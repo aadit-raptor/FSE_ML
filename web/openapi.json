@@ -1806,6 +1806,14 @@
           "returns": {
             "$ref": "#/components/schemas/ReturnsResult"
           },
+          "risk_warnings": {
+            "description": "Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)",
+            "items": {
+              "$ref": "#/components/schemas/RiskWarning"
+            },
+            "title": "Risk Warnings",
+            "type": "array"
+          },
           "tax": {
             "anyOf": [
               {
@@ -5704,6 +5712,99 @@
         "title": "ReturnsResult",
         "type": "object"
       },
+      "RiskSample": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "first_year": {
+            "title": "First Year",
+            "type": "integer"
+          },
+          "last_year": {
+            "title": "Last Year",
+            "type": "integer"
+          },
+          "what": {
+            "description": "What was counted, e.g. issuers",
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "count",
+          "what",
+          "first_year",
+          "last_year"
+        ],
+        "title": "RiskSample",
+        "type": "object"
+      },
+      "RiskSource": {
+        "description": "Where a warning's figures come from (core/risk_sources.py).",
+        "properties": {
+          "detail": {
+            "description": "The table or passage the figure is read from",
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Publication date, ISO, as precise as the source gives",
+            "title": "Published"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskSample"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How many observations stand behind it, when the source says"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "publisher",
+          "title",
+          "detail"
+        ],
+        "title": "RiskSource",
+        "type": "object"
+      },
       "RiskSummary": {
         "properties": {
           "hurdle": {
@@ -5787,6 +5888,57 @@
           "hurdle"
         ],
         "title": "RiskSummary",
+        "type": "object"
+      },
+      "RiskWarning": {
+        "description": "A risk warning computed from the deal and published data (PLAN.md 2.8).\n\nNumbers only: the words are the web app's (``warnings.<id>``). Every figure\nis computed from the deal's model run or read from a source listed in\n``sources``. Money figures (``unfunded``, ``unfunded_total``,\n``repayment_due``) are in the deal's unit; years count from 1.",
+        "properties": {
+          "figures": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Figures",
+            "type": "object"
+          },
+          "id": {
+            "enum": [
+              "leverage_above_guidance",
+              "implied_rating",
+              "interest_exceeds_ebitda",
+              "unfunded_repayment"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Ratings, as the sources name them",
+            "title": "Labels",
+            "type": "object"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RiskSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "figures",
+          "sources"
+        ],
+        "title": "RiskWarning",
         "type": "object"
       },
       "ScenarioStats": {

@@ -407,6 +407,37 @@ class LeaseSummary(BaseModel):
     net_debt_at_entry: float = Field(description="Debt at close less minimum cash, plus leases when counted")
 
 
+class RiskSample(BaseModel):
+    count: int
+    what: str = Field(description="What was counted, e.g. issuers")
+    first_year: int
+    last_year: int
+
+
+class RiskSource(BaseModel):
+    """Where a warning's figures come from (core/risk_sources.py)."""
+    id: str
+    publisher: str
+    title: str
+    published: Optional[str] = Field(None, description="Publication date, ISO, as precise as the source gives")
+    detail: str = Field(description="The table or passage the figure is read from")
+    url: Optional[str] = None
+    sample: Optional[RiskSample] = Field(None, description="How many observations stand behind it, when the source says")
+
+
+class RiskWarning(BaseModel):
+    """A risk warning computed from the deal and published data (PLAN.md 2.8).
+
+    Numbers only: the words are the web app's (``warnings.<id>``). Every figure
+    is computed from the deal's model run or read from a source listed in
+    ``sources``. Money figures (``unfunded``, ``unfunded_total``,
+    ``repayment_due``) are in the deal's unit; years count from 1."""
+    id: Literal["leverage_above_guidance", "implied_rating", "interest_exceeds_ebitda", "unfunded_repayment"]
+    figures: Dict[str, Optional[float]]
+    labels: Dict[str, str] = Field(default_factory=dict, description="Ratings, as the sources name them")
+    sources: List[RiskSource]
+
+
 class DealRunResponse(BaseModel):
     returns: model_from_dataclass(ReturnsResult)
     operating_model: model_from_dataclass(OperatingModelResult)
@@ -426,6 +457,9 @@ class DealRunResponse(BaseModel):
                           "(PLAN.md 2.5); none for a flat rate on positive profit")
     leases: Optional[LeaseSummary] = Field(
         None, description="What the deal's leases did to its value (PLAN.md 2.6); none without leases")
+    risk_warnings: List[RiskWarning] = Field(
+        default_factory=list,
+        description="Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)")
     money: Money
 
 
