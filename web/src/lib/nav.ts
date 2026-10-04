@@ -49,6 +49,7 @@ export const MODES: Mode[] = [
     slug: "backtest",
     labelKey: "modeBacktest",
     steps: [
+      { slug: "actuals", labelKey: "backtestActuals", summaryKey: "backtestActualsSummary" },
       { slug: "predicted", labelKey: "backtestPredicted", summaryKey: "backtestPredictedSummary" },
       { slug: "attribution", labelKey: "backtestAttribution", summaryKey: "backtestAttributionSummary" },
       { slug: "years", labelKey: "backtestYears", summaryKey: "backtestYearsSummary" },

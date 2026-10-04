@@ -67,6 +67,11 @@ function save(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** Save text made in the browser (a CSV) without asking the API. */
+export function downloadText(filename: string, text: string, type = "text/csv") {
+  save(new Blob([text], { type: `${type};charset=utf-8` }), filename);
+}
+
 async function postForFile(path: string, body: unknown, filename: string) {
   const requestId = newRequestId();
   // A plain fetch, so the signed-in user's token has to be added by hand

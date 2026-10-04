@@ -11,7 +11,7 @@ test("home opens deal inputs and the API is reachable through the proxy", async 
 test("mode tabs and step links change the screen", async ({ page }) => {
   await page.goto("/deal/inputs");
   await modeTab(page, "Backtest").click();
-  await expect(page).toHaveURL(/\/backtest\/predicted$/);
+  await expect(page).toHaveURL(/\/backtest\/actuals$/);
   await expect(modeTab(page, "Backtest")).toHaveAttribute("aria-current", "page");
   await stepLink(page, "Year by year").click();
   await expect(page).toHaveURL(/\/backtest\/years$/);

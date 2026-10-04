@@ -325,6 +325,48 @@ def duplicate_deal(subject: str, deal_id: uuid.UUID, name: Optional[str] = None,
     return create_deal(subject, name, source.inputs or {}, source.settings, now=now)
 
 
+# ---------------------------------------------------------------------------
+# Actuals (PLAN.md 2.7): what happened, beside the plan
+# ---------------------------------------------------------------------------
+def clean_actuals(actuals: Mapping) -> dict:
+    """Actuals in ``api.schemas.DealActuals``' shape, unknown figures left out
+    so a part-filled year stays small."""
+    from api.schemas import DealActuals
+
+    try:
+        cleaned = DealActuals.model_validate(dict(actuals or {}))
+    except ValidationError as exc:
+        first = exc.errors()[0]
+        where = ".".join(str(p) for p in first.get("loc", ())) or "actuals"
+        raise InvalidDeal(f"actuals.{where}: {first.get('msg', 'invalid')}") from None
+    return cleaned.model_dump(exclude_none=True)
+
+
+def get_actuals(subject: str, deal_id: uuid.UUID) -> tuple[Optional[dict], Optional[datetime]]:
+    """The deal's actuals and when they were saved, or two Nones."""
+    with connect() as conn:
+        row = conn.execute(select(Deal.actuals, Deal.actuals_updated_at)
+                           .where(_owned(subject, deal_id))).first()
+    if row is None:
+        raise DealNotFound(str(deal_id))
+    return row.actuals, row.actuals_updated_at
+
+
+def save_actuals(subject: str, deal_id: uuid.UUID, actuals: Optional[Mapping],
+                 *, now: Optional[datetime] = None) -> tuple[Optional[dict], Optional[datetime]]:
+    """Replace the deal's actuals (``None`` clears them). They are not part
+    of the plan: no version is written, and the deal's own edit time stays."""
+    cleaned = None if actuals is None else clean_actuals(actuals)
+    stamp = None if cleaned is None else (now or utc_now())
+    with transaction() as conn:
+        row = conn.execute(update(Deal).where(_owned(subject, deal_id))
+                           .values(actuals=cleaned, actuals_updated_at=stamp)
+                           .returning(Deal.actuals, Deal.actuals_updated_at)).first()
+    if row is None:
+        raise DealNotFound(str(deal_id))
+    return row.actuals, row.actuals_updated_at
+
+
 def list_versions(subject: str, deal_id: uuid.UUID) -> list[VersionRecord]:
     """The deal's versions, newest first (no contents)."""
     with connect() as conn:

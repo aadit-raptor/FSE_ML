@@ -91,6 +91,8 @@ test.describe("Currency and money units", () => {
   test("the backtest shows its example deal's own currency, not the open deal's", async ({ page }) => {
     await dealInEuroThousands(page);
     await modeTab(page, "Backtest").click();
+    await page.getByRole("radio", { name: /^Burger King/ }).click();
+    await stepLink(page, "Plan vs actual").click();
     await expect(kpi(page, "Actual IRR")).toBeVisible({ timeout: 45_000 });
     // The example deals are US dollar millions (the API says so with each one)
     await expect(content(page)).toContainText("$M");
