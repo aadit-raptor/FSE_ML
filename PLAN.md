@@ -135,7 +135,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.5 | Global tax rules | 2.2 | ☑ |
 | 2.6 | Accounting standards (IFRS and US GAAP) | 2.2 | ☑ |
 | 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☑ |
-| 2.8 | Risk warnings computed, not written in | 2.1 | ☐ |
+| 2.8 | Risk warnings computed, not written in | 2.1 | ☑ |
 | **3** | **Trust in the numbers** | | |
 | 3.1 | Model version on every result | 1.5 | ☐ |
 | 3.2 | Written methodology | — | ☐ |
@@ -640,6 +640,23 @@ can check it.
   sample; warnings with no data behind them are removed.
 - **Done when:** a test fails if a warning contains a number not computed from
   data; each warning shows its source.
+- **Done (2026-10-04):** the anomaly detector's six written-in flags ("38%
+  historical distress rate", "6 of 8", "2 of 9", "9% ... margins > 20%",
+  "median 18-22%", "1.5x covenant threshold common") are gone: none had a
+  source. `core/risk_warnings.py` computes four warnings on the deal answer
+  (`risk_warnings`), each carrying figures only, never sentences, and its
+  sources: debt at close above the **6.0x** EBITDA of the ECB's 2017 and the US
+  2013 leveraged-lending guidance; year-one EBIT / interest mapped to a rating
+  by **Damodaran's January 2026 coverage table**, and when speculative grade,
+  **S&P's 2024 study, table 26** cumulative default rate for that rating over
+  the deal's hold (23,831 issuers, 1981-2024); a year whose EBITDA does not
+  cover interest; a year whose repayments exceed the cash the deal has (the
+  amount finding 11 conjures). Tables in `core/risk_sources.py`, transcribed
+  with source, date and sample. Words in `web/messages/en.json` `warnings.*`;
+  Deal → Inputs shows them with their sources (`DealWarnings.tsx`). Proof:
+  `tests/test_risk_warnings.py` (the catalogue's warning words hold no digit;
+  every figure recomputed from the run or read back from its table; the
+  unfunded amount reconciles the cash balance), `web/e2e/warnings.spec.ts`.
 
 ---
 
@@ -1170,7 +1187,7 @@ when a limit is actually reached or before charging customers.
 | `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source | 2.1, 4.3, 4.4 |
 | `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in | 4.4 |
 | `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5 |
-| `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8, 5.2 |
+| `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 |
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
 | `ml/multiple_predictor.py` | 25 rows | 5.4 |
 | `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 |

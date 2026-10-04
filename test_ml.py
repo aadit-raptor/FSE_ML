@@ -15,16 +15,6 @@ pytest.importorskip("joblib")
 import ml.anomaly_detector as ad  # noqa: E402
 
 
-def test_interest_coverage_is_ebitda_over_interest():
-    # Leverage is debt/EBITDA, so coverage = 100 / (leverage * rate%).
-    # 12.5x at 7.8%: interest is 97.5% of EBITDA -> 1.03x, a covenant breach.
-    freescale = ad.check_deal(14.7, 12.5, 4.0, 9.8, 7.8)
-    assert any("1.03x" in w for w in freescale.warnings), freescale.warnings
-    # 4.2x at 7.26% -> 3.28x: well clear of the 1.5x covenant.
-    default = ad.check_deal(10.0, 4.2, 5.0, 26.0, 7.26)
-    assert not any("coverage" in w for w in default.warnings), default.warnings
-
-
 def test_anomaly_flag_separates_historical_outcomes():
     # The flag must carry information: it should catch the historical
     # failures while passing nearly all of the successes.
@@ -47,6 +37,17 @@ def test_anomaly_docstring_states_the_real_sample():
     assert "~100" not in ad.__doc__
     assert f"{sample['deals']} hand-entered" in ad.__doc__
     assert f"{sample['first_year']}-{sample['last_year']}" in ad.__doc__
+
+
+def test_the_detector_writes_no_warnings_of_its_own():
+    """Its flags quoted statistics nobody could source ("a 38% historical
+    distress rate", "only 2 of 9 ..."); core/risk_warnings.py computes the
+    deal's warnings instead (PLAN.md 2.8)."""
+    import dataclasses
+    result = ad.check_deal(14.7, 12.5, -1.0, 6.0, 9.5)   # trips every old rule
+    assert "warnings" not in {f.name for f in dataclasses.fields(result)}
+    source = open(ad.__file__, encoding="utf-8").read()
+    assert "distress rate." not in source and "avoided covenant" not in source
 
 
 def test_surrogate_tracks_the_simulation():
@@ -95,7 +96,6 @@ def test_surrogate_tracks_the_simulation():
 
 
 if __name__ == "__main__":
-    test_interest_coverage_is_ebitda_over_interest()
     test_anomaly_flag_separates_historical_outcomes()
     test_surrogate_tracks_the_simulation()
     print("test_ml: PASS")

@@ -1763,6 +1763,11 @@ export interface components {
             money: components["schemas"]["Money"];
             operating_model: components["schemas"]["OperatingModelResult"];
             returns: components["schemas"]["ReturnsResult"];
+            /**
+             * Risk Warnings
+             * @description Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)
+             */
+            risk_warnings?: components["schemas"]["RiskWarning"][];
             /** @description The tax computation year by year, when the deal has tax rules (PLAN.md 2.5); none for a flat rate on positive profit */
             tax?: components["schemas"]["TaxSchedule"] | null;
             /** Tranches */
@@ -3012,6 +3017,46 @@ export interface components {
             /** Net Exit Equity */
             net_exit_equity?: number | null;
         };
+        /** RiskSample */
+        RiskSample: {
+            /** Count */
+            count: number;
+            /** First Year */
+            first_year: number;
+            /** Last Year */
+            last_year: number;
+            /**
+             * What
+             * @description What was counted, e.g. issuers
+             */
+            what: string;
+        };
+        /**
+         * RiskSource
+         * @description Where a warning's figures come from (core/risk_sources.py).
+         */
+        RiskSource: {
+            /**
+             * Detail
+             * @description The table or passage the figure is read from
+             */
+            detail: string;
+            /** Id */
+            id: string;
+            /**
+             * Published
+             * @description Publication date, ISO, as precise as the source gives
+             */
+            published?: string | null;
+            /** Publisher */
+            publisher: string;
+            /** @description How many observations stand behind it, when the source says */
+            sample?: components["schemas"]["RiskSample"] | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
         /** RiskSummary */
         RiskSummary: {
             /** Hurdle */
@@ -3028,6 +3073,35 @@ export interface components {
             p_above_hurdle: number | null;
             /** Wipeout Rate */
             wipeout_rate: number | null;
+        };
+        /**
+         * RiskWarning
+         * @description A risk warning computed from the deal and published data (PLAN.md 2.8).
+         *
+         *     Numbers only: the words are the web app's (``warnings.<id>``). Every figure
+         *     is computed from the deal's model run or read from a source listed in
+         *     ``sources``. Money figures (``unfunded``, ``unfunded_total``,
+         *     ``repayment_due``) are in the deal's unit; years count from 1.
+         */
+        RiskWarning: {
+            /** Figures */
+            figures: {
+                [key: string]: number | null;
+            };
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "leverage_above_guidance" | "implied_rating" | "interest_exceeds_ebitda" | "unfunded_repayment";
+            /**
+             * Labels
+             * @description Ratings, as the sources name them
+             */
+            labels?: {
+                [key: string]: string;
+            };
+            /** Sources */
+            sources: components["schemas"]["RiskSource"][];
         };
         /** ScenarioStats */
         ScenarioStats: {

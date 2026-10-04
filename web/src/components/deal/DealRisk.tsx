@@ -17,7 +17,6 @@ import { useDeal } from "./DealProvider";
 type Risk = {
   risk_score: number;
   is_anomalous: boolean;
-  warnings: string[];
   nearest_deals: { name: string; entry_mult: number; leverage: number; growth: number; success: boolean }[];
   inputs: { leverage: number; ebitda_margin: number };
   historical_sample: HistoricalSample;
@@ -63,7 +62,7 @@ export function DealRisk() {
     <Tile span={12} title={t("riskTile")} unit={t("riskUnit")}>
       {error && <p className="font-mono text-[10.5px] text-loss">{error}</p>}
       {risk && (
-        <div className="grid grid-cols-[180px_1fr_1fr] gap-4">
+        <div className="grid grid-cols-[180px_1fr] gap-4">
           <div>
             <p className={`type-figure text-[22px] ${tone}`} data-kpi={t("riskScore")}>
               {t("riskScoreOutOf", { score: fmtNumber(risk.risk_score, 1) })}
@@ -72,17 +71,6 @@ export function DealRisk() {
               {risk.is_anomalous ? t("riskUnusual") : t("riskInLine")} · {t("riskLeverage", { leverage: fmtMultiple(risk.inputs.leverage, 1) })}
             </p>
           </div>
-          <ul className="grid content-start gap-1" aria-label={t("riskFlags")}>
-            {risk.warnings.length ? (
-              risk.warnings.map((w) => (
-                <li key={w} className="type-body text-[9.5px] shadow-[inset_2px_0_0_var(--color-loss)] ps-2">
-                  {w}
-                </li>
-              ))
-            ) : (
-              <li className="type-body text-[9.5px]">{t("riskNoFlags")}</li>
-            )}
-          </ul>
           <ul className="grid content-start gap-1" aria-label={t("riskSimilar")}>
             {risk.nearest_deals.map((d) => (
               <li key={d.name} className="font-mono text-[10.5px] text-ink">

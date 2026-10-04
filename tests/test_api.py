@@ -295,6 +295,9 @@ def test_deal_risk_when_available():
     body = ok(r)
     assert body["inputs"]["rate"] == pytest.approx((3.4 * 6.5 + 0.8 * 10.5) / 4.2)
     assert 1 <= body["risk_score"] <= 10 and len(body["nearest_deals"]) > 0
+    # Its written-in warnings had no source; the deal answer's risk_warnings
+    # replace them (PLAN.md 2.8)
+    assert "warnings" not in body
     # The screen's "early estimate based on N historical deals" label comes from this
     from ml.anomaly_detector import HISTORICAL_DEALS
     assert body["historical_sample"] == {"deals": len(HISTORICAL_DEALS), "first_year": 1989, "last_year": 2016}

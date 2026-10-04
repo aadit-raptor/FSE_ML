@@ -67,7 +67,6 @@ class AnomalyResult:
     is_anomalous:   bool
     severity:       float    # 0.0 to 1.0
     anomaly_score:  float    # raw isolation forest score
-    warnings:       List[str]
     nearest_deals:  List[dict]  # most similar historical deals
     risk_score:     float       # 1-10 composite risk score
 
@@ -147,7 +146,7 @@ def check_deal(entry_mult:   float,
                ) -> AnomalyResult:
     """
     Check if deal parameters are anomalous vs historical norms.
-    Returns AnomalyResult with warnings and risk score.
+    Returns AnomalyResult with the risk score and the nearest historical deals.
     """
     # Load models (cached after first load)
     detector = joblib.load(os.path.join(BASE, 'anomaly_detector.pkl'))
@@ -179,46 +178,15 @@ def check_deal(entry_mult:   float,
             d['distance'] = float(dist)
             nearest.append(d)
 
-    # Generate specific warnings using domain rules
-    warnings = []
     # EBITDA / interest. Leverage is debt / EBITDA, so interest is
     # leverage * EBITDA * rate and coverage reduces to 100 / (leverage * rate%).
     # (It previously divided the EBITDA *margin* by leverage * rate, scaling
     # coverage down by margin/100 -- so nearly every deal breached 1.5x.)
+    # The written-in warnings that used to follow ("a 38% historical distress
+    # rate", "only 2 of 9 such deals ...") had no source and are gone (PLAN.md
+    # 2.8): core/risk_warnings.py computes the deal's warnings from its own
+    # model run and published data.
     interest_coverage = 100.0 / max(leverage * interest_rate, 0.1)
-
-    if leverage > 8.0:
-        warnings.append(
-            f"Leverage {leverage:.1f}x is in the top 10% of historical LBOs. "
-            f"Deals above 8x EBITDA have a 38% historical distress rate."
-        )
-    if interest_coverage < 1.5:
-        warnings.append(
-            f"Interest coverage ratio {interest_coverage:.2f}x is below the 1.5x "
-            f"covenant threshold common in LBO credit agreements."
-        )
-    if entry_mult > 15 and leverage > 7:
-        warnings.append(
-            f"High entry multiple ({entry_mult:.1f}x) combined with high leverage "
-            f"({leverage:.1f}x) produced negative equity in 6 of 8 similar "
-            f"historical deals."
-        )
-    if growth_pct < 0 and leverage > 6:
-        warnings.append(
-            f"Negative revenue growth ({growth_pct:.1f}%) with {leverage:.1f}x "
-            f"leverage: declining revenue reduces debt service capacity. "
-            f"Only 2 of 9 such deals avoided covenant breaches."
-        )
-    if interest_rate > 9.0:
-        warnings.append(
-            f"Interest rate {interest_rate:.1f}% exceeds 9% — historically this "
-            f"level of debt cost has only been sustainable with EBITDA margins > 20%."
-        )
-    if ebitda_margin < 10 and leverage > 5:
-        warnings.append(
-            f"Thin EBITDA margin ({ebitda_margin:.1f}%) leaves little cushion for "
-            f"debt service. Median EBITDA margin in successful LBOs is 18-22%."
-        )
 
     # Composite risk score (1=low, 10=high)
     risk_score = 1.0
@@ -232,7 +200,6 @@ def check_deal(entry_mult:   float,
         is_anomalous=is_anomaly,
         severity=severity,
         anomaly_score=raw_score,
-        warnings=warnings,
         nearest_deals=nearest,
         risk_score=risk_score,
     )
@@ -263,4 +230,3 @@ if __name__ == '__main__':
     print(f"\nFreescale-like deal:")
     print(f"  Anomalous: {result.is_anomalous}")
     print(f"  Risk score: {result.risk_score:.1f}/10")
-    print(f"  Warnings: {result.warnings}")
