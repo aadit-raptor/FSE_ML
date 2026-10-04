@@ -54,7 +54,7 @@ test.describe("Honest labels", () => {
     await page.goto("/deal/inputs");
     const label = page.locator('[data-provenance="risk"]');
     await expect(label).toContainText("Early estimate based on 30 historical deals (1989–2016)");
-    await expect(label).toContainText("not yet sourced");
+    await expect(label).toContainText("the risk warnings are computed from the deal and published data");
 
     // Follows the data, not a typed-in number
     await replayML(page, { dealRisk: { historical_sample: { deals: 42, first_year: 2001, last_year: 2020 } } });

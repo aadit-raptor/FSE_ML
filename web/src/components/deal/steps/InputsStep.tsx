@@ -15,6 +15,7 @@ import { useEngineLabel } from "@/lib/i18n/useEngineText";
 
 import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
+import { DealWarnings } from "../DealWarnings";
 import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup, TranchesOnDebtStep } from "../DealScreen";
 import { useHurdleSub } from "./shared";
 import { LeaseRules } from "./LeaseRules";
@@ -177,6 +178,7 @@ export function InputsStep() {
               total={[t("rowTotalUses"), su?.total_uses]}
             />
           </Tile>
+          <DealWarnings />
           <DealRisk />
           <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-3">
             <p className="type-body">{listed ? t("debtListedNote") : t("debtSizedNote")}</p>
