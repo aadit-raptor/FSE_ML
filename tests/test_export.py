@@ -27,7 +27,8 @@ def test_workbook_round_trips_tables_and_sanitises_names():
     r = client.post("/api/export/workbook", json=body)
     books = _read(r)
     assert 'filename="lbo_summary_2026.xlsx"' in r.headers["content-disposition"]
-    assert list(books) == ["P&L", "Debt  schedule  senior", "P&L 2"]
+    # Then the About sheet, which says which model made the figures (PLAN.md 3.1)
+    assert list(books) == ["P&L", "Debt  schedule  senior", "P&L 2", "About"]
     pl = books["P&L"]
     assert pl.columns.tolist() == ["Line", "Y1", "Y2"]
     assert pl.loc[0, "Y2"] == 262.5 and pd.isna(pl.loc[1, "Y2"])

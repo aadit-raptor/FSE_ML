@@ -220,6 +220,7 @@ function DebtResults() {
                     ),
                   ],
                   money,
+                  run.result?.model,
                 )
               }
             />

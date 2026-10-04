@@ -222,6 +222,9 @@ class Deal(Base):
     # and not copied by a duplicate; at most about a kilobyte.
     actuals: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     actuals_updated_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    # Which model the working copy was saved with and the IRR and MOIC it gave
+    # (PLAN.md 3.1, core/model_version.py); NULL for a deal saved before 3.1
+    model: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
 
 VERSION_KINDS = ("created", "saved", "auto", "restored")
@@ -253,6 +256,8 @@ class DealVersion(Base):
                                            server_default=text("'{}'::jsonb"))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
                                                  server_default=func.now())
+    # The model stamp and results this version was saved with (PLAN.md 3.1)
+    model: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
 
 class UsageCounter(Base):

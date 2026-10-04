@@ -654,6 +654,9 @@
           "irr_histogram": {
             "$ref": "#/components/schemas/Histogram"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "money": {
             "$ref": "#/components/schemas/Money"
           },
@@ -724,7 +727,8 @@
           "attribution",
           "irr_histogram",
           "years",
-          "money"
+          "money",
+          "model"
         ],
         "title": "BacktestResponse",
         "type": "object"
@@ -1202,6 +1206,28 @@
             "description": "Number of the newest version",
             "title": "Latest Version",
             "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SavedModel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The model stamp and results the working copy was saved with; null for a deal saved before they were kept"
+          },
+          "model_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelCheck"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On opening or restoring: whether results changed since saved"
           },
           "name": {
             "title": "Name",
@@ -1797,6 +1823,9 @@
             ],
             "description": "What the deal's leases did to its value (PLAN.md 2.6); none without leases"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "money": {
             "$ref": "#/components/schemas/Money"
           },
@@ -1846,7 +1875,8 @@
           "bridge_steps",
           "exit_sensitivity",
           "interest_converged",
-          "money"
+          "money",
+          "model"
         ],
         "title": "DealRunResponse",
         "type": "object"
@@ -2744,6 +2774,9 @@
           "ltm": {
             "$ref": "#/components/schemas/HistoricalYear"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "money": {
             "$ref": "#/components/schemas/Money"
           },
@@ -2788,7 +2821,8 @@
           "forecast_balance_gaps",
           "balanced",
           "simulation",
-          "money"
+          "money",
+          "model"
         ],
         "title": "ForecastRunResponse",
         "type": "object"
@@ -4337,6 +4371,132 @@
         "title": "MCInputsIn",
         "type": "object"
       },
+      "ModelCheck": {
+        "description": "Whether a saved deal's results have changed since it was saved.",
+        "properties": {
+          "causes": {
+            "description": "What differs between the two stamps",
+            "items": {
+              "enum": [
+                "engine_version",
+                "data",
+                "settings"
+              ],
+              "type": "string"
+            },
+            "title": "Causes",
+            "type": "array"
+          },
+          "now": {
+            "$ref": "#/components/schemas/SavedModel"
+          },
+          "saved": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SavedModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "changed: IRR or MOIC differs today; unknown: saved before stamps were kept",
+            "enum": [
+              "changed",
+              "unchanged",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "saved",
+          "now",
+          "causes"
+        ],
+        "title": "ModelCheck",
+        "type": "object"
+      },
+      "ModelStamp": {
+        "additionalProperties": false,
+        "description": "Which model produced a result: on every result, and sent back with an\nexport so the workbook says which model made the figures it holds.",
+        "properties": {
+          "commit": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Git commit the API was built from; null locally",
+            "title": "Commit"
+          },
+          "data_fingerprint": {
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{1,64}$",
+            "title": "Data Fingerprint",
+            "type": "string"
+          },
+          "data_sets": {
+            "description": "Each published data set the model reads, with its edition date",
+            "maxProperties": 30,
+            "patternProperties": {
+              "^[a-z0-9_]+$": {
+                "maxLength": 10,
+                "pattern": "^\\d{4}(-\\d{2}){0,2}$",
+                "type": "string"
+              }
+            },
+            "propertyNames": {
+              "maxLength": 40
+            },
+            "title": "Data Sets",
+            "type": "object"
+          },
+          "data_vintage": {
+            "description": "Newest edition date among the published data sets",
+            "maxLength": 10,
+            "pattern": "^\\d{4}(-\\d{2}){0,2}$",
+            "title": "Data Vintage",
+            "type": "string"
+          },
+          "engine_version": {
+            "description": "Raised whenever any deal's numbers would move; see MODEL_CHANGELOG.md",
+            "maxLength": 20,
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "settings_fingerprint": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9a-f]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fingerprint of the resolved Settings the run used; null when it used none",
+            "title": "Settings Fingerprint"
+          }
+        },
+        "required": [
+          "engine_version",
+          "data_vintage",
+          "data_fingerprint"
+        ],
+        "title": "ModelStamp",
+        "type": "object"
+      },
       "Money": {
         "additionalProperties": false,
         "description": "What money figures are counted in. Any ISO 4217 currency; the model never\ncalculates with the code, so the same numbers give the same results in any\ncurrency.",
@@ -4545,6 +4705,9 @@
           "irr_histogram": {
             "$ref": "#/components/schemas/Histogram"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "moic_histogram": {
             "$ref": "#/components/schemas/Histogram"
           },
@@ -4612,7 +4775,8 @@
           "correlations",
           "scatter",
           "heatmap",
-          "money"
+          "money",
+          "model"
         ],
         "title": "MonteCarloResponse",
         "type": "object"
@@ -5110,6 +5274,9 @@
             "title": "Lease Addback",
             "type": "number"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "money": {
             "$ref": "#/components/schemas/Money"
           },
@@ -5154,7 +5321,8 @@
           "plan_ebitda_margin",
           "actual_ebitda_margin",
           "irr_histogram",
-          "money"
+          "money",
+          "model"
         ],
         "title": "PlanActualResponse",
         "type": "object"
@@ -5941,6 +6109,87 @@
         "title": "RiskWarning",
         "type": "object"
       },
+      "SavedModel": {
+        "description": "The stamp a saved deal or version keeps, with what the deal gave then.",
+        "properties": {
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fingerprint of the deal content the stamp was made for",
+            "title": "Content"
+          },
+          "data_fingerprint": {
+            "title": "Data Fingerprint",
+            "type": "string"
+          },
+          "data_vintage": {
+            "title": "Data Vintage",
+            "type": "string"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Engine units: 0.157 = 15.7%; null if unfundable",
+            "title": "Irr"
+          },
+          "moic": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moic"
+          },
+          "settings_fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settings Fingerprint"
+          }
+        },
+        "required": [
+          "engine_version",
+          "data_vintage",
+          "data_fingerprint"
+        ],
+        "title": "SavedModel",
+        "type": "object"
+      },
       "ScenarioStats": {
         "properties": {
           "irr_box": {
@@ -6171,6 +6420,9 @@
             "title": "Hurdle",
             "type": "number"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "money": {
             "$ref": "#/components/schemas/Money"
           },
@@ -6185,7 +6437,8 @@
         "required": [
           "hurdle",
           "scenarios",
-          "money"
+          "money",
+          "model"
         ],
         "title": "ScenariosResponse",
         "type": "object"
@@ -6464,6 +6717,9 @@
             "description": "Only when the deal is sized by percentages",
             "title": "Mezz Debt"
           },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "money": {
             "$ref": "#/components/schemas/Money"
           },
@@ -6549,7 +6805,8 @@
           "total_uses",
           "check",
           "balanced",
-          "money"
+          "money",
+          "model"
         ],
         "title": "SourcesUsesResponse",
         "type": "object"
@@ -6683,6 +6940,9 @@
       },
       "SurrogateResponse": {
         "properties": {
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
           "prediction": {
             "additionalProperties": {
               "anyOf": [
@@ -6721,7 +6981,8 @@
           "prediction",
           "tail_unreliable",
           "term_differences",
-          "training_deal"
+          "training_deal",
+          "model"
         ],
         "title": "SurrogateResponse",
         "type": "object"
@@ -7644,6 +7905,16 @@
             ],
             "title": "Label"
           },
+          "model": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SavedModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "number": {
             "title": "Number",
             "type": "integer"
@@ -7774,6 +8045,17 @@
             ],
             "title": "Grouping",
             "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelStamp"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The stamp of the result the sheets hold, written on the About sheet; without one the About sheet shows this API's own"
           },
           "money": {
             "anyOf": [
@@ -8664,7 +8946,7 @@
         ]
       },
       "get": {
-        "description": "Open a deal: its working copy, exactly as last saved.",
+        "description": "Open a deal: its working copy, exactly as last saved, and whether its\nresults have changed since (``model_check``).",
         "operationId": "get_deal_api_deals__deal_id__get",
         "parameters": [
           {
@@ -9319,7 +9601,7 @@
     },
     "/api/deals/{deal_id}/versions/{number}/restore": {
       "post": {
-        "description": "Make this version the working copy; unsaved edits are kept as a version first.",
+        "description": "Make this version the working copy; unsaved edits are kept as a version\nfirst. ``model_check`` says whether its results have changed since it was saved.",
         "operationId": "restore_version_api_deals__deal_id__versions__number__restore_post",
         "parameters": [
           {

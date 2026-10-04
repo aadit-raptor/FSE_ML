@@ -12,6 +12,7 @@ from core.deal import (
     capital_structure_from_multiples, capital_structure_summary, in_millions, lease_summary,
     leases_of, run_deal, sources_and_uses, sources_and_uses_for,
 )
+from core.model_version import stamp
 from core.money import in_unit, rescale, to_millions
 from core.risk_warnings import risk_warnings
 from core.tax import PRESETS as TAX_PRESETS
@@ -27,6 +28,7 @@ def post_sources_and_uses(req: SourcesUsesRequest):
     deal model's.
     """
     cfg = resolve_settings(req.settings)
+    model = stamp(cfg)
     unit = req.money.unit
     cfg = {**cfg, "other_uses": to_millions(cfg["other_uses"], unit)}
     # Leases (PLAN.md 2.6): valued and taken over the way the deal model does
@@ -49,7 +51,7 @@ def post_sources_and_uses(req: SourcesUsesRequest):
         debt_pct, senior_pct = capital_structure_from_multiples(
             req.ebitda, req.entry_mult, req.senior_x, req.mezz_x)
     su = rescale(to_json(su), in_unit(1.0, unit), SOURCES_USES_MONEY_KEYS)
-    return {**su, "debt_pct": debt_pct, "senior_pct": senior_pct, "money": req.money}
+    return {**su, "debt_pct": debt_pct, "senior_pct": senior_pct, "money": req.money, "model": model}
 
 
 @router.get("/tax-presets", response_model=TaxPresetsResponse)
@@ -69,6 +71,7 @@ def post_run(req: DealRunRequest):
     same deal in millions, times a thousand.
     """
     cfg = resolve_settings(req.settings)
+    model = stamp(cfg)
     deal, cfg = in_millions(DealInputs(**req.inputs.model_dump()), cfg)
     with model_timer("deal.run"):
         result = run_deal(deal, cfg)
@@ -94,4 +97,5 @@ def post_run(req: DealRunRequest):
         "leases": to_json(lease_summary(deal, result)),
         "risk_warnings": risk_warnings(deal, result),
     }
-    return {**rescale(answer, in_unit(1.0, req.inputs.unit), DEAL_MONEY_KEYS), "money": req.inputs.money()}
+    return {**rescale(answer, in_unit(1.0, req.inputs.unit), DEAL_MONEY_KEYS), "money": req.inputs.money(),
+            "model": model}

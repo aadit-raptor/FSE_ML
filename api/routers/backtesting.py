@@ -15,6 +15,7 @@ from api.schemas import (
 )
 from api.observability import model_timer
 from api.serialize import histogram, to_json
+from core.model_version import stamp
 from core.backtesting import (
     BACKTEST_MONEY_KEYS, PRELOADED_DEALS, PRELOADED_MONEY, backtest_in_millions, backtest_summary,
 )
@@ -43,6 +44,7 @@ def get_deals():
 def post_run(req: BacktestRequest):
     """Predict a deal from its entry assumptions and compare with what happened."""
     cfg = resolve_settings(req.settings)
+    model = stamp(cfg)
     entry = req.entry.model_dump()
     hold = entry["holding_period"]
     actual = req.actual.model_dump()
@@ -73,7 +75,8 @@ def post_run(req: BacktestRequest):
             "actual_total_debt": actual["total_debt"][i],
         } for i in range(hold)],
     }
-    return {**rescale(answer, in_unit(1.0, req.money.unit), BACKTEST_MONEY_KEYS), "money": req.money}
+    return {**rescale(answer, in_unit(1.0, req.money.unit), BACKTEST_MONEY_KEYS), "money": req.money,
+            "model": model}
 
 
 @router.get("/examples", response_model=ExampleLibrary)
@@ -98,6 +101,7 @@ def post_plan_vs_actual(req: PlanActualRequest):
             422, f"The actuals are in {acts.currency} and the deal in {plan.currency}: "
                  f"enter the actuals in the deal's currency.")
     cfg = resolve_settings(req.settings, check_correlations=True)
+    model = stamp(cfg)
     deal, cfg = in_millions(DealInputs(**plan.model_dump()), cfg)
     actuals = actuals_in_millions(Actuals(
         years=tuple(y.model_dump() for y in acts.years),
@@ -111,4 +115,5 @@ def post_plan_vs_actual(req: PlanActualRequest):
         raise HTTPException(422, str(exc)) from None
     paths = answer.pop("irr_paths")
     answer = {**to_json(answer), "irr_histogram": histogram(paths, req.histogram_bins)}
-    return {**rescale(answer, in_unit(1.0, plan.unit), PLAN_ACTUAL_MONEY_KEYS), "money": plan.money()}
+    return {**rescale(answer, in_unit(1.0, plan.unit), PLAN_ACTUAL_MONEY_KEYS), "money": plan.money(),
+            "model": model}

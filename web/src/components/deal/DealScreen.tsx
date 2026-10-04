@@ -10,7 +10,7 @@ import { NumberField } from "@/components/ui/NumberField";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { multiplesFromPct, pctFromMultiples } from "@/lib/deal/capital";
 import { FIELDS, type DealInputs, type FieldSpec, type NumericDealKey } from "@/lib/deal/fields";
-import { fmtInput } from "@/lib/format";
+import { fmtInput, fmtMultiple, fmtRate } from "@/lib/format";
 import { monthName, regionName } from "@/lib/locale";
 
 import { type DealSaveState, useDeal } from "./DealProvider";
@@ -28,7 +28,12 @@ export function DealScreen({ rail, children }: { rail: ReactNode; children: Reac
           {rail}
         </>
       }
-      bar={<ChangesBar />}
+      bar={
+        <>
+          <ModelChangeNotice />
+          <ChangesBar />
+        </>
+      }
     >
       {children}
     </Screen>
@@ -190,6 +195,46 @@ export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof
 export function useDealLabel(): (key: keyof DealInputs) => string {
   const fields = useTranslations("fields");
   return useCallback((key) => (fields.has(key) ? fields(key) : key), [fields]);
+}
+
+/**
+ * "Results changed since saved" (PLAN.md 3.1): the opened deal gives a different IRR or MOIC today than when it
+ * was saved, with what the API found changed in between. Shown until dismissed or the deal is saved again.
+ */
+function ModelChangeNotice() {
+  const { modelCheck, dismissModelCheck } = useDeal();
+  const t = useTranslations("deal");
+  if (modelCheck?.status !== "changed" || !modelCheck.saved) return null;
+  const { saved, now, causes } = modelCheck;
+  const why = causes.length
+    ? causes
+        .map((cause) =>
+          cause === "engine_version"
+            ? t("modelCauseEngine", { from: saved.engine_version, to: now.engine_version })
+            : cause === "data"
+              ? t("modelCauseData", { from: saved.data_vintage, to: now.data_vintage })
+              : t("modelCauseSettings"),
+        )
+        .join("; ")
+    : t("modelCauseUnknown");
+  return (
+    <Notice
+      title={t("modelChangedTitle")}
+      actions={<SecondaryButton onClick={dismissModelCheck}>{t("modelChangedDismiss")}</SecondaryButton>}
+    >
+      <span data-model-check="changed">
+        <span className="font-mono text-[11px]">
+          <span className="me-3">
+            {t("modelIrr")} {fmtRate(saved.irr)} → <b className="font-medium text-attention">{fmtRate(now.irr)}</b>
+          </span>
+          <span className="me-3">
+            {t("modelMoic")} {fmtMultiple(saved.moic)} → <b className="font-medium text-attention">{fmtMultiple(now.moic)}</b>
+          </span>
+        </span>
+        {t("modelChangedWhy", { why })}
+      </span>
+    </Notice>
+  );
 }
 
 /** Error from the last run, or (with auto-update off) the edits waiting to run. */
