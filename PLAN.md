@@ -172,6 +172,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
 | 7.8 | More languages | 2.3b | ☐ |
+| 7.9 | Charts in every Excel download | 2.3a | ☐ |
 | **8** | **Ready to scale** | | |
 | 8.1 | Result caching | 1.9 | ☐ |
 | 8.2 | Speed budgets (web and API) | 1.2 | ☐ |
@@ -988,6 +989,31 @@ enough for the free server.
   - `setDownloadFailedMessage` fills `{status}` with one `String.replace`, not
     ICU, so a translation using the placeholder twice fills only the first.
 - **Done when:** e2e key journeys pass in each added language.
+
+### 7.9 Charts in every Excel download
+Asked for by the user (2026-10-05): the charts on screen should also be in the
+workbooks.
+- **Claude does:**
+  - native Excel charts (openpyxl's chart objects, no images, no paid
+    library), drawn from the workbook's own cells so they stay editable and
+    move with the numbers, in every download that has a chart on screen:
+    deal (revenue and EBITDA, debt paydown, equity bridge as a waterfall),
+    Monte Carlo (IRR and MOIC distributions, the CDF, scenarios, drivers),
+    plan vs actual, forecast (statements, the revenue and EBITDA fans);
+  - where Excel has no native form, the nearest honest one, said on the
+    sheet: fans as stacked areas between percentiles, the heatmap as a
+    table with a colour scale, the scatter as a sampled scatter;
+  - the Tape look kept to what Excel allows (dark-friendly palette, cyan for
+    the answer, green/red for gain/loss), titles and axis labels from
+    `web/messages/en.json` like the screen's, money labels from the
+    workbook's currency and unit;
+  - the web sends which chart goes with which sheet; the API draws it
+    (`api/routers/export.py`), so every download shares one chart builder;
+  - with 7.3a (live formulas) the charts follow recalculated cells for free.
+- **Done when:** each download with a chart on screen opens in Excel with the
+  same chart over the same cells (a test reads the chart's series ranges back
+  with openpyxl and checks they point at the right cells), and changing a
+  cell moves the chart.
 
 ---
 

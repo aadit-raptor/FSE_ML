@@ -21,6 +21,24 @@ test.describe("Forecast", () => {
     await expect(kpi(page, "Balance sheet")).toHaveText("Balances");
   });
 
+  test("historicals download holds the figures on screen, as edited", async ({ page }) => {
+    await page.goto("/forecast/historicals");
+    const revenue = page.getByRole("textbox", { name: /^Revenue, / }).first();
+    await revenue.fill("321.5");
+    await revenue.blur();
+    const [req, dl] = await Promise.all([
+      page.waitForRequest((r) => r.url().endsWith("/api/export/workbook")),
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: "↓ Historicals" }).click(),
+    ]);
+    expect((await req.response())?.status()).toBe(200);
+    expect(dl.suggestedFilename()).toBe("Sample company_historicals.xlsx");
+    const body = req.postDataJSON() as { sheets: { name: string; rows: (string | number | null)[][] }[] };
+    expect(body.sheets.map((s) => s.name)).toEqual(["Income statement", "Balance sheet", "Cash flow"]);
+    const row = body.sheets[0].rows.find((r) => r[0] === "Revenue");
+    expect(row?.[1]).toBe(321.5);
+  });
+
   test("simulation shows both fans and target probabilities", async ({ page }) => {
     await page.goto("/forecast/simulation");
     await expect(kpi(page, "Paths")).toHaveText("20,000");

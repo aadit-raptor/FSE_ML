@@ -515,6 +515,12 @@ deal saved without one); open and restore answer `model_check`, shown as
 "Results changed since saved" (`DealScreen.tsx` `ModelChangeNotice`) until
 dismissed or the deal is saved again. Exports: `downloadWorkbook` takes the
 result's stamp (required argument) and the About sheet shows it.
+Every workbook (`api/routers/export.py`) opens its About sheet with "Source:
+variater.com" and when it was generated (UTC), and its file properties
+(author, last modified by) say `variater.com`. Forecast → Historicals has
+downloads too (the figures as entered; no model ran on them, so the About sheet shows the API's own model version).
+PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
+every download; 7.3a makes the cells formulas.
 
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),

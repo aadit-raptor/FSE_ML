@@ -963,6 +963,8 @@
     "kpiOpeningGap": "Opening gap",
     "openingGapSub": "in the historicals, {money}",
     "modelNote": "The three statements and every supporting schedule in one workbook.",
+    "historicalsNote": "The historical statements behind the forecast, as entered or filled from a filing.",
+    "historicalsDownload": "Historicals",
     "modelDownload": "3-statement model",
     "tileIncomeStatement": "Income statement",
     "tileBalanceSheet": "Balance sheet",
@@ -1307,6 +1309,7 @@
     "fileSchedules": "supporting_schedules.xlsx",
     "fileSimulation": "simulation_results.xlsx",
     "fileThreeStatement": "{company}_3statement_model.xlsx",
+    "fileHistoricals": "{company}_historicals.xlsx",
     "colLine": "Line",
     "colPlan": "Plan"
   },
