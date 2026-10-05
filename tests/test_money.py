@@ -177,7 +177,10 @@ def test_a_workbook_says_what_its_money_is_counted_in():
         "sheets": [{"name": "P&L", "columns": ["", "Year 1"], "rows": [["Revenue", 1250.0]]}]})
     assert resp.status_code == 200, resp.text
     about = pd.read_excel(io.BytesIO(resp.content), sheet_name="About")
-    assert dict(zip(about["Item"], about["Value"])) == {"Currency": "EUR", "Money unit": "thousands"}
+    values = dict(zip(about["Item"], about["Value"]))
+    # The money rows come first; the model's stamp follows (PLAN.md 3.1)
+    assert list(values)[:2] == ["Currency", "Money unit"]
+    assert (values["Currency"], values["Money unit"]) == ("EUR", "thousands")
 
 
 def test_the_simulation_sample_says_what_its_money_is_counted_in():

@@ -259,7 +259,8 @@ export interface paths {
         };
         /**
          * Get Deal
-         * @description Open a deal: its working copy, exactly as last saved.
+         * @description Open a deal: its working copy, exactly as last saved, and whether its
+         *     results have changed since (``model_check``).
          */
         get: operations["get_deal_api_deals__deal_id__get"];
         put?: never;
@@ -402,7 +403,8 @@ export interface paths {
         put?: never;
         /**
          * Restore Version
-         * @description Make this version the working copy; unsaved edits are kept as a version first.
+         * @description Make this version the working copy; unsaved edits are kept as a version
+         *     first. ``model_check`` says whether its results have changed since it was saved.
          */
         post: operations["restore_version_api_deals__deal_id__versions__number__restore_post"];
         delete?: never;
@@ -1186,6 +1188,7 @@ export interface components {
                 [key: string]: number;
             };
             irr_histogram: components["schemas"]["Histogram"];
+            model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             /** Predicted Ebitda */
             predicted_ebitda: number[];
@@ -1364,6 +1367,10 @@ export interface components {
              * @description Number of the newest version
              */
             latest_version: number;
+            /** @description The model stamp and results the working copy was saved with; null for a deal saved before they were kept */
+            model?: components["schemas"]["SavedModel"] | null;
+            /** @description On opening or restoring: whether results changed since saved */
+            model_check?: components["schemas"]["ModelCheck"] | null;
             /** Name */
             name: string;
             /** Settings */
@@ -1760,6 +1767,7 @@ export interface components {
             interest_converged: boolean;
             /** @description What the deal's leases did to its value (PLAN.md 2.6); none without leases */
             leases?: components["schemas"]["LeaseSummary"] | null;
+            model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             operating_model: components["schemas"]["OperatingModelResult"];
             returns: components["schemas"]["ReturnsResult"];
@@ -2104,6 +2112,7 @@ export interface components {
              */
             forecast_balance_gaps: number[];
             ltm: components["schemas"]["HistoricalYear"];
+            model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             /** Opening Balance Gap */
             opening_balance_gap: number;
@@ -2577,6 +2586,61 @@ export interface components {
             rate_std: number;
         };
         /**
+         * ModelCheck
+         * @description Whether a saved deal's results have changed since it was saved.
+         */
+        ModelCheck: {
+            /**
+             * Causes
+             * @description What differs between the two stamps
+             */
+            causes: ("engine_version" | "data" | "settings")[];
+            now: components["schemas"]["SavedModel"];
+            saved: components["schemas"]["SavedModel"] | null;
+            /**
+             * Status
+             * @description changed: IRR or MOIC differs today; unknown: saved before stamps were kept
+             * @enum {string}
+             */
+            status: "changed" | "unchanged" | "unknown";
+        };
+        /**
+         * ModelStamp
+         * @description Which model produced a result: on every result, and sent back with an
+         *     export so the workbook says which model made the figures it holds.
+         */
+        ModelStamp: {
+            /**
+             * Commit
+             * @description Git commit the API was built from; null locally
+             */
+            commit?: string | null;
+            /** Data Fingerprint */
+            data_fingerprint: string;
+            /**
+             * Data Sets
+             * @description Each published data set the model reads, with its edition date
+             */
+            data_sets?: {
+                [key: string]: string;
+            };
+            /**
+             * Data Vintage
+             * @description Newest edition date among the published data sets
+             */
+            data_vintage: string;
+            /**
+             * Engine Version
+             * @description Raised whenever any deal's numbers would move; see MODEL_CHANGELOG.md
+             */
+            engine_version: string;
+            /**
+             * Settings Fingerprint
+             * @description Fingerprint of the resolved Settings the run used; null when it used none
+             */
+            settings_fingerprint?: string | null;
+        };
+        /**
          * Money
          * @description What money figures are counted in. Any ISO 4217 currency; the model never
          *     calculates with the code, so the same numbers give the same results in any
@@ -2709,6 +2773,7 @@ export interface components {
             heatmap: components["schemas"]["Heatmap"];
             irr_cdf: components["schemas"]["PercentileCurve"];
             irr_histogram: components["schemas"]["Histogram"];
+            model: components["schemas"]["ModelStamp"];
             moic_histogram: components["schemas"]["Histogram"];
             money: components["schemas"]["Money"];
             /** N */
@@ -2844,6 +2909,7 @@ export interface components {
              * @description What leases add to the EBITDA a multiple is applied to
              */
             lease_addback: number;
+            model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             plan: components["schemas"]["PlanReturns"];
             /** Plan Ebitda Margin */
@@ -3103,6 +3169,34 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["RiskSource"][];
         };
+        /**
+         * SavedModel
+         * @description The stamp a saved deal or version keeps, with what the deal gave then.
+         */
+        SavedModel: {
+            /** Commit */
+            commit?: string | null;
+            /**
+             * Content
+             * @description Fingerprint of the deal content the stamp was made for
+             */
+            content?: string | null;
+            /** Data Fingerprint */
+            data_fingerprint: string;
+            /** Data Vintage */
+            data_vintage: string;
+            /** Engine Version */
+            engine_version: string;
+            /**
+             * Irr
+             * @description Engine units: 0.157 = 15.7%; null if unfundable
+             */
+            irr?: number | null;
+            /** Moic */
+            moic?: number | null;
+            /** Settings Fingerprint */
+            settings_fingerprint?: string | null;
+        };
         /** ScenarioStats */
         ScenarioStats: {
             /** Irr Box */
@@ -3210,6 +3304,7 @@ export interface components {
         ScenariosResponse: {
             /** Hurdle */
             hurdle: number;
+            model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             /** Scenarios */
             scenarios: {
@@ -3361,6 +3456,7 @@ export interface components {
              * @description Only when the deal is sized by percentages
              */
             mezz_debt?: number | null;
+            model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             /** Other Uses */
             other_uses: number;
@@ -3491,6 +3587,7 @@ export interface components {
         };
         /** SurrogateResponse */
         SurrogateResponse: {
+            model: components["schemas"]["ModelStamp"];
             /** Prediction */
             prediction: {
                 [key: string]: number | null;
@@ -3917,6 +4014,7 @@ export interface components {
             kind: "created" | "saved" | "auto" | "restored";
             /** Label */
             label: string | null;
+            model?: components["schemas"]["SavedModel"] | null;
             /** Number */
             number: number;
             /** Settings */
@@ -3965,6 +4063,8 @@ export interface components {
              * @enum {string}
              */
             grouping: "locale" | "thousands" | "lakh";
+            /** @description The stamp of the result the sheets hold, written on the About sheet; without one the About sheet shows this API's own */
+            model?: components["schemas"]["ModelStamp"] | null;
             /** @description What the money columns are counted in; written on an About sheet */
             money?: components["schemas"]["Money"] | null;
             /** Sheets */

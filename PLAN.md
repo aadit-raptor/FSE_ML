@@ -137,7 +137,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.7 | Backtest becomes "plan vs actual" for any deal | 1.5, 2.2 | ☑ |
 | 2.8 | Risk warnings computed, not written in | 2.1 | ☑ |
 | **3** | **Trust in the numbers** | | |
-| 3.1 | Model version on every result | 1.5 | ☐ |
+| 3.1 | Model version on every result | 1.5 | ☑ |
 | 3.2 | Written methodology | — | ☐ |
 | 3.3 | Audit history | 1.5 | ☐ |
 | 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☐ |
@@ -669,6 +669,28 @@ can check it.
   `MODEL_CHANGELOG.md`.
 - **Done when:** exports show version and data vintage; the change notice
   appears for an old version (test).
+- **Done (2026-10-04):** `core/model_version.py` stamps every model result
+  (deal run, sources and uses, Monte Carlo run and scenarios, backtest, plan
+  vs actual, forecast, the ML endpoints, and the same answers as background
+  jobs) with `model`: `engine_version` (1.0.0), `commit` (Render's
+  `RENDER_GIT_COMMIT`), `settings_fingerprint` (over the Settings resolved
+  against today's defaults, so a changed default shows), `data_vintage` and
+  `data_fingerprint` over the published data sets (`data_sets`: the risk
+  tables' editions and the tax presets'). `/api/health` names the engine
+  version and the status bar shows it. Saved deals and every version store
+  the stamp with the deal's IRR and MOIC (migration 0009, column `model`,
+  about 200 bytes; versions stay under 900); restore and duplicate carry it.
+  Opening or restoring a deal answers `model_check` (`changed` / `unchanged`
+  / `unknown` for deals saved before 3.1, with the causes `engine_version`,
+  `data`, `settings`), and the deal screens show "Results changed since
+  saved" with IRR and MOIC then and now. Excel About sheets show the stamp of
+  the result they hold (the web sends it; the Monte Carlo sample is stamped
+  by the API). `MODEL_CHANGELOG.md` says when the version changes;
+  `tests/model_version_pins.json` records reference deals' results per
+  version, so a change that moves a number fails until the version is
+  raised. Proof: `tests/test_model_version.py` (an aged stamp gives the
+  notice; a changed default is named; a 1bp rate change fails the pins),
+  `web/e2e/model-version.spec.ts`.
 
 ### 3.2 Written methodology
 - **Claude does:** `docs/methodology.md` covering every calculation, with

@@ -94,6 +94,57 @@ MAX_TRANCHE_YEARS = 30
 # enough that the arithmetic never runs out of floating-point range
 MAX_MONEY = 1e15
 
+# ---------------------------------------------------------------------------
+# Which model produced a result (PLAN.md 3.1, core/model_version.py)
+# ---------------------------------------------------------------------------
+_HEX = r"^[0-9a-f]{1,64}$"
+
+
+class ModelStamp(Strict):
+    """Which model produced a result: on every result, and sent back with an
+    export so the workbook says which model made the figures it holds."""
+    engine_version: str = Field(max_length=20, pattern=r"^\d+\.\d+\.\d+$",
+                                description="Raised whenever any deal's numbers would move; "
+                                            "see MODEL_CHANGELOG.md")
+    commit: Optional[str] = Field(None, max_length=64, pattern=_HEX,
+                                  description="Git commit the API was built from; null locally")
+    settings_fingerprint: Optional[str] = Field(
+        None, max_length=64, pattern=_HEX,
+        description="Fingerprint of the resolved Settings the run used; null when it used none")
+    data_vintage: str = Field(max_length=10, pattern=r"^\d{4}(-\d{2}){0,2}$",
+                              description="Newest edition date among the published data sets")
+    data_fingerprint: str = Field(max_length=64, pattern=_HEX)
+    # Written into an export's About sheet: ids and dates only, so nothing a
+    # caller sends can start with "=" and become a formula
+    data_sets: Dict[Annotated[str, Field(max_length=40, pattern=r"^[a-z0-9_]+$")],
+                    Annotated[str, Field(max_length=10, pattern=r"^\d{4}(-\d{2}){0,2}$")]] = Field(
+        default_factory=dict, max_length=30,
+        description="Each published data set the model reads, with its edition date")
+
+
+class SavedModel(BaseModel):
+    """The stamp a saved deal or version keeps, with what the deal gave then."""
+    engine_version: str
+    commit: Optional[str] = None
+    settings_fingerprint: Optional[str] = None
+    data_vintage: str
+    data_fingerprint: str
+    content: Optional[str] = Field(
+        None, description="Fingerprint of the deal content the stamp was made for")
+    irr: Optional[float] = Field(None, description="Engine units: 0.157 = 15.7%; null if unfundable")
+    moic: Optional[float] = None
+
+
+class ModelCheck(BaseModel):
+    """Whether a saved deal's results have changed since it was saved."""
+    status: Literal["changed", "unchanged", "unknown"] = Field(
+        description="changed: IRR or MOIC differs today; unknown: saved before stamps were kept")
+    saved: Optional[SavedModel]
+    now: SavedModel
+    causes: List[Literal["engine_version", "data", "settings"]] = Field(
+        description="What differs between the two stamps")
+
+
 
 class TrancheIn(Strict):
     """One facility in the deal's debt structure (PLAN.md 2.4, core/debt.py).
@@ -325,6 +376,7 @@ class SourcesUsesResponse(BaseModel):
     debt_pct: Optional[float] = Field(None, description="Implied total debt / EV (%)")
     senior_pct: Optional[float] = Field(None, description="Implied senior / total debt (%)")
     money: Money
+    model: ModelStamp
 
 
 class DealRunRequest(Strict):
@@ -461,6 +513,7 @@ class DealRunResponse(BaseModel):
         default_factory=list,
         description="Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)")
     money: Money
+    model: ModelStamp
 
 
 class TaxPresetOut(BaseModel):
@@ -551,6 +604,7 @@ class MonteCarloResponse(BaseModel):
     scatter: Dict[str, List[Optional[float]]]
     heatmap: Heatmap
     money: Money
+    model: ModelStamp
 
 
 class ScenarioStats(BaseModel):
@@ -575,6 +629,7 @@ class ScenariosResponse(BaseModel):
     hurdle: float
     scenarios: Dict[str, ScenarioStats]
     money: Money
+    model: ModelStamp
 
 
 # ---------------------------------------------------------------------------
@@ -670,6 +725,7 @@ class ForecastRunResponse(BaseModel):
     balanced: bool
     simulation: Optional[ForecastSimulation]
     money: Money
+    model: ModelStamp
     accounting_standard: AccountingStandard = ""
 
 
@@ -765,6 +821,7 @@ class BacktestResponse(BaseModel):
     irr_histogram: Histogram
     years: List[BacktestYear]
     money: Money
+    model: ModelStamp
 
 
 # ---------------------------------------------------------------------------
@@ -880,6 +937,7 @@ class PlanActualResponse(BaseModel):
     actual_ebitda_margin: List[Optional[float]]
     irr_histogram: Histogram
     money: Money
+    model: ModelStamp
 
 
 class ExampleDeal(BaseModel):
@@ -928,6 +986,9 @@ class WorkbookRequest(Strict):
     grouping: DigitGrouping = Field("locale", description="Lakh and crore patterns when 'lakh'")
     money: Optional[Money] = Field(
         None, description="What the money columns are counted in; written on an About sheet")
+    model: Optional[ModelStamp] = Field(
+        None, description="The stamp of the result the sheets hold, written on the About sheet; "
+                          "without one the About sheet shows this API's own")
 
 
 # ---------------------------------------------------------------------------
@@ -977,6 +1038,7 @@ class SurrogateResponse(BaseModel):
     term_differences: List[TermDifference]
     training_deal: List[TermDifference] = Field(
         description="Every term held fixed in training (model_value), beside this deal's value")
+    model: ModelStamp
 
 
 class EdgarDealInputs(BaseModel):
@@ -1073,6 +1135,11 @@ class DealSummary(BaseModel):
 class DealDetail(DealSummary):
     inputs: DealInputsIn
     settings: Dict[str, SettingValue]
+    model: Optional[SavedModel] = Field(
+        None, description="The model stamp and results the working copy was saved with; "
+                          "null for a deal saved before they were kept")
+    model_check: Optional[ModelCheck] = Field(
+        None, description="On opening or restoring: whether results changed since saved")
 
 
 class DealList(BaseModel):
@@ -1093,6 +1160,7 @@ class VersionSummary(BaseModel):
 class VersionDetail(VersionSummary):
     inputs: DealInputsIn
     settings: Dict[str, SettingValue]
+    model: Optional[SavedModel] = None
 
 
 class VersionList(BaseModel):

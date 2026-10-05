@@ -26,6 +26,7 @@ from api.limits import LimitExceeded, LimitRefusal, LimitsMiddleware, enforce_us
 from api.security import CORS_ALLOW_HEADERS, SecurityHeadersMiddleware, cors_origins
 from api.github_oidc import require_workflow
 from core.debt import UnfinanceableStructure
+from core.model_version import ENGINE_VERSION
 from api.routers import (
     account, backtesting, deal, deals, export, forecasting, integrations, jobs, montecarlo,
     scheduled,
@@ -88,7 +89,8 @@ def create_app() -> FastAPI:
         # commit: the git SHA Render built this deploy from (None locally), so a
         # check can tell which change each environment is running
         # time: the server clock in UTC; screens show it in the viewer's time zone
-        return {"status": "ok", "version": API_VERSION,
+        # engine_version: the model's own version (PLAN.md 3.1, MODEL_CHANGELOG.md)
+        return {"status": "ok", "version": API_VERSION, "engine_version": ENGINE_VERSION,
                 "environment": deploy_environment(),
                 "commit": os.environ.get("RENDER_GIT_COMMIT") or None,
                 "time": utc_now_iso(),

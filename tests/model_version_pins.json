@@ -1,0 +1,46 @@
+{
+  "1.0.0": {
+    "defaults": {
+      "irr": 0.211611,
+      "moic": 2.6111,
+      "net_exit_equity": 1145.21,
+      "entry_equity": 438.6
+    },
+    "tranches": {
+      "irr": 0.153532,
+      "moic": 2.0424,
+      "net_exit_equity": 1114.64,
+      "entry_equity": 545.74
+    },
+    "tax_rules": {
+      "irr": 0.209379,
+      "moic": 2.5871,
+      "net_exit_equity": 1134.7,
+      "entry_equity": 438.6
+    },
+    "leases": {
+      "irr": 0.226338,
+      "moic": 2.7736,
+      "net_exit_equity": 994.63,
+      "entry_equity": 358.6
+    },
+    "thousands": {
+      "irr": 0.230251,
+      "moic": 3.4671,
+      "net_exit_equity": 3690.0,
+      "entry_equity": 1070.0
+    },
+    "montecarlo": {
+      "mean_irr": 0.17708500647895728,
+      "median_irr": 0.17986578081046056,
+      "p5_irr": 0.026097740577834115,
+      "p95_irr": 0.3086586402643486
+    },
+    "montecarlo_tranches": {
+      "mean_irr": 0.11732873167673881,
+      "median_irr": 0.12170330347327318,
+      "p5_irr": -0.038130114041983125,
+      "p95_irr": 0.24983222502564112
+    }
+  }
+}

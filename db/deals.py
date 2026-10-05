@@ -22,6 +22,12 @@ reopened on another device -- or a version restored -- gives the same IRR.
 
 A version is a few hundred bytes (``tests/test_deals.py`` measures it).
 
+**Which model** (PLAN.md 3.1): the working copy and each version keep the
+model stamp they were saved with and the IRR and MOIC the deal gave then
+(``model``, from ``core.model_version.saved_stamp``). The caller computes it;
+this module only stores it beside the content and carries it with that
+content -- into a version, back on a restore, into a duplicate.
+
 **Never log deal contents**: names, inputs and settings stay out of logs and
 error reports, as everywhere else in the API.
 """
@@ -37,6 +43,7 @@ from pydantic import ValidationError
 from sqlalchemy import and_, delete, func, insert, select, update
 
 from core.config import DEFAULTS
+from core.model_version import content_fingerprint
 from core.tax import RULE_DEFAULTS
 from db.engine import connect, transaction
 from db.models import Deal, DealVersion, User, utc_now
@@ -75,6 +82,7 @@ class DealRecord:
     updated_at: datetime
     inputs: Optional[dict] = None
     settings: Optional[dict] = None
+    model: Optional[dict] = None
 
 
 @dataclass(frozen=True)
@@ -85,6 +93,7 @@ class VersionRecord:
     created_at: datetime
     inputs: Optional[dict] = None
     settings: Optional[dict] = None
+    model: Optional[dict] = None
 
 
 # ---------------------------------------------------------------------------
@@ -179,11 +188,12 @@ def _record(row, *, content: bool = True) -> DealRecord:
         id=row.id, name=row.name, latest_version=row.latest_version,
         archived=row.archived_at is not None, created_at=row.created_at, updated_at=row.updated_at,
         inputs=row.inputs if content else None, settings=row.settings if content else None,
+        model=row.model if content else None,
     )
 
 
 _DEAL_COLUMNS = (Deal.id, Deal.name, Deal.latest_version, Deal.archived_at, Deal.created_at,
-                 Deal.updated_at, Deal.inputs, Deal.settings)
+                 Deal.updated_at, Deal.inputs, Deal.settings, Deal.model)
 _VERSION_SUMMARY = (DealVersion.number, DealVersion.kind, DealVersion.label, DealVersion.created_at)
 
 
@@ -198,20 +208,32 @@ def _lock_deal(conn, subject: str, deal_id: uuid.UUID):
 
 
 def _add_version(conn, deal_id: uuid.UUID, kind: str, label: Optional[str], inputs: dict,
-                 settings: dict, now: datetime) -> VersionRecord:
+                 settings: dict, now: datetime, model: Optional[dict]) -> VersionRecord:
     number = conn.execute(
         update(Deal).where(Deal.id == deal_id)
         .values(latest_version=Deal.latest_version + 1).returning(Deal.latest_version)
     ).scalar_one()
     conn.execute(insert(DealVersion).values(
         deal_id=deal_id, number=number, kind=kind, label=label, inputs=inputs, settings=settings,
-        created_at=now))
+        created_at=now, model=_version_stamp(model)))
     return VersionRecord(number=number, kind=kind, label=label, created_at=now)
+
+
+def _version_stamp(model: Optional[dict]) -> Optional[dict]:
+    """A version's stamp leaves out the content fingerprint: a version's
+    content never changes, and the bytes count against the free 0.5 GB."""
+    return {k: v for k, v in model.items() if k != "content"} if model else None
+
+
+def _with_content(model: Optional[dict], inputs: dict, settings: dict) -> Optional[dict]:
+    """A version's stamp back on the working copy, fingerprinting the content
+    it comes back with."""
+    return {**model, "content": content_fingerprint(inputs, settings)} if model else None
 
 
 def _latest_version(conn, deal_id: uuid.UUID):
     return conn.execute(
-        select(*_VERSION_SUMMARY, DealVersion.inputs, DealVersion.settings)
+        select(*_VERSION_SUMMARY, DealVersion.inputs, DealVersion.settings, DealVersion.model)
         .where(DealVersion.deal_id == deal_id)
         .order_by(DealVersion.number.desc()).limit(1)
     ).first()
@@ -237,8 +259,11 @@ def list_deals(subject: str, *, include_archived: bool = False) -> list[DealReco
 
 
 def create_deal(subject: str, name: str, inputs: Mapping, settings: Optional[Mapping] = None,
-                *, now: Optional[datetime] = None, label: Optional[str] = None) -> DealRecord:
-    """A new deal owned by the caller, with its first version."""
+                *, now: Optional[datetime] = None, label: Optional[str] = None,
+                model: Optional[Mapping] = None) -> DealRecord:
+    """A new deal owned by the caller, with its first version. ``model`` is
+    the stamp and results the content gave (PLAN.md 3.1)."""
+    model = dict(model) if model is not None else None
     name = clean_name(name)
     inputs, settings = clean_content(inputs, settings)
     now = now or utc_now()
@@ -249,8 +274,8 @@ def create_deal(subject: str, name: str, inputs: Mapping, settings: Optional[Map
         deal_id = uuid.uuid4()
         conn.execute(insert(Deal).values(
             id=deal_id, owner_id=owner, name=name, inputs=inputs, settings=settings,
-            latest_version=0, created_at=now, updated_at=now))
-        _add_version(conn, deal_id, "created", label, inputs, settings, now)
+            latest_version=0, created_at=now, updated_at=now, model=model))
+        _add_version(conn, deal_id, "created", label, inputs, settings, now, model)
         row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
     return _record(row)
 
@@ -294,9 +319,12 @@ def delete_deal(subject: str, deal_id: uuid.UUID) -> None:
 
 
 def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Optional[Mapping],
-               *, now: Optional[datetime] = None) -> DealRecord:
+               *, now: Optional[datetime] = None, model: Optional[Mapping] = None) -> DealRecord:
     """Autosave: overwrite the working copy, adding an automatic checkpoint at
-    most once every ``AUTO_CHECKPOINT_S``."""
+    most once every ``AUTO_CHECKPOINT_S``. ``model`` replaces the stored
+    stamp only when the content changed: an unchanged deal keeps the stamp it
+    was saved with, which is what reopening compares against."""
+    model = dict(model) if model is not None else None
     inputs, settings = clean_content(inputs, settings)
     now = now or utc_now()
     with transaction() as conn:
@@ -304,12 +332,12 @@ def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Opti
         if row.inputs == inputs and row.settings == settings:
             return _record(row)  # nothing changed: no write, no new time
         conn.execute(update(Deal).where(Deal.id == deal_id)
-                     .values(inputs=inputs, settings=settings, updated_at=now))
+                     .values(inputs=inputs, settings=settings, updated_at=now, model=model))
         latest = _latest_version(conn, deal_id)
         differs = latest is None or latest.inputs != inputs or latest.settings != settings
         due = latest is None or now - latest.created_at >= timedelta(seconds=AUTO_CHECKPOINT_S)
         if differs and due:
-            _add_version(conn, deal_id, "auto", None, inputs, settings, now)
+            _add_version(conn, deal_id, "auto", None, inputs, settings, now, model)
             _prune_auto_versions(conn, deal_id)
         row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
     return _record(row)
@@ -317,12 +345,14 @@ def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Opti
 
 def duplicate_deal(subject: str, deal_id: uuid.UUID, name: Optional[str] = None,
                    *, now: Optional[datetime] = None) -> DealRecord:
-    """A new deal from this one's working copy (its history stays behind)."""
+    """A new deal from this one's working copy (its history stays behind),
+    with the stamp that copy was saved with."""
     source = get_deal(subject, deal_id)
     if name is None:
         suffix = " (copy)"
         name = source.name[: MAX_NAME_LENGTH - len(suffix)] + suffix
-    return create_deal(subject, name, source.inputs or {}, source.settings, now=now)
+    return create_deal(subject, name, source.inputs or {}, source.settings, now=now,
+                       model=source.model)
 
 
 # ---------------------------------------------------------------------------
@@ -386,7 +416,8 @@ def get_version(subject: str, deal_id: uuid.UUID, number: int) -> VersionRecord:
     with connect() as conn:
         rows = conn.execute(
             select(Deal.id, DealVersion.number, DealVersion.kind, DealVersion.label,
-                   DealVersion.created_at, DealVersion.inputs, DealVersion.settings)
+                   DealVersion.created_at, DealVersion.inputs, DealVersion.settings,
+                   DealVersion.model)
             .select_from(Deal)
             .outerjoin(DealVersion, and_(DealVersion.deal_id == Deal.id, DealVersion.number == number))
             .where(_owned(subject, deal_id))
@@ -397,7 +428,7 @@ def get_version(subject: str, deal_id: uuid.UUID, number: int) -> VersionRecord:
     if r.number is None:
         raise VersionNotFound(str(number))
     return VersionRecord(number=r.number, kind=r.kind, label=r.label, created_at=r.created_at,
-                         inputs=r.inputs, settings=r.settings)
+                         inputs=r.inputs, settings=r.settings, model=r.model)
 
 
 def save_version(subject: str, deal_id: uuid.UUID, label: Optional[str] = None,
@@ -423,7 +454,7 @@ def save_version(subject: str, deal_id: uuid.UUID, label: Optional[str] = None,
                          .values(kind=kind, label=new_label))
             return VersionRecord(number=latest.number, kind=kind, label=new_label,
                                  created_at=latest.created_at)
-        return _add_version(conn, deal_id, "saved", label, row.inputs, row.settings, now)
+        return _add_version(conn, deal_id, "saved", label, row.inputs, row.settings, now, row.model)
 
 
 def restore_version(subject: str, deal_id: uuid.UUID, number: int,
@@ -437,7 +468,7 @@ def restore_version(subject: str, deal_id: uuid.UUID, number: int,
     with transaction() as conn:
         row = _lock_deal(conn, subject, deal_id)
         target = conn.execute(
-            select(DealVersion.inputs, DealVersion.settings)
+            select(DealVersion.inputs, DealVersion.settings, DealVersion.model)
             .where(DealVersion.deal_id == deal_id, DealVersion.number == number)
         ).first()
         if target is None:
@@ -445,11 +476,13 @@ def restore_version(subject: str, deal_id: uuid.UUID, number: int,
         latest = _latest_version(conn, deal_id)
         if latest is None or latest.inputs != row.inputs or latest.settings != row.settings:
             _add_version(conn, deal_id, "saved", f"Before restoring version {number}",
-                         row.inputs, row.settings, now)
+                         row.inputs, row.settings, now, row.model)
+        # The restored content comes back with the stamp it was saved with
         conn.execute(update(Deal).where(Deal.id == deal_id)
-                     .values(inputs=target.inputs, settings=target.settings, updated_at=now))
+                     .values(inputs=target.inputs, settings=target.settings, updated_at=now,
+                             model=_with_content(target.model, target.inputs, target.settings)))
         _add_version(conn, deal_id, "restored", f"Restored version {number}",
-                     target.inputs, target.settings, now)
+                     target.inputs, target.settings, now, target.model)
         row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
     return _record(row)
 

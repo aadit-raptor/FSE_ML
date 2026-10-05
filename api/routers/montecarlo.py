@@ -8,6 +8,7 @@ from api.limits import simulation_slot
 from api.observability import model_timer
 from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
 from api.serialize import box_stats, histogram, percentile_curve, to_json
+from core.model_version import stamp
 from core.deal import DealInputs
 from core.money import in_unit, rescale
 from core.montecarlo import (
@@ -33,6 +34,7 @@ def post_run(req: MonteCarloRequest):
     same analytics the Streamlit tabs show are computed server-side.
     """
     cfg = resolve_settings(req.settings, check_correlations=True)
+    model = stamp(cfg)
     # Money runs in millions, as the deal model does; it comes back in the deal's unit
     mc, deal, cfg = mc_in_millions(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
     params = build_sim_params(mc, deal, cfg)
@@ -71,6 +73,7 @@ def post_run(req: MonteCarloRequest):
                     "assumptions for that growth and exit multiple.",
         },
         "money": req.deal.money(),
+        "model": model,
     }
 
 
@@ -79,6 +82,7 @@ def post_run(req: MonteCarloRequest):
 def post_scenarios(req: ScenariosRequest):
     """Run all four scenario presets from the same inputs."""
     cfg = resolve_settings(req.settings, check_correlations=True)
+    model = stamp(cfg)
     mc, deal, cfg = mc_in_millions(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
     params = build_sim_params(mc, deal, cfg)
     with model_timer("montecarlo.scenarios"):
@@ -93,4 +97,5 @@ def post_scenarios(req: ScenariosRequest):
             for sc in results
         },
         "money": req.deal.money(),
+        "model": model,
     }

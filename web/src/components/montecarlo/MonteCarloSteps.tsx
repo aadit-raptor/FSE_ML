@@ -236,6 +236,7 @@ function Scenarios() {
                     ),
                   ],
                   money,
+                  scen.model,
                 )
               }
             />

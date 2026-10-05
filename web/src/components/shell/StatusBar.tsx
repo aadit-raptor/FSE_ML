@@ -8,7 +8,10 @@ import { api } from "@/lib/api/client";
 import { formatForViewer } from "@/lib/monitoring";
 import { parsePath } from "@/lib/nav";
 
-type Health = { state: "checking" } | { state: "ok"; version: string; environment?: string; time?: string } | { state: "down" };
+type Health =
+  | { state: "checking" }
+  | { state: "ok"; version: string; engine?: string; environment?: string; time?: string }
+  | { state: "down" };
 
 const POLL_MS = 30_000;
 // Retry sooner while the API is down: a sleeping host can take ~a minute to start
@@ -28,9 +31,10 @@ export function StatusBar() {
       try {
         const { data, response } = await api.GET("/api/health");
         if (cancelled) return false;
-        const { version, environment, time } = (data as { version?: string; environment?: string; time?: string } | undefined) ?? {};
+        const { version, engine_version: engine, environment, time } =
+          (data as { version?: string; engine_version?: string; environment?: string; time?: string } | undefined) ?? {};
         const ok = !!(response.ok && version);
-        setHealth(ok ? { state: "ok", version: version!, environment, time } : { state: "down" });
+        setHealth(ok ? { state: "ok", version: version!, engine, environment, time } : { state: "down" });
         return ok;
       } catch {
         if (!cancelled) setHealth({ state: "down" });
@@ -59,6 +63,10 @@ export function StatusBar() {
       >
         {t("apiLabel")}{" "}
         {health.state === "ok" && <b className="font-medium text-ink">{t("apiOk", { version: health.version })}</b>}
+        {/* The model's own version (PLAN.md 3.1): what every result on screen was computed with */}
+        {health.state === "ok" && health.engine && (
+          <span data-engine-version={health.engine}>{t("modelVersion", { version: health.engine })}</span>
+        )}
         {/* Name any copy that isn't production, so staging is never mistaken for it */}
         {health.state === "ok" && health.environment && health.environment !== "production" && (
           <b className="font-medium text-attention">· {health.environment}</b>

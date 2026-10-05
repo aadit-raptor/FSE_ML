@@ -248,14 +248,14 @@ function SummaryResults() {
 
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
         <p className="type-body">{t("allTablesNote")}</p>
-        <DownloadButton label={t("allTables")} onDownload={() => downloadWorkbook(x("fileSummary"), allSheets(), money)} />
+        <DownloadButton label={t("allTables")} onDownload={() => downloadWorkbook(x("fileSummary"), allSheets(), money, run.result?.model)} />
       </div>
 
       <Tile
         span={12}
         title={t("tileIncomeStatement")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("filePl"), [tableSheet(x("sheetPl"), years, incomeRows)], money)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("filePl"), [tableSheet(x("sheetPl"), years, incomeRows)], money, run.result?.model)} />}
       >
         <DataTable caption={t("incomeStatementByYear")} columns={years} rows={incomeRows} />
       </Tile>
@@ -264,7 +264,7 @@ function SummaryResults() {
           span={12}
           title={t("tileTax")}
           unit={mu}
-          action={<DownloadButton onDownload={() => downloadWorkbook(x("fileTax"), [tableSheet(x("sheetTax"), years, taxRows)], money)} />}
+          action={<DownloadButton onDownload={() => downloadWorkbook(x("fileTax"), [tableSheet(x("sheetTax"), years, taxRows)], money, run.result?.model)} />}
         >
           <DataTable caption={t("taxByYear")} columns={years} rows={taxRows} />
         </Tile>
@@ -273,7 +273,7 @@ function SummaryResults() {
         span={6}
         title={t("tileCashFlow")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileCashFlow"), [tableSheet(x("sheetCashFlow"), years, cashRows)], money)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileCashFlow"), [tableSheet(x("sheetCashFlow"), years, cashRows)], money, run.result?.model)} />}
       >
         <DataTable caption={t("cashFlowByYear")} columns={years} rows={cashRows} />
       </Tile>
@@ -282,7 +282,7 @@ function SummaryResults() {
         title={t("tileDebt")}
         unit={t("allTranches", { money: mu })}
         action={
-          <DownloadButton onDownload={() => downloadWorkbook(x("fileDebtSchedule"), [tableSheet(x("sheetDebtSchedule"), years, debtRows)], money)} />
+          <DownloadButton onDownload={() => downloadWorkbook(x("fileDebtSchedule"), [tableSheet(x("sheetDebtSchedule"), years, debtRows)], money, run.result?.model)} />
         }
       >
         <DataTable caption={t("debtTotalsByYear")} columns={years} rows={debtRows} />
@@ -291,7 +291,7 @@ function SummaryResults() {
         span={6}
         title={t("tilePpe")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("filePpe"), [tableSheet(x("sheetPpe"), years, ppeRows)], money)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("filePpe"), [tableSheet(x("sheetPpe"), years, ppeRows)], money, run.result?.model)} />}
       >
         <DataTable caption={t("ppeByYear")} columns={years} rows={ppeRows} />
         <p className="type-body text-[9px]">{t("ppeEstimateNote")}</p>
@@ -302,7 +302,7 @@ function SummaryResults() {
         unit={t("daysMethod", { money: mu })}
         action={
           inputs.wsp_mode ? (
-            <DownloadButton onDownload={() => downloadWorkbook(x("fileWorkingCapital"), [tableSheet(x("sheetWorkingCapital"), years, wcRows)], money)} />
+            <DownloadButton onDownload={() => downloadWorkbook(x("fileWorkingCapital"), [tableSheet(x("sheetWorkingCapital"), years, wcRows)], money, run.result?.model)} />
           ) : undefined
         }
       >
@@ -333,7 +333,7 @@ function SummaryResults() {
         span={6}
         title={t("tileAdjustedEbitda")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileAdjEbitda"), [tableSheet(x("sheetAdjustedEbitda"), years, adjRows)], money)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileAdjEbitda"), [tableSheet(x("sheetAdjustedEbitda"), years, adjRows)], money, run.result?.model)} />}
       >
         <div className="max-w-[260px]">
           <NumberField spec={SBC_SPEC} label={t("rowStockBasedComp")} value={sbcPct} onCommit={setSbcPct} />
@@ -345,7 +345,7 @@ function SummaryResults() {
         span={6}
         title={t("tileEquityBridge")}
         unit={t("bridgeUnit", { money: mu })}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileEquityBridge"), [bridgeSheet], money)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileEquityBridge"), [bridgeSheet], money, run.result?.model)} />}
       >
         <table className="w-full border-collapse font-mono text-[11.5px]">
           <caption className="sr-only">{t("tileEquityBridge")}</caption>
