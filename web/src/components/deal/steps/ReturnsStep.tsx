@@ -118,6 +118,7 @@ function ReturnsResults() {
                   ),
                 ],
                 money,
+                run.result?.model,
               )
             }
           />

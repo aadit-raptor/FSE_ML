@@ -3,7 +3,13 @@
 The owner is always the signed-in caller (``require_user``), never something
 in the request, and ``db/deals.py`` matches it in every statement: another
 account's deal answers 404, exactly like a deal that doesn't exist.
+
+Which model (PLAN.md 3.1): creating a deal or autosaving it runs the deal
+model once (no sensitivity grid, a few milliseconds) and stores the model
+stamp with the IRR and MOIC; opening or restoring it runs it again and answers
+``model_check``, which the deal screens show as "results changed since saved".
 """
+import logging
 import uuid
 from contextlib import contextmanager
 from typing import Optional
@@ -11,10 +17,14 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 
 from api.auth import AuthUser, require_user
+from api.observability import log_event
 from api.schemas import (
     AccountSettings, DealActuals, DealContent, DealCreate, DealDetail, DealDuplicate, DealList, DealPatch,
     StoredActuals, VersionDetail, VersionList, VersionSave, VersionSummary,
 )
+from core import model_version
+from core.config import resolve_config
+from core.deal import DealInputs
 from db import deals as store
 from db.engine import is_configured as database_configured
 
@@ -52,14 +62,35 @@ def _summary(deal: store.DealRecord) -> dict:
             "created_at": _iso(deal.created_at), "updated_at": _iso(deal.updated_at)}
 
 
-def _detail(deal: store.DealRecord) -> dict:
-    return {**_summary(deal), "inputs": deal.inputs, "settings": deal.settings}
+def _model_now(inputs, settings) -> Optional[dict]:
+    """The stamp and results this content gives today, or None when the deal
+    model fails on it: saving someone's work never depends on the model, so
+    the deal is kept without a stamp (``unknown`` on reopening) and the
+    failure is logged by its kind alone -- never the deal's figures."""
+    from api.schemas import DealInputsIn
+
+    inputs, settings = store.clean_content(inputs, settings)
+    try:
+        deal = DealInputs(**DealInputsIn.model_validate(inputs).model_dump())
+        return {**model_version.saved_stamp(deal, resolve_config(settings)),
+                "content": model_version.content_fingerprint(inputs, settings)}
+    except Exception as exc:  # noqa: BLE001 - recorded, and the save goes on
+        log_event("model_stamp_failed", logging.WARNING, error=type(exc).__name__)
+        return None
+
+
+def _detail(deal: store.DealRecord, *, check: bool = False) -> dict:
+    out = {**_summary(deal), "inputs": deal.inputs, "settings": deal.settings, "model": deal.model}
+    if check:
+        now = _model_now(deal.inputs, deal.settings)
+        out["model_check"] = model_version.compare(deal.model, now) if now else None
+    return out
 
 
 def _version(v: store.VersionRecord, *, content: bool = False) -> dict:
     out = {"number": v.number, "kind": v.kind, "label": v.label, "created_at": _iso(v.created_at)}
     if content:
-        out.update(inputs=v.inputs, settings=v.settings)
+        out.update(inputs=v.inputs, settings=v.settings, model=v.model)
     return out
 
 
@@ -78,16 +109,19 @@ def list_deals(archived: bool = False, user: AuthUser = Depends(require_user)):
 def create_deal(req: DealCreate, user: AuthUser = Depends(require_user)):
     """Save a new deal; its first version is created with it."""
     with _store():
-        deal = store.create_deal(user.subject, req.name, req.inputs.model_dump(), req.settings)
+        inputs = req.inputs.model_dump()
+        deal = store.create_deal(user.subject, req.name, inputs, req.settings,
+                                 model=_model_now(inputs, req.settings))
     return _detail(deal)
 
 
 @router.get("/deals/{deal_id}", response_model=DealDetail)
 def get_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
-    """Open a deal: its working copy, exactly as last saved."""
+    """Open a deal: its working copy, exactly as last saved, and whether its
+    results have changed since (``model_check``)."""
     with _store():
         deal = store.get_deal(user.subject, deal_id)
-    return _detail(deal)
+    return _detail(deal, check=True)
 
 
 @router.patch("/deals/{deal_id}", response_model=DealDetail)
@@ -110,7 +144,9 @@ def delete_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
 def save_draft(deal_id: uuid.UUID, req: DealContent, user: AuthUser = Depends(require_user)):
     """Autosave the working copy (adds an automatic checkpoint now and then)."""
     with _store():
-        deal = store.save_draft(user.subject, deal_id, req.inputs.model_dump(), req.settings)
+        inputs = req.inputs.model_dump()
+        deal = store.save_draft(user.subject, deal_id, inputs, req.settings,
+                                model=_model_now(inputs, req.settings))
     return _detail(deal)
 
 
@@ -182,10 +218,11 @@ def get_version(deal_id: uuid.UUID, number: int, user: AuthUser = Depends(requir
 
 @router.post("/deals/{deal_id}/versions/{number}/restore", response_model=DealDetail)
 def restore_version(deal_id: uuid.UUID, number: int, user: AuthUser = Depends(require_user)):
-    """Make this version the working copy; unsaved edits are kept as a version first."""
+    """Make this version the working copy; unsaved edits are kept as a version
+    first. ``model_check`` says whether its results have changed since it was saved."""
     with _store():
         deal = store.restore_version(user.subject, deal_id, number)
-    return _detail(deal)
+    return _detail(deal, check=True)
 
 
 # ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ from api.deps import resolve_settings
 from api.limits import simulation_slot
 from api.schemas import MonteCarloRequest, WorkbookRequest
 from core.deal import DealInputs
+from core.model_version import stamp
 from core.montecarlo import MCInputs, apply_scenario, build_sim_params, mc_in_millions
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
@@ -137,6 +138,17 @@ def money_rows(money) -> tuple[list, list]:
     return (["Currency", "Money unit"], [money.currency, UNIT_WORDS[money.unit]])
 
 
+def model_rows(model: dict) -> tuple[list, list]:
+    """Items and values saying which model made a workbook's figures (PLAN.md 3.1)."""
+    items = ["Model engine version", "Model commit", "Settings fingerprint", "Data vintage"]
+    values = [model["engine_version"], model.get("commit") or "local build",
+              model.get("settings_fingerprint") or "none", model["data_vintage"]]
+    for name, edition in (model.get("data_sets") or {}).items():
+        items.append(f"Data: {name}")
+        values.append(edition)
+    return items, values
+
+
 def _xlsx_response(data: bytes, filename: str) -> Response:
     return Response(data, media_type=XLSX, headers={
         "Content-Disposition": f'attachment; filename="{_safe_filename(filename)}"'})
@@ -151,9 +163,11 @@ def post_workbook(req: WorkbookRequest):
         rows = [row + [None] * (len(sheet.columns) - len(row)) for row in sheet.rows]
         frames.append((sheet.name, pd.DataFrame(rows, columns=sheet.columns),
                        sheet.column_formats, sheet.row_formats))
-    if req.money is not None:
-        items, values = money_rows(req.money)
-        frames.append(("About", pd.DataFrame({"Item": items, "Value": values})))
+    items, values = money_rows(req.money) if req.money is not None else ([], [])
+    # The stamp of the result on screen; an older caller sends none, and then
+    # the workbook says which model this API runs
+    model_items, model_values = model_rows(req.model.model_dump() if req.model else stamp(None))
+    frames.append(("About", pd.DataFrame({"Item": items + model_items, "Value": values + model_values})))
     return _xlsx_response(workbook_bytes(frames, req.grouping), req.filename)
 
 
@@ -166,6 +180,7 @@ def post_montecarlo_sample(req: MonteCarloRequest):
     With a fixed seed the paths are exactly those behind the on-screen results.
     """
     cfg = resolve_settings(req.settings, check_correlations=True)
+    model_items, model_values = model_rows(stamp(cfg))
     # The paths hold IRR, MOIC and the drawn rates and multiples: no money to convert back
     mc, deal, cfg = mc_in_millions(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg)
     params = build_sim_params(mc, deal, cfg)
@@ -178,9 +193,9 @@ def post_montecarlo_sample(req: MonteCarloRequest):
     sample = df.sample(min(SAMPLE_ROWS, len(df)), random_state=42).reset_index(drop=True)
     money_items, money_values = money_rows(req.deal.money())
     about = pd.DataFrame({
-        "Item": ["Paths simulated", "Paths in this file", "Seed", "Scenario", "Run time (s)", *money_items],
+        "Item": ["Paths simulated", "Paths in this file", "Seed", "Scenario", "Run time (s)", *money_items, *model_items],
         "Value": [len(df), len(sample), "random" if req.seed is None else req.seed,
-                  req.scenario or "none", round(elapsed, 3), *money_values],
+                  req.scenario or "none", round(elapsed, 3), *money_values, *model_values],
     })
     formats = [SAMPLE_FORMATS.get(c) for c in sample.columns]
     return _xlsx_response(workbook_bytes([("Paths", sample, formats, None), ("About", about)]),

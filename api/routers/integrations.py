@@ -10,6 +10,7 @@ from api.schemas import (
     SurrogateRequest, SurrogateResponse,
 )
 from api.serialize import to_json
+from core.model_version import stamp
 from core.config import DEFAULTS, build_corr_matrix, is_valid_corr
 from core.deal import DealInputs, risk_model_inputs
 from core.montecarlo import MCInputs
@@ -92,7 +93,9 @@ def post_deal_risk(req: DealRiskRequest):
     result = check_deal(entry_mult=kw["entry_mult"], leverage=kw["leverage"],
                         growth_pct=kw["growth_pct"], ebitda_margin=kw["ebitda_margin"],
                         interest_rate=kw["rate"])
-    return {"inputs": to_json(kw), **to_json(result), "historical_sample": historical_sample()}
+    # The risk score reads no Settings
+    return {"inputs": to_json(kw), **to_json(result), "historical_sample": historical_sample(),
+            "model": stamp(None)}
 
 
 @router.post("/ml/surrogate", response_model=SurrogateResponse)
@@ -116,6 +119,7 @@ def post_surrogate(req: SurrogateRequest):
         "tail_unreliable": tail_unreliable(pred.p_wipeout),
         "term_differences": to_json(training_term_differences(mc, deal, cfg, TRAINING_FIXED)),
         "training_deal": to_json(training_terms(mc, deal, cfg, TRAINING_FIXED)),
+        "model": stamp(cfg),
     }
 
 

@@ -35,6 +35,8 @@ export type OpenDeal = { id: string; name: string; latestVersion: number; archiv
 /** Whether the open deal's latest edits are in the database. */
 export type DealSaveState = "unsaved" | "saving" | "saved" | "error";
 type DealDetail = Schemas["DealDetail"];
+/** Whether an opened deal's results changed since it was saved (PLAN.md 3.1). */
+export type ModelCheck = Schemas["ModelCheck"];
 type Outcome = { ok: boolean; error?: string };
 
 type DealContext = {
@@ -70,6 +72,9 @@ type DealContext = {
   patchCurrent: (patch: Partial<OpenDeal>) => void;
   /** Send a pending autosave now (before keeping a version); false if it failed */
   flush: () => Promise<boolean>;
+  /** On opening or restoring a deal: whether its results changed since it was saved */
+  modelCheck: ModelCheck | null;
+  dismissModelCheck: () => void;
 };
 
 const Ctx = createContext<DealContext | null>(null);
@@ -210,6 +215,9 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   // ---- Saved deals (PLAN.md 1.5) ----
   const [current, setCurrent] = useState<OpenDeal | null>(null);
   const [saveState, setSaveState] = useState<DealSaveState>("unsaved");
+  // Cleared once the deal is saved again: its stamp is then today's
+  const [modelCheck, setModelCheck] = useState<ModelCheck | null>(null);
+  const dismissModelCheck = useCallback(() => setModelCheck(null), []);
   // What the database holds for the open deal, as a contentKey
   const savedKey = useRef<string | null>(null);
   const liveKey = contentKey(inputs, overrides);
@@ -223,6 +231,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
       replaceSettings(dealSettings);
       setCurrent(toOpenDeal(deal));
       setSaveState("saved");
+      setModelCheck(deal.model_check ?? null);
       rememberDeal(deal.id);
     },
     [replaceSettings],
@@ -252,6 +261,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     savedKey.current = null;
     setCurrent(null);
     setSaveState("unsaved");
+    setModelCheck(null);
     setInputs(startInputs);
     rememberDeal(null);
   }, [startInputs]);
@@ -278,6 +288,7 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
       savedKey.current = key;
+      setModelCheck(null);
       setCurrent((c) => (c && c.id === id ? { ...c, latestVersion: data.latest_version, updatedAt: data.updated_at } : c));
       return true;
     } catch {
@@ -338,10 +349,10 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       inputs, setField, setFields, money, setMoney, autoUpdate, setAutoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
-      current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush,
+      current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush, modelCheck, dismissModelCheck,
     }),
     [inputs, setField, setFields, money, setMoney, autoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
-      current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush],
+      current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush, modelCheck, dismissModelCheck],
   );
   return (
     <Ctx.Provider value={value}>

@@ -7,6 +7,7 @@ from api.schemas import (
 )
 from api.observability import model_timer
 from api.serialize import to_json
+from core.model_version import stamp
 from core.money import in_unit
 from core.forecasting import (
     ASSUMPTION_KEYS, HISTORICAL_FIELDS, assumptions_from_grid, default_history,
@@ -100,5 +101,6 @@ def post_run(req: ForecastRunRequest):
         "balanced": abs(gap0) <= tolerance and all(abs(g) <= tolerance for g in model_gaps),
         "simulation": simulation,
         "money": req.money,
+        "model": stamp(None),  # the forecast reads no Settings
         "accounting_standard": req.accounting_standard,
     }

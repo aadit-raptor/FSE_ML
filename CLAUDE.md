@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-04 (PLAN.md 2.8: risk warnings computed, not written in). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-04 (PLAN.md 3.1: model version on every result). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -496,6 +496,26 @@ new `as_of`, never an estimate. Warning money figures (`unfunded`,
 `unfunded_total`, `repayment_due`) are in `DEAL_MONEY_KEYS`. Shown on
 Deal → Inputs (`DealWarnings.tsx`) with every source, linked.
 
+Model version (PLAN.md 3.1): **every model result carries `model`**
+(`core/model_version.py` `stamp(cfg)`): `engine_version`, `commit`,
+`settings_fingerprint` (over Settings *resolved* against today's defaults,
+taken before `in_millions`; null for a result that reads none, the forecast
+and the risk score), `data_vintage`/`data_fingerprint`/`data_sets` (the
+published tables' editions: `core/risk_sources.py` `published`, the tax
+presets' `as_of`). A new result endpoint adds `model: ModelStamp` to its
+response model and `"model": stamp(cfg)` to its answer. **A change that moves
+any number is a new engine version**: raise `ENGINE_VERSION`, add the
+`MODEL_CHANGELOG.md` entry (its newest heading must match, tested), record
+the reference results with `python -m tests.test_model_version` (never edit
+an older version's pins in `tests/model_version_pins.json`). Saved deals and
+versions store the stamp with IRR and MOIC in column `model` (migration
+0009; NULL before 3.1 = `unknown`); create and autosave run the deal model
+once without its grid to make it (a stamp failure is logged by kind and the
+deal saved without one); open and restore answer `model_check`, shown as
+"Results changed since saved" (`DealScreen.tsx` `ModelChangeNotice`) until
+dismissed or the deal is saved again. Exports: `downloadWorkbook` takes the
+result's stamp (required argument) and the About sheet shows it.
+
 CI gates (PLAN.md 0.3, docs/WORKFLOW.md step 6): the `core` and `ml` jobs
 measure Python coverage (`pytest --cov`, packages listed in `.coveragerc`),
 put the table in the job summary and fail below their line in
@@ -537,7 +557,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-**Next is 3.1** (model version on every result).
+3.1 is done (model version, below). **Next is 3.2** (written methodology).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -743,6 +763,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
+| `core/model_version.py`, `MODEL_CHANGELOG.md`, `tests/model_version_pins.json` | Model version (PLAN.md 3.1): the stamp on every result, the saved stamp and the reopening check; what each engine version changed; reference results per version |
 | `core/risk_warnings.py`, `core/risk_sources.py`, `web/src/components/deal/DealWarnings.tsx` | Risk warnings (PLAN.md 2.8): the four computed warnings, the published tables they read (with sources and samples), the tile |
 | `core/accounting.py`, `ml/edgar_extractor.py`, `tests/fixtures/edgar/` | Accounting standards (PLAN.md 2.6): each standard's line items and the lease rule; the filing reader for 10-K (US GAAP) and 20-F/40-F (IFRS); real recorded filings (SAP, McDonald's) |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |

@@ -88,11 +88,21 @@ async function postForFile(path: string, body: unknown, filename: string) {
   save(await res.blob(), filename);
 }
 
-/** Ask the API to write the sheets to .xlsx and save it; an About sheet says what the money is in. */
-export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money) {
+/** Which model produced a result (PLAN.md 3.1): every result carries one. */
+export type ModelStamp = Schemas["ModelStamp"];
+
+/**
+ * Ask the API to write the sheets to .xlsx and save it. Its About sheet says what the money is in and which model
+ * made the figures: `model` is the stamp of the result the sheets come from (PLAN.md 3.1).
+ */
+export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money, model: ModelStamp | undefined) {
   // Lakh and crore need patterns of their own; the other groupings are Excel's standard formats
   const { grouping } = numberStyle();
-  return postForFile("/api/export/workbook", { filename, sheets, money, ...(grouping === "locale" ? {} : { grouping }) }, filename);
+  return postForFile(
+    "/api/export/workbook",
+    { filename, sheets, money, ...(model ? { model } : {}), ...(grouping === "locale" ? {} : { grouping }) },
+    filename,
+  );
 }
 
 /** Up to 10,000 simulated paths for the given Monte Carlo request. */
