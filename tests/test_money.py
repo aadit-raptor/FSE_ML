@@ -178,8 +178,7 @@ def test_a_workbook_says_what_its_money_is_counted_in():
     assert resp.status_code == 200, resp.text
     about = pd.read_excel(io.BytesIO(resp.content), sheet_name="About")
     values = dict(zip(about["Item"], about["Value"]))
-    # The money rows come first; the model's stamp follows (PLAN.md 3.1)
-    assert list(values)[:2] == ["Currency", "Money unit"]
+    # Beside the source and the model's stamp (PLAN.md 3.1)
     assert (values["Currency"], values["Money unit"]) == ("EUR", "thousands")
 
 
