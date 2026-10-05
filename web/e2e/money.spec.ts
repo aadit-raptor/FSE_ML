@@ -69,7 +69,7 @@ test.describe("Currency and money units", () => {
     await dealInEuroThousands(page);
     await stepLink(page, "Summary").click();
     await dealSettled(page);
-    const request = page.waitForRequest((r) => r.url().endsWith("/api/export/workbook"));
+    const request = page.waitForRequest((r) => new URL(r.url()).pathname === "/api/export/workbook");
     await page.getByRole("button", { name: /All tables/ }).click();
     const body = (await request).postDataJSON();
     expect(body.money).toEqual({ currency: "EUR", unit: "thousands" });

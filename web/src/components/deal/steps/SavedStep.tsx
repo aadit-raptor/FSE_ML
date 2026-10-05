@@ -10,10 +10,11 @@ import { api, type Schemas } from "@/lib/api/client";
 import { fmtMultiple, fmtRate } from "@/lib/format";
 
 import { apiMessage, useDeal } from "../DealProvider";
-import { DealScreen, RailGroup } from "../DealScreen";
+import { DealScreen, RailGroup, useDealLabel } from "../DealScreen";
 
 type Summary = Schemas["DealSummary"];
 type Version = Schemas["VersionSummary"];
+type AuditEntry = Schemas["AuditEntry"];
 
 /** i18n-keys: deal.kind* */
 const KIND_KEY: Record<Version["kind"], string> = {
@@ -64,6 +65,7 @@ export function SavedStep() {
         <Headline />
         <DealList bump={bump} onError={setError} onChange={refresh} />
         <History bump={bump} onError={setError} onChange={refresh} />
+        <Activity bump={bump} onError={setError} />
       </Tiles>
     </DealScreen>
   );
@@ -418,6 +420,115 @@ function History({ bump, onError, onChange }: { bump: number; onError: (e?: stri
                 <td className="border-b border-grid px-2 py-1 text-end">
                   <SecondaryButton onClick={() => void restore(v.number)}>{t("restore")}</SecondaryButton>
                 </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Tile>
+  );
+}
+
+/**
+ * The audit history (PLAN.md 3.3): what was done to the open deal, or with the switch to every deal and the
+ * account's settings, newest first. Read only: the API offers no way to change an entry.
+ * i18n-keys: deal.activity_*, deal.activityExport_*
+ */
+function Activity({ bump, onError }: { bump: number; onError: (e?: string) => void }) {
+  const { current, saveState } = useDeal();
+  const t = useTranslations("deal");
+  const e = useTranslations("errors");
+  const settingsText = useTranslations("settings");
+  const dealLabel = useDealLabel();
+  const when = useWhen();
+  const [whole, setWhole] = useState(false);
+  const [entries, setEntries] = useState<AuditEntry[] | null>(null);
+  const account = whole || !current;
+  const currentId = current?.id;
+  const activityLoadFailed = e("activityLoadFailed");
+
+  useEffect(() => {
+    // Autosave writes entries: read again once a save lands
+    if (saveState === "saving") return;
+    let cancelled = false;
+    const request = account
+      ? api.GET("/api/account/history")
+      : api.GET("/api/deals/{deal_id}/history", { params: { path: { deal_id: currentId! } } });
+    request.then(({ data, error }) => {
+      if (cancelled) return;
+      if (data) setEntries(data.entries);
+      else onError(apiMessage(error, activityLoadFailed));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [account, currentId, current?.name, current?.archived, current?.latestVersion, saveState, bump, onError, activityLoadFailed]);
+
+  // A deal's own fields by their screen names; its settings, and the account's, by Settings' names
+  const fieldName = (name: string, setting: boolean) => {
+    const key = setting ? name.replace(/^settings\./, "") : name;
+    if (setting || name.startsWith("settings.")) return settingsText.has(key) ? settingsText(key) : key;
+    return dealLabel(key as Parameters<typeof dealLabel>[0]);
+  };
+  const detail = (entry: AuditEntry) => {
+    if (entry.fields?.length) return entry.fields.map((f) => fieldName(f, entry.action === "settings_changed")).join(", ");
+    if (entry.export) return t(`activityExport_${entry.export}`);
+    if (entry.source_deal) return t("activityCopy");
+    return "";
+  };
+  const dealCell = (entry: AuditEntry) =>
+    entry.deal_id === null || entry.deal_id === undefined ? t("activitySettingsRow") : (entry.deal_name ?? t("activityDeletedDeal"));
+
+  return (
+    <Tile
+      span={12}
+      title={account ? t("activityAccount") : t("activityOf", { name: current!.name })}
+      aside={current ? <Switch checked={whole} onChange={setWhole} label={t("activityWholeAccount")} /> : undefined}
+    >
+      <p className="type-body pb-2 text-[10px]">{t("activityNote")}</p>
+      {entries === null ? (
+        <p className="type-body" role="note">
+          {t("loadingActivity")}
+        </p>
+      ) : entries.length === 0 ? (
+        <p className="type-body" role="note">
+          {t("activityEmpty")}
+        </p>
+      ) : (
+        <table className="w-full border-collapse font-mono text-[11px]" aria-label={t("activityTable")}>
+          <thead>
+            <tr className="text-start text-muted">
+              <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
+                {t("colWhen")}
+              </th>
+              {account && (
+                <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
+                  {t("colDeal")}
+                </th>
+              )}
+              <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
+                {t("colAction")}
+              </th>
+              <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
+                {t("colDetail")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.id} data-action={entry.action} className="text-ink">
+                <td className="border-b border-grid px-2 py-1.5 text-muted">
+                  {entry.until ? t("activitySpan", { from: when(entry.at), until: when(entry.until) }) : when(entry.at)}
+                </td>
+                {account && (
+                  <td dir="auto" className="border-b border-grid px-2 py-1.5">
+                    {dealCell(entry)}
+                  </td>
+                )}
+                <th scope="row" className="border-b border-grid px-2 py-1.5 text-start font-normal">
+                  {t(`activity_${entry.action}`, { count: entry.count, version: String(entry.version ?? "") })}
+                </th>
+                <td className="border-b border-grid px-2 py-1.5 text-muted">{detail(entry)}</td>
               </tr>
             ))}
           </tbody>

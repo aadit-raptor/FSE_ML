@@ -101,7 +101,7 @@ function Distribution() {
                   settings: ranFor.settings,
                   scenario: ranFor.scenario,
                   seed: ranFor.seed,
-                })
+                }, ranFor.dealId)
               }
             />
           }
@@ -169,7 +169,7 @@ export function ScenariosStep() {
 
 function Scenarios() {
   const { money } = useMoney();
-  const { scen, hurdle, r } = useResult();
+  const { scen, hurdle, r, ranFor } = useResult();
   const t = useTranslations("montecarlo");
   const x = useTranslations("export");
   const staleClass = useStaleClass();
@@ -237,6 +237,7 @@ function Scenarios() {
                   ],
                   money,
                   scen.model,
+                  ranFor.dealId,
                 )
               }
             />

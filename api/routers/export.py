@@ -6,19 +6,24 @@ Replaces the Streamlit app's download buttons (pandas + openpyxl there too).
 import io
 import re
 import time
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
+
+from api.auth import AuthUser, require_user
 
 from api.deps import resolve_settings
 from api.limits import simulation_slot
+from api.routers.deals import store_errors
 from api.schemas import MonteCarloRequest, WorkbookRequest
 from core.deal import DealInputs
 from core.model_version import stamp
 from core.montecarlo import MCInputs, apply_scenario, build_sim_params, mc_in_millions
+from db import deals as deals_store
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
 router = APIRouter(prefix="/export", tags=["export"])
@@ -166,9 +171,23 @@ def _xlsx_response(data: bytes, filename: str) -> Response:
         "Content-Disposition": f'attachment; filename="{_safe_filename(filename)}"'})
 
 
+DealFrom = Query(None, description="The saved deal the figures come from: the export is then an entry "
+                                    "in its history (PLAN.md 3.3). Must be the caller's.")
+
+
+def _record_export(user: AuthUser, deal_id: Optional[uuid.UUID], export: str) -> None:
+    """An export from a saved deal goes in its history before the file is
+    handed over, so every file a deal gave has its entry."""
+    if deal_id is None:
+        return
+    with store_errors():
+        deals_store.record_export(user.subject, deal_id, export)
+
+
 @router.post("/workbook", response_class=Response,
              responses={200: {"content": {XLSX: {}}, "description": "Excel workbook"}})
-def post_workbook(req: WorkbookRequest):
+def post_workbook(req: WorkbookRequest, deal_id: Optional[uuid.UUID] = DealFrom,
+                  user: AuthUser = Depends(require_user)):
     """Write the given tables to an Excel workbook, one sheet per table."""
     frames = []
     for sheet in req.sheets:
@@ -182,13 +201,16 @@ def post_workbook(req: WorkbookRequest):
     model_items, model_values = model_rows(req.model.model_dump() if req.model else stamp(None))
     frames.append(("About", pd.DataFrame({"Item": source_items + items + model_items,
                                           "Value": source_values + values + model_values})))
-    return _xlsx_response(workbook_bytes(frames, req.grouping), req.filename)
+    data = workbook_bytes(frames, req.grouping)
+    _record_export(user, deal_id, "workbook")
+    return _xlsx_response(data, req.filename)
 
 
 @router.post("/montecarlo-sample", response_class=Response,
              responses={200: {"content": {XLSX: {}}, "description": "Excel workbook"}})
 @simulation_slot
-def post_montecarlo_sample(req: MonteCarloRequest):
+def post_montecarlo_sample(req: MonteCarloRequest, deal_id: Optional[uuid.UUID] = DealFrom,
+                           user: AuthUser = Depends(require_user)):
     """Simulate with the same inputs as /montecarlo/run and export up to 10,000 paths.
 
     With a fixed seed the paths are exactly those behind the on-screen results.
@@ -213,5 +235,6 @@ def post_montecarlo_sample(req: MonteCarloRequest):
                   req.scenario or "none", round(elapsed, 3), *money_values, *model_values],
     })
     formats = [SAMPLE_FORMATS.get(c) for c in sample.columns]
-    return _xlsx_response(workbook_bytes([("Paths", sample, formats, None), ("About", about)]),
-                          "mc_simulation.xlsx")
+    data = workbook_bytes([("Paths", sample, formats, None), ("About", about)])
+    _record_export(user, deal_id, "simulation_sample")
+    return _xlsx_response(data, "mc_simulation.xlsx")

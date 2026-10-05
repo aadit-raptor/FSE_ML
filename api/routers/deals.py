@@ -14,17 +14,18 @@ import uuid
 from contextlib import contextmanager
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 
 from api.auth import AuthUser, require_user
 from api.observability import log_event
 from api.schemas import (
-    AccountSettings, DealActuals, DealContent, DealCreate, DealDetail, DealDuplicate, DealList, DealPatch,
-    StoredActuals, VersionDetail, VersionList, VersionSave, VersionSummary,
+    AccountSettings, AuditHistory, DealActuals, DealContent, DealCreate, DealDetail, DealDuplicate,
+    DealList, DealPatch, StoredActuals, VersionDetail, VersionList, VersionSave, VersionSummary,
 )
 from core import model_version
 from core.config import resolve_config
 from core.deal import DealInputs
+from db import audit
 from db import deals as store
 from db.engine import is_configured as database_configured
 
@@ -36,7 +37,7 @@ NO_ACCOUNT = "Finish your account (country, currency, format and time zone) befo
 
 
 @contextmanager
-def _store():
+def store_errors():
     """Store errors as HTTP answers."""
     if not database_configured():
         raise HTTPException(status_code=503, detail=NO_DATABASE)
@@ -100,7 +101,7 @@ def _version(v: store.VersionRecord, *, content: bool = False) -> dict:
 @router.get("/deals", response_model=DealList)
 def list_deals(archived: bool = False, user: AuthUser = Depends(require_user)):
     """The caller's deals, most recently edited first. ``archived=true`` includes archived ones."""
-    with _store():
+    with store_errors():
         deals = store.list_deals(user.subject, include_archived=archived)
     return {"deals": [_summary(d) for d in deals]}
 
@@ -108,7 +109,7 @@ def list_deals(archived: bool = False, user: AuthUser = Depends(require_user)):
 @router.post("/deals", response_model=DealDetail, status_code=201)
 def create_deal(req: DealCreate, user: AuthUser = Depends(require_user)):
     """Save a new deal; its first version is created with it."""
-    with _store():
+    with store_errors():
         inputs = req.inputs.model_dump()
         deal = store.create_deal(user.subject, req.name, inputs, req.settings,
                                  model=_model_now(inputs, req.settings))
@@ -119,7 +120,7 @@ def create_deal(req: DealCreate, user: AuthUser = Depends(require_user)):
 def get_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """Open a deal: its working copy, exactly as last saved, and whether its
     results have changed since (``model_check``)."""
-    with _store():
+    with store_errors():
         deal = store.get_deal(user.subject, deal_id)
     return _detail(deal, check=True)
 
@@ -127,7 +128,7 @@ def get_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
 @router.patch("/deals/{deal_id}", response_model=DealDetail)
 def patch_deal(deal_id: uuid.UUID, req: DealPatch, user: AuthUser = Depends(require_user)):
     """Rename, archive or unarchive."""
-    with _store():
+    with store_errors():
         deal = store.update_deal(user.subject, deal_id, name=req.name, archived=req.archived)
     return _detail(deal)
 
@@ -135,7 +136,7 @@ def patch_deal(deal_id: uuid.UUID, req: DealPatch, user: AuthUser = Depends(requ
 @router.delete("/deals/{deal_id}", status_code=204, response_class=Response)
 def delete_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """Delete a deal and all its versions, for good."""
-    with _store():
+    with store_errors():
         store.delete_deal(user.subject, deal_id)
     return Response(status_code=204)
 
@@ -143,7 +144,7 @@ def delete_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
 @router.put("/deals/{deal_id}/draft", response_model=DealDetail)
 def save_draft(deal_id: uuid.UUID, req: DealContent, user: AuthUser = Depends(require_user)):
     """Autosave the working copy (adds an automatic checkpoint now and then)."""
-    with _store():
+    with store_errors():
         inputs = req.inputs.model_dump()
         deal = store.save_draft(user.subject, deal_id, inputs, req.settings,
                                 model=_model_now(inputs, req.settings))
@@ -154,7 +155,7 @@ def save_draft(deal_id: uuid.UUID, req: DealContent, user: AuthUser = Depends(re
 def duplicate_deal(deal_id: uuid.UUID, req: Optional[DealDuplicate] = None,
                    user: AuthUser = Depends(require_user)):
     """A new deal from this one's working copy (its history stays behind)."""
-    with _store():
+    with store_errors():
         deal = store.duplicate_deal(user.subject, deal_id, req.name if req else None)
     return _detail(deal)
 
@@ -169,7 +170,7 @@ def _actuals(actuals, stamp) -> dict:
 @router.get("/deals/{deal_id}/actuals", response_model=StoredActuals)
 def get_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """What actually happened to the deal, for plan vs actual; null until saved."""
-    with _store():
+    with store_errors():
         return _actuals(*store.get_actuals(user.subject, deal_id))
 
 
@@ -177,14 +178,14 @@ def get_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
 def put_actuals(deal_id: uuid.UUID, req: DealActuals, user: AuthUser = Depends(require_user)):
     """Save the deal's actual results and exit, replacing what was there.
     Not a version of the deal: its plan and history are untouched."""
-    with _store():
+    with store_errors():
         return _actuals(*store.save_actuals(user.subject, deal_id, req.model_dump()))
 
 
 @router.delete("/deals/{deal_id}/actuals", response_model=StoredActuals)
 def delete_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """Forget the deal's actuals."""
-    with _store():
+    with store_errors():
         return _actuals(*store.save_actuals(user.subject, deal_id, None))
 
 
@@ -194,7 +195,7 @@ def delete_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
 @router.get("/deals/{deal_id}/versions", response_model=VersionList)
 def list_versions(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """The deal's history, newest first."""
-    with _store():
+    with store_errors():
         versions = store.list_versions(user.subject, deal_id)
     return {"versions": [_version(v) for v in versions]}
 
@@ -203,7 +204,7 @@ def list_versions(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
 def save_version(deal_id: uuid.UUID, req: Optional[VersionSave] = None,
                  user: AuthUser = Depends(require_user)):
     """Keep the working copy as a version (no new row if nothing changed)."""
-    with _store():
+    with store_errors():
         version = store.save_version(user.subject, deal_id, req.label if req else None)
     return _version(version)
 
@@ -211,7 +212,7 @@ def save_version(deal_id: uuid.UUID, req: Optional[VersionSave] = None,
 @router.get("/deals/{deal_id}/versions/{number}", response_model=VersionDetail)
 def get_version(deal_id: uuid.UUID, number: int, user: AuthUser = Depends(require_user)):
     """One version with its inputs and settings."""
-    with _store():
+    with store_errors():
         version = store.get_version(user.subject, deal_id, number)
     return _version(version, content=True)
 
@@ -220,9 +221,42 @@ def get_version(deal_id: uuid.UUID, number: int, user: AuthUser = Depends(requir
 def restore_version(deal_id: uuid.UUID, number: int, user: AuthUser = Depends(require_user)):
     """Make this version the working copy; unsaved edits are kept as a version
     first. ``model_check`` says whether its results have changed since it was saved."""
-    with _store():
+    with store_errors():
         deal = store.restore_version(user.subject, deal_id, number)
     return _detail(deal, check=True)
+
+
+# ---------------------------------------------------------------------------
+# Audit history (PLAN.md 3.3): read only; nothing in the API changes an entry
+# ---------------------------------------------------------------------------
+HistoryLimit = Query(200, ge=1, le=audit.MAX_ENTRIES, description="Newest entries to answer")
+
+
+def _entry(e: audit.Entry, *, named: bool = False) -> dict:
+    out = {"id": e.id, "action": e.action, "at": _iso(e.occurred_at),
+           "until": _iso(e.last_at) if e.last_at else None, "count": e.count,
+           "deal_id": str(e.deal_id) if e.deal_id else None, **e.detail}
+    if named:
+        out["deal_name"] = e.deal_name
+    return out
+
+
+@router.get("/deals/{deal_id}/history", response_model=AuditHistory)
+def deal_history(deal_id: uuid.UUID, limit: int = HistoryLimit, user: AuthUser = Depends(require_user)):
+    """What was done to the deal and when, newest first: one entry per action
+    (old edits merged one per day)."""
+    with store_errors():
+        entries = store.deal_history(user.subject, deal_id, limit=limit)
+    return {"entries": [_entry(e) for e in entries]}
+
+
+@router.get("/account/history", response_model=AuditHistory)
+def account_history(limit: int = HistoryLimit, user: AuthUser = Depends(require_user)):
+    """Everything the caller did -- to every deal, deleted ones included, and to
+    their Settings -- newest first."""
+    with store_errors():
+        entries = audit.account_history(user.subject, limit=limit)
+    return {"entries": [_entry(e, named=True) for e in entries]}
 
 
 # ---------------------------------------------------------------------------
@@ -231,7 +265,7 @@ def restore_version(deal_id: uuid.UUID, number: int, user: AuthUser = Depends(re
 @router.get("/account/settings", response_model=AccountSettings)
 def get_account_settings(user: AuthUser = Depends(require_user)):
     """The caller's Settings overrides, the same on every device."""
-    with _store():
+    with store_errors():
         settings = store.get_settings(user.subject)
     return {"settings": settings}
 
@@ -239,6 +273,6 @@ def get_account_settings(user: AuthUser = Depends(require_user)):
 @router.put("/account/settings", response_model=AccountSettings)
 def put_account_settings(req: AccountSettings, user: AuthUser = Depends(require_user)):
     """Replace the caller's Settings overrides."""
-    with _store():
+    with store_errors():
         settings = store.save_settings(user.subject, req.settings)
     return {"settings": settings}

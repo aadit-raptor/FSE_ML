@@ -139,7 +139,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **3** | **Trust in the numbers** | | |
 | 3.1 | Model version on every result | 1.5 | ☑ |
 | 3.2 | Written methodology | — | ☑ |
-| 3.3 | Audit history | 1.5 | ☐ |
+| 3.3 | Audit history | 1.5 | ☑ |
 | 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☐ |
 | **4** | **Global market data platform** | | |
 | 4.1 | Company filings from many countries | 1.9, 2.6 | ☐ |
@@ -704,6 +704,13 @@ can check it.
   compacted to respect free storage.
 - **Done when:** each action creates exactly one entry (tests); entries can't be
   changed through the API.
+- **Done (2026-10-06):** table `audit_events` (migration 0010), written by
+  `db/audit.py` `record` in the same transaction as each action; `GET
+  /api/deals/{id}/history` and `/api/account/history`; Deal → Saved deals
+  "Activity". "Shared" is a reserved action until 7.2 adds sharing. The API's
+  role may only insert and read entries; `audit_compact` (nightly) merges
+  edits older than a week one per deal and day. Proof: `tests/test_audit.py`,
+  `web/e2e/audit.spec.ts`.
 
 ### 3.4 Hand-checked reference cases (incl. non-US)
 - **Claude does:** 20+ small deals solved by hand in a committed spreadsheet (no

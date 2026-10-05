@@ -336,6 +336,159 @@
         "title": "ActualYearIn",
         "type": "object"
       },
+      "AuditEntry": {
+        "description": "One thing done to a deal or the account's settings (PLAN.md 3.3). Holds\nwhat was touched, never a figure, a name or a label.",
+        "properties": {
+          "action": {
+            "enum": [
+              "created",
+              "edited",
+              "renamed",
+              "archived",
+              "unarchived",
+              "versioned",
+              "restored",
+              "actuals_saved",
+              "actuals_cleared",
+              "exported",
+              "deleted",
+              "settings_changed",
+              "shared"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "at": {
+            "description": "UTC, ISO 8601; the first of the merged actions when count > 1",
+            "title": "At",
+            "type": "string"
+          },
+          "count": {
+            "description": "How many actions this entry stands for: old edits are merged one per day",
+            "title": "Count",
+            "type": "integer"
+          },
+          "deal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null for a settings change",
+            "title": "Deal Id"
+          },
+          "deal_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The deal's name now (account history only); null once it is deleted",
+            "title": "Deal Name"
+          },
+          "export": {
+            "anyOf": [
+              {
+                "enum": [
+                  "workbook",
+                  "simulation_sample"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Export"
+          },
+          "fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's",
+            "title": "Fields"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "source_deal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The deal a duplicate was made from",
+            "title": "Source Deal"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The last of the merged actions (UTC), when count > 1",
+            "title": "Until"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The version kept or restored",
+            "title": "Version"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "at",
+          "count"
+        ],
+        "title": "AuditEntry",
+        "type": "object"
+      },
+      "AuditHistory": {
+        "properties": {
+          "entries": {
+            "description": "Newest first",
+            "items": {
+              "$ref": "#/components/schemas/AuditEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "title": "AuditHistory",
+        "type": "object"
+      },
       "BacktestActualExit": {
         "additionalProperties": false,
         "properties": {
@@ -8308,6 +8461,69 @@
         ]
       }
     },
+    "/api/account/history": {
+      "get": {
+        "description": "Everything the caller did -- to every deal, deleted ones included, and to\ntheir Settings -- newest first.",
+        "operationId": "account_history_api_account_history_get",
+        "parameters": [
+          {
+            "description": "Newest entries to answer",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "description": "Newest entries to answer",
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Account History",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
     "/api/account/settings": {
       "get": {
         "description": "The caller's Settings overrides, the same on every device.",
@@ -9398,6 +9614,79 @@
         ]
       }
     },
+    "/api/deals/{deal_id}/history": {
+      "get": {
+        "description": "What was done to the deal and when, newest first: one entry per action\n(old edits merged one per day).",
+        "operationId": "deal_history_api_deals__deal_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Newest entries to answer",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "description": "Newest entries to answer",
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Deal History",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
     "/api/deals/{deal_id}/versions": {
       "get": {
         "description": "The deal's history, newest first.",
@@ -9729,6 +10018,27 @@
       "post": {
         "description": "Simulate with the same inputs as /montecarlo/run and export up to 10,000 paths.\n\nWith a fixed seed the paths are exactly those behind the on-screen results.",
         "operationId": "post_montecarlo_sample_api_export_montecarlo_sample_post",
+        "parameters": [
+          {
+            "description": "The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's.",
+            "in": "query",
+            "name": "deal_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's.",
+              "title": "Deal Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -9782,6 +10092,27 @@
       "post": {
         "description": "Write the given tables to an Excel workbook, one sheet per table.",
         "operationId": "post_workbook_api_export_workbook_post",
+        "parameters": [
+          {
+            "description": "The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's.",
+            "in": "query",
+            "name": "deal_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's.",
+              "title": "Deal Id"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

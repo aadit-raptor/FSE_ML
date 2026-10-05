@@ -508,7 +508,7 @@ function lineRows(r: PlanActualResult, t: (key: string) => string) {
 
 function Years() {
   const { label: mu, money } = useMoney();
-  const { result: r } = useBacktest();
+  const { result: r, selected } = useBacktest();
   const t = useTranslations("backtest");
   const x = useTranslations("export");
   const years = useYears(r?.years.length);
@@ -558,6 +558,7 @@ function Years() {
                 ],
                 money,
                 r?.model,
+                selected?.kind === "deal" ? selected.id : null,
               )
             }
           />

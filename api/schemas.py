@@ -1167,6 +1167,34 @@ class VersionList(BaseModel):
     versions: List[VersionSummary]
 
 
+AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
+                      "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
+                      "shared"]
+
+
+class AuditEntry(BaseModel):
+    """One thing done to a deal or the account's settings (PLAN.md 3.3). Holds
+    what was touched, never a figure, a name or a label."""
+    id: int
+    action: AuditAction
+    at: str = Field(description="UTC, ISO 8601; the first of the merged actions when count > 1")
+    until: Optional[str] = Field(None, description="The last of the merged actions (UTC), when count > 1")
+    count: int = Field(description="How many actions this entry stands for: old edits are merged one per day")
+    deal_id: Optional[str] = Field(None, description="Null for a settings change")
+    deal_name: Optional[str] = Field(
+        None, description="The deal's name now (account history only); null once it is deleted")
+    fields: Optional[List[str]] = Field(
+        None, description="What an edit or settings change touched: input field names, settings.<key> for "
+                          "a deal's settings, setting keys for the account's")
+    version: Optional[int] = Field(None, description="The version kept or restored")
+    source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
+    export: Optional[Literal["workbook", "simulation_sample"]] = None
+
+
+class AuditHistory(BaseModel):
+    entries: List[AuditEntry] = Field(description="Newest first")
+
+
 # ---------------------------------------------------------------------------
 # Background jobs (PLAN.md 1.9)
 # ---------------------------------------------------------------------------

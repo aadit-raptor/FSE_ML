@@ -27,7 +27,7 @@ test.describe("Forecast", () => {
     await revenue.fill("321.5");
     await revenue.blur();
     const [req, dl] = await Promise.all([
-      page.waitForRequest((r) => r.url().endsWith("/api/export/workbook")),
+      page.waitForRequest((r) => new URL(r.url()).pathname === "/api/export/workbook"),
       page.waitForEvent("download"),
       page.getByRole("button", { name: "↓ Historicals" }).click(),
     ]);

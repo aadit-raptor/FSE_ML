@@ -507,11 +507,14 @@ either, so a brand-new project needs them made first. As the **owner**
 (`DATABASE_MIGRATION_URL`), against the restored database:
 
 ```bash
-psql "$RESTORED_OWNER_URL" -c "GRANT USAGE ON SCHEMA public TO fse_app" -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO fse_app" -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO fse_app" -c "REVOKE INSERT, UPDATE, DELETE ON alembic_version FROM fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO fse_app"
+psql "$RESTORED_OWNER_URL" -c "GRANT USAGE ON SCHEMA public TO fse_app" -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO fse_app" -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO fse_app" -c "REVOKE INSERT, UPDATE, DELETE ON alembic_version FROM fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO fse_app" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO fse_app" -c "REVOKE UPDATE, DELETE, TRUNCATE ON audit_events FROM fse_app" -c "REVOKE ALL ON FUNCTION audit_compact(timestamptz) FROM PUBLIC" -c "GRANT EXECUTE ON FUNCTION audit_compact(timestamptz) TO fse_app"
 ```
 
-That is migration `0005_app_role`'s `upgrade()`, which stays the source of
-truth — copy from there if it has changed. A new cluster also needs the roles
+That is migration `0005_app_role`'s `upgrade()` and the grants at the end of
+`0010_audit_events`'s (the audit history is append-only for the API: it may
+add and read entries, never change them), which stay the source of truth —
+copy from there if they have changed. Leave out the last three lines and
+`/api/health/database` reports the role as privileged (`audit_log_writable`). A new cluster also needs the roles
 themselves: "Least-privilege database role" below has the `fse_app` and
 `fse_api` statements.
 
