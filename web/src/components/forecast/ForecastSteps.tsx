@@ -201,14 +201,42 @@ export function HistoricalsStep() {
   );
 }
 
+/** Each historical statement's sheet name. i18n-keys: export.sheetIncomeStatement, export.sheetBalanceSheet, export.sheetCashFlow */
+const HISTORY_SHEETS: Record<string, string> = {
+  groupIncomeStatement: "sheetIncomeStatement",
+  groupBalanceSheet: "sheetBalanceSheet",
+  groupCashFlow: "sheetCashFlow",
+};
+
 function Historicals() {
-  const { label: mu } = useMoney();
-  const { history, setHistory, histLabels: cols } = useForecast();
+  const { label: mu, money } = useMoney();
+  const { history, setHistory, histLabels: cols, source } = useForecast();
   const t = useTranslations("forecast");
+  const x = useTranslations("export");
+  const company = source.kind === "edgar" ? source.ticker : t("sampleCompany");
+  // The figures as entered (or as EDGAR filled them), one sheet per statement; no model ran on them
+  const groupSheet = (g: (typeof HISTORY_GROUPS)[number]) =>
+    sheet(
+      x(HISTORY_SHEETS[g.titleKey]),
+      ["", ...cols],
+      g.rows.map((key) => [withMoney(t(key), mu), ...cols.map((_, i) => history[key]?.[i] ?? null)]),
+      { columns: ["text", ...cols.map(() => "money" as const)] },
+    );
+  const download = (groups: typeof HISTORY_GROUPS) =>
+    downloadWorkbook(x("fileHistoricals", { company }), groups.map(groupSheet), money, undefined);
   return (
     <Tiles>
+      <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
+        <p className="type-body">{t("historicalsNote")}</p>
+        <DownloadButton label={t("historicalsDownload")} onDownload={() => download(HISTORY_GROUPS)} />
+      </div>
       {HISTORY_GROUPS.map((g) => (
-        <Tile key={g.titleKey} span={6} title={withMoney(t(g.titleKey), mu)}>
+        <Tile
+          key={g.titleKey}
+          span={6}
+          title={withMoney(t(g.titleKey), mu)}
+          action={<DownloadButton onDownload={() => download([g])} />}
+        >
           <EditableGrid rows={g.rows} columns={cols} values={history} onCommit={setHistory} />
         </Tile>
       ))}

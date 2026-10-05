@@ -6,6 +6,7 @@ Replaces the Streamlit app's download buttons (pandas + openpyxl there too).
 import io
 import re
 import time
+from datetime import datetime, timezone
 from typing import Optional
 
 import pandas as pd
@@ -23,6 +24,8 @@ from simulation.vectorized_simulation import run_vectorized_simulation_full
 router = APIRouter(prefix="/export", tags=["export"])
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+# Who made every workbook: the About sheet's first row and the file's author
+SOURCE = "variater.com"
 SAMPLE_ROWS = 10_000
 # Excel forbids these in sheet names
 _BAD_SHEET_CHARS = re.compile(r"[\[\]:*?/\\]")
@@ -120,7 +123,16 @@ def workbook_bytes(sheets, grouping: str = "locale") -> bytes:
             wrote = True
         if not wrote:
             pd.DataFrame({"Note": ["No data"]}).to_excel(w, sheet_name="Data", index=False)
+        # What Excel shows under File > Info: made by variater.com, not by a library
+        w.book.properties.creator = SOURCE
+        w.book.properties.lastModifiedBy = SOURCE
     return buf.getvalue()
+
+
+def source_rows() -> tuple[list, list]:
+    """Items and values opening every About sheet: where and when it was made."""
+    made = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    return ["Source", "Generated (UTC)"], [SOURCE, made]
 
 
 # The simulated paths' columns: rates are fractions, multiples times EBITDA
@@ -163,11 +175,13 @@ def post_workbook(req: WorkbookRequest):
         rows = [row + [None] * (len(sheet.columns) - len(row)) for row in sheet.rows]
         frames.append((sheet.name, pd.DataFrame(rows, columns=sheet.columns),
                        sheet.column_formats, sheet.row_formats))
+    source_items, source_values = source_rows()
     items, values = money_rows(req.money) if req.money is not None else ([], [])
     # The stamp of the result on screen; an older caller sends none, and then
     # the workbook says which model this API runs
     model_items, model_values = model_rows(req.model.model_dump() if req.model else stamp(None))
-    frames.append(("About", pd.DataFrame({"Item": items + model_items, "Value": values + model_values})))
+    frames.append(("About", pd.DataFrame({"Item": source_items + items + model_items,
+                                          "Value": source_values + values + model_values})))
     return _xlsx_response(workbook_bytes(frames, req.grouping), req.filename)
 
 
@@ -192,9 +206,10 @@ def post_montecarlo_sample(req: MonteCarloRequest):
     df = sim.df
     sample = df.sample(min(SAMPLE_ROWS, len(df)), random_state=42).reset_index(drop=True)
     money_items, money_values = money_rows(req.deal.money())
+    source_items, source_values = source_rows()
     about = pd.DataFrame({
-        "Item": ["Paths simulated", "Paths in this file", "Seed", "Scenario", "Run time (s)", *money_items, *model_items],
-        "Value": [len(df), len(sample), "random" if req.seed is None else req.seed,
+        "Item": [*source_items, "Paths simulated", "Paths in this file", "Seed", "Scenario", "Run time (s)", *money_items, *model_items],
+        "Value": [*source_values, len(df), len(sample), "random" if req.seed is None else req.seed,
                   req.scenario or "none", round(elapsed, 3), *money_values, *model_values],
     })
     formats = [SAMPLE_FORMATS.get(c) for c in sample.columns]
