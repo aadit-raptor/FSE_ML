@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { DivergingBars, RangeRows, Scatter } from "@/components/charts/Bars";
+import { useDeal } from "@/components/deal/DealProvider";
 import { heat } from "@/components/charts/HeatTable";
 import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
@@ -23,8 +24,12 @@ import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
 const pct0 = (v: number) => fmtRate(v, 0);
 
 function useResult() {
-  const { run, hurdle } = useMonteCarlo();
-  return { r: run.result!, scen: run.scenarios!, hurdle, ranFor: run.ranFor! };
+  const { run, hurdle, stale } = useMonteCarlo();
+  const { current } = useDeal();
+  const ranFor = run.ranFor!;
+  // A result from before the deal was first saved belongs to it once saved, while nothing has changed since
+  const dealId = ranFor.dealId ?? (stale ? null : (current?.id ?? null));
+  return { r: run.result!, scen: run.scenarios!, hurdle, ranFor: { ...ranFor, dealId } };
 }
 
 export function DistributionStep() {

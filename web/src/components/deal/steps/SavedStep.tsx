@@ -447,9 +447,17 @@ function Activity({ bump, onError }: { bump: number; onError: (e?: string) => vo
   const currentId = current?.id;
   const activityLoadFailed = e("activityLoadFailed");
 
+  // Another deal, or the whole account: never show the last list under the new title
+  const scope = account ? "account" : currentId;
+  const [shownScope, setShownScope] = useState(scope);
+  if (scope !== shownScope) {
+    setShownScope(scope);
+    setEntries(null);
+  }
+
   useEffect(() => {
-    // Autosave writes entries: read again once a save lands
-    if (saveState === "saving") return;
+    // Autosave writes entries: read again once a save lands, not while one is pending
+    if (currentId && saveState !== "saved") return;
     let cancelled = false;
     const request = account
       ? api.GET("/api/account/history")

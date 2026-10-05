@@ -14,7 +14,9 @@ The one change allowed is compaction, ``audit_compact(cutoff)``: it merges
 ``edited`` entries older than ``cutoff`` into one per user, deal and UTC day
 (``count`` and ``last_at`` keep how many and until when, ``detail.fields``
 the union of the fields). It is ``SECURITY DEFINER``, so it runs as the
-schema owner, and only ``fse_app`` may call it. Returns the rows it removed.
+schema owner, and only ``fse_app`` may call it. It never touches the last
+seven days whatever ``cutoff`` says (db/audit.py ``COMPACT_AFTER_DAYS``), so
+even the API's own role can't blur recent history. Returns the rows it removed.
 
 A restore leaves grants out (ops/backup.py); DEPLOY.md "Restoring" puts these
 back, and ``/api/health/database`` reports ``audit_log_writable`` until it does.
@@ -44,10 +46,10 @@ AS $$
     USING (
       SELECT user_id, deal_id, date_trunc('day', occurred_at AT TIME ZONE 'UTC') AS day
       FROM public.audit_events
-      WHERE action = 'edited' AND occurred_at < cutoff
+      WHERE action = 'edited' AND occurred_at < LEAST(cutoff, now() - interval '7 days')
       GROUP BY 1, 2, 3 HAVING count(*) > 1
     ) g
-    WHERE e.action = 'edited' AND e.occurred_at < cutoff
+    WHERE e.action = 'edited' AND e.occurred_at < LEAST(cutoff, now() - interval '7 days')
       AND e.user_id = g.user_id AND e.deal_id = g.deal_id
       AND date_trunc('day', e.occurred_at AT TIME ZONE 'UTC') = g.day
     RETURNING e.*

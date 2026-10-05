@@ -358,5 +358,7 @@ def test_compaction_keeps_the_newest_week(fresh_db, sign_in):  # noqa: ARG001
     for growth in (1.0, 2.0, 3.0):
         store.save_draft("user_anna", deal.id, {**INPUTS, "growth": growth}, {}, now=at)
     assert audit.compact() == 0
+    # Not even a caller asking for everything: the function keeps the week itself
+    assert audit.compact(after_days=0) == 0
     with db_engine.connect() as conn:
         assert conn.execute(select(func.count()).select_from(AuditEvent)).scalar() == 4

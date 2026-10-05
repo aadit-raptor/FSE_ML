@@ -35,7 +35,8 @@ from sqlalchemy.engine import Connection
 from db.engine import connect, transaction
 from db.models import AUDIT_ACTIONS, AuditEvent, Deal, User, utc_now
 
-# Edits older than this are merged one per deal and day
+# Edits older than this are merged one per deal and day; audit_compact itself
+# refuses anything newer (migration 0010), whatever cutoff it is given
 COMPACT_AFTER_DAYS = 7
 # Entries one history request answers at most
 MAX_ENTRIES = 500
@@ -56,6 +57,9 @@ class Entry:
     deal_name: Optional[str] = None
 
 
+_MISSING = object()
+
+
 def changed_fields(old_inputs: Mapping, new_inputs: Mapping,
                    old_settings: Optional[Mapping] = None,
                    new_settings: Optional[Mapping] = None) -> list[str]:
@@ -67,9 +71,6 @@ def changed_fields(old_inputs: Mapping, new_inputs: Mapping,
     names = differ(old_inputs or {}, new_inputs or {})
     names |= {f"settings.{k}" for k in differ(old_settings or {}, new_settings or {})}
     return sorted(names)
-
-
-_MISSING = object()
 
 
 def record(conn: Connection, user: Any, action: str, *, deal_id: Optional[uuid.UUID] = None,
