@@ -138,7 +138,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 2.8 | Risk warnings computed, not written in | 2.1 | ☑ |
 | **3** | **Trust in the numbers** | | |
 | 3.1 | Model version on every result | 1.5 | ☑ |
-| 3.2 | Written methodology | — | ☐ |
+| 3.2 | Written methodology | — | ☑ |
 | 3.3 | Audit history | 1.5 | ☐ |
 | 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☐ |
 | **4** | **Global market data platform** | | |

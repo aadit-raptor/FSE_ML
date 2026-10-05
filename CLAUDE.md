@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-04 (PLAN.md 3.1: model version on every result). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-05 (PLAN.md 3.2: written methodology). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -519,6 +519,18 @@ Every workbook (`api/routers/export.py`) opens its About sheet with "Source:
 variater.com" and when it was generated (UTC), and its file properties
 (author, last modified by) say `variater.com`. Forecast → Historicals has
 downloads too (the figures as entered; no model ran on them, so the About sheet shows the API's own model version).
+
+Methodology (PLAN.md 3.2): **`docs/methodology.md`** describes every
+calculation in code order, with regional differences, worked figures from the
+default deal, the open findings, a constants table and the Settings defaults.
+`tests/test_methodology.py` fails when any function or method in `core/`,
+`lbo_engine/`, `simulation/`, `analytics/` (and the ML and display modules
+listed in it) is not named in the document, when a link is broken, when a
+model module is not linked, or when a quoted constant or Settings default
+differs from the code. So **a new model function, or a changed default, is a
+methodology edit in the same PR**; a function that affects no number goes in
+its appendix.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -563,7 +575,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). **Next is 3.2** (written methodology).
+3.1 is done (model version, below). 3.2 is done (methodology, below). **Next is 3.3** (audit history).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -769,6 +781,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
+| `docs/methodology.md`, `tests/test_methodology.py` | Methodology (PLAN.md 3.2): every calculation written down, and the test that every model function, link, constant and Settings default in it matches the code |
 | `core/model_version.py`, `MODEL_CHANGELOG.md`, `tests/model_version_pins.json` | Model version (PLAN.md 3.1): the stamp on every result, the saved stamp and the reopening check; what each engine version changed; reference results per version |
 | `core/risk_warnings.py`, `core/risk_sources.py`, `web/src/components/deal/DealWarnings.tsx` | Risk warnings (PLAN.md 2.8): the four computed warnings, the published tables they read (with sources and samples), the tile |
 | `core/accounting.py`, `ml/edgar_extractor.py`, `tests/fixtures/edgar/` | Accounting standards (PLAN.md 2.6): each standard's line items and the lease rule; the filing reader for 10-K (US GAAP) and 20-F/40-F (IFRS); real recorded filings (SAP, McDonald's) |
