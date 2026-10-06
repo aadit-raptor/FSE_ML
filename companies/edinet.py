@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import csv
 import io
+import math
 import os
 import re
 import time
@@ -29,6 +30,7 @@ import unicodedata
 import zipfile
 from dataclasses import dataclass
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from typing import Optional, Protocol
 
 from companies import http
@@ -43,6 +45,7 @@ API = "https://api.edinet-fsa.go.jp/api/v2"
 CODE_LIST_URL = "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/codelist/Edinetcode.zip"
 PDF_URL = "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/{doc_id}.pdf"
 FORM = "有価証券報告書"
+JAPAN = ZoneInfo("Asia/Tokyo")
 LIST_TTL_S = 24 * 3600
 MAX_REPORTS = 4
 # Annual securities reports and their amendments, under the Cabinet Office
@@ -144,9 +147,22 @@ def _plain(text: str) -> str:
     return unicodedata.normalize("NFKC", text or "").upper()
 
 
+# An archive member larger than this is not one EDINET sends
+MAX_MEMBER_BYTES = 50 * 1024 * 1024
+MAX_MEMBERS = 200
+
+
+def read_member(archive: zipfile.ZipFile, name: str) -> bytes:
+    """A member's bytes, refusing a size or count no EDINET file has (a zip
+    bomb would inflate in memory)."""
+    if len(archive.infolist()) > MAX_MEMBERS or archive.getinfo(name).file_size > MAX_MEMBER_BYTES:
+        raise http.SourceError(SOURCE, "response_too_large")
+    return archive.read(name)
+
+
 def parse_code_list(content: bytes) -> list[dict]:
     with zipfile.ZipFile(io.BytesIO(content)) as z:
-        text = z.read(z.namelist()[0]).decode("cp932")
+        text = read_member(z, z.namelist()[0]).decode("cp932")
     lines = text.splitlines()[1:]          # the first line says when it was made
     rows = []
     for r in csv.reader(lines[1:]):
@@ -239,12 +255,20 @@ def scan_day(day: date) -> int:
         listing = json.loads(resp.content)
     except ValueError:
         raise http.SourceError(SOURCE, "unreadable") from None
+    # EDINET can answer 200 with an error in the body: never skip such a day
+    status = str((listing.get("metadata") or {}).get("status") or "200")
+    if status != "200":
+        raise http.SourceError(SOURCE, "refused" if status in ("401", "403") else "failed")
     return index().add(annual_reports(listing))
 
 
 # ---------------------------------------------------------------------------
 # Reading a report
 # ---------------------------------------------------------------------------
+def shift_years(day: date, years: int) -> date:
+    return _shift(day, years)
+
+
 def _shift(day: date, years: int) -> date:
     try:
         return day.replace(year=day.year - years)
@@ -261,7 +285,7 @@ def read_csv(content: bytes, report: IndexedReport, link: FilingLink) -> tuple[l
     facts, labels = [], {}
     names = [n for n in archive.namelist() if re.search(r"XBRL_TO_CSV/jpcrp[^/]*\.csv$", n)]
     for name in names:
-        text = archive.read(name).decode("utf-16")
+        text = read_member(archive, name).decode("utf-16")
         for row in csv.reader(io.StringIO(text), delimiter="\t"):
             if len(row) < 9 or ":" not in row[0]:
                 continue
@@ -279,6 +303,8 @@ def read_csv(content: bytes, report: IndexedReport, link: FilingLink) -> tuple[l
             try:
                 amount = float(value)
             except ValueError:
+                continue
+            if not math.isfinite(amount):
                 continue
             back = int(m.group(2) or 0)
             end = _shift(report.period_end, back)
@@ -301,7 +327,9 @@ def fetch(source_id: str, n_years: int = 3) -> CompanyData:
     facts: list[Fact] = []
     labels: dict[str, str] = {}
     for report in reports[:max(1, min(MAX_REPORTS, n_years - 1))]:
-        link = FilingLink(PDF_URL.format(doc_id=report.doc_id), report.submitted_at.date(), FORM, report.doc_id)
+        filed = report.submitted_at.astimezone(JAPAN).date() if report.submitted_at.tzinfo else \
+            report.submitted_at.date()
+        link = FilingLink(PDF_URL.format(doc_id=report.doc_id), filed, FORM, report.doc_id)
         resp = _api(f"documents/{report.doc_id}", type="5")
         found_facts, found_labels = read_csv(resp.content, report, link)
         facts += found_facts

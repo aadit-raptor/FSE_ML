@@ -94,13 +94,16 @@ def stored(keys: list[tuple[str, str]]) -> set[tuple[str, str]]:
     return {(r.source, r.source_id) for r in rows}
 
 
-def stale(limit: int, refreshed_before: datetime) -> list[tuple[str, str]]:
-    """Companies due a refresh, the longest waiting first."""
+def stale(limit: int, refreshed_before: datetime) -> list[tuple[str, str, int]]:
+    """Companies due a refresh, the longest waiting first, with how many
+    years each keeps (a refresh reads as many again)."""
+    kept = (select(func.count()).where(CompanyYear.company_id == Company.id)
+            .correlate(Company).scalar_subquery())
     with connect() as conn:
-        rows = conn.execute(select(Company.source, Company.source_id)
+        rows = conn.execute(select(Company.source, Company.source_id, kept.label("years"))
                             .where(Company.refreshed_at < refreshed_before)
                             .order_by(Company.refreshed_at).limit(limit)).all()
-    return [(r.source, r.source_id) for r in rows]
+    return [(r.source, r.source_id, r.years) for r in rows]
 
 
 def mark_refreshed(source: str, source_id: str) -> None:
@@ -176,7 +179,8 @@ class DatabaseReportIndex:
             conn.execute(stmt)
 
     def prune(self, today: date) -> int:
-        cutoff = today.replace(year=today.year - KEEP_EDINET_YEARS)
+        from companies.edinet import shift_years
+        cutoff = shift_years(today, KEEP_EDINET_YEARS)      # safe on 29 February
         with transaction() as conn:
             return conn.execute(delete(EdinetReport).where(EdinetReport.period_end < cutoff)).rowcount
 

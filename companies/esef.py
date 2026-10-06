@@ -71,7 +71,8 @@ def _reports(lei: str) -> list[dict]:
     best: dict[str, dict] = {}
     for row in (data or {}).get("data", []):
         a = row.get("attributes", {})
-        if not a.get("json_url") or not a.get("period_end"):
+        # Paths on filings.xbrl.org only: a value that names another host is refused
+        if not str(a.get("json_url") or "").startswith("/") or not a.get("period_end"):
             continue
         key = a["period_end"]
         held = best.get(key)
@@ -127,17 +128,23 @@ def fetch(source_id: str, n_years: int = 3) -> CompanyData:
     facts: list[Fact] = []
     country: Optional[str] = None
     for report in reports[:max(1, min(MAX_REPORTS, n_years - 1))]:
-        link = FilingLink(url=BASE + (report.get("viewer_url") or report.get("report_url") or ""),
+        page = report.get("viewer_url") or report.get("report_url") or ""
+        link = FilingLink(url=BASE + page if page.startswith("/") else "",
                           filed_on=date.fromisoformat(report["date_added"][:10]) if report.get("date_added") else None,
                           form=FORM, id=report.get("fxo_id") or str(report.get("id", "")))
         doc = http.get_json(SOURCE, BASE + report["json_url"])
         facts += facts_from_xbrl_json(doc or {}, link)
         country = country or report.get("country")
     currency = main_currency(facts, ("ifrs-full:Assets", "ifrs-full:Revenue", "ifrs-full:EquityAndLiabilities"))
+    if currency is None:                   # no statement totals to say what the money is in
+        raise http.SourceError(SOURCE, "unreadable")
     facts = [f for f in facts if f.currency == currency]
     years, warnings = summarize(facts, IFRS_MAP, n_years)
-    names = by_lei(lei)
+    try:                                   # the name is a nicety: never fail a load over it
+        names = by_lei(lei)
+    except http.SourceError:
+        names = []
     name = names[0].name if names else lei
     month = fiscal_year_of(years[-1].period_end)[1] if years else None
     ref = CompanyRef(SOURCE, lei, name, country, {"lei": lei})
-    return CompanyData(ref, currency or "", IFRS, month, years, warnings)
+    return CompanyData(ref, currency, IFRS, month, years, warnings)

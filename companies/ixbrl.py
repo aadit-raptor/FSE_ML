@@ -36,6 +36,11 @@ class Unreadable(ValueError):
     pass
 
 
+# A filing is someone else's document: refuse what no real accounts need
+MAX_DOCUMENT_BYTES = 16 * 1024 * 1024
+MAX_SCALE = 12              # 10^12: trillions; a scale beyond is not a real figure
+
+
 def _text(elem: ET.Element) -> str:
     return "".join(elem.itertext()).strip()
 
@@ -92,12 +97,14 @@ def read(content: bytes, link: FilingLink) -> tuple[list[Fact], set[str]]:
     """(money facts, every dimension member the contexts name). The members
     say what the accounts are, such as the standard they follow (``FRS102``).
     Text facts are never read: they include officers' names."""
+    if len(content) > MAX_DOCUMENT_BYTES:
+        raise Unreadable("larger than any accounts this reads")
     namespaces: dict[str, str] = {}
     try:
-        for event, item in ET.iterparse(io.BytesIO(content), events=("start-ns",)):
-            prefix, uri = item
+        parser = ET.iterparse(io.BytesIO(content), events=("start-ns",))
+        for _event, (prefix, uri) in parser:
             namespaces.setdefault(prefix, uri)
-        root = ET.fromstring(content)
+        root = parser.root                  # parsed once
     except ET.ParseError:
         raise Unreadable("not well-formed XHTML") from None
     canon = {p: canonical_prefix(uri) for p, uri in namespaces.items()}
@@ -116,11 +123,23 @@ def read(content: bytes, link: FilingLink) -> tuple[list[Fact], set[str]]:
             value = parse_number(_text(elem), elem.get("format", ""))
             if value is None:
                 continue
-            value *= 10 ** int(elem.get("scale", "0") or 0)
+            scale = _scale(elem.get("scale", "0"))
+            if scale is None:
+                continue
+            value *= 10.0 ** scale
             if elem.get("sign") == "-":
                 value = -value
             facts.append(Fact(concept, value, currency, period[1], period[0], link))
     return facts, members
+
+
+def _scale(text: str) -> Optional[int]:
+    """A fact's power of ten, or None when it is not a believable one."""
+    try:
+        scale = int((text or "0").strip())
+    except ValueError:
+        return None
+    return scale if -MAX_SCALE <= scale <= MAX_SCALE else None
 
 
 def _concept(qname: str, canon: dict) -> Optional[str]:

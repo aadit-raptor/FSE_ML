@@ -119,7 +119,7 @@ def test_stale_companies_come_oldest_first(fresh_db):  # noqa: ARG001
     data = tesco()
     store.save(data)
     assert store.stale(10, utc_now() - timedelta(days=1)) == []
-    assert store.stale(10, utc_now() + timedelta(seconds=1)) == [("esef", TESCO_LEI)]
+    assert store.stale(10, utc_now() + timedelta(seconds=1)) == [("esef", TESCO_LEI, 3)]
     store.mark_refreshed("esef", TESCO_LEI)
     assert store.get("esef", TESCO_LEI, touch=False)[1] > utc_now() - timedelta(minutes=1)
 
@@ -335,3 +335,21 @@ def test_the_scheduler_runs_the_task_again_while_there_is_more():
     Api.calls = 0
     ops_scheduled.run_task(Api(), "company-refresh", log=lambda *_: None)
     assert Api.calls == 1
+
+
+def test_a_refresh_that_finds_nothing_keeps_the_stored_years(fresh_db, monkeypatch):  # noqa: ARG001
+    data = tesco()
+    store.save(data)
+    with db_engine.transaction() as conn:
+        conn.execute(update(Company).values(refreshed_at=utc_now() - timedelta(days=30)))
+    empty = type(data)(data.ref, data.currency, data.accounting_standard, data.fiscal_year_end_month, [], [])
+    asked = []
+    monkeypatch.setattr(sources, "fetch", lambda s, i, n=3: asked.append(n) or empty)
+    assert refresh.run()["companies_refreshed"] == 1
+    assert asked == [3]                                  # as many years as it keeps
+    back, _ = store.get("esef", TESCO_LEI)
+    assert len(back.years) == 3
+
+
+def test_pruning_on_29_february(fresh_db):  # noqa: ARG001
+    assert store.DatabaseReportIndex().prune(date(2028, 2, 29)) == 0

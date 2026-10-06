@@ -32,6 +32,7 @@ REASONS = {
     "unreachable": (502, "{source} didn't answer. Try again in a few minutes."),
     "unreadable": (502, "{source} sent something that couldn't be read."),
     "response_too_large": (502, "{source} sent more than this server reads at once."),
+    "redirect_refused": (502, "{source} sent the request somewhere this server doesn't follow."),
 }
 
 

@@ -26,6 +26,8 @@ permissions:
 
 jobs:
   record:
+    # A fork's pull request gets no secrets; only this repository's branches record
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

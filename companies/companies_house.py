@@ -17,6 +17,7 @@ accounting-standards members): FRS 102 or FRS 101 is UK GAAP, IFRS is IFRS.
 from __future__ import annotations
 
 import os
+import re
 from datetime import date
 from typing import Optional
 
@@ -86,6 +87,8 @@ def _accounts(number: str) -> list[dict]:
 def _document(item: dict) -> Optional[bytes]:
     """The accounts as inline XBRL, or None when only a PDF was filed."""
     doc_id = item["links"]["document_metadata"].rstrip("/").rsplit("/", 1)[-1]
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,100}", doc_id):
+        return None
     meta = _get_json(DOCUMENT_API.format(id=doc_id)) or {}
     if XHTML not in (meta.get("resources") or {}):
         return None

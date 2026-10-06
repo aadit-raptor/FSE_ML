@@ -17,7 +17,7 @@ from typing import Optional
 
 from companies import http
 from companies.facts import Fact, fiscal_year_of, main_currency, summarize
-from companies.items import IFRS_MAP, US_GAAP_MAP
+from companies.items import IFRS_MAP, US_GAAP_MAP, mapped_concepts
 from companies.model import IFRS, US_GAAP, CompanyData, CompanyRef, FilingLink
 
 SOURCE = "sec"
@@ -107,8 +107,13 @@ def facts_from_companyfacts(data: dict, cik: str) -> tuple[list[Fact], str, str]
 
 
 def _facts(namespace: dict, prefix: str, forms: tuple, cik: str) -> list[Fact]:
+    """Facts for the mapped concepts only: a large filer tags thousands, and
+    Render's free 512 MB must hold the rest of the API too."""
+    wanted = mapped_concepts()
     out = []
     for concept, body in namespace.items():
+        if f"{prefix}:{concept}" not in wanted:
+            continue
         for unit, rows in body.get("units", {}).items():
             if len(unit) != 3 or not unit.isupper():
                 continue

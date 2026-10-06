@@ -89,20 +89,41 @@ class Response:
 Transport = Callable[[Request], Response]
 
 
+# Where a source may send us on: Companies House hands its documents out
+# from Amazon S3. A redirect goes on without the query string or credentials.
+REDIRECT_HOST_SUFFIXES = (".amazonaws.com", ".company-information.service.gov.uk")
+MAX_REDIRECTS = 3
+
+
+def redirect_allowed(url: str) -> bool:
+    parts = urlsplit(url)
+    return parts.scheme == "https" and any((parts.hostname or "").endswith(s) for s in REDIRECT_HOST_SUFFIXES)
+
+
 def _requests_transport(req: Request) -> Response:
     import requests
 
     headers = {"User-Agent": USER_AGENT, "Accept-Encoding": "gzip, deflate", **req.headers}
+    url, params, auth = req.url, dict(req.params), req.auth
     try:
-        with requests.get(req.url, params=dict(req.params), headers=headers, auth=req.auth,
-                          timeout=TIMEOUT_S, stream=True) as resp:
-            chunks, size = [], 0
-            for chunk in resp.iter_content(64 * 1024):
-                size += len(chunk)
-                if size > MAX_RESPONSE_BYTES:
-                    raise SourceError(req.host, "response_too_large")
-                chunks.append(chunk)
-            return Response(resp.status_code, b"".join(chunks), resp.headers.get("Content-Type", ""))
+        for _ in range(MAX_REDIRECTS + 1):
+            with requests.get(url, params=params, headers=headers, auth=auth, timeout=TIMEOUT_S,
+                              stream=True, allow_redirects=False) as resp:
+                if resp.is_redirect:
+                    target = resp.headers.get("Location", "")
+                    if not redirect_allowed(target):
+                        raise SourceError(req.host, "redirect_refused")
+                    # Never carry a key on: the next host gets neither params nor auth
+                    url, params, auth = target, {}, None
+                    continue
+                chunks, size = [], 0
+                for chunk in resp.iter_content(64 * 1024):
+                    size += len(chunk)
+                    if size > MAX_RESPONSE_BYTES:
+                        raise SourceError(req.host, "response_too_large")
+                    chunks.append(chunk)
+                return Response(resp.status_code, b"".join(chunks), resp.headers.get("Content-Type", ""))
+        raise SourceError(req.host, "redirect_refused")
     except requests.RequestException:
         # The exception's text holds the URL, and so possibly a key
         raise SourceError(req.host, "unreachable") from None
@@ -125,11 +146,12 @@ def _pace(host: str) -> None:
     if not _paced[0]:
         return
     interval = MIN_INTERVAL_S.get(host, DEFAULT_INTERVAL_S)
-    with _pace_lock:
-        wait = _last_call.get(host, 0.0) + interval - time.monotonic()
-        if wait > 0:
-            time.sleep(wait)
-        _last_call[host] = time.monotonic()
+    with _pace_lock:                       # book this host's next slot ...
+        now = time.monotonic()
+        slot = max(now, _last_call.get(host, 0.0) + interval)
+        _last_call[host] = slot
+    if slot > now:                         # ... and wait for it outside the lock
+        time.sleep(slot - now)
 
 
 def get(source: str, url: str, *, params: Optional[Mapping[str, str]] = None,

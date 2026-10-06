@@ -65,11 +65,15 @@ def scan_edinet(today: date, deadline: float) -> dict:
 def refresh_stale(now: datetime, deadline: float) -> dict:
     from db import companies as store
     refreshed = failed = 0
-    for source, source_id in store.stale(REFRESH_PER_RUN, now - REFRESH_AFTER):
+    for source, source_id, kept in store.stale(REFRESH_PER_RUN, now - REFRESH_AFTER):
         if time.monotonic() >= deadline:
             break
         try:
-            store.save(sources.fetch(source, source_id))
+            data = sources.fetch(source, source_id, max(sources.DEFAULT_YEARS, kept))
+            if data.years or not kept:
+                store.save(data)
+            else:                          # found nothing this time: keep what is stored
+                store.mark_refreshed(source, source_id)
             refreshed += 1
         except Exception as exc:  # noqa: BLE001 - one company must not stop the rest; logged, counted
             log_event("company_refresh_failed", logging.WARNING, source=source,

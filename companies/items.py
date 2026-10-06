@@ -219,6 +219,14 @@ _NAMESPACES = (
 )
 
 
+def mapped_concepts() -> frozenset:
+    """Every concept any map reads: what a connector keeps, and a recording."""
+    return _MAPPED
+
+
+_MAPPED = frozenset(c for m in MAPS.values() for alts in m.fields.values() for alt in alts for c in concepts_of(alt))
+
+
 def canonical_prefix(namespace: str) -> str | None:
     for pattern, prefix in _NAMESPACES:
         if pattern.match(namespace):

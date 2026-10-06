@@ -17,6 +17,7 @@ For a company no source covers, the answer is document upload (PLAN.md 6.2):
 from __future__ import annotations
 
 import re
+import threading
 from dataclasses import dataclass, field
 from types import ModuleType
 from typing import Callable, Optional
@@ -48,14 +49,14 @@ class Source:
 
 SOURCES: dict[str, Source] = {s.id: s for s in (
     Source("sec", sec, ("US", "*"), ("name", "ticker", "cik", "lei", "isin"), None,
-           "U.S. public domain (SEC EDGAR)", re.compile(r"^\d{1,10}$")),
+           "U.S. public domain (SEC EDGAR)", re.compile(r"^[0-9]{1,10}\Z")),
     Source("esef", esef, ("EU", "GB", "NO", "IS", "LI", "UA"), ("name", "lei", "isin"), None,
-           "filings.xbrl.org, XBRL International (issuers' public reports)", re.compile(r"^[A-Z0-9]{20}$")),
+           "filings.xbrl.org, XBRL International (issuers' public reports)", re.compile(r"^[A-Z0-9]{20}\Z")),
     Source("companies_house", companies_house, ("GB",), ("name", "company_number", "lei", "isin"),
            companies_house.KEY_ENV, "UK Open Government Licence (Companies House)",
-           re.compile(r"^[A-Z0-9]{8}$")),
+           re.compile(r"^[A-Z0-9]{8}\Z")),
     Source("edinet", edinet, ("JP",), ("name", "ticker", "edinet_code", "jcn", "lei", "isin"), edinet.KEY_ENV,
-           "Financial Services Agency of Japan, EDINET (public disclosure)", re.compile(r"^E\d{5}$")),
+           "Financial Services Agency of Japan, EDINET (public disclosure)", re.compile(r"^E[0-9]{5}\Z")),
 )}
 
 
@@ -76,6 +77,9 @@ def _try(out: SearchResult, source: str, call: Callable[[], list], limit: int,
         found = call()
     except http.SourceError as exc:
         out.unavailable.append((source, exc.reason))
+        return
+    except Exception:  # noqa: BLE001 - a source that changed its format must not break the search
+        out.unavailable.append((source, "unreadable"))
         return
     have = {(r.source, r.source_id) for r in out.results}
     for ref in found[:limit]:
@@ -163,4 +167,10 @@ def fetch(source_id: str, company_id: str, n_years: int = DEFAULT_YEARS) -> Comp
     company_id = normalise_id(source_id, company_id)
     if not s.configured():
         raise http.NotConfigured(source_id)
-    return s.module.fetch(company_id, max(2, min(MAX_YEARS, n_years)))
+    with _loads:
+        return s.module.fetch(company_id, max(2, min(MAX_YEARS, n_years)))
+
+
+# A load holds a filing or two in memory (tens of MB for a large one): at
+# most two at once on the free 512 MB
+_loads = threading.BoundedSemaphore(2)

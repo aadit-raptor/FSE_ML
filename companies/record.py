@@ -35,18 +35,11 @@ from pathlib import Path
 from typing import Callable
 
 from companies import companies_house, edinet, http, sec, sources
-from companies.items import MAPS, concepts_of
+from companies.items import mapped_concepts
 
 INDEX = "index.json"
 
 
-def mapped_concepts() -> set[str]:
-    out = set()
-    for m in MAPS.values():
-        for alternatives in m.fields.values():
-            for alt in alternatives:
-                out.update(concepts_of(alt))
-    return out
 
 
 # ---------------------------------------------------------------------------
@@ -164,12 +157,15 @@ def _code_row_matches(line: str, needles: list[str]) -> bool:
 
 
 def _zip(files: dict[str, bytes]) -> bytes:
-    """A zip with fixed timestamps, so recording again gives the same bytes."""
+    """A zip that is the same bytes wherever it is made: fixed timestamps, no
+    compression (zlib builds differ) and the same "made on" system."""
     buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
         for name, data in files.items():
-            z.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), data,
-                       compress_type=zipfile.ZIP_DEFLATED)
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.create_system = 0
+            info.external_attr = 0
+            z.writestr(info, data)
     return buf.getvalue()
 
 

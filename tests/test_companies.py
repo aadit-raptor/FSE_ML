@@ -555,3 +555,109 @@ def test_the_recorder_refuses_to_write_a_key(tmp_path, monkeypatch):
     with pytest.raises(SystemExit):
         record.record(record.CASES["ch_cambridge_united"], tmp_path, real=leaky)
     assert not any((tmp_path / "ch_cambridge_united").iterdir())
+
+
+def test_the_accounts_own_statement_of_standard_wins():
+    ifrs_fact = _fact("ifrs-full:Revenue", 1, date(2025, 12, 31), date(2025, 1, 1))
+    frc_fact = _fact("frc:TurnoverRevenue", 1, date(2025, 12, 31), date(2025, 1, 1))
+    assert companies_house.standard_of({"FRS101"}, [ifrs_fact]) == "uk_gaap"
+    assert companies_house.standard_of({"InternationalReportingStandards"}, [frc_fact]) == "ifrs"
+    assert companies_house.standard_of(set(), [ifrs_fact]) == "ifrs"
+    assert companies_house.standard_of(set(), [frc_fact]) == "uk_gaap"
+
+
+# ---------------------------------------------------------------------------
+# Hostile or broken answers (the 4.1a security and code reviews)
+# ---------------------------------------------------------------------------
+def test_an_absurd_scale_is_skipped_not_computed():
+    doc = IXBRL.replace(b'scale="3" sign="-"', b'scale="999999999" sign="-"').replace(
+        b'name="c:TurnoverRevenue" contextRef="y" unitRef="GBP"', b'name="c:TurnoverRevenue" contextRef="y" unitRef="GBP" scale="x"')
+    facts, _ = ixbrl.read(doc, FilingLink("u", None))
+    assert {f.concept for f in facts} == {"frc:Equity", "frc:Debtors"}
+
+
+def test_an_oversized_document_is_refused():
+    with pytest.raises(ixbrl.Unreadable):
+        ixbrl.read(b" " * (ixbrl.MAX_DOCUMENT_BYTES + 1), FilingLink("u", None))
+
+
+@pytest.mark.parametrize("target, allowed", [
+    ("https://s3.eu-west-2.amazonaws.com/document-api/x?sig=1", True),
+    ("http://s3.eu-west-2.amazonaws.com/x", False),
+    ("https://evil.example/x", False),
+    ("https://amazonaws.com.evil.example/x", False),
+])
+def test_redirects_go_only_to_known_https_hosts(target, allowed):
+    assert http.redirect_allowed(target) is allowed
+
+
+def test_a_redirect_never_carries_the_key_on(monkeypatch):
+    import requests
+    seen = []
+
+    class Resp:
+        def __init__(self, url, params, auth):
+            seen.append((url, dict(params), auth))
+            self.is_redirect = len(seen) == 1
+            self.headers = {"Location": "https://bucket.s3.amazonaws.com/doc"} if self.is_redirect else {}
+            self.status_code = 302 if self.is_redirect else 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def iter_content(self, n):
+            return [b"<html/>"]
+
+    monkeypatch.setattr(requests, "get", lambda url, params, auth, **k: Resp(url, params, auth))
+    http.use_transport(None, paced=False)
+    resp = http.get("edinet", "https://api.edinet-fsa.go.jp/x", params={"Subscription-Key": "k"},
+                    auth=("u", ""), secret_params=("Subscription-Key",))
+    assert resp.content == b"<html/>"
+    assert seen[1] == ("https://bucket.s3.amazonaws.com/doc", {}, None)
+
+
+def test_an_esef_report_with_no_statement_totals_is_unreadable_not_a_crash():
+    recorded = replay(FIXTURES / "esef_tesco")
+
+    def no_totals(req):
+        resp = recorded(req)
+        if req.url.endswith("T01.json"):
+            return http.Response(200, b'{"documentInfo": {"namespaces": {}}, "facts": {}}')
+        return resp
+    http.use_transport(no_totals)
+    with pytest.raises(http.SourceError) as caught:
+        sources.fetch("esef", TESCO_LEI)
+    assert caught.value.reason == "unreadable"
+
+
+def test_an_edinet_error_in_the_body_is_a_failure_not_an_empty_day(keys):  # noqa: ARG001
+    http.use_transport(lambda req: http.Response(200, b'{"metadata": {"status": "500"}, "results": []}'))
+    with pytest.raises(http.SourceError):
+        edinet.scan_day(date(2026, 6, 18))
+
+
+def test_a_source_that_changed_its_format_is_unavailable_not_fatal():
+    def transport(req):
+        if req.host == "www.sec.gov":
+            return http.Response(200, b'["not", "the", "shape"]')
+        return replay(FIXTURES / "search_names")(req)
+    http.use_transport(transport)
+    found = sources.search("Toyota")
+    assert ("sec", "unreadable") in found.unavailable and any(r.source == "edinet" for r in found.results)
+
+
+def test_a_zip_member_too_large_is_refused():
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("big.csv", b"0" * (edinet.MAX_MEMBER_BYTES + 1))
+    with pytest.raises(http.SourceError):
+        edinet.parse_code_list(buf.getvalue())
+
+
+def test_years_shift_safely_from_29_february():
+    assert edinet.shift_years(date(2028, 2, 29), 3) == date(2025, 2, 28)

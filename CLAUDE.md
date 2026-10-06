@@ -601,7 +601,12 @@ never fails the search. A company nobody covers gets the fallback
 `document_upload` (6.2). **HTTP** (`companies/http.py`) paces each host
 within its rules and raises `SourceError` with a reason code and the host
 only: EDINET takes its key as a query parameter, so **no URL or HTTP
-library error text ever reaches a message or log**. Keys:
+library error text ever reaches a message or log**; redirects are followed
+by hand, only to https hosts in `REDIRECT_HOST_SUFFIXES` (Companies House's
+S3) and without params or credentials. Filings are untrusted input: iXBRL
+over 16 MB is refused, a `scale` outside +-12 skipped, zip members over
+50 MB refused, non-finite numbers dropped, and at most two loads run at
+once (`sources._loads`) on the free 512 MB. Keys:
 `COMPANIES_HOUSE_API_KEY`, `EDINET_API_KEY` (Render both services, GitHub
 secrets); SEC, ESEF and GLEIF need none. Storage (`db/companies.py`,
 migration 0011): `companies`, `company_years` (figures JSONB, filing link
