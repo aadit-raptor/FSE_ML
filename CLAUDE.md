@@ -645,8 +645,8 @@ it with the base branch's copy). The `ml` job, which runs every test, also
 fails a PR when under **80% of its changed Python lines** are covered
 (`diff-cover`, needs `fetch-depth: 0`). `pr.yml` fails a **PR title**
 without an ECC type (`ops/pr_title.py`, the types in WORKFLOW.md step 7;
-Dependabot titles are `chore(deps): …`). Floors since 2026-09-24: core 75.5, ml 76.9
-(CI's measured 75.54% and 76.93%). Raise the floor when a job's
+Dependabot titles are `chore(deps): …`). Floors since 2026-10-06: core 83.5, ml 84.3
+(CI's measured 83.57% and 84.33% on PLAN.md 4.1a). Raise the floor when a job's
 summary suggests it; never lower it. No web unit-test framework yet: the
 browser tests are the web's proof.
 
