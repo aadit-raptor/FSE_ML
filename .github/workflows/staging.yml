@@ -148,21 +148,25 @@ jobs:
       # Economic data (PLAN.md 4.2): refreshed on every staging deploy as well
       # as nightly, so a change to a connector meets the real sources before
       # it reaches production; checked with the job drill's health read below
+      # The task's own answer (printed by ops.scheduled) must show at least
+      # 20 economies current and exchange rates published within the last
+      # seven days (the ECB publishes on TARGET days only: Easter closes four
+      # in a row)
       - name: Economic data refresh on staging
-        run: python3 -m ops.scheduled task economy-refresh --api "$STAGING_API" --environment staging
+        run: |
+          set -o pipefail
+          python3 -m ops.scheduled task economy-refresh --api "$STAGING_API" --environment staging | tee refresh.log
+          sed -n 's/^task economy-refresh: succeeded //p' refresh.log > refresh.json
+          jq -e --arg since "$(date -u -d '7 days ago' +%F)" '.economies_current >= 20 and .fx_date >= $since' refresh.json
 
       # Background jobs (PLAN.md 1.9): ten seeded simulations queued at once
       # must all finish with the pinned result while /api/health keeps
-      # answering; the run is recorded as job-drill in /api/health/jobs.
-      # The same read checks the economic data refresh: at least 20 economies
-      # current and exchange rates published within the last seven days
-      # (the ECB publishes on TARGET days only: Easter closes four in a row)
+      # answering; the run is recorded as job-drill in /api/health/jobs
       - name: Job drill on staging
         run: |
           python3 -m ops.scheduled drill --api "$STAGING_API" --environment staging
           curl -fsS -m 120 "$STAGING_API/api/health/jobs" | tee jobs.json; echo
           jq -e '.queue == "database" and .runner == "api" and .scheduled["job-drill"].status == "succeeded"' jobs.json
-          jq -e --arg since "$(date -u -d '7 days ago' +%F)" '.scheduled["economy-refresh"] | .status == "succeeded" and .summary.economies_current >= 20 and .summary.fx_date >= $since' jobs.json
 
       - name: Fail the run if the API check failed
         if: steps.smoke.outcome == 'failure'

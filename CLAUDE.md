@@ -1298,6 +1298,12 @@ Skills load when a session starts: install first, then open a new session.
   refresh makes one call. Before showing any market series, read its licence
   on the source page: FRED hosts series it may not redistribute (ICE BofA,
   Moody's).
+- A scheduled task's summary must be **flat** (`int`, `float`, `bool`, `str`
+  or null: `TaskRun` in `api/routers/scheduled.py`): a list or a map is stored
+  fine, then the endpoint answers 500, so the workflow fails a run that
+  succeeded (staging's first `economy-refresh`). `/api/health/jobs` shows
+  each task's status but not its summary; a workflow that checks a figure
+  reads the task's own printed answer (`staging.yml`'s economic data step).
 - Economic data tests judge "current" on the day the fixture was recorded
   (`_recorded_on`), never today, or they go stale on their own; a refresh's
   exchange rate request depends on what is stored, so the test transport
