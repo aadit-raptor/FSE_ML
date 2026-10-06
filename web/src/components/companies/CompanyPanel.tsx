@@ -133,6 +133,9 @@ function Loaded({ company }: { company: Company }) {
   const label = moneyLabel(company.money);
   // With no years read, the source hasn't said which standard the figures follow: show none
   const empty = years.length === 0;
+  // A US filer with a ticker takes EDGAR's full statements, which don't depend on the summary (ForecastProvider)
+  const fromEdgar = company.company.source === "sec" && !!company.company.identifiers.ticker;
+  const forecastable = fromEdgar || !!company.forecast_history;
   return (
     <section className="grid gap-1 border-t border-line pt-1.5" aria-label={t("loadedLabel")}>
       <p className="type-input-label">{company.company.name}</p>
@@ -165,7 +168,7 @@ function Loaded({ company }: { company: Company }) {
           {t("useInDeal")}
         </SecondaryButton>
         <SecondaryButton
-          disabled={!company.forecast_history || companyState.status === "loading"}
+          disabled={!forecastable || companyState.status === "loading"}
           onClick={() => {
             void fromCompany(company);
             if (path !== "/forecast/historicals") router.push("/forecast/historicals");
@@ -188,7 +191,7 @@ function Loaded({ company }: { company: Company }) {
       ) : (
         !empty && <p className="font-mono text-[10px] text-attention">{t("noDealInputs")}</p>
       )}
-      {!empty && !company.forecast_history && <p className="font-mono text-[10px] text-attention">{t("noForecastHistory")}</p>}
+      {!empty && !forecastable && <p className="font-mono text-[10px] text-attention">{t("noForecastHistory")}</p>}
       {companyState.status === "error" && (
         <p role="alert" className="font-mono text-[10px] text-loss">
           {companyState.error}
