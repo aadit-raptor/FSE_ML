@@ -41,7 +41,9 @@ export const LEASE_DEFAULTS = {
 } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
 /** Money among the leases, converted with the deal when its unit changes */
 export const LEASE_MONEY_KEYS = ["lease_cost", "lease_liability"] as const;
-const OMITTED_AT_DEFAULT: Record<string, unknown> = { ...TAX_RULE_DEFAULTS, ...LEASE_DEFAULTS };
+/** Where a deal's starting figures were sourced for (PLAN.md 4.3): labels, sent only when set */
+export const START_LABEL_DEFAULTS = { country: "", industry: "" } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
+const OMITTED_AT_DEFAULT: Record<string, unknown> = { ...TAX_RULE_DEFAULTS, ...LEASE_DEFAULTS, ...START_LABEL_DEFAULTS };
 export type NumericDealKey = Exclude<{ [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs], FiscalDealKey>;
 
 /** Matches the API's DealInputsIn defaults (api/schemas.py). */
@@ -73,6 +75,7 @@ export const DEFAULT_INPUTS: DealInputs = {
   tranches: [],
   ...TAX_RULE_DEFAULTS,
   ...LEASE_DEFAULTS,
+  ...START_LABEL_DEFAULTS,
 };
 
 /**

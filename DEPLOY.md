@@ -615,6 +615,7 @@ GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/job-maintenance`: requeues or fails jobs whose runner went silent, applies retention | `job-maintenance` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/company-refresh`, repeated while it says `more`: EDINET's day lists into the report index, stale companies reloaded, the company data kept inside its budget (see "Company filings") | `company-refresh` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/economy-refresh`: every economic data source read once, the ECB's exchange rates since the last stored day; fails when fewer than 20 economies are current or the FRED key is refused (see "Economic data") | `economy-refresh` |
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/benchmarks-refresh`: Damodaran's 41 industry-average workbooks read again once the stored ones are a week old; fails when a table is still missing (see "Industry averages") | `benchmarks-refresh` |
 | `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |
 
 `staging.yml` also runs the **job drill** after each staging deploy: ten
@@ -735,6 +736,36 @@ day: a few hundred kilobytes against an 8 MB budget, reported as
 hand, or on a pull request changing `economy/record.py`), then download the
 `recorded-economy` artifact into `tests/fixtures/economy/`. After recording
 again, rerun `python -m tests.e2e_economy` (the browser tests' answers).
+
+## Industry averages
+
+PLAN.md 4.3: a new deal's starting figures (`benchmarks/`, served by
+`/api/benchmarks/industries` and `/api/benchmarks/starting`). Margins,
+multiples, capex, working capital, leverage and interest coverage by
+industry come from **Aswath Damodaran's industry averages** (NYU Stern,
+pages.stern.nyu.edu/~adamodar), five data sets for eight regions, about
+43,000 listed companies, published each January; country tax rates from his
+copy of the Tax Foundation's survey. Growth and the interest rate's
+benchmark come from the economic data above. No key: his usage rules ask for
+use in corporate finance and valuation with acknowledgement, which every
+figure on screen gives.
+
+**The refresh** (`benchmarks-refresh`, `scheduled.yml`; also after each
+staging deploy in `staging.yml`, which requires all 41 tables and at least 80
+industries): reads the 41 workbooks (paced a second apart, about a minute)
+only once the stored tables are a week old, and otherwise answers what is
+stored. A workbook that fails, or changes shape (`unreadable`), keeps its
+stored table; the run fails, and alerts, while any table is missing.
+
+**Storage.** One row per table in `benchmark_tables` (migration 0013), the
+few figures read for about 85 industries: a few hundred kilobytes against a
+4 MB budget, reported as `benchmark_data` by `/api/health/database` and
+failed at 80% by `ops/check_database.py`.
+
+**Recording test fixtures**: `python -m benchmarks.record` (needs `xlwt`, in
+requirements-dev.txt) reads the real workbooks and writes them again trimmed
+to the columns read; then rerun `python -m tests.e2e_benchmarks` (the
+browser tests' answers).
 
 ## Usage limits
 

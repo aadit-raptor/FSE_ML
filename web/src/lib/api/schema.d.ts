@@ -158,6 +158,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/benchmarks/industries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Industries */
+        get: operations["get_industries_api_benchmarks_industries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/benchmarks/starting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Starting */
+        get: operations["get_starting_api_benchmarks_starting_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/capabilities": {
         parameters: {
             query?: never;
@@ -1473,6 +1507,77 @@ export interface components {
             /** P95 */
             p95: number[];
         };
+        /** BenchmarkIndustriesResponse */
+        BenchmarkIndustriesResponse: {
+            /**
+             * Industries
+             * @description Empty until the first refresh
+             */
+            industries: components["schemas"]["BenchmarkIndustry"][];
+            /**
+             * Published
+             * @description The averages' date, as their publisher gives it
+             */
+            published?: string | null;
+            /** Refreshed At */
+            refreshed_at?: string | null;
+            source: components["schemas"]["BenchmarkSourceOut"];
+        };
+        /** BenchmarkIndustry */
+        BenchmarkIndustry: {
+            /**
+             * Firms
+             * @description Listed companies in it worldwide
+             */
+            firms: number;
+            /**
+             * Id
+             * @description all, or the industry's name as an id (machinery, oil_gas_integrated ...)
+             */
+            id: string;
+            /**
+             * Name
+             * @description The industry as the source names it
+             */
+            name: string;
+        };
+        /** BenchmarkSkipped */
+        BenchmarkSkipped: {
+            /**
+             * Area
+             * @description A group (benchmarks/catalogue.py REGIONS) or a country or currency code
+             */
+            area: string;
+            /**
+             * Reason
+             * @description thin: fewer companies than min_firms; unusable: a figure the model can't start from; missing: the group has no figure
+             * @enum {string}
+             */
+            reason: "thin" | "unusable" | "missing";
+            /**
+             * Sample
+             * @description How many companies the group has, when known
+             */
+            sample?: number | null;
+        };
+        /** BenchmarkSourceOut */
+        BenchmarkSourceOut: {
+            /** Basis */
+            basis: string;
+            /**
+             * Id
+             * @constant
+             */
+            id: "damodaran";
+            /** Publisher */
+            publisher: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Usage */
+            usage: string;
+        };
         /** BridgeStep */
         BridgeStep: {
             /** Is Total */
@@ -1948,6 +2053,12 @@ export interface components {
              */
             capex: number;
             /**
+             * Country
+             * @description The deal's country (ISO 3166-1 alpha-2) its starting figures were sourced for, a label only
+             * @default
+             */
+            country: string;
+            /**
              * Currency
              * @description The deal's currency (ISO 4217)
              * @default USD
@@ -2012,6 +2123,12 @@ export interface components {
              * @default 5
              */
             hold: number;
+            /**
+             * Industry
+             * @description The industry its starting figures were sourced for (/api/benchmarks/industries), a label only
+             * @default
+             */
+            industry: string;
             /**
              * Inv Days
              * @default 30
@@ -2164,6 +2281,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "country": "",
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -2174,6 +2292,7 @@ export interface components {
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
+             *       "industry": "",
              *       "inv_days": 30,
              *       "lease_cost": 0,
              *       "lease_liability": 0,
@@ -2218,6 +2337,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "country": "",
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -2228,6 +2348,7 @@ export interface components {
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
+             *       "industry": "",
              *       "inv_days": 30,
              *       "lease_cost": 0,
              *       "lease_liability": 0,
@@ -3316,6 +3437,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "country": "",
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -3326,6 +3448,7 @@ export interface components {
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
+             *       "industry": "",
              *       "inv_days": 30,
              *       "lease_cost": 0,
              *       "lease_liability": 0,
@@ -3899,6 +4022,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "country": "",
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -3909,6 +4033,7 @@ export interface components {
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
+             *       "industry": "",
              *       "inv_days": 30,
              *       "lease_cost": 0,
              *       "lease_liability": 0,
@@ -4156,6 +4281,128 @@ export interface components {
             /** Transaction Fees */
             transaction_fees: number;
         };
+        /** StartingAssumptionsResponse */
+        StartingAssumptionsResponse: {
+            /**
+             * Chain
+             * @description The groups looked in, closest first
+             */
+            chain: ("us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global")[];
+            /** Country */
+            country: string;
+            /** Currency */
+            currency: string;
+            /** Figures */
+            figures: components["schemas"]["StartingFigure"][];
+            /** Industry */
+            industry: string;
+            /**
+             * Industry Name
+             * @description The industry as the source names it; null before the first refresh
+             */
+            industry_name?: string | null;
+            /**
+             * Inputs
+             * @description The starting value of each deal input found
+             */
+            inputs: {
+                [key: string]: number;
+            };
+            /**
+             * Min Firms
+             * @description A group with fewer companies hands over to the next
+             */
+            min_firms: number;
+            /**
+             * Missing
+             * @description Inputs with no sourced figure: the deal keeps its own
+             */
+            missing: components["schemas"]["StartingMissing"][];
+            /** Notes */
+            notes: ("size_not_split" | "exit_equals_entry" | "listed_company_leverage")[];
+            /**
+             * Refreshed At
+             * @description When the stored averages were last read (UTC)
+             */
+            refreshed_at?: string | null;
+            /**
+             * Region
+             * @description The country's region, where its figures are pooled when it has none
+             * @enum {string}
+             */
+            region: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+            source: components["schemas"]["BenchmarkSourceOut"];
+        };
+        /** StartingFigure */
+        StartingFigure: {
+            /**
+             * Area
+             * @description The group or country the figure is for
+             */
+            area: string;
+            /**
+             * As Of
+             * @description The publisher's date, or the period the figure is for
+             */
+            as_of?: string | null;
+            /**
+             * Dataset
+             * @description The table or series read
+             */
+            dataset: string;
+            /**
+             * Detail
+             * @description The published figures it was worked out from
+             */
+            detail: {
+                [key: string]: unknown;
+            };
+            /**
+             * Field
+             * @description The deal input this figure fills
+             * @enum {string}
+             */
+            field: "growth" | "tax" | "gross_margin" | "opex" | "da" | "entry_mult" | "exit_mult" | "capex" | "ar_days" | "inv_days" | "ap_days" | "nwc" | "debt_pct" | "senior_pct" | "base_rate";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Sample
+             * @description Companies, economies or countries behind the figure
+             */
+            sample?: number | null;
+            /** Sample Kind */
+            sample_kind?: ("companies" | "economies" | "countries") | null;
+            /**
+             * Skipped
+             * @description Closer groups passed over, and why
+             */
+            skipped: components["schemas"]["BenchmarkSkipped"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "damodaran" | "imf" | "tax_foundation" | "benchmark" | "choice";
+            /** Url */
+            url?: string | null;
+            /**
+             * Value
+             * @description As the deal input reads it: per cent, a multiple or days
+             */
+            value: number;
+        };
+        /** StartingMissing */
+        StartingMissing: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "growth" | "tax" | "gross_margin" | "opex" | "da" | "entry_mult" | "exit_mult" | "capex" | "ar_days" | "inv_days" | "ap_days" | "nwc" | "debt_pct" | "senior_pct" | "base_rate";
+            /** Skipped */
+            skipped: components["schemas"]["BenchmarkSkipped"][];
+        };
         /** StoredActuals */
         StoredActuals: {
             /** @description None until actuals are saved for the deal */
@@ -4175,6 +4422,7 @@ export interface components {
              *       "ar_days": 45,
              *       "base_rate": 6.5,
              *       "capex": 4,
+             *       "country": "",
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -4185,6 +4433,7 @@ export interface components {
              *       "gross_margin": 40,
              *       "growth": 5,
              *       "hold": 5,
+             *       "industry": "",
              *       "inv_days": 30,
              *       "lease_cost": 0,
              *       "lease_liability": 0,
@@ -5062,6 +5311,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BacktestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_industries_api_benchmarks_industries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkIndustriesResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_starting_api_benchmarks_starting_get: {
+        parameters: {
+            query: {
+                /** @description ISO 3166-1 alpha-2 */
+                country: string;
+                /** @description An id from /api/benchmarks/industries */
+                industry?: string;
+                /** @description ISO 4217 */
+                currency: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartingAssumptionsResponse"];
                 };
             };
             /** @description Validation Error */

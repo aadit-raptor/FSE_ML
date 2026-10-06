@@ -56,6 +56,10 @@ jobs:
       # refused or fewer than 20 economies are current
       - name: Economic data refresh
         run: python3 -m ops.scheduled task economy-refresh --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
+      # Industry averages (PLAN.md 4.3): Damodaran's workbooks, read again once
+      # the stored ones are a week old. Fails when a table is still missing
+      - name: Industry averages refresh
+        run: python3 -m ops.scheduled task benchmarks-refresh --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
       - name: Alert if a scheduled task failed
         if: failure()
         env:

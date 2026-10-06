@@ -7,7 +7,7 @@ model's inputs; engine outputs keep the engine's own units (IRR 0.157 = 15.7%).
 Every response that holds money says which currency and unit it is in.
 """
 from datetime import date, datetime
-from typing import Annotated, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
@@ -234,6 +234,14 @@ class DealInputsIn(Strict):
         None, ge=1900, le=2200, strict=True,
         description="Fiscal year of the first projected year, named by the year it ends in; "
                     "none labels years Y1, Y2 ...")
+    # Labels only (PLAN.md 4.3): where the deal's starting figures were
+    # sourced for. The model never reads them; stored only when set
+    country: str = Field("", pattern=r"^([A-Z]{2})?$",
+                         description="The deal's country (ISO 3166-1 alpha-2) its starting figures were "
+                                     "sourced for, a label only")
+    industry: str = Field("", pattern=r"^[a-z0-9_]{0,60}$",
+                          description="The industry its starting figures were sourced for "
+                                      "(/api/benchmarks/industries), a label only")
     tranches: List[TrancheIn] = Field(
         default_factory=list, max_length=MAX_TRANCHES,
         description="The deal's debt, facility by facility (PLAN.md 2.4). Empty keeps the "
@@ -1435,6 +1443,79 @@ class ExchangeRatesResponse(BaseModel):
     rates: Dict[str, float] = Field(description="Units of each currency for one unit of base")
     source: Literal["ecb"] = "ecb"
     url: str
+
+
+BenchmarkLevel = Literal["country", "region", "global"]
+BenchmarkArea = Literal["us", "japan", "china", "india", "europe", "aus_nz_canada", "emerging", "global"]
+StartingField = Literal["growth", "tax", "gross_margin", "opex", "da", "entry_mult", "exit_mult", "capex",
+                        "ar_days", "inv_days", "ap_days", "nwc", "debt_pct", "senior_pct", "base_rate"]
+
+
+class BenchmarkSkipped(BaseModel):
+    area: str = Field(description="A group (benchmarks/catalogue.py REGIONS) or a country or currency code")
+    reason: Literal["thin", "unusable", "missing"] = Field(
+        description="thin: fewer companies than min_firms; unusable: a figure the model can't start "
+                    "from; missing: the group has no figure")
+    sample: Optional[int] = Field(None, description="How many companies the group has, when known")
+
+
+class StartingFigure(BaseModel):
+    field: StartingField = Field(description="The deal input this figure fills")
+    value: float = Field(description="As the deal input reads it: per cent, a multiple or days")
+    source: Literal["damodaran", "imf", "tax_foundation", "benchmark", "choice"]
+    dataset: str = Field(description="The table or series read")
+    area: str = Field(description="The group or country the figure is for")
+    level: BenchmarkLevel
+    sample: Optional[int] = Field(None, description="Companies, economies or countries behind the figure")
+    sample_kind: Optional[Literal["companies", "economies", "countries"]] = None
+    as_of: Optional[str] = Field(None, description="The publisher's date, or the period the figure is for")
+    url: Optional[str] = None
+    skipped: List[BenchmarkSkipped] = Field(description="Closer groups passed over, and why")
+    detail: Dict[str, Any] = Field(description="The published figures it was worked out from")
+
+
+class StartingMissing(BaseModel):
+    field: StartingField
+    skipped: List[BenchmarkSkipped]
+
+
+class BenchmarkSourceOut(BaseModel):
+    id: Literal["damodaran"]
+    publisher: str
+    title: str
+    url: str
+    basis: str
+    usage: str
+
+
+class StartingAssumptionsResponse(BaseModel):
+    country: str
+    industry: str
+    industry_name: Optional[str] = Field(None, description="The industry as the source names it; null before "
+                                                           "the first refresh")
+    currency: str
+    region: BenchmarkArea = Field(description="The country's region, where its figures are pooled when it has none")
+    chain: List[BenchmarkArea] = Field(description="The groups looked in, closest first")
+    min_firms: int = Field(description="A group with fewer companies hands over to the next")
+    inputs: Dict[StartingField, float] = Field(description="The starting value of each deal input found")
+    figures: List[StartingFigure]
+    missing: List[StartingMissing] = Field(description="Inputs with no sourced figure: the deal keeps its own")
+    notes: List[Literal["size_not_split", "exit_equals_entry", "listed_company_leverage"]]
+    source: BenchmarkSourceOut
+    refreshed_at: Optional[datetime] = Field(None, description="When the stored averages were last read (UTC)")
+
+
+class BenchmarkIndustry(BaseModel):
+    id: str = Field(description="all, or the industry's name as an id (machinery, oil_gas_integrated ...)")
+    name: str = Field(description="The industry as the source names it")
+    firms: int = Field(description="Listed companies in it worldwide")
+
+
+class BenchmarkIndustriesResponse(BaseModel):
+    industries: List[BenchmarkIndustry] = Field(description="Empty until the first refresh")
+    published: Optional[date] = Field(None, description="The averages' date, as their publisher gives it")
+    refreshed_at: Optional[datetime] = None
+    source: BenchmarkSourceOut
 
 
 class CompanyLoadRequest(Strict):

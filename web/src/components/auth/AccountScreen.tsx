@@ -8,7 +8,7 @@ import { useSession } from "@/components/auth/AuthProvider";
 import { type Profile, useProfile } from "@/components/auth/ProfileProvider";
 import { Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
 import { AFTER_SIGN_IN } from "@/lib/auth/mode";
-import { DIGIT_GROUPINGS, type DigitGrouping, formatNumber, LOCALE_SUGGESTIONS } from "@/lib/locale";
+import { countryOptions, DIGIT_GROUPINGS, type DigitGrouping, formatNumber, LOCALE_SUGGESTIONS } from "@/lib/locale";
 
 /**
  * The account screen (PLAN.md 1.4): who is signed in, and the answers every
@@ -35,26 +35,6 @@ function supportedValues(key: "currency" | "timeZone", fallback: string[]): stri
   } catch {
     return fallback;
   }
-}
-
-/** Every ISO 3166-1 alpha-2 code the browser can name, with its name. */
-function countries(): { code: string; name: string }[] {
-  const names = new Intl.DisplayNames(undefined, { type: "region", fallback: "code" });
-  const out: { code: string; name: string }[] = [];
-  for (let first = 65; first <= 90; first++) {
-    for (let second = 65; second <= 90; second++) {
-      const code = String.fromCharCode(first, second);
-      let name: string;
-      try {
-        name = names.of(code) ?? code;
-      } catch {
-        continue;
-      }
-      // An unassigned code comes back as itself
-      if (name !== code) out.push({ code, name });
-    }
-  }
-  return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** What this browser suggests, used only to prefill a new account's answers. */
@@ -89,7 +69,7 @@ export function AccountScreen() {
   const [edits, setEdits] = useState<Partial<Profile>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const countryList = useMemo(() => countries(), []);
+  const countryList = useMemo(() => countryOptions(), []);
   const currencyList = useMemo(() => supportedValues("currency", FALLBACK_CURRENCIES), []);
   const zoneList = useMemo(() => supportedValues("timeZone", FALLBACK_ZONES), []);
   const browser = useMemo(() => suggested(), []);

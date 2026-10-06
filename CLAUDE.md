@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-07 (PLAN.md 4.2: economic data by country, and exchange rates). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-07 (PLAN.md 4.3: sourced starting figures by region, industry and size). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -710,6 +710,50 @@ locally with `python -m economy.record`, `economy_fred` by
 `web/e2e/fixtures/economy.json` from `python -m tests.e2e_economy`, checked
 stale by `tests/test_economy.py`.
 
+Sourced starting figures (PLAN.md 4.3, DEPLOY.md "Industry averages"):
+**`benchmarks/`** reads Aswath Damodaran's industry averages (NYU Stern,
+published each January; 43,056 listed companies; five data sets --
+margins, EV/EBITDA, capex, working capital, debt -- for eight regions: the
+US, Japan, China and India each a file of their own, developed Europe,
+Australia/NZ/Canada, emerging markets, global) and his copy of the Tax
+Foundation's country tax rates, from `.xls` workbooks (`xlrd`; sheet and
+header row found by the "Industry Name" row, since they vary). The scheduled
+**`benchmarks-refresh`** (nightly in `scheduled.yml`, and after each staging
+deploy, which requires 41 tables and 80+ industries) reads all 41 only once
+the stored ones are a week old; table `benchmark_tables` (migration 0013),
+4 MB budget, `benchmark_data` in `/api/health/database`.
+`benchmarks/starting.py` makes a deal's starting inputs, each with source,
+group, sample and date: margins, D&A and opex from one group (opex = gross
+- operating margin, D&A = EBITDA - operating margin, so the engine's EBITDA
+margin is the industry's); entry = exit multiple; capex = D&A x capex/D&A
+(**not** Damodaran's "net cap ex/sales", which adds acquisitions and R&D);
+days on revenue and cost of sales; `nwc` = w x g/(1+g). A group under
+`MIN_FIRMS` (20) or with an unusable figure hands over along the country's
+`chain` (own file, region, global) and the answer says why. **Decided with
+the user (2026-10-07): growth is the country's nominal GDP growth (IMF
+projection, real x inflation), never Damodaran's growth averages (they run
+14-24%); debt starts at the industry's listed-company debt/EBITDA, all
+senior, priced at the currency's benchmark plus Damodaran's default spread
+for the industry's coverage rating.** Size is asked (EBITDA) but nothing free
+splits by size, which the screen says. These are inputs, stored in the deal
+like typed figures, so nothing in the engine or the golden snapshot moved;
+the deal carries `country` and `industry` labels (`OMIT_WHEN_DEFAULT`,
+`START_LABEL_DEFAULTS`). Endpoints (signed in, storage only, not runs): `GET
+/api/benchmarks/industries`, `GET /api/benchmarks/starting?country=&industry=&currency=`
+(a retired code such as `DD` or `UK` is read as its current country). Web:
+Deal -> Inputs opens with **Starting point** (country, industry, currency,
+EBITDA, "Use sourced figures"; the old Money group is merged in), an
+"Illustrative figures" notice until a country is chosen, and a **Starting
+figures** tile beside the deal's own values with "Use" per figure and "Use
+all". **The defaults registry** `benchmarks/registry.py` gives every deal
+input and every Setting a basis (`sourced`, `deal`, `choice`, `template`,
+`pending`); `tests/test_defaults_registry.py` is the CI check, and its
+`PENDING_PINNED` (4.4's ranges, correlations and scenarios; 4.5's fees and
+amortisation) may only shrink. Tests replay trimmed real workbooks
+(`tests/fixtures/benchmarks/damodaran`, `python -m benchmarks.record`, needs
+`xlwt`); the browser tests replay `web/e2e/fixtures/benchmarks.json` from
+`python -m tests.e2e_benchmarks`, checked stale by `tests/test_benchmarks.py`.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -754,7 +798,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). **Next is 4.3** (sourced defaults by region, sector and size).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). **Next is 4.4** (risk ranges, correlations and scenarios by region).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -976,6 +1020,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
 | `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder, the summary as deal inputs and forecast rows (`use.py`); storage, budget and the EDINET index; the endpoints |
+| `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx` | Sourced starting figures (PLAN.md 4.3): regions and data sets read, the workbook reader, a deal's starting figures, the weekly-gated refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and Starting figures tile |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
 | `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
@@ -988,7 +1033,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (974 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,015 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -1284,6 +1329,15 @@ Skills load when a session starts: install first, then open a new session.
   added in three places: a `COPY` line in the `Dockerfile` (it copies
   packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in
   `staging.yml`. CI's `docker` job fails at start-up if the first is missing.
+- `Intl.DisplayNames` names retired region codes too ("DD" is "Germany",
+  "UK" is "United Kingdom"), so a country list built from it offers two
+  Germanys. `lib/locale.ts` `countryOptions` drops any code that
+  `Intl.getCanonicalLocales` maps elsewhere; accounts saved earlier may hold
+  one, so the API reads them through `benchmarks.catalogue.canonical`.
+- Damodaran's workbooks name the same figure differently in each data set,
+  and a column name can mislead: "Net Cap Ex/Sales" includes acquisitions
+  and R&D. Read the "Variables & FAQ" sheet before mapping a column, and
+  check one industry's figures against its dollar columns.
 - A connector's figures must be checked against a **recorded real filing**,
   not a guessed concept list: Toyota's IFRS report and Tesco's capex use
   concepts nobody would guess. Record with `record-filings.yml` (keyed

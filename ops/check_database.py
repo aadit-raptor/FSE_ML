@@ -46,6 +46,11 @@ def problems(result: dict) -> list[str]:
         found.append(f"economic data at {economy.get('bytes', 0) // 1024} KB of its "
                      f"{economy.get('budget_bytes', 0) // 1024} KB budget: lower "
                      "db.economy.KEEP_FX_DAYS or economy.model.KEEP_OBSERVATIONS (PLAN.md 4.2)")
+    benchmarks = result.get("benchmark_data") or {}
+    if benchmarks.get("warning"):
+        found.append(f"industry averages at {benchmarks.get('bytes', 0) // 1024} KB of their "
+                     f"{benchmarks.get('budget_bytes', 0) // 1024} KB budget: store fewer figures "
+                     "(benchmarks/catalogue.py DATASETS, PLAN.md 4.3)")
     return found
 
 

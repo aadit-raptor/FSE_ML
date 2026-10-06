@@ -145,7 +145,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.1a | Company filings: the data layer (connectors, storage, search, refresh) | 1.9, 2.6 | ☑ |
 | 4.1b | Company filings: the screen | 4.1a | ☑ |
 | 4.2 | Economic data by country, and exchange rates | 1.9 | ☑ |
-| 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☐ |
+| 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☑ |
 | 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☐ |
 | 4.5 | Optional reference library (deals and base rates) | 4.1 | ☐ |
 | 4.6 | Model validation framework | 4.3, 4.5, 2.7 | ☐ |
@@ -838,6 +838,28 @@ can check it.
 - **Done when:** a German industrials deal gets sourced defaults with sample sizes;
   a thin-data case shows the fallback; no unsourced default remains (CI check
   on the defaults registry).
+- **Built as (done):** `benchmarks/` -- Aswath Damodaran's industry averages
+  (NYU Stern, January 2026: margins, EV/EBITDA, capex, working capital, debt
+  and interest coverage for about 85 non-financial industries, five data sets
+  for eight regions, 43,056 listed companies worldwide) and his copy of the
+  Tax Foundation's country tax rates, read by the weekly-gated
+  `benchmarks-refresh` into 41 compact tables (migration 0013, a 4 MB
+  budget). `starting.py` turns them, with 4.2's IMF projections and
+  benchmark rates, into a deal's starting inputs, each with its source,
+  group, sample and date; a group under 20 companies (or with an unusable
+  figure) hands over from country to region to global and says why.
+  Decisions with the user (2026-10-07): growth is the country's nominal GDP
+  growth (industry growth averages run far too high); debt starts at the
+  industry's listed-company leverage, all senior (no free source publishes
+  buyout leverage). Size is asked (EBITDA) but no free source splits the
+  figures by size, which the screen says. Deal -> Inputs opens with
+  "Starting point" (country, industry, currency, size, "Use sourced
+  figures"), labels the figures illustrative until then, and a "Starting
+  figures" tile shows each sourced figure beside the deal's own with "Use".
+  The defaults registry (`benchmarks/registry.py`, checked by
+  `tests/test_defaults_registry.py`) gives every deal input and Setting a
+  basis; the illustrative Settings left are pinned there, owned by 4.4
+  (ranges, correlations, scenarios) and 4.5 (fees, amortisation).
 
 ### 4.4 Risk ranges, correlations and scenarios by region
 - **Claude does:** uncertainty ranges per region, sector and size from real
@@ -1325,7 +1347,7 @@ when a limit is actually reached or before charging customers.
 | `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
 | `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4a — still the default when a deal lists no tranches; `core/debt.py` now takes any structure |
 | `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |
-| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source | 2.1, 4.3, 4.4 |
+| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source. Since 4.3 a new deal starts from sourced figures instead and `benchmarks/registry.py` gives every default a basis; ranges, correlations and scenarios (4.4) and fees and amortisation (4.5) stay illustrative | 2.1, 4.3, 4.4, 4.5 |
 | `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in | 4.4 |
 | `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5 |
 | `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 |
