@@ -3023,6 +3023,192 @@
         "title": "DriverSensitivity",
         "type": "object"
       },
+      "EconomicFigure": {
+        "properties": {
+          "basis": {
+            "description": "projection (IMF WEO, this year), actual, observed, euro_area (a euro member's policy rate is the ECB's), computed (a spread), benchmark (the reference rate itself), or what stands in for a benchmark with no free source: policy_rate, interbank_3m",
+            "enum": [
+              "projection",
+              "actual",
+              "observed",
+              "euro_area",
+              "computed",
+              "benchmark",
+              "policy_rate",
+              "interbank_3m"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "current": {
+            "description": "Recent enough to count as today's (economy/views.py)",
+            "title": "Current",
+            "type": "boolean"
+          },
+          "period": {
+            "description": "YYYY, YYYY-MM or YYYY-MM-DD: the period the value is for",
+            "title": "Period",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "imf",
+              "worldbank",
+              "oecd",
+              "bis",
+              "ecb",
+              "fred"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_series": {
+            "description": "The series' id at its source",
+            "title": "Source Series",
+            "type": "string"
+          },
+          "url": {
+            "description": "Where a person can check it",
+            "title": "Url",
+            "type": "string"
+          },
+          "value": {
+            "description": "Per cent (3.75 = 3.75%), or percentage points for a spread",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "period",
+          "source",
+          "source_series",
+          "url",
+          "basis",
+          "current"
+        ],
+        "title": "EconomicFigure",
+        "type": "object"
+      },
+      "EconomyArea": {
+        "properties": {
+          "area": {
+            "description": "ISO 3166-1 alpha-2, or XM for the euro area",
+            "title": "Area",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "current": {
+            "description": "Growth, inflation and the policy rate are all current",
+            "title": "Current",
+            "type": "boolean"
+          },
+          "figures": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EconomicFigure"
+            },
+            "description": "gdp_growth, gdp_growth_actual, inflation, inflation_actual, policy_rate, bond_yield_10y, short_rate_3m, sovereign_spread: whichever are known",
+            "title": "Figures",
+            "type": "object"
+          }
+        },
+        "required": [
+          "area",
+          "currency",
+          "current",
+          "figures"
+        ],
+        "title": "EconomyArea",
+        "type": "object"
+      },
+      "EconomyResponse": {
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/EconomyArea"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
+          "as_of": {
+            "description": "The day 'current' was judged on (UTC)",
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The latest refresh (UTC); null before the first",
+            "title": "Refreshed At"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/EconomySourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "areas",
+          "sources"
+        ],
+        "title": "EconomyResponse",
+        "type": "object"
+      },
+      "EconomySourceOut": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "id": {
+            "enum": [
+              "imf",
+              "worldbank",
+              "oecd",
+              "bis",
+              "ecb",
+              "fred"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "needs_key": {
+            "title": "Needs Key",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "licence",
+          "needs_key",
+          "configured"
+        ],
+        "title": "EconomySourceOut",
+        "type": "object"
+      },
       "EdgarDealInputs": {
         "description": "The latest year of a filing as deal inputs: EBITDA as the standard\nreports it (operating profit plus D&A) and the leases, in the filing's\ncurrency and in millions.",
         "properties": {
@@ -3377,6 +3563,46 @@
           "examples"
         ],
         "title": "ExampleLibrary",
+        "type": "object"
+      },
+      "ExchangeRatesResponse": {
+        "properties": {
+          "base": {
+            "title": "Base",
+            "type": "string"
+          },
+          "published_on": {
+            "description": "The ECB publication day the rates are from",
+            "format": "date",
+            "title": "Published On",
+            "type": "string"
+          },
+          "rates": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Units of each currency for one unit of base",
+            "title": "Rates",
+            "type": "object"
+          },
+          "source": {
+            "const": "ecb",
+            "default": "ecb",
+            "title": "Source",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base",
+          "published_on",
+          "rates",
+          "url"
+        ],
+        "title": "ExchangeRatesResponse",
         "type": "object"
       },
       "ExitSensitivity": {
@@ -6510,6 +6736,61 @@
           "money"
         ],
         "title": "PreloadedDeal",
+        "type": "object"
+      },
+      "ReferenceRatesResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "currency_benchmarks": {
+            "additionalProperties": {
+              "enum": [
+                "SOFR",
+                "SONIA",
+                "ESTR",
+                "EURIBOR",
+                "TONA",
+                "SARON",
+                "BBSY",
+                "MIBOR",
+                "custom"
+              ],
+              "type": "string"
+            },
+            "description": "The benchmark a new floating facility starts on, by the deal's currency",
+            "title": "Currency Benchmarks",
+            "type": "object"
+          },
+          "rates": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EconomicFigure"
+            },
+            "description": "Each benchmark's current level, by code (core/debt.py REFERENCE_RATES); a benchmark with no current figure is left out",
+            "title": "Rates",
+            "type": "object"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refreshed At"
+          }
+        },
+        "required": [
+          "as_of",
+          "rates",
+          "currency_benchmarks"
+        ],
+        "title": "ReferenceRatesResponse",
         "type": "object"
       },
       "ReportedRun": {
@@ -10883,6 +11164,156 @@
         "summary": "Restore Version",
         "tags": [
           "saved deals"
+        ]
+      }
+    },
+    "/api/economy/countries": {
+      "get": {
+        "operationId": "get_countries_api_economy_countries_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Countries",
+        "tags": [
+          "economy"
+        ]
+      }
+    },
+    "/api/economy/exchange-rates": {
+      "get": {
+        "operationId": "get_exchange_rates_api_economy_exchange_rates_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "base",
+            "required": false,
+            "schema": {
+              "default": "EUR",
+              "pattern": "^[A-Z]{3}$",
+              "title": "Base",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The rates of this day, or the last publication before it",
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The rates of this day, or the last publication before it",
+              "title": "On"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeRatesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Exchange Rates",
+        "tags": [
+          "economy"
+        ]
+      }
+    },
+    "/api/economy/reference-rates": {
+      "get": {
+        "operationId": "get_reference_rates_api_economy_reference_rates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceRatesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Reference Rates",
+        "tags": [
+          "economy"
         ]
       }
     },

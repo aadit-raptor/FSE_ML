@@ -76,6 +76,13 @@ def company_refresh() -> dict:
     return refresh.run()
 
 
+@task("economy-refresh", "Refresh economic data by country, reference rates and the ECB's exchange "
+                         "rates (PLAN.md 4.2, economy/refresh.py).")
+def economy_refresh() -> dict:
+    from economy import refresh
+    return refresh.run()
+
+
 # ---------------------------------------------------------------------------
 # The run log
 # ---------------------------------------------------------------------------

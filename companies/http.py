@@ -1,4 +1,4 @@
-"""HTTP for the filing sources: one transport, polite pacing, no leaked keys.
+"""HTTP for the filing and economic data sources: one transport, polite pacing, no leaked keys.
 
 Every connector fetches through ``get``. It
 
@@ -35,6 +35,13 @@ MIN_INTERVAL_S = {
     "api.edinet-fsa.go.jp": 1.0,
     "disclosure2dl.edinet-fsa.go.jp": 1.0,
     "api.gleif.org": 1.0,
+    # Economic data (economy/connectors.py); the OECD allows few calls an hour
+    "www.imf.org": 1.0,
+    "api.worldbank.org": 0.5,
+    "stats.bis.org": 1.0,
+    "sdmx.oecd.org": 5.0,
+    "data-api.ecb.europa.eu": 0.5,
+    "api.stlouisfed.org": 0.6,
 }
 DEFAULT_INTERVAL_S = 1.0
 

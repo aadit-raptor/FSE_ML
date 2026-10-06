@@ -19,9 +19,11 @@ import {
   withKind,
 } from "@/lib/deal/capital";
 import { dealFiscal } from "@/lib/deal/fields";
+import { chooseBenchmark, currentRate, onBenchmark, onCurrentRate, type ReferenceRates, startOnBenchmark, useReferenceRates } from "@/lib/economy";
 import type { FieldSpec } from "@/lib/fields";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, fmtPct } from "@/lib/format";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
+import { periodLabel } from "@/lib/locale";
 import { MONEY } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
@@ -75,6 +77,7 @@ export function TrancheList() {
   const kinds = useTranslations("trancheKinds");
   const [open, setOpen] = useState<number | null>(null);
   const [adding, setAdding] = useState<TrancheKind>("senior_notes");
+  const rates = useReferenceRates();
   const listId = useId();
   const tranches = inputs.tranches.map(fullTranche);
   // Rows are keyed by position, so a move or a removal remounts them: put the
@@ -130,6 +133,7 @@ export function TrancheList() {
               <TrancheFields
                 id={`${listId}-${i}`}
                 tranche={tr}
+                current={rates}
                 onChange={(patch) => update(i, patch)}
                 onKind={(kind) => write(tranches.map((x, j) => (j === i ? withKind(x, kind) : x)))}
                 actions={
@@ -158,7 +162,7 @@ export function TrancheList() {
         </select>
         <SecondaryButton
           onClick={() => {
-            write([...tranches, newTranche(adding, kinds(adding))]);
+            write([...tranches, startOnBenchmark(rates, inputs.currency ?? "", newTranche(adding, kinds(adding)))]);
             setOpen(tranches.length);
           }}
         >
@@ -173,12 +177,14 @@ export function TrancheList() {
 function TrancheFields({
   id,
   tranche: tr,
+  current,
   onChange,
   onKind,
   actions,
 }: {
   id: string;
   tranche: FullTranche;
+  current: ReferenceRates | null;
   onChange: (patch: Partial<FullTranche>) => void;
   onKind: (kind: TrancheKind) => void;
   actions: ReactNode;
@@ -238,7 +244,7 @@ function TrancheFields({
         <>
           <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
             <span className="type-input-label">{fields("tranche_reference_rate")}</span>
-            <select value={tr.reference_rate} onChange={(e) => onChange({ reference_rate: e.target.value as ReferenceRate })} className={SELECT_CLASS}>
+            <select value={tr.reference_rate} onChange={(e) => onChange(chooseBenchmark(current, tr, e.target.value as ReferenceRate))} className={SELECT_CLASS}>
               {REFERENCE_RATES.map((r) => (
                 <option key={r} value={r}>
                   {rates(r)}
@@ -246,6 +252,7 @@ function TrancheFields({
               ))}
             </select>
           </label>
+          <CurrentReference tranche={tr} rates={current} onChange={onChange} />
           <RatePath tranche={tr} onChange={onChange} />
           {field("floor")}
           {field("margin")}
@@ -266,6 +273,41 @@ function TrancheFields({
         <Switch checked={tr.allow_redraw} onChange={(v) => onChange({ allow_redraw: v })} label={fields("tranche_allow_redraw")} />
       </div>
       {actions}
+    </div>
+  );
+}
+
+/**
+ * Where the benchmark stands today and where that comes from (PLAN.md 4.2): the level, its
+ * date and source, linked, and what stands in when no free source publishes the benchmark
+ * itself. A facility not on today's level (an older deal, a typed rate or path) can take it.
+ *
+ * i18n-keys: economy.source.*, economy.basis.*
+ */
+function CurrentReference({
+  tranche: tr,
+  rates,
+  onChange,
+}: {
+  tranche: FullTranche;
+  rates: ReferenceRates | null;
+  onChange: (patch: Partial<FullTranche>) => void;
+}) {
+  const economy = useTranslations("economy");
+  const now = currentRate(rates, tr.reference_rate);
+  if (!now) return null;
+  return (
+    <div className="grid gap-1 pb-1" data-testid="current-reference">
+      <p className="type-body text-[9px]">
+        {economy("referenceCurrent", { rate: fmtPct(now.value, 2), period: periodLabel(now.period) })}{" "}
+        <a href={now.url} target="_blank" rel="noreferrer" className="text-accent underline">
+          {economy(`source.${now.source}`)}
+        </a>
+        {now.basis !== "benchmark" && <>. {economy(`basis.${now.basis}`)}</>}
+      </p>
+      {!onCurrentRate(rates, tr) && (
+        <SecondaryButton onClick={() => onChange(onBenchmark(rates, tr.reference_rate))}>{economy("useCurrentRate")}</SecondaryButton>
+      )}
     </div>
   );
 }

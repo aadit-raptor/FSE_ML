@@ -8,6 +8,7 @@ source =
     companies
     core
     db
+    economy
     jobs
     lbo_engine
     ml

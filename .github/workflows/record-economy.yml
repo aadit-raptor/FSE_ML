@@ -1,0 +1,48 @@
+name: record-economy
+
+# Records real responses from FRED -- SOFR, SONIA and the US 10-year
+# Treasury yield -- as test fixtures (economy/record.py, PLAN.md 4.2). The
+# key is the repository secret FRED_API_KEY; the recorder never writes it
+# (requests are named without it, and it fails if the key's value shows up in
+# anything it would write). What it writes is public data, uploaded as a
+# short-lived artifact to be reviewed and committed under
+# tests/fixtures/economy. The keyless sources record locally
+# (python -m economy.record economy_open).
+#
+# Runs by hand (workflow_dispatch), and on a pull request that changes the
+# recorder, so a new case can be recorded before its PR merges.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - economy/record.py
+      - .github/workflows/record-economy.yml
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    # A fork's pull request gets no secrets; only this repository's branches record
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Record
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          if [ -z "$FRED_API_KEY" ]; then
+            echo "::error::Set the FRED_API_KEY secret (DEPLOY.md 'Economic data')"; exit 1
+          fi
+          python -m economy.record --out recorded economy_fred
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recorded-economy
+          path: recorded
+          retention-days: 3

@@ -144,7 +144,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **4** | **Global market data platform** | | |
 | 4.1a | Company filings: the data layer (connectors, storage, search, refresh) | 1.9, 2.6 | ☑ |
 | 4.1b | Company filings: the screen | 4.1a | ☑ |
-| 4.2 | Economic data by country, and exchange rates | 1.9 | ☐ |
+| 4.2 | Economic data by country, and exchange rates | 1.9 | ☑ |
 | 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☐ |
 | 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☐ |
 | 4.5 | Optional reference library (deals and base rates) | 4.1 | ☐ |
@@ -201,6 +201,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 12.6 | Company logins (SSO) and admin console | 7.2 | ☐ |
 | 12.7 | Regional hosting and data residency | 10.3, 12.1 | ☐ |
 | 12.8 | Higher service limits as usage grows | 11.3 | ☐ |
+| 12.9 | Licensed market data (corporate credit spreads) | 4.2 | ☐ |
 
 **Order:** 0.1 → 2.1 (small, do early) → 1 → 2 → 3 → 4 → 5 → 6 and 7 (any
 order) → 8 → 9 → 10 → 11 → 12. Task 3.2 can start any time; 11.1 and 11.2
@@ -802,6 +803,28 @@ can check it.
 - **Done when:** at least 20 major economies have current, sourced data; a SONIA
   tranche picks up the current rate by default (test); exchange rates refresh
   daily on staging.
+- **Built as (done):** `economy/` -- one connector per source
+  (`connectors.py`: IMF WEO DataMapper, World Bank WDI, BIS policy rates,
+  OECD yields and 3-month rates, ECB €STR, EURIBOR and euro reference rates,
+  FRED SOFR, SONIA and the US 10-year yield), each a call or two covering
+  every economy, paced through `companies/http.py`. 24 economies and the euro
+  area (`catalogue.py`); each figure stored with its period, source, series id
+  and a link (migration 0012, `db/economy.py`, an 8 MB budget), and judged
+  *current* by its age (`views.py`); 23 are current on the recorded data
+  (Singapore has no policy rate). Growth and inflation show the IMF's
+  projection for this year beside the World Bank's latest actual. A new
+  floating facility starts on its currency's benchmark at today's level, and
+  choosing a benchmark sets it (`web/src/lib/economy.ts`, the tranche editor
+  shows the level's date and source, and what stands in for TONA, SARON,
+  BBSY and MIBOR, which have no free source); the level is stored in the deal
+  as an input, so no model result moves on its own. The nightly
+  `economy-refresh` runs on both environments and after every staging deploy
+  (`staging.yml` checks 20 economies current and exchange rates under seven
+  days old). Decision: FRED's corporate spread series (ICE BofA, Moody's)
+  forbid reproduction, so the app shows sovereign spreads over Germany
+  (OECD, CC BY) instead; corporate spreads wait for a licensed source (phase
+  12). Tests replay recorded responses (`tests/test_economy.py`; FRED's
+  recorded by `record-economy.yml` with the repository key).
 
 ### 4.3 Sourced defaults by region, sector and size
 - **Claude does:**
@@ -1280,6 +1303,16 @@ when a limit is actually reached or before charging customers.
 - **Claude does:** adjust configuration and alerts for the new limits; consider
   making the repository private once paid GitHub Actions minutes are available.
 - **Done when:** the dashboard shows healthy headroom on every service.
+
+### 12.9 Licensed market data (corporate credit spreads)
+- **You first:** license a corporate bond spread source that allows display in
+  the product (ICE, Moody's or another vendor), and set its key.
+- **Claude does:** a connector beside 4.2's (`economy/connectors.py`), stored
+  and refreshed the same way; corporate spreads by region and rating band next
+  to the sovereign spreads 4.2 shows. (Added in 4.2: the free spread series on
+  FRED forbid reproduction.)
+- **Done when:** US and euro investment-grade and high-yield spreads show with
+  their source and date.
 
 ---
 

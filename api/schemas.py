@@ -1373,6 +1373,70 @@ class CompanyResponse(BaseModel):
                           "null when a year has no revenue")
 
 
+# ---------------------------------------------------------------------------
+# Economic data by country, reference rates, exchange rates (PLAN.md 4.2)
+# ---------------------------------------------------------------------------
+EconomicSource = Literal["imf", "worldbank", "oecd", "bis", "ecb", "fred"]
+EconomicBasis = Literal["projection", "actual", "observed", "euro_area", "computed", "benchmark",
+                        "policy_rate", "interbank_3m"]
+
+
+class EconomicFigure(BaseModel):
+    value: float = Field(description="Per cent (3.75 = 3.75%), or percentage points for a spread")
+    period: str = Field(description="YYYY, YYYY-MM or YYYY-MM-DD: the period the value is for")
+    source: EconomicSource
+    source_series: str = Field(description="The series' id at its source")
+    url: str = Field(description="Where a person can check it")
+    basis: EconomicBasis = Field(description="projection (IMF WEO, this year), actual, observed, euro_area "
+                                             "(a euro member's policy rate is the ECB's), computed (a "
+                                             "spread), benchmark (the reference rate itself), or what "
+                                             "stands in for a benchmark with no free source: policy_rate, "
+                                             "interbank_3m")
+    current: bool = Field(description="Recent enough to count as today's (economy/views.py)")
+
+
+class EconomyArea(BaseModel):
+    area: str = Field(description="ISO 3166-1 alpha-2, or XM for the euro area")
+    currency: str
+    current: bool = Field(description="Growth, inflation and the policy rate are all current")
+    figures: Dict[str, EconomicFigure] = Field(
+        description="gdp_growth, gdp_growth_actual, inflation, inflation_actual, policy_rate, "
+                    "bond_yield_10y, short_rate_3m, sovereign_spread: whichever are known")
+
+
+class EconomySourceOut(BaseModel):
+    id: EconomicSource
+    name: str
+    licence: str
+    needs_key: bool
+    configured: bool
+
+
+class EconomyResponse(BaseModel):
+    as_of: date = Field(description="The day 'current' was judged on (UTC)")
+    refreshed_at: Optional[datetime] = Field(None, description="The latest refresh (UTC); null before the first")
+    areas: List[EconomyArea]
+    sources: List[EconomySourceOut]
+
+
+class ReferenceRatesResponse(BaseModel):
+    as_of: date
+    refreshed_at: Optional[datetime] = None
+    rates: Dict[str, EconomicFigure] = Field(
+        description="Each benchmark's current level, by code (core/debt.py REFERENCE_RATES); a benchmark "
+                    "with no current figure is left out")
+    currency_benchmarks: Dict[str, ReferenceRate] = Field(
+        description="The benchmark a new floating facility starts on, by the deal's currency")
+
+
+class ExchangeRatesResponse(BaseModel):
+    base: str
+    published_on: date = Field(description="The ECB publication day the rates are from")
+    rates: Dict[str, float] = Field(description="Units of each currency for one unit of base")
+    source: Literal["ecb"] = "ecb"
+    url: str
+
+
 class CompanyLoadRequest(Strict):
     source: CompanySource
     id: str = Field(min_length=1, max_length=20)

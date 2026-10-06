@@ -12,7 +12,7 @@ name: scheduled
 # "id-token: write" allows; the repository token stays read-only.
 #
 # Tasks are steps here (job maintenance, the company filings refresh of
-# PLAN.md 4.1; retraining later); see jobs/scheduled.py for adding one to
+# PLAN.md 4.1, the economic data refresh of 4.2; retraining later); see jobs/scheduled.py for adding one to
 # the API.
 on:
   schedule:
@@ -51,6 +51,11 @@ jobs:
       # called again (eight calls cover the 400-day backfill in one night)
       - name: Company filings refresh
         run: python3 -m ops.scheduled task company-refresh --repeat 8 --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
+      # Economic data (PLAN.md 4.2): every source read once, then the ECB's
+      # exchange rates since the last stored day. Fails when the FRED key is
+      # refused or fewer than 20 economies are current
+      - name: Economic data refresh
+        run: python3 -m ops.scheduled task economy-refresh --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
       - name: Alert if a scheduled task failed
         if: failure()
         env:

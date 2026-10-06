@@ -28,6 +28,7 @@ services:
         - companies/**
         - core/**
         - db/**
+        - economy/**
         - jobs/**
         - lbo_engine/**
         - ml/**
@@ -47,7 +48,9 @@ services:
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
         sync: false
-      # Only with INSTALL_ML=true images: enables macro regime detection
+      # Economic data (PLAN.md 4.2): SOFR, SONIA and the US 10-year yield from
+      # FRED; unset = SOFR and SONIA fall back to the policy rates. Also
+      # enables macro regime detection in INSTALL_ML=true images
       - key: FRED_API_KEY
         sync: false
       # Company filings (PLAN.md 4.1): UK Companies House and Japan's EDINET.

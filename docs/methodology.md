@@ -383,8 +383,21 @@ separate calculations. The web mirrors them (`KIND_PRESETS`).
 **Regional differences.** The reference rate is a label plus a curve
 (SOFR, SONIA, €STR, EURIBOR, TONA, SARON, BBSY, MIBOR or custom): two tranches
 with the same path and margin price identically whichever benchmark they name.
-Market data for the curves arrives with PLAN.md 4.2; until then the user
-enters the reference level or path. A facility may name its own currency as a
+**Today's level by default (PLAN.md 4.2).** Market data never enters a run by
+itself: it fills the input. A new floating facility starts on its deal
+currency's usual benchmark (SOFR for dollars, SONIA for sterling, EURIBOR for
+euros, TONA, SARON, BBSY, MIBOR), and choosing a benchmark sets a flat
+`reference_level` at that benchmark's latest published level, which the deal
+then stores like any typed rate, so reopening a deal never changes its
+answer. The level comes from [economy/views.py](../economy/views.py)
+`reference_rates`: the first *current* candidate in
+[economy/catalogue.py](../economy/catalogue.py) `REFERENCE_SOURCES` -- SOFR
+and SONIA as published (FRED: New York Fed, Bank of England), €STR and
+3-month EURIBOR from the ECB; TONA, SARON and MIBOR have no free source, so
+their central bank's policy rate (BIS) stands in, and BBSY Australia's
+3-month bank bill rate (OECD), each labelled as such. A daily rate is current
+for 45 days, a monthly one for 100, a policy rate for 120; past that the
+benchmark is left out and the user types the rate. A facility may name its own currency as a
 label; it is not converted.
 
 ## 6. Accounting standards and leases
