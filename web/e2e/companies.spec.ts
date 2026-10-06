@@ -93,10 +93,35 @@ test("a company nobody has names the document upload, and one without figures sa
   await rail(page).getByRole("button", { name: /CAMBRIDGE UNITED/ }).click();
   await expect(rail(page).getByRole("button", { name: "Use in deal" })).toBeDisabled();
   await expect(rail(page).getByText("The latest year has no EBITDA")).toBeVisible();
-  await rail(page).getByRole("button", { name: "Use in forecast" }).click();
-  await expect(rail(page).getByRole("alert")).toContainText("Not every year of this company's filings gives revenue");
+  await expect(rail(page).getByRole("button", { name: "Use in forecast" })).toBeDisabled();
+  await expect(rail(page).getByText("Not every year gives revenue")).toBeVisible();
   // Nothing changed: still the sample
   await expect(page.getByRole("textbox", { name: /^Revenue, / }).last()).toHaveValue("265.0");
+});
+
+test("a company whose filings aren't indexed yet says so once, and offers nothing to use", async ({ page }) => {
+  await signInAs(page, `company-unindexed-${run}`, "en-GB");
+  await replayCompanies(page);
+  // What production answers for an EDINET company before the nightly refresh has indexed its filings
+  const recorded = JSON.parse(readFileSync(path.join(__dirname, "fixtures", "companies.json"), "utf-8"));
+  const toyota = recorded.load["edinet/E02144"];
+  const unindexed = {
+    ...toyota, accounting_standard: "jgaap", fiscal_year_end_month: null, years: [],
+    warnings: [{ code: "not_indexed_yet", field: null }], deal_inputs: null, forecast_history: null,
+  };
+  await page.route("**/api/companies/load", (route) => route.fulfill({ json: unindexed }));
+  await page.goto("/forecast/historicals");
+  await find(page, "Toyota");
+  await rail(page).getByRole("button", { name: /^TOYOTA MOTOR CORPORATION/ }).click();
+
+  const loaded = rail(page).getByRole("region", { name: "Loaded company" });
+  await expect(loaded.getByText(/aren't indexed yet/)).toHaveCount(1);
+  await expect(loaded.getByText("Japanese GAAP")).toHaveCount(0);       // no filing has said so
+  await expect(loaded.getByText(/No annual figures/)).toHaveCount(0);
+  await expect(loaded.getByText(/no EBITDA|Not every year gives revenue/)).toHaveCount(0);
+  await expect(loaded.getByRole("button", { name: "Use in deal" })).toBeDisabled();
+  await expect(loaded.getByRole("button", { name: "Use in forecast" })).toBeDisabled();
+  await expect(page.getByRole("region", { name: "Filed figures, TOYOTA MOTOR CORPORATION" })).toContainText("aren't indexed yet");
 });
 
 test("a source this server can't load is shown but can't be chosen", async ({ page }) => {

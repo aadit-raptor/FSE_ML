@@ -8,6 +8,7 @@ import { fmtMoney } from "@/lib/format";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { formatDateTime } from "@/lib/locale";
 
+import { CompanyWarning } from "./CompanyPanel";
 import { type Company, useCompanies } from "./CompanyProvider";
 
 /** The summary figures, in the API's order (companies/items.py SUMMARY_FIELDS). i18n-keys: companies.field_* */
@@ -40,7 +41,9 @@ function Figures({ company }: { company: Company }) {
   return (
     <Tile span={12} title={title} unit={mu}>
       {company.years.length === 0 ? (
-        <p className="type-body">{t("noYears")}</p>
+        <p className="type-body">
+          {company.warnings.length ? <CompanyWarning code={company.warnings[0].code} field={company.warnings[0].field} /> : t("noYears")}
+        </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse font-mono text-[11px]" aria-label={title}>
