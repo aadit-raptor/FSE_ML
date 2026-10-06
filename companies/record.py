@@ -220,7 +220,7 @@ def _trim_edinet_csv(content: bytes) -> bytes:
             rows = list(csv.reader(io.StringIO(z.read(name).decode("utf-16")), delimiter="\t"))
             kept = rows[:1] + [r for r in rows[1:] if len(r) >= 9 and (
                 r[0].startswith("jpdei_cor:") or
-                f"{edinet.PREFIXES.get(r[0].partition(':')[0], '')}:{r[0].partition(':')[2]}" in wanted)]
+                f"{edinet.canonical(r[0].partition(':')[0])}:{r[0].partition(':')[2]}" in wanted)]
             buf = io.StringIO()
             csv.writer(buf, delimiter="\t", lineterminator="\r\n").writerows(kept)
             out[name] = buf.getvalue().encode("utf-16")

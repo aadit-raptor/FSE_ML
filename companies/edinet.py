@@ -52,6 +52,13 @@ DISCLOSURE_ORDINANCE = "010"
 INDIVIDUAL = "個人"
 STANDARD_DEI = {"Japan GAAP": JGAAP, "IFRS": IFRS, "US GAAP": US_GAAP}
 PREFIXES = {"jppfs_cor": "jppfs", "jpigp_cor": "jpigp", "jpcrp_cor": "jpcrp", "jpdei_cor": "jpdei"}
+# A filer's own concepts (``jpcrp030000-asr_E02144-000:TotalNetRevenuesIFRS``)
+# are read as ``ext:``: some filers report revenue only under their own name
+EXTENSION = re.compile(r"^jpcrp\d{6}-[a-z]{3}_E\d{5}-\d{3}$")
+
+
+def canonical(prefix: str) -> Optional[str]:
+    return PREFIXES.get(prefix) or ("ext" if EXTENSION.match(prefix) else None)
 # Consolidated, undimensioned contexts: CurrentYearDuration, Prior1YearInstant ...
 CONTEXT = re.compile(r"^(CurrentYear|Prior([1-4])Year)(Duration|Instant)$")
 
@@ -260,10 +267,10 @@ def read_csv(content: bytes, report: IndexedReport, link: FilingLink) -> tuple[l
                 continue
             element, context, unit, value = row[0], row[2], row[6], row[8]
             prefix, _, local = element.partition(":")
-            canonical = PREFIXES.get(prefix)
-            if canonical is None:
+            short = canonical(prefix)
+            if short is None:
                 continue
-            if canonical == "jpdei":
+            if short == "jpdei":
                 labels.setdefault(f"jpdei:{local}", value)
                 continue
             m = CONTEXT.match(context)
@@ -278,7 +285,7 @@ def read_csv(content: bytes, report: IndexedReport, link: FilingLink) -> tuple[l
             start = None
             if m.group(3) == "Duration":
                 start = _shift(report.period_start, back) if report.period_start else _shift(end, 1)
-            facts.append(Fact(f"{canonical}:{local}", amount, unit, end, start, link))
+            facts.append(Fact(f"{short}:{local}", amount, unit, end, start, link))
     return facts, labels
 
 

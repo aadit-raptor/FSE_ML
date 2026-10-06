@@ -20,11 +20,13 @@ and a run makes at most about ``EDINET_DAYS_PER_RUN`` + 3 x
 """
 from __future__ import annotations
 
+import logging
 import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo
 
+from api.observability import log_event
 from companies import edinet, http, sources
 
 REFRESH_AFTER = timedelta(days=14)
@@ -69,7 +71,9 @@ def refresh_stale(now: datetime, deadline: float) -> dict:
         try:
             store.save(sources.fetch(source, source_id))
             refreshed += 1
-        except (http.SourceError, ValueError):
+        except Exception as exc:  # noqa: BLE001 - one company must not stop the rest; logged, counted
+            log_event("company_refresh_failed", logging.WARNING, source=source,
+                      reason=getattr(exc, "reason", type(exc).__name__))
             store.mark_refreshed(source, source_id)
             failed += 1
     return {"companies_refreshed": refreshed, "refresh_failures": failed}

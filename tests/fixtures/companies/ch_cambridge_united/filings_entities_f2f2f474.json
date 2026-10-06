@@ -1,0 +1,1 @@
+{"data": [], "links": {"self": "https://filings.xbrl.org/api/entities?filter=%5B%7B%22name%22%3A+%22name%22%2C+%22op%22%3A+%22ilike%22%2C+%22val%22%3A+%22%2500482197%25%22%7D%5D&page%5Bsize%5D=10"}, "meta": {"count": 0}, "jsonapi": {"version": "1.0"}}

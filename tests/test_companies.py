@@ -410,3 +410,148 @@ def test_recording_a_fixture_again_gives_the_same_files(case, tmp_path):
 def test_every_summary_field_has_an_answer_shape():
     from api.schemas import CompanyFigures
     assert set(CompanyFigures.model_fields) == set(SUMMARY_FIELDS)
+
+
+# ---------------------------------------------------------------------------
+# United Kingdom (any company): Companies House
+# ---------------------------------------------------------------------------
+@pytest.fixture
+def keys(monkeypatch):
+    monkeypatch.setenv(companies_house.KEY_ENV, "test-key")
+    monkeypatch.setenv(edinet.KEY_ENV, "test-key")
+
+
+def test_uk_private_company_loads_from_companies_house_under_uk_gaap(keys):  # noqa: ARG001
+    use("ch_cambridge_united")
+    assert [(r.source, r.source_id, r.name) for r in sources.search("00482197").results
+            if r.source == "companies_house"] == [
+        ("companies_house", "00482197", "CAMBRIDGE UNITED FOOTBALL CLUB LIMITED")]
+    use("ch_cambridge_united")
+    data = sources.fetch("companies_house", "482197")
+    assert (data.ref.country, data.currency, data.accounting_standard, data.fiscal_year_end_month) == \
+        ("GB", "GBP", "uk_gaap", 6)                       # FRS 102, a June year
+    assert [y.fiscal_year for y in data.years] == [2023, 2024, 2025]
+    fy24 = year(data, 2024)
+    # Accounts to 30 June 2024: turnover, operating loss, total assets (GBP, here in millions)
+    assert fy24.figures["revenue"] == 8.304626
+    assert fy24.figures["operating_income"] == -2.577324
+    assert fy24.figures["total_assets"] == 11.193409
+    assert fy24.filing.url.startswith(
+        "https://find-and-update.company-information.service.gov.uk/company/00482197/filing-history/")
+    assert fy24.filing.form == "AA" and fy24.filing.filed_on == date(2025, 3, 28)
+    # The 2025 accounts tag no turnover: left empty, not guessed
+    assert year(data, 2025).figures["revenue"] is None
+
+
+def test_accounts_filed_on_paper_load_the_company_without_figures(keys):  # noqa: ARG001
+    recorded = replay(FIXTURES / "ch_cambridge_united")
+
+    def pdf_only(req):
+        if req.url.startswith(companies_house.DOCUMENT_API.format(id="")) and not req.url.endswith("/content"):
+            return http.Response(200, json.dumps({"resources": {"application/pdf": {}}}).encode())
+        return recorded(req)
+    http.use_transport(pdf_only)
+    data = sources.fetch("companies_house", "00482197")
+    assert data.years == [] and [w.code for w in data.warnings] == ["scanned_accounts"]
+    assert data.ref.name == "CAMBRIDGE UNITED FOOTBALL CLUB LIMITED"
+
+
+# ---------------------------------------------------------------------------
+# Japan: EDINET
+# ---------------------------------------------------------------------------
+def edinet_case(case: str) -> None:
+    """Replay a case and index its recorded day lists, as the refresh would."""
+    use(case)
+    index = json.loads((FIXTURES / case / "index.json").read_text(encoding="utf-8"))
+    for key in index:
+        if key.endswith("/documents.json") or "documents.json?" in key:
+            edinet.scan_day(date.fromisoformat(key.split("date=")[1][:10]))
+
+
+def test_japanese_ifrs_company_loads_in_yen(keys):  # noqa: ARG001
+    edinet_case("edinet_toyota")
+    data = sources.fetch("edinet", "E02144")
+    assert (data.ref.name, data.ref.local_name, data.ref.country) == \
+        ("TOYOTA MOTOR CORPORATION", "トヨタ自動車株式会社", "JP")
+    assert (data.currency, data.accounting_standard, data.fiscal_year_end_month) == ("JPY", "ifrs", 3)
+    assert [y.fiscal_year for y in data.years] == [2024, 2025, 2026]
+    fy25 = year(data, 2025)
+    # Annual securities report for the year to 31 March 2025 (JPY m): total net
+    # revenues (Toyota's own concept), operating income, total assets
+    assert fy25.figures["revenue"] == 48036704.0
+    assert fy25.figures["operating_income"] == 4795586.0
+    assert fy25.figures["total_assets"] == 93601350.0
+    assert fy25.filing.url == "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100Y8NY.pdf"
+    assert year(data, 2024).filing.id == "S100VWVY"
+
+
+def test_japanese_gaap_company_loads_in_yen(keys):  # noqa: ARG001
+    edinet_case("edinet_nintendo")
+    data = sources.fetch("edinet", "E02367")
+    assert (data.ref.name, data.currency, data.accounting_standard) == ("Nintendo Co., Ltd.", "JPY", "jgaap")
+    fy25 = year(data, 2025)
+    # Annual securities report for the year to 31 March 2025 (JPY m)
+    assert fy25.figures["revenue"] == 1164922.0
+    assert fy25.figures["operating_income"] == 282553.0
+    assert fy25.figures["total_assets"] == 3398515.0
+    # Purchases of fixed assets are a cash outflow, reported negative: stored as a cost
+    assert fy25.figures["capital_expenditures"] == 19008.0
+
+
+def test_an_edinet_company_not_yet_in_the_index_says_so(keys):  # noqa: ARG001
+    use("edinet_toyota")
+    data = sources.fetch("edinet", "E02144")
+    assert data.years == [] and [w.code for w in data.warnings] == ["not_indexed_yet"]
+
+
+def test_the_day_list_keeps_annual_reports_only():
+    row = {"docID": "S100AAAA", "edinetCode": "E02144", "docTypeCode": "120", "ordinanceCode": "010",
+           "csvFlag": "1", "withdrawalStatus": "0", "periodStart": "2024-04-01", "periodEnd": "2025-03-31",
+           "submitDateTime": "2025-06-18 15:00"}
+    listing = {"results": [row, {**row, "docTypeCode": "140"}, {**row, "csvFlag": "0"},
+                           {**row, "withdrawalStatus": "1"}, {**row, "ordinanceCode": "030"},
+                           {**row, "docTypeCode": "130", "docID": "S100BBBB"}]}
+    assert [r.doc_id for r in edinet.annual_reports(listing)] == ["S100AAAA", "S100BBBB"]
+
+
+def test_edinet_search_leaves_out_individuals():
+    import io
+    import zipfile
+    lines = ["made 2026-10-06", "header",
+             '"E99991","内国法人・組合","上場","有","1","3月31日","テスト株式会社","TEST CO","テスト","x","x","99990","1234567890123"',
+             '"E99992","個人（組合発行者を除く）","","","","","山田太郎","","","","","",""']
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("EdinetcodeDlInfo.csv", "\r\n".join(lines).encode("cp932"))
+    rows = edinet.parse_code_list(buf.getvalue())
+    assert [r["edinet_code"] for r in rows] == ["E99991"]
+
+
+@pytest.mark.parametrize("case", ["ch_cambridge_united", "edinet_toyota", "edinet_nintendo"])
+def test_recording_a_keyed_fixture_again_gives_the_same_files(case, tmp_path, keys, monkeypatch):  # noqa: ARG001
+    from companies import record
+
+    class Recorded(date):
+        @classmethod
+        def today(cls):
+            return date(2026, 10, 6)        # when they were recorded: the walk back starts here
+    monkeypatch.setattr(record, "date", Recorded)
+    out = record.record(record.CASES[case], tmp_path, real=replay(FIXTURES / case))
+    committed = json.loads((FIXTURES / case / record.INDEX).read_text(encoding="utf-8"))
+    assert json.loads((out / record.INDEX).read_text(encoding="utf-8")) == committed
+    for entry in committed.values():
+        assert (out / entry["file"]).read_bytes() == (FIXTURES / case / entry["file"]).read_bytes()
+
+
+def test_the_recorder_refuses_to_write_a_key(tmp_path, monkeypatch):
+    from companies import record
+    monkeypatch.setenv(companies_house.KEY_ENV, "s3cret-key")
+
+    def leaky(req):
+        if req.host != "api.company-information.service.gov.uk":
+            return http.Response(404, b"")
+        return http.Response(200, b'{"company_number": "00482197", "company_name": "s3cret-key"}',
+                             "application/json")
+    with pytest.raises(SystemExit):
+        record.record(record.CASES["ch_cambridge_united"], tmp_path, real=leaky)
+    assert not any((tmp_path / "ch_cambridge_united").iterdir())

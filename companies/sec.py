@@ -16,7 +16,7 @@ from datetime import date
 from typing import Optional
 
 from companies import http
-from companies.facts import Fact, main_currency, summarize
+from companies.facts import Fact, fiscal_year_of, main_currency, summarize
 from companies.items import IFRS_MAP, US_GAAP_MAP
 from companies.model import IFRS, US_GAAP, CompanyData, CompanyRef, FilingLink
 
@@ -140,19 +140,11 @@ def fetch(source_id: str, n_years: int = 3) -> CompanyData:
     tickers = submissions.get("tickers") or []
     if tickers:
         ids["ticker"] = tickers[0]
+    # The month the latest year really ends in (a 52/53-week year ending in
+    # a month's first week is the month before), else what the SEC holds
     fye = submissions.get("fiscalYearEnd") or ""
-    month = int(fye[:2]) if len(fye) == 4 and fye.isdigit() else None
-    if years and month is None:
-        month = years[-1].period_end.month
+    month = fiscal_year_of(years[-1].period_end)[1] if years else (
+        int(fye[:2]) if len(fye) == 4 and fye.isdigit() else None)
     ref = CompanyRef(SOURCE, cik, submissions.get("name") or data.get("entityName", cik),
                      _country(submissions), ids)
-    return CompanyData(ref, currency, standard, _year_end_month(years, month), years, warnings)
-
-
-def _year_end_month(years, declared: Optional[int]) -> Optional[int]:
-    """The month the latest fiscal year really ends in (a 52/53-week year
-    ending in a month's first week counts as the month before)."""
-    from companies.facts import fiscal_year_of
-    if years:
-        return fiscal_year_of(years[-1].period_end)[1]
-    return declared
+    return CompanyData(ref, currency, standard, month, years, warnings)

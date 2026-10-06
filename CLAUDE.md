@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-06 (PLAN.md 3.4: hand-checked reference cases). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-06 (PLAN.md 4.1a: company filings, the data layer). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -575,6 +575,60 @@ hand + the unfunded repayment it reports): fixing finding 11 changes that case.
 A model change that moves a case's number is a working change *and* an engine
 version (3.1).
 
+Company filings, the data layer (PLAN.md 4.1a; 4.1b is the screen):
+**`companies/`** is one interface (`sources.search`, `sources.fetch`) with a
+connector per source -- `sec` (EDGAR company facts), `esef` (ESEF reports as
+xBRL-JSON from filings.xbrl.org: EU- and UK-listed), `companies_house`
+(accounts filed as inline XBRL, `ixbrl.py`; scanned PDFs have no figures,
+warning `scanned_accounts`) and `edinet` (annual securities reports'
+XBRL-to-CSV). Each reads its filings into `facts.Fact`s and `facts.summarize`
+makes the **summary figures** (`items.SUMMARY_FIELDS`) per fiscal year:
+annual, undimensioned facts only, named by the year they end in (a
+52/53-week year ending in a month's first week is the month before), each
+year from the highest-priority concept and the newest filing reporting it,
+**millions of the filing's own currency**, EBITDA = operating income + D&A
+as the standard reports them. Concept lists per taxonomy are in
+`items.py` (`us-gaap` and `ifrs-full` reuse `core.accounting`'s, so the
+summary equals the EDGAR answer for McDonald's, tested; FRC `core`, EDINET
+`jppfs` and `jpigp` were checked against recorded filings; a `Sum` adds
+concepts, `every=True` needs all parts). Standards here are `ifrs`,
+`us_gaap`, `uk_gaap`, `jgaap` (labels; a deal takes only the first two).
+Search reads an ISIN or LEI by its check digits (`identifiers.py`) and asks
+**GLEIF** for the company and its home-register number (UK company number,
+Japanese corporate number); anything else goes to every source as name,
+ticker or number; a failing or keyless source is listed in `unavailable`,
+never fails the search. A company nobody covers gets the fallback
+`document_upload` (6.2). **HTTP** (`companies/http.py`) paces each host
+within its rules and raises `SourceError` with a reason code and the host
+only: EDINET takes its key as a query parameter, so **no URL or HTTP
+library error text ever reaches a message or log**. Keys:
+`COMPANIES_HOUSE_API_KEY`, `EDINET_API_KEY` (Render both services, GitHub
+secrets); SEC, ESEF and GLEIF need none. Storage (`db/companies.py`,
+migration 0011): `companies`, `company_years` (figures JSONB, filing link
+and date), `edinet_reports` (EDINET lists documents by filing day only, so
+the index is built from the day lists) and `source_cursors`. **Public data,
+shared**: no owner, nothing about who asked. Under 4 KB a company with five
+years (tested), `MAX_COMPANIES` 8,000, budget 64 MB, reported as
+`company_data` by `/api/health/database` and failed at 80% by
+`ops/check_database.py`. Endpoints: `GET /api/companies/sources`, `GET
+/api/companies/search?q=`, `POST /api/companies/load` (both in
+`RUN_PATHS`), `GET /api/companies/{source}/{id}` (stored only). Every answer
+carries `money`. The nightly **`company-refresh`** task (`companies/refresh.py`,
+`scheduled.yml` with `ops.scheduled task --repeat 8`, which calls again
+while the summary says `more`) scans EDINET's day lists (400-day backfill,
+60 a call), reloads up to 15 companies untouched for 14 days and evicts
+beyond the cap; a refused EDINET key fails the run so it alerts. **Tests
+replay recorded responses** (`tests/fixtures/companies/<case>/index.json`,
+`companies/record.py`): every response trimmed to what the code reads,
+zips with fixed timestamps, so recording a fixture again from itself gives
+the same bytes (tested). Keyless cases record locally; Companies House and
+EDINET record in **`record-filings.yml`** (by hand, or on a PR changing the
+recorder) with the secrets, uploading `recorded-filings` (and untrimmed
+`raw-filings`, never committed) as artifacts. Fixtures: McDonald's (SEC),
+Tesco (ESEF, GBP, a 53-week February year), Heineken (ESEF, EUR),
+Cambridge United (Companies House, FRS 102), Toyota (EDINET, IFRS) and
+Nintendo (EDINET, Japanese GAAP).
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -619,7 +673,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). **Next is 4.1** (company filings from many countries; needs free UK Companies House and Japan EDINET API keys as secrets first).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 was split: **4.1a is done** (company filings, the data layer, below); **next is 4.1b** (the screen: company search and figures on Forecast and Deal).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -778,6 +832,15 @@ golden snapshot is untouched and parity tests explain every departure.
     simulates a slightly smaller equity cheque, and a revolver deal draws
     less. Wiring it in moves every simulation of such a deal.
 
+14. **Open (found in PLAN.md 4.1a, needs the user's approval): EDGAR's D&A
+    can come from the wrong concept.** `core/accounting.py` `US_GAAP_ITEMS`
+    lists `DepreciationDepletionAndAmortization` before
+    `DepreciationAndAmortization`; McDonald's tags 457 (2025, USD m) under
+    the first and its cash-flow total, 2,199, under the second, so the
+    EDGAR answer's (and the company summary's) D&A, and EBITDA, are low.
+    Reordering changes the EDGAR answer pinned by
+    `tests/fixtures/edgar/mcd_expected_before_2_6.json`, so it waits.
+
 ### Waiting on the user
 
 - PLAN.md 1.7 follow-up: the GitHub settings in DEPLOY.md "CI and GitHub
@@ -829,6 +892,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
+| `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder; storage, budget and the EDINET index; the endpoints |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
 | `docs/methodology.md`, `tests/test_methodology.py` | Methodology (PLAN.md 3.2): every calculation written down, and the test that every model function, link, constant and Settings default in it matches the code |
 | `core/model_version.py`, `MODEL_CHANGELOG.md`, `tests/model_version_pins.json` | Model version (PLAN.md 3.1): the stamp on every result, the saved stamp and the reopening check; what each engine version changed; reference results per version |
@@ -1135,6 +1199,13 @@ Skills load when a session starts: install first, then open a new session.
   added in three places: a `COPY` line in the `Dockerfile` (it copies
   packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in
   `staging.yml`. CI's `docker` job fails at start-up if the first is missing.
+- A connector's figures must be checked against a **recorded real filing**,
+  not a guessed concept list: Toyota's IFRS report and Tesco's capex use
+  concepts nobody would guess. Record with `record-filings.yml` (keyed
+  sources) or `python -m companies.record <case>` (keyless), read the
+  untrimmed `raw-filings` artifact for concept names, then fix the map. A
+  replayed case resets `sec.reset_cache()` and `edinet.reset_cache()` first:
+  each fixture's name lists are trimmed to that case.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.

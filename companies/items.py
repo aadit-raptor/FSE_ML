@@ -151,7 +151,8 @@ JPPFS_MAP = ConceptMap("jppfs", {
     "income_tax_expense": ["jppfs:IncomeTaxes", "jppfs:TotalIncomeTaxes"],
     "interest_expense": ["jppfs:InterestExpensesNOE", "jppfs:InterestExpensesOpeCF"],
     "capital_expenditures": ["jppfs:PurchaseOfPropertyPlantAndEquipmentInvCF",
-                             "jppfs:PurchaseOfPropertyPlantAndEquipmentAndIntangibleAssetsInvCF"],
+                             "jppfs:PurchaseOfPropertyPlantAndEquipmentAndIntangibleAssetsInvCF",
+                             "jpcrp:CapitalExpendituresOverviewOfCapitalExpendituresEtc"],
     "cash_and_equivalents": ["jppfs:CashAndCashEquivalents", "jppfs:CashAndDeposits",
                              "jpcrp:CashAndCashEquivalentsSummaryOfBusinessResults"],
     "accounts_receivable": ["jppfs:NotesAndAccountsReceivableTradeAndContractAssets",
@@ -169,17 +170,23 @@ JPPFS_MAP = ConceptMap("jppfs", {
 }, frozenset({"inventories", "lease_cost", "lease_liability", "interest_expense"}))
 
 
-# Japan, EDINET: IFRS statements (jpigp_cor, the FSA's IFRS taxonomy)
+# Japan, EDINET: IFRS statements (jpigp_cor, the FSA's IFRS taxonomy). Some
+# filers report revenue only under a concept of their own (``ext:``; Toyota's
+# "total net revenues"); debt is "interest-bearing liabilities" when not
+# bonds and borrowings; capex falls back to the report's capital
+# expenditure overview, which every annual report states.
 JPIGP_MAP = ConceptMap("jpigp", {
-    "revenue": ["jpigp:RevenueIFRS", "jpigp:NetSalesIFRS", "jpigp:TotalNetRevenuesIFRS",
-                "jpcrp:RevenueIFRSSummaryOfBusinessResults"],
+    "revenue": ["jpigp:RevenueIFRS", "jpigp:NetSalesIFRS", "jpigp:OperatingRevenueIFRS",
+                "jpcrp:RevenueIFRSSummaryOfBusinessResults",
+                "ext:TotalNetRevenuesIFRS", "ext:SalesRevenuesIFRS", "ext:OperatingRevenuesIFRS"],
     "operating_income": ["jpigp:OperatingProfitLossIFRS"],
     "depreciation_amortization": ["jpigp:DepreciationAndAmortizationOpeCFIFRS"],
     "net_income": ["jpigp:ProfitLossIFRS", "jpigp:ProfitLossAttributableToOwnersOfParentIFRS",
                    "jpcrp:ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults"],
     "income_tax_expense": ["jpigp:IncomeTaxExpenseIFRS"],
     "interest_expense": ["jpigp:FinanceCostsIFRS", "jpigp:InterestExpensesOpeCFIFRS"],
-    "capital_expenditures": ["jpigp:PurchaseOfPropertyPlantAndEquipmentInvCFIFRS"],
+    "capital_expenditures": ["jpigp:PurchaseOfPropertyPlantAndEquipmentInvCFIFRS",
+                             "jpcrp:CapitalExpendituresOverviewOfCapitalExpendituresEtc"],
     "cash_and_equivalents": ["jpigp:CashAndCashEquivalentsIFRS",
                              "jpcrp:CashAndCashEquivalentsIFRSSummaryOfBusinessResults"],
     "accounts_receivable": ["jpigp:TradeAndOtherReceivablesCAIFRS"],
@@ -189,7 +196,8 @@ JPIGP_MAP = ConceptMap("jpigp", {
     "total_equity": ["jpigp:EquityIFRS"],
     "equity_parent": ["jpigp:EquityAttributableToOwnersOfParentIFRS"],
     "debt_total": [Sum(("jpigp:BondsAndBorrowingsCLIFRS", "jpigp:BondsAndBorrowingsNCLIFRS")),
-                   Sum(("jpigp:BorrowingsCLIFRS", "jpigp:BorrowingsNCLIFRS"))],
+                   Sum(("jpigp:BorrowingsCLIFRS", "jpigp:BorrowingsNCLIFRS")),
+                   Sum(("jpigp:InterestBearingLiabilitiesCLIFRS", "jpigp:InterestBearingLiabilitiesNCLIFRS"))],
     "debt_noncurrent": [], "debt_current": [],
     "lease_cost": ["jpigp:RepaymentsOfLeaseLiabilitiesFinCFIFRS"],
     "lease_liability": [],

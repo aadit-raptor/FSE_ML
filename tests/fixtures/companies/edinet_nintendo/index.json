@@ -1,0 +1,27 @@
+{
+ "https://api.edinet-fsa.go.jp/api/v2/documents.json?date=2025-06-26&type=2": {
+  "file": "edinet_fsa_documents_json_03c41b3e.json",
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+ },
+ "https://api.edinet-fsa.go.jp/api/v2/documents.json?date=2026-06-25&type=2": {
+  "file": "edinet_fsa_documents_json_a0f565d3.json",
+  "status": 200,
+  "type": "application/json; charset=utf-8"
+ },
+ "https://api.edinet-fsa.go.jp/api/v2/documents/S100W73A?type=5": {
+  "file": "edinet_fsa_S100W73A_a15cd262.bin",
+  "status": 200,
+  "type": "application/octet-stream"
+ },
+ "https://api.edinet-fsa.go.jp/api/v2/documents/S100Y9NX?type=5": {
+  "file": "edinet_fsa_S100Y9NX_0f82eb62.bin",
+  "status": 200,
+  "type": "application/octet-stream"
+ },
+ "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/codelist/Edinetcode.zip": {
+  "file": "edinet_fsa_Edinetcode_zip_07ba54d7.zip",
+  "status": 200,
+  "type": "application/octet-stream"
+ }
+}

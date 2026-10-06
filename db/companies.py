@@ -5,8 +5,8 @@ company row, and nothing here records who looked one up.
 
 **Staying inside the free 0.5 GB.** What is stored is the summary
 (companies/items.py), never a filing: a company is one row of names and
-identifiers plus a row per fiscal year (``MAX_YEARS`` at most), about
-1.5 KB a company all told (``tests/test_companies.py`` measures it). At most
+identifiers plus a row per fiscal year (``MAX_YEARS`` at most), under 4 KB
+a company with five years (``tests/test_company_data.py`` measures it). At most
 ``MAX_COMPANIES`` are kept -- the scheduled refresh removes the least
 recently used beyond that -- and EDINET's index keeps ``KEEP_EDINET_YEARS``
 of reports. Together that is under ``BUDGET_BYTES``, which
@@ -26,7 +26,7 @@ from companies.model import CompanyData, CompanyRef, FilingLink, Warning, YearFi
 from db.engine import connect, transaction
 from db.models import Company, CompanyYear, EdinetReport, SourceCursor, utc_now
 
-MAX_COMPANIES = 10_000
+MAX_COMPANIES = 8_000
 MAX_YEARS = 5
 KEEP_EDINET_YEARS = 3
 # 64 MB of the free 512 MB: companies, their years and the EDINET index
@@ -66,11 +66,11 @@ def get(source: str, source_id: str, *, touch: bool = True) -> Optional[tuple[Co
     """A stored company and when it was refreshed, or None."""
     with connect() as conn:
         row = conn.execute(select(Company).where(Company.source == source,
-                                                 Company.source_id == source_id)).scalar_one_or_none()
+                                                 Company.source_id == source_id)).one_or_none()
         if row is None:
             return None
         years = conn.execute(select(CompanyYear).where(CompanyYear.company_id == row.id)
-                             .order_by(CompanyYear.fiscal_year)).scalars().all()
+                             .order_by(CompanyYear.fiscal_year)).all()
     if touch and row.last_used_at < utc_now() - TOUCH_EVERY:
         with transaction() as conn:
             conn.execute(update(Company).where(Company.id == row.id).values(last_used_at=utc_now()))
@@ -120,7 +120,7 @@ def evict(max_companies: int = MAX_COMPANIES) -> int:
 def usage_on(conn) -> dict:
     """Bytes the company tables take (data, indexes and TOAST) against the
     budget, on an open connection (the database health check's)."""
-    sql = text("SELECT COALESCE(SUM(pg_total_relation_size(to_regclass(t))), 0) FROM unnest(:tables) AS t")
+    sql = text("SELECT COALESCE(SUM(pg_total_relation_size(to_regclass(t))), 0) FROM unnest(CAST(:tables AS text[])) AS t")
     used = int(conn.execute(sql, {"tables": list(TABLES)}).scalar_one())
     companies = conn.execute(select(func.count()).select_from(Company)).scalar_one()
     return {"bytes": used, "budget_bytes": BUDGET_BYTES, "companies": companies,
@@ -140,7 +140,7 @@ class DatabaseReportIndex:
     def reports(self, edinet_code: str) -> list[IndexedReport]:
         with connect() as conn:
             rows = conn.execute(select(EdinetReport).where(EdinetReport.edinet_code == edinet_code)
-                                .order_by(EdinetReport.period_end.desc())).scalars().all()
+                                .order_by(EdinetReport.period_end.desc())).all()
         return [IndexedReport(r.edinet_code, r.doc_id, r.period_start, r.period_end, r.submitted_at) for r in rows]
 
     def add(self, reports: list[IndexedReport]) -> int:
@@ -162,7 +162,7 @@ class DatabaseReportIndex:
                   "submitted_at": stmt.excluded.submitted_at},
             where=EdinetReport.submitted_at < stmt.excluded.submitted_at)
         with transaction() as conn:
-            return conn.execute(stmt).rowcount
+            return len(conn.execute(stmt.returning(EdinetReport.doc_id)).all())
 
     def scanned_through(self) -> Optional[date]:
         with connect() as conn:

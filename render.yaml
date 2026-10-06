@@ -50,3 +50,10 @@ services:
       # Only with INSTALL_ML=true images: enables macro regime detection
       - key: FRED_API_KEY
         sync: false
+      # Company filings (PLAN.md 4.1): UK Companies House and Japan's EDINET.
+      # Unset = those two sources are listed as not set up; SEC EDGAR and
+      # ESEF need no key
+      - key: COMPANIES_HOUSE_API_KEY
+        sync: false
+      - key: EDINET_API_KEY
+        sync: false
