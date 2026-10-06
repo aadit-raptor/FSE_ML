@@ -1,0 +1,48 @@
+{
+ "_recorded_on": "2026-10-06",
+ "https://api.worldbank.org/v2/country/USA;GBR;DEU;FRA;ITA;ESP;NLD;CHE;SWE;NOR;POL;JPN;CHN;IND;KOR;AUS;CAN;BRA;MEX;ZAF;SGP;SAU;TUR;IDN/indicator/FP.CPI.TOTL.ZG?format=json&mrv=6&per_page=1000": {
+  "file": "api_FP_CPI_TOTL_ZG_06dd88ef.json",
+  "status": 200,
+  "type": "application/json;charset=utf-8"
+ },
+ "https://api.worldbank.org/v2/country/USA;GBR;DEU;FRA;ITA;ESP;NLD;CHE;SWE;NOR;POL;JPN;CHN;IND;KOR;AUS;CAN;BRA;MEX;ZAF;SGP;SAU;TUR;IDN/indicator/NY.GDP.MKTP.KD.ZG?format=json&mrv=6&per_page=1000": {
+  "file": "api_NY_GDP_MKTP_KD_ZG_8c6b31d1.json",
+  "status": 200,
+  "type": "application/json;charset=utf-8"
+ },
+ "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?detail=dataonly&format=csvdata&lastNObservations=24": {
+  "file": "ecb_B_EU000A2X2A25_WT_6356d940.csv",
+  "status": 200,
+  "type": "text/csv"
+ },
+ "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A?detail=dataonly&format=csvdata&startPeriod=2025-09-01": {
+  "file": "ecb_D_EUR_SP00_A_3e9f73bb.csv",
+  "status": 200,
+  "type": "text/csv"
+ },
+ "https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA?detail=dataonly&format=csvdata&lastNObservations=24": {
+  "file": "ecb_M_U2_EUR_RT_MM_EURIBOR3MD_HSTA_1c0cbfad.csv",
+  "status": 200,
+  "type": "text/csv"
+ },
+ "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_FINMARK,4.0/USA+GBR+DEU+FRA+ITA+ESP+NLD+CHE+SWE+NOR+POL+JPN+CHN+IND+KOR+AUS+CAN+BRA+MEX+ZAF+SGP+SAU+TUR+IDN+EA20.M.IRLT+IR3TIB.PA.....?format=csvfile&lastNObservations=24": {
+  "file": "sdmx_USA_GBR_DEU_FRA_ITA_ESP_NLD_CHE_SWE_NOR_POL_JPN_CHN_IND_ef1ab92b.csv",
+  "status": 200,
+  "type": "application/vnd.sdmx.data+csv; charset=utf-8"
+ },
+ "https://stats.bis.org/api/v1/data/WS_CBPOL/D.US+GB+CH+SE+NO+PL+JP+CN+IN+KR+AU+CA+BR+MX+ZA+SG+SA+TR+ID+XM/all?detail=dataonly&format=csv&lastNObservations=10": {
+  "file": "stats_all_056bc6c3.csv",
+  "status": 200,
+  "type": "text/csv;charset=UTF-8"
+ },
+ "https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH": {
+  "file": "www_NGDP_RPCH_c148a27b.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://www.imf.org/external/datamapper/api/v1/PCPIPCH": {
+  "file": "www_PCPIPCH_d0b521ea.json",
+  "status": 200,
+  "type": "application/json"
+ }
+}

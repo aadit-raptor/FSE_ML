@@ -28,7 +28,7 @@ from api.github_oidc import require_workflow
 from core.debt import UnfinanceableStructure
 from core.model_version import ENGINE_VERSION
 from api.routers import (
-    account, backtesting, companies, deal, deals, export, forecasting, integrations, jobs, montecarlo,
+    account, backtesting, companies, deal, deals, economy, export, forecasting, integrations, jobs, montecarlo,
     scheduled,
 )
 from db import DatabaseUnavailable
@@ -181,7 +181,7 @@ def create_app() -> FastAPI:
     # here, not endpoint by endpoint, means a new route is protected by
     # default -- forgetting is impossible rather than unlikely.
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
-                   jobs, companies):
+                   jobs, companies, economy):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,
