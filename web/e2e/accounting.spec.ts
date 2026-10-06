@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { expect, type Page, test } from "@playwright/test";
 
-import { dealSettled, kpi, setField, stepLink } from "./helpers";
+import { dealSettled, kpi, replayCompanies, setField, stepLink } from "./helpers";
 
 /**
  * Accounting standards and leases (PLAN.md 2.6), proved by what the model
@@ -99,8 +99,12 @@ test.describe("Accounting standards", () => {
     await expect(row(page, "Income statement", "Finance costs")).toHaveCount(1);
     await combo(page, "Accounting standard").selectOption("");
 
-    await page.getByLabel("Ticker").fill("SAP");
-    await page.getByRole("button", { name: "Fetch" }).click();
+    // Found through the company search (PLAN.md 4.1b); a US filer's statements still come from EDGAR
+    await replayCompanies(page);
+    await page.getByLabel("Company search").fill("SAP");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await page.getByRole("button", { name: /^SAP SE/ }).click();
+    await page.getByRole("button", { name: "Use in forecast" }).click();
     await expect(combo(page, "Accounting standard")).toHaveValue("ifrs");
     await expect(page.getByText("principal repaid on lease liabilities only")).toBeVisible();
     await page.getByRole("button", { name: "Use in deal" }).click();

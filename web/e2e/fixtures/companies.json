@@ -1,0 +1,1208 @@
+{
+ "load": {
+  "companies_house/00482197": {
+   "accounting_standard": "uk_gaap",
+   "company": {
+    "country": "GB",
+    "id": "00482197",
+    "identifiers": {
+     "company_number": "00482197"
+    },
+    "loadable": true,
+    "local_name": null,
+    "name": "CAMBRIDGE UNITED FOOTBALL CLUB LIMITED",
+    "source": "companies_house",
+    "stored": false
+   },
+   "deal_inputs": null,
+   "fiscal_year_end_month": 6,
+   "forecast_history": null,
+   "licence": "UK Open Government Licence (Companies House)",
+   "money": {
+    "currency": "GBP",
+    "unit": "millions"
+   },
+   "refreshed_at": null,
+   "warnings": [],
+   "years": [
+    {
+     "figures": {
+      "accounts_payable": null,
+      "accounts_receivable": null,
+      "capital_expenditures": 5.601399,
+      "cash_and_equivalents": 3.010826,
+      "depreciation_amortization": 0.10867,
+      "ebitda": -1.645813,
+      "income_tax_expense": null,
+      "interest_expense": null,
+      "inventories": null,
+      "lease_cost": null,
+      "lease_liability": null,
+      "net_income": -1.747155,
+      "operating_income": -1.754483,
+      "revenue": 7.077873,
+      "total_assets": 10.134326,
+      "total_debt": null,
+      "total_equity": 8.083952
+     },
+     "filing": {
+      "filed_on": "2025-03-28",
+      "form": "AA",
+      "id": "MzQ2MDU5MDQyOWFkaXF6a2N4",
+      "url": "https://find-and-update.company-information.service.gov.uk/company/00482197/filing-history/MzQ2MDU5MDQyOWFkaXF6a2N4/document?format=xhtml&download=0"
+     },
+     "fiscal_year": 2023,
+     "period_end": "2023-06-30"
+    },
+    {
+     "figures": {
+      "accounts_payable": null,
+      "accounts_receivable": 0.531633,
+      "capital_expenditures": 3.361872,
+      "cash_and_equivalents": 0.993278,
+      "depreciation_amortization": 0.276374,
+      "ebitda": -2.30095,
+      "income_tax_expense": 0.0,
+      "interest_expense": 0.002468,
+      "inventories": null,
+      "lease_cost": null,
+      "lease_liability": null,
+      "net_income": -2.565842,
+      "operating_income": -2.577324,
+      "revenue": 8.304626,
+      "total_assets": 11.193409,
+      "total_debt": null,
+      "total_equity": 8.51811
+     },
+     "filing": {
+      "filed_on": "2025-03-28",
+      "form": "AA",
+      "id": "MzQ2MDU5MDQyOWFkaXF6a2N4",
+      "url": "https://find-and-update.company-information.service.gov.uk/company/00482197/filing-history/MzQ2MDU5MDQyOWFkaXF6a2N4/document?format=xhtml&download=0"
+     },
+     "fiscal_year": 2024,
+     "period_end": "2024-06-30"
+    },
+    {
+     "figures": {
+      "accounts_payable": null,
+      "accounts_receivable": 1.058307,
+      "capital_expenditures": 0.417414,
+      "cash_and_equivalents": 0.298047,
+      "depreciation_amortization": 0.415342,
+      "ebitda": null,
+      "income_tax_expense": 0.0,
+      "interest_expense": 0.002012,
+      "inventories": null,
+      "lease_cost": null,
+      "lease_liability": null,
+      "net_income": -3.736772,
+      "operating_income": null,
+      "revenue": null,
+      "total_assets": 11.187099,
+      "total_debt": null,
+      "total_equity": 5.781339
+     },
+     "filing": {
+      "filed_on": "2026-02-09",
+      "form": "AA",
+      "id": "MzUwMzc4MjYxMWFkaXF6a2N4",
+      "url": "https://find-and-update.company-information.service.gov.uk/company/00482197/filing-history/MzUwMzc4MjYxMWFkaXF6a2N4/document?format=xhtml&download=0"
+     },
+     "fiscal_year": 2025,
+     "period_end": "2025-06-30"
+    }
+   ]
+  },
+  "edinet/E02144": {
+   "accounting_standard": "ifrs",
+   "company": {
+    "country": "JP",
+    "id": "E02144",
+    "identifiers": {
+     "edinet_code": "E02144",
+     "jcn": "1180301018771",
+     "sec_code": "7203",
+     "ticker": "7203"
+    },
+    "loadable": true,
+    "local_name": "トヨタ自動車株式会社",
+    "name": "TOYOTA MOTOR CORPORATION",
+    "source": "edinet",
+    "stored": false
+   },
+   "deal_inputs": {
+    "accounting_standard": "ifrs",
+    "currency": "JPY",
+    "ebitda": 6158735.0,
+    "fiscal_year": 2026,
+    "lease_cost": 0.0,
+    "lease_liability": 0.0,
+    "notes": [],
+    "unit": "millions"
+   },
+   "fiscal_year_end_month": 3,
+   "forecast_history": {
+    "h_ap": [
+     5251357.0,
+     5527347.0,
+     5856945.0
+    ],
+    "h_ar": [
+     3789429.0,
+     3679722.0,
+     3795986.0
+    ],
+    "h_buybacks": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_capex": [
+     0.0,
+     2134890.0,
+     2390659.0
+    ],
+    "h_cash": [
+     9412060.0,
+     8982404.0,
+     12659622.0
+    ],
+    "h_cogs": [
+     -39742391.0,
+     -43241118.0,
+     -46918736.0
+    ],
+    "h_cs": [
+     35239338.0,
+     36878913.0,
+     41020068.0
+    ],
+    "h_da": [
+     2087066.0,
+     2251233.0,
+     2392519.0
+    ],
+    "h_def": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_divs": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_int_exp": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_int_inc": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_inv": [
+     4605368.0,
+     4598232.0,
+     5134996.0
+    ],
+    "h_lta": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ltd": [
+     36561780.0,
+     38792879.0,
+     43205469.0
+    ],
+    "h_nca": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ncl": [
+     13061821.0,
+     12402211.0,
+     15439849.0
+    ],
+    "h_oci": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ocl": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ocurr": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_other": [
+     1612152.0,
+     1619004.0,
+     1386779.0
+    ],
+    "h_ppe": [
+     72307439.0,
+     76340992.0,
+     83931727.0
+    ],
+    "h_rd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_re": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_rev": [
+     45095325.0,
+     48036704.0,
+     50684952.0
+    ],
+    "h_sbc": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_sga": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_tax": [
+     -1893665.0,
+     -1624835.0,
+     -1167234.0
+    ]
+   },
+   "licence": "Financial Services Agency of Japan, EDINET (public disclosure)",
+   "money": {
+    "currency": "JPY",
+    "unit": "millions"
+   },
+   "refreshed_at": null,
+   "warnings": [],
+   "years": [
+    {
+     "figures": {
+      "accounts_payable": 5251357.0,
+      "accounts_receivable": 3789429.0,
+      "capital_expenditures": null,
+      "cash_and_equivalents": 9412060.0,
+      "depreciation_amortization": 2087066.0,
+      "ebitda": 7440000.0,
+      "income_tax_expense": 1893665.0,
+      "interest_expense": null,
+      "inventories": 4605368.0,
+      "lease_cost": null,
+      "lease_liability": null,
+      "net_income": 5071421.0,
+      "operating_income": 5352934.0,
+      "revenue": 45095325.0,
+      "total_assets": 90114296.0,
+      "total_debt": 36561780.0,
+      "total_equity": 35239338.0
+     },
+     "filing": {
+      "filed_on": "2025-06-18",
+      "form": "有価証券報告書",
+      "id": "S100VWVY",
+      "url": "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100VWVY.pdf"
+     },
+     "fiscal_year": 2024,
+     "period_end": "2024-03-31"
+    },
+    {
+     "figures": {
+      "accounts_payable": 5527347.0,
+      "accounts_receivable": 3679722.0,
+      "capital_expenditures": 2134890.0,
+      "cash_and_equivalents": 8982404.0,
+      "depreciation_amortization": 2251233.0,
+      "ebitda": 7046819.0,
+      "income_tax_expense": 1624835.0,
+      "interest_expense": null,
+      "inventories": 4598232.0,
+      "lease_cost": null,
+      "lease_liability": null,
+      "net_income": 4789755.0,
+      "operating_income": 4795586.0,
+      "revenue": 48036704.0,
+      "total_assets": 93601350.0,
+      "total_debt": 38792879.0,
+      "total_equity": 36878913.0
+     },
+     "filing": {
+      "filed_on": "2026-06-10",
+      "form": "有価証券報告書",
+      "id": "S100Y8NY",
+      "url": "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100Y8NY.pdf"
+     },
+     "fiscal_year": 2025,
+     "period_end": "2025-03-31"
+    },
+    {
+     "figures": {
+      "accounts_payable": 5856945.0,
+      "accounts_receivable": 3795986.0,
+      "capital_expenditures": 2390659.0,
+      "cash_and_equivalents": 12659622.0,
+      "depreciation_amortization": 2392519.0,
+      "ebitda": 6158735.0,
+      "income_tax_expense": 1167234.0,
+      "interest_expense": null,
+      "inventories": 5134996.0,
+      "lease_cost": null,
+      "lease_liability": null,
+      "net_income": 3985761.0,
+      "operating_income": 3766216.0,
+      "revenue": 50684952.0,
+      "total_assets": 105522331.0,
+      "total_debt": 43205469.0,
+      "total_equity": 41020068.0
+     },
+     "filing": {
+      "filed_on": "2026-06-10",
+      "form": "有価証券報告書",
+      "id": "S100Y8NY",
+      "url": "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100Y8NY.pdf"
+     },
+     "fiscal_year": 2026,
+     "period_end": "2026-03-31"
+    }
+   ]
+  },
+  "esef/2138002P5RNKC5W2JZ46": {
+   "accounting_standard": "ifrs",
+   "company": {
+    "country": "GB",
+    "id": "2138002P5RNKC5W2JZ46",
+    "identifiers": {
+     "lei": "2138002P5RNKC5W2JZ46"
+    },
+    "loadable": true,
+    "local_name": null,
+    "name": "TESCO PLC",
+    "source": "esef",
+    "stored": false
+   },
+   "deal_inputs": {
+    "accounting_standard": "ifrs",
+    "currency": "GBP",
+    "ebitda": 4880.0,
+    "fiscal_year": 2026,
+    "lease_cost": 0.0,
+    "lease_liability": 7884.0,
+    "notes": [
+     "lease_cost_missing"
+    ],
+    "unit": "millions"
+   },
+   "fiscal_year_end_month": 2,
+   "forecast_history": {
+    "h_ap": [
+     10264.0,
+     10364.0,
+     10746.0
+    ],
+    "h_ar": [
+     1349.0,
+     1210.0,
+     1318.0
+    ],
+    "h_buybacks": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_capex": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_cash": [
+     2340.0,
+     2255.0,
+     2515.0
+    ],
+    "h_cogs": [
+     -65366.0,
+     -67205.0,
+     -70727.0
+    ],
+    "h_cs": [
+     11665.0,
+     11662.0,
+     11457.0
+    ],
+    "h_da": [
+     1723.0,
+     1775.0,
+     1895.0
+    ],
+    "h_def": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_divs": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_int_exp": [
+     -805.0,
+     -746.0,
+     -814.0
+    ],
+    "h_int_inc": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_inv": [
+     2635.0,
+     2768.0,
+     2840.0
+    ],
+    "h_lta": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ltd": [
+     7219.0,
+     6950.0,
+     7196.0
+    ],
+    "h_nca": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ncl": [
+     17891.0,
+     9914.0,
+     10075.0
+    ],
+    "h_oci": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ocl": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ocurr": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_other": [
+     -299.0,
+     276.0,
+     232.0
+    ],
+    "h_ppe": [
+     40715.0,
+     32657.0,
+     32801.0
+    ],
+    "h_rd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_re": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_rev": [
+     68187.0,
+     69916.0,
+     73712.0
+    ],
+    "h_sbc": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_sga": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_tax": [
+     -525.0,
+     -611.0,
+     -616.0
+    ]
+   },
+   "licence": "filings.xbrl.org, XBRL International (issuers' public reports)",
+   "money": {
+    "currency": "GBP",
+    "unit": "millions"
+   },
+   "refreshed_at": null,
+   "warnings": [
+    {
+     "code": "missing_figure",
+     "field": "capital_expenditures"
+    }
+   ],
+   "years": [
+    {
+     "figures": {
+      "accounts_payable": 10264.0,
+      "accounts_receivable": 1349.0,
+      "capital_expenditures": null,
+      "cash_and_equivalents": 2340.0,
+      "depreciation_amortization": 1723.0,
+      "ebitda": 4544.0,
+      "income_tax_expense": 525.0,
+      "interest_expense": 805.0,
+      "inventories": 2635.0,
+      "lease_cost": null,
+      "lease_liability": 7622.0,
+      "net_income": 1192.0,
+      "operating_income": 2821.0,
+      "revenue": 68187.0,
+      "total_assets": 47039.0,
+      "total_debt": 7219.0,
+      "total_equity": 11665.0
+     },
+     "filing": {
+      "filed_on": "2025-05-13",
+      "form": "ESEF",
+      "id": "2138002P5RNKC5W2JZ46-2025-02-22-ESEF-GB-0",
+      "url": "https://filings.xbrl.org/2138002P5RNKC5W2JZ46/2025-02-22/ESEF/GB/0/2138002P5RNKC5W2JZ46-2025-02-22/reports/ixbrlviewer.html"
+     },
+     "fiscal_year": 2024,
+     "period_end": "2024-02-24"
+    },
+    {
+     "figures": {
+      "accounts_payable": 10364.0,
+      "accounts_receivable": 1210.0,
+      "capital_expenditures": null,
+      "cash_and_equivalents": 2255.0,
+      "depreciation_amortization": 1775.0,
+      "ebitda": 4486.0,
+      "income_tax_expense": 611.0,
+      "interest_expense": 746.0,
+      "inventories": 2768.0,
+      "lease_cost": null,
+      "lease_liability": 7716.0,
+      "net_income": 1630.0,
+      "operating_income": 2711.0,
+      "revenue": 69916.0,
+      "total_assets": 38890.0,
+      "total_debt": 6950.0,
+      "total_equity": 11662.0
+     },
+     "filing": {
+      "filed_on": "2026-05-27",
+      "form": "ESEF",
+      "id": "2138002P5RNKC5W2JZ46-2026-02-28-ESEF-GB-0",
+      "url": "https://filings.xbrl.org/2138002P5RNKC5W2JZ46/2026-02-28/ESEF/GB/0/2138002P5RNKC5W2JZ46-2026-02-28/reports/ixbrlviewer.html"
+     },
+     "fiscal_year": 2025,
+     "period_end": "2025-02-22"
+    },
+    {
+     "figures": {
+      "accounts_payable": 10746.0,
+      "accounts_receivable": 1318.0,
+      "capital_expenditures": null,
+      "cash_and_equivalents": 2515.0,
+      "depreciation_amortization": 1895.0,
+      "ebitda": 4880.0,
+      "income_tax_expense": 616.0,
+      "interest_expense": 814.0,
+      "inventories": 2840.0,
+      "lease_cost": null,
+      "lease_liability": 7884.0,
+      "net_income": 1787.0,
+      "operating_income": 2985.0,
+      "revenue": 73712.0,
+      "total_assets": 39474.0,
+      "total_debt": 7196.0,
+      "total_equity": 11457.0
+     },
+     "filing": {
+      "filed_on": "2026-05-27",
+      "form": "ESEF",
+      "id": "2138002P5RNKC5W2JZ46-2026-02-28-ESEF-GB-0",
+      "url": "https://filings.xbrl.org/2138002P5RNKC5W2JZ46/2026-02-28/ESEF/GB/0/2138002P5RNKC5W2JZ46-2026-02-28/reports/ixbrlviewer.html"
+     },
+     "fiscal_year": 2026,
+     "period_end": "2026-02-28"
+    }
+   ]
+  },
+  "sec/0001000184": {
+   "accounting_standard": "ifrs",
+   "company": {
+    "country": null,
+    "id": "0001000184",
+    "identifiers": {
+     "cik": "0001000184",
+     "ticker": "SAP"
+    },
+    "loadable": true,
+    "local_name": null,
+    "name": "SAP SE",
+    "source": "sec",
+    "stored": false
+   },
+   "deal_inputs": {
+    "accounting_standard": "ifrs",
+    "currency": "EUR",
+    "ebitda": 10928.0,
+    "fiscal_year": 2025,
+    "lease_cost": 299.0,
+    "lease_liability": 1684.0,
+    "notes": [],
+    "unit": "millions"
+   },
+   "fiscal_year_end_month": 12,
+   "forecast_history": {
+    "h_ap": [
+     1783.0,
+     1988.0,
+     2431.0
+    ],
+    "h_ar": [
+     6322.0,
+     6774.0,
+     6675.0
+    ],
+    "h_buybacks": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_capex": [
+     785.0,
+     797.0,
+     739.0
+    ],
+    "h_cash": [
+     8124.0,
+     9609.0,
+     8220.0
+    ],
+    "h_cogs": [
+     -25408.0,
+     -29511.0,
+     -27183.0
+    ],
+    "h_cs": [
+     43406.0,
+     45806.0,
+     45073.0
+    ],
+    "h_da": [
+     1373.0,
+     1280.0,
+     1311.0
+    ],
+    "h_def": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_divs": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_int_exp": [
+     -1313.0,
+     -1031.0,
+     -1377.0
+    ],
+    "h_int_inc": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_inv": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_lta": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ltd": [
+     7755.0,
+     9385.0,
+     6150.0
+    ],
+    "h_nca": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ncl": [
+     15387.0,
+     17058.0,
+     16708.0
+    ],
+    "h_oci": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ocl": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_ocurr": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_other": [
+     3219.0,
+     1130.0,
+     2030.0
+    ],
+    "h_ppe": [
+     53885.0,
+     57854.0,
+     55467.0
+    ],
+    "h_rd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_re": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_rev": [
+     31207.0,
+     34176.0,
+     36800.0
+    ],
+    "h_sbc": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_sga": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "h_tax": [
+     -1741.0,
+     -1614.0,
+     -2944.0
+    ]
+   },
+   "licence": "U.S. public domain (SEC EDGAR)",
+   "money": {
+    "currency": "EUR",
+    "unit": "millions"
+   },
+   "refreshed_at": null,
+   "warnings": [],
+   "years": [
+    {
+     "figures": {
+      "accounts_payable": 1783.0,
+      "accounts_receivable": 6322.0,
+      "capital_expenditures": 785.0,
+      "cash_and_equivalents": 8124.0,
+      "depreciation_amortization": 1373.0,
+      "ebitda": 7172.0,
+      "income_tax_expense": 1741.0,
+      "interest_expense": 1313.0,
+      "inventories": null,
+      "lease_cost": 332.0,
+      "lease_liability": 1621.0,
+      "net_income": 5964.0,
+      "operating_income": 5799.0,
+      "revenue": 31207.0,
+      "total_assets": 68331.0,
+      "total_debt": 7755.0,
+      "total_equity": 43406.0
+     },
+     "filing": {
+      "filed_on": "2026-02-26",
+      "form": "20-F",
+      "id": "",
+      "url": ""
+     },
+     "fiscal_year": 2023,
+     "period_end": "2023-12-31"
+    },
+    {
+     "figures": {
+      "accounts_payable": 1988.0,
+      "accounts_receivable": 6774.0,
+      "capital_expenditures": 797.0,
+      "cash_and_equivalents": 9609.0,
+      "depreciation_amortization": 1280.0,
+      "ebitda": 5945.0,
+      "income_tax_expense": 1614.0,
+      "interest_expense": 1031.0,
+      "inventories": null,
+      "lease_cost": 310.0,
+      "lease_liability": 1715.0,
+      "net_income": 3150.0,
+      "operating_income": 4665.0,
+      "revenue": 34176.0,
+      "total_assets": 74237.0,
+      "total_debt": 9385.0,
+      "total_equity": 45806.0
+     },
+     "filing": {
+      "filed_on": "2026-02-26",
+      "form": "20-F",
+      "id": "",
+      "url": ""
+     },
+     "fiscal_year": 2024,
+     "period_end": "2024-12-31"
+    },
+    {
+     "figures": {
+      "accounts_payable": 2431.0,
+      "accounts_receivable": 6675.0,
+      "capital_expenditures": 739.0,
+      "cash_and_equivalents": 8220.0,
+      "depreciation_amortization": 1311.0,
+      "ebitda": 10928.0,
+      "income_tax_expense": 2944.0,
+      "interest_expense": 1377.0,
+      "inventories": null,
+      "lease_cost": 299.0,
+      "lease_liability": 1684.0,
+      "net_income": 7326.0,
+      "operating_income": 9617.0,
+      "revenue": 36800.0,
+      "total_assets": 70362.0,
+      "total_debt": 6150.0,
+      "total_equity": 45073.0
+     },
+     "filing": {
+      "filed_on": "2026-02-26",
+      "form": "20-F",
+      "id": "",
+      "url": ""
+     },
+     "fiscal_year": 2025,
+     "period_end": "2025-12-31"
+    }
+   ]
+  }
+ },
+ "search": {
+  "00482197": {
+   "fallback": "document_upload",
+   "matched": null,
+   "results": [
+    {
+     "country": "GB",
+     "id": "00482197",
+     "identifiers": {
+      "company_number": "00482197"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "CAMBRIDGE UNITED FOOTBALL CLUB LIMITED",
+     "source": "companies_house",
+     "stored": false
+    }
+   ],
+   "unavailable": []
+  },
+  "GB00BLGZ9862": {
+   "fallback": "document_upload",
+   "matched": "isin",
+   "results": [
+    {
+     "country": null,
+     "id": "2138002P5RNKC5W2JZ46",
+     "identifiers": {
+      "isin": "GB00BLGZ9862",
+      "lei": "2138002P5RNKC5W2JZ46"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "TESCO PLC",
+     "source": "esef",
+     "stored": false
+    }
+   ],
+   "unavailable": []
+  },
+  "MCD": {
+   "fallback": "document_upload",
+   "matched": null,
+   "results": [
+    {
+     "country": null,
+     "id": "0000063908",
+     "identifiers": {
+      "cik": "0000063908",
+      "ticker": "MCD"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "MCDONALDS CORP",
+     "source": "sec",
+     "stored": false
+    },
+    {
+     "country": null,
+     "id": "724500NSJPNFJPDAUP02",
+     "identifiers": {
+      "lei": "724500NSJPNFJPDAUP02"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "IMCD N.V.",
+     "source": "esef",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E03366",
+     "identifiers": {
+      "edinet_code": "E03366",
+      "jcn": "8011101029028",
+      "sec_code": "2702",
+      "ticker": "2702"
+     },
+     "loadable": true,
+     "local_name": "日本マクドナルドホールディングス株式会社",
+     "name": "McDonald's Holdings Company(Japan),Ltd.",
+     "source": "edinet",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E37294",
+     "identifiers": {
+      "edinet_code": "E37294",
+      "jcn": "9010001147005"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "ＭＣＤ４株式会社",
+     "source": "edinet",
+     "stored": false
+    }
+   ],
+   "unavailable": [
+    {
+     "reason": "not_found",
+     "source": "companies_house"
+    }
+   ]
+  },
+  "SAP": {
+   "fallback": "document_upload",
+   "matched": null,
+   "results": [
+    {
+     "country": null,
+     "id": "0001000184",
+     "identifiers": {
+      "cik": "0001000184",
+      "ticker": "SAP"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "SAP SE",
+     "source": "sec",
+     "stored": false
+    }
+   ],
+   "unavailable": [
+    {
+     "reason": "not_found",
+     "source": "esef"
+    },
+    {
+     "reason": "not_found",
+     "source": "companies_house"
+    },
+    {
+     "reason": "not_found",
+     "source": "edinet"
+    }
+   ]
+  },
+  "Toyota": {
+   "fallback": "document_upload",
+   "matched": null,
+   "results": [
+    {
+     "country": null,
+     "id": "0001094517",
+     "identifiers": {
+      "cik": "0001094517",
+      "ticker": "TM"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "TOYOTA MOTOR CORP/",
+     "source": "sec",
+     "stored": false
+    },
+    {
+     "country": null,
+     "id": "0002018139",
+     "identifiers": {
+      "cik": "0002018139",
+      "ticker": "TYHOY"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "Toyota Tsusho Corporation/ADR",
+     "source": "sec",
+     "stored": false
+    },
+    {
+     "country": null,
+     "id": "213800NI6JNPX5F44U15",
+     "identifiers": {
+      "lei": "213800NI6JNPX5F44U15"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "TOYOTA CAETANO PORTUGAL, S.A.",
+     "source": "esef",
+     "stored": false
+    },
+    {
+     "country": null,
+     "id": "HJZQGXYTVV2NWJZLPW74",
+     "identifiers": {
+      "lei": "HJZQGXYTVV2NWJZLPW74"
+     },
+     "loadable": true,
+     "local_name": null,
+     "name": "TOYOTA CREDIT CANADA INC.",
+     "source": "esef",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E00540",
+     "identifiers": {
+      "edinet_code": "E00540",
+      "jcn": "2180301014324",
+      "sec_code": "3116",
+      "ticker": "3116"
+     },
+     "loadable": true,
+     "local_name": "トヨタ紡織株式会社",
+     "name": "TOYOTA BOSHOKU CORPORATION",
+     "source": "edinet",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E02144",
+     "identifiers": {
+      "edinet_code": "E02144",
+      "jcn": "1180301018771",
+      "sec_code": "7203",
+      "ticker": "7203"
+     },
+     "loadable": true,
+     "local_name": "トヨタ自動車株式会社",
+     "name": "TOYOTA MOTOR CORPORATION",
+     "source": "edinet",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E02505",
+     "identifiers": {
+      "edinet_code": "E02505",
+      "jcn": "6180001031731",
+      "sec_code": "8015",
+      "ticker": "8015"
+     },
+     "loadable": true,
+     "local_name": "豊田通商株式会社",
+     "name": "TOYOTA TSUSHO CORPORATION",
+     "source": "edinet",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E01514",
+     "identifiers": {
+      "edinet_code": "E01514",
+      "jcn": "3180301014273"
+     },
+     "loadable": true,
+     "local_name": "株式会社豊田自動織機",
+     "name": "TOYOTA INDUSTRIES CORPORATION",
+     "source": "edinet",
+     "stored": false
+    },
+    {
+     "country": "JP",
+     "id": "E05031",
+     "identifiers": {
+      "edinet_code": "E05031",
+      "jcn": "8010601027383"
+     },
+     "loadable": true,
+     "local_name": "トヨタファイナンス株式会社",
+     "name": "TOYOTA FINANCE CORPORATION",
+     "source": "edinet",
+     "stored": false
+    }
+   ],
+   "unavailable": [
+    {
+     "reason": "not_found",
+     "source": "companies_house"
+    }
+   ]
+  },
+  "Zzyzx": {
+   "fallback": "document_upload",
+   "matched": null,
+   "results": [],
+   "unavailable": [
+    {
+     "reason": "not_found",
+     "source": "esef"
+    },
+    {
+     "reason": "not_found",
+     "source": "companies_house"
+    }
+   ]
+  }
+ }
+}

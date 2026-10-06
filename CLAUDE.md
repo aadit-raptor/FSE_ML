@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-06 (PLAN.md 4.1a: company filings, the data layer). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-06 (PLAN.md 4.1b: company filings, the screen). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -634,6 +634,31 @@ Tesco (ESEF, GBP, a 53-week February year), Heineken (ESEF, EUR),
 Cambridge United (Companies House, FRS 102), Toyota (EDINET, IFRS) and
 Nintendo (EDINET, Japanese GAAP).
 
+Company filings, the screen (PLAN.md 4.1b): **the EDGAR ticker box is
+gone**; a company search (`components/companies/`: `CompanyProvider` in
+the shell, inside `ForecastProvider`, so a company found on the deal is
+there on the forecast) sits at the top of Deal -> Inputs' rail and in
+Forecast -> Historicals' rail, with a figures-by-year tile linking each
+year to its filing. Results from every source, sources not searched (and
+why), a source this server has no key for shown but not loadable, and the
+`document_upload` fallback named when nothing matches. The load answer
+carries **`deal_inputs`** and **`forecast_history`** (`companies/use.py`):
+the deal takes the latest EBITDA as the standard reports it, the currency,
+and the standard and leases only for IFRS and US GAAP (`notes`:
+`standard_not_in_deal`, `lease_cost_missing`); the forecast rows put every
+operating cost in cost of sales, unnamed assets in PP&E and unnamed
+liabilities in other non-current liabilities, so EBIT, EBITDA and net
+income are the filing's and the balance sheet balances (tested on every
+recorded company). "Use in forecast" on a SEC company with a ticker takes
+`/api/edgar/{ticker}`'s full statements and falls back to the summary; a
+forecast not yet loaded applies the company once its defaults arrive (a
+ref, not state set in an effect). Browser tests replay
+**`web/e2e/fixtures/companies.json`** (`replayCompanies` in
+`e2e/helpers.ts`), written by `python -m tests.e2e_companies` from the
+recorded filings through the real API; `tests/test_company_use.py` fails
+when it is stale, so **an API change to the company answer means
+rerunning it**. `/privacy` says a search goes to the public registers.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -678,7 +703,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 was split: **4.1a is done** (company filings, the data layer, below); **next is 4.1b** (the screen: company search and figures on Forecast and Deal).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. **Next is 4.2** (economic data by country, and exchange rates).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -897,7 +922,8 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
-| `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder; storage, budget and the EDINET index; the endpoints |
+| `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder, the summary as deal inputs and forecast rows (`use.py`); storage, budget and the EDINET index; the endpoints |
+| `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
 | `docs/methodology.md`, `tests/test_methodology.py` | Methodology (PLAN.md 3.2): every calculation written down, and the test that every model function, link, constant and Settings default in it matches the code |
 | `core/model_version.py`, `MODEL_CHANGELOG.md`, `tests/model_version_pins.json` | Model version (PLAN.md 3.1): the stamp on every result, the saved stamp and the reopening check; what each engine version changed; reference results per version |

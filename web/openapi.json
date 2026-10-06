@@ -1214,6 +1214,76 @@
         "title": "CashFlowResult",
         "type": "object"
       },
+      "CompanyDealInputs": {
+        "description": "The latest year as a deal's inputs (companies/use.py), millions of the\ncompany's currency.",
+        "properties": {
+          "accounting_standard": {
+            "description": "The company's standard when a deal knows it (IFRS, US GAAP), else \"\"",
+            "enum": [
+              "",
+              "ifrs",
+              "us_gaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "ebitda": {
+            "description": "Operating income plus D&A, as the standard reports them",
+            "title": "Ebitda",
+            "type": "number"
+          },
+          "fiscal_year": {
+            "description": "The year these come from",
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "lease_cost": {
+            "description": "0 when the filing reports none or the deal doesn't know the standard",
+            "title": "Lease Cost",
+            "type": "number"
+          },
+          "lease_liability": {
+            "title": "Lease Liability",
+            "type": "number"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "standard_not_in_deal",
+                "lease_cost_missing"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "unit": {
+            "enum": [
+              "thousands",
+              "millions",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ebitda",
+          "currency",
+          "unit",
+          "accounting_standard",
+          "lease_cost",
+          "lease_liability",
+          "fiscal_year",
+          "notes"
+        ],
+        "title": "CompanyDealInputs",
+        "type": "object"
+      },
       "CompanyFigures": {
         "description": "Summary figures for one fiscal year, millions of the company's currency;\nnull where the filing reports none.",
         "properties": {
@@ -1571,6 +1641,17 @@
           "company": {
             "$ref": "#/components/schemas/CompanyRefOut"
           },
+          "deal_inputs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompanyDealInputs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The latest year as deal inputs; null without an EBITDA"
+          },
           "fiscal_year_end_month": {
             "anyOf": [
               {
@@ -1583,6 +1664,24 @@
               }
             ],
             "title": "Fiscal Year End Month"
+          },
+          "forecast_history": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Forecasting history rows from the summary (companies/use.py), oldest year first; null when a year has no revenue",
+            "title": "Forecast History"
           },
           "licence": {
             "title": "Licence",

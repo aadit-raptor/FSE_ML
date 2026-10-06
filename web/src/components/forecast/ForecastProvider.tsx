@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
+import type { Company } from "@/components/companies/CompanyProvider";
 import { api, type Schemas } from "@/lib/api/client";
 import { type Fiscal } from "@/lib/fiscal";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
@@ -19,13 +20,16 @@ const MONEY_ASSUMPTIONS = ["other_inc", "divs", "buybacks", "ltd_chg", "min_cash
 type Source =
   | { kind: "sample" }
   | {
-      kind: "edgar";
-      ticker: string;
+      kind: "company";
+      /** The name the screen and file names show: a ticker, else the company's name */
+      label: string;
       company: string;
-      years: number[];
+      /** "edgar": the SEC's full statements; "summary": the summary figures any source has (PLAN.md 4.1b) */
+      from: "edgar" | "summary";
+      /** EDGAR's own notes (sentences from the API); the summary's warnings are codes on the company */
       warnings: string[];
-      /** The latest year as deal inputs (PLAN.md 2.6); none from an API before 2.6 */
-      dealInputs?: Schemas["EdgarDealInputs"];
+      /** The SEC's statements were asked for and didn't come, so the summary was used */
+      edgarFailed?: boolean;
     };
 export type Standard = Schemas["HistoryRequest"]["accounting_standard"];
 
@@ -56,8 +60,9 @@ type ForecastContext = {
   /** Column labels: history oldest first ("FY2023/24" ... or "LTM-2" ... "LTM"), then forecast years */
   histLabels: string[];
   fwdLabels: string[];
-  fetchEdgar: (ticker: string) => Promise<void>;
-  edgar: { status: "idle" | "loading" | "error"; error?: string };
+  /** A loaded company's figures as the history (PLAN.md 4.1b); applied once the forecast's defaults are in */
+  fromCompany: (company: Company) => Promise<void>;
+  companyState: { status: "idle" | "loading" | "error"; error?: string };
   metrics: Metrics[] | null;
   seeded: Record<string, number> | null;
   status: "idle" | "running" | "ok" | "error";
@@ -105,7 +110,9 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
   const [money, setMoneyState] = useState<Money>(DEFAULT_MONEY);
   // The standard the company reports under (PLAN.md 2.6): a filing says, the sample says nothing
   const [standard, setStandard] = useState<Standard>("");
-  const [edgar, setEdgar] = useState<ForecastContext["edgar"]>({ status: "idle" });
+  const [companyState, setCompanyState] = useState<ForecastContext["companyState"]>({ status: "idle" });
+  // A company chosen before the defaults arrived (fromCompany)
+  const pending = useRef<Company | null>(null);
   const [seedInfo, setSeedInfo] = useState<{ metrics: Metrics[]; seeded: Record<string, number> } | null>(null);
   const [run, setRun] = useState<{ status: ForecastContext["status"]; result?: ForecastRun; error?: string }>({ status: "idle" });
 
@@ -124,7 +131,15 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
         setHistoryState(data.history);
         setAssumptions(spread(data.seeded_assumptions, data.n_fwd));
       })
-      .catch(() => !cancelled && setRun({ status: "error", error: t("defaultsFailed") }));
+      .catch(() => {
+        if (cancelled) return;
+        setRun({ status: "error", error: t("defaultsFailed") });
+        // A company waiting for the defaults can't be applied: say so rather than load forever
+        if (pending.current) {
+          pending.current = null;
+          setCompanyState({ status: "error", error: t("defaultsFailed") });
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -202,45 +217,97 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
     setSource({ kind: "sample" });
     setStandard("");
     setFiscal(NO_FISCAL_YEAR);
-    setEdgar({ status: "idle" });
+    setCompanyState({ status: "idle" });
   }, [defaults]);
 
-  const fetchEdgar = useCallback(
-    async (ticker: string) => {
-      const code = ticker.trim().toUpperCase();
-      if (!code) return;
-      setEdgar({ status: "loading" });
+  const seed = useCallback(
+    async (rows: Series, m: Money, std: Standard) => {
+      const seeded = await api.POST("/api/forecasting/seed", { body: withStandard({ history: rows, money: m }, std) });
+      if (seeded.data) setAssumptions(spread(seeded.data.seeded_assumptions, nFwd));
+    },
+    [nFwd],
+  );
+
+  /** The SEC's full statements: rows EDGAR doesn't give keep their current values, in EDGAR's unit */
+  const applyEdgar = useCallback(
+    async (data: Schemas["EdgarResponse"]) => {
+      const scaled = Object.fromEntries(Object.entries(history).map(([k, v]) => [k, v.map((x) => x * unitFactor(money.unit, data.money.unit))]));
+      const merged = { ...scaled, ...Object.fromEntries(Object.entries(data.history).filter(([, v]) => v.length === nHist)) };
+      // An API from before 2.6 (a rollout, a rollback) names no standard
+      const std = data.accounting_standard ?? "";
+      setMoneyState(data.money);
+      setStandard(std);
+      setHistoryState(merged);
+      setSource({ kind: "company", label: data.ticker, company: data.company_name, from: "edgar", warnings: data.warnings });
+      // Filings name each fiscal year by the year it ends in (api/routers/integrations.py)
+      setFiscal({ endMonth: data.fiscal_year_end_month ?? 12, year: data.years.at(-1) ?? null });
+      await seed(merged, data.money, std);
+    },
+    [history, money.unit, nHist, seed],
+  );
+
+  const apply = useCallback(
+    async (company: Company) => {
+      setCompanyState({ status: "loading" });
       try {
-        const { data, error, response } = await api.GET("/api/edgar/{ticker}", { params: { path: { ticker: code } } });
-        if (!data) {
-          setEdgar({ status: "error", error: response.status === 503 ? t("edgarUnavailable") : detail(error, t("runFailed")) });
+        // A US filer's full statements come from EDGAR (PLAN.md 4.1b); its summary is the fallback
+        const ticker = company.company.source === "sec" ? company.company.identifiers.ticker : undefined;
+        let edgarFailed = false;
+        if (ticker) {
+          const edgar = await api.GET("/api/edgar/{ticker}", { params: { path: { ticker } } }).catch(() => null);
+          if (edgar?.data) {
+            await applyEdgar(edgar.data);
+            setCompanyState({ status: "idle" });
+            return;
+          }
+          edgarFailed = true;
+        }
+        const all = company.forecast_history;
+        if (!all) {
+          setCompanyState({ status: "error", error: t("companyNoRevenue") });
           return;
         }
-        // Fields EDGAR didn't return keep their current values, in EDGAR's unit
-        // SEC filings come in US dollar millions (the API says so)
-        const scaled = Object.fromEntries(Object.entries(history).map(([k, v]) => [k, v.map((x) => x * unitFactor(money.unit, data.money.unit))]));
-        const merged = { ...scaled, ...Object.fromEntries(Object.entries(data.history).filter(([, v]) => v.length === nHist)) };
-        setMoneyState(data.money);
-        // An API from before 2.6 (a rollout, a rollback) names no standard
-        setStandard(data.accounting_standard ?? "");
-        setHistoryState(merged);
+        const have = company.years.length;
+        if (have < nHist) {
+          setCompanyState({ status: "error", error: t("companyTooFewYears", { count: nHist, have }) });
+          return;
+        }
+        const rows = Object.fromEntries(Object.entries(all).map(([k, v]) => [k, v.slice(-nHist)]));
+        // Only the standards the forecast names its lines for; others read as plain lines
+        const std: Standard = company.accounting_standard === "ifrs" || company.accounting_standard === "us_gaap" ? company.accounting_standard : "";
+        setMoneyState(company.money);
+        setStandard(std);
+        setHistoryState(rows);
         setSource({
-          kind: "edgar", ticker: data.ticker, company: data.company_name, years: data.years, warnings: data.warnings,
-          dealInputs: data.deal_inputs,
+          kind: "company", label: company.company.identifiers.ticker ?? company.company.name, company: company.company.name,
+          from: "summary", warnings: [], edgarFailed,
         });
-        // Filings name each fiscal year by the year it ends in (api/routers/integrations.py)
-        setFiscal({ endMonth: data.fiscal_year_end_month ?? 12, year: data.years.at(-1) ?? null });
-        const seeded = await api.POST("/api/forecasting/seed", {
-          body: withStandard({ history: merged, money: data.money }, data.accounting_standard ?? ""),
-        });
-        if (seeded.data) setAssumptions(spread(seeded.data.seeded_assumptions, nFwd));
-        setEdgar({ status: "idle" });
+        setFiscal({ endMonth: company.fiscal_year_end_month ?? 12, year: company.years.at(-1)?.fiscal_year ?? null });
+        await seed(rows, company.money, std);
+        setCompanyState({ status: "idle" });
       } catch {
-        setEdgar({ status: "error", error: t("edgarFailed") });
+        setCompanyState({ status: "error", error: e("apiUnreachable") });
       }
     },
-    [history, money.unit, nHist, nFwd, t],
+    [applyEdgar, nHist, seed, t, e],
   );
+
+  // A company chosen before the forecast had its defaults waits for them, or they would overwrite it
+  const fromCompany = useCallback(
+    async (company: Company) => {
+      if (defaults) return apply(company);
+      pending.current = company;
+      setEnabled(true);
+      setCompanyState({ status: "loading" });
+    },
+    [defaults, apply],
+  );
+  useEffect(() => {
+    const company = pending.current;
+    if (!defaults || !company) return;
+    pending.current = null;
+    void apply(company);
+  }, [defaults, apply]);
 
   const activate = useCallback(() => setEnabled(true), []);
 
@@ -268,8 +335,8 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       setStandard,
       histLabels,
       fwdLabels,
-      fetchEdgar,
-      edgar,
+      fromCompany,
+      companyState,
       metrics: seedInfo?.metrics ?? null,
       seeded: seedInfo?.seeded ?? null,
       status: run.status,
@@ -278,7 +345,7 @@ export function ForecastProvider({ children }: { children: React.ReactNode }) {
       simPaths: SIM_PATHS,
       activate,
     }),
-    [defaults, nHist, nFwd, history, assumptions, setHistory, setAssumption, fillAssumption, reseed, resetSample, source, money, setMoney, fiscal, standard, histLabels, fwdLabels, fetchEdgar, edgar, seedInfo, run, activate],
+    [defaults, nHist, nFwd, history, assumptions, setHistory, setAssumption, fillAssumption, reseed, resetSample, source, money, setMoney, fiscal, standard, histLabels, fwdLabels, fromCompany, companyState, seedInfo, run, activate],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
