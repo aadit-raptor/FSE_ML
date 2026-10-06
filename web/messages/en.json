@@ -1462,6 +1462,7 @@
     "field_total_assets": "Total assets",
     "field_total_equity": "Total equity",
     "field_lease_cost": "Lease cost",
-    "field_lease_liability": "Lease liability"
+    "field_lease_liability": "Lease liability",
+    "noForecastHistory": "Not every year gives revenue, so the forecast can't start from these figures."
   }
 }
