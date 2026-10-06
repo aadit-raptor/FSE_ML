@@ -103,7 +103,7 @@ test.describe("Model version", () => {
     await dealSettled(page);
     const direct = await (await page.request.post("/api/deal/run", { data: {}, headers: await asUser(page) })).json();
     const [req] = await Promise.all([
-      page.waitForRequest((r) => r.url().endsWith("/api/export/workbook")),
+      page.waitForRequest((r) => new URL(r.url()).pathname === "/api/export/workbook"),
       page.waitForEvent("download"),
       page.getByRole("button", { name: "↓ All tables" }).click(),
     ]);

@@ -133,7 +133,7 @@ export function DebtStep() {
 
 function DebtResults() {
   const { label: mu, money } = useMoney();
-  const { inputs, run } = useDeal();
+  const { inputs, run, current } = useDeal();
   const t = useTranslations("deal");
   const x = useTranslations("export");
   const fiscalLabels = useFiscalLabels();
@@ -221,6 +221,7 @@ function DebtResults() {
                   ],
                   money,
                   run.result?.model,
+                  current?.id ?? null,
                 )
               }
             />

@@ -62,7 +62,7 @@ export function ReturnsStep() {
 
 function ReturnsResults() {
   const { label: mu, money } = useMoney();
-  const { inputs, run, hurdle } = useDeal();
+  const { inputs, run, hurdle, current } = useDeal();
   const t = useTranslations("deal");
   const x = useTranslations("export");
   const units = useTranslations("units");
@@ -119,6 +119,7 @@ function ReturnsResults() {
                 ],
                 money,
                 run.result?.model,
+                current?.id ?? null,
               )
             }
           />

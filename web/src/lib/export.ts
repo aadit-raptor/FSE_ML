@@ -72,8 +72,10 @@ export function downloadText(filename: string, text: string, type = "text/csv") 
   save(new Blob([text], { type: `${type};charset=utf-8` }), filename);
 }
 
-async function postForFile(path: string, body: unknown, filename: string) {
+async function postForFile(path: string, body: unknown, filename: string, dealId: string | null) {
   const requestId = newRequestId();
+  // The saved deal the figures come from: the export goes in its history (PLAN.md 3.3)
+  if (dealId) path = `${path}?deal_id=${encodeURIComponent(dealId)}`;
   // A plain fetch, so the signed-in user's token has to be added by hand
   const headers = { "Content-Type": "application/json", [REQUEST_ID_HEADER]: requestId, ...(await authHeaders()) };
   const res = await fetch(path, { method: "POST", headers, body: JSON.stringify(body) }).catch((e: unknown) => {
@@ -93,19 +95,22 @@ export type ModelStamp = Schemas["ModelStamp"];
 
 /**
  * Ask the API to write the sheets to .xlsx and save it. Its About sheet says what the money is in and which model
- * made the figures: `model` is the stamp of the result the sheets come from (PLAN.md 3.1).
+ * made the figures: `model` is the stamp of the result the sheets come from (PLAN.md 3.1). `dealId` is the saved
+ * deal they come from, or null when they come from none (an unsaved deal, a forecast): a saved deal's export is an
+ * entry in its history (PLAN.md 3.3).
  */
-export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money, model: ModelStamp | undefined) {
+export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money, model: ModelStamp | undefined, dealId: string | null) {
   // Lakh and crore need patterns of their own; the other groupings are Excel's standard formats
   const { grouping } = numberStyle();
   return postForFile(
     "/api/export/workbook",
     { filename, sheets, money, ...(model ? { model } : {}), ...(grouping === "locale" ? {} : { grouping }) },
     filename,
+    dealId,
   );
 }
 
 /** Up to 10,000 simulated paths for the given Monte Carlo request. */
-export function downloadMonteCarloSample(body: unknown) {
-  return postForFile("/api/export/montecarlo-sample", body, "mc_simulation.xlsx");
+export function downloadMonteCarloSample(body: unknown, dealId: string | null) {
+  return postForFile("/api/export/montecarlo-sample", body, "mc_simulation.xlsx", dealId);
 }

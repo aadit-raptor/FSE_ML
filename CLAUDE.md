@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-05 (PLAN.md 3.2: written methodology). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-06 (PLAN.md 3.3: audit history). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -531,6 +531,34 @@ differs from the code. So **a new model function, or a changed default, is a
 methodology edit in the same PR**; a function that affects no number goes in
 its appendix.
 
+Audit history (PLAN.md 3.3): table **`audit_events`** (migration 0010),
+**append-only for the API**: `fse_app` keeps SELECT and INSERT only (0010
+revokes the UPDATE and DELETE 0005's default privileges gave), and
+`/api/health/database` reports `audit_log_writable` as a privilege, so a
+restore that forgets the revoke fails `live.yml`/`staging.yml` (DEPLOY.md
+"Restoring" lists it). **Every action that changes something writes exactly
+one entry, in its own transaction** (`db/audit.py` `record`, called from
+`db/deals.py`); one that changes nothing writes none (an autosave of the same
+content, a rename to the same name, archiving an archived deal, saving the
+same settings). Actions: created (a duplicate carries `source_deal`), edited
+(one per autosave that changes the deal, `fields` = input keys and
+`settings.<key>`), renamed, archived, unarchived, versioned, restored (one,
+though it may write two versions), actuals_saved/cleared, exported,
+deleted, settings_changed (account level, `deal_id` null) and `shared`
+(reserved for 7.2). **An entry never holds a figure, a deal name or a version
+label** (`record` refuses other `detail` keys), so `deal_id` has no foreign
+key and a deleted deal's entries stay, without its name. Exports: both export
+endpoints take an optional `?deal_id=` (the web's `downloadWorkbook` and
+`downloadMonteCarloSample` take a required `dealId: string | null`; null for
+unsaved deals and the forecast), recorded before the file is answered, 404
+if the deal isn't the caller's. Reads: `GET /api/deals/{id}/history` and
+`GET /api/account/history` (with each deal's current name), shown on Deal ->
+Saved deals as "Activity" with a "Whole account" switch. **Compaction**: the
+nightly job-maintenance task calls `audit_compact(cutoff)`, a `SECURITY
+DEFINER` SQL function only `fse_app` may run, which merges `edited` entries
+older than `COMPACT_AFTER_DAYS` (7) one per user, deal and UTC day (`count`,
+`last_at`, union of `fields`). `/privacy` says what the log holds.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -575,7 +603,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). **Next is 3.3** (audit history).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). **Next is 3.4** (hand-checked reference cases).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -769,6 +797,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `db/` | Database layer: `engine.py` (Neon-aware connections and retries), `models.py` (tables and column rules), `migrations/` (Alembic, numbered `0001_…`), `migrate.py` (CLI and migrate-on-first-use), `health.py` (status and storage check), `local.py` (local Postgres) |
 | `db/users.py` | Account profiles: validating and storing country, currency, locale and time zone (`api/routers/account.py` serves them) |
 | `db/deals.py` | Saved deals, versions and account settings: ownership, autosave checkpoints, restore, compact storage (`api/routers/deals.py` serves them) |
+| `db/audit.py`, `db/migrations/versions/0010_audit_events.py` | Audit history (PLAN.md 3.3): recording one entry per action, the account's history, compaction; the append-only grants and `audit_compact` |
 | `api/limits.py`, `api/usage.py`, `db/usage.py` | Usage limits: rules, refusal messages, size caps, simulation slot and timeout; in-memory counters synced to Upstash (daily command budget, `python -m api.usage` prints the monthly estimate) with the database as fallback |
 | `api/security.py`, `web/src/lib/security/headers.ts`, `web/src/proxy.ts` | Security headers, CSP (nonce per page request), CORS origins |
 | `ops/check_headers.py` | Header scan of a deployed web app and API (`live.yml`, `staging.yml`) |
@@ -790,7 +819,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -1076,6 +1105,12 @@ Skills load when a session starts: install first, then open a new session.
   in thousands shows it a thousand times too small; `tests/test_money.py`'s
   leaf-by-leaf tests catch it. A new money input is converted in
   `in_millions` (and a money setting in `MONEY_SETTINGS`).
+- A new action on a deal or the account's settings writes its audit entry
+  with `db/audit.py` `record` **inside the same transaction** and only when
+  something changed; a new kind of action is a new value in
+  `AUDIT_ACTIONS` **and** a migration changing the `ck_audit_events_action`
+  check (and `AuditAction` in `api/schemas.py`, and `deal.activity_<action>`
+  in `en.json`). Never put a figure, name or label in `detail`.
 - A new top-level Python package the API imports (as `jobs/` in 1.9) must be
   added in three places: a `COPY` line in the `Dockerfile` (it copies
   packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in

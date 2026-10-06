@@ -260,6 +260,49 @@ class DealVersion(Base):
     model: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
 
+AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
+                 "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed", "shared")
+
+
+class AuditEvent(Base):
+    """One thing a user did to a deal or to their settings (PLAN.md 3.3).
+
+    **Append-only.** The API adds and reads entries and nothing else: no
+    endpoint changes one, and the API's database role has no UPDATE, DELETE
+    or TRUNCATE on this table (migration 0010). The one exception is
+    ``audit_compact``, a function owned by the schema owner, which merges old
+    ``edited`` entries one per deal and day (``count`` and ``last_at`` say
+    how many and until when).
+
+    ``deal_id`` has no foreign key, so a deal's entries outlive the deal
+    (its ``deleted`` entry among them). ``detail`` holds what the action
+    touched -- field names, a version number, the kind of export -- and
+    never a figure, a name or a label (db/audit.py builds it).
+    """
+
+    __tablename__ = "audit_events"
+    __table_args__ = (
+        CheckConstraint("action IN (" + ", ".join(f"'{a}'" for a in AUDIT_ACTIONS) + ")",
+                        name="action"),
+        CheckConstraint("count >= 1", name="count"),
+        Index("ix_audit_events_deal_id_occurred_at", "deal_id", "occurred_at"),
+        Index("ix_audit_events_user_id_occurred_at", "user_id", "occurred_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    # Who acted (the deal's owner until PLAN.md 7.2 adds sharing)
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    deal_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid, nullable=True)
+    action: Mapped[str] = mapped_column(String(20), nullable=False)
+    detail: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    count: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
+    occurred_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                  server_default=func.now())
+    # The last of the merged actions, on a compacted entry only
+    last_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+
+
 class UsageCounter(Base):
     """A shared usage counter, when Upstash Redis can't be used (PLAN.md 1.6).
 
@@ -360,6 +403,6 @@ class ScheduledRun(Base):
                                                   server_default=func.now())
 
 
-__all__ = ["Base", "CurrencyCode", "Deal", "DealVersion", "JOB_STATUSES", "Job", "MoneyAmount",
+__all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "CurrencyCode", "Deal", "DealVersion", "JOB_STATUSES", "Job", "MoneyAmount",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

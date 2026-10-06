@@ -26,6 +26,7 @@ from typing import Callable, Optional
 
 from sqlalchemy import delete, func, insert, select
 
+from db import audit
 from db.engine import connect, transaction
 from db.models import ScheduledRun, utc_now
 from jobs import config
@@ -56,13 +57,15 @@ def task(name: str, description: str):
     return register
 
 
-@task("job-maintenance", "Requeue or fail jobs whose runner went silent; apply retention.")
+@task("job-maintenance", "Requeue or fail jobs whose runner went silent; apply retention; "
+                          "merge old audit edits (PLAN.md 3.3).")
 def job_maintenance() -> dict:
     queue = config.get_queue()
     recovered = queue.recover()
     pruned = queue.prune()
     runs = prune_runs()
-    return {**recovered, **pruned, "scheduled_runs_deleted": runs, **{
+    compacted = audit.compact()
+    return {**recovered, **pruned, "scheduled_runs_deleted": runs, "audit_rows_compacted": compacted, **{
         f"jobs_{status}": n for status, n in queue.counts().items()}}
 
 

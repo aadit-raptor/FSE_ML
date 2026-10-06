@@ -102,7 +102,8 @@ const SIM_DEAL_KEYS: (keyof DealInputs)[] = [
   "tax_loss_limit_pct", "tax_loss_limit_amount", "tax_minimum_pct",
 ];
 
-type Snapshot = { sim: SimInputs; deal: DealInputs; settings: Settings; scenario: Scenario | null; seed: number | null };
+/** What a run was for; `dealId` is the saved deal it ran on (null if unsaved), so its downloads go in that deal's history. */
+type Snapshot = { sim: SimInputs; deal: DealInputs; settings: Settings; scenario: Scenario | null; seed: number | null; dealId: string | null };
 
 type RunState = {
   status: "idle" | "running" | "ok" | "error" | "cancelled";
@@ -137,7 +138,8 @@ const Ctx = createContext<MonteCarloContext | null>(null);
 
 export function MonteCarloProvider({ children }: { children: React.ReactNode }) {
   const { effective, overrides } = useSettings();
-  const { inputs: deal } = useDeal();
+  const { inputs: deal, current } = useDeal();
+  const dealId = current?.id ?? null;
   const t = useTranslations("montecarlo");
   const e = useTranslations("errors");
   const jobText = useTranslations("jobs");
@@ -152,7 +154,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
   const sim = useMemo(() => ({ ...simFromSettings(effective), ...edits }), [effective, edits]);
   const setSim = useCallback((key: SimKey, value: number) => setEdits((prev) => ({ ...prev, [key]: value })), []);
 
-  const snapshot: Snapshot = useMemo(() => ({ sim, deal, settings: overrides, scenario, seed }), [sim, deal, overrides, scenario, seed]);
+  const snapshot: Snapshot = useMemo(() => ({ sim, deal, settings: overrides, scenario, seed, dealId }), [sim, deal, overrides, scenario, seed, dealId]);
 
   const jobMessages = useMemo<JobMessages>(
     () => ({
