@@ -1,0 +1,89 @@
+{
+ "reference_rates": {
+  "as_of": "2026-10-06",
+  "currency_benchmarks": {
+   "AUD": "BBSY",
+   "CHF": "SARON",
+   "EUR": "EURIBOR",
+   "GBP": "SONIA",
+   "INR": "MIBOR",
+   "JPY": "TONA",
+   "USD": "SOFR"
+  },
+  "rates": {
+   "BBSY": {
+    "basis": "interbank_3m",
+    "current": true,
+    "period": "2026-08",
+    "source": "oecd",
+    "source_series": "DF_FINMARK/AUS.M.IR3TIB",
+    "url": "https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_STES%40DF_FINMARK&df[ag]=OECD.SDD.STES",
+    "value": 4.51
+   },
+   "ESTR": {
+    "basis": "benchmark",
+    "current": true,
+    "period": "2026-10-05",
+    "source": "ecb",
+    "source_series": "EST.B.EU000A2X2A25.WT",
+    "url": "https://data.ecb.europa.eu/data/datasets/EST/EST.B.EU000A2X2A25.WT",
+    "value": 2.438
+   },
+   "EURIBOR": {
+    "basis": "benchmark",
+    "current": true,
+    "period": "2026-09",
+    "source": "ecb",
+    "source_series": "FM.M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA",
+    "url": "https://data.ecb.europa.eu/data/datasets/FM/FM.M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA",
+    "value": 2.6350455
+   },
+   "MIBOR": {
+    "basis": "policy_rate",
+    "current": true,
+    "period": "2026-07-23",
+    "source": "bis",
+    "source_series": "WS_CBPOL/D.IN",
+    "url": "https://data.bis.org/topics/CBPOL/BIS%2CWS_CBPOL%2C1.0/D.IN",
+    "value": 5.25
+   },
+   "SARON": {
+    "basis": "policy_rate",
+    "current": true,
+    "period": "2026-09-29",
+    "source": "bis",
+    "source_series": "WS_CBPOL/D.CH",
+    "url": "https://data.bis.org/topics/CBPOL/BIS%2CWS_CBPOL%2C1.0/D.CH",
+    "value": 0.0
+   },
+   "SOFR": {
+    "basis": "benchmark",
+    "current": true,
+    "period": "2026-10-05",
+    "source": "fred",
+    "source_series": "SOFR",
+    "url": "https://fred.stlouisfed.org/series/SOFR",
+    "value": 3.89
+   },
+   "SONIA": {
+    "basis": "benchmark",
+    "current": true,
+    "period": "2026-10-02",
+    "source": "fred",
+    "source_series": "IUDSOIA",
+    "url": "https://fred.stlouisfed.org/series/IUDSOIA",
+    "value": 3.7317
+   },
+   "TONA": {
+    "basis": "policy_rate",
+    "current": true,
+    "period": "2026-09-29",
+    "source": "bis",
+    "source_series": "WS_CBPOL/D.JP",
+    "url": "https://data.bis.org/topics/CBPOL/BIS%2CWS_CBPOL%2C1.0/D.JP",
+    "value": 1.25
+   }
+  },
+  "refreshed_at": null
+ }
+}

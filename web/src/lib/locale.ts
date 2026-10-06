@@ -64,6 +64,22 @@ export function monthYear(isoMonth: string): string {
   }
 }
 
+/**
+ * A data period in the account's language: "2026-10-05" -> "5 Oct 2026", "2026-09" -> "September 2026",
+ * "2026" stays "2026" (economic data, PLAN.md 4.2).
+ */
+export function periodLabel(period: string): string {
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(period);
+  if (!d) return monthYear(period);
+  try {
+    return new Intl.DateTimeFormat(latin(current.locale), { dateStyle: "medium", timeZone: "UTC" }).format(
+      new Date(Date.UTC(Number(d[1]), Number(d[2]) - 1, Number(d[3]))),
+    );
+  } catch {
+    return period;
+  }
+}
+
 /** A country's name in the account's language, from its ISO 3166-1 code ("GB" -> "United Kingdom"). */
 export function regionName(code: string): string {
   try {

@@ -111,3 +111,13 @@ export async function replayCompanies(page: Page) {
     return answer ? route.fulfill({ json: answer }) : route.fulfill({ status: 404, json: { detail: "No such company." } });
   });
 }
+
+/** The economic data the nightly refresh would have stored (PLAN.md 4.2), replayed from tests/e2e_economy.py's file. */
+export function recordedEconomy() {
+  return JSON.parse(readFileSync(path.join(__dirname, "fixtures", "economy.json"), "utf-8"));
+}
+
+export async function replayEconomy(page: Page) {
+  const recorded = recordedEconomy();
+  await page.route("**/api/economy/reference-rates", (route) => route.fulfill({ json: recorded.reference_rates }));
+}

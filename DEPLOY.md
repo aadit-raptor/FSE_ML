@@ -33,7 +33,7 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `FSE_API_URL` | Vercel (Production scope) | `https://api.variater.com` (required; the build fails without it) | ignored on previews | default `http://127.0.0.1:8000` |
 | `FSE_STAGING_API_URL` | Vercel (Preview scope), optional | — | default `https://fse-api-staging.onrender.com` | — |
 | `FSE_CORS_ORIGINS` | Render service, optional | default `https://variater.com`; replaces it when set | default none (previews use the proxy) | default `http://localhost:3000` |
-| `FRED_API_KEY` | Render service | optional (ML image only) | optional | `.env` |
+| `FRED_API_KEY` | both Render services, and a GitHub Actions secret (`record-economy.yml`) | set: SOFR, SONIA and the US 10-year yield (PLAN.md 4.2; also macro regime in the ML image) | set | `.env`, optional |
 | `FSE_ENV` | Render service, optional | derived: `production` | derived from the `-staging` service name | `local` |
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | GitHub Actions secret | — | lets `staging.yml` open the protected preview | — |
@@ -614,6 +614,7 @@ GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
 |---|---|---|
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/job-maintenance`: requeues or fails jobs whose runner went silent, applies retention | `job-maintenance` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/company-refresh`, repeated while it says `more`: EDINET's day lists into the report index, stale companies reloaded, the company data kept inside its budget (see "Company filings") | `company-refresh` |
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/economy-refresh`: every economic data source read once, the ECB's exchange rates since the last stored day; fails when fewer than 20 economies are current or the FRED key is refused (see "Economic data") | `economy-refresh` |
 | `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |
 
 `staging.yml` also runs the **job drill** after each staging deploy: ten
@@ -688,6 +689,52 @@ source that changed), run the workflow by hand, or change
 `companies/record.py` in a pull request; download the `recorded-filings`
 artifact and commit it. The keyless cases record locally:
 `python -m companies.record sec_mcd esef_tesco`.
+
+## Economic data
+
+PLAN.md 4.2: growth, inflation, policy rates, bond yields, 3-month rates and
+sovereign spreads for 24 economies and the euro area, the current level of
+each floating-rate benchmark, and the ECB's euro reference rates
+(`economy/`, served by `/api/economy/...`).
+
+| Source | Gives | Key | Free rules |
+|---|---|---|---|
+| IMF World Economic Outlook (DataMapper) | growth and inflation, this year's projection | none | be restrained (one call per indicator) |
+| World Bank WDI | growth and inflation, latest actual years | none | none published |
+| BIS | central bank policy rates | none | be restrained |
+| OECD | 10-year yields, 3-month interbank rates | none | about 60 calls an hour per address (paced 5 s; a run makes one) |
+| ECB Data Portal | €STR, 3-month EURIBOR, euro reference rates | none | none published |
+| FRED | SOFR, SONIA, US 10-year Treasury yield | `FRED_API_KEY` | 120 calls a minute |
+
+**Not shown: corporate credit spreads.** FRED's corporate spread series (ICE
+BofA, Moody's) are licensed "no reproduction without permission", so the app
+shows each euro member's sovereign spread over Germany instead (computed from
+the OECD's CC BY yields). Corporate spreads wait for a licensed source
+(phase 12).
+
+**Key.** Free from fredaccount.stlouisfed.org (an account, then "API Keys").
+It goes on `fse-api` and `fse-api-staging` (Environment) and in GitHub
+Actions secrets (for `record-economy.yml`). Without it SOFR and SONIA fall
+back to the Fed's and Bank of England's policy rates, labelled as such.
+
+**The nightly refresh** (`economy-refresh`, `scheduled.yml`; also after each
+staging deploy in `staging.yml`): about a dozen paced calls. A source that
+fails keeps its stored series, whose age then shows; the run fails (and
+alerts) when the FRED key is refused or fewer than 20 economies have current
+growth, inflation and a policy rate. `/api/health/jobs` shows the last run's
+summary (`economies_current`, `fx_date`, `reference_rates`).
+
+**Storage.** The newest observations per series (24 of a daily or monthly
+rate, 12 years of a WEO series) and 400 days of exchange rates, one row a
+day: a few hundred kilobytes against an 8 MB budget, reported as
+`economic_data` by `/api/health/database` and failed at 80% by
+`ops/check_database.py`.
+
+**Recording test fixtures**: the keyless sources locally
+(`python -m economy.record economy_open`); FRED in `record-economy.yml` (by
+hand, or on a pull request changing `economy/record.py`), then download the
+`recorded-economy` artifact into `tests/fixtures/economy/`. After recording
+again, rerun `python -m tests.e2e_economy` (the browser tests' answers).
 
 ## Usage limits
 
