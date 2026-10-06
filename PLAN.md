@@ -140,7 +140,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 3.1 | Model version on every result | 1.5 | ☑ |
 | 3.2 | Written methodology | — | ☑ |
 | 3.3 | Audit history | 1.5 | ☑ |
-| 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☐ |
+| 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☑ |
 | **4** | **Global market data platform** | | |
 | 4.1 | Company filings from many countries | 1.9, 2.6 | ☐ |
 | 4.2 | Economic data by country, and exchange rates | 1.9 | ☐ |
@@ -718,6 +718,16 @@ can check it.
   unitranche; interest cap; tax losses; IFRS 16; non-USD; March year-end),
   with tests requiring the engine to match.
 - **Done when:** all match to 0.01; workbook and reasoning in `tests/reference/`.
+- **Done (2026-10-06):** 26 cases in `tests/reference/` (`cases.py` holds the
+  working as formulas and the reasoning; `reference_cases.xlsx` is the same
+  working as live Excel formulas, one sheet per case; `README.md` lists them).
+  `tests/test_reference_cases.py` runs each through `POST /api/deal/run` and
+  requires every checked figure (at least 18 per case, 1,155 in all) to match to 0.01;
+  twelve deliberate breaks of the engine were each caught. Case 08 measures
+  finding 11 by hand rather than avoiding it (the engine is higher by exactly
+  the unfunded repayment it reports). Writing the cases showed finding 10's
+  rounding building up: half-cents recurring each year left cash 0.015 off by
+  year three, so the cases pick numbers that don't. No model change.
 
 ---
 

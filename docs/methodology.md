@@ -16,6 +16,12 @@ same pull request.
 function in the model packages is not named here, when a link is broken, or
 when a constant or a Settings default quoted below differs from the code.
 
+**Hand-checked reference cases** ([tests/reference/](../tests/reference/README.md),
+PLAN.md 3.4) prove the calculations described here: 26 small deals worked out
+by hand from this document, in a committed spreadsheet, which
+[tests/test_reference_cases.py](../tests/test_reference_cases.py) requires the
+deal model to match to 0.01.
+
 ## Contents
 
 1. [Conventions](#1-conventions)
@@ -758,12 +764,14 @@ Open model findings awaiting the user's approval (CLAUDE.md "Model findings"):
 
 - **10. Rounding.** The engine rounds money to two decimals of a million
   (10,000 of the currency), and the old backtest's predicted EBITDA to 0.1M.
-  A deal with EBITDA under about 10M loses precision.
+  A deal with EBITDA under about 10M loses precision, and the rounding
+  builds up: a net income of 30.075 a year left cash 0.015 off a hand answer
+  after three years ([tests/reference/](../tests/reference/README.md)).
 - **11. Cash shortfalls funded out of nothing.** Closing cash is set to the
   minimum whatever happened (§3.5), unless a revolver can draw. The unfunded
   repayment warning (§8) shows the amount. An explicit tranche list also keeps
   its maturities at every hold of the grid, while the percentage structure
-  repays the mezzanine at each hold.
+  repays the mezzanine at each hold. Reference case 08 measures it by hand.
 - **12. Two-bucket simulation discards surplus cash** once the debt is repaid
   (§9); the tranche path keeps it.
 - **13. The simulation ignores minimum cash** (`minimum_cash_pct` is 0), so a
