@@ -1464,5 +1464,21 @@
     "field_lease_cost": "Lease cost",
     "field_lease_liability": "Lease liability",
     "noForecastHistory": "Not every year gives revenue, so the forecast can't start from these figures."
+  },
+  "economy": {
+    "referenceCurrent": "Today's level {rate} ({period}). Source:",
+    "source": {
+      "fred": "FRED",
+      "ecb": "ECB",
+      "bis": "BIS",
+      "oecd": "OECD",
+      "imf": "IMF",
+      "worldbank": "World Bank"
+    },
+    "basis": {
+      "policy_rate": "No free source publishes this benchmark: this is the central bank's policy rate, which it tracks.",
+      "interbank_3m": "No free source publishes this benchmark: this is the 3-month interbank rate, which it tracks."
+    },
+    "useCurrentRate": "Use today's level"
   }
 }

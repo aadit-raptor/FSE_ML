@@ -1,2 +1,4 @@
 # Recorded filings are compared byte for byte (companies/record.py)
 tests/fixtures/companies/** -text
+# Recorded economic data, replayed byte for byte (economy/record.py)
+tests/fixtures/economy/** -text

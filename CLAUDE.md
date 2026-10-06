@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-06 (PLAN.md 4.1b: company filings, the screen). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-07 (PLAN.md 4.2: economic data by country, and exchange rates). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -665,6 +665,51 @@ connector's standard is a default until a filing is read. EDINET companies
 load on an environment only after that refresh has run there (first run
 after 4.1a: the 2026-10-07 nightly).
 
+Economic data (PLAN.md 4.2, DEPLOY.md "Economic data"): **`economy/`** reads
+six free sources into `Series` keyed `<indicator>.<area>.<source>`
+(`connectors.py`, one or two calls each for every economy, paced through
+`companies/http.py`): the **IMF WEO** (DataMapper; growth and inflation,
+history and projections), the **World Bank** (latest actual years), the
+**BIS** (policy rates, daily), the **OECD** (10-year yields, 3-month
+interbank, monthly), the **ECB** (€STR, 3-month EURIBOR, euro reference
+rates) and **FRED** (SOFR, SONIA as `IUDSOIA`, US 10-year `DGS10`;
+`FRED_API_KEY` on both Render services and in GitHub secrets). 24 economies
+plus the euro area `XM` (`catalogue.py`); a euro member's policy rate is
+`XM`'s. `views.py` decides what is **current** by age (daily 45 days,
+monthly 100, policy rate 120, the IMF's figure for this calendar year, a
+World Bank year at most two back) and picks each benchmark's level from
+`REFERENCE_SOURCES`, best first: SOFR and SONIA as published, else the
+Fed's/BoE's policy rate; €STR and EURIBOR from the ECB; **TONA, SARON and
+MIBOR stand in with their central bank's policy rate and BBSY with
+Australia's 3-month bank bill rate** (no free source; the answer's `basis`
+says so). **Corporate credit spreads are not shown** (decided 2026-10-07):
+FRED's ICE BofA and Moody's series forbid reproduction; the app shows each
+euro member's sovereign spread over Germany from the OECD's CC BY yields, and
+PLAN.md 12.9 holds the licensed source. Storage (migration 0012,
+`db/economy.py`): `economic_series` (newest 24 daily/monthly or 12 annual
+observations per series) and `exchange_rates` (one JSONB row a day, units
+per euro, 400 days), an 8 MB budget reported as `economic_data` by
+`/api/health/database`. Endpoints (signed in, reading storage only, so not
+runs): `GET /api/economy/countries`, `/reference-rates` (with
+`currency_benchmarks`), `/exchange-rates?base=&on=` (`published_on`, the last
+ECB day on or before). The nightly **`economy-refresh`** (`scheduled.yml`,
+both environments, and in `staging.yml` after every staging deploy, whose
+health read requires 20 economies current and rates under seven days old)
+**fails when the FRED key is refused or fewer than 20 economies are
+current**, after storing what it read; a source that fails, or answers a
+shape its connector doesn't know (`unreadable`), keeps its stored series. **Market data never
+enters a run by itself**: the web (`lib/economy.ts`) starts a new floating
+facility on its currency's benchmark at today's level and sets the level
+when a benchmark is chosen; the tranche editor shows its date and source
+and offers "Use today's level". The level is then a stored input, so a
+saved deal's answer never moves with the market and no engine version
+changes. Tests replay `tests/fixtures/economy/` (`economy_open` recorded
+locally with `python -m economy.record`, `economy_fred` by
+**`record-economy.yml`** with the secret) judged on the day recorded
+(`_recorded_on` in its index); the browser tests replay
+`web/e2e/fixtures/economy.json` from `python -m tests.e2e_economy`, checked
+stale by `tests/test_economy.py`.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -709,7 +754,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. **Next is 4.2** (economic data by country, and exchange rates).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). **Next is 4.3** (sourced defaults by region, sector and size).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -888,7 +933,9 @@ golden snapshot is untouched and parity tests explain every departure.
 - Keep a copy of `FSE_BACKUP_KEY` outside GitHub (PLAN.md 1.8): losing it
   makes every stored backup unreadable.
 
-- A FRED API key (`FRED_API_KEY`) to enable macro regime detection.
+- Macro regime detection: `FRED_API_KEY` is set (PLAN.md 4.2); the ML
+  image still needs the model trained (`python -m ml.macro_regime`), and 5.7
+  rebuilds it on 4.2's data.
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
   personalization). SHAP and distress need no keys.
@@ -929,6 +976,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
 | `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder, the summary as deal inputs and forecast rows (`use.py`); storage, budget and the EDINET index; the endpoints |
+| `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
 | `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
 | `docs/methodology.md`, `tests/test_methodology.py` | Methodology (PLAN.md 3.2): every calculation written down, and the test that every model function, link, constant and Settings default in it matches the code |
@@ -1243,6 +1291,17 @@ Skills load when a session starts: install first, then open a new session.
   untrimmed `raw-filings` artifact for concept names, then fix the map. A
   replayed case resets `sec.reset_cache()` and `edinet.reset_cache()` first:
   each fixture's name lists are trimmed to that case.
+- The IMF's DataMapper ignores a country list in the path and answers every
+  country since 1980 (about 120 KB an indicator): read it whole, and
+  `economy/record.py` trims the fixture. The OECD's SDMX API allows about 60
+  calls an hour per address, so `sdmx.oecd.org` is paced at 5 s and a
+  refresh makes one call. Before showing any market series, read its licence
+  on the source page: FRED hosts series it may not redistribute (ICE BofA,
+  Moody's).
+- Economic data tests judge "current" on the day the fixture was recorded
+  (`_recorded_on`), never today, or they go stale on their own; a refresh's
+  exchange rate request depends on what is stored, so the test transport
+  answers the recorded rates for any start day.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.

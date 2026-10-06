@@ -29,6 +29,7 @@ COPY api ./api
 COPY companies ./companies
 COPY core ./core
 COPY db ./db
+COPY economy ./economy
 COPY jobs ./jobs
 COPY lbo_engine ./lbo_engine
 COPY ml ./ml

@@ -491,7 +491,38 @@ class SourceCursor(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
 
+class EconomicSeries(Base):
+    """One economic indicator for one area from one source (PLAN.md 4.2,
+    economy/): the newest observations as ``[[period, value], ...]``,
+    percentages, oldest first. Public data, shared by every account; a
+    series a refresh can't read keeps what was stored, and its age shows."""
+
+    __tablename__ = "economic_series"
+
+    key: Mapped[str] = mapped_column(String(48), primary_key=True)
+    indicator: Mapped[str] = mapped_column(String(20), nullable=False)
+    area: Mapped[str] = mapped_column(String(8), nullable=False)
+    source: Mapped[str] = mapped_column(String(12), nullable=False)
+    source_series: Mapped[str] = mapped_column(String(80), nullable=False)
+    frequency: Mapped[str] = mapped_column(String(1), nullable=False)
+    url: Mapped[str] = mapped_column(String(300), nullable=False)
+    observations: Mapped[list] = mapped_column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    refreshed_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class ExchangeRateDay(Base):
+    """The ECB's euro reference rates for one day: ``{"USD": 1.1269, ...}``,
+    units of each currency per euro. Exchange rates, not money amounts."""
+
+    __tablename__ = "exchange_rates"
+
+    rate_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    rates: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    source: Mapped[str] = mapped_column(String(12), nullable=False, server_default=text("'ecb'"))
+    refreshed_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
 __all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
-           "DealVersion", "EdinetReport", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
+           "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

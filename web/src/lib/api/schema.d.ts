@@ -530,6 +530,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/economy/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Countries */
+        get: operations["get_countries_api_economy_countries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/economy/exchange-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Exchange Rates */
+        get: operations["get_exchange_rates_api_economy_exchange_rates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/economy/reference-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Reference Rates */
+        get: operations["get_reference_rates_api_economy_reference_rates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/edgar/{ticker}": {
         parameters: {
             query?: never;
@@ -2339,6 +2390,101 @@ export interface components {
             /** Spearman Rho */
             spearman_rho: number | null;
         };
+        /** EconomicFigure */
+        EconomicFigure: {
+            /**
+             * Basis
+             * @description projection (IMF WEO, this year), actual, observed, euro_area (a euro member's policy rate is the ECB's), computed (a spread), benchmark (the reference rate itself), or what stands in for a benchmark with no free source: policy_rate, interbank_3m
+             * @enum {string}
+             */
+            basis: "projection" | "actual" | "observed" | "euro_area" | "computed" | "benchmark" | "policy_rate" | "interbank_3m";
+            /**
+             * Current
+             * @description Recent enough to count as today's (economy/views.py)
+             */
+            current: boolean;
+            /**
+             * Period
+             * @description YYYY, YYYY-MM or YYYY-MM-DD: the period the value is for
+             */
+            period: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "imf" | "worldbank" | "oecd" | "bis" | "ecb" | "fred";
+            /**
+             * Source Series
+             * @description The series' id at its source
+             */
+            source_series: string;
+            /**
+             * Url
+             * @description Where a person can check it
+             */
+            url: string;
+            /**
+             * Value
+             * @description Per cent (3.75 = 3.75%), or percentage points for a spread
+             */
+            value: number;
+        };
+        /** EconomyArea */
+        EconomyArea: {
+            /**
+             * Area
+             * @description ISO 3166-1 alpha-2, or XM for the euro area
+             */
+            area: string;
+            /** Currency */
+            currency: string;
+            /**
+             * Current
+             * @description Growth, inflation and the policy rate are all current
+             */
+            current: boolean;
+            /**
+             * Figures
+             * @description gdp_growth, gdp_growth_actual, inflation, inflation_actual, policy_rate, bond_yield_10y, short_rate_3m, sovereign_spread: whichever are known
+             */
+            figures: {
+                [key: string]: components["schemas"]["EconomicFigure"];
+            };
+        };
+        /** EconomyResponse */
+        EconomyResponse: {
+            /** Areas */
+            areas: components["schemas"]["EconomyArea"][];
+            /**
+             * As Of
+             * Format: date
+             * @description The day 'current' was judged on (UTC)
+             */
+            as_of: string;
+            /**
+             * Refreshed At
+             * @description The latest refresh (UTC); null before the first
+             */
+            refreshed_at?: string | null;
+            /** Sources */
+            sources: components["schemas"]["EconomySourceOut"][];
+        };
+        /** EconomySourceOut */
+        EconomySourceOut: {
+            /** Configured */
+            configured: boolean;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "imf" | "worldbank" | "oecd" | "bis" | "ecb" | "fred";
+            /** Licence */
+            licence: string;
+            /** Name */
+            name: string;
+            /** Needs Key */
+            needs_key: boolean;
+        };
         /**
          * EdgarDealInputs
          * @description The latest year of a filing as deal inputs: EBITDA as the standard
@@ -2457,6 +2603,32 @@ export interface components {
             enabled: boolean;
             /** Examples */
             examples: components["schemas"]["ExampleDeal"][];
+        };
+        /** ExchangeRatesResponse */
+        ExchangeRatesResponse: {
+            /** Base */
+            base: string;
+            /**
+             * Published On
+             * Format: date
+             * @description The ECB publication day the rates are from
+             */
+            published_on: string;
+            /**
+             * Rates
+             * @description Units of each currency for one unit of base
+             */
+            rates: {
+                [key: string]: number;
+            };
+            /**
+             * Source
+             * @default ecb
+             * @constant
+             */
+            source: "ecb";
+            /** Url */
+            url: string;
         };
         /** ExitSensitivity */
         ExitSensitivity: {
@@ -3493,6 +3665,30 @@ export interface components {
             outcome?: string | null;
             /** Sector */
             sector?: string | null;
+        };
+        /** ReferenceRatesResponse */
+        ReferenceRatesResponse: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Currency Benchmarks
+             * @description The benchmark a new floating facility starts on, by the deal's currency
+             */
+            currency_benchmarks: {
+                [key: string]: "SOFR" | "SONIA" | "ESTR" | "EURIBOR" | "TONA" | "SARON" | "BBSY" | "MIBOR" | "custom";
+            };
+            /**
+             * Rates
+             * @description Each benchmark's current level, by code (core/debt.py REFERENCE_RATES); a benchmark with no current figure is left out
+             */
+            rates: {
+                [key: string]: components["schemas"]["EconomicFigure"];
+            };
+            /** Refreshed At */
+            refreshed_at?: string | null;
         };
         /** ReportedRun */
         ReportedRun: {
@@ -5794,6 +5990,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_countries_api_economy_countries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EconomyResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_exchange_rates_api_economy_exchange_rates_get: {
+        parameters: {
+            query?: {
+                base?: string;
+                /** @description The rates of this day, or the last publication before it */
+                on?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExchangeRatesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_reference_rates_api_economy_reference_rates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceRatesResponse"];
                 };
             };
             /** @description A usage limit was reached */

@@ -41,6 +41,11 @@ def problems(result: dict) -> list[str]:
         found.append(f"company data at {companies.get('bytes', 0) // (1024 * 1024)} MB of its "
                      f"{companies.get('budget_bytes', 0) // (1024 * 1024)} MB budget: lower "
                      "db.companies.MAX_COMPANIES (PLAN.md 4.1)")
+    economy = result.get("economic_data") or {}
+    if economy.get("warning"):
+        found.append(f"economic data at {economy.get('bytes', 0) // 1024} KB of its "
+                     f"{economy.get('budget_bytes', 0) // 1024} KB budget: lower "
+                     "db.economy.KEEP_FX_DAYS or economy.model.KEEP_OBSERVATIONS (PLAN.md 4.2)")
     return found
 
 
