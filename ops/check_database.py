@@ -36,6 +36,11 @@ def problems(result: dict) -> list[str]:
     if storage.get("warning"):
         found.append(f"storage at {storage.get('used_fraction', 0):.0%} of the free "
                      f"{storage.get('limit_bytes', 0) // (1024 * 1024)} MB: plan cleanup or phase 12.2")
+    companies = result.get("company_data") or {}
+    if companies.get("warning"):
+        found.append(f"company data at {companies.get('bytes', 0) // (1024 * 1024)} MB of its "
+                     f"{companies.get('budget_bytes', 0) // (1024 * 1024)} MB budget: lower "
+                     "db.companies.MAX_COMPANIES (PLAN.md 4.1)")
     return found
 
 

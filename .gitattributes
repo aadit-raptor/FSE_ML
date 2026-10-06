@@ -1,0 +1,2 @@
+# Recorded filings are compared byte for byte (companies/record.py)
+tests/fixtures/companies/** -text

@@ -613,6 +613,7 @@ GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
 | Step | What it does | Recorded as |
 |---|---|---|
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/job-maintenance`: requeues or fails jobs whose runner went silent, applies retention | `job-maintenance` |
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/company-refresh`, repeated while it says `more`: EDINET's day lists into the report index, stale companies reloaded, the company data kept inside its budget (see "Company filings") | `company-refresh` |
 | `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |
 
 `staging.yml` also runs the **job drill** after each staging deploy: ten
@@ -644,6 +645,49 @@ To add a scheduled task (data refresh, retraining): a function with
 `@task("name", "what it does")` in `jobs/scheduled.py` returning a small dict
 of counts, and a step in `scheduled.yml`. Anything longer than a request
 should queue a job instead.
+
+## Company filings
+
+PLAN.md 4.1: company figures from filings in many countries, behind one
+interface (`companies/`) and served by `/api/companies/...`.
+
+| Source | Covers | Key | Free rules |
+|---|---|---|---|
+| SEC EDGAR | US filers (10-K, US GAAP) and foreign ones (20-F/40-F, IFRS) | none | 10 requests a second, a named User-Agent |
+| ESEF via filings.xbrl.org | EU- and UK-listed companies' annual reports (IFRS) | none | be restrained (calls paced at 2 a second) |
+| UK Companies House | every UK company; figures from accounts filed as inline XBRL (scanned PDFs have none) | `COMPANIES_HOUSE_API_KEY` | 600 requests every 5 minutes |
+| Japan EDINET | annual securities reports (Japanese GAAP, IFRS) | `EDINET_API_KEY` | be restrained (paced at 1 a second) |
+| GLEIF | turns an LEI or ISIN into the company behind it | none | 60 requests a minute |
+
+**Keys.** Free: Companies House from its developer hub (an "API key" for a
+"live" application, REST), EDINET from the FSA's EDINET API page. Each goes
+in three places under the same name: Render's `fse-api` and
+`fse-api-staging` (Environment), and GitHub Actions secrets (for
+`record-filings.yml`). Without one, that source is listed as not set up
+(`GET /api/companies/sources`) and the others work. EDINET takes its key as
+a query parameter, so the code never logs a source URL or an HTTP library's
+error text (companies/http.py).
+
+**Storage, inside the free 0.5 GB.** Only summary figures are kept (one row
+per company, one per fiscal year), at most `db.companies.MAX_COMPANIES`
+(8,000), least recently used out first; EDINET's report index keeps three
+years. Budget: 64 MB. `/api/health/database` reports `company_data` (bytes,
+companies, budget) and `ops/check_database.py` fails `live.yml` and
+`staging.yml` at 80% of it.
+
+**The nightly refresh** (`company-refresh`, `scheduled.yml`): EDINET lists
+documents by filing day only, so each run reads the days since the last one
+into `edinet_reports`; the first runs backfill 400 days, 60 a call, and the
+workflow calls again while the answer says `more`. Then it reloads up to 15
+companies not refreshed for 14 days. A wrong EDINET key fails the run (and
+alerts); an outage is noted in the summary and resumed next night.
+
+**Recording test fixtures** (`record-filings.yml`): the tests replay real
+responses in `tests/fixtures/companies/`. To record again (a new case, a
+source that changed), run the workflow by hand, or change
+`companies/record.py` in a pull request; download the `recorded-filings`
+artifact and commit it. The keyless cases record locally:
+`python -m companies.record sec_mcd esef_tesco`.
 
 ## Usage limits
 

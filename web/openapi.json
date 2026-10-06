@@ -1214,6 +1214,618 @@
         "title": "CashFlowResult",
         "type": "object"
       },
+      "CompanyFigures": {
+        "description": "Summary figures for one fiscal year, millions of the company's currency;\nnull where the filing reports none.",
+        "properties": {
+          "accounts_payable": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accounts Payable"
+          },
+          "accounts_receivable": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accounts Receivable"
+          },
+          "capital_expenditures": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capital Expenditures"
+          },
+          "cash_and_equivalents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash And Equivalents"
+          },
+          "depreciation_amortization": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depreciation Amortization"
+          },
+          "ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Operating income plus D&A, as the standard reports them",
+            "title": "Ebitda"
+          },
+          "income_tax_expense": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Income Tax Expense"
+          },
+          "interest_expense": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Expense"
+          },
+          "inventories": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventories"
+          },
+          "lease_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Cost"
+          },
+          "lease_liability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Liability"
+          },
+          "net_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Income"
+          },
+          "operating_income": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Income"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "total_assets": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Assets"
+          },
+          "total_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Debt"
+          },
+          "total_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Equity"
+          }
+        },
+        "title": "CompanyFigures",
+        "type": "object"
+      },
+      "CompanyFilingOut": {
+        "properties": {
+          "filed_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filed (ESEF: added to filings.xbrl.org)",
+            "title": "Filed On"
+          },
+          "form": {
+            "title": "Form",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "url": {
+            "description": "The filing itself, at its source",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "form",
+          "id"
+        ],
+        "title": "CompanyFilingOut",
+        "type": "object"
+      },
+      "CompanyLoadRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "sec",
+              "esef",
+              "companies_house",
+              "edinet"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "years": {
+            "default": 3,
+            "description": "Fiscal years to read, newest last",
+            "maximum": 5.0,
+            "minimum": 2.0,
+            "title": "Years",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source",
+          "id"
+        ],
+        "title": "CompanyLoadRequest",
+        "type": "object"
+      },
+      "CompanyRefOut": {
+        "properties": {
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 3166-1 alpha-2, when the source says",
+            "title": "Country"
+          },
+          "id": {
+            "description": "The company's id at its source: CIK, LEI, company number or EDINET code",
+            "title": "Id",
+            "type": "string"
+          },
+          "identifiers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "lei, isin, ticker, cik, company_number, edinet_code, sec_code, jcn: whichever are known",
+            "title": "Identifiers",
+            "type": "object"
+          },
+          "loadable": {
+            "description": "This server has the source's key",
+            "title": "Loadable",
+            "type": "boolean"
+          },
+          "local_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The name in the register's own language",
+            "title": "Local Name"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "sec",
+              "esef",
+              "companies_house",
+              "edinet"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "stored": {
+            "description": "Its figures are already stored",
+            "title": "Stored",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source",
+          "id",
+          "name",
+          "identifiers",
+          "loadable",
+          "stored"
+        ],
+        "title": "CompanyRefOut",
+        "type": "object"
+      },
+      "CompanyResponse": {
+        "properties": {
+          "accounting_standard": {
+            "enum": [
+              "ifrs",
+              "us_gaap",
+              "uk_gaap",
+              "jgaap"
+            ],
+            "title": "Accounting Standard",
+            "type": "string"
+          },
+          "company": {
+            "$ref": "#/components/schemas/CompanyRefOut"
+          },
+          "fiscal_year_end_month": {
+            "anyOf": [
+              {
+                "maximum": 12.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year End Month"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The filing's own currency, in millions"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the stored figures were read (UTC)",
+            "title": "Refreshed At"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/CompanyWarningOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "years": {
+            "description": "Oldest first",
+            "items": {
+              "$ref": "#/components/schemas/CompanyYearOut"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "company",
+          "money",
+          "accounting_standard",
+          "years",
+          "warnings",
+          "licence"
+        ],
+        "title": "CompanyResponse",
+        "type": "object"
+      },
+      "CompanySearchResponse": {
+        "properties": {
+          "fallback": {
+            "const": "document_upload",
+            "title": "Fallback",
+            "type": "string"
+          },
+          "matched": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lei",
+                  "isin"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The query was read as this identifier (its check digits passed)",
+            "title": "Matched"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/CompanyRefOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/CompanyUnavailable"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "results",
+          "unavailable",
+          "fallback"
+        ],
+        "title": "CompanySearchResponse",
+        "type": "object"
+      },
+      "CompanySourceOut": {
+        "properties": {
+          "configured": {
+            "description": "Whether this server can load companies from it",
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "coverage": {
+            "description": "ISO country codes, \"EU\" for every member state, \"*\" anywhere",
+            "items": {
+              "type": "string"
+            },
+            "title": "Coverage",
+            "type": "array"
+          },
+          "id": {
+            "enum": [
+              "sec",
+              "esef",
+              "companies_house",
+              "edinet"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "needs_key": {
+            "title": "Needs Key",
+            "type": "boolean"
+          },
+          "searchable_by": {
+            "description": "name, ticker, lei, isin, company_number, cik, edinet_code, jcn",
+            "items": {
+              "type": "string"
+            },
+            "title": "Searchable By",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "coverage",
+          "searchable_by",
+          "needs_key",
+          "configured",
+          "licence"
+        ],
+        "title": "CompanySourceOut",
+        "type": "object"
+      },
+      "CompanySourcesResponse": {
+        "properties": {
+          "fallback": {
+            "const": "document_upload",
+            "description": "What to offer for a company no source covers (PLAN.md 6.2)",
+            "title": "Fallback",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/CompanySourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sources",
+          "fallback"
+        ],
+        "title": "CompanySourcesResponse",
+        "type": "object"
+      },
+      "CompanyUnavailable": {
+        "properties": {
+          "reason": {
+            "description": "not_configured, unreachable, refused, rate_limited, failed ...",
+            "title": "Reason",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "reason"
+        ],
+        "title": "CompanyUnavailable",
+        "type": "object"
+      },
+      "CompanyWarningOut": {
+        "properties": {
+          "code": {
+            "description": "missing_figure, scanned_accounts, not_indexed_yet, summary_only, no_annual_figures",
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "CompanyWarningOut",
+        "type": "object"
+      },
+      "CompanyYearOut": {
+        "properties": {
+          "figures": {
+            "$ref": "#/components/schemas/CompanyFigures"
+          },
+          "filing": {
+            "$ref": "#/components/schemas/CompanyFilingOut"
+          },
+          "fiscal_year": {
+            "description": "Named by the calendar year it ends in",
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fiscal_year",
+          "period_end",
+          "figures",
+          "filing"
+        ],
+        "title": "CompanyYearOut",
+        "type": "object"
+      },
       "DealActuals": {
         "additionalProperties": false,
         "description": "What happened to a deal: results for its first years (as many as are\nknown, up to its hold) and, once it has been sold, the exit.",
@@ -8842,6 +9454,225 @@
         "summary": "Get Capabilities",
         "tags": [
           "settings & integrations"
+        ]
+      }
+    },
+    "/api/companies/load": {
+      "post": {
+        "description": "Read the company's latest filings from its source, store the summary\n(when the server has a database) and answer it.",
+        "operationId": "post_load_api_companies_load_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyLoadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Load",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/companies/search": {
+      "get": {
+        "description": "Every source at once; one that fails is listed in ``unavailable``.",
+        "operationId": "get_search_api_companies_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 2,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanySearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Search",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/companies/sources": {
+      "get": {
+        "operationId": "get_sources_api_companies_sources_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanySourcesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Sources",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/companies/{source}/{company_id}": {
+      "get": {
+        "operationId": "get_stored_api_companies__source___company_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source",
+            "required": true,
+            "schema": {
+              "title": "Source",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Stored",
+        "tags": [
+          "companies"
         ]
       }
     },

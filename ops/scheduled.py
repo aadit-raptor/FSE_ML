@@ -1,6 +1,7 @@
 """The scheduler's side of scheduled jobs (PLAN.md 1.9), run by GitHub Actions.
 
     python -m ops.scheduled task job-maintenance --api URL --environment production
+    python -m ops.scheduled task company-refresh --repeat 12 --api URL --environment production
     python -m ops.scheduled keepalive --api URL --environment production
     python -m ops.scheduled drill --api URL --environment staging
 
@@ -137,12 +138,18 @@ class Api:
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
-def run_task(api: Api, name: str, log=print) -> dict:
+def run_task(api: Api, name: str, log=print, repeat: int = 1) -> dict:
+    """Run a task; while its summary says ``more`` (work left that didn't fit
+    in one request, such as a first backfill), run it again, ``repeat``
+    times at most."""
     api.wake()
-    code, body = api.call("POST", f"/api/scheduled/tasks/{urllib.parse.quote(name)}")
-    if code != 200:
-        raise Failed(f"task {name}: HTTP {code}: {body.get('detail')}")
-    log(f"task {name}: {body['status']} {json.dumps(body.get('summary', {}), sort_keys=True)}")
+    for _ in range(max(1, repeat)):
+        code, body = api.call("POST", f"/api/scheduled/tasks/{urllib.parse.quote(name)}")
+        if code != 200:
+            raise Failed(f"task {name}: HTTP {code}: {body.get('detail')}")
+        log(f"task {name}: {body['status']} {json.dumps(body.get('summary', {}), sort_keys=True)}")
+        if not body.get("summary", {}).get("more"):
+            break
     return body
 
 
@@ -253,13 +260,15 @@ def main(argv: Optional[list[str]] = None) -> int:
         p.add_argument("--environment", required=True, choices=["production", "staging"])
         if name == "task":
             p.add_argument("name")
+            p.add_argument("--repeat", type=int, default=1,
+                           help="run again while the summary says more, at most this many times")
         if name == "drill":
             p.add_argument("--count", type=int, default=10)
     args = parser.parse_args(argv)
     api = Api(args.api, args.environment)
     try:
         if args.command == "task":
-            run_task(api, args.name)
+            run_task(api, args.name, repeat=args.repeat)
         elif args.command == "keepalive":
             keepalive(api)
         else:

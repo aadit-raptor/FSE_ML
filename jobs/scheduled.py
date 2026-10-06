@@ -69,6 +69,13 @@ def job_maintenance() -> dict:
         f"jobs_{status}": n for status, n in queue.counts().items()}}
 
 
+@task("company-refresh", "Refresh stored company figures and EDINET's index of annual reports "
+                         "(PLAN.md 4.1, companies/refresh.py).")
+def company_refresh() -> dict:
+    from companies import refresh
+    return refresh.run()
+
+
 # ---------------------------------------------------------------------------
 # The run log
 # ---------------------------------------------------------------------------

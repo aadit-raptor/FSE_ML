@@ -31,6 +31,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from api.observability import log_event, utc_now_iso
 from db import migrate
+from db.companies import usage_on
 from db.engine import DatabaseUnavailable, get_engine, is_configured, open_with_retries
 from db.models import StorageCheck, utc_now
 
@@ -136,6 +137,7 @@ def check(environment: str, *, force: bool = False) -> dict:
                         StorageCheck.checked_at < utc_now() - timedelta(days=KEEP_READINGS_DAYS)))
                     revision = migrate.current_revision(conn)
                     role = role_report(conn)
+                    company_data = usage_on(conn)
             head = migrate.head_revision()
             result.update(
                 status="ok",
@@ -145,6 +147,7 @@ def check(environment: str, *, force: bool = False) -> dict:
                             "status": "current" if revision == head else "behind"},
                 storage=report,
                 role=role,
+                company_data=company_data,
             )
             if report["warning"]:
                 _alert_storage(report, environment)

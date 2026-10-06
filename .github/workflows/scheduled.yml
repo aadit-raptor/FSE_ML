@@ -11,8 +11,9 @@ name: scheduled
 # this workflow and the main branch (api/github_oidc.py). That is all
 # "id-token: write" allows; the repository token stays read-only.
 #
-# Later tasks (data refresh, retraining) are added as steps here; see
-# jobs/scheduled.py for adding one to the API.
+# Tasks are steps here (job maintenance, the company filings refresh of
+# PLAN.md 4.1; retraining later); see jobs/scheduled.py for adding one to
+# the API.
 on:
   schedule:
     - cron: "10 4 * * *"      # nightly, after backup.yml
@@ -39,11 +40,17 @@ jobs:
           - environment: staging
             api: https://fse-api-staging.onrender.com
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - name: Job maintenance (requeue lost jobs, apply retention)
         run: python3 -m ops.scheduled task job-maintenance --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
+      # Company filings (PLAN.md 4.1): EDINET's day lists into the index, then
+      # stale companies reloaded. Each call stops after about 100 seconds and
+      # says "more" while EDINET's first backfill is unfinished, so it is
+      # called again (eight calls cover the 400-day backfill in one night)
+      - name: Company filings refresh
+        run: python3 -m ops.scheduled task company-refresh --repeat 8 --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
       - name: Alert if a scheduled task failed
         if: failure()
         env:
