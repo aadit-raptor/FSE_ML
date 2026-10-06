@@ -150,11 +150,16 @@ def _debt(debt_total, noncurrent, current):
 
 def summarize(facts: list[Fact], items: ConceptMap, n_years: int) -> tuple[list[YearFigures], list[Warning]]:
     """Summary figures for the latest ``n_years`` fiscal years in ``facts``."""
-    def concepts(names):
-        return [c for name in names for alt in items.fields[name] for c in concepts_of(alt)]
+    def reported(names):
+        """Years in which one of these fields has a value, with their ends."""
+        concepts = [c for name in names for alt in items.fields[name] for c in concepts_of(alt)]
+        candidates = fiscal_years(facts, concepts, 100)
+        years = [y for y, _ in candidates]
+        has = [any(v is not None for v in vals) for vals in zip(*(
+            field_values(facts, items.fields[name], name in FLOWS, years)[0] for name in names))]
+        return [c for c, ok in zip(candidates, has) if ok][-n_years:]
 
-    picked = (fiscal_years(facts, concepts(ANCHORS), n_years)
-              or fiscal_years(facts, concepts((LAST_ANCHOR,)), n_years))
+    picked = reported(ANCHORS) or reported((LAST_ANCHOR,))
     if not picked:
         return [], [Warning("no_annual_figures")]
     years = [y for y, _ in picked]

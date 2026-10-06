@@ -178,6 +178,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/load": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Load
+         * @description Read the company's latest filings from its source, store the summary
+         *     (when the server has a database) and answer it.
+         */
+        post: operations["post_load_api_companies_load_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Search
+         * @description Every source at once; one that fails is listed in ``unavailable``.
+         */
+        get: operations["get_search_api_companies_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sources */
+        get: operations["get_sources_api_companies_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{source}/{company_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Stored */
+        get: operations["get_stored_api_companies__source___company_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deal/run": {
         parameters: {
             query?: never;
@@ -1399,6 +1474,242 @@ export interface components {
             non_cash_interest?: (number | null)[];
             /** Years */
             years?: number[];
+        };
+        /**
+         * CompanyFigures
+         * @description Summary figures for one fiscal year, millions of the company's currency;
+         *     null where the filing reports none.
+         */
+        CompanyFigures: {
+            /** Accounts Payable */
+            accounts_payable?: number | null;
+            /** Accounts Receivable */
+            accounts_receivable?: number | null;
+            /** Capital Expenditures */
+            capital_expenditures?: number | null;
+            /** Cash And Equivalents */
+            cash_and_equivalents?: number | null;
+            /** Depreciation Amortization */
+            depreciation_amortization?: number | null;
+            /**
+             * Ebitda
+             * @description Operating income plus D&A, as the standard reports them
+             */
+            ebitda?: number | null;
+            /** Income Tax Expense */
+            income_tax_expense?: number | null;
+            /** Interest Expense */
+            interest_expense?: number | null;
+            /** Inventories */
+            inventories?: number | null;
+            /** Lease Cost */
+            lease_cost?: number | null;
+            /** Lease Liability */
+            lease_liability?: number | null;
+            /** Net Income */
+            net_income?: number | null;
+            /** Operating Income */
+            operating_income?: number | null;
+            /** Revenue */
+            revenue?: number | null;
+            /** Total Assets */
+            total_assets?: number | null;
+            /** Total Debt */
+            total_debt?: number | null;
+            /** Total Equity */
+            total_equity?: number | null;
+        };
+        /** CompanyFilingOut */
+        CompanyFilingOut: {
+            /**
+             * Filed On
+             * @description Filed (ESEF: added to filings.xbrl.org)
+             */
+            filed_on?: string | null;
+            /** Form */
+            form: string;
+            /** Id */
+            id: string;
+            /**
+             * Url
+             * @description The filing itself, at its source
+             */
+            url: string;
+        };
+        /** CompanyLoadRequest */
+        CompanyLoadRequest: {
+            /** Id */
+            id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "sec" | "esef" | "companies_house" | "edinet";
+            /**
+             * Years
+             * @description Fiscal years to read, newest last
+             * @default 3
+             */
+            years: number;
+        };
+        /** CompanyRefOut */
+        CompanyRefOut: {
+            /**
+             * Country
+             * @description ISO 3166-1 alpha-2, when the source says
+             */
+            country?: string | null;
+            /**
+             * Id
+             * @description The company's id at its source: CIK, LEI, company number or EDINET code
+             */
+            id: string;
+            /**
+             * Identifiers
+             * @description lei, isin, ticker, cik, company_number, edinet_code, sec_code, jcn: whichever are known
+             */
+            identifiers: {
+                [key: string]: string;
+            };
+            /**
+             * Loadable
+             * @description This server has the source's key
+             */
+            loadable: boolean;
+            /**
+             * Local Name
+             * @description The name in the register's own language
+             */
+            local_name?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "sec" | "esef" | "companies_house" | "edinet";
+            /**
+             * Stored
+             * @description Its figures are already stored
+             */
+            stored: boolean;
+        };
+        /** CompanyResponse */
+        CompanyResponse: {
+            /**
+             * Accounting Standard
+             * @enum {string}
+             */
+            accounting_standard: "ifrs" | "us_gaap" | "uk_gaap" | "jgaap";
+            company: components["schemas"]["CompanyRefOut"];
+            /** Fiscal Year End Month */
+            fiscal_year_end_month?: number | null;
+            /** Licence */
+            licence: string;
+            /** @description The filing's own currency, in millions */
+            money: components["schemas"]["Money"];
+            /**
+             * Refreshed At
+             * @description When the stored figures were read (UTC)
+             */
+            refreshed_at?: string | null;
+            /** Warnings */
+            warnings: components["schemas"]["CompanyWarningOut"][];
+            /**
+             * Years
+             * @description Oldest first
+             */
+            years: components["schemas"]["CompanyYearOut"][];
+        };
+        /** CompanySearchResponse */
+        CompanySearchResponse: {
+            /**
+             * Fallback
+             * @constant
+             */
+            fallback: "document_upload";
+            /**
+             * Matched
+             * @description The query was read as this identifier (its check digits passed)
+             */
+            matched?: ("lei" | "isin") | null;
+            /** Results */
+            results: components["schemas"]["CompanyRefOut"][];
+            /** Unavailable */
+            unavailable: components["schemas"]["CompanyUnavailable"][];
+        };
+        /** CompanySourceOut */
+        CompanySourceOut: {
+            /**
+             * Configured
+             * @description Whether this server can load companies from it
+             */
+            configured: boolean;
+            /**
+             * Coverage
+             * @description ISO country codes, "EU" for every member state, "*" anywhere
+             */
+            coverage: string[];
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "sec" | "esef" | "companies_house" | "edinet";
+            /** Licence */
+            licence: string;
+            /** Needs Key */
+            needs_key: boolean;
+            /**
+             * Searchable By
+             * @description name, ticker, lei, isin, company_number, cik, edinet_code, jcn
+             */
+            searchable_by: string[];
+        };
+        /** CompanySourcesResponse */
+        CompanySourcesResponse: {
+            /**
+             * Fallback
+             * @description What to offer for a company no source covers (PLAN.md 6.2)
+             * @constant
+             */
+            fallback: "document_upload";
+            /** Sources */
+            sources: components["schemas"]["CompanySourceOut"][];
+        };
+        /** CompanyUnavailable */
+        CompanyUnavailable: {
+            /**
+             * Reason
+             * @description not_configured, unreachable, refused, rate_limited, failed ...
+             */
+            reason: string;
+            /** Source */
+            source: string;
+        };
+        /** CompanyWarningOut */
+        CompanyWarningOut: {
+            /**
+             * Code
+             * @description missing_figure, scanned_accounts, not_indexed_yet, summary_only, no_annual_figures
+             */
+            code: string;
+            /** Field */
+            field?: string | null;
+        };
+        /** CompanyYearOut */
+        CompanyYearOut: {
+            figures: components["schemas"]["CompanyFigures"];
+            filing: components["schemas"]["CompanyFilingOut"];
+            /**
+             * Fiscal Year
+             * @description Named by the calendar year it ends in
+             */
+            fiscal_year: number;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
         };
         /**
          * DealActuals
@@ -4545,6 +4856,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Capabilities"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_load_api_companies_load_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyLoadRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_search_api_companies_search_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_sources_api_companies_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySourcesResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_stored_api_companies__source___company_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source: string;
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description A usage limit was reached */

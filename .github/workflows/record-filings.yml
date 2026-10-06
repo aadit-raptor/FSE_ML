@@ -44,9 +44,16 @@ jobs:
             echo "::error::Set the COMPANIES_HOUSE_API_KEY and EDINET_API_KEY secrets (DEPLOY.md 'Company filings')"; exit 1
           fi
           # shellcheck disable=SC2086 # one word per case
-          python -m companies.record --out recorded $CASES
+          python -m companies.record --out recorded --raw raw $CASES
       - uses: actions/upload-artifact@v4
         with:
           name: recorded-filings
           path: recorded
           retention-days: 3
+      # The untrimmed responses, to read a filing's concepts when a map is
+      # missing some; never committed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: raw-filings
+          path: raw
+          retention-days: 1

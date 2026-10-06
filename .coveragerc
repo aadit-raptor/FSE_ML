@@ -5,6 +5,7 @@
 source =
     analytics
     api
+    companies
     core
     db
     jobs

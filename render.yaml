@@ -25,6 +25,7 @@ services:
         - requirements*.txt
         - analytics/**
         - api/**
+        - companies/**
         - core/**
         - db/**
         - jobs/**

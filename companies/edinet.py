@@ -70,6 +70,7 @@ class ReportIndex(Protocol):
     def add(self, reports: list[IndexedReport]) -> int: ...
     def scanned_through(self) -> Optional[date]: ...
     def set_scanned_through(self, day: date) -> None: ...
+    def prune(self, today: date) -> int: ...
 
 
 class MemoryIndex:
@@ -97,6 +98,9 @@ class MemoryIndex:
 
     def set_scanned_through(self, day: date) -> None:
         self._through = day
+
+    def prune(self, today: date) -> int:
+        return 0
 
 
 _index: list = [MemoryIndex()]

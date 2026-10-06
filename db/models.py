@@ -18,12 +18,12 @@ from __future__ import annotations
 
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
-    BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Identity, Index, Integer,
-    MetaData, Numeric, String, UniqueConstraint, Uuid, false, func, text,
+    BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Identity, Index, Integer,
+    MetaData, Numeric, SmallInteger, String, UniqueConstraint, Uuid, false, func, text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -403,6 +403,95 @@ class ScheduledRun(Base):
                                                   server_default=func.now())
 
 
-__all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "CurrencyCode", "Deal", "DealVersion", "JOB_STATUSES", "Job", "MoneyAmount",
+COMPANY_SOURCES = ("sec", "esef", "companies_house", "edinet")
+
+
+class Company(Base):
+    """A company whose filed figures are kept (PLAN.md 4.1, companies/).
+
+    Public filing data, the same for every account, so not owned by anyone:
+    a company loaded once serves everyone, and the scheduled refresh keeps
+    it current. Never anything about who looked it up. ``(source,
+    source_id)`` is the company as its source knows it (a CIK, an LEI, a UK
+    company number, an EDINET code); the other identifiers are what search
+    matches. Kept compact for the free 0.5 GB (db/companies.py):
+    ``MAX_COMPANIES`` at most, least recently used first out.
+    """
+
+    __tablename__ = "companies"
+    __table_args__ = (
+        UniqueConstraint("source", "source_id", name="uq_companies_source_source_id"),
+        CheckConstraint("source IN ('sec', 'esef', 'companies_house', 'edinet')", name="source"),
+        Index("ix_companies_lei", "lei"),
+        Index("ix_companies_last_used_at", "last_used_at"),
+        Index("ix_companies_refreshed_at", "refreshed_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    source: Mapped[str] = mapped_column(String(20), nullable=False)
+    source_id: Mapped[str] = mapped_column(String(20), nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    local_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    country: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
+    lei: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    # Every identifier the source gave (companies.model.IDENTIFIERS)
+    identifiers: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    # The figures' currency and unit, and the standard they follow
+    currency: Mapped[str] = mapped_column(CurrencyCode, nullable=False)
+    unit: Mapped[str] = mapped_column(String(10), nullable=False)
+    accounting_standard: Mapped[str] = mapped_column(String(10), nullable=False)
+    fiscal_year_end_month: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
+    # Codes the screen translates (companies.model.Warning), never sentences
+    warnings: Mapped[list] = mapped_column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    refreshed_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    last_used_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class CompanyYear(Base):
+    """One fiscal year of a company's summary figures and the filing they
+    came from. ``figures`` holds companies.items.SUMMARY_FIELDS, in
+    millions of the company's currency (``companies.currency``)."""
+
+    __tablename__ = "company_years"
+
+    company_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("companies.id", ondelete="CASCADE"), primary_key=True)
+    fiscal_year: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
+    period_end: Mapped[date] = mapped_column(Date, nullable=False)
+    figures: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    filing_url: Mapped[str] = mapped_column(String(400), nullable=False)
+    filing_form: Mapped[str] = mapped_column(String(30), nullable=False)
+    filing_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    filed_on: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+
+
+class EdinetReport(Base):
+    """EDINET's annual securities reports, by company and period
+    (companies/edinet.py): EDINET lists documents by filing day only, so the
+    scheduled refresh reads each day once and keeps the annual reports here.
+    Reports older than ``db.companies.KEEP_EDINET_YEARS`` are pruned."""
+
+    __tablename__ = "edinet_reports"
+
+    edinet_code: Mapped[str] = mapped_column(String(6), primary_key=True)
+    period_end: Mapped[date] = mapped_column(Date, primary_key=True)
+    doc_id: Mapped[str] = mapped_column(String(8), nullable=False)
+    period_start: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    submitted_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+
+
+class SourceCursor(Base):
+    """How far a scheduled scan of a source has read (EDINET's day lists)."""
+
+    __tablename__ = "source_cursors"
+
+    source: Mapped[str] = mapped_column(String(20), primary_key=True)
+    through: Mapped[date] = mapped_column(Date, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+__all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
+           "DealVersion", "EdinetReport", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

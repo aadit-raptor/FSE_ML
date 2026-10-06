@@ -68,6 +68,7 @@ def replay(directory: Path) -> http.Transport:
 @dataclass
 class Recorder:
     real: http.Transport
+    paced: bool = True                                 # calls go to the real sources
     responses: dict = field(default_factory=dict)      # key -> (Request, Response)
 
     def __call__(self, req: http.Request) -> http.Response:
@@ -136,6 +137,8 @@ def trim(req: http.Request, content: bytes, needles: list[str]) -> bytes:
         return json.dumps(data, ensure_ascii=False).encode()
     if url.startswith(edinet.API + "/documents/"):
         return _trim_edinet_csv(content)
+    if url.startswith("https://document-api.company-information.service.gov.uk/") and url.endswith("/content"):
+        return _trim_ixbrl(content)
     return content
 
 
@@ -161,11 +164,50 @@ def _code_row_matches(line: str, needles: list[str]) -> bool:
 
 
 def _zip(files: dict[str, bytes]) -> bytes:
+    """A zip with fixed timestamps, so recording again gives the same bytes."""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for name, data in files.items():
-            z.writestr(name, data)
+            z.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), data,
+                       compress_type=zipfile.ZIP_DEFLATED)
     return buf.getvalue()
+
+
+def _trim_ixbrl(content: bytes) -> bytes:
+    """An inline XBRL document cut down to its contexts, units and the
+    figures the maps read, each in its own paragraph, with the original
+    namespace declarations so every concept still resolves."""
+    import xml.etree.ElementTree as ET
+
+    from companies.items import canonical_prefix
+    from companies.ixbrl import IX_NAMESPACES, XBRLI
+    namespaces: dict[str, str] = {}
+    for _, (prefix, uri) in ET.iterparse(io.BytesIO(content), events=("start-ns",)):
+        namespaces.setdefault(prefix, uri)
+    for prefix, uri in namespaces.items():
+        ET.register_namespace(prefix, uri)
+    root = ET.fromstring(content)
+    wanted = mapped_concepts()
+    canon = {p: canonical_prefix(u) for p, u in namespaces.items()}
+
+    def keep(elem) -> bool:
+        prefix, _, local = elem.get("name", "").partition(":")
+        return f"{canon.get(prefix)}:{local}" in wanted
+
+    resources = [e for tag in ("context", "unit") for e in root.iter(f"{{{XBRLI}}}{tag}")]
+    figures = [e for ns in IX_NAMESPACES for e in root.iter(f"{{{ns}}}nonFraction") if keep(e)]
+    for e in resources + figures:
+        e.tail = None
+    ix = next(ns for ns in IX_NAMESPACES if ns in namespaces.values())
+    ix_prefix = next(p for p, u in namespaces.items() if u == ix)
+    declarations = " ".join(f'xmlns{":" + p if p else ""}="{u}"' for p, u in namespaces.items())
+    parts = [f'<?xml version="1.0" encoding="UTF-8"?>\n<html {declarations}><body>'
+             f"<{ix_prefix}:header><{ix_prefix}:resources>"]
+    parts += [ET.tostring(e, encoding="unicode") for e in resources]
+    parts.append(f"</{ix_prefix}:resources></{ix_prefix}:header>")
+    parts += [f"<p>{ET.tostring(e, encoding='unicode')}</p>" for e in figures]
+    parts.append("</body></html>\n")
+    return "\n".join(parts).encode("utf-8")
 
 
 def _trim_edinet_csv(content: bytes) -> bytes:
@@ -200,8 +242,8 @@ def _edinet_case(code: str, reports: int = 2) -> Callable[[], None]:
     """Find the company's latest annual reports by walking back through the
     day lists (not recorded), index them, then load the company."""
     def run():
-        rec = http._transport[0]
-        http.use_transport(None)
+        recorder = http._transport[0]
+        http.use_transport(recorder.real, paced=recorder.paced)
         try:
             found, day = 0, date.today()
             while found < reports and day > date.today() - timedelta(days=800):
@@ -209,12 +251,15 @@ def _edinet_case(code: str, reports: int = 2) -> Callable[[], None]:
                 if day.weekday() >= 5:          # EDINET takes filings on working days
                     continue
                 before = len(edinet.index().reports(code))
-                edinet.scan_day(day)
+                try:
+                    edinet.scan_day(day)
+                except http.NotFound:
+                    continue
                 if len(edinet.index().reports(code)) > before:
                     found += 1
                     _found_days.append(day)
         finally:
-            http.use_transport(rec, paced=True)
+            http.use_transport(recorder, paced=recorder.paced)
         for d in _found_days:
             edinet.scan_day(d)               # recorded this time
         edinet.search(code)
@@ -239,11 +284,15 @@ CASES = {c.name: c for c in (
 )}
 
 
-def record(case: Case, out: Path) -> Path:
+def record(case: Case, out: Path, real: http.Transport = http._requests_transport,
+           raw: Path | None = None) -> Path:
+    """Run ``case`` and write its trimmed responses to ``out/<case>``; with
+    ``raw``, the untrimmed ones too (to read a filing's concepts when a map
+    is missing some -- never committed)."""
     directory = out / case.name
     directory.mkdir(parents=True, exist_ok=True)
-    recorder = Recorder(http._requests_transport)
-    http.use_transport(recorder, paced=True)
+    recorder = Recorder(real, paced=real is http._requests_transport)
+    http.use_transport(recorder, paced=recorder.paced)
     edinet.use_index(None)
     sec.reset_cache()
     edinet.reset_cache()
@@ -253,15 +302,19 @@ def record(case: Case, out: Path) -> Path:
     finally:
         http.use_transport(None)
     secrets = [os.environ[k].encode() for k in (companies_house.KEY_ENV, edinet.KEY_ENV) if os.environ.get(k)]
-    index = {}
+    files, index = {}, {}
     for key, (req, resp) in recorder.responses.items():
-        needles = list(case.needles)
-        body = trim(req, resp.content, needles) if resp.status == 200 else resp.content
-        if any(s in body or s in key.encode() for s in secrets):
+        body = trim(req, resp.content, list(case.needles)) if resp.status == 200 else resp.content
+        if any(s in body or s in resp.content or s in key.encode() for s in secrets):
             raise SystemExit(f"{case.name}: a key appeared in a recorded response; nothing written")
         name = _name(key, resp.content_type or "")
-        (directory / name).write_bytes(body)
+        files[name] = (body, resp.content)
         index[key] = {"file": name, "status": resp.status, "type": resp.content_type}
+    for name, (body, original) in files.items():
+        (directory / name).write_bytes(body)
+        if raw is not None:
+            (raw / case.name).mkdir(parents=True, exist_ok=True)
+            (raw / case.name / name).write_bytes(original)
     (directory / INDEX).write_text(json.dumps(index, indent=1, sort_keys=True, ensure_ascii=False), encoding="utf-8")
     return directory
 
@@ -271,6 +324,7 @@ def main(argv=None) -> int:
     ap.add_argument("cases", nargs="*")
     ap.add_argument("--out", default="tests/fixtures/companies")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--raw", help="also write the untrimmed responses here (not for committing)")
     args = ap.parse_args(argv)
     if args.list or not args.cases:
         for c in CASES.values():
@@ -282,7 +336,7 @@ def main(argv=None) -> int:
         if missing:
             print(f"{name}: skipped, set {', '.join(missing)}", file=sys.stderr)
             continue
-        print(f"{name}: {record(case, Path(args.out))}")
+        print(f"{name}: {record(case, Path(args.out), raw=Path(args.raw) if args.raw else None)}")
     return 0
 
 
