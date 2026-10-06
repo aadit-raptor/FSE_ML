@@ -6,6 +6,7 @@ Input bounds mirror the Streamlit input widgets. Percentages are numbers like
 model's inputs; engine outputs keep the engine's own units (IRR 0.157 = 15.7%).
 Every response that holds money says which currency and unit it is in.
 """
+from datetime import date, datetime
 from typing import Annotated, Dict, List, Literal, Optional, Union
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -1251,3 +1252,109 @@ class JobOut(BaseModel):
 
 class JobList(BaseModel):
     jobs: List[JobOut]
+
+
+# ---------------------------------------------------------------------------
+# Company filings (PLAN.md 4.1, companies/)
+# ---------------------------------------------------------------------------
+CompanySource = Literal["sec", "esef", "companies_house", "edinet"]
+CompanyStandard = Literal["ifrs", "us_gaap", "uk_gaap", "jgaap"]
+
+
+class CompanySourceOut(BaseModel):
+    id: CompanySource
+    coverage: List[str] = Field(description="ISO country codes, \"EU\" for every member state, \"*\" anywhere")
+    searchable_by: List[str] = Field(description="name, ticker, lei, isin, company_number, cik, edinet_code, jcn")
+    needs_key: bool
+    configured: bool = Field(description="Whether this server can load companies from it")
+    licence: str
+
+
+class CompanySourcesResponse(BaseModel):
+    sources: List[CompanySourceOut]
+    fallback: Literal["document_upload"] = Field(
+        description="What to offer for a company no source covers (PLAN.md 6.2)")
+
+
+class CompanyRefOut(BaseModel):
+    source: CompanySource
+    id: str = Field(description="The company's id at its source: CIK, LEI, company number or EDINET code")
+    name: str
+    local_name: Optional[str] = Field(None, description="The name in the register's own language")
+    country: Optional[str] = Field(None, description="ISO 3166-1 alpha-2, when the source says")
+    identifiers: Dict[str, str] = Field(description="lei, isin, ticker, cik, company_number, edinet_code, "
+                                                    "sec_code, jcn: whichever are known")
+    loadable: bool = Field(description="This server has the source's key")
+    stored: bool = Field(description="Its figures are already stored")
+
+
+class CompanyUnavailable(BaseModel):
+    source: str
+    reason: str = Field(description="not_configured, unreachable, refused, rate_limited, failed ...")
+
+
+class CompanySearchResponse(BaseModel):
+    matched: Optional[Literal["lei", "isin"]] = Field(
+        None, description="The query was read as this identifier (its check digits passed)")
+    results: List[CompanyRefOut]
+    unavailable: List[CompanyUnavailable]
+    fallback: Literal["document_upload"]
+
+
+class CompanyFigures(BaseModel):
+    """Summary figures for one fiscal year, millions of the company's currency;
+    null where the filing reports none."""
+    revenue: Optional[float] = None
+    operating_income: Optional[float] = None
+    depreciation_amortization: Optional[float] = None
+    ebitda: Optional[float] = Field(None, description="Operating income plus D&A, as the standard reports them")
+    net_income: Optional[float] = None
+    income_tax_expense: Optional[float] = None
+    interest_expense: Optional[float] = None
+    capital_expenditures: Optional[float] = None
+    cash_and_equivalents: Optional[float] = None
+    accounts_receivable: Optional[float] = None
+    inventories: Optional[float] = None
+    accounts_payable: Optional[float] = None
+    total_debt: Optional[float] = None
+    total_assets: Optional[float] = None
+    total_equity: Optional[float] = None
+    lease_cost: Optional[float] = None
+    lease_liability: Optional[float] = None
+
+
+class CompanyFilingOut(BaseModel):
+    url: str = Field(description="The filing itself, at its source")
+    filed_on: Optional[date] = Field(None, description="Filed (ESEF: added to filings.xbrl.org)")
+    form: str
+    id: str
+
+
+class CompanyYearOut(BaseModel):
+    fiscal_year: int = Field(description="Named by the calendar year it ends in")
+    period_end: date
+    figures: CompanyFigures
+    filing: CompanyFilingOut
+
+
+class CompanyWarningOut(BaseModel):
+    code: str = Field(description="missing_figure, scanned_accounts, not_indexed_yet, summary_only, "
+                                  "no_annual_figures")
+    field: Optional[str] = None
+
+
+class CompanyResponse(BaseModel):
+    company: CompanyRefOut
+    money: Money = Field(description="The filing's own currency, in millions")
+    accounting_standard: CompanyStandard
+    fiscal_year_end_month: Optional[int] = Field(None, ge=1, le=12)
+    years: List[CompanyYearOut] = Field(description="Oldest first")
+    warnings: List[CompanyWarningOut]
+    refreshed_at: Optional[datetime] = Field(None, description="When the stored figures were read (UTC)")
+    licence: str
+
+
+class CompanyLoadRequest(Strict):
+    source: CompanySource
+    id: str = Field(min_length=1, max_length=20)
+    years: int = Field(3, ge=2, le=5, strict=True, description="Fiscal years to read, newest last")

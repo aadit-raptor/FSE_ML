@@ -142,7 +142,8 @@ which moved into Foundations (1.9) because later phases need them.
 | 3.3 | Audit history | 1.5 | ☑ |
 | 3.4 | Hand-checked reference cases (incl. non-US) | 3.2, 2.4b, 2.5 | ☑ |
 | **4** | **Global market data platform** | | |
-| 4.1 | Company filings from many countries | 1.9, 2.6 | ☐ |
+| 4.1a | Company filings: the data layer (connectors, storage, search, refresh) | 1.9, 2.6 | ☑ |
+| 4.1b | Company filings: the screen | 4.1a | ☐ |
 | 4.2 | Economic data by country, and exchange rates | 1.9 | ☐ |
 | 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☐ |
 | 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☐ |
@@ -749,6 +750,39 @@ can check it.
 - **Done when:** a US, UK, EU and Japanese company each load with correct
   currency and standard (tests with recorded responses); figures link to
   filings; storage use stays within the free budget set in the task.
+- **Split, like 2.3, 2.4 and 2.6:**
+  - **4.1a (done):** the data layer. `companies/` is the interface
+    (`sources.search`, `sources.fetch`) with a connector per source: SEC
+    EDGAR's company facts, ESEF reports as xBRL-JSON from filings.xbrl.org,
+    Companies House accounts filed as inline XBRL, EDINET's XBRL-to-CSV.
+    Each turns a filing into the same summary figures per fiscal year
+    (`companies/items.py`: revenue, operating income, D&A, EBITDA, net
+    income, tax, interest, capex, cash, receivables, inventories, payables,
+    debt, total assets, equity, leases) in millions of the filing's
+    currency, with the standard (IFRS, US GAAP, UK GAAP, Japanese GAAP),
+    the fiscal year end and a link to the filing with its date. Search by
+    name, ticker, CIK, UK company number, EDINET or securities code,
+    Japanese corporate number, LEI or ISIN (GLEIF turns the last two into
+    the company and its home-register number). Stored compactly (migration
+    0011; under 4 KB a company, at most 8,000, a 64 MB budget reported by
+    `/api/health/database`); refreshed nightly by `company-refresh`
+    (EDINET's day lists into an index, stale companies reloaded), every
+    call paced within the source's rules. Recorded responses for the US
+    (McDonald's), the UK (Tesco's ESEF report; Cambridge United's Companies
+    House accounts, FRS 102), the EU (Heineken) and Japan (Toyota, IFRS;
+    Nintendo, Japanese GAAP) pin the figures (`tests/test_companies.py`),
+    the storage, the API and the refresh (`tests/test_company_data.py`).
+    `record-filings.yml` records the keyed sources with the repository
+    secrets. A company no source covers is answered with the fallback
+    `document_upload`, which 6.2 builds.
+  - **4.1b:** the screen. A company search on Forecast -> Historicals and on
+    the deal (replacing the EDGAR ticker box): results from every source,
+    a company's figures by year with a link to each filing, "Use in deal"
+    and "Use in forecast" from any source (the forecast's full statement
+    lines come from the EDGAR answer where the source is SEC; others fill
+    what the summary has), the document-upload fallback named for a company
+    not found, and `/privacy` saying that a company search is sent to the
+    public registers searched. Browser tests replay recorded answers.
 
 ### 4.2 Economic data by country, and exchange rates
 - **You first:** get a free FRED key; set `FRED_API_KEY`.

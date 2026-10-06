@@ -1,0 +1,47 @@
+{
+ "https://api.company-information.service.gov.uk/company/00482197": {
+  "file": "service_00482197_93670a55.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://api.company-information.service.gov.uk/company/00482197/filing-history?category=accounts&items_per_page=25": {
+  "file": "service_filing_history_7b554fcc.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/codelist/Edinetcode.zip": {
+  "file": "edinet_fsa_Edinetcode_zip_07ba54d7.zip",
+  "status": 200,
+  "type": "application/octet-stream"
+ },
+ "https://document-api.company-information.service.gov.uk/document/I69ufZ_7CWbqRDml_muws7iemog5agqC15rwSYAtuM0": {
+  "file": "service_I69ufZ_7CWbqRDml_muws7iemog5agqC15rwSYAtuM0_ed69ff25.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://document-api.company-information.service.gov.uk/document/I69ufZ_7CWbqRDml_muws7iemog5agqC15rwSYAtuM0/content": {
+  "file": "service_content_fb4d508c.xhtml",
+  "status": 200,
+  "type": "application/xhtml+xml"
+ },
+ "https://document-api.company-information.service.gov.uk/document/nXR21Wv3oxyNegL9UwmaYlUhBhI0zd00slFEI5KAuZI": {
+  "file": "service_nXR21Wv3oxyNegL9UwmaYlUhBhI0zd00slFEI5KAuZI_17f115f9.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://document-api.company-information.service.gov.uk/document/nXR21Wv3oxyNegL9UwmaYlUhBhI0zd00slFEI5KAuZI/content": {
+  "file": "service_content_d51726da.xhtml",
+  "status": 200,
+  "type": "application/xhtml+xml"
+ },
+ "https://filings.xbrl.org/api/entities?filter=[{\"name\": \"name\", \"op\": \"ilike\", \"val\": \"%00482197%\"}]&page[size]=10": {
+  "file": "filings_entities_f2f2f474.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://www.sec.gov/files/company_tickers.json": {
+  "file": "www_company_tickers_json_9104d82c.json",
+  "status": 200,
+  "type": "application/json"
+ }
+}

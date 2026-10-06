@@ -4,7 +4,8 @@ What is limited, and why each number:
 
 - **Per user** (after sign-in, ``enforce_user_limits``): requests a minute,
   runs a minute and runs a day. A *run* is a request to one of ``RUN_PATHS``:
-  simulations, backtests, forecasts, the ML models and EDGAR lookups.
+  simulations, backtests, forecasts, the ML models, EDGAR lookups and company
+  filings searches and loads (PLAN.md 4.1), which call outside sources.
 - **Per network address** (before sign-in, ``LimitsMiddleware``): requests a
   minute, and refused sign-ins a minute, which stops token guessing. The
   address limit is set high because many users can share one address (an
@@ -76,6 +77,7 @@ RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
     "/api/ml/deal-risk", "/api/ml/surrogate", "/api/ml/macro-regime",
+    "/api/companies/search", "/api/companies/load",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
 # The memory-heavy runs: one at a time, with a timeout

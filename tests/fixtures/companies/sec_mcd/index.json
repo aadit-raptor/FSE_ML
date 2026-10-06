@@ -1,0 +1,27 @@
+{
+ "https://data.sec.gov/api/xbrl/companyfacts/CIK0000063908.json": {
+  "file": "data_CIK0000063908_json_6e00de06.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://data.sec.gov/submissions/CIK0000063908.json": {
+  "file": "data_CIK0000063908_json_d6c2684a.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/codelist/Edinetcode.zip": {
+  "file": "edinet_fsa_Edinetcode_zip_07ba54d7.zip",
+  "status": 200,
+  "type": "application/octet-stream"
+ },
+ "https://filings.xbrl.org/api/entities?filter=[{\"name\": \"name\", \"op\": \"ilike\", \"val\": \"%MCD%\"}]&page[size]=10": {
+  "file": "filings_entities_9c63729b.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://www.sec.gov/files/company_tickers.json": {
+  "file": "www_company_tickers_json_9104d82c.json",
+  "status": 200,
+  "type": "application/json"
+ }
+}
