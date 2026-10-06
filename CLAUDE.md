@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-06 (PLAN.md 3.3: audit history). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-06 (PLAN.md 3.4: hand-checked reference cases). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -559,6 +559,22 @@ DEFINER` SQL function only `fse_app` may run, which merges `edited` entries
 older than `COMPACT_AFTER_DAYS` (7) one per user, deal and UTC day (`count`,
 `last_at`, union of `fields`). `/privacy` says what the log holds.
 
+Reference cases (PLAN.md 3.4): **`tests/reference/`** holds 26 small deals
+solved by hand from `docs/methodology.md` (`cases.py`: inputs, reasoning and
+the working as one formula per line; `reference_cases.xlsx`: the same as live
+Excel formulas, one sheet per case, written by `python -m
+tests.reference.workbook`). `tests/test_reference_cases.py` runs each through
+`POST /api/deal/run` and requires every checked figure to match to 0.01
+(money in the deal's unit, IRR and rates in percentage points), the typed
+headline answers to equal the formulas, and the committed workbook to be
+current. Formulas are plain arithmetic plus `max`/`min`, no leading minus
+(`0 - x`), so Excel reads them the same. **Never change a case to agree with
+the engine**: a real difference is a model finding. Cases steer clear of the
+open findings except **case 08, which pins finding 11 by hand** (engine =
+hand + the unfunded repayment it reports): fixing finding 11 changes that case.
+A model change that moves a case's number is a working change *and* an engine
+version (3.1).
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -603,7 +619,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). **Next is 3.4** (hand-checked reference cases).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). **Next is 4.1** (company filings from many countries; needs free UK Companies House and Japan EDINET API keys as secrets first).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -721,7 +737,10 @@ golden snapshot is untouched and parity tests explain every departure.
     currency. Deals now always run in millions, so this is the same in every
     unit, but a small deal (EBITDA under about 10M) loses precision: revenue
     and interest are off by up to 5,000. Fixing it changes the golden
-    numbers, so it waits for approval.
+    numbers, so it waits for approval. The rounding also **builds up**: a
+    reference case (PLAN.md 3.4) with a net income of 30.075 a year ended
+    year three with cash 0.015 off the hand answer, so the cases avoid
+    recurring half-cents.
 
 11. **Open (found in PLAN.md 2.4, needs the user's approval): a cash
     shortfall is funded out of nothing.** `lbo_engine/debt_model.py` step 7
@@ -810,6 +829,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/debt.py` | Debt structures (PLAN.md 2.4): the tranche spec, the nine kinds as presets, the floating-rate rule, and the builder that hands `lbo_engine` a plain rate path |
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
+| `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
 | `docs/methodology.md`, `tests/test_methodology.py` | Methodology (PLAN.md 3.2): every calculation written down, and the test that every model function, link, constant and Settings default in it matches the code |
 | `core/model_version.py`, `MODEL_CHANGELOG.md`, `tests/model_version_pins.json` | Model version (PLAN.md 3.1): the stamp on every result, the saved stamp and the reopening check; what each engine version changed; reference results per version |
 | `core/risk_warnings.py`, `core/risk_sources.py`, `web/src/components/deal/DealWarnings.tsx` | Risk warnings (PLAN.md 2.8): the four computed warnings, the published tables they read (with sources and samples), the tile |
@@ -819,7 +839,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (611 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (974 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
