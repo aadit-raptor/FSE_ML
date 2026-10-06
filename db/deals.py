@@ -28,6 +28,10 @@ model stamp they were saved with and the IRR and MOIC the deal gave then
 this module only stores it beside the content and carries it with that
 content -- into a version, back on a restore, into a duplicate.
 
+**Audit history** (PLAN.md 3.3): every action here that changes something
+adds exactly one entry (db/audit.py ``record``) in the same transaction, and
+one that changes nothing adds none.
+
 **Never log deal contents**: names, inputs and settings stay out of logs and
 error reports, as everywhere else in the API.
 """
@@ -40,13 +44,14 @@ from datetime import datetime, timedelta
 from typing import Any, Mapping, Optional
 
 from pydantic import ValidationError
-from sqlalchemy import and_, delete, func, insert, select, update
+from sqlalchemy import and_, delete, insert, select, update
 
 from core.config import DEFAULTS
 from core.model_version import content_fingerprint
 from core.tax import RULE_DEFAULTS
+from db import audit
 from db.engine import connect, transaction
-from db.models import Deal, DealVersion, User, utc_now
+from db.models import AuditEvent, Deal, DealVersion, User, utc_now
 
 MAX_NAME_LENGTH = 120
 MAX_LABEL_LENGTH = 120
@@ -260,9 +265,11 @@ def list_deals(subject: str, *, include_archived: bool = False) -> list[DealReco
 
 def create_deal(subject: str, name: str, inputs: Mapping, settings: Optional[Mapping] = None,
                 *, now: Optional[datetime] = None, label: Optional[str] = None,
-                model: Optional[Mapping] = None) -> DealRecord:
+                model: Optional[Mapping] = None,
+                source_deal: Optional[uuid.UUID] = None) -> DealRecord:
     """A new deal owned by the caller, with its first version. ``model`` is
-    the stamp and results the content gave (PLAN.md 3.1)."""
+    the stamp and results the content gave (PLAN.md 3.1); ``source_deal`` the
+    deal it duplicates, for its history."""
     model = dict(model) if model is not None else None
     name = clean_name(name)
     inputs, settings = clean_content(inputs, settings)
@@ -276,6 +283,8 @@ def create_deal(subject: str, name: str, inputs: Mapping, settings: Optional[Map
             id=deal_id, owner_id=owner, name=name, inputs=inputs, settings=settings,
             latest_version=0, created_at=now, updated_at=now, model=model))
         _add_version(conn, deal_id, "created", label, inputs, settings, now, model)
+        audit.record(conn, owner, "created", deal_id=deal_id, now=now,
+                     detail={"source_deal": str(source_deal)} if source_deal else None)
         row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
     return _record(row)
 
@@ -290,32 +299,39 @@ def get_deal(subject: str, deal_id: uuid.UUID) -> DealRecord:
 
 def update_deal(subject: str, deal_id: uuid.UUID, *, name: Optional[str] = None,
                 archived: Optional[bool] = None, now: Optional[datetime] = None) -> DealRecord:
-    """Rename, archive or unarchive. Neither touches the content or its history."""
+    """Rename, archive or unarchive. Neither touches the content or its
+    versions; each that changes something is one entry in the history."""
     now = now or utc_now()
-    values: dict = {}
-    if name is not None:
-        values["name"] = clean_name(name)
-    if archived is not None:
-        # Archiving again keeps the original time
-        values["archived_at"] = func.coalesce(Deal.archived_at, now) if archived else None
+    name = clean_name(name) if name is not None else None
     with transaction() as conn:
-        if values:
-            values["updated_at"] = now
-            row = conn.execute(update(Deal).where(_owned(subject, deal_id)).values(**values)
-                               .returning(*_DEAL_COLUMNS)).first()
-        else:
-            row = conn.execute(select(*_DEAL_COLUMNS).where(_owned(subject, deal_id))).first()
-    if row is None:
-        raise DealNotFound(str(deal_id))
+        row = _lock_deal(conn, subject, deal_id)
+        values: dict = {}
+        actions = []
+        if name is not None and name != row.name:
+            values["name"] = name
+            actions.append("renamed")
+        # Archiving again changes nothing and keeps the original time
+        if archived is not None and archived != (row.archived_at is not None):
+            values["archived_at"] = now if archived else None
+            actions.append("archived" if archived else "unarchived")
+        if not values:
+            return _record(row)
+        row = conn.execute(update(Deal).where(Deal.id == deal_id)
+                           .values(**values, updated_at=now).returning(*_DEAL_COLUMNS)).one()
+        for action in actions:
+            audit.record(conn, audit.subject_id(subject), action, deal_id=deal_id, now=now)
     return _record(row)
 
 
-def delete_deal(subject: str, deal_id: uuid.UUID) -> None:
-    """Delete the deal and every version of it, for good."""
+def delete_deal(subject: str, deal_id: uuid.UUID, *, now: Optional[datetime] = None) -> None:
+    """Delete the deal and every version of it, for good. Its history stays,
+    ending in a ``deleted`` entry: entries hold no figures, names or labels."""
     with transaction() as conn:
-        gone = conn.execute(delete(Deal).where(_owned(subject, deal_id)).returning(Deal.id)).first()
-    if gone is None:
-        raise DealNotFound(str(deal_id))
+        gone = conn.execute(delete(Deal).where(_owned(subject, deal_id))
+                            .returning(Deal.id, Deal.owner_id)).first()
+        if gone is None:
+            raise DealNotFound(str(deal_id))
+        audit.record(conn, gone.owner_id, "deleted", deal_id=deal_id, now=now)
 
 
 def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Optional[Mapping],
@@ -333,6 +349,8 @@ def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Opti
             return _record(row)  # nothing changed: no write, no new time
         conn.execute(update(Deal).where(Deal.id == deal_id)
                      .values(inputs=inputs, settings=settings, updated_at=now, model=model))
+        audit.record(conn, audit.subject_id(subject), "edited", deal_id=deal_id, now=now, detail={
+            "fields": audit.changed_fields(row.inputs, inputs, row.settings, settings)})
         latest = _latest_version(conn, deal_id)
         differs = latest is None or latest.inputs != inputs or latest.settings != settings
         due = latest is None or now - latest.created_at >= timedelta(seconds=AUTO_CHECKPOINT_S)
@@ -352,7 +370,7 @@ def duplicate_deal(subject: str, deal_id: uuid.UUID, name: Optional[str] = None,
         suffix = " (copy)"
         name = source.name[: MAX_NAME_LENGTH - len(suffix)] + suffix
     return create_deal(subject, name, source.inputs or {}, source.settings, now=now,
-                       model=source.model)
+                       model=source.model, source_deal=source.id)
 
 
 # ---------------------------------------------------------------------------
@@ -385,15 +403,22 @@ def get_actuals(subject: str, deal_id: uuid.UUID) -> tuple[Optional[dict], Optio
 def save_actuals(subject: str, deal_id: uuid.UUID, actuals: Optional[Mapping],
                  *, now: Optional[datetime] = None) -> tuple[Optional[dict], Optional[datetime]]:
     """Replace the deal's actuals (``None`` clears them). They are not part
-    of the plan: no version is written, and the deal's own edit time stays."""
+    of the plan: no version is written, and the deal's own edit time stays.
+    Saving what is already there changes nothing and is not in the history."""
     cleaned = None if actuals is None else clean_actuals(actuals)
-    stamp = None if cleaned is None else (now or utc_now())
+    now = now or utc_now()
     with transaction() as conn:
-        row = conn.execute(update(Deal).where(_owned(subject, deal_id))
-                           .values(actuals=cleaned, actuals_updated_at=stamp)
-                           .returning(Deal.actuals, Deal.actuals_updated_at)).first()
-    if row is None:
-        raise DealNotFound(str(deal_id))
+        held = conn.execute(select(Deal.actuals, Deal.actuals_updated_at)
+                            .where(_owned(subject, deal_id)).with_for_update()).first()
+        if held is None:
+            raise DealNotFound(str(deal_id))
+        if held.actuals == cleaned:
+            return held.actuals, held.actuals_updated_at
+        row = conn.execute(update(Deal).where(Deal.id == deal_id)
+                           .values(actuals=cleaned, actuals_updated_at=None if cleaned is None else now)
+                           .returning(Deal.actuals, Deal.actuals_updated_at)).one()
+        audit.record(conn, audit.subject_id(subject),
+                     "actuals_cleared" if cleaned is None else "actuals_saved", deal_id=deal_id, now=now)
     return row.actuals, row.actuals_updated_at
 
 
@@ -452,9 +477,14 @@ def save_version(subject: str, deal_id: uuid.UUID, label: Optional[str] = None,
             conn.execute(update(DealVersion)
                          .where(DealVersion.deal_id == deal_id, DealVersion.number == latest.number)
                          .values(kind=kind, label=new_label))
-            return VersionRecord(number=latest.number, kind=kind, label=new_label,
-                                 created_at=latest.created_at)
-        return _add_version(conn, deal_id, "saved", label, row.inputs, row.settings, now, row.model)
+            version = VersionRecord(number=latest.number, kind=kind, label=new_label,
+                                    created_at=latest.created_at)
+        else:
+            version = _add_version(conn, deal_id, "saved", label, row.inputs, row.settings, now,
+                                   row.model)
+        audit.record(conn, audit.subject_id(subject), "versioned", deal_id=deal_id, now=now,
+                     detail={"version": version.number})
+    return version
 
 
 def restore_version(subject: str, deal_id: uuid.UUID, number: int,
@@ -483,6 +513,8 @@ def restore_version(subject: str, deal_id: uuid.UUID, number: int,
                              model=_with_content(target.model, target.inputs, target.settings)))
         _add_version(conn, deal_id, "restored", f"Restored version {number}",
                      target.inputs, target.settings, now, target.model)
+        audit.record(conn, audit.subject_id(subject), "restored", deal_id=deal_id, now=now,
+                     detail={"version": number})
         row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
     return _record(row)
 
@@ -499,12 +531,44 @@ def get_settings(subject: str) -> dict:
     return dict(row.settings or {})
 
 
-def save_settings(subject: str, settings: Optional[Mapping]) -> dict:
-    """Replace the caller's Settings overrides."""
+def save_settings(subject: str, settings: Optional[Mapping], *,
+                  now: Optional[datetime] = None) -> dict:
+    """Replace the caller's Settings overrides; a change is one entry in the
+    account's history, naming the settings that changed."""
     settings = clean_settings(settings)
     with transaction() as conn:
-        done = conn.execute(update(User).where(User.subject == subject)
-                            .values(settings=settings).returning(User.id)).first()
-    if done is None:
-        raise NoAccount(subject)
+        held = conn.execute(select(User.id, User.settings).where(User.subject == subject)
+                            .with_for_update()).first()
+        if held is None:
+            raise NoAccount(subject)
+        fields = audit.changed_fields(held.settings or {}, settings)
+        if fields:
+            conn.execute(update(User).where(User.id == held.id).values(settings=settings))
+            audit.record(conn, held.id, "settings_changed", now=now, detail={"fields": fields})
     return settings
+
+
+# ---------------------------------------------------------------------------
+# Audit history (PLAN.md 3.3): a deal's, and the one action recorded from outside
+# ---------------------------------------------------------------------------
+def deal_history(subject: str, deal_id: uuid.UUID, *, limit: int = 200) -> list[audit.Entry]:
+    """The deal's history, newest first; ``DealNotFound`` unless it is the caller's."""
+    query = (select(Deal.id.label("owned"), AuditEvent.id, AuditEvent.action, AuditEvent.deal_id,
+                    AuditEvent.detail, AuditEvent.count, AuditEvent.occurred_at, AuditEvent.last_at)
+             .select_from(Deal).outerjoin(AuditEvent, AuditEvent.deal_id == Deal.id)
+             .where(_owned(subject, deal_id)))
+    with connect() as conn:
+        found = conn.execute(audit.newest_first(query, limit)).all()
+    if not found:
+        raise DealNotFound(str(deal_id))
+    return [audit.entry(r) for r in found if r.id is not None]
+
+
+def record_export(subject: str, deal_id: uuid.UUID, export: str,
+                  *, now: Optional[datetime] = None) -> None:
+    """An export from the caller's deal; ``DealNotFound`` if it isn't theirs."""
+    with transaction() as conn:
+        owner = conn.execute(select(Deal.owner_id).where(_owned(subject, deal_id))).scalar()
+        if owner is None:
+            raise DealNotFound(str(deal_id))
+        audit.record(conn, owner, "exported", deal_id=deal_id, now=now, detail={"export": export})

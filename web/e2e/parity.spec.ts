@@ -6,7 +6,7 @@ type Sheet = { name: string; columns: string[]; rows: (string | number | null)[]
 
 /** Click a download and return the saved filename and the workbook request the page sent. */
 async function download(page: Page, button: ReturnType<Page["getByRole"]>, path = "/api/export/workbook") {
-  const [req, dl] = await Promise.all([page.waitForRequest((r) => r.url().endsWith(path)), page.waitForEvent("download"), button.click()]);
+  const [req, dl] = await Promise.all([page.waitForRequest((r) => new URL(r.url()).pathname === path), page.waitForEvent("download"), button.click()]);
   const res = await req.response();
   expect(res?.status()).toBe(200);
   expect(res?.headers()["content-type"]).toContain("spreadsheetml");

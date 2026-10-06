@@ -223,7 +223,7 @@ function Historicals() {
       { columns: ["text", ...cols.map(() => "money" as const)] },
     );
   const download = (groups: typeof HISTORY_GROUPS) =>
-    downloadWorkbook(x("fileHistoricals", { company }), groups.map(groupSheet), money, undefined);
+    downloadWorkbook(x("fileHistoricals", { company }), groups.map(groupSheet), money, undefined, null);
   return (
     <Tiles>
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
@@ -524,14 +524,14 @@ function Statements() {
       />
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
         <p className="type-body">{t("modelNote")}</p>
-        <DownloadButton label={t("modelDownload")} onDownload={() => downloadWorkbook(x("fileThreeStatement", { company }), everything(), money, res?.model)} />
+        <DownloadButton label={t("modelDownload")} onDownload={() => downloadWorkbook(x("fileThreeStatement", { company }), everything(), money, res?.model, null)} />
       </div>
       <Tile
         span={12}
         title={t("tileIncomeStatement")}
         unit={mu}
         action={
-          <DownloadButton onDownload={() => downloadWorkbook(x("fileIncomeStatement"), [tableSheet(x("sheetIncomeStatement"), cols, tables.income)], money, res?.model)} />
+          <DownloadButton onDownload={() => downloadWorkbook(x("fileIncomeStatement"), [tableSheet(x("sheetIncomeStatement"), cols, tables.income)], money, res?.model, null)} />
         }
       >
         <DataTable caption={t("chartIncomeStatement")} columns={cols} rows={tables.income} />
@@ -540,7 +540,7 @@ function Statements() {
         span={6}
         title={t("tileBalanceSheet")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileBalanceSheet"), [tableSheet(x("sheetBalanceSheet"), cols, tables.balance)], money, res?.model)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileBalanceSheet"), [tableSheet(x("sheetBalanceSheet"), cols, tables.balance)], money, res?.model, null)} />}
       >
         <DataTable caption={t("chartBalanceSheet")} columns={cols} rows={tables.balance} />
       </Tile>
@@ -548,7 +548,7 @@ function Statements() {
         span={6}
         title={t("tileCashFlow")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileForecastCashFlow"), [tableSheet(x("sheetCashFlow"), cols, tables.cash)], money, res?.model)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("fileForecastCashFlow"), [tableSheet(x("sheetCashFlow"), cols, tables.cash)], money, res?.model, null)} />}
       >
         <DataTable caption={t("chartCashFlow")} columns={cols} rows={tables.cash} />
       </Tile>
@@ -597,7 +597,7 @@ function Schedules() {
     <Tiles>
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
         <p className="type-body">{t("schedulesNote")}</p>
-        <DownloadButton label={t("allSchedules")} onDownload={() => downloadWorkbook(x("fileSchedules"), all(), money, res?.model)} />
+        <DownloadButton label={t("allSchedules")} onDownload={() => downloadWorkbook(x("fileSchedules"), all(), money, res?.model, null)} />
       </div>
       <Tile span={6} title={t("tilePpe")} unit={mu}>
         <DataTable caption={t("chartPpe")} columns={fwd} rows={s.ppe} />
@@ -703,6 +703,7 @@ function Simulation() {
               ],
               money,
               res?.model,
+              null,
             )
           }
         />

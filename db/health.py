@@ -86,14 +86,18 @@ def _alert_storage(report: dict, environment: str) -> None:
 # superuser, a role that can create roles or databases, one that may create
 # tables in the schema, one that owns the app's tables (and so could alter or
 # drop them), or a member of the "read/write everything" roles, which Neon
-# gives roles made in its console
+# gives roles made in its console. Also one that could rewrite the audit
+# history (PLAN.md 3.3), which the API may only add to: a restore that put
+# the grants back without migration 0010's revoke shows here.
 ROLE_PRIVILEGES_SQL = text("""
     SELECT r.rolsuper, r.rolcreaterole, r.rolcreatedb, r.rolbypassrls,
            has_schema_privilege(current_user, 'public', 'CREATE') AS schema_create,
            EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public'
                    AND pg_has_role(current_user, tableowner, 'USAGE')) AS owns_tables,
            EXISTS (SELECT FROM pg_roles g WHERE g.rolname IN ('pg_write_all_data', 'neon_superuser')
-                   AND pg_has_role(current_user, g.oid, 'USAGE')) AS writes_everything
+                   AND pg_has_role(current_user, g.oid, 'USAGE')) AS writes_everything,
+           COALESCE(has_table_privilege(current_user, to_regclass('public.audit_events'),
+                                        'UPDATE, DELETE, TRUNCATE'), false) AS audit_log_writable
     FROM pg_roles r WHERE r.rolname = current_user
 """)
 

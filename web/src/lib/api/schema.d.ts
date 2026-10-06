@@ -28,6 +28,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/account/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Account History
+         * @description Everything the caller did -- to every deal, deleted ones included, and to
+         *     their Settings -- newest first.
+         */
+        get: operations["account_history_api_account_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/account/settings": {
         parameters: {
             query?: never;
@@ -342,6 +363,27 @@ export interface paths {
          * @description A new deal from this one's working copy (its history stays behind).
          */
         post: operations["duplicate_deal_api_deals__deal_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Deal History
+         * @description What was done to the deal and when, newest first: one entry per action
+         *     (old edits merged one per day).
+         */
+        get: operations["deal_history_api_deals__deal_id__history_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1062,6 +1104,70 @@ export interface components {
              * @description Debt at the year's end
              */
             total_debt?: number | null;
+        };
+        /**
+         * AuditEntry
+         * @description One thing done to a deal or the account's settings (PLAN.md 3.3). Holds
+         *     what was touched, never a figure, a name or a label.
+         */
+        AuditEntry: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared";
+            /**
+             * At
+             * @description UTC, ISO 8601; the first of the merged actions when count > 1
+             */
+            at: string;
+            /**
+             * Count
+             * @description How many actions this entry stands for: old edits are merged one per day
+             */
+            count: number;
+            /**
+             * Deal Id
+             * @description Null for a settings change
+             */
+            deal_id?: string | null;
+            /**
+             * Deal Name
+             * @description The deal's name now (account history only); null once it is deleted
+             */
+            deal_name?: string | null;
+            /** Export */
+            export?: ("workbook" | "simulation_sample") | null;
+            /**
+             * Fields
+             * @description What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's
+             */
+            fields?: string[] | null;
+            /** Id */
+            id: number;
+            /**
+             * Source Deal
+             * @description The deal a duplicate was made from
+             */
+            source_deal?: string | null;
+            /**
+             * Until
+             * @description The last of the merged actions (UTC), when count > 1
+             */
+            until?: string | null;
+            /**
+             * Version
+             * @description The version kept or restored
+             */
+            version?: number | null;
+        };
+        /** AuditHistory */
+        AuditHistory: {
+            /**
+             * Entries
+             * @description Newest first
+             */
+            entries: components["schemas"]["AuditEntry"][];
         };
         /** BacktestActualExit */
         BacktestActualExit: {
@@ -4169,6 +4275,47 @@ export interface operations {
             };
         };
     };
+    account_history_api_account_history_get: {
+        parameters: {
+            query?: {
+                /** @description Newest entries to answer */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     get_account_settings_api_account_settings_get: {
         parameters: {
             query?: never;
@@ -4940,6 +5087,49 @@ export interface operations {
             };
         };
     };
+    deal_history_api_deals__deal_id__history_get: {
+        parameters: {
+            query?: {
+                /** @description Newest entries to answer */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     list_versions_api_deals__deal_id__versions_get: {
         parameters: {
             query?: never;
@@ -5148,7 +5338,10 @@ export interface operations {
     };
     post_montecarlo_sample_api_export_montecarlo_sample_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's. */
+                deal_id?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5190,7 +5383,10 @@ export interface operations {
     };
     post_workbook_api_export_workbook_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's. */
+                deal_id?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
