@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { AuthProvider, useSession } from "@/components/auth/AuthProvider";
 import { ProfileProvider, useProfile } from "@/components/auth/ProfileProvider";
 import { BacktestProvider } from "@/components/backtest/BacktestProvider";
+import { CompanyProvider } from "@/components/companies/CompanyProvider";
 import { DealProvider } from "@/components/deal/DealProvider";
 import { ForecastProvider } from "@/components/forecast/ForecastProvider";
 import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
@@ -76,19 +77,21 @@ function Shell({ children }: { children: React.ReactNode }) {
               <MonteCarloProvider>
                 <BacktestProvider>
                   <ForecastProvider>
-                    <LocaleScope>
-                      <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-                        <TopBar />
-                        <StepBar />
-                        <main id="content" className="min-h-0 flex-1 overflow-auto">
-                          {children}
-                        </main>
-                        <StatusBar />
-                      </div>
-                    </LocaleScope>
-                    {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
-                    <CommandSearch />
-                    <Shortcuts />
+                    <CompanyProvider>
+                      <LocaleScope>
+                        <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+                          <TopBar />
+                          <StepBar />
+                          <main id="content" className="min-h-0 flex-1 overflow-auto">
+                            {children}
+                          </main>
+                          <StatusBar />
+                        </div>
+                      </LocaleScope>
+                      {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
+                      <CommandSearch />
+                      <Shortcuts />
+                    </CompanyProvider>
                   </ForecastProvider>
                 </BacktestProvider>
               </MonteCarloProvider>

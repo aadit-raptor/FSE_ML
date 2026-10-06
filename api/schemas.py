@@ -1343,6 +1343,20 @@ class CompanyWarningOut(BaseModel):
     field: Optional[str] = None
 
 
+class CompanyDealInputs(BaseModel):
+    """The latest year as a deal's inputs (companies/use.py), millions of the
+    company's currency."""
+    ebitda: float = Field(description="Operating income plus D&A, as the standard reports them")
+    currency: str
+    unit: MoneyUnit
+    accounting_standard: AccountingStandard = Field(
+        description="The company's standard when a deal knows it (IFRS, US GAAP), else \"\"")
+    lease_cost: float = Field(description="0 when the filing reports none or the deal doesn't know the standard")
+    lease_liability: float
+    fiscal_year: int = Field(description="The year these come from")
+    notes: List[Literal["standard_not_in_deal", "lease_cost_missing"]]
+
+
 class CompanyResponse(BaseModel):
     company: CompanyRefOut
     money: Money = Field(description="The filing's own currency, in millions")
@@ -1352,6 +1366,11 @@ class CompanyResponse(BaseModel):
     warnings: List[CompanyWarningOut]
     refreshed_at: Optional[datetime] = Field(None, description="When the stored figures were read (UTC)")
     licence: str
+    deal_inputs: Optional[CompanyDealInputs] = Field(
+        None, description="The latest year as deal inputs; null without an EBITDA")
+    forecast_history: Optional[Dict[str, List[float]]] = Field(
+        None, description="Forecasting history rows from the summary (companies/use.py), oldest year first; "
+                          "null when a year has no revenue")
 
 
 class CompanyLoadRequest(Strict):

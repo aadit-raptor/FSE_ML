@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { expect, type Locator, type Page } from "@playwright/test";
 
 /** A headline number by its tile title (Kpi renders data-kpi). */
@@ -89,4 +92,22 @@ export const SIGNED_IN_STATE = "e2e/.auth/signed-in.json";
 export async function asUser(page: Page): Promise<Record<string, string>> {
   const cookie = (await page.context().cookies()).find((c) => c.name === "fse_dev_user");
   return cookie ? { Authorization: `Bearer dev:${cookie.value}` } : {};
+}
+
+/**
+ * Company search and loading answered from web/e2e/fixtures/companies.json: the API's own
+ * answers for recorded filings (python -m tests.e2e_companies), since CI can't reach the
+ * registers. A search the file doesn't hold answers no company.
+ */
+export async function replayCompanies(page: Page) {
+  const recorded = JSON.parse(readFileSync(path.join(__dirname, "fixtures", "companies.json"), "utf-8"));
+  await page.route("**/api/companies/search?*", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q") ?? "";
+    route.fulfill({ json: recorded.search[q] ?? recorded.search.Zzyzx });
+  });
+  await page.route("**/api/companies/load", (route) => {
+    const { source, id } = route.request().postDataJSON();
+    const answer = recorded.load[`${source}/${id}`];
+    return answer ? route.fulfill({ json: answer }) : route.fulfill({ status: 404, json: { detail: "No such company." } });
+  });
 }

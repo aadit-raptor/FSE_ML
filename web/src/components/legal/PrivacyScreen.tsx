@@ -20,6 +20,7 @@ export function PrivacyScreen() {
   const sections: [string, string[]][] = [
     [t("storedTitle"), [t("storedSignIn"), t("storedProfile"), t("storedDeals"), t("storedActivity")]],
     [t("googleTitle"), [t("google")]],
+    [t("companiesTitle"), [t("companies")]],
     [t("processorsTitle"), [t("processors")]],
     [t("notTitle"), [t("not")]],
     [t("keepTitle"), [t("keep")]],
