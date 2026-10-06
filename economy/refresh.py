@@ -65,7 +65,7 @@ def run(now: Optional[datetime] = None) -> dict:
     now = now or datetime.now(timezone.utc)
     today = now.date()
     found, problems = _read(today)
-    summary: dict = {"series_saved": store.save_series(found), "source_problems": problems}
+    summary: dict = {"series_saved": store.save_series(found)}
 
     latest = store.latest_fx_day()
     since = latest - timedelta(days=FX_REVISION_DAYS) if latest else today - timedelta(days=store.KEEP_FX_DAYS)
@@ -80,12 +80,15 @@ def run(now: Optional[datetime] = None) -> dict:
     current = views.current_economies(series, today)
     fx = store.fx_on()
     use = store.usage()
+    # A run's summary is flat (jobs/scheduled.py, api/routers/scheduled.py
+    # TaskRun): lists and maps go in as comma-separated text
     summary.update(
-        economies_current=len(current), economies_not_current=sorted(set(COUNTRIES) - set(current)),
-        reference_rates=sorted(views.reference_rates(series, today)),
+        source_problems=",".join(f"{name}:{reason}" for name, reason in sorted(problems.items())),
+        economies_current=len(current), economies_not_current=",".join(sorted(set(COUNTRIES) - set(current))),
+        reference_rates=",".join(sorted(views.reference_rates(series, today))),
         fx_date=fx.day.isoformat() if fx else None, fx_currencies=len(fx.rates) if fx else 0,
         economy_bytes=use["bytes"], economy_budget_warning=use["warning"])
-    log_event("economy_refreshed", **{k: v for k, v in summary.items() if isinstance(v, (int, str, bool))})
+    log_event("economy_refreshed", **summary)
     if problems.get("fred") == "refused":              # the key: fail the run, so it alerts
         raise KeyRefused("FRED refused the key (FRED_API_KEY); every other source was stored")
     if len(current) < MIN_CURRENT_ECONOMIES:
