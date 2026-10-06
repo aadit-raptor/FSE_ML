@@ -33,8 +33,9 @@ STAMP = datetime(2026, 10, 6)   # fixed, so rebuilding changes nothing that matt
 def _tokens(formula: str) -> list:
     """The formula's tokens, refusing anything a spreadsheet would read
     differently: only numbers, names, the four operations, powers, brackets
-    and commas. A leading minus is refused too (Excel's ``-x^2`` is
-    ``(-x)^2``); write ``0 - x``."""
+    and commas. A minus that negates is refused too (Excel's ``-x^2`` is
+    ``(-x)^2``); write ``0 - x``. So is a chain of powers, which Python reads
+    right to left and Excel left to right."""
     out, previous = [], None
     for tok in tokenize.generate_tokens(io.StringIO(formula).readline):
         if tok.type in (tokenize.NEWLINE, tokenize.ENDMARKER, tokenize.NL):
@@ -43,10 +44,13 @@ def _tokens(formula: str) -> list:
             raise ValueError(f"{formula!r}: {tok.string!r} is not allowed")
         if tok.type not in (tokenize.NUMBER, tokenize.NAME, tokenize.OP):
             raise ValueError(f"{formula!r}: {tok.string!r} is not allowed")
-        if tok.string == "-" and (previous is None or previous.string in ("(", ",")):
-            raise ValueError(f"{formula!r}: write 0 - x rather than a leading minus")
+        if tok.string == "-" and (previous is None or (previous.type == tokenize.OP
+                                                       and previous.string != ")")):
+            raise ValueError(f"{formula!r}: write 0 - x rather than a minus that negates")
         out.append(tok)
         previous = tok
+    if sum(t.string == "**" for t in out) > 1:
+        raise ValueError(f"{formula!r}: one power per formula; split it into two lines")
     return out
 
 
@@ -151,8 +155,8 @@ def build() -> Workbook:
         index.cell(r, 2, case.title)
         index.cell(r, 3, ", ".join(case.covers))
         index.cell(r, 4, sum(1 for line in case.lines if line.check))
-        link = index.cell(r, 5, case.id[:31])
-        link.hyperlink = f"#'{case.id[:31]}'!A1"
+        sheet = case.id[:31]
+        index.cell(r, 5, f"=HYPERLINK(\"#'{sheet}'!A1\", \"{sheet}\")")
     for col, width in zip("ABCDE", (5, 62, 40, 16, 32)):
         index.column_dimensions[col].width = width
     wb.properties.creator = "variater.com"

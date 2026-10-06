@@ -721,7 +721,7 @@ def _c23():
              *operating(n, nwc="nwc_share"), *bullet("Notes", n)]
     lines += exit_returns(n, f"bal_{n} - cash_{n}")
     return Case(
-        "23_growth_working_capital_days", "Growth with working capital in days", ("zero growth",),
+        "23_growth_working_capital_days", "Growth with working capital in days", ("single tranche",),
         "Case 02 growing 10% a year, with working capital from 36.5 receivable days, 73 inventory "
         "and 36.5 payable days, at a 60% gross margin (opex 40%, so the same EBITDA). That is 14% "
         "of revenue (36.5 + 40% x 36.5, over 365), so each year ties up 14% of the revenue "
