@@ -1,0 +1,37 @@
+{
+ "https://disclosure2dl.edinet-fsa.go.jp/searchdocument/codelist/Edinetcode.zip": {
+  "file": "edinet_fsa_Edinetcode_zip_07ba54d7.zip",
+  "status": 200,
+  "type": "application/octet-stream"
+ },
+ "https://filings.xbrl.org/724500K5PTPSST86UQ23/2024-12-31/ESEF/NL/0/heia-2024-12-31-en.json": {
+  "file": "filings_heia_2024_12_31_en_json_afad9099.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://filings.xbrl.org/724500K5PTPSST86UQ23/2025-12-31/ESEF/NL/0/heia-2025-12-31-en.json": {
+  "file": "filings_heia_2025_12_31_en_json_13e5db4b.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://filings.xbrl.org/api/entities/724500K5PTPSST86UQ23/filings?page[size]=100": {
+  "file": "filings_filings_84625f16.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://filings.xbrl.org/api/entities?filter=[{\"name\": \"identifier\", \"op\": \"eq\", \"val\": \"724500K5PTPSST86UQ23\"}]": {
+  "file": "filings_entities_4c0e0ae5.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://filings.xbrl.org/api/entities?filter=[{\"name\": \"name\", \"op\": \"ilike\", \"val\": \"%Heineken%\"}]&page[size]=10": {
+  "file": "filings_entities_c3756f50.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://www.sec.gov/files/company_tickers.json": {
+  "file": "www_company_tickers_json_9104d82c.json",
+  "status": 200,
+  "type": "application/json"
+ }
+}

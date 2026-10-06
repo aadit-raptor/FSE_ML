@@ -1,0 +1,32 @@
+{
+ "https://api.gleif.org/api/v1/lei-records?filter[isin]=GB00BLGZ9862": {
+  "file": "api_lei_records_f6c3713c.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://filings.xbrl.org/2138002P5RNKC5W2JZ46/2025-02-22/ESEF/GB/0/2138002P5RNKC5W2JZ46-2025-02-22-T01.json": {
+  "file": "filings_2138002P5RNKC5W2JZ46_2025_02_22_T01_json_b2a23ac2.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://filings.xbrl.org/2138002P5RNKC5W2JZ46/2026-02-28/ESEF/GB/0/2138002P5RNKC5W2JZ46-2026-02-28-T01.json": {
+  "file": "filings_2138002P5RNKC5W2JZ46_2026_02_28_T01_json_56177c17.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://filings.xbrl.org/api/entities/2138002P5RNKC5W2JZ46/filings?page[size]=100": {
+  "file": "filings_filings_da4432b3.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://filings.xbrl.org/api/entities?filter=[{\"name\": \"identifier\", \"op\": \"eq\", \"val\": \"2138002P5RNKC5W2JZ46\"}]": {
+  "file": "filings_entities_802ed645.json",
+  "status": 200,
+  "type": "application/vnd.api+json"
+ },
+ "https://www.sec.gov/files/company_tickers.json": {
+  "file": "www_company_tickers_json_9104d82c.json",
+  "status": 200,
+  "type": "application/json"
+ }
+}

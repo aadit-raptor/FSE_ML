@@ -1,0 +1,52 @@
+name: record-filings
+
+# Records real responses from the keyed filing sources -- UK Companies House
+# and Japan's EDINET -- as test fixtures (companies/record.py, PLAN.md 4.1).
+# The keys are repository secrets; the recorder never writes them (requests
+# are named without their key, and it fails if a key's value shows up in
+# anything it would write). What it writes is public company filings,
+# uploaded as a short-lived artifact to be reviewed and committed under
+# tests/fixtures/companies.
+#
+# Runs by hand (workflow_dispatch), and on a pull request that changes the
+# recorder, so a new case can be recorded before its PR merges.
+on:
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: "Cases to record (python -m companies.record --list)"
+        default: "ch_cambridge_united edinet_toyota edinet_nintendo"
+  pull_request:
+    paths:
+      - companies/record.py
+      - .github/workflows/record-filings.yml
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Record
+        env:
+          COMPANIES_HOUSE_API_KEY: ${{ secrets.COMPANIES_HOUSE_API_KEY }}
+          EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
+          CASES: ${{ inputs.cases || 'ch_cambridge_united edinet_toyota edinet_nintendo' }}
+        run: |
+          if [ -z "$COMPANIES_HOUSE_API_KEY" ] || [ -z "$EDINET_API_KEY" ]; then
+            echo "::error::Set the COMPANIES_HOUSE_API_KEY and EDINET_API_KEY secrets (DEPLOY.md 'Company filings')"; exit 1
+          fi
+          # shellcheck disable=SC2086 # one word per case
+          python -m companies.record --out recorded $CASES
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recorded-filings
+          path: recorded
+          retention-days: 3
