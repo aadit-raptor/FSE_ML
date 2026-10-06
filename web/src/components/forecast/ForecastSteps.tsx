@@ -1,8 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { DataTable, type Row } from "@/components/charts/DataTable";
 import { LineChart } from "@/components/charts/LineChart";
@@ -20,23 +19,23 @@ import { fmtCount, fmtInput, fmtMoney, fmtNumber, fmtRate, isNum } from "@/lib/f
 import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 import { withMoney } from "@/lib/money";
 
-import { useDeal } from "@/components/deal/DealProvider";
-import type { Schemas } from "@/lib/api/client";
+import { CompanyFiguresTile } from "@/components/companies/CompanyFigures";
+import { CompanyPanel } from "@/components/companies/CompanyPanel";
 
 import { type ForecastRun, type Standard, useForecast } from "./ForecastProvider";
 
 function Rail() {
-  const { source, fetchEdgar, edgar, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels, standard, setStandard } =
+  const { source, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels, standard, setStandard } =
     useForecast();
   const t = useTranslations("forecast");
   const dealText = useTranslations("deal");
   const fiscalText = useTranslations("fiscal");
-  const [ticker, setTicker] = useState("");
+  const companyText = useTranslations("companies");
   const latest = metrics?.at(-1);
   return (
     <>
       <div className="flex items-center justify-between gap-2 border-b border-line px-3.5 py-2">
-        <span className="type-control">{source.kind === "edgar" ? source.ticker : t("sampleCompany")}</span>
+        <span className="type-control truncate">{source.kind === "company" ? source.label : t("sampleCompany")}</span>
         <span role="status" className={`font-mono text-[10px] ${status === "error" ? "text-loss" : status === "running" ? "text-attention" : "text-dim"}`}>
           {status === "running" ? t("stateUpdating") : status === "error" ? t("stateError") : result ? t("stateUpToDate") : t("stateLoading")}
         </span>
@@ -56,44 +55,21 @@ function Rail() {
           </select>
         </label>
       </RailGroup>
-      <RailGroup title={t("groupEdgar")}>
-        <form
-          className="grid grid-cols-[1fr_auto] gap-2"
-          onSubmit={(ev) => {
-            ev.preventDefault();
-            void fetchEdgar(ticker);
-          }}
-        >
-          <label className="sr-only" htmlFor="edgar-ticker">
-            {t("ticker")}
-          </label>
-          <input
-            id="edgar-ticker"
-            value={ticker}
-            onChange={(ev) => setTicker(ev.target.value)}
-            placeholder={t("tickerPlaceholder")}
-            autoComplete="off"
-            className="border border-line bg-field px-2 py-1 font-mono text-[11.5px] text-ink uppercase outline-none placeholder:text-dim placeholder:normal-case focus:border-accent"
-          />
-          <button
-            type="submit"
-            disabled={edgar.status === "loading" || !ticker.trim()}
-            className="type-action-secondary px-2.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)] disabled:opacity-50"
-          >
-            {edgar.status === "loading" ? t("fetching") : t("fetch")}
-          </button>
-        </form>
-        {edgar.status === "error" && <p className="font-mono text-[10px] text-loss">{edgar.error}</p>}
-        {source.kind === "edgar" && (
-          <div className="grid gap-1 pt-1">
-            <p className="type-input-label">{source.company}</p>
+      <RailGroup title={companyText("group")}>
+        <CompanyPanel />
+      </RailGroup>
+      <RailGroup title={t("groupInUse")}>
+        <p className="type-input-label">{source.kind === "company" ? source.company : t("sampleCompany")}</p>
+        {source.kind === "company" && (
+          <div className="grid gap-1">
             <p className="font-mono text-[10px] text-muted">{t("fiscalYears", { years: histLabels.join(", ") })}</p>
+            {source.from === "summary" && <p className="font-mono text-[10px] text-muted">{t("fromSummaryNote")}</p>}
+            {source.edgarFailed && <p className="font-mono text-[10px] text-attention">{t("edgarFallback")}</p>}
             {source.warnings.map((w) => (
               <p key={w} className="font-mono text-[10px] text-attention">
                 {w}
               </p>
             ))}
-            {source.dealInputs && <UseInDeal inputs={source.dealInputs} />}
           </div>
         )}
         <div className="pt-1.5">
@@ -131,36 +107,6 @@ function Rail() {
 
 /** i18n-keys: deal.standard_, deal.standard_ifrs, deal.standard_us_gaap */
 const STANDARDS: Standard[] = ["", "ifrs", "us_gaap"];
-
-/**
- * A filing's latest year as the open deal's inputs (PLAN.md 2.6): its EBITDA as the standard
- * reports it, its currency and unit, its standard and its leases. The deal's other money is
- * converted to the filing's unit first, so nothing else changes size.
- */
-function UseInDeal({ inputs }: { inputs: Schemas["EdgarDealInputs"] }) {
-  const { setMoney, setFields } = useDeal();
-  const router = useRouter();
-  const t = useTranslations("forecast");
-  return (
-    <div className="grid gap-1 pt-1.5">
-      <SecondaryButton
-        onClick={() => {
-          setMoney({ currency: inputs.currency, unit: inputs.unit });
-          setFields({
-            ebitda: Number(inputs.ebitda.toFixed(6)),
-            accounting_standard: inputs.accounting_standard,
-            lease_cost: Number(inputs.lease_cost.toFixed(6)),
-            lease_liability: Number(inputs.lease_liability.toFixed(6)),
-          });
-          router.push("/deal/inputs");
-        }}
-      >
-        {t("useInDeal")}
-      </SecondaryButton>
-      <p className="font-mono text-[10px] text-muted">{t("useInDealNote", { ebitda: fmtMoney(inputs.ebitda) })}</p>
-    </div>
-  );
-}
 
 function ForecastScreen({ children, needsResult = true }: { children: ReactNode; needsResult?: boolean }) {
   const { activate, ready, result, status, error, money } = useForecast();
@@ -213,8 +159,8 @@ function Historicals() {
   const { history, setHistory, histLabels: cols, source } = useForecast();
   const t = useTranslations("forecast");
   const x = useTranslations("export");
-  const company = source.kind === "edgar" ? source.ticker : t("sampleCompany");
-  // The figures as entered (or as EDGAR filled them), one sheet per statement; no model ran on them
+  const company = source.kind === "company" ? source.label : t("sampleCompany");
+  // The figures as entered (or as a filing filled them), one sheet per statement; no model ran on them
   const groupSheet = (g: (typeof HISTORY_GROUPS)[number]) =>
     sheet(
       x(HISTORY_SHEETS[g.titleKey]),
@@ -230,6 +176,7 @@ function Historicals() {
         <p className="type-body">{t("historicalsNote")}</p>
         <DownloadButton label={t("historicalsDownload")} onDownload={() => download(HISTORY_GROUPS)} />
       </div>
+      <CompanyFiguresTile />
       {HISTORY_GROUPS.map((g) => (
         <Tile
           key={g.titleKey}
@@ -492,7 +439,7 @@ function Statements() {
   const cols = [histLabels.at(-1) ?? fiscalText("ltm"), ...fwd];
   const last = res.years.at(-1);
   const maxGap = Math.max(0, ...res.forecast_balance_gaps.map(Math.abs));
-  const company = source.kind === "edgar" ? source.ticker : t("sampleCompany");
+  const company = source.kind === "company" ? source.label : t("sampleCompany");
   const everything = () => [
     tableSheet(x("sheetIncomeStatement"), cols, tables.income),
     tableSheet(x("sheetBalanceSheet"), cols, tables.balance),

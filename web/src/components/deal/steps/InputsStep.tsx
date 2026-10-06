@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { CompanyFiguresTile } from "@/components/companies/CompanyFigures";
+import { CompanyPanel } from "@/components/companies/CompanyPanel";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
@@ -76,11 +78,15 @@ export function InputsStep() {
   const ev = valuationEbitda(inputs) * inputs.entry_mult;
   const { label: mu } = useMoney();
   const units = useTranslations("units");
+  const companies = useTranslations("companies");
 
   return (
     <DealScreen
       rail={
         <>
+          <RailGroup title={companies("group")}>
+            <CompanyPanel />
+          </RailGroup>
           <RailGroup title={t("groupMoney")}>
             <MoneyFields />
           </RailGroup>
@@ -186,6 +192,7 @@ export function InputsStep() {
               {t("nextDebt")}
             </Link>
           </div>
+          <CompanyFiguresTile />
         </Tiles>
       )}
     </DealScreen>

@@ -127,9 +127,27 @@ test.describe("Fiscal years", () => {
         },
       }),
     );
+    // Found through the company search (PLAN.md 4.1b): a US filer's statements come from EDGAR
+    const ref = {
+      source: "sec", id: "0000000001", name: "MARCH YEAR-END CO", local_name: null, country: "US",
+      identifiers: { cik: "0000000001", ticker: "MARCH" }, loadable: true, stored: false,
+    };
+    await page.route("**/api/companies/search?*", (route) =>
+      route.fulfill({ json: { matched: null, results: [ref], unavailable: [], fallback: "document_upload" } }),
+    );
+    await page.route("**/api/companies/load", (route) =>
+      route.fulfill({
+        json: {
+          company: ref, money: { currency: "USD", unit: "millions" }, accounting_standard: "us_gaap", fiscal_year_end_month: 3,
+          years: [], warnings: [], refreshed_at: null, licence: "U.S. public domain (SEC EDGAR)", deal_inputs: null, forecast_history: null,
+        },
+      }),
+    );
     await page.goto("/forecast/historicals");
-    await page.getByPlaceholder("Ticker, e.g. DELL").fill("MARCH");
-    await page.getByRole("button", { name: "Fetch" }).click();
+    await page.getByLabel("Company search").fill("MARCH");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await page.getByRole("button", { name: /^MARCH YEAR-END CO/ }).click();
+    await page.getByRole("button", { name: "Use in forecast" }).click();
     await expect(page.getByText("Fiscal years FY2022/23, FY2023/24, FY2024/25")).toBeVisible();
     await expect(page.getByLabel("Company fiscal year end")).toHaveValue("3");
     await expect(page.getByLabel("Company latest fiscal year")).toHaveValue("2025");

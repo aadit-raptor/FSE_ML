@@ -17,7 +17,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from api.observability import log_event
 from api.schemas import CompanyLoadRequest, CompanyResponse, CompanySearchResponse, CompanySourcesResponse
-from companies import http, refresh, sources
+from companies import http, refresh, sources, use
 from companies.model import CompanyData, CompanyRef
 from db import DatabaseUnavailable
 from db.engine import is_configured
@@ -61,6 +61,8 @@ def _answer(data: CompanyData, refreshed_at, stored: bool) -> dict:
         "warnings": [{"code": w.code, "field": w.field or None} for w in data.warnings],
         "refreshed_at": refreshed_at,
         "licence": sources.source(data.ref.source).licence,
+        "deal_inputs": use.deal_inputs(data),
+        "forecast_history": use.forecast_history(data),
     }
 
 

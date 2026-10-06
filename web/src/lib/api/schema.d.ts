@@ -1476,6 +1476,45 @@ export interface components {
             years?: number[];
         };
         /**
+         * CompanyDealInputs
+         * @description The latest year as a deal's inputs (companies/use.py), millions of the
+         *     company's currency.
+         */
+        CompanyDealInputs: {
+            /**
+             * Accounting Standard
+             * @description The company's standard when a deal knows it (IFRS, US GAAP), else ""
+             * @enum {string}
+             */
+            accounting_standard: "" | "ifrs" | "us_gaap";
+            /** Currency */
+            currency: string;
+            /**
+             * Ebitda
+             * @description Operating income plus D&A, as the standard reports them
+             */
+            ebitda: number;
+            /**
+             * Fiscal Year
+             * @description The year these come from
+             */
+            fiscal_year: number;
+            /**
+             * Lease Cost
+             * @description 0 when the filing reports none or the deal doesn't know the standard
+             */
+            lease_cost: number;
+            /** Lease Liability */
+            lease_liability: number;
+            /** Notes */
+            notes: ("standard_not_in_deal" | "lease_cost_missing")[];
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "thousands" | "millions" | "billions";
+        };
+        /**
          * CompanyFigures
          * @description Summary figures for one fiscal year, millions of the company's currency;
          *     null where the filing reports none.
@@ -1602,8 +1641,17 @@ export interface components {
              */
             accounting_standard: "ifrs" | "us_gaap" | "uk_gaap" | "jgaap";
             company: components["schemas"]["CompanyRefOut"];
+            /** @description The latest year as deal inputs; null without an EBITDA */
+            deal_inputs?: components["schemas"]["CompanyDealInputs"] | null;
             /** Fiscal Year End Month */
             fiscal_year_end_month?: number | null;
+            /**
+             * Forecast History
+             * @description Forecasting history rows from the summary (companies/use.py), oldest year first; null when a year has no revenue
+             */
+            forecast_history?: {
+                [key: string]: number[];
+            } | null;
             /** Licence */
             licence: string;
             /** @description The filing's own currency, in millions */
