@@ -657,7 +657,13 @@ ref, not state set in an effect). Browser tests replay
 `e2e/helpers.ts`), written by `python -m tests.e2e_companies` from the
 recorded filings through the real API; `tests/test_company_use.py` fails
 when it is stale, so **an API change to the company answer means
-rerunning it**. `/privacy` says a search goes to the public registers.
+rerunning it**. `/privacy` says a search goes to the public registers. A
+company answered with **no years** (an EDINET company before the nightly
+`company-refresh` has indexed its filings, scanned UK accounts) shows no
+standard, says why once (its warning) and offers neither button: the
+connector's standard is a default until a filing is read. EDINET companies
+load on an environment only after that refresh has run there (first run
+after 4.1a: the 2026-10-07 nightly).
 
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
