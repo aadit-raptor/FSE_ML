@@ -260,10 +260,10 @@ def test_a_refresh_stores_every_series_and_the_exchange_rates(fresh_db):  # noqa
     assert summary["series_saved"] == len(stored) == len(everything())
     assert stored == everything()                                     # read back exactly
     assert refreshed_at is not None
-    assert summary["economies_current"] == 23 and summary["economies_not_current"] == ["SG"]
-    assert summary["reference_rates"] == sorted(REFERENCE_SOURCES)
+    assert summary["economies_current"] == 23 and summary["economies_not_current"] == "SG"
+    assert summary["reference_rates"] == ",".join(sorted(REFERENCE_SOURCES))
     assert (summary["fx_date"], summary["fx_currencies"], summary["fx_days_saved"]) == ("2026-10-06", 30, 10)
-    assert summary["source_problems"] == {}
+    assert summary["source_problems"] == ""
     assert summary["economy_bytes"] < store.BUDGET_BYTES / 10 and not summary["economy_budget_warning"]
 
 
@@ -303,7 +303,7 @@ def test_a_failing_source_keeps_what_was_stored(fresh_db):  # noqa: ARG001
     before, _ = store.all_series()
     http.use_transport(transport(OPEN, FRED, fail={"sdmx.oecd.org": 503}))
     summary = refresh.run(at(RECORDED_ON))
-    assert summary["source_problems"] == {"oecd": "failed"}
+    assert summary["source_problems"] == "oecd:failed"
     after, _ = store.all_series()
     assert after["bond_yield_10y.DE.oecd"] == before["bond_yield_10y.DE.oecd"]
 
@@ -337,13 +337,24 @@ def test_a_source_answering_an_unknown_shape_is_unreadable_and_the_rest_still_co
 def test_without_a_fred_key_the_run_still_succeeds_and_says_so(fresh_db, monkeypatch):  # noqa: ARG001
     monkeypatch.delenv(connectors.FRED_KEY_ENV)
     summary = refresh.run(at(RECORDED_ON))
-    assert summary["source_problems"] == {"fred": "not_configured"}
+    assert summary["source_problems"] == "fred:not_configured"
     assert summary["economies_current"] == 23
 
 
 def test_too_few_current_economies_fail_the_run(fresh_db):  # noqa: ARG001
     with pytest.raises(refresh.NotCurrent, match="0 economies current"):
         refresh.run(at(RECORDED_ON + timedelta(days=400)))
+
+
+def test_a_runs_summary_is_what_the_task_endpoint_answers(fresh_db):  # noqa: ARG001
+    """The scheduler's answer allows flat values only: a list or a map in the
+    summary made staging's first run answer 500 after it had succeeded."""
+    from api.routers.scheduled import TaskRun
+    http.use_transport(transport(OPEN, FRED, fail={"sdmx.oecd.org": 503}))
+    summary = refresh.run(at(RECORDED_ON))
+    run = TaskRun(task="economy-refresh", status="succeeded", summary=summary, workflow="scheduled.yml",
+                  github_run_id=1)
+    assert run.summary == summary and summary["source_problems"] == "oecd:failed"
 
 
 def test_the_refresh_is_a_scheduled_task_and_skips_without_a_database():
@@ -356,7 +367,7 @@ def test_the_workflows_refresh_nightly_on_both_environments_and_on_each_staging_
     nightly = (workflows / "scheduled.yml").read_text(encoding="utf-8")
     staging = (workflows / "staging.yml").read_text(encoding="utf-8")
     assert "task economy-refresh" in nightly and "environment: staging" in nightly
-    assert "task economy-refresh" in staging and '.summary.economies_current >= 20' in staging
+    assert "task economy-refresh" in staging and "'.economies_current >= 20 and .fx_date >= $since' refresh.json" in staging
 
 
 def test_the_database_check_reports_economic_data(fresh_db):  # noqa: ARG001
