@@ -615,7 +615,7 @@ GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/job-maintenance`: requeues or fails jobs whose runner went silent, applies retention | `job-maintenance` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/company-refresh`, repeated while it says `more`: EDINET's day lists into the report index, stale companies reloaded, the company data kept inside its budget (see "Company filings") | `company-refresh` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/economy-refresh`: every economic data source read once, the ECB's exchange rates since the last stored day; fails when fewer than 20 economies are current or the FRED key is refused (see "Economic data") | `economy-refresh` |
-| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/benchmarks-refresh`: Damodaran's 41 industry-average workbooks read again once the stored ones are a week old; fails when a table is still missing (see "Industry averages") | `benchmarks-refresh` |
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/benchmarks-refresh`: Damodaran's 41 industry-average workbooks read again once the stored ones are a week old, and the archive history a dozen files a call (`--repeat 24`); fails when a table is still missing (see "Industry averages") | `benchmarks-refresh` |
 | `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |
 
 `staging.yml` also runs the **job drill** after each staging deploy: ten
@@ -757,15 +757,25 @@ only once the stored tables are a week old, and otherwise answers what is
 stored. A workbook that fails, or changes shape (`unreadable`), keeps its
 stored table; the run fails, and alerts, while any table is missing.
 
+**History for the risk ranges** (PLAN.md 4.4, `benchmarks/history.py`,
+served by `/api/benchmarks/risk`): the same task also reads Damodaran's
+archive of past editions (about 230 workbooks, each read once) a dozen a
+call, and the IMF's and BIS's economic history (three calls) whenever the
+current tables are read. While files are left its answer says `more`, so
+both workflows call it with `--repeat 24`: the first fill takes one night on
+production and one staging deploy, whose check then requires all eight
+groups, nothing left and 20+ economies. Nothing to set up: no key.
+
 **Storage.** One row per table in `benchmark_tables` (migration 0013), the
-few figures read for about 85 industries: a few hundred kilobytes against a
-4 MB budget, reported as `benchmark_data` by `/api/health/database` and
+few figures read for about 85 industries, plus the history tables
+(`history.*`, about a megabyte): against an 8 MB budget, reported as `benchmark_data` by `/api/health/database` and
 failed at 80% by `ops/check_database.py`.
 
 **Recording test fixtures**: `python -m benchmarks.record` (needs `xlwt`, in
 requirements-dev.txt) reads the real workbooks and writes them again trimmed
-to the columns read; then rerun `python -m tests.e2e_benchmarks` (the
-browser tests' answers).
+to the columns read; `python -m benchmarks.record --history` records the
+archive and economic history (about 15 minutes, paced); then rerun
+`python -m tests.e2e_benchmarks` (the browser tests' answers).
 
 ## Usage limits
 
