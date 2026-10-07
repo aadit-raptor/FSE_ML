@@ -66,23 +66,39 @@ def _leverage_warning(d, result):
                     LEVERAGE_GUIDANCE_SOURCES)
 
 
-def _rating_warning(result):
+CREDIT_SOURCES = ("damodaran_ratings_2026", "sp_default_study_2024", "deal_model")
+
+
+def credit_view(result) -> dict:
+    """Year-one interest coverage (EBIT / interest), the rating Damodaran's
+    table gives it and S&P's average cumulative default rate for that rating
+    over the deal's hold: the coverage and default risk every deal summary
+    shows (PLAN.md 4.6). Without interest there is no coverage to read, and
+    every figure is None."""
     om = result.operating_model
+    years = int(result.params.holding_period)
     interest = om.interest_expense[0]
+    out = {"coverage": None, "rating": None, "study_row": None, "band_low": None, "band_high": None,
+           "years": years, "default_pct": None, "speculative": None,
+           "sources": [{"id": s, **SOURCES[s]} for s in CREDIT_SOURCES]}
     if interest <= 0:
-        return None
+        return out
     coverage = om.ebit[0] / interest
     rating, low, high = rating_for_coverage(coverage)
-    if not is_speculative(rating):
+    return {**out, "coverage": float(coverage), "rating": rating, "study_row": study_row(rating),
+            "band_low": None if low == float("-inf") else float(low), "band_high": high,
+            "default_pct": cumulative_default_pct(rating, years), "speculative": is_speculative(rating)}
+
+
+def _rating_warning(result):
+    credit = credit_view(result)
+    if not credit["speculative"]:
         return None
-    years = result.params.holding_period
     return _warning(
         "implied_rating",
-        {"coverage": coverage, "band_low": None if low == float("-inf") else low,
-         "band_high": high, "years": years,
-         "default_pct": cumulative_default_pct(rating, years)},
-        ("damodaran_ratings_2026", "sp_default_study_2024", "deal_model"),
-        {"rating": rating, "study_row": study_row(rating)},
+        {k: credit[k] for k in ("coverage", "band_low", "band_high", "years", "default_pct")},
+        CREDIT_SOURCES,
+        {"rating": credit["rating"], "study_row": credit["study_row"]},
     )
 
 

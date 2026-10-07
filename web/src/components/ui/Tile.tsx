@@ -52,16 +52,18 @@ export function Kpi({
   sub,
   lead,
   tone,
+  span = 2,
 }: {
   title: string;
   value: string;
   sub?: string;
   lead?: boolean;
   tone?: "gain" | "loss" | "attention";
+  span?: 2 | 3 | 4;
 }) {
   const toneClass = tone === "gain" ? "text-gain" : tone === "loss" ? "text-loss" : tone === "attention" ? "text-attention" : "text-muted";
   return (
-    <section className="col-span-2 grid min-w-0 content-start gap-2 bg-canvas px-3 py-2.5" aria-label={title}>
+    <section className={`${SPAN[span]} grid min-w-0 content-start gap-2 bg-canvas px-3 py-2.5`} aria-label={title}>
       <h2 className="type-result-title min-h-4">{title}</h2>
       <p className={`type-figure text-[22px] leading-[1.1] ${lead ? "text-accent" : "text-ink"}`} data-kpi={title}>
         {value}

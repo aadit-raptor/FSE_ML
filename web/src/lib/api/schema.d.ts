@@ -516,6 +516,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/deals/{deal_id}/validation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Validation Consent
+         * @description Whether the deal counts in the model validation report (PLAN.md 4.6).
+         */
+        get: operations["get_validation_consent_api_deals__deal_id__validation_get"];
+        /**
+         * Put Validation Consent
+         * @description Let the deal's plan-vs-actual result count, anonymised, in the model
+         *     validation report, or stop it counting from the next report on.
+         */
+        put: operations["put_validation_consent_api_deals__deal_id__validation_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deals/{deal_id}/versions": {
         parameters: {
             query?: never;
@@ -1293,6 +1318,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/validation/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Report
+         * @description The newest model validation report: calibration and bias of the
+         *     model's ranges and default risk, overall and by region, sector, size and
+         *     era, out of time and in-sample. Holds no deal, owner or figure.
+         */
+        get: operations["get_report_api_validation_report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1483,7 +1530,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -2339,6 +2386,47 @@ export interface components {
             /** Enabled */
             enabled: boolean;
         };
+        /**
+         * CreditView
+         * @description Year-one interest coverage and the default risk it implies, shown on
+         *     every deal (PLAN.md 4.6). The same reading as the ``implied_rating``
+         *     warning, which is raised only for a speculative grade.
+         */
+        CreditView: {
+            /** Band High */
+            band_high: number | null;
+            /** Band Low */
+            band_low: number | null;
+            /**
+             * Coverage
+             * @description Year-one EBIT / interest; none without interest
+             */
+            coverage: number | null;
+            /**
+             * Default Pct
+             * @description S&P's average cumulative default rate (%) over the hold
+             */
+            default_pct: number | null;
+            /**
+             * Rating
+             * @description Damodaran's coverage band's rating
+             */
+            rating: string | null;
+            /** Sources */
+            sources: components["schemas"]["RiskSource"][];
+            /** Speculative */
+            speculative: boolean | null;
+            /**
+             * Study Row
+             * @description The row of S&P's study read for it
+             */
+            study_row: string | null;
+            /**
+             * Years
+             * @description The deal's hold, the horizon of the default rate
+             */
+            years: number;
+        };
         /** CumulativeRates */
         CumulativeRates: {
             /**
@@ -2840,6 +2928,7 @@ export interface components {
              */
             capital_structure?: components["schemas"]["TrancheSummary"][];
             cash_flow: components["schemas"]["CashFlowResult"];
+            credit: components["schemas"]["CreditView"];
             /**
              * Debt Schedule
              * @description Totals per year; per-tranche detail in tranches
@@ -4300,6 +4389,89 @@ export interface components {
             /** Sector */
             sector?: string | null;
         };
+        /**
+         * ProbabilityStats
+         * @description A predicted probability against what happened, for one group.
+         */
+        ProbabilityStats: {
+            /**
+             * Bias Pp
+             * @description Observed minus predicted, percentage points
+             */
+            bias_pp: number | null;
+            /**
+             * Brier
+             * @description Mean squared error of the probabilities (0 is perfect)
+             */
+            brier: number | null;
+            /**
+             * Consistent
+             * @description |z| at most 1.96
+             */
+            consistent: boolean | null;
+            /**
+             * Expected
+             * @description Sum of the predicted probabilities
+             */
+            expected: number | null;
+            /** Observed */
+            observed: number;
+            /**
+             * Observed Pct
+             * @description Share that happened, per cent
+             */
+            observed_pct: number | null;
+            /**
+             * Predicted Pct
+             * @description Mean predicted probability, per cent
+             */
+            predicted_pct: number | null;
+            /**
+             * Z
+             * @description (observed - expected) / its standard deviation
+             */
+            z: number | null;
+        };
+        /** RangeLevel */
+        RangeLevel: {
+            /**
+             * Claimed Pct
+             * @description The central share of simulated paths the range holds
+             */
+            claimed_pct: number;
+            /** Consistent */
+            consistent: boolean;
+            /**
+             * Inside Pct
+             * @description How often the actual IRR fell inside it, per cent
+             */
+            inside_pct: number | null;
+            /**
+             * Interval Pct
+             * @description 95% Wilson interval of inside_pct
+             */
+            interval_pct: (number | null)[];
+        };
+        /**
+         * RangeStats
+         * @description The plan's IRR ranges against actual IRRs, for one group.
+         */
+        RangeStats: {
+            /**
+             * Bias Pp
+             * @description Mean of actual minus planned IRR, percentage points
+             */
+            bias_pp: number | null;
+            /** Consistent */
+            consistent: boolean;
+            /** Levels */
+            levels: components["schemas"]["RangeLevel"][];
+            /**
+             * Mean Percentile
+             * @description Where actual IRRs fell among the paths (50 = unbiased)
+             */
+            mean_percentile: number | null;
+        };
         /** RecoveryBaseRates */
         RecoveryBaseRates: {
             /** By Region */
@@ -5040,6 +5212,11 @@ export interface components {
             p95_irr: number | null;
             /** P Above Hurdle */
             p_above_hurdle: number | null;
+            /**
+             * P Loss
+             * @description Share of paths with MOIC below 1 (PLAN.md 4.6)
+             */
+            p_loss?: number | null;
             /** Wipeout Rate */
             wipeout_rate: number | null;
         };
@@ -6081,6 +6258,79 @@ export interface components {
             /** Year */
             year: number;
         };
+        /** ValidationBucket */
+        ValidationBucket: {
+            /** Bucket */
+            bucket: string;
+            /** Contributed N */
+            contributed_n: number | null;
+            /**
+             * Enough
+             * @description At least the report's min_cases, so statistics are shown
+             */
+            enough: boolean;
+            /** Library N */
+            library_n: number;
+            /** N */
+            n: number | null;
+            /** Stats */
+            stats: components["schemas"]["RangeStats"] | components["schemas"]["ProbabilityStats"] | null;
+            /** Suppressed */
+            suppressed: boolean;
+        };
+        /** ValidationCases */
+        ValidationCases: {
+            /**
+             * Contributed Deals
+             * @description Null when fewer than min_contributed
+             */
+            contributed_deals: number | null;
+            /** Library */
+            library: number;
+        };
+        /**
+         * ValidationCell
+         * @description One group. ``n`` and ``contributed_n`` are null when suppressed: too few
+         *     users' deals to show without risking one being singled out.
+         */
+        ValidationCell: {
+            /** Contributed N */
+            contributed_n: number | null;
+            /**
+             * Enough
+             * @description At least the report's min_cases, so statistics are shown
+             */
+            enough: boolean;
+            /** Library N */
+            library_n: number;
+            /** N */
+            n: number | null;
+            /** Stats */
+            stats: components["schemas"]["RangeStats"] | components["schemas"]["ProbabilityStats"] | null;
+            /** Suppressed */
+            suppressed: boolean;
+        };
+        /** ValidationCheck */
+        ValidationCheck: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "default" | "irr_range" | "loss";
+            samples: components["schemas"]["ValidationSamples"];
+        };
+        /**
+         * ValidationConsent
+         * @description Whether the deal's plan-vs-actual result counts, anonymised, in the
+         *     model validation report (PLAN.md 4.6).
+         */
+        ValidationConsent: {
+            /**
+             * Opt In
+             * @description True to count it; false (the default) keeps it out
+             */
+            opt_in: boolean;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -6093,6 +6343,64 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** ValidationReportOut */
+        ValidationReportOut: {
+            cases: components["schemas"]["ValidationCases"];
+            /** Checks */
+            checks: components["schemas"]["ValidationCheck"][];
+            /** Dimensions */
+            dimensions: string[];
+            /** Engine Version */
+            engine_version: string;
+            /**
+             * Fit Until
+             * @description Per check, the newest year of data its predictions read
+             */
+            fit_until: {
+                [key: string]: number;
+            };
+            /**
+             * Generated At
+             * @description UTC, ISO 8601
+             */
+            generated_at: string;
+            /** Library Included */
+            library_included: boolean;
+            rules: components["schemas"]["ValidationRules"];
+        };
+        /** ValidationReportResponse */
+        ValidationReportResponse: {
+            /** @description The newest report; null before the first */
+            report: components["schemas"]["ValidationReportOut"] | null;
+        };
+        /** ValidationRules */
+        ValidationRules: {
+            /** Levels */
+            levels: number[];
+            /** Min Cases */
+            min_cases: number;
+            /** Min Contributed */
+            min_contributed: number;
+            /** Z */
+            z: number;
+        };
+        /** ValidationSample */
+        ValidationSample: {
+            overall: components["schemas"]["ValidationCell"];
+            /**
+             * Splits
+             * @description region, sector, size and era
+             */
+            splits: {
+                [key: string]: components["schemas"]["ValidationBucket"][];
+            };
+        };
+        /** ValidationSamples */
+        ValidationSamples: {
+            in_sample: components["schemas"]["ValidationSample"];
+            /** @description Outcomes newer than the prediction's data: the headline */
+            out_of_time: components["schemas"]["ValidationSample"];
         };
         /** VersionDetail */
         VersionDetail: {
@@ -7368,6 +7676,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_validation_consent_api_deals__deal_id__validation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationConsent"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_validation_consent_api_deals__deal_id__validation_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidationConsent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationConsent"];
                 };
             };
             /** @description Validation Error */
@@ -8847,6 +9239,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_report_api_validation_report_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationReportResponse"];
                 };
             };
             /** @description A usage limit was reached */

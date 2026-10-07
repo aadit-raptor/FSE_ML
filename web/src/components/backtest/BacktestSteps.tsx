@@ -25,6 +25,7 @@ import { DEFAULT_MONEY } from "@/lib/money";
 import { stepHref } from "@/lib/nav";
 
 import { BACKTEST_PATHS, type PlanActualResult, sameRef, useBacktest } from "./BacktestProvider";
+import { ValidationConsent } from "./Validation";
 
 /** "Burger King (3G Capital, 2010)" -> name, sponsor, year */
 export function splitDealName(full: string) {
@@ -106,6 +107,7 @@ function Rail() {
           <p className="type-body text-[9px]">{t("planIn", { money: mu, hold: String(plan.hold) })}</p>
         </RailGroup>
       )}
+      {plan?.ref.kind === "deal" && <ValidationConsent key={plan.ref.id} dealId={plan.ref.id} />}
     </>
   );
 }

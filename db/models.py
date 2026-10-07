@@ -222,6 +222,13 @@ class Deal(Base):
     # and not copied by a duplicate; at most about a kilobyte.
     actuals: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     actuals_updated_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    # When actuals were first saved, kept when they are cleared (PLAN.md 4.6):
+    # a plan version saved before it predates every actual figure the owner
+    # entered, so model validation may test it on them as newer data
+    actuals_first_saved_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    # The owner agreed to this deal's plan-vs-actual result counting, anonymised,
+    # in the model validation report (PLAN.md 4.6, ``validation/``)
+    validation_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false())
     # Which model the working copy was saved with and the IRR and MOIC it gave
     # (PLAN.md 3.1, core/model_version.py); NULL for a deal saved before 3.1
     model: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
@@ -265,7 +272,9 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  # An administrator showed or hid the reference library (PLAN.md 4.5)
                  "library_switched",
                  # An administrator proposed or reviewed a reference transaction (PLAN.md 4.5b)
-                 "reference_proposed", "reference_reviewed")
+                 "reference_proposed", "reference_reviewed",
+                 # The owner agreed, or stopped agreeing, to a deal counting in model validation (PLAN.md 4.6)
+                 "validation_opted_in", "validation_opted_out")
 
 
 class AuditEvent(Base):
@@ -626,3 +635,21 @@ __all__ = ["AUDIT_ACTIONS", "AppFlag", "AuditEvent", "REFERENCE_ORIGINS", "REFER
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]
+
+
+class ValidationReport(Base):
+    """A model validation report (PLAN.md 4.6, ``validation/report.py``),
+    written by the nightly ``validation-report`` task.
+
+    ``report`` holds aggregates only: counts and rates per region, sector,
+    size and era, with any group holding fewer than
+    ``validation.report.MIN_CONTRIBUTED`` users' deals suppressed. Never a
+    deal id, owner, name or money figure (tested). The newest
+    ``validation.report.KEEP_REPORTS`` are kept, about 20 KB each."""
+
+    __tablename__ = "validation_reports"
+    __table_args__ = (Index("ix_validation_reports_generated_at", "generated_at"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    generated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    report: Mapped[dict] = mapped_column(JSONB, nullable=False)

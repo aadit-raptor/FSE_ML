@@ -411,18 +411,50 @@ def save_actuals(subject: str, deal_id: uuid.UUID, actuals: Optional[Mapping],
     cleaned = None if actuals is None else clean_actuals(actuals)
     now = now or utc_now()
     with transaction() as conn:
-        held = conn.execute(select(Deal.actuals, Deal.actuals_updated_at)
+        held = conn.execute(select(Deal.actuals, Deal.actuals_updated_at, Deal.actuals_first_saved_at)
                             .where(_owned(subject, deal_id)).with_for_update()).first()
         if held is None:
             raise DealNotFound(str(deal_id))
         if held.actuals == cleaned:
             return held.actuals, held.actuals_updated_at
+        # The first save is kept through a clear: what the owner saw then stays seen
+        first = held.actuals_first_saved_at or (None if cleaned is None else now)
         row = conn.execute(update(Deal).where(Deal.id == deal_id)
-                           .values(actuals=cleaned, actuals_updated_at=None if cleaned is None else now)
+                           .values(actuals=cleaned, actuals_updated_at=None if cleaned is None else now,
+                                   actuals_first_saved_at=first)
                            .returning(Deal.actuals, Deal.actuals_updated_at)).one()
         audit.record(conn, audit.subject_id(subject),
                      "actuals_cleared" if cleaned is None else "actuals_saved", deal_id=deal_id, now=now)
     return row.actuals, row.actuals_updated_at
+
+
+def validation_opt_in(subject: str, deal_id: uuid.UUID) -> bool:
+    """Whether the owner lets this deal count in model validation (PLAN.md 4.6)."""
+    with connect() as conn:
+        row = conn.execute(select(Deal.validation_opt_in).where(_owned(subject, deal_id))).first()
+    if row is None:
+        raise DealNotFound(str(deal_id))
+    return row.validation_opt_in
+
+
+def set_validation_opt_in(subject: str, deal_id: uuid.UUID, opt_in: bool,
+                          *, now: Optional[datetime] = None) -> bool:
+    """Agree, or stop agreeing, to the deal's plan-vs-actual result counting,
+    anonymised, in the model validation report. Like actuals it is not part
+    of the plan: no version, and the deal's edit time stays. The report reads
+    the choice when it is next generated, so stopping takes the deal out of
+    every report from then on."""
+    with transaction() as conn:
+        held = conn.execute(select(Deal.validation_opt_in)
+                            .where(_owned(subject, deal_id)).with_for_update()).first()
+        if held is None:
+            raise DealNotFound(str(deal_id))
+        if held.validation_opt_in == opt_in:
+            return opt_in
+        conn.execute(update(Deal).where(Deal.id == deal_id).values(validation_opt_in=opt_in))
+        audit.record(conn, audit.subject_id(subject),
+                     "validation_opted_in" if opt_in else "validation_opted_out", deal_id=deal_id, now=now)
+    return opt_in
 
 
 def list_versions(subject: str, deal_id: uuid.UUID) -> list[VersionRecord]:

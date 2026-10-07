@@ -62,6 +62,9 @@ jobs:
       # archived editions a call; --repeat finishes the first fill in a night
       - name: Industry averages refresh
         run: python3 -m ops.scheduled task benchmarks-refresh --repeat 24 --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
+      # Model validation (PLAN.md 4.6): calibration and bias on the newest outcomes
+      - name: Model validation report
+        run: python3 -m ops.scheduled task validation-report --api "${{ matrix.api }}" --environment "${{ matrix.environment }}"
       - name: Alert if a scheduled task failed
         if: failure()
         env:

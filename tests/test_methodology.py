@@ -40,6 +40,10 @@ EXTRA_MODULES = (
     "library/coverage.py",           # the reference library's coverage counts
     "library/references.py",         # reference transactions and their rules (PLAN.md 4.5b)
     "library/fees.py",               # fees and amortisation from them
+    "validation/cases.py",           # model validation (PLAN.md 4.6): the cases,
+    "validation/report.py",          # the calibration and bias statistics,
+    "validation/tags.py",            # the groups
+    "validation/run.py",             # and the nightly report
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.
 SKIPPED_METHODS = {"__init__", "__post_init__", "__repr__", "forward"}

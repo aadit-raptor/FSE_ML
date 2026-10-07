@@ -616,6 +616,7 @@ GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/company-refresh`, repeated while it says `more`: EDINET's day lists into the report index, stale companies reloaded, the company data kept inside its budget (see "Company filings") | `company-refresh` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/economy-refresh`: every economic data source read once, the ECB's exchange rates since the last stored day; fails when fewer than 20 economies are current or the FRED key is refused (see "Economic data") | `economy-refresh` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/benchmarks-refresh`: Damodaran's 41 industry-average workbooks read again once the stored ones are a week old, and the archive history a dozen files a call (`--repeat 24`); fails when a table is still missing (see "Industry averages") | `benchmarks-refresh` |
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/validation-report`: the model validation report (PLAN.md 4.6) from the approved reference transactions and opted-in deals with an exit, kept 30 nights; staging requires all three checks and four splits after each deploy | `validation-report` |
 | `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |
 
 `staging.yml` also runs the **job drill** after each staging deploy: ten

@@ -36,6 +36,7 @@ COPY lbo_engine ./lbo_engine
 COPY library ./library
 COPY ml ./ml
 COPY simulation ./simulation
+COPY validation ./validation
 
 RUN useradd --create-home --uid 10001 app && chown -R app /app
 USER app

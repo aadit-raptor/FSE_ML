@@ -32,7 +32,7 @@ env:
   STAGING_API: https://fse-api-staging.onrender.com
   # Keep in step with buildFilter in render.yaml: if none of these changed
   # since the commit staging runs, that API is already equivalent to this one
-  API_PATHS: Dockerfile requirements*.txt analytics api benchmarks companies core db economy jobs lbo_engine library ml simulation
+  API_PATHS: Dockerfile requirements*.txt analytics api benchmarks companies core db economy jobs lbo_engine library ml simulation validation
 
 jobs:
   staging:
@@ -170,6 +170,15 @@ jobs:
           python3 -m ops.scheduled task benchmarks-refresh --repeat 24 --api "$STAGING_API" --environment staging | tee benchmarks.log
           sed -n 's/^task benchmarks-refresh: succeeded //p' benchmarks.log | tail -n 1 > benchmarks.json
           jq -e '.tables_stored == 41 and .industries >= 80 and .tables_missing == "" and .history_groups == 8 and .history_left == 0 and .macro_economies >= 20' benchmarks.json
+
+      # Model validation (PLAN.md 4.6): the report is written on every
+      # deploy, with all three checks and all four splits
+      - name: Model validation report on staging
+        run: |
+          set -o pipefail
+          python3 -m ops.scheduled task validation-report --api "$STAGING_API" --environment staging | tee validation.log
+          sed -n 's/^task validation-report: succeeded //p' validation.log | tail -n 1 > validation.json
+          jq -e '.checks == 3 and .splits == 4 and .report_id >= 1' validation.json
 
       # Background jobs (PLAN.md 1.9): ten seeded simulations queued at once
       # must all finish with the pinned result while /api/health keeps
