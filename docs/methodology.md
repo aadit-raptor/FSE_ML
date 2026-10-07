@@ -994,7 +994,8 @@ warnings reads it**, so switching it off (`library/switch.py`) moves no result.
   or outcome holding more than half of it is flagged, and the empty buckets a
   proposal fills are named. `summary` adds `derived` and `tags` to a deal for
   the screens; `content_hash` fingerprints a proposal so the same one is
-  never stored twice. A transaction joins the library on the second approval
+  never stored twice, numbers read as decimals (`_canonical`) so the
+  repository's copy and one sent through the API match. A transaction joins the library on the second approval
   by an administrator other than its proposer (library/review.py,
   db/references.py); nothing in the model reads it.
 - **Sourced fees and amortisation**

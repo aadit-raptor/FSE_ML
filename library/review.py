@@ -43,7 +43,7 @@ def _view(p: store.Proposal, library: list[dict]) -> dict:
         "proposed_at": p.created_at, "decided_at": p.decided_at,
         "approvals": p.approvals, "approvals_needed": store.APPROVALS_NEEDED, "rejections": p.rejections,
         "reasons": list(p.reasons), "mine": p.mine, "my_verdict": p.my_verdict,
-        "replaces_approved": len(others) < len(library),
+        "replaces_approved": p.status == "proposed" and any(d["key"] == p.key for d in library),
         "deal": references.summary(p.content),
         "problems": references.problems(p.content),
         "balance": references.balance(others, p.content),
@@ -57,10 +57,10 @@ def queue(subject: str) -> dict:
     sync()
     library = library_deals()
     open_ = store.proposals(subject, ("proposed",))
-    decided = store.proposals(subject, ("approved", "rejected"))
+    decided = sorted(store.proposals(subject, ("approved", "rejected")), key=lambda p: p.decided_at, reverse=True)
     return {
         "proposals": [_view(p, library) for p in open_],
-        "decided": [_view(p, library) for p in reversed(decided[-20:])],
+        "decided": [_view(p, library) for p in decided[:20]],
         "library_size": len(library),
     }
 

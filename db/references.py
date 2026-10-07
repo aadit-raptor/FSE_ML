@@ -222,7 +222,13 @@ def approved() -> list[dict]:
     return [{**r.content, "id": str(r.id), "approved_at": r.decided_at} for r in rows]
 
 
-def counts() -> dict[str, int]:
+def library() -> tuple[list[dict], int]:
+    """The approved transactions (as ``approved``) and how many proposals
+    await review, in one round trip."""
     with connect() as conn:
-        rows = conn.execute(select(ReferenceDeal.status, func.count()).group_by(ReferenceDeal.status)).all()
-    return {status: n for status, n in rows}
+        rows = conn.execute(select(ReferenceDeal.id, ReferenceDeal.content, ReferenceDeal.decided_at,
+                                   ReferenceDeal.status)
+                            .where(ReferenceDeal.status.in_(("approved", "proposed")))
+                            .order_by(ReferenceDeal.key)).all()
+    approved_ = [{**r.content, "id": str(r.id), "approved_at": r.decided_at} for r in rows if r.status == "approved"]
+    return approved_, sum(1 for r in rows if r.status == "proposed")

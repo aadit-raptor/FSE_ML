@@ -30,6 +30,9 @@ type Def = { key: string; spec: FieldSpec };
 
 const pct = (step = 0.5, decimals = 1, extra: Partial<FieldSpec> = {}): FieldSpec => ({ unit: "%", step, decimals, ...extra });
 
+/** Senior amortisation: with the deal defaults, and on Fees beside the fees the reference transactions source with it. */
+const AMORTISATION: Def = { key: "def_senior_amort", spec: pct() };
+
 /** Deal default key -> deal input it seeds. */
 const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
   { key: "def_ebitda", input: "ebitda", spec: { unit: MONEY, step: 5, decimals: 1, min: 0, exclusiveMin: true } },
@@ -48,7 +51,7 @@ const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
   { key: "def_capex", input: "capex", spec: pct() },
   { key: "def_nwc", input: "nwc", spec: pct(0.25, 2) },
   { key: "def_mincash", input: "mincash", spec: { unit: MONEY, step: 5, decimals: 1, min: 0 } },
-  { key: "def_senior_amort", spec: pct() },
+  AMORTISATION,
 ];
 
 const SENSITIVITY: Def[] = [
@@ -58,9 +61,6 @@ const SENSITIVITY: Def[] = [
   { key: "sens_hp_min", spec: { unit: "yr", step: 1, decimals: 0, min: 1, integer: true } },
   { key: "sens_hp_max", spec: { unit: "yr", step: 1, decimals: 0, min: 1, integer: true } },
 ];
-
-/** Senior amortisation also sits here, beside the fees the reference transactions source with it. */
-const AMORTISATION: Def = { key: "def_senior_amort", spec: pct() };
 
 const FEES: Def[] = [
   { key: "tx_fee_pct", spec: pct(0.1, 2, { min: 0 }) },

@@ -29,9 +29,9 @@ def sourced(deals: list[dict]) -> dict:
     """Each Setting's median across ``deals`` (approved reference
     transactions), or ``None`` where fewer than ``MIN_DEALS`` give it."""
     out = {}
+    measured = [(references.derived(d), d) for d in deals]
     for key, measure in SETTINGS.items():
-        found = sorted(((references.derived(d)[measure], d) for d in deals
-                        if references.derived(d)[measure] is not None), key=lambda x: x[0])
+        found = sorted(((m[measure], d) for m, d in measured if m[measure] is not None), key=lambda x: x[0])
         if len(found) < MIN_DEALS:
             out[key] = None
             continue

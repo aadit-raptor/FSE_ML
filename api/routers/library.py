@@ -70,12 +70,14 @@ def get_base_rates(country: Optional[str] = Query(None, pattern="^[A-Za-z]{2}$",
 
 
 def _library() -> tuple[list[dict], int]:
-    """The approved reference transactions and how many await review; none
-    without a database."""
+    """The approved reference transactions and how many await review (the
+    repository's proposals queued first, so they count before anyone opens
+    Review); none without a database."""
     if not database_configured():
         return [], 0
     try:
-        return store.approved(), store.counts().get("proposed", 0)
+        review.sync()
+        return store.library()
     except DatabaseUnavailable:
         raise HTTPException(503, UNREACHABLE) from None
 

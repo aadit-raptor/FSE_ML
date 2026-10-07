@@ -92,6 +92,11 @@ PARTS_TOLERANCE = 0.051
 BALANCE_SHARE = 0.5
 BALANCE_MIN = 6
 BALANCED = ("region", "size", "sector", "era", "outcome")
+# Every finding ``problems`` can report (api/schemas.py RuleCode lists the same, tested)
+RULE_CODES = ("no_sponsor", "missing_figure", "unknown_figure", "missing_source", "not_a_filing", "unused_source",
+              "parts_dont_add_up", "not_positive", "multiple_out_of_range", "debt_exceeds_value",
+              "fee_out_of_range", "amortisation_out_of_range", "closed_in_future", "outcome_before_close",
+              "event_doesnt_match_outcome")
 
 
 @lru_cache(maxsize=1)
@@ -104,9 +109,23 @@ def repository_deals() -> list[dict]:
     return json.loads(json.dumps(_file()["deals"]))
 
 
+def _canonical(x):
+    """Numbers as floats and no empty fields, so the repository's JSON and the
+    API's validated copy of the same deal (where 33000 becomes 33000.0) agree."""
+    if isinstance(x, dict):
+        return {k: _canonical(v) for k, v in x.items() if v is not None}
+    if isinstance(x, list):
+        return [_canonical(v) for v in x]
+    if isinstance(x, int) and not isinstance(x, bool):
+        return float(x)
+    return x
+
+
 def content_hash(deal: dict) -> str:
-    """A fingerprint of a proposal's content: the same deal proposed twice is one proposal."""
-    return hashlib.sha256(json.dumps(deal, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    """A fingerprint of a proposal's content: the same deal proposed twice,
+    from the repository or through the API, is one proposal."""
+    text = json.dumps(_canonical(deal), sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
 def _figure(deal: dict, name: str) -> Optional[dict]:
@@ -170,6 +189,7 @@ def problems(deal: dict, *, today: Optional[date] = None) -> list[dict]:
     out: list[dict] = []
 
     def add(code: str, at: Optional[str] = None) -> None:
+        assert code in RULE_CODES, code
         out.append({"code": code, **({"at": at} if at else {})})
 
     figures = deal.get("figures") or {}

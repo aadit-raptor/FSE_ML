@@ -8,6 +8,7 @@ approved deals give are their medians, which move a deal's IRR only when
 applied as Settings.
 """
 import copy
+import json
 from datetime import date
 
 import pytest
@@ -16,9 +17,11 @@ from sqlalchemy import select
 
 from api.auth import AuthUser, require_user
 from api.main import app
-from api.schemas import ReferenceDealIn
+from typing import get_args
+
+from api.schemas import ReferenceDealIn, ReferenceOutcome, ReferenceSector, RejectReason, RuleCode
 from db import engine as db_engine
-from db.models import AuditEvent, ReferenceDeal
+from db.models import REJECT_REASONS, AuditEvent, ReferenceDeal
 from library import fees, references
 from tests.test_deals import PROFILE
 
@@ -345,3 +348,45 @@ def test_the_browser_tests_recorded_answers_are_current():
     from tests import e2e_references
     assert e2e_references.OUT.read_text(encoding="utf-8") == e2e_references.render(), (
         "web/e2e/fixtures/references.json is stale: run python -m tests.e2e_references")
+
+
+def test_the_api_lists_exactly_the_codes_the_rules_and_the_database_use():
+    assert set(get_args(RuleCode)) == set(references.RULE_CODES)
+    assert set(get_args(RejectReason)) == set(REJECT_REASONS)
+    assert set(get_args(ReferenceSector)) == set(references.SECTORS)
+    events = get_args(ReferenceOutcome.model_fields["event"].annotation)
+    assert set(events) == {e for group in references.EVENTS.values() for e in group}
+
+
+def test_the_same_deal_through_the_api_hashes_as_the_repository_copy():
+    deal = seed("hca-2006")
+    through_api = ReferenceDealIn.model_validate(deal).model_dump(mode="json", exclude_none=True)
+    assert json.dumps(through_api, sort_keys=True) != json.dumps(deal, sort_keys=True)   # 33000 became 33000.0
+    assert references.content_hash(through_api) == references.content_hash(deal)
+
+
+def test_a_repository_deal_proposed_again_through_the_api_is_a_duplicate(fresh_db, admins, as_user):  # noqa: ARG001
+    as_user(A)
+    queue()
+    assert client.post("/api/library/review", json=seed("hca-2006")).status_code == 409
+
+
+def test_the_repository_proposals_count_as_awaiting_before_anyone_opens_review(fresh_db):  # noqa: ARG001
+    assert client.get("/api/library/references").json()["awaiting_review"] == 10
+    cov = client.get("/api/library/coverage").json()["collections"][0]
+    assert (cov["count"], cov["awaiting_review"]) == (0, 10)
+
+
+def test_the_decided_list_is_newest_decision_first_and_flags_no_replacement(fresh_db, admins, as_user):  # noqa: ARG001
+    as_user(A)
+    first, second = proposal_id("avago-2005"), proposal_id("nxp-2006")
+    verdict(second, "reject", "other")
+    verdict(first, "reject", "other")
+    decided = queue()["decided"]
+    assert [d["key"] for d in decided] == ["avago-2005", "nxp-2006"]
+    pid = proposal_id("hca-2006")
+    verdict(pid, "approve")
+    as_user(B)
+    verdict(pid, "approve")
+    approved = next(d for d in queue()["decided"] if d["key"] == "hca-2006")
+    assert approved["replaces_approved"] is False
