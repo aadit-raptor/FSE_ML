@@ -104,12 +104,15 @@ def test_every_endpoint_needs_a_login(clerk, method, path, body):  # noqa: ARG00
     assert resp.headers["WWW-Authenticate"] == "Bearer"
 
 
-def test_no_route_is_left_unprotected(clerk):  # noqa: ARG001
+def test_no_route_is_left_unprotected(clerk, monkeypatch):  # noqa: ARG001
     """Every route in the published schema is either public on purpose or needs a login.
 
     Reading the schema rather than a list means a route added later is
-    covered the day it appears.
+    covered the day it appears. There are more routes than one address may
+    send refused sign-ins in a minute (api/limits.py), so that limit is raised
+    here; tests/test_limits.py checks it.
     """
+    monkeypatch.setenv("FSE_LIMITS_MULTIPLIER", "10")
     schema = client.get("/api/openapi.json").json()
     checked = 0
     for path, operations in schema["paths"].items():

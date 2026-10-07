@@ -20,8 +20,9 @@ from core.backtesting import (
     BACKTEST_MONEY_KEYS, PRELOADED_DEALS, PRELOADED_MONEY, backtest_in_millions, backtest_summary,
 )
 from core.deal import DealInputs, in_millions
-from core.examples import examples, library_enabled
+from core.examples import examples
 from core.money import in_unit, rescale
+from library.switch import enabled as library_enabled
 from core.plan_actual import (
     PLAN_ACTUAL_MONEY_KEYS, ActualExit, Actuals, PlanActualMismatch, actuals_in_millions, compare,
 )
@@ -83,7 +84,8 @@ def post_run(req: BacktestRequest):
 def get_examples():
     """The example library: each example deal as a plan and its actuals.
     Empty, and ``enabled`` false, when the library is switched off."""
-    return {"enabled": library_enabled(), "examples": examples()}
+    on = library_enabled()
+    return {"enabled": on, "examples": examples() if on else []}
 
 
 @router.post("/plan-vs-actual", response_model=PlanActualResponse)

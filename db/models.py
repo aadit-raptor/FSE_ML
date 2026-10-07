@@ -261,7 +261,9 @@ class DealVersion(Base):
 
 
 AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
-                 "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed", "shared")
+                 "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed", "shared",
+                 # An administrator showed or hid the reference library (PLAN.md 4.5)
+                 "library_switched")
 
 
 class AuditEvent(Base):
@@ -540,7 +542,22 @@ class BenchmarkTable(Base):
     refreshed_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
 
-__all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
+class AppFlag(Base):
+    """A switch for the whole site, such as whether the reference library is
+    shown (PLAN.md 4.5, ``library/switch.py``). Only an administrator
+    changes one; ``updated_by`` is who did, and the change is also an audit
+    entry. A switch with no row has its default."""
+
+    __tablename__ = "app_flags"
+
+    name: Mapped[str] = mapped_column(String(40), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    updated_by: Mapped[Optional[int]] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+
+__all__ = ["AUDIT_ACTIONS", "AppFlag", "AuditEvent", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

@@ -32,6 +32,7 @@ services:
         - economy/**
         - jobs/**
         - lbo_engine/**
+        - library/**
         - ml/**
         - simulation/**
     envVars:

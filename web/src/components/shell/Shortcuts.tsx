@@ -3,7 +3,9 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { MODES, parsePath, stepHref } from "@/lib/nav";
+import { parsePath, stepHref } from "@/lib/nav";
+
+import { useModes } from "./useModes";
 
 import { useWorkspace } from "./workspace";
 
@@ -12,11 +14,12 @@ function isTyping(target: EventTarget | null): boolean {
   return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-/** Ctrl/Cmd K search, Alt 1-5 modes, [ and ] previous / next step. */
+/** Ctrl/Cmd K search, Alt 1-6 modes, [ and ] previous / next step. */
 export function Shortcuts() {
   const router = useRouter();
   const pathname = usePathname();
   const { setSearchOpen } = useWorkspace();
+  const modes = useModes();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -28,7 +31,7 @@ export function Shortcuts() {
       if (isTyping(e.target)) return;
 
       if (e.altKey && /^[1-9]$/.test(e.key)) {
-        const mode = MODES[Number(e.key) - 1];
+        const mode = modes[Number(e.key) - 1];
         if (mode) {
           e.preventDefault();
           router.push(stepHref(mode.slug, mode.steps[0].slug));
@@ -45,7 +48,7 @@ export function Shortcuts() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, pathname, setSearchOpen]);
+  }, [router, pathname, setSearchOpen, modes]);
 
   return null;
 }

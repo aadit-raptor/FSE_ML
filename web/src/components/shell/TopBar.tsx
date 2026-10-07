@@ -8,8 +8,9 @@ import { usePathname } from "next/navigation";
 
 import { useSession } from "@/components/auth/AuthProvider";
 import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
-import { MODES, parsePath, stepHref } from "@/lib/nav";
+import { parsePath, stepHref } from "@/lib/nav";
 
+import { useModes } from "./useModes";
 import { useWorkspace } from "./workspace";
 
 export function TopBar() {
@@ -17,6 +18,7 @@ export function TopBar() {
   const { mode: current } = parsePath(pathname);
   const { setSearchOpen } = useWorkspace();
   const { label } = useSession();
+  const modes = useModes();
   const t = useTranslations("shell");
   const nav = useTranslations("nav");
   const app = useTranslations("app");
@@ -34,7 +36,7 @@ export function TopBar() {
       </Link>
 
       <nav aria-label={t("modes")} className="flex">
-        {MODES.map((mode, i) => {
+        {modes.map((mode, i) => {
           const active = mode.slug === current?.slug;
           return (
             <Link

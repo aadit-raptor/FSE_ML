@@ -17,7 +17,7 @@ from core.config import DEFAULTS
 # The illustrative Settings defaults left after 4.3. Remove a key when its
 # task sources it; never add one.
 PENDING_PINNED = frozenset({
-    # 4.5: fees and amortisation from the reference transactions' filings
+    # 4.5b: fees and amortisation from the reference transactions' filings
     "tx_fee_pct", "fin_fee_pct", "def_senior_amort",
 })
 

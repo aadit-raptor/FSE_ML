@@ -723,8 +723,8 @@ the screen says both.
 Actuals in another unit are converted; another currency is refused.
 
 `examples` serves the optional example library (four inception-era US deals,
-`_plan` and `_actuals` build their inputs; hidden when `library_enabled` is
-false). They are never an input to any calculation.
+`_plan` and `_actuals` build their inputs; hidden when the library is switched
+off, [§14](#the-reference-library)). They are never an input to any calculation.
 
 The old backtest (`backtest_summary`, kept as the golden parity record):
 `predicted_ebitda` grows revenue at the plan growth at a constant margin
@@ -932,6 +932,38 @@ default comes from; `tests/test_defaults_registry.py` keeps it complete.
 | `benchmarks.starting.MAX_MULTIPLE` | 100.0 | a higher EV / EBITDA is not a starting point |
 | `benchmarks.starting.MAX_CAPEX_TO_DA` | 10.0 | a higher capex / D&A is not a starting point |
 
+### The reference library
+
+The optional reference library (PLAN.md 4.5, Library mode) shows published
+figures beside a deal; **nothing in the deal model, the simulation or the risk
+warnings reads it**, so switching it off (`library/switch.py`) moves no result.
+
+- **Base rates** ([library/base_rates.py](../library/base_rates.py)) are
+  transcribed tables, never estimates. Default rates come from S&P Global
+  Ratings' 2024 global default study: the annual rate by rating category
+  (Table 3) and by grade (Table 1), 1981-2024; the speculative-grade rate by
+  region (Table 5: the U.S. and tax havens, Europe, emerging and frontier
+  markets, other developed); and the average cumulative rate after 1 to 15
+  years by rating, globally (Table 24) and for the U.S., Europe and emerging
+  markets (Table 25). Recovery comes from Global Credit Data's 2020 report on
+  bank loans to large corporates (2000-2016 defaults, 11,527 borrowers): loss
+  given default by seniority and collateral (Table 2), year of default (Table 3)
+  and region (Table 4); recovery is 100 less it. `base_rates` lays them out by
+  year (`_years`) with their sources (`_source`). `sp_region` reads a country
+  into S&P's region from the study's own lists (anything unlisted is an
+  emerging or frontier market). Each source records the day its edition was
+  last confirmed as the newest one free to read; `recheck_due` is a year later
+  (`_add_months`) and `stale` turns true from then, shown on screen and failed
+  by the daily production check.
+- **Coverage** ([library/coverage.py](../library/coverage.py)) counts the
+  library's deals by region (S&P's), size (`size`: enterprise value at entry in
+  US dollars, under 100m, 100m-1bn, 1-10bn, over 10bn), sector, era (`era`:
+  entry year before 2000, 2000-2007, 2008-2014, 2015-2019, 2020 on) and outcome,
+  listing empty buckets (`_band`, `_counts`, `collection`). `example_tags` tags
+  each example (its year from its name, `_deal_year`); `coverage` adds the
+  base-rate tables' regions, bands, years and observations
+  (`base_rates.coverage`).
+
 ## 15. Regional differences at a glance
 
 | Area | What varies by region | Where |
@@ -941,6 +973,7 @@ default comes from; `tests/test_defaults_registry.py` keeps it complete.
 | Accounting | IFRS 16 leases in EBITDA and net debt (IFRS) or not (US GAAP) | §6 |
 | Tax | Rate, interest limit, loss rules, minimum tax per country preset | §7 |
 | Risk thresholds | ECB/US leverage guidance; US-based rating and default studies | §8 |
+| Base rates | Default rates for the U.S., Europe, emerging and other developed markets; recovery for six regions | §14 |
 | Filings | SEC EDGAR only (US GAAP and IFRS filers) | §13 |
 | Starting figures | Industry averages by region, growth and tax by country, rate by currency | §14 |
 | Monte Carlo ranges | Spreads, correlations and presets from each region's and country's history | §9 |

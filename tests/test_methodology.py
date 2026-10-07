@@ -36,6 +36,8 @@ EXTRA_MODULES = (
     "benchmarks/starting.py",        # a new deal's starting figures
     "benchmarks/risk.py",            # the sourced Monte Carlo ranges (PLAN.md 4.4)
     "benchmarks/history.py",         # the history they are measured on
+    "library/base_rates.py",         # published default and recovery rates (PLAN.md 4.5)
+    "library/coverage.py",           # the reference library's coverage counts
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.
 SKIPPED_METHODS = {"__init__", "__post_init__", "__repr__", "forward"}

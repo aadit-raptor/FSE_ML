@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-07 (PLAN.md 4.4: risk ranges, correlations and scenarios by region). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-07 (PLAN.md 4.5a: reference library switch, base rates and coverage). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -791,6 +791,39 @@ about 15 minutes paced; workbooks trimmed to ten industries, an unreadable
 edition kept as its first 4 KB); browser tests replay the `risk` answers in
 `web/e2e/fixtures/benchmarks.json`.
 
+Reference library, part one (PLAN.md 4.5a; 4.5b adds the sourced
+transactions and two-person review): a **Library** tab (`nav.ts` mode
+`library`, `optional: true`, last so hiding it moves no Alt shortcut; the
+shell lists modes through `components/shell/useModes.ts`) with Base rates,
+Examples and Coverage. **Base rates** (`library/base_rates.py`,
+`GET /api/library/base-rates?country=`) are transcribed tables, never
+estimates: S&P's 2024 global default study (the Maalot copy, as 2.8 uses;
+Tables 1, 3, 5, 24, 25) and Global Credit Data's 2020 LGD report on bank
+loans to large corporates (Tables 2-4), parsed from the PDFs with
+`pdftotext -table` (not `-layout`, which scrambles rows) and checked in
+`tests/test_base_rates.py` against the sources' own summary rows (S&P's
+Table 4 minimum, maximum and median per rating; GCD's totals). **Decided
+with the user (2026-10-07): fixed editions, not live data** -- each source
+has `checked_on`; a year later the screen says "due a check" and
+`ops/check_base_rates.py` fails `live.yml`; then transcribe a newer edition
+or confirm none is free and move `checked_on`. Nothing in the deal model,
+simulation or risk warnings reads the library. **Coverage**
+(`library/coverage.py`, `GET /api/library/coverage`) counts deals by S&P
+region, size (entry EV in US dollars), sector, era and outcome, empty
+buckets listed; the four inception deals are the `examples` collection
+(unsourced, tagged US in `EXAMPLE_COUNTRY`) and `reference_deals` is
+reserved for 4.5b. **The admin switch** (`library/switch.py`): on unless an
+administrator hides it (`PUT /api/library/switch`, table `app_flags`,
+migration 0014, one `library_switched` audit entry per change, none for a
+repeat) or `FSE_EXAMPLE_LIBRARY=0` forces it off (409 to switching then).
+**Administrators are `FSE_ADMINS`** (comma-separated Clerk user ids on the
+Render service; none set means nobody can switch). The stored choice is
+cached a minute per process (`CACHE_S`; `tests/conftest.py` resets it).
+Off: the tab disappears except for administrators, `/library/*` says it is
+off, examples and library endpoints answer `enabled: false`;
+`e2e/library.spec.ts` opens every other step with it off. `core/examples.py`
+no longer reads the switch; the routers do.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -835,7 +868,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). **Next is 4.5** (optional reference library: deals and base rates).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 was split: **4.5a** is done (the library's switch, base rates and coverage, below). **Next is 4.5b** (reference transactions, two-person review, fees and amortisation).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1058,6 +1091,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
 | `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder, the summary as deal inputs and forecast rows (`use.py`); storage, budget and the EDINET index; the endpoints |
 | `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx`, `web/src/components/montecarlo/SourcedRisk.tsx` | Sourced starting figures (PLAN.md 4.3) and risk ranges (4.4): regions and data sets read, the workbook reader, a deal's starting figures, the archive and economic history (`history.py`), the Monte Carlo Settings from it (`risk.py`), the refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and tile, the Monte Carlo "Sources" rail group and tile |
+| `library/`, `db/flags.py`, `api/routers/library.py`, `web/src/components/library/`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5a): the cited base-rate tables, the coverage counts and the admin switch; site-wide switches; the endpoints; the Library screens and their provider; the yearly editions check |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
 | `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
@@ -1407,6 +1441,12 @@ Skills load when a session starts: install first, then open a new session.
   (`_recorded_on`), never today, or they go stale on their own; a refresh's
   exchange rate request depends on what is stored, so the test transport
   answers the recorded rates for any start day.
+- A table transcribed from a PDF: read it with `pdftotext -table` (the
+  scratchpad has it via Git's mingw64; `-layout` interleaves rows), convert it
+  with a script rather than by hand, and test it against the source's own
+  summary rows. Some free copies only download (maalot.co.il); the user
+  agreed (2026-10-07) to downloading public source documents into the
+  scratchpad to read them.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.

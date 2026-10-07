@@ -20,6 +20,8 @@ export type Mode = {
   slug: string;
   labelKey: string;
   steps: Step[];
+  /** Hidden when switched off: the reference library (`useModes`). */
+  optional?: boolean;
 };
 
 export const MODES: Mode[] = [
@@ -75,6 +77,17 @@ export const MODES: Mode[] = [
       { slug: "monte-carlo", labelKey: "settingsMonteCarlo", summaryKey: "settingsMonteCarloSummary" },
       { slug: "correlations", labelKey: "settingsCorrelations", summaryKey: "settingsCorrelationsSummary" },
       { slug: "presets", labelKey: "settingsPresets", summaryKey: "settingsPresetsSummary" },
+    ],
+  },
+  {
+    // The optional reference library (PLAN.md 4.5): last, so hiding it moves no other mode's shortcut
+    slug: "library",
+    labelKey: "modeLibrary",
+    optional: true,
+    steps: [
+      { slug: "base-rates", labelKey: "libraryBaseRates", summaryKey: "libraryBaseRatesSummary" },
+      { slug: "examples", labelKey: "libraryExamples", summaryKey: "libraryExamplesSummary" },
+      { slug: "coverage", labelKey: "libraryCoverage", summaryKey: "libraryCoverageSummary" },
     ],
   },
 ];

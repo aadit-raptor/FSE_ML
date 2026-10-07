@@ -26,6 +26,7 @@ from db import health as db_health
 from db import migrate
 from jobs import config as jobs_config
 from jobs.memory import MemoryQueue
+from library import switch as library_switch_module
 
 TEST_USER = AuthUser(subject="test:pytest", is_dev=True)
 
@@ -60,6 +61,15 @@ def job_queue(monkeypatch):
     monkeypatch.setattr(jobs_config, "wake_runner", lambda: None)
     yield queue
     jobs_config.use_queue(None)
+
+
+@pytest.fixture(autouse=True)
+def library_switch():
+    """The library switch's stored choice is cached per process; each test
+    reads its own database's."""
+    library_switch_module.reset_cache()
+    yield
+    library_switch_module.reset_cache()
 
 
 @pytest.fixture

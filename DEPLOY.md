@@ -777,6 +777,35 @@ to the columns read; `python -m benchmarks.record --history` records the
 archive and economic history (about 15 minutes, paced); then rerun
 `python -m tests.e2e_benchmarks` (the browser tests' answers).
 
+## Reference library
+
+PLAN.md 4.5: the optional **Library** tab (`library/`, served by
+`/api/library`, `/api/library/base-rates`, `/api/library/coverage`). Base
+rates are published default and recovery rates transcribed into
+`library/base_rates.py` with their sources: S&P Global Ratings' 2024 global
+default study (the free copy S&P's Israeli affiliate Maalot publishes;
+spglobal.com keeps it behind a sign-in) and Global Credit Data's 2020 LGD
+report (the newest edition free to read). No key, no refresh, no storage
+beyond one switch row.
+
+**The admin switch.** The library is on unless an administrator hides it
+(Library -> Coverage; stored per environment in `app_flags`, migration 0014,
+and an audit entry on the administrator's account) or the service sets
+`FSE_EXAMPLE_LIBRARY=0`, which keeps it off whatever was chosen. Off, the tab,
+the example deals in Backtest and the library's endpoints disappear for
+everyone else; no other screen or result changes. **Administrators** are
+the accounts listed in `FSE_ADMINS` on the Render service (comma-separated
+Clerk user ids, `user_...`; Clerk dashboard -> Users -> the user -> User
+ID). Each environment has its own Clerk instance, so production and staging
+take different ids. With none listed nobody can switch it, and it stays on.
+
+**Keeping the editions current.** Each source records the day it was last
+confirmed as the newest free edition (`checked_on`). A year later
+`ops/check_base_rates.py` fails `live.yml`: look for a newer edition (S&P
+publishes each spring), transcribe it, or confirm there is none, and move
+`checked_on`. `tests/test_base_rates.py` checks a transcription against the
+studies' own summary rows.
+
 ## Usage limits
 
 Set up in PLAN.md 1.6 (`api/limits.py`, `api/usage.py`). Upstash Redis free
