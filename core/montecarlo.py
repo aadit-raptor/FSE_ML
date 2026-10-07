@@ -146,8 +146,16 @@ def risk_summary(sim, hurdle_pct):
         "p95_irr": metrics["95% Upside IRR"],
         "p_above_hurdle": metrics["Probability IRR > Target"],
         "wipeout_rate": sim.wipeout_rate,
+        "p_loss": probability_of_loss(sim.moic),
         "hurdle": target,
     }
+
+
+def probability_of_loss(moic) -> float:
+    """Share of paths returning less than the equity put in (MOIC below 1),
+    the deal summary's probability of loss (PLAN.md 4.6)."""
+    moic = np.asarray(moic, dtype=float)
+    return float(np.mean(moic < 1.0)) if moic.size else float("nan")
 
 
 def analysis_sample(sim):

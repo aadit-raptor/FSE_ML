@@ -55,6 +55,7 @@ export const MODES: Mode[] = [
       { slug: "predicted", labelKey: "backtestPredicted", summaryKey: "backtestPredictedSummary" },
       { slug: "attribution", labelKey: "backtestAttribution", summaryKey: "backtestAttributionSummary" },
       { slug: "years", labelKey: "backtestYears", summaryKey: "backtestYearsSummary" },
+      { slug: "validation", labelKey: "backtestValidation", summaryKey: "backtestValidationSummary" },
     ],
   },
   {

@@ -90,6 +90,13 @@ def benchmarks_refresh() -> dict:
     return refresh.run()
 
 
+@task("validation-report", "Check the model's predicted ranges and default risk against outcomes, "
+                           "anonymised, by region, sector, size and era (PLAN.md 4.6, validation/).")
+def validation_report() -> dict:
+    from validation import run
+    return run.run()
+
+
 # ---------------------------------------------------------------------------
 # The run log
 # ---------------------------------------------------------------------------
