@@ -1505,6 +1505,100 @@ class StartingAssumptionsResponse(BaseModel):
     refreshed_at: Optional[datetime] = Field(None, description="When the stored averages were last read (UTC)")
 
 
+# PLAN.md 4.4: the Monte Carlo Settings worked out from published history (benchmarks/risk.py SETTINGS)
+RiskSetting = Literal[
+    "mc_growth_mean", "mc_exit_mean", "mc_rate_mean", "mc_gm_mean",
+    "mc_growth_std", "mc_exit_std", "mc_rate_std", "mc_gm_std",
+    "corr_g_em", "corr_g_ir", "corr_g_gm", "corr_g_sh", "corr_em_ir", "corr_em_gm", "corr_em_sh",
+    "corr_ir_gm", "corr_ir_sh", "corr_gm_sh",
+    "bull_growth_mult", "bull_exit_mult", "bull_rate_mult", "bull_margin_mult",
+    "rec_growth_adj", "rec_growth_floor", "rec_exit_mult", "rec_rate_mult", "rec_margin_mult",
+    "stag_growth_adj", "stag_growth_floor", "stag_exit_mult", "stag_rate_mult", "stag_margin_mult",
+]
+RiskScenarioId = Literal["recession", "stagflation", "bull"]
+
+
+class RiskSkipped(BaseModel):
+    area: str = Field(description="A group (benchmarks/catalogue.py REGIONS), a country or a currency code")
+    reason: Literal["thin", "unusable", "missing", "short", "base_not_positive", "no_history_in_years"] = Field(
+        description="short: fewer usable years than min_years; base_not_positive: a multiplier needs a "
+                    "positive mean to scale; no_history_in_years: the industry's history has none of the "
+                    "scenario's years; the rest as for the starting figures")
+    sample: Optional[int] = Field(None, description="Companies (or usable years, when short), when known")
+
+
+class RiskFigure(BaseModel):
+    field: RiskSetting = Field(description="The Setting this figure fills")
+    value: float = Field(description="As the Setting reads it: per cent, a multiple, a multiplier or a correlation")
+    source: Literal["damodaran", "imf", "bis", "benchmark", "tax_foundation", "choice", "damodaran+imf+bis"]
+    dataset: str = Field(description="The table or series read")
+    area: str = Field(description="The group or country the figure is for")
+    level: BenchmarkLevel
+    sample: Optional[int] = Field(None, description="Companies, economies, years or industry-years behind it")
+    sample_kind: Optional[Literal["companies", "economies", "countries", "years", "industry_years"]] = None
+    as_of: Optional[str] = Field(None, description="The publisher's date, when there is one")
+    url: Optional[str] = None
+    skipped: List[RiskSkipped] = Field(description="Closer groups passed over, and why")
+    detail: Dict[str, Any] = Field(description="The years and published figures it was worked out from")
+
+
+class RiskMissing(BaseModel):
+    field: RiskSetting
+    skipped: List[RiskSkipped]
+
+
+class RiskPeriod(BaseModel):
+    start: int = Field(description="The period's first year")
+    end: int = Field(description="Its last year (the same for a single year)")
+
+
+class RiskScenario(BaseModel):
+    id: RiskScenarioId
+    rule: Literal["weakest_growth", "highest_inflation", "strongest_growth"] = Field(
+        description="The fifth of the economy's years the preset is built from: lowest real GDP growth, "
+                    "highest inflation, highest real GDP growth")
+    area: str = Field(description="The country, or the group whose economies' median stands in for it")
+    level: BenchmarkLevel
+    economies: int
+    years: List[int]
+    periods: List[RiskPeriod] = Field(description="The years, consecutive ones joined")
+    of_years: int = Field(description="How many years they were chosen from")
+    window: Optional[str] = Field(None, description="First and last year looked at")
+
+
+class RiskCorrelation(BaseModel):
+    group: BenchmarkArea
+    level: BenchmarkLevel
+    labels: List[str]
+    matrix: List[List[float]] = Field(description="The valid matrix the Settings take")
+    observations: List[List[int]] = Field(description="What each correlation rests on: industry-years, or "
+                                                      "years for growth and the rate")
+    rows: int = Field(description="Industry-years in the panel")
+    economies: int
+    period: Optional[str] = None
+    shrink: float = Field(description="How far the measured matrix was shrunk toward no correlation to be "
+                                      "valid (0 = not at all)")
+
+
+class RiskAssumptionsResponse(BaseModel):
+    country: str
+    industry: str
+    industry_name: Optional[str] = Field(None, description="The industry as the source names it; null before "
+                                                           "the first refresh")
+    currency: str
+    region: BenchmarkArea
+    settings: Dict[RiskSetting, float] = Field(description="The value of each Setting found")
+    figures: List[RiskFigure]
+    missing: List[RiskMissing] = Field(description="Settings with no sourced figure: they keep their value")
+    scenarios: Dict[RiskScenarioId, RiskScenario]
+    correlation: RiskCorrelation
+    window_start: int = Field(description="The first year of economic history read")
+    min_years: int = Field(description="A spread needs at least this many usable years")
+    notes: List[Literal["size_not_split", "growth_economy_wide", "rate_policy_only", "industry_aggregates"]]
+    source: BenchmarkSourceOut
+    refreshed_at: Optional[datetime] = Field(None, description="When the stored averages were last read (UTC)")
+
+
 class BenchmarkIndustry(BaseModel):
     id: str = Field(description="all, or the industry's name as an id (machinery, oil_gas_integrated ...)")
     name: str = Field(description="The industry as the source names it")

@@ -9,9 +9,9 @@ import { NumberField } from "@/components/ui/NumberField";
 import { EmptyState, LoadingTiles, Notice, PrimaryButton, RailGroup, Screen, Switch } from "@/components/ui/Screen";
 import { floatingCount } from "@/lib/deal/capital";
 import type { FieldSpec } from "@/lib/fields";
-import { useProvenance } from "@/lib/i18n/useProvenance";
 
 import { SCENARIOS, SIM_FIELDS, SIM_LABEL_KEY, type SimKey, useMonteCarlo } from "./MonteCarloProvider";
+import { SourcedRiskRail } from "./SourcedRisk";
 
 const SEED_SPEC: FieldSpec = { unit: "", step: 1, decimals: 0, min: 0, integer: true };
 
@@ -26,7 +26,6 @@ function Rail() {
   const { scenario, setScenario, seed, setSeed } = useMonteCarlo();
   const { inputs: deal } = useDeal();
   const t = useTranslations("montecarlo");
-  const provenance = useProvenance();
   return (
     <>
       <RailGroup title={t("groupFromDeal")}>
@@ -59,10 +58,7 @@ function Rail() {
         </div>
         <p className="type-body pt-1.5 text-[9px]">{t("presetNote")}</p>
       </RailGroup>
-      <div className="grid gap-1 border-b border-line px-3.5 py-2.5" role="note">
-        <p className="type-alert text-[9px]">{provenance.illustrative}</p>
-        <p className="type-body text-[9px]">{t("illustrativeDetail")}</p>
-      </div>
+      <SourcedRiskRail />
       <RailGroup title={t("groupGrowth")}>
         <SimField name="growth_mean" />
         <SimField name="growth_std" />

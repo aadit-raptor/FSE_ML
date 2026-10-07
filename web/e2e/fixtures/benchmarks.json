@@ -433,6 +433,1771 @@
    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
   }
  },
+ "risk": {
+  "GB|machinery|GBP": {
+   "correlation": {
+    "economies": 10,
+    "group": "europe",
+    "labels": [
+     "growth",
+     "exit_multiple",
+     "interest",
+     "gross_margin",
+     "ebitda_shock"
+    ],
+    "level": "region",
+    "matrix": [
+     [
+      1.0,
+      -0.44,
+      0.76,
+      0.02,
+      0.05
+     ],
+     [
+      -0.44,
+      1.0,
+      -0.28,
+      -0.12,
+      -0.24
+     ],
+     [
+      0.76,
+      -0.28,
+      1.0,
+      -0.1,
+      0.27
+     ],
+     [
+      0.02,
+      -0.12,
+      -0.1,
+      1.0,
+      -0.13
+     ],
+     [
+      0.05,
+      -0.24,
+      0.27,
+      -0.13,
+      1.0
+     ]
+    ],
+    "observations": [
+     [
+      0,
+      105,
+      26,
+      68,
+      88
+     ],
+     [
+      105,
+      0,
+      105,
+      68,
+      88
+     ],
+     [
+      26,
+      105,
+      0,
+      68,
+      88
+     ],
+     [
+      68,
+      68,
+      68,
+      0,
+      68
+     ],
+     [
+      88,
+      88,
+      88,
+      68,
+      0
+     ]
+    ],
+    "period": "2012-2025",
+    "rows": 105,
+    "shrink": 0.0
+   },
+   "country": "GB",
+   "currency": "GBP",
+   "figures": [
+    {
+     "area": "GB",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 3.2,
+      "period": "2026",
+      "real_growth": 0.8,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/GBR"
+     },
+     "field": "mc_growth_mean",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/GBR",
+     "value": 4.03
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "mc_exit_mean",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 14.98
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-10-02",
+     "dataset": "SONIA",
+     "detail": {
+      "benchmark": "SONIA",
+      "benchmark_basis": "benchmark",
+      "benchmark_level": 3.7317,
+      "benchmark_source": "fred",
+      "interest_coverage": 10.65,
+      "rating": "AAA",
+      "spread": 0.4,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "mc_rate_mean",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "benchmark",
+     "url": "https://fred.stlouisfed.org/series/IUDSOIA",
+     "value": 4.13
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {},
+     "field": "mc_gm_mean",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 44.68
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "history.europe",
+     "detail": {
+      "mean": 12.81,
+      "period": "2011-2025",
+      "years": 14
+     },
+     "field": "mc_exit_std",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 2.55
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "history.europe",
+     "detail": {
+      "mean": 41.88,
+      "period": "2017-2025",
+      "years": 9
+     },
+     "field": "mc_gm_std",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.39
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "measure": "nominal_gdp_growth",
+      "period": "2000-2025",
+      "years": 26
+     },
+     "field": "mc_growth_std",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 4.08
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "measure": "policy_rate_change",
+      "period": "2000-2025",
+      "policy_area": "GB",
+      "years": 26
+     },
+     "field": "mc_rate_std",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 1.17
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.4413,
+      "shrink": 0.0
+     },
+     "field": "corr_g_em",
+     "level": "region",
+     "sample": 105,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.44
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.7585,
+      "shrink": 0.0
+     },
+     "field": "corr_g_ir",
+     "level": "region",
+     "sample": 26,
+     "sample_kind": "years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.76
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.0158,
+      "shrink": 0.0
+     },
+     "field": "corr_g_gm",
+     "level": "region",
+     "sample": 68,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.02
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.0507,
+      "shrink": 0.0
+     },
+     "field": "corr_g_sh",
+     "level": "region",
+     "sample": 88,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.05
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.2835,
+      "shrink": 0.0
+     },
+     "field": "corr_em_ir",
+     "level": "region",
+     "sample": 105,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.28
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.1208,
+      "shrink": 0.0
+     },
+     "field": "corr_em_gm",
+     "level": "region",
+     "sample": 68,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.12
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.241,
+      "shrink": 0.0
+     },
+     "field": "corr_em_sh",
+     "level": "region",
+     "sample": 88,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.24
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.0997,
+      "shrink": 0.0
+     },
+     "field": "corr_ir_gm",
+     "level": "region",
+     "sample": 68,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.1
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.2656,
+      "shrink": 0.0
+     },
+     "field": "corr_ir_sh",
+     "level": "region",
+     "sample": 88,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.27
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.128,
+      "shrink": 0.0
+     },
+     "field": "corr_gm_sh",
+     "level": "region",
+     "sample": 68,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.13
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2008,
+       2009,
+       2011,
+       2020,
+       2023
+      ]
+     },
+     "field": "rec_growth_adj",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": -3.3
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2008,
+       2009,
+       2011,
+       2020,
+       2023
+      ]
+     },
+     "field": "rec_growth_floor",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": -9.19
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "base": 4.13,
+      "change": -0.45,
+      "years": [
+       2008,
+       2009,
+       2011,
+       2020,
+       2023
+      ]
+     },
+     "field": "rec_rate_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 0.891
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "average": 12.81,
+      "in_years": 13.76,
+      "period": "2011-2025",
+      "years": [
+       2011,
+       2020,
+       2023
+      ]
+     },
+     "field": "rec_exit_mult",
+     "level": "region",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.074
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "average": 41.88,
+      "in_years": 41.48,
+      "period": "2017-2025",
+      "years": [
+       2020,
+       2023
+      ]
+     },
+     "field": "rec_margin_mult",
+     "level": "region",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.99
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2008,
+       2011,
+       2022,
+       2023,
+       2025
+      ]
+     },
+     "field": "stag_growth_adj",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 2.92
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2008,
+       2011,
+       2022,
+       2023,
+       2025
+      ]
+     },
+     "field": "stag_growth_floor",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 3.6
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "base": 4.13,
+      "change": 0.57,
+      "years": [
+       2008,
+       2011,
+       2022,
+       2023,
+       2025
+      ]
+     },
+     "field": "stag_rate_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 1.138
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "average": 12.81,
+      "in_years": 13.2,
+      "period": "2011-2025",
+      "years": [
+       2011,
+       2022,
+       2023,
+       2025
+      ]
+     },
+     "field": "stag_exit_mult",
+     "level": "region",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.03
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "average": 41.88,
+      "in_years": 42.81,
+      "period": "2017-2025",
+      "years": [
+       2022,
+       2023,
+       2025
+      ]
+     },
+     "field": "stag_margin_mult",
+     "level": "region",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.022
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "base": 4.03,
+      "change": 3.85,
+      "years": [
+       2000,
+       2003,
+       2014,
+       2021,
+       2022
+      ]
+     },
+     "field": "bull_growth_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 1.956
+    },
+    {
+     "area": "GB",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "base": 4.13,
+      "change": 0.33,
+      "years": [
+       2000,
+       2003,
+       2014,
+       2021,
+       2022
+      ]
+     },
+     "field": "bull_rate_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 1.081
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "average": 12.81,
+      "in_years": 15.45,
+      "period": "2011-2025",
+      "years": [
+       2021,
+       2022
+      ]
+     },
+     "field": "bull_exit_mult",
+     "level": "region",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.207
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "history.europe",
+     "detail": {
+      "average": 41.88,
+      "in_years": 41.92,
+      "period": "2017-2025",
+      "years": [
+       2021,
+       2022
+      ]
+     },
+     "field": "bull_margin_mult",
+     "level": "region",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.001
+    }
+   ],
+   "industry": "machinery",
+   "industry_name": "Machinery",
+   "min_years": 6,
+   "missing": [],
+   "notes": [
+    "size_not_split",
+    "growth_economy_wide",
+    "rate_policy_only",
+    "industry_aggregates"
+   ],
+   "refreshed_at": null,
+   "region": "europe",
+   "scenarios": {
+    "bull": {
+     "area": "GB",
+     "economies": 1,
+     "id": "bull",
+     "level": "country",
+     "of_years": 26,
+     "periods": [
+      {
+       "end": 2000,
+       "start": 2000
+      },
+      {
+       "end": 2003,
+       "start": 2003
+      },
+      {
+       "end": 2014,
+       "start": 2014
+      },
+      {
+       "end": 2022,
+       "start": 2021
+      }
+     ],
+     "rule": "strongest_growth",
+     "window": "2000-2025",
+     "years": [
+      2000,
+      2003,
+      2014,
+      2021,
+      2022
+     ]
+    },
+    "recession": {
+     "area": "GB",
+     "economies": 1,
+     "id": "recession",
+     "level": "country",
+     "of_years": 26,
+     "periods": [
+      {
+       "end": 2009,
+       "start": 2008
+      },
+      {
+       "end": 2011,
+       "start": 2011
+      },
+      {
+       "end": 2020,
+       "start": 2020
+      },
+      {
+       "end": 2023,
+       "start": 2023
+      }
+     ],
+     "rule": "weakest_growth",
+     "window": "2000-2025",
+     "years": [
+      2008,
+      2009,
+      2011,
+      2020,
+      2023
+     ]
+    },
+    "stagflation": {
+     "area": "GB",
+     "economies": 1,
+     "id": "stagflation",
+     "level": "country",
+     "of_years": 26,
+     "periods": [
+      {
+       "end": 2008,
+       "start": 2008
+      },
+      {
+       "end": 2011,
+       "start": 2011
+      },
+      {
+       "end": 2023,
+       "start": 2022
+      },
+      {
+       "end": 2025,
+       "start": 2025
+      }
+     ],
+     "rule": "highest_inflation",
+     "window": "2000-2025",
+     "years": [
+      2008,
+      2011,
+      2022,
+      2023,
+      2025
+     ]
+    }
+   },
+   "settings": {
+    "bull_exit_mult": 1.207,
+    "bull_growth_mult": 1.956,
+    "bull_margin_mult": 1.001,
+    "bull_rate_mult": 1.081,
+    "corr_em_gm": -0.12,
+    "corr_em_ir": -0.28,
+    "corr_em_sh": -0.24,
+    "corr_g_em": -0.44,
+    "corr_g_gm": 0.02,
+    "corr_g_ir": 0.76,
+    "corr_g_sh": 0.05,
+    "corr_gm_sh": -0.13,
+    "corr_ir_gm": -0.1,
+    "corr_ir_sh": 0.27,
+    "mc_exit_mean": 14.98,
+    "mc_exit_std": 2.55,
+    "mc_gm_mean": 44.68,
+    "mc_gm_std": 1.39,
+    "mc_growth_mean": 4.03,
+    "mc_growth_std": 4.08,
+    "mc_rate_mean": 4.13,
+    "mc_rate_std": 1.17,
+    "rec_exit_mult": 1.074,
+    "rec_growth_adj": -3.3,
+    "rec_growth_floor": -9.19,
+    "rec_margin_mult": 0.99,
+    "rec_rate_mult": 0.891,
+    "stag_exit_mult": 1.03,
+    "stag_growth_adj": 2.92,
+    "stag_growth_floor": 3.6,
+    "stag_margin_mult": 1.022,
+    "stag_rate_mult": 1.138
+   },
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   },
+   "window_start": 2000
+  },
+  "IN|machinery|INR": {
+   "correlation": {
+    "economies": 1,
+    "group": "india",
+    "labels": [
+     "growth",
+     "exit_multiple",
+     "interest",
+     "gross_margin",
+     "ebitda_shock"
+    ],
+    "level": "country",
+    "matrix": [
+     [
+      1.0,
+      -0.07,
+      0.29,
+      0.13,
+      -0.05
+     ],
+     [
+      -0.07,
+      1.0,
+      -0.02,
+      0.0,
+      -0.23
+     ],
+     [
+      0.29,
+      -0.02,
+      1.0,
+      0.13,
+      0.16
+     ],
+     [
+      0.13,
+      0.0,
+      0.13,
+      1.0,
+      0.27
+     ],
+     [
+      -0.05,
+      -0.23,
+      0.16,
+      0.27,
+      1.0
+     ]
+    ],
+    "observations": [
+     [
+      0,
+      70,
+      26,
+      42,
+      56
+     ],
+     [
+      70,
+      0,
+      70,
+      42,
+      56
+     ],
+     [
+      26,
+      70,
+      0,
+      42,
+      56
+     ],
+     [
+      42,
+      42,
+      42,
+      0,
+      42
+     ],
+     [
+      56,
+      56,
+      56,
+      42,
+      0
+     ]
+    ],
+    "period": "2012-2025",
+    "rows": 70,
+    "shrink": 0.0
+   },
+   "country": "IN",
+   "currency": "INR",
+   "figures": [
+    {
+     "area": "IN",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 4.7,
+      "period": "2026",
+      "real_growth": 6.5,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/IND"
+     },
+     "field": "mc_growth_mean",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/IND",
+     "value": 11.51
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.india",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "mc_exit_mean",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaIndia.xls",
+     "value": 26.85
+    },
+    {
+     "area": "india",
+     "as_of": "2026-07-23",
+     "dataset": "MIBOR",
+     "detail": {
+      "benchmark": "MIBOR",
+      "benchmark_basis": "policy_rate",
+      "benchmark_level": 5.25,
+      "benchmark_source": "bis",
+      "interest_coverage": 7.39,
+      "rating": "AA",
+      "spread": 0.55,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "mc_rate_mean",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "benchmark",
+     "url": "https://data.bis.org/topics/CBPOL/BIS%2CWS_CBPOL%2C1.0/D.IN",
+     "value": 5.8
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "margins.india",
+     "detail": {},
+     "field": "mc_gm_mean",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls",
+     "value": 44.51
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "history.india",
+     "detail": {
+      "mean": 18.19,
+      "period": "2011-2025",
+      "years": 13
+     },
+     "field": "mc_exit_std",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 8.57
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "history.india",
+     "detail": {
+      "mean": 43.42,
+      "period": "2017-2025",
+      "years": 8
+     },
+     "field": "mc_gm_std",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.93
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "measure": "nominal_gdp_growth",
+      "period": "2000-2025",
+      "years": 26
+     },
+     "field": "mc_growth_std",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 3.88
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "measure": "policy_rate_change",
+      "period": "2000-2025",
+      "policy_area": "IN",
+      "years": 26
+     },
+     "field": "mc_rate_std",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 1.03
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.0702,
+      "shrink": 0.0
+     },
+     "field": "corr_g_em",
+     "level": "country",
+     "sample": 70,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.07
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.2947,
+      "shrink": 0.0
+     },
+     "field": "corr_g_ir",
+     "level": "country",
+     "sample": 26,
+     "sample_kind": "years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.29
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.133,
+      "shrink": 0.0
+     },
+     "field": "corr_g_gm",
+     "level": "country",
+     "sample": 42,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.13
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.0545,
+      "shrink": 0.0
+     },
+     "field": "corr_g_sh",
+     "level": "country",
+     "sample": 56,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.05
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.0172,
+      "shrink": 0.0
+     },
+     "field": "corr_em_ir",
+     "level": "country",
+     "sample": 70,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.02
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.0008,
+      "shrink": 0.0
+     },
+     "field": "corr_em_gm",
+     "level": "country",
+     "sample": 42,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.0
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": -0.2279,
+      "shrink": 0.0
+     },
+     "field": "corr_em_sh",
+     "level": "country",
+     "sample": 56,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": -0.23
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.1294,
+      "shrink": 0.0
+     },
+     "field": "corr_ir_gm",
+     "level": "country",
+     "sample": 42,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.13
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.1591,
+      "shrink": 0.0
+     },
+     "field": "corr_ir_sh",
+     "level": "country",
+     "sample": 56,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.16
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "period": "2012-2025",
+      "raw": 0.273,
+      "shrink": 0.0
+     },
+     "field": "corr_gm_sh",
+     "level": "country",
+     "sample": 42,
+     "sample_kind": "industry_years",
+     "skipped": [],
+     "source": "damodaran+imf+bis",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.27
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2000,
+       2002,
+       2008,
+       2019,
+       2020
+      ]
+     },
+     "field": "rec_growth_adj",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": -4.83
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2000,
+       2002,
+       2008,
+       2019,
+       2020
+      ]
+     },
+     "field": "rec_growth_floor",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 0.04
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "base": 5.8,
+      "change": -0.47,
+      "years": [
+       2000,
+       2002,
+       2008,
+       2019,
+       2020
+      ]
+     },
+     "field": "rec_rate_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 0.918
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "average": 18.19,
+      "in_years": 13.08,
+      "period": "2011-2025",
+      "years": [
+       2019,
+       2020
+      ]
+     },
+     "field": "rec_exit_mult",
+     "level": "country",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.719
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "average": 43.42,
+      "in_years": 43.45,
+      "period": "2017-2025",
+      "years": [
+       2019,
+       2020
+      ]
+     },
+     "field": "rec_margin_mult",
+     "level": "country",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 1.001
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2008,
+       2009,
+       2010,
+       2012,
+       2013
+      ]
+     },
+     "field": "stag_growth_adj",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 4.22
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "years": [
+       2008,
+       2009,
+       2010,
+       2012,
+       2013
+      ]
+     },
+     "field": "stag_growth_floor",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 12.59
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "base": 5.8,
+      "change": -0.45,
+      "years": [
+       2008,
+       2009,
+       2010,
+       2012,
+       2013
+      ]
+     },
+     "field": "stag_rate_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 0.923
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "average": 18.19,
+      "in_years": 10.29,
+      "period": "2011-2025",
+      "years": [
+       2012,
+       2013
+      ]
+     },
+     "field": "stag_exit_mult",
+     "level": "country",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.566
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "base": 11.51,
+      "change": 2.77,
+      "years": [
+       2006,
+       2010,
+       2015,
+       2016,
+       2021
+      ]
+     },
+     "field": "bull_growth_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/datasets/WEO",
+     "value": 1.241
+    },
+    {
+     "area": "IN",
+     "as_of": null,
+     "dataset": "WS_CBPOL",
+     "detail": {
+      "base": 5.8,
+      "change": -0.07,
+      "years": [
+       2006,
+       2010,
+       2015,
+       2016,
+       2021
+      ]
+     },
+     "field": "bull_rate_mult",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "bis",
+     "url": "https://data.bis.org/topics/CBPOL",
+     "value": 0.988
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "history.india",
+     "detail": {
+      "average": 18.19,
+      "in_years": 16.27,
+      "period": "2011-2025",
+      "years": [
+       2015,
+       2016
+      ]
+     },
+     "field": "bull_exit_mult",
+     "level": "country",
+     "sample": null,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/dataarchived.html",
+     "value": 0.894
+    }
+   ],
+   "industry": "machinery",
+   "industry_name": "Machinery",
+   "min_years": 6,
+   "missing": [
+    {
+     "field": "stag_margin_mult",
+     "skipped": [
+      {
+       "area": "IN",
+       "reason": "no_history_in_years",
+       "sample": null
+      }
+     ]
+    },
+    {
+     "field": "bull_margin_mult",
+     "skipped": [
+      {
+       "area": "IN",
+       "reason": "no_history_in_years",
+       "sample": null
+      }
+     ]
+    }
+   ],
+   "notes": [
+    "size_not_split",
+    "growth_economy_wide",
+    "rate_policy_only",
+    "industry_aggregates"
+   ],
+   "refreshed_at": null,
+   "region": "emerging",
+   "scenarios": {
+    "bull": {
+     "area": "IN",
+     "economies": 1,
+     "id": "bull",
+     "level": "country",
+     "of_years": 26,
+     "periods": [
+      {
+       "end": 2006,
+       "start": 2006
+      },
+      {
+       "end": 2010,
+       "start": 2010
+      },
+      {
+       "end": 2016,
+       "start": 2015
+      },
+      {
+       "end": 2021,
+       "start": 2021
+      }
+     ],
+     "rule": "strongest_growth",
+     "window": "2000-2025",
+     "years": [
+      2006,
+      2010,
+      2015,
+      2016,
+      2021
+     ]
+    },
+    "recession": {
+     "area": "IN",
+     "economies": 1,
+     "id": "recession",
+     "level": "country",
+     "of_years": 26,
+     "periods": [
+      {
+       "end": 2000,
+       "start": 2000
+      },
+      {
+       "end": 2002,
+       "start": 2002
+      },
+      {
+       "end": 2008,
+       "start": 2008
+      },
+      {
+       "end": 2020,
+       "start": 2019
+      }
+     ],
+     "rule": "weakest_growth",
+     "window": "2000-2025",
+     "years": [
+      2000,
+      2002,
+      2008,
+      2019,
+      2020
+     ]
+    },
+    "stagflation": {
+     "area": "IN",
+     "economies": 1,
+     "id": "stagflation",
+     "level": "country",
+     "of_years": 26,
+     "periods": [
+      {
+       "end": 2010,
+       "start": 2008
+      },
+      {
+       "end": 2013,
+       "start": 2012
+      }
+     ],
+     "rule": "highest_inflation",
+     "window": "2000-2025",
+     "years": [
+      2008,
+      2009,
+      2010,
+      2012,
+      2013
+     ]
+    }
+   },
+   "settings": {
+    "bull_exit_mult": 0.894,
+    "bull_growth_mult": 1.241,
+    "bull_rate_mult": 0.988,
+    "corr_em_gm": 0.0,
+    "corr_em_ir": -0.02,
+    "corr_em_sh": -0.23,
+    "corr_g_em": -0.07,
+    "corr_g_gm": 0.13,
+    "corr_g_ir": 0.29,
+    "corr_g_sh": -0.05,
+    "corr_gm_sh": 0.27,
+    "corr_ir_gm": 0.13,
+    "corr_ir_sh": 0.16,
+    "mc_exit_mean": 26.85,
+    "mc_exit_std": 8.57,
+    "mc_gm_mean": 44.51,
+    "mc_gm_std": 0.93,
+    "mc_growth_mean": 11.51,
+    "mc_growth_std": 3.88,
+    "mc_rate_mean": 5.8,
+    "mc_rate_std": 1.03,
+    "rec_exit_mult": 0.719,
+    "rec_growth_adj": -4.83,
+    "rec_growth_floor": 0.04,
+    "rec_margin_mult": 1.001,
+    "rec_rate_mult": 0.918,
+    "stag_exit_mult": 0.566,
+    "stag_growth_adj": 4.22,
+    "stag_growth_floor": 12.59,
+    "stag_rate_mult": 0.923
+   },
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   },
+   "window_start": 2000
+  }
+ },
  "starting": {
   "CA|shipbuilding_marine|CAD": {
    "chain": [
@@ -1361,6 +3126,583 @@
    ],
    "refreshed_at": null,
    "region": "europe",
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   }
+  },
+  "GB|machinery|GBP": {
+   "chain": [
+    "europe",
+    "global"
+   ],
+   "country": "GB",
+   "currency": "GBP",
+   "figures": [
+    {
+     "area": "GB",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 3.2,
+      "period": "2026",
+      "real_growth": 0.8,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/GBR"
+     },
+     "field": "growth",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/GBR",
+     "value": 4.03
+    },
+    {
+     "area": "GB",
+     "as_of": "2026-01-05",
+     "dataset": "country_tax",
+     "detail": {},
+     "field": "tax",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "countries",
+     "skipped": [],
+     "source": "tax_foundation",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls",
+     "value": 25.0
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {},
+     "field": "gross_margin",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 44.68
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {
+      "operating_margin": 0.117119
+     },
+     "field": "opex",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 32.97
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {
+      "ebitda_margin": 0.129671,
+      "operating_margin": 0.117119
+     },
+     "field": "da",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 1.26
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {},
+     "field": "entry_mult",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 14.98
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "exit_mult",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 14.98
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "capex.europe",
+     "detail": {
+      "capex_to_da": 0.791256,
+      "da": 0.012552
+     },
+     "field": "capex",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexEurope.xls",
+     "value": 0.99
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "ar_days",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 67.2
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "inv_days",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 117.3
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "ap_days",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 67.1
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {
+      "growth": 4.03,
+      "noncash_wc_sales": 0.17367
+     },
+     "field": "nwc",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 0.67
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "debt.europe",
+     "detail": {
+      "debt_ebitda": 1.871635,
+      "ev_ebitda": 14.980532,
+      "note": "listed_company_leverage"
+     },
+     "field": "debt_pct",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundEurope.xls",
+     "value": 12.49
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "listed_company_leverage",
+     "detail": {},
+     "field": "senior_pct",
+     "level": "region",
+     "sample": null,
+     "sample_kind": null,
+     "skipped": [],
+     "source": "choice",
+     "url": null,
+     "value": 100.0
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-10-02",
+     "dataset": "SONIA",
+     "detail": {
+      "benchmark": "SONIA",
+      "benchmark_basis": "benchmark",
+      "benchmark_level": 3.7317,
+      "benchmark_source": "fred",
+      "interest_coverage": 10.65,
+      "rating": "AAA",
+      "spread": 0.4,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "base_rate",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "benchmark",
+     "url": "https://fred.stlouisfed.org/series/IUDSOIA",
+     "value": 4.13
+    }
+   ],
+   "industry": "machinery",
+   "industry_name": "Machinery",
+   "inputs": {
+    "ap_days": 67.1,
+    "ar_days": 67.2,
+    "base_rate": 4.13,
+    "capex": 0.99,
+    "da": 1.26,
+    "debt_pct": 12.49,
+    "entry_mult": 14.98,
+    "exit_mult": 14.98,
+    "gross_margin": 44.68,
+    "growth": 4.03,
+    "inv_days": 117.3,
+    "nwc": 0.67,
+    "opex": 32.97,
+    "senior_pct": 100.0,
+    "tax": 25.0
+   },
+   "min_firms": 20,
+   "missing": [],
+   "notes": [
+    "size_not_split",
+    "exit_equals_entry",
+    "listed_company_leverage"
+   ],
+   "refreshed_at": null,
+   "region": "europe",
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   }
+  },
+  "IN|machinery|INR": {
+   "chain": [
+    "india",
+    "emerging",
+    "global"
+   ],
+   "country": "IN",
+   "currency": "INR",
+   "figures": [
+    {
+     "area": "IN",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 4.7,
+      "period": "2026",
+      "real_growth": 6.5,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/IND"
+     },
+     "field": "growth",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/IND",
+     "value": 11.51
+    },
+    {
+     "area": "IN",
+     "as_of": "2026-01-05",
+     "dataset": "country_tax",
+     "detail": {},
+     "field": "tax",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "countries",
+     "skipped": [],
+     "source": "tax_foundation",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls",
+     "value": 30.0
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "margins.india",
+     "detail": {},
+     "field": "gross_margin",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls",
+     "value": 44.51
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "margins.india",
+     "detail": {
+      "operating_margin": 0.118796
+     },
+     "field": "opex",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls",
+     "value": 32.63
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "margins.india",
+     "detail": {
+      "ebitda_margin": 0.14446,
+      "operating_margin": 0.118796
+     },
+     "field": "da",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls",
+     "value": 2.57
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.india",
+     "detail": {},
+     "field": "entry_mult",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaIndia.xls",
+     "value": 26.85
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.india",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "exit_mult",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaIndia.xls",
+     "value": 26.85
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "capex.india",
+     "detail": {
+      "capex_to_da": 2.220135,
+      "da": 0.025664
+     },
+     "field": "capex",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexIndia.xls",
+     "value": 5.7
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.india",
+     "detail": {},
+     "field": "ar_days",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataIndia.xls",
+     "value": 86.1
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.india",
+     "detail": {},
+     "field": "inv_days",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataIndia.xls",
+     "value": 133.5
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.india",
+     "detail": {},
+     "field": "ap_days",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataIndia.xls",
+     "value": 82.6
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.india",
+     "detail": {
+      "growth": 11.51,
+      "noncash_wc_sales": 0.266122
+     },
+     "field": "nwc",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataIndia.xls",
+     "value": 2.75
+    },
+    {
+     "area": "india",
+     "as_of": "2026-01-05",
+     "dataset": "debt.india",
+     "detail": {
+      "debt_ebitda": 2.408092,
+      "ev_ebitda": 26.852513,
+      "note": "listed_company_leverage"
+     },
+     "field": "debt_pct",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundIndia.xls",
+     "value": 8.97
+    },
+    {
+     "area": "india",
+     "as_of": null,
+     "dataset": "listed_company_leverage",
+     "detail": {},
+     "field": "senior_pct",
+     "level": "country",
+     "sample": null,
+     "sample_kind": null,
+     "skipped": [],
+     "source": "choice",
+     "url": null,
+     "value": 100.0
+    },
+    {
+     "area": "india",
+     "as_of": "2026-07-23",
+     "dataset": "MIBOR",
+     "detail": {
+      "benchmark": "MIBOR",
+      "benchmark_basis": "policy_rate",
+      "benchmark_level": 5.25,
+      "benchmark_source": "bis",
+      "interest_coverage": 7.39,
+      "rating": "AA",
+      "spread": 0.55,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "base_rate",
+     "level": "country",
+     "sample": 187,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "benchmark",
+     "url": "https://data.bis.org/topics/CBPOL/BIS%2CWS_CBPOL%2C1.0/D.IN",
+     "value": 5.8
+    }
+   ],
+   "industry": "machinery",
+   "industry_name": "Machinery",
+   "inputs": {
+    "ap_days": 82.6,
+    "ar_days": 86.1,
+    "base_rate": 5.8,
+    "capex": 5.7,
+    "da": 2.57,
+    "debt_pct": 8.97,
+    "entry_mult": 26.85,
+    "exit_mult": 26.85,
+    "gross_margin": 44.51,
+    "growth": 11.51,
+    "inv_days": 133.5,
+    "nwc": 2.75,
+    "opex": 32.63,
+    "senior_pct": 100.0,
+    "tax": 30.0
+   },
+   "min_firms": 20,
+   "missing": [],
+   "notes": [
+    "size_not_split",
+    "exit_equals_entry",
+    "listed_company_leverage"
+   ],
+   "refreshed_at": null,
+   "region": "emerging",
    "source": {
     "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
     "id": "damodaran",

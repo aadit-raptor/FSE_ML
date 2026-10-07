@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 
 from api.limits import RUN_PATHS
 from api.main import app
-from benchmarks import catalogue, damodaran, record, refresh, starting
+from benchmarks import catalogue, damodaran, history, record, refresh, starting
 from benchmarks.countries import NAME_TO_ISO
 from companies import http
 from companies.record import replay
@@ -29,6 +29,7 @@ from jobs import scheduled
 
 FIXTURES = Path(__file__).parent / "fixtures"
 DAMODARAN = FIXTURES / "benchmarks" / "damodaran"
+HISTORY = FIXTURES / "benchmarks" / "history"         # PLAN.md 4.4: what the refresh also reads
 ECONOMY = (FIXTURES / "economy" / "economy_open", FIXTURES / "economy" / "economy_fred")
 # The day the economic figures were recorded: "current" is judged on it
 ECONOMY_DAY = date.fromisoformat(json.loads((ECONOMY[0] / "index.json").read_text())["_recorded_on"])
@@ -47,6 +48,8 @@ def transport(*cases: Path, fail: dict | None = None, calls: list | None = None)
             resp = r(req)
             if resp.status != 404:
                 return resp
+        if req.url.startswith(history.ARCHIVE_BASE):
+            return http.Response(404, b"")               # not archived: not recorded either
         pytest.fail(f"unrecorded request to {req.url}")
     return answer
 
@@ -54,7 +57,7 @@ def transport(*cases: Path, fail: dict | None = None, calls: list | None = None)
 @pytest.fixture(autouse=True)
 def recorded(monkeypatch):
     monkeypatch.setenv(connectors.FRED_KEY_ENV, "not-a-real-key")
-    http.use_transport(transport(DAMODARAN, *ECONOMY))
+    http.use_transport(transport(DAMODARAN, HISTORY, *ECONOMY))
     yield
     http.use_transport(None)
 
@@ -310,17 +313,18 @@ def test_a_refresh_stores_every_table(fresh_db):  # noqa: ARG001
 def test_a_refresh_reads_again_only_once_a_week_has_passed(fresh_db):  # noqa: ARG001
     refresh.run(at(ECONOMY_DAY))
     calls: list = []
-    http.use_transport(transport(DAMODARAN, calls=calls))
+    http.use_transport(transport(DAMODARAN, HISTORY, *ECONOMY, calls=calls))
+    current = lambda: [c for c in calls if "/pc/datasets/" in c]  # noqa: E731
     assert refresh.run(at(ECONOMY_DAY + timedelta(days=3)))["read"] is False
-    assert calls == []
+    assert current() == []
     assert refresh.run(at(ECONOMY_DAY + timedelta(days=8)))["read"] is True
-    assert len(calls) == 41
+    assert len(current()) == 41
 
 
 def test_a_failing_workbook_keeps_what_was_stored(fresh_db):  # noqa: ARG001
     from db import benchmarks as store
     refresh.run(at(ECONOMY_DAY))
-    http.use_transport(transport(DAMODARAN, fail={"marginEurope": 503}))
+    http.use_transport(transport(DAMODARAN, HISTORY, *ECONOMY, fail={"datasets/marginEurope": 503}))
     summary = refresh.run(at(ECONOMY_DAY), force=True)
     assert summary["source_problems"] == "margins.europe:failed" and summary["tables_saved"] == 40
     assert store.all_tables()[0]["margins.europe"].rows["machinery"]["firms"] == 210
@@ -360,16 +364,16 @@ def test_a_date_cell_that_is_no_date_is_left_blank():
 
 
 def test_a_first_refresh_missing_a_table_fails_so_it_alerts(fresh_db):  # noqa: ARG001
-    http.use_transport(transport(DAMODARAN, fail={"vebitdaJapan": 404}))
+    http.use_transport(transport(DAMODARAN, HISTORY, *ECONOMY, fail={"datasets/vebitdaJapan": 404}))
     with pytest.raises(refresh.Incomplete, match="multiples.japan"):
         refresh.run(at(ECONOMY_DAY))
 
 
 def test_an_unreadable_workbook_is_named_and_the_rest_still_count(fresh_db):  # noqa: ARG001
-    base = transport(DAMODARAN)
+    base = transport(DAMODARAN, HISTORY, *ECONOMY)
 
     def odd(req):
-        return http.Response(200, b"<html>moved</html>") if "wcdataIndia" in req.url else base(req)
+        return http.Response(200, b"<html>moved</html>") if "datasets/wcdataIndia" in req.url else base(req)
     refresh.run(at(ECONOMY_DAY))
     http.use_transport(odd)
     summary = refresh.run(at(ECONOMY_DAY), force=True)
@@ -406,8 +410,8 @@ def test_the_database_check_reports_the_averages(fresh_db):  # noqa: ARG001
     assert result["benchmark_data"]["tables"] == 41
     assert 0 < result["benchmark_data"]["bytes"] < store.BUDGET_BYTES
     assert problems(result) == []
-    over = {**result, "benchmark_data": {**result["benchmark_data"], "warning": True, "bytes": 4000 * 1024}}
-    assert problems(over) == ["industry averages at 4000 KB of their 4096 KB budget: store fewer figures "
+    over = {**result, "benchmark_data": {**result["benchmark_data"], "warning": True, "bytes": 8000 * 1024}}
+    assert problems(over) == ["industry averages at 8000 KB of their 8192 KB budget: store fewer figures "
                               "(benchmarks/catalogue.py DATASETS, PLAN.md 4.3)"]
 
 

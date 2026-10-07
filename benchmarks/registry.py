@@ -4,8 +4,12 @@ Every deal input a new deal starts with, and every Settings default
 (core/config.py ``DEFAULTS``), is listed here with its **basis**:
 
 - ``sourced``: published data on many companies or economies, worked out by
-  benchmarks/starting.py; the screen shows the source, the sample and the
-  date beside it;
+  benchmarks/starting.py (a deal's inputs) or benchmarks/risk.py (the Monte
+  Carlo Settings: means, spreads, correlations and scenario presets, PLAN.md
+  4.4); the screen shows the source, the sample and the years beside it.
+  A sourced Setting's factory value is the illustrative fallback used until
+  the deal has a country and the user applies the sourced figures, and the
+  screen labels it so;
 - ``deal``: the deal's own figure or label, asked when it starts or entered
   (its size, currency, structure, rules switched on);
 - ``choice``: a modelling choice rather than a market figure, with the
@@ -17,8 +21,8 @@ Every deal input a new deal starts with, and every Settings default
 
 ``tests/test_defaults_registry.py`` is the CI check: every input and every
 setting is listed, nothing a new deal starts from is ``pending``, each
-``sourced`` entry names a figure benchmarks/starting.py produces, and the
-``pending`` list can only shrink (the test pins it).
+``sourced`` entry names a figure benchmarks/starting.py or benchmarks/risk.py
+produces, and the ``pending`` list can only shrink (the test pins it).
 """
 from __future__ import annotations
 
@@ -56,7 +60,7 @@ DEAL_INPUTS: Mapping[str, dict] = {
 }
 
 _TEMPLATE = {"basis": "template", "reason": "Settings' starting values: applied only when asked"}
-_PENDING_44 = {"basis": "pending", "task": "4.4", "reason": "ranges, correlations and scenarios by region"}
+_SOURCED_44 = {"basis": "sourced", "by": "benchmarks/risk.py"}
 _PENDING_45 = {"basis": "pending", "task": "4.5",
                "reason": "no free source publishes buyout fees or amortisation; the reference "
                          "transactions record them from filings"}
@@ -74,7 +78,7 @@ SETTINGS: Mapping[str, dict] = {
     "mc_n_passes": {"basis": "choice", "reason": "how many times the simulation reruns"},
     "mc_clip_irr": {"basis": "choice", "reason": "how extreme paths are shown"},
     "mc_hurdle": {"basis": "choice", "reason": "the sponsor's own return target"},
-    **{k: _PENDING_44 for k in (
+    **{k: _SOURCED_44 for k in (
         "mc_growth_mean", "mc_growth_std", "mc_exit_mean", "mc_exit_std", "mc_rate_mean", "mc_rate_std",
         "mc_gm_mean", "mc_gm_std",
         "corr_g_em", "corr_g_ir", "corr_g_gm", "corr_g_sh", "corr_em_ir", "corr_em_gm", "corr_em_sh",

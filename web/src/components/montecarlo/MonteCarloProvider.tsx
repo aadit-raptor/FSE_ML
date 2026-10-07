@@ -118,6 +118,8 @@ type RunState = {
 type MonteCarloContext = {
   sim: SimInputs;
   setSim: (key: SimKey, value: number) => void;
+  /** Drop the rail's own edits, so every field shows its Setting again (sourced figures were applied) */
+  clearSimEdits: () => void;
   scenario: Scenario | null;
   setScenario: (s: Scenario | null) => void;
   seed: number | null;
@@ -153,6 +155,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
 
   const sim = useMemo(() => ({ ...simFromSettings(effective), ...edits }), [effective, edits]);
   const setSim = useCallback((key: SimKey, value: number) => setEdits((prev) => ({ ...prev, [key]: value })), []);
+  const clearSimEdits = useCallback(() => setEdits({}), []);
 
   const snapshot: Snapshot = useMemo(() => ({ sim, deal, settings: overrides, scenario, seed, dealId }), [sim, deal, overrides, scenario, seed, dealId]);
 
@@ -277,6 +280,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
     () => ({
       sim,
       setSim,
+      clearSimEdits,
       scenario,
       setScenario,
       seed,
@@ -288,7 +292,7 @@ export function MonteCarloProvider({ children }: { children: React.ReactNode }) 
       changes,
       hurdle: sim.hurdle / 100,
     }),
-    [sim, setSim, scenario, seed, run, runNow, cancel, changes],
+    [sim, setSim, clearSimEdits, scenario, seed, run, runNow, cancel, changes],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

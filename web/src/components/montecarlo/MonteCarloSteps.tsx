@@ -20,6 +20,7 @@ import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
+import { SourcedRiskTile } from "./SourcedRisk";
 
 const pct0 = (v: number) => fmtRate(v, 0);
 
@@ -180,6 +181,7 @@ function Scenarios() {
   const staleClass = useStaleClass();
   const rows = SCENARIOS.map((sc) => ({ ...sc, label: t(sc.labelKey), st: scen.scenarios[sc.id] })).filter((y) => y.st);
   return (
+    <>
     <div className={staleClass}>
       <Tiles>
         {rows.map(({ id, label, st }) => (
@@ -280,6 +282,11 @@ function Scenarios() {
         </Tile>
       </Tiles>
     </div>
+    {/* Sources, not results: never dimmed as out of date */}
+    <Tiles>
+      <SourcedRiskTile />
+    </Tiles>
+    </>
   );
 }
 

@@ -34,6 +34,8 @@ EXTRA_MODULES = (
     "ml/macro_regime.py",            # macro regime
     "ml/edgar_extractor.py",         # SEC EDGAR figures
     "benchmarks/starting.py",        # a new deal's starting figures
+    "benchmarks/risk.py",            # the sourced Monte Carlo ranges (PLAN.md 4.4)
+    "benchmarks/history.py",         # the history they are measured on
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.
 SKIPPED_METHODS = {"__init__", "__post_init__", "__repr__", "forward"}
