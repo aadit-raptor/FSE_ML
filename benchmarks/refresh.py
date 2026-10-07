@@ -23,6 +23,9 @@ from benchmarks import damodaran
 from companies import http
 
 REFRESH_EVERY = timedelta(days=7)
+# A workbook that still reads but has lost most of its rows (a changed layout)
+# doesn't replace a stored table more than twice its size
+MIN_KEPT_FRACTION = 0.5
 
 
 class Incomplete(RuntimeError):
@@ -56,7 +59,10 @@ def run(now: Optional[datetime] = None, force: bool = False) -> dict:
     saved = 0
     if force or not fresh:
         found, problems = _read()
-        saved = store.save(found)
+        shrunk = [t.name for t in found
+                  if t.name in stored and len(t.rows) < MIN_KEPT_FRACTION * len(stored[t.name].rows)]
+        problems.update({name: "shrunk" for name in shrunk})
+        saved = store.save([t for t in found if t.name not in shrunk])
         stored, _ = store.all_tables()
     absent = sorted(set(expected) - set(stored))
     published = sorted({t.published.isoformat() for t in stored.values() if t.published})

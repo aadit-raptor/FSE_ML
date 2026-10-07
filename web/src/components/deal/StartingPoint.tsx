@@ -145,7 +145,8 @@ export function StartingFiguresTile() {
       </Notice>
     );
   }
-  if (!starting || starting.country !== country) return null;
+  // An answer for another country, industry or currency is never shown, nor applied by "Use all"
+  if (!starting || starting.country !== country || starting.industry !== (industry || ALL) || starting.currency !== currency) return null;
   const differs = starting.figures.filter((f) => inputs[f.field as keyof DealInputs] !== f.value);
   const title = t("tileTitle", { country: regionName(country), industry: industry && industry !== ALL ? industryName(starting, industry) : t("allIndustries") });
 

@@ -28,6 +28,7 @@ SOURCE_NAME = "damodaran"
 EXCEL_EPOCH = date(1899, 12, 30)
 DECIMALS = 6
 MAX_HEADER_ROW = 20
+MAX_EXCEL_DAY = 2_958_466        # 9999-12-31
 
 
 class Unreadable(ValueError):
@@ -76,7 +77,8 @@ def _published(sheet) -> Optional[date]:
     for r in range(min(sheet.nrows, MAX_HEADER_ROW)):
         if _header(sheet.cell_value(r, 0)).startswith("dateupdated") and sheet.ncols > 1:
             serial = _number(sheet.cell_value(r, 1))
-            return EXCEL_EPOCH + timedelta(days=int(serial)) if serial else None
+            # Excel's days run from 1900 to 9999; anything else is not a date
+            return EXCEL_EPOCH + timedelta(days=int(serial)) if serial and 0 < serial < MAX_EXCEL_DAY else None
     return None
 
 

@@ -272,6 +272,8 @@ def starting_assumptions(country: str, industry: str, currency: str, tables: Map
                     add(_damodaran(name, round(value, 1), wc, "working_capital"), [])
                 else:
                     add(None, [Skipped(wc.area, "unusable", r["firms"])], name)
+        else:                                   # no gross margin to put the days on cost of sales
+            add(None, [Skipped(wc.area, "unusable", r["firms"])], "ar_days", "inv_days", "ap_days")
         if growth is not None:
             g = growth.value / 100
             add(_damodaran("nwc", _pct(r["noncash_wc_sales"] * g / (1 + g)), wc, "working_capital",

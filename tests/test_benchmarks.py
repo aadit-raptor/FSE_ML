@@ -326,6 +326,39 @@ def test_a_failing_workbook_keeps_what_was_stored(fresh_db):  # noqa: ARG001
     assert store.all_tables()[0]["margins.europe"].rows["machinery"]["firms"] == 210
 
 
+def test_a_workbook_that_lost_most_of_its_rows_does_not_replace_the_stored_one(fresh_db):  # noqa: ARG001
+    from db import benchmarks as store
+    refresh.run(at(ECONOMY_DAY))
+    real = damodaran.parse_industries
+
+    def few(content, dataset):
+        published, rows = real(content, dataset)
+        return published, dict(list(rows.items())[:10]) if dataset.id == "debt" else rows
+    damodaran.parse_industries = few
+    try:
+        summary = refresh.run(at(ECONOMY_DAY), force=True)
+    finally:
+        damodaran.parse_industries = real
+    assert "debt.europe:shrunk" in summary["source_problems"] and summary["tables_saved"] == 33
+    assert len(store.all_tables()[0]["debt.europe"].rows) == 84
+
+
+def test_a_date_cell_that_is_no_date_is_left_blank():
+    import xlwt, io
+    book = xlwt.Workbook()
+    sheet = book.add_sheet("Industry Averages")
+    for c, v in enumerate(["Date updated:", 1e300]):
+        sheet.write(0, c, v)
+    for c, v in enumerate(["Industry Name", "Number of firms", "EV/EBITDA"]):
+        sheet.write(1, c, v)
+    for c, v in enumerate([catalogue.ALL_INDUSTRIES, 100.0, 9.5]):
+        sheet.write(2, c, v)
+    buf = io.BytesIO()
+    book.save(buf)
+    published, rows = damodaran.parse_industries(buf.getvalue(), catalogue.DATASETS["multiples"])
+    assert published is None and rows["all"]["ev_ebitda"] == 9.5
+
+
 def test_a_first_refresh_missing_a_table_fails_so_it_alerts(fresh_db):  # noqa: ARG001
     http.use_transport(transport(DAMODARAN, fail={"vebitdaJapan": 404}))
     with pytest.raises(refresh.Incomplete, match="multiples.japan"):
