@@ -61,7 +61,7 @@ DEAL_INPUTS: Mapping[str, dict] = {
 
 _TEMPLATE = {"basis": "template", "reason": "Settings' starting values: applied only when asked"}
 _SOURCED_44 = {"basis": "sourced", "by": "benchmarks/risk.py"}
-_PENDING_45 = {"basis": "pending", "task": "4.5",
+_PENDING_45 = {"basis": "pending", "task": "4.5b",
                "reason": "no free source publishes buyout fees or amortisation; the reference "
                          "transactions record them from filings"}
 

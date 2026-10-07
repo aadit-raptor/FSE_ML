@@ -10,6 +10,7 @@ import { BacktestProvider } from "@/components/backtest/BacktestProvider";
 import { CompanyProvider } from "@/components/companies/CompanyProvider";
 import { DealProvider } from "@/components/deal/DealProvider";
 import { ForecastProvider } from "@/components/forecast/ForecastProvider";
+import { LibraryProvider } from "@/components/library/LibraryProvider";
 import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { isPublicRoute } from "@/lib/auth/mode";
@@ -72,31 +73,33 @@ function Shell({ children }: { children: React.ReactNode }) {
           <ProfileGate />
           <DocumentTitle />
           {/* Model state lives above the routes so it survives switching modes */}
-          <SettingsProvider>
-            <DealProvider>
-              <MonteCarloProvider>
-                <BacktestProvider>
-                  <ForecastProvider>
-                    <CompanyProvider>
-                      <LocaleScope>
-                        <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-                          <TopBar />
-                          <StepBar />
-                          <main id="content" className="min-h-0 flex-1 overflow-auto">
-                            {children}
-                          </main>
-                          <StatusBar />
-                        </div>
-                      </LocaleScope>
-                      {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
-                      <CommandSearch />
-                      <Shortcuts />
-                    </CompanyProvider>
-                  </ForecastProvider>
-                </BacktestProvider>
-              </MonteCarloProvider>
-            </DealProvider>
-          </SettingsProvider>
+          <LibraryProvider>
+            <SettingsProvider>
+              <DealProvider>
+                <MonteCarloProvider>
+                  <BacktestProvider>
+                    <ForecastProvider>
+                      <CompanyProvider>
+                        <LocaleScope>
+                          <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+                            <TopBar />
+                            <StepBar />
+                            <main id="content" className="min-h-0 flex-1 overflow-auto">
+                              {children}
+                            </main>
+                            <StatusBar />
+                          </div>
+                        </LocaleScope>
+                        {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
+                        <CommandSearch />
+                        <Shortcuts />
+                      </CompanyProvider>
+                    </ForecastProvider>
+                  </BacktestProvider>
+                </MonteCarloProvider>
+              </DealProvider>
+            </SettingsProvider>
+          </LibraryProvider>
         </ProfileI18nScope>
       </ProfileProvider>
     </I18nScope>

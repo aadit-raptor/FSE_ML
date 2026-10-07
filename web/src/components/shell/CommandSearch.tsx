@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { MODES, stepHref } from "@/lib/nav";
+import { stepHref } from "@/lib/nav";
+
+import { useModes } from "./useModes";
 
 import { useWorkspace } from "./workspace";
 
@@ -24,9 +26,10 @@ function searchEntries(query: string, entries: Entry[]): Entry[] {
 /** Mode, step and summary in the account's language, so search matches what is on screen. */
 function useEntries(): Entry[] {
   const nav = useTranslations("nav");
+  const modes = useModes();
   return useMemo(
     () =>
-      MODES.flatMap((m) =>
+      modes.flatMap((m) =>
         m.steps.map((s) => ({
           href: stepHref(m.slug, s.slug),
           mode: nav(m.labelKey),
@@ -34,7 +37,7 @@ function useEntries(): Entry[] {
           summary: nav(s.summaryKey),
         })),
       ),
-    [nav],
+    [nav, modes],
   );
 }
 

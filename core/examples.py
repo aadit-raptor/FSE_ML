@@ -5,12 +5,11 @@ as a plan and its actuals, so they run through plan vs actual exactly like a
 user's own saved deal. They are examples, not evidence: unsourced, US, 2006
 to 2013, and the screen says so (``web/src/lib/provenance.ts``).
 
-``FSE_EXAMPLE_LIBRARY=0`` hides the library; every screen and endpoint must
-keep working without it (4.5 turns this into an admin switch).
+They are part of the reference library, which an administrator can hide
+(``library/switch.py``); the endpoints that serve them check the switch, and
+every screen and endpoint keeps working without them.
 """
 from __future__ import annotations
-
-import os
 
 from core.backtesting import PRELOADED_DEALS, PRELOADED_MONEY
 
@@ -25,10 +24,6 @@ ENTRY_TO_DEAL = {
 
 # Entries that are templates rather than deals
 _NOT_EXAMPLES = {"Custom deal (enter manually)"}
-
-
-def library_enabled() -> bool:
-    return os.environ.get("FSE_EXAMPLE_LIBRARY", "1").strip().lower() not in {"0", "false", "no", "off"}
 
 
 def _plan(deal: dict) -> dict:
@@ -53,10 +48,7 @@ def _actuals(deal: dict) -> dict:
 
 
 def examples() -> list[dict]:
-    """Each example as a plan (deal inputs) and its actuals; empty when the
-    library is off."""
-    if not library_enabled():
-        return []
+    """Each example as a plan (deal inputs) and its actuals."""
     return [{
         "name": name,
         "description": deal["description"],
