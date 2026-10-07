@@ -42,7 +42,8 @@ COMPACT_AFTER_DAYS = 7
 MAX_ENTRIES = 500
 EXPORTS = ("workbook", "simulation_sample")
 # Keys ``detail`` may hold, and nothing else
-DETAIL_KEYS = ("fields", "version", "source_deal", "export", "enabled")
+# ("reference" is a reference transaction's id, "verdict" an administrator's review of it)
+DETAIL_KEYS = ("fields", "version", "source_deal", "export", "enabled", "reference", "verdict")
 
 
 @dataclass(frozen=True)

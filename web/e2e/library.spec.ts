@@ -2,7 +2,8 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { MODES } from "../src/lib/nav";
 
-import { kpi, modeTab, stepLink } from "./helpers";
+import refs from "./fixtures/references.json";
+import { kpi, modeTab, resetAllSettings, settingsSaved, stepLink } from "./helpers";
 
 /**
  * The optional reference library (PLAN.md 4.5), through the real screens and API.
@@ -26,6 +27,11 @@ async function libraryOff(page: Page) {
   );
   await page.route("**/api/library/coverage", (r) => r.fulfill({ json: { enabled: false, collections: [], base_rates: [] } }));
   await page.route("**/api/backtesting/examples", (r) => r.fulfill({ json: { enabled: false, examples: [] } }));
+  await page.route("**/api/library/references", (r) => r.fulfill({ json: { enabled: false, deals: [], awaiting_review: 0 } }));
+  await page.route("**/api/library/fees", (r) =>
+    r.fulfill({ json: { enabled: false, min_deals: 3, library_size: 0, settings: { tx_fee_pct: null, fin_fee_pct: null, def_senior_amort: null } } }),
+  );
+  await page.route("**/api/library/review", (r) => r.fulfill({ json: { enabled: false, proposals: [], decided: [], library_size: 0 } }));
 }
 
 const row = (page: Page, table: string, key: string) => content(page).getByRole("table", { name: table }).locator(`[data-row="${key}"]`);
@@ -145,5 +151,108 @@ test.describe("Reference library", () => {
     await stepLink(page, "Base rates").click();
     await expect(content(page)).toContainText("It is hidden from every account.");
     await expect(content(page).getByRole("switch", { name: "Show the library to everyone" })).toBeVisible();
+  });
+
+  // Reference transactions (PLAN.md 4.5b). The shared e2e account is no administrator and its database
+  // holds no approved transaction, so the approved list, the fees and an administrator's queue are the
+  // API's own answers recorded by `python -m tests.e2e_references` (checked current by
+  // tests/test_references.py). The figures asserted are the filings' own.
+  test("reference deals show every figure with the filing it was read from", async ({ page }) => {
+    await page.route("**/api/library/references", (r) => r.fulfill({ json: refs.references }));
+    await page.goto("/library/references");
+    const hca = content(page).getByRole("region", { name: "HCA Inc." });
+    // HCA paid 33,000 for 4,327 of EBITDA; 568 of financing fees on 19,964 of new debt
+    await expect(hca.locator('[data-derived="hca-2006"]')).toContainText("7.6x");
+    await expect(hca.locator('[data-derived="hca-2006"]')).toContainText("2.85%");
+    const value = hca.locator('[data-figure="transaction_value"]');
+    await expect(value.locator("td").first()).toHaveText("33,000.0");
+    await expect(value.getByRole("link")).toHaveAttribute("href", /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/860730\//);
+    await expect(value).toContainText("HCA Inc., 10-K, filed 27 Mar 2007");
+    await expect(value).toContainText("had a transaction value of approximately");
+    // EBITDA from its pieces: Toys "R" Us's operating earnings and D&A
+    const toys = content(page).getByRole("region", { name: 'Toys "R" Us, Inc.' });
+    await expect(toys.locator('[data-part="ebitda.0"] td').first()).toHaveText("304.0");
+    await expect(toys.locator('[data-part="ebitda.1"] td').first()).toHaveText("354.0");
+    await expect(toys.locator('[data-figure="ebitda"] td').first()).toHaveText("658.0");
+    await expect(toys.locator('[data-outcome="toys-r-us-2005"]')).toContainText("Filed for bankruptcy, 2017.");
+    // A deal in euros keeps its euros, and its dollar size comes from a filing too
+    const nxp = content(page).getByRole("region", { name: "NXP B.V. (Philips Semiconductors)" });
+    await expect(nxp.locator('[data-figure="transaction_value"] td').first()).toHaveText("8,208.0");
+    await expect(nxp.locator('[data-figure="transaction_value_usd"] td').first()).toHaveText("10,601.0");
+  });
+
+  test("without approved transactions the screens say so, and only administrators review", async ({ page }) => {
+    await page.goto("/library/references");
+    await expect(content(page).getByRole("heading", { name: "No reference transactions yet" })).toBeVisible();
+    await stepLink(page, "Review").click();
+    await expect(content(page)).toContainText("Only administrators review reference transactions.");
+    await expect(content(page).getByRole("button", { name: "Approve" })).toHaveCount(0);
+    await page.goto("/settings/fees");
+    await expect(page.getByTestId("sourced-fees-none")).toContainText("each needs at least 3 approved reference transactions");
+  });
+
+  test("an administrator's approval and rejection are sent and the queue follows", async ({ page }) => {
+    type Queue = typeof refs.review;
+    type Proposal = Queue["proposals"][number];
+    const [hca, toys, dg, dominos, ...rest] = refs.review.proposals as Proposal[];
+    let queue: Queue = {
+      ...refs.review,
+      proposals: [hca, toys, { ...dg, mine: true }, { ...dominos, problems: [{ code: "not_a_filing", at: "debt" }] }, ...rest] as Proposal[],
+    };
+    const sent: unknown[] = [];
+    await page.route("**/api/library/review", (r) => r.fulfill({ json: queue }));
+    await page.route("**/api/library/review/*", async (r) => {
+      const id = r.request().url().split("/").pop();
+      sent.push({ id, ...r.request().postDataJSON() });
+      const next = queue.proposals.map((p) => (p.id === id ? { ...p, approvals: p.approvals + 1, my_verdict: "approve" } : p));
+      queue = { ...queue, proposals: next as Proposal[] };
+      await r.fulfill({ json: next.find((p) => p.id === id) });
+    });
+    await page.goto("/library/review");
+    await expect(page.getByTestId("review-counts")).toHaveText("10 awaiting review · 0 in the library");
+    await expect(content(page).locator('[data-approvals="hca-2006"]')).toHaveText("0 of 2 approvals");
+    const first = content(page).locator('[data-decision="hca-2006"]');
+    await expect(first).toContainText("Every rule passes.");
+    await expect(first.locator('[data-balance="hca-2006"]')).toContainText("Fills an empty bucket: Region, U.S. and tax havens");
+    await first.getByRole("button", { name: "Approve" }).click();
+    expect(sent).toEqual([{ id: hca.id, verdict: "approve" }]);
+    await expect(content(page).getByRole("status").filter({ hasText: "Approved HCA Inc." })).toBeVisible();
+    await expect(content(page).locator('[data-approvals="hca-2006"]')).toHaveText("1 of 2 approvals");
+    await expect(first.getByTestId("cannot-review")).toHaveText("You have reviewed it; it waits for another administrator.");
+
+    // A rejection carries its reason
+    const second = content(page).locator('[data-decision="toys-r-us-2005"]');
+    await second.getByRole("combobox", { name: "Reason to reject" }).selectOption("source_wrong");
+    await second.getByRole("button", { name: "Reject" }).click();
+    expect(sent[1]).toEqual({ id: toys.id, verdict: "reject", reason: "source_wrong" });
+
+    // A proposer can't decide their own; a finding of the rules blocks approval
+    await expect(content(page).locator('[data-decision="dollar-general-2007"]').getByTestId("cannot-review")).toHaveText(
+      "You proposed it: two other administrators decide it.",
+    );
+    const blocked = content(page).locator('[data-decision="dominos-1998"]');
+    await expect(blocked.locator('[data-problems="dominos-1998"]')).toHaveText(
+      "Not a filing on a regulator's, register's or exchange's site: debt.",
+    );
+    await expect(blocked.getByRole("button", { name: "Approve" })).toHaveCount(0);
+  });
+
+  test("the reference transactions' fees are offered in Settings and move results only when applied", async ({ page }) => {
+    await page.route("**/api/library/fees", (r) => r.fulfill({ json: refs.fees }));
+    await page.goto("/settings/fees");
+    await expect(kpi(page, "Fees at entry")).toHaveText("38.6");
+    const tile = content(page).getByRole("region", { name: "From reference transactions" });
+    // Medians across the approved deals that give each figure
+    await expect(tile.locator('[data-sourced-fee="tx_fee_pct"]')).toContainText("1.24%");
+    await expect(tile.locator('[data-sourced-fee="fin_fee_pct"]')).toContainText("7 deals, 1.94% to 6.00%, closed 1998-2019");
+    await expect(tile.locator('[data-sourced-fee="def_senior_amort"]')).toContainText("3 deals, 1.00% to 1.00%, closed 2007-2019");
+    const saved = settingsSaved(page);
+    await tile.getByRole("button", { name: "Use sourced figures" }).click();
+    await saved;
+    // Fees at entry: 1.24% of 1,000 of value plus 3.07% of 600 of debt
+    await expect(kpi(page, "Fees at entry")).toHaveText("30.8");
+    await expect(tile.locator('[data-sourced-fee="tx_fee_pct"] td').nth(1)).toHaveText("1.24%");
+    await resetAllSettings(page);
+    await expect(kpi(page, "Fees at entry")).toHaveText("38.6");
   });
 });

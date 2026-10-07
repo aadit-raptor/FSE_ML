@@ -148,7 +148,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☑ |
 | 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☑ |
 | 4.5a | Reference library: admin switch, base rates, coverage page | 4.1 | ☑ |
-| 4.5b | Reference library: sourced transactions, two-person review, fees and amortisation | 4.5a | ☐ |
+| 4.5b | Reference library: sourced transactions, two-person review, fees and amortisation | 4.5a | ☑ |
 | 4.6 | Model validation framework | 4.3, 4.5b, 2.7 | ☐ |
 | **5** | **ML done properly** | | |
 | 5.1 | ML evaluation harness and model cards | 4.6 | ☐ |
@@ -925,13 +925,34 @@ can check it.
     change); `FSE_EXAMPLE_LIBRARY=0` still forces it off. Off, the tab, the
     examples and the library endpoints go and nothing else changes
     (`tests/test_library.py`, `web/e2e/library.spec.ts`).
-  - **4.5b:** reference transactions with inclusion rules for balanced
+  - **4.5b (done):** reference transactions with inclusion rules for balanced
     coverage (regions, sizes, sectors, eras, successes and failures), every
     figure sourced from filings; the review screen with two-person approval
     (two administrators other than the proposer); fees and amortisation
     sourced from the transactions' filings (the defaults registry's last
     `pending` Settings); the coverage page counts them as the sourced
-    collection already reserved for them.
+    collection already reserved for them. Built: `library/references.py`
+    (the rules: a figure is one place in a filing or a sum of cited pieces;
+    sources must be filings on a regulator's, register's or exchange's own
+    site; required figures, multiples, fees and dates checked; balance is
+    advisory: a bucket over half the library once it holds six), ten
+    transactions proposed by the repository (`library/reference_deals.json`,
+    every figure read from SEC filings: HCA, Toys "R" Us, Dollar General,
+    Domino's, Gymboree, Dun & Bradstreet, NXP, Masonite, Avago, Focus Media;
+    1998-2019; US, Europe, other developed and emerging; seven exits and
+    three distressed), Library -> Reference deals and Library -> Review
+    (`db/references.py`, migration 0015: a proposal joins on the second
+    approval by an administrator other than its proposer, one rejection
+    with a reason decides it, a finding of the rules blocks approval, a
+    corrected version supersedes the approved one), and `library/fees.py`:
+    the medians across approved deals, offered on Settings -> Fees as "Use
+    sourced figures" (transaction fees 1.24% of value over six deals,
+    financing fees 3.07% of debt over seven, senior amortisation 1% a year
+    over three). Decided in the session: the sourced fees are offered
+    Settings like 4.4's ranges, never new factory defaults, so no saved deal
+    moves; a deal's outcome may be shown by another company's filing where
+    its own filings stop (Focus Media's relisting). Gaps the coverage page
+    shows: no deal under $100m and none since 2020.
 
 ### 4.6 Model validation framework
 - **Claude does:** reports on calibration (outcomes inside predicted ranges as
@@ -1401,9 +1422,9 @@ when a limit is actually reached or before charging customers.
 | `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
 | `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4a — still the default when a deal lists no tranches; `core/debt.py` now takes any structure |
 | `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |
-| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source. Since 4.3 a new deal starts from sourced figures instead and `benchmarks/registry.py` gives every default a basis; since 4.4 the Monte Carlo means, ranges, correlations and presets are sourced per country and industry (the factory values stay the illustrative fallback, labelled); fees and amortisation (4.5b) stay illustrative | 2.1, 4.3, 4.4, 4.5b |
+| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source. Since 4.3 a new deal starts from sourced figures instead and `benchmarks/registry.py` gives every default a basis; since 4.4 the Monte Carlo means, ranges, correlations and presets are sourced per country and industry (the factory values stay the illustrative fallback, labelled); since 4.5b fees and amortisation are offered from the approved reference transactions' filings (`library/fees.py`), so no default is left without a source | 2.1, 4.3, 4.4, 4.5b (done) |
 | `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in; used only when no matrix is passed (every app run passes the Settings', sourced per region since 4.4) | 4.4 |
-| `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5a (done: labelled unsourced examples in the Library, counted apart), 4.5b |
+| `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5a (done: labelled unsourced examples in the Library, counted apart), 4.5b (done: sourced reference transactions beside them, counted apart) |
 | `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 |
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
 | `ml/multiple_predictor.py` | 25 rows | 5.4 |

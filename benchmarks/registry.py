@@ -4,9 +4,11 @@ Every deal input a new deal starts with, and every Settings default
 (core/config.py ``DEFAULTS``), is listed here with its **basis**:
 
 - ``sourced``: published data on many companies or economies, worked out by
-  benchmarks/starting.py (a deal's inputs) or benchmarks/risk.py (the Monte
+  benchmarks/starting.py (a deal's inputs), benchmarks/risk.py (the Monte
   Carlo Settings: means, spreads, correlations and scenario presets, PLAN.md
-  4.4); the screen shows the source, the sample and the years beside it.
+  4.4) or library/fees.py (fees and amortisation, from the approved
+  reference transactions' filings, PLAN.md 4.5b); the screen shows the
+  source, the sample and the years beside it.
   A sourced Setting's factory value is the illustrative fallback used until
   the deal has a country and the user applies the sourced figures, and the
   screen labels it so;
@@ -21,8 +23,9 @@ Every deal input a new deal starts with, and every Settings default
 
 ``tests/test_defaults_registry.py`` is the CI check: every input and every
 setting is listed, nothing a new deal starts from is ``pending``, each
-``sourced`` entry names a figure benchmarks/starting.py or benchmarks/risk.py
-produces, and the ``pending`` list can only shrink (the test pins it).
+``sourced`` entry names a figure benchmarks/starting.py, benchmarks/risk.py
+or library/fees.py produces, and the ``pending`` list can only shrink (the
+test pins it; it is empty since 4.5b).
 """
 from __future__ import annotations
 
@@ -61,12 +64,10 @@ DEAL_INPUTS: Mapping[str, dict] = {
 
 _TEMPLATE = {"basis": "template", "reason": "Settings' starting values: applied only when asked"}
 _SOURCED_44 = {"basis": "sourced", "by": "benchmarks/risk.py"}
-_PENDING_45 = {"basis": "pending", "task": "4.5b",
-               "reason": "no free source publishes buyout fees or amortisation; the reference "
-                         "transactions record them from filings"}
+_SOURCED_45 = {"basis": "sourced", "by": "library/fees.py"}
 
 SETTINGS: Mapping[str, dict] = {
-    "tx_fee_pct": _PENDING_45, "fin_fee_pct": _PENDING_45, "def_senior_amort": _PENDING_45,
+    "tx_fee_pct": _SOURCED_45, "fin_fee_pct": _SOURCED_45, "def_senior_amort": _SOURCED_45,
     "other_uses": {"basis": "choice", "reason": "none unless the deal has other uses"},
     **{k: _TEMPLATE for k in (
         "def_ebitda", "def_entry_mult", "def_exit_mult", "def_hold", "def_growth", "def_gross_margin",
