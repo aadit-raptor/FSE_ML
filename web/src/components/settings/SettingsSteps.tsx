@@ -18,6 +18,7 @@ import { MAX_SIMULATION_PATHS } from "@/lib/limits";
 import { MONEY } from "@/lib/money";
 
 import { useSettings } from "./SettingsProvider";
+import { SourcedFeesTile } from "./SourcedFees";
 
 /**
  * A setting's key doubles as its key in the `settings` namespace (PLAN.md 2.3b).
@@ -28,6 +29,9 @@ import { useSettings } from "./SettingsProvider";
 type Def = { key: string; spec: FieldSpec };
 
 const pct = (step = 0.5, decimals = 1, extra: Partial<FieldSpec> = {}): FieldSpec => ({ unit: "%", step, decimals, ...extra });
+
+/** Senior amortisation: with the deal defaults, and on Fees beside the fees the reference transactions source with it. */
+const AMORTISATION: Def = { key: "def_senior_amort", spec: pct() };
 
 /** Deal default key -> deal input it seeds. */
 const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
@@ -47,7 +51,7 @@ const DEAL_DEFAULTS: (Def & { input?: keyof DealInputs })[] = [
   { key: "def_capex", input: "capex", spec: pct() },
   { key: "def_nwc", input: "nwc", spec: pct(0.25, 2) },
   { key: "def_mincash", input: "mincash", spec: { unit: MONEY, step: 5, decimals: 1, min: 0 } },
-  { key: "def_senior_amort", spec: pct() },
+  AMORTISATION,
 ];
 
 const SENSITIVITY: Def[] = [
@@ -258,9 +262,10 @@ function Fees() {
   return (
     <Tiles>
       <Tile span={6} title={t("tileFees")}>
-        <Form defs={FEES} />
+        <Form defs={[...FEES, AMORTISATION]} />
         <p className="type-body text-[9px]">{t("feesNote")}</p>
       </Tile>
+      <SourcedFeesTile />
       <Kpi title={t("kpiDealIrr")} value={fmtRate(r?.returns.irr)} sub={t("updatesAsYouEdit")} lead />
       <Kpi title={t("kpiFeesAtEntry")} value={fmtMoney(r ? -(r.equity_bridge.entry_costs ?? 0) : null)} sub={t("currentDealSub", { money: mu })} />
       <Kpi title={t("kpiEquityIn")} value={fmtMoney(r?.returns.entry_equity)} sub={t("currentDealSub", { money: mu })} />

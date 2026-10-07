@@ -799,6 +799,23 @@ Clerk user ids, `user_...`; Clerk dashboard -> Users -> the user -> User
 ID). Each environment has its own Clerk instance, so production and staging
 take different ids. With none listed nobody can switch it, and it stays on.
 
+**Reference transactions and their review** (PLAN.md 4.5b,
+`/api/library/references`, `/api/library/review`, `/api/library/fees`;
+tables `reference_deals` and `reference_reviews`, migration 0015). The
+repository proposes the transactions in `library/reference_deals.json`
+(every figure read from a filing); they are queued the first time an
+administrator opens **Library -> Review** in each environment. A proposal
+joins the library on the **second approval by an administrator other than
+its proposer**; one rejection (with a reason) decides it; a finding of the
+inclusion rules blocks approval. So approving anything needs **at least two
+ids in `FSE_ADMINS`** (three for a proposal an administrator made in the
+app). Until then the library has no reference transactions and Settings ->
+Fees offers no sourced fees: nothing else changes. An administrator may
+propose more from a file in the same format (Review's rail). The approved
+deals' fees and amortisation are offered on Settings -> Fees ("Use sourced
+figures", `library/fees.py`); they never become factory defaults, so no saved
+deal moves. Under 6 KB a proposal, at most 2,000 kept (`MAX_PROPOSALS`).
+
 **Keeping the editions current.** Each source records the day it was last
 confirmed as the newest free edition (`checked_on`). A year later
 `ops/check_base_rates.py` fails `live.yml`: look for a newer edition (S&P

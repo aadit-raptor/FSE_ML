@@ -63,12 +63,12 @@ function CoverageResults() {
   );
 }
 
-/** i18n-keys: library.collection_*, library.dimension_*, library.bucket_*, library.region_*, library.empty_* */
+/** i18n-keys: library.collection_*, library.dimension_*, library.bucket_*, library.region_*, library.empty_*, library.sector_* */
 function useBucketName() {
   const t = useTranslations("library");
   return (dimension: string, bucket: string) => {
-    if (dimension === "sector") return bucket;
-    const key = dimension === "region" ? `region_${bucket}` : `bucket_${bucket}`;
+    // The examples' sectors are their own words; the reference transactions' are GICS sectors
+    const key = dimension === "region" ? `region_${bucket}` : dimension === "sector" ? `sector_${bucket}` : `bucket_${bucket}`;
     return t.has(key) ? t(key) : bucket;
   };
 }
@@ -84,6 +84,11 @@ function Collection({ collection }: { collection: Coverage["collections"][number
       aside={<span className={`chip ${collection.sourced ? "text-gain" : "text-attention"}`}>{collection.sourced ? t("sourced") : t("unsourced")}</span>}
     >
       {collection.count === 0 && <p className="type-body text-[9.5px]">{t(`empty_${collection.id}`)}</p>}
+      {!!collection.awaiting_review && (
+        <p className="font-mono text-[10.5px] text-attention" data-testid={`awaiting-${collection.id}`}>
+          {t("awaitingReview", { count: collection.awaiting_review, shown: fmtCount(collection.awaiting_review) })}
+        </p>
+      )}
       <div className="grid grid-cols-5 gap-3" data-collection={collection.id}>
         {DIMENSIONS.map((d) => (
           <table key={d} className="w-full self-start border-collapse font-mono text-[11px]" aria-label={t("dimensionTable", { collection: title, dimension: t(`dimension_${d}`) })}>

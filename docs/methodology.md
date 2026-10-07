@@ -962,7 +962,53 @@ warnings reads it**, so switching it off (`library/switch.py`) moves no result.
   listing empty buckets (`_band`, `_counts`, `collection`). `example_tags` tags
   each example (its year from its name, `_deal_year`); `coverage` adds the
   base-rate tables' regions, bands, years and observations
-  (`base_rates.coverage`).
+  (`base_rates.coverage`); the approved reference transactions are counted
+  by their own buckets (`references.tags`), sectors as GICS's eleven.
+- **Reference transactions** ([library/references.py](../library/references.py),
+  PLAN.md 4.5b) are real buyouts with every figure read from a filing
+  (`reference_deals.json`, read once by `_file`; `repository_deals` hands out
+  copies). A figure is one number at one place in a filing, or the sum of
+  pieces each with its own place (EBITDA as operating income plus D&A, debt
+  as its facilities, fees less those that were financing costs). Money is in
+  millions of the deal's currency; `value` reads a figure (`_figure`), `closed_year` the
+  closing year. `derived` puts the figures together: the entry multiple
+  (transaction value / EBITDA), leverage (debt / EBITDA), debt as a share of
+  the value, and the three fee Settings as Settings measure them --
+  transaction fees per cent of the transaction value, financing fees per cent
+  of the debt (`_pct`), and the senior amortisation per cent a year as the
+  credit agreement states it. Worked: HCA (2006) paid 33,000 for 2006 EBITDA
+  of 4,327 (the management projection in its merger proxy), so 7.63x; its
+  financing fees, 568 on 19,964 of new debt, are 2.85%.
+  The **inclusion rules** (`problems`) refuse a proposal that cannot be
+  checked or does not describe a buyout: a missing required figure
+  (transaction value, EBITDA, debt; and a US dollar value for a deal in
+  another currency, so `usd_value` can size it), a cited place whose source
+  is missing or is not on a filing host (`is_filing_url`: the regulator's,
+  register's or exchange's own site, over https), a source nothing cites,
+  pieces that do not add up to within 0.05 (`_evidence` walks every cited
+  place), a multiple outside 2-40x, debt above the value paid, a fee outside
+  0-10% or amortisation outside 0-100% (`_in_range`), a closing in the
+  future, an outcome before the closing or an event that does not fit its
+  outcome. The **balance rules** (`balance`) are advisory: once the library
+  holds six deals, a proposal that would leave any region, size, sector, era
+  or outcome holding more than half of it is flagged, and the empty buckets a
+  proposal fills are named. `summary` adds `derived` and `tags` to a deal for
+  the screens; `content_hash` fingerprints a proposal so the same one is
+  never stored twice, numbers read as decimals (`_canonical`) so the
+  repository's copy and one sent through the API match. A transaction joins the library on the second approval
+  by an administrator other than its proposer (library/review.py,
+  db/references.py); nothing in the model reads it.
+- **Sourced fees and amortisation**
+  ([library/fees.py](../library/fees.py)): `sourced` offers `tx_fee_pct`,
+  `fin_fee_pct` and `def_senior_amort` as the **median** across the approved
+  transactions that give each figure, with how many deals, their lowest and
+  highest and the closing years; a figure fewer than three deals give is not
+  offered. They are Settings the user applies (Settings -> Fees, "Use sourced
+  figures"); until then the factory values below stay in force and labelled
+  illustrative, so no saved deal moves. Worked, with the ten repository
+  transactions approved: transaction fees are 0.63, 0.64, 0.89, 1.58, 3.29
+  and 3.53% of value, median 1.24%; financing fees 1.94-6.00% of debt over
+  seven deals, median 3.07%; three term loans amortise 1% a year.
 
 ## 15. Regional differences at a glance
 
@@ -1027,7 +1073,11 @@ The values quoted in this document, checked against the code by
 ## 18. Settings defaults
 
 Every default below is illustrative, not market data, and every one can be
-overridden in Settings. Percentages are numbers (`2.3` = 2.3%).
+overridden in Settings. Percentages are numbers (`2.3` = 2.3%). The deal
+defaults are replaced by sourced starting figures when a deal starts (§14),
+the Monte Carlo ones by sourced ranges when applied (§9), and the fees and
+senior amortisation by the reference transactions' medians when applied
+(§14, the reference library).
 
 | Setting | Default | Used by |
 |---|---|---|
