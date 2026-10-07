@@ -26,6 +26,7 @@ RUN pip install -r requirements.txt \
 
 COPY analytics ./analytics
 COPY api ./api
+COPY benchmarks ./benchmarks
 COPY companies ./companies
 COPY core ./core
 COPY db ./db

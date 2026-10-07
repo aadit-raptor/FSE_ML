@@ -18,7 +18,8 @@ import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useDeal } from "../DealProvider";
 import { DealRisk } from "../DealRisk";
 import { DealWarnings } from "../DealWarnings";
-import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, MoneyFields, RailGroup, TranchesOnDebtStep } from "../DealScreen";
+import { DealField, DealScreen, DebtMultipleField, FiscalFields, LoadingTiles, RailGroup, TranchesOnDebtStep } from "../DealScreen";
+import { StartingFiguresTile, StartingPointFields } from "../StartingPoint";
 import { useHurdleSub } from "./shared";
 import { LeaseRules } from "./LeaseRules";
 import { TaxRules } from "./TaxRules";
@@ -79,22 +80,22 @@ export function InputsStep() {
   const { label: mu } = useMoney();
   const units = useTranslations("units");
   const companies = useTranslations("companies");
+  const starting = useTranslations("starting");
 
   return (
     <DealScreen
       rail={
         <>
+          <RailGroup title={starting("group")}>
+            <StartingPointFields />
+          </RailGroup>
           <RailGroup title={companies("group")}>
             <CompanyPanel />
-          </RailGroup>
-          <RailGroup title={t("groupMoney")}>
-            <MoneyFields />
           </RailGroup>
           <RailGroup title={t("groupFiscal")}>
             <FiscalFields />
           </RailGroup>
           <RailGroup title={t("groupEntryExit")}>
-            <DealField name="ebitda" />
             <DealField name="entry_mult" />
             <DealField name="exit_mult" />
             <DealField name="hold" />
@@ -152,6 +153,7 @@ export function InputsStep() {
             />
           )}
 
+          <StartingFiguresTile />
           <Tile span={6} title={t("tileSources")} unit={mu}>
             <SuTable
               rows={[

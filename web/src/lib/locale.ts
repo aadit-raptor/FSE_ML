@@ -89,6 +89,27 @@ export function regionName(code: string): string {
   }
 }
 
+/** Every ISO 3166-1 alpha-2 code the browser can name, with its name. */
+export function countryOptions(): { code: string; name: string }[] {
+  const names = new Intl.DisplayNames(undefined, { type: "region", fallback: "code" });
+  const out: { code: string; name: string }[] = [];
+  for (let first = 65; first <= 90; first++) {
+    for (let second = 65; second <= 90; second++) {
+      const code = String.fromCharCode(first, second);
+      let name: string;
+      try {
+        name = names.of(code) ?? code;
+      } catch {
+        continue;
+      }
+      // An unassigned code comes back as itself; a retired one ("DD", "UK") is an alias of a
+      // current one with the same name, so picking "Germany" could store East Germany
+      if (name !== code && Intl.getCanonicalLocales(`und-${code}`)[0] === `und-${code}`) out.push({ code, name });
+    }
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function latin(locale: string): string {
   try {
     return new Intl.Locale(locale, { numberingSystem: "latn" }).toString();

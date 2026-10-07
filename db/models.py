@@ -522,7 +522,25 @@ class ExchangeRateDay(Base):
     refreshed_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
 
-__all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
+class BenchmarkTable(Base):
+    """One table of published industry averages or country figures
+    (PLAN.md 4.3, benchmarks/): a data set for one region
+    (``margins.europe``) or the country tax rates (``country_tax``), with
+    the date its publisher gives it and where it came from. ``rows`` maps an
+    industry id (or a country code) to its figures, fractions as published.
+    Public data, shared by every account; a table a refresh can't read keeps
+    what was stored."""
+
+    __tablename__ = "benchmark_tables"
+
+    name: Mapped[str] = mapped_column(String(40), primary_key=True)
+    published: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    url: Mapped[str] = mapped_column(String(300), nullable=False)
+    rows: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    refreshed_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+__all__ = ["AUDIT_ACTIONS", "AuditEvent", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

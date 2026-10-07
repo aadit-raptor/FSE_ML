@@ -1,0 +1,208 @@
+{
+ "_recorded_on": "2026-10-06",
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capex.xls": {
+  "file": "stern_capex_xls_3e771576.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexChina.xls": {
+  "file": "stern_capexChina_xls_85d09012.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexEurope.xls": {
+  "file": "stern_capexEurope_xls_2f77e281.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexGlobal.xls": {
+  "file": "stern_capexGlobal_xls_b7849b87.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexIndia.xls": {
+  "file": "stern_capexIndia_xls_a6591854.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexJapan.xls": {
+  "file": "stern_capexJapan_xls_4bae8dc4.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexRest.xls": {
+  "file": "stern_capexRest_xls_d05df420.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexemerg.xls": {
+  "file": "stern_capexemerg_xls_07a6d011.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls": {
+  "file": "stern_countrytaxrates_xls_c65c0e46.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfund.xls": {
+  "file": "stern_dbtfund_xls_669dc187.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundChina.xls": {
+  "file": "stern_dbtfundChina_xls_b4e3862d.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundEurope.xls": {
+  "file": "stern_dbtfundEurope_xls_90069656.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundGlobal.xls": {
+  "file": "stern_dbtfundGlobal_xls_ce573bc2.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundIndia.xls": {
+  "file": "stern_dbtfundIndia_xls_a909df56.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundJapan.xls": {
+  "file": "stern_dbtfundJapan_xls_295516b4.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundRest.xls": {
+  "file": "stern_dbtfundRest_xls_71892fd5.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundemerg.xls": {
+  "file": "stern_dbtfundemerg_xls_5cee6d99.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/margin.xls": {
+  "file": "stern_margin_xls_dcc10a9e.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginChina.xls": {
+  "file": "stern_marginChina_xls_79e6c66c.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls": {
+  "file": "stern_marginEurope_xls_80e28710.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginGlobal.xls": {
+  "file": "stern_marginGlobal_xls_a67fd29a.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginIndia.xls": {
+  "file": "stern_marginIndia_xls_a9d7bcdc.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginJapan.xls": {
+  "file": "stern_marginJapan_xls_9eaca541.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginRest.xls": {
+  "file": "stern_marginRest_xls_ee1974d0.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginemerg.xls": {
+  "file": "stern_marginemerg_xls_6c45caf0.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitda.xls": {
+  "file": "stern_vebitda_xls_165563c7.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaChina.xls": {
+  "file": "stern_vebitdaChina_xls_0055d95b.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls": {
+  "file": "stern_vebitdaEurope_xls_21295cd8.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaGlobal.xls": {
+  "file": "stern_vebitdaGlobal_xls_a5cb456e.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaIndia.xls": {
+  "file": "stern_vebitdaIndia_xls_925df9a9.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaJapan.xls": {
+  "file": "stern_vebitdaJapan_xls_31525597.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaRest.xls": {
+  "file": "stern_vebitdaRest_xls_cf8e63c9.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaemerg.xls": {
+  "file": "stern_vebitdaemerg_xls_72736407.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdata.xls": {
+  "file": "stern_wcdata_xls_311edc65.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataChina.xls": {
+  "file": "stern_wcdataChina_xls_bb0207b6.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls": {
+  "file": "stern_wcdataEurope_xls_337065ac.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataGlobal.xls": {
+  "file": "stern_wcdataGlobal_xls_4e767477.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataIndia.xls": {
+  "file": "stern_wcdataIndia_xls_f18cd6ed.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataJapan.xls": {
+  "file": "stern_wcdataJapan_xls_0c1156dc.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataRest.xls": {
+  "file": "stern_wcdataRest_xls_cd2a0e80.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ },
+ "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataemerg.xls": {
+  "file": "stern_wcdataemerg_xls_78290f00.xls",
+  "status": 200,
+  "type": "application/vnd.ms-excel"
+ }
+}

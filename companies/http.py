@@ -42,6 +42,8 @@ MIN_INTERVAL_S = {
     "sdmx.oecd.org": 5.0,
     "data-api.ecb.europa.eu": 0.5,
     "api.stlouisfed.org": 0.6,
+    # Industry averages (benchmarks/): a university's web server, so gently
+    "pages.stern.nyu.edu": 1.0,
 }
 DEFAULT_INTERVAL_S = 1.0
 

@@ -37,7 +37,7 @@ deal model to match to 0.01.
 11. [Three-statement forecast](#11-three-statement-forecast)
 12. [Model version](#12-model-version)
 13. [Estimates: the ML panels and filings](#13-estimates-the-ml-panels-and-filings)
-14. [Figures made for display](#14-figures-made-for-display)
+14. [Figures made for display](#14-figures-made-for-display), and [a new deal's starting figures](#starting-figures)
 15. [Regional differences at a glance](#15-regional-differences-at-a-glance)
 16. [Known limitations](#known-limitations)
 17. [Constants](#17-constants) and [Settings defaults](#18-settings-defaults)
@@ -758,6 +758,78 @@ Formatting — separators, digit grouping (including lakh), currency symbols and
 fiscal labels — never changes a value
 ([web/src/lib/format.ts](../web/src/lib/format.ts)).
 
+### Starting figures
+
+A new deal starts from published data on many companies and economies
+(PLAN.md 4.3, [benchmarks/starting.py](../benchmarks/starting.py),
+`starting_assumptions`). These are **inputs**, not model logic: once applied
+they are stored in the deal like any typed figure, so a saved deal's result
+never moves when the data is refreshed, and no engine version changes. Worked
+figures below are for a German machinery deal on the January 2026 data.
+
+- **Where an industry figure comes from.** Damodaran's industry averages
+  ([benchmarks/catalogue.py](../benchmarks/catalogue.py), read by
+  [benchmarks/damodaran.py](../benchmarks/damodaran.py)) are aggregates over
+  listed companies: the sum of the group's figure over the sum of its revenue.
+  `_pick` walks the country's `chain` -- its own file (US, Japan, China,
+  India), then its region (developed Europe; Australia, NZ and Canada;
+  emerging markets), then global -- and takes the first group with at least
+  `MIN_FIRMS` companies whose row passes the data set's check (`_num`,
+  `_margins_usable`, `_multiples_usable`, `_capex_usable`, `_wc_usable`,
+  `_debt_usable`); each group passed over is reported with why (thin,
+  unusable, missing). `_damodaran` records the group, its companies and the
+  workbook's date with each figure; `_pct` writes a fraction as the per cent
+  the deal reads. Germany reads developed Europe: 210 machinery companies.
+- **Margins** (one group for all three, so they stay consistent): gross
+  margin as published (44.68%); opex = gross margin - operating margin
+  (44.68 - 11.71 = 32.97%: the engine's opex includes D&A); D&A = EBITDA margin
+  - operating margin (12.97 - 11.71 = 1.26%). The engine's EBITDA margin,
+  gross margin - opex + D&A, is then the industry's EBITDA / sales.
+- **Multiples.** Entry EV / EBITDA is the industry's, over companies with
+  positive EBITDA (14.98x); the exit starts equal (no expansion assumed).
+- **Capex** = D&A x the industry's capex / D&A (1.26% x 0.79 = 0.99%).
+  Damodaran's "net cap ex / sales" adds acquisitions and R&D, so it is not used.
+- **Working capital.** Receivable days = receivables / sales x 365; inventory
+  and payable days are on cost of sales, as the engine reads them: inventory /
+  sales x 365 / (1 - gross margin). The flat change in working capital is
+  the yearly change of a constant share w of revenue: w x g / (1 + g), with w
+  the industry's non-cash working capital / sales (17.37%) and g the starting
+  growth (0.59%).
+- **Growth** is the country's nominal GDP growth this year, from the IMF's
+  World Economic Outlook projection (`_nominal_growth`): (1 + real growth)(1 +
+  inflation) - 1 = 1.008 x 1.027 - 1 = 3.52% for Germany. A country outside
+  PLAN.md 4.2's catalogue takes the median over its region's economies, then
+  over all of them (`_growth`). Industry growth averages are averages of
+  single companies' growth and run far above an industry's (decided with the
+  user, 2026-10-07).
+- **Tax** is the country's marginal corporate rate (the Tax Foundation's
+  survey, published in Damodaran's country tax workbook; Germany 29.93%),
+  else the median over its region's countries, then all (`_tax`). The
+  workbook repeats the end of its list with older rates, so a country's
+  first row wins (`parse_country_tax`).
+- **Leverage** is the industry's listed-company debt / EBITDA over the entry
+  multiple (1.87 / 14.98 = 12.49% of EV), all senior: no free source
+  publishes buyout leverage (decided with the user, 2026-10-07). Damodaran
+  counts lease debt in it.
+- **The interest rate** is the currency's benchmark at today's level (PLAN.md
+  4.2; else the country's policy rate, `_benchmark_level`) plus Damodaran's
+  default spread for the rating the industry's interest coverage implies
+  (`rating_for_coverage`, §8): EURIBOR 2.64% + 0.40% (coverage 10.6x, AAA) =
+  3.04%.
+
+Every figure goes into the answer by `_plain`; `industries` lists what the
+stored averages cover. The scheduled refresh reads the workbooks
+(`every_table`, `fetch_table`, `fetch_country_tax`, `parse_industries`,
+`industry_id`) once a week. The defaults registry
+([benchmarks/registry.py](../benchmarks/registry.py)) says where every other
+default comes from; `tests/test_defaults_registry.py` keeps it complete.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `benchmarks.catalogue.MIN_FIRMS` | 20 | a group with fewer companies hands over to a wider one |
+| `benchmarks.starting.MAX_MULTIPLE` | 100.0 | a higher EV / EBITDA is not a starting point |
+| `benchmarks.starting.MAX_CAPEX_TO_DA` | 10.0 | a higher capex / D&A is not a starting point |
+
 ## 15. Regional differences at a glance
 
 | Area | What varies by region | Where |
@@ -768,6 +840,7 @@ fiscal labels — never changes a value
 | Tax | Rate, interest limit, loss rules, minimum tax per country preset | §7 |
 | Risk thresholds | ECB/US leverage guidance; US-based rating and default studies | §8 |
 | Filings | SEC EDGAR only (US GAAP and IFRS filers) | §13 |
+| Starting figures | Industry averages by region, growth and tax by country, rate by currency | §14 |
 | Macro | US FRED series only | §13 |
 | Fiscal years | Labels follow the year-end month | §1 |
 

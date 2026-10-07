@@ -32,7 +32,7 @@ env:
   STAGING_API: https://fse-api-staging.onrender.com
   # Keep in step with buildFilter in render.yaml: if none of these changed
   # since the commit staging runs, that API is already equivalent to this one
-  API_PATHS: Dockerfile requirements*.txt analytics api companies core db economy jobs lbo_engine ml simulation
+  API_PATHS: Dockerfile requirements*.txt analytics api benchmarks companies core db economy jobs lbo_engine ml simulation
 
 jobs:
   staging:
@@ -158,6 +158,16 @@ jobs:
           python3 -m ops.scheduled task economy-refresh --api "$STAGING_API" --environment staging | tee refresh.log
           sed -n 's/^task economy-refresh: succeeded //p' refresh.log > refresh.json
           jq -e --arg since "$(date -u -d '7 days ago' +%F)" '.economies_current >= 20 and .fx_date >= $since' refresh.json
+
+      # Industry averages (PLAN.md 4.3): the 41 tables new deals start from.
+      # Read again only when a week old, so most deploys answer what is stored;
+      # the task's own answer must show every table and every industry
+      - name: Industry averages refresh on staging
+        run: |
+          set -o pipefail
+          python3 -m ops.scheduled task benchmarks-refresh --api "$STAGING_API" --environment staging | tee benchmarks.log
+          sed -n 's/^task benchmarks-refresh: succeeded //p' benchmarks.log > benchmarks.json
+          jq -e '.tables_stored == 41 and .industries >= 80 and .tables_missing == ""' benchmarks.json
 
       # Background jobs (PLAN.md 1.9): ten seeded simulations queued at once
       # must all finish with the pinned result while /api/health keeps

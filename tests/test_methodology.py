@@ -33,6 +33,7 @@ EXTRA_MODULES = (
     "ml/surrogate/generate_data.py",
     "ml/macro_regime.py",            # macro regime
     "ml/edgar_extractor.py",         # SEC EDGAR figures
+    "benchmarks/starting.py",        # a new deal's starting figures
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.
 SKIPPED_METHODS = {"__init__", "__post_init__", "__repr__", "forward"}

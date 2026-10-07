@@ -2,3 +2,5 @@
 tests/fixtures/companies/** -text
 # Recorded economic data, replayed byte for byte (economy/record.py)
 tests/fixtures/economy/** -text
+# Recorded industry-average workbooks, replayed byte for byte (benchmarks/record.py)
+tests/fixtures/benchmarks/** -text

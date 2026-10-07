@@ -151,7 +151,7 @@ def test_migrations_run_forwards_and_backwards(fresh_db):
     assert migrate.upgrade(fresh_db) == (None, head)
     assert tables(fresh_db) == {"alembic_version", "storage_checks", "users", "deals", "deal_versions",
                                  "usage_counters", "jobs", "scheduled_runs", "audit_events", "companies",
-                                 "company_years", "edinet_reports", "source_cursors", "economic_series",
+                                 "company_years", "edinet_reports", "source_cursors", "economic_series", "benchmark_tables",
                                  "exchange_rates"}
     assert migrate.current(fresh_db) == head
 

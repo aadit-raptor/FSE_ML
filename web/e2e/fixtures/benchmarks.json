@@ -1,0 +1,1374 @@
+{
+ "industries": {
+  "industries": [
+   {
+    "firms": 43056,
+    "id": "all",
+    "name": "Total Market (without financials)"
+   },
+   {
+    "firms": 419,
+    "id": "advertising",
+    "name": "Advertising"
+   },
+   {
+    "firms": 319,
+    "id": "aerospace_defense",
+    "name": "Aerospace/Defense"
+   },
+   {
+    "firms": 150,
+    "id": "air_transport",
+    "name": "Air Transport"
+   },
+   {
+    "firms": 1207,
+    "id": "apparel",
+    "name": "Apparel"
+   },
+   {
+    "firms": 165,
+    "id": "auto_truck",
+    "name": "Auto & Truck"
+   },
+   {
+    "firms": 797,
+    "id": "auto_parts",
+    "name": "Auto Parts"
+   },
+   {
+    "firms": 217,
+    "id": "beverage_alcoholic",
+    "name": "Beverage (Alcoholic)"
+   },
+   {
+    "firms": 94,
+    "id": "beverage_soft",
+    "name": "Beverage (Soft)"
+   },
+   {
+    "firms": 127,
+    "id": "broadcasting",
+    "name": "Broadcasting"
+   },
+   {
+    "firms": 469,
+    "id": "building_materials",
+    "name": "Building Materials"
+   },
+   {
+    "firms": 994,
+    "id": "business_consumer_services",
+    "name": "Business & Consumer Services"
+   },
+   {
+    "firms": 42,
+    "id": "cable_tv",
+    "name": "Cable TV"
+   },
+   {
+    "firms": 909,
+    "id": "chemical_basic",
+    "name": "Chemical (Basic)"
+   },
+   {
+    "firms": 63,
+    "id": "chemical_diversified",
+    "name": "Chemical (Diversified)"
+   },
+   {
+    "firms": 952,
+    "id": "chemical_specialty",
+    "name": "Chemical (Specialty)"
+   },
+   {
+    "firms": 212,
+    "id": "coal_related_energy",
+    "name": "Coal & Related Energy"
+   },
+   {
+    "firms": 1225,
+    "id": "computer_services",
+    "name": "Computer Services"
+   },
+   {
+    "firms": 343,
+    "id": "computers_peripherals",
+    "name": "Computers/Peripherals"
+   },
+   {
+    "firms": 804,
+    "id": "construction_supplies",
+    "name": "Construction Supplies"
+   },
+   {
+    "firms": 329,
+    "id": "diversified",
+    "name": "Diversified"
+   },
+   {
+    "firms": 1193,
+    "id": "drugs_biotechnology",
+    "name": "Drugs (Biotechnology)"
+   },
+   {
+    "firms": 1260,
+    "id": "drugs_pharmaceutical",
+    "name": "Drugs (Pharmaceutical)"
+   },
+   {
+    "firms": 281,
+    "id": "education",
+    "name": "Education"
+   },
+   {
+    "firms": 1158,
+    "id": "electrical_equipment",
+    "name": "Electrical Equipment"
+   },
+   {
+    "firms": 122,
+    "id": "electronics_consumer_office",
+    "name": "Electronics (Consumer & Office)"
+   },
+   {
+    "firms": 1481,
+    "id": "electronics_general",
+    "name": "Electronics (General)"
+   },
+   {
+    "firms": 1390,
+    "id": "engineering_construction",
+    "name": "Engineering/Construction"
+   },
+   {
+    "firms": 733,
+    "id": "entertainment",
+    "name": "Entertainment"
+   },
+   {
+    "firms": 397,
+    "id": "environmental_waste_services",
+    "name": "Environmental & Waste Services"
+   },
+   {
+    "firms": 428,
+    "id": "farming_agriculture",
+    "name": "Farming/Agriculture"
+   },
+   {
+    "firms": 1450,
+    "id": "food_processing",
+    "name": "Food Processing"
+   },
+   {
+    "firms": 183,
+    "id": "food_wholesalers",
+    "name": "Food Wholesalers"
+   },
+   {
+    "firms": 383,
+    "id": "furn_home_furnishings",
+    "name": "Furn/Home Furnishings"
+   },
+   {
+    "firms": 258,
+    "id": "green_renewable_energy",
+    "name": "Green & Renewable Energy"
+   },
+   {
+    "firms": 842,
+    "id": "healthcare_products",
+    "name": "Healthcare Products"
+   },
+   {
+    "firms": 478,
+    "id": "healthcare_support_services",
+    "name": "Healthcare Support Services"
+   },
+   {
+    "firms": 430,
+    "id": "heathcare_information_and_technology",
+    "name": "Heathcare Information and Technology"
+   },
+   {
+    "firms": 160,
+    "id": "homebuilding",
+    "name": "Homebuilding"
+   },
+   {
+    "firms": 249,
+    "id": "hospitals_healthcare_facilities",
+    "name": "Hospitals/Healthcare Facilities"
+   },
+   {
+    "firms": 656,
+    "id": "hotel_gaming",
+    "name": "Hotel/Gaming"
+   },
+   {
+    "firms": 588,
+    "id": "household_products",
+    "name": "Household Products"
+   },
+   {
+    "firms": 86,
+    "id": "information_services",
+    "name": "Information Services"
+   },
+   {
+    "firms": 1553,
+    "id": "machinery",
+    "name": "Machinery"
+   },
+   {
+    "firms": 1874,
+    "id": "metals_mining",
+    "name": "Metals & Mining"
+   },
+   {
+    "firms": 139,
+    "id": "office_equipment_services",
+    "name": "Office Equipment & Services"
+   },
+   {
+    "firms": 34,
+    "id": "oil_gas_integrated",
+    "name": "Oil/Gas (Integrated)"
+   },
+   {
+    "firms": 539,
+    "id": "oil_gas_production_and_exploration",
+    "name": "Oil/Gas (Production and Exploration)"
+   },
+   {
+    "firms": 186,
+    "id": "oil_gas_distribution",
+    "name": "Oil/Gas Distribution"
+   },
+   {
+    "firms": 431,
+    "id": "oilfield_svcs_equip",
+    "name": "Oilfield Svcs/Equip."
+   },
+   {
+    "firms": 438,
+    "id": "packaging_container",
+    "name": "Packaging & Container"
+   },
+   {
+    "firms": 271,
+    "id": "paper_forest_products",
+    "name": "Paper/Forest Products"
+   },
+   {
+    "firms": 486,
+    "id": "power",
+    "name": "Power"
+   },
+   {
+    "firms": 777,
+    "id": "precious_metals",
+    "name": "Precious Metals"
+   },
+   {
+    "firms": 307,
+    "id": "publishing_newspapers",
+    "name": "Publishing & Newspapers"
+   },
+   {
+    "firms": 895,
+    "id": "real_estate_development",
+    "name": "Real Estate (Development)"
+   },
+   {
+    "firms": 312,
+    "id": "real_estate_general_diversified",
+    "name": "Real Estate (General/Diversified)"
+   },
+   {
+    "firms": 752,
+    "id": "real_estate_operations_services",
+    "name": "Real Estate (Operations & Services)"
+   },
+   {
+    "firms": 332,
+    "id": "recreation",
+    "name": "Recreation"
+   },
+   {
+    "firms": 410,
+    "id": "restaurant_dining",
+    "name": "Restaurant/Dining"
+   },
+   {
+    "firms": 212,
+    "id": "retail_automotive",
+    "name": "Retail (Automotive)"
+   },
+   {
+    "firms": 121,
+    "id": "retail_building_supply",
+    "name": "Retail (Building Supply)"
+   },
+   {
+    "firms": 1079,
+    "id": "retail_distributors",
+    "name": "Retail (Distributors)"
+   },
+   {
+    "firms": 252,
+    "id": "retail_general",
+    "name": "Retail (General)"
+   },
+   {
+    "firms": 215,
+    "id": "retail_grocery_and_food",
+    "name": "Retail (Grocery and Food)"
+   },
+   {
+    "firms": 649,
+    "id": "retail_special_lines",
+    "name": "Retail (Special Lines)"
+   },
+   {
+    "firms": 91,
+    "id": "rubber_tires",
+    "name": "Rubber& Tires"
+   },
+   {
+    "firms": 675,
+    "id": "semiconductor",
+    "name": "Semiconductor"
+   },
+   {
+    "firms": 391,
+    "id": "semiconductor_equip",
+    "name": "Semiconductor Equip"
+   },
+   {
+    "firms": 359,
+    "id": "shipbuilding_marine",
+    "name": "Shipbuilding & Marine"
+   },
+   {
+    "firms": 84,
+    "id": "shoe",
+    "name": "Shoe"
+   },
+   {
+    "firms": 298,
+    "id": "software_entertainment",
+    "name": "Software (Entertainment)"
+   },
+   {
+    "firms": 150,
+    "id": "software_internet",
+    "name": "Software (Internet)"
+   },
+   {
+    "firms": 1532,
+    "id": "software_system_application",
+    "name": "Software (System & Application)"
+   },
+   {
+    "firms": 719,
+    "id": "steel",
+    "name": "Steel"
+   },
+   {
+    "firms": 101,
+    "id": "telecom_wireless",
+    "name": "Telecom (Wireless)"
+   },
+   {
+    "firms": 437,
+    "id": "telecom_equipment",
+    "name": "Telecom. Equipment"
+   },
+   {
+    "firms": 283,
+    "id": "telecom_services",
+    "name": "Telecom. Services"
+   },
+   {
+    "firms": 48,
+    "id": "tobacco",
+    "name": "Tobacco"
+   },
+   {
+    "firms": 451,
+    "id": "transportation",
+    "name": "Transportation"
+   },
+   {
+    "firms": 54,
+    "id": "transportation_railroads",
+    "name": "Transportation (Railroads)"
+   },
+   {
+    "firms": 130,
+    "id": "trucking",
+    "name": "Trucking"
+   },
+   {
+    "firms": 52,
+    "id": "utility_general",
+    "name": "Utility (General)"
+   },
+   {
+    "firms": 106,
+    "id": "utility_water",
+    "name": "Utility (Water)"
+   }
+  ],
+  "published": "2026-01-05",
+  "refreshed_at": null,
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  }
+ },
+ "starting": {
+  "CA|shipbuilding_marine|CAD": {
+   "chain": [
+    "aus_nz_canada",
+    "global"
+   ],
+   "country": "CA",
+   "currency": "CAD",
+   "figures": [
+    {
+     "area": "CA",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 2.5,
+      "period": "2026",
+      "real_growth": 1.5,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/CAN"
+     },
+     "field": "growth",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/CAN",
+     "value": 4.04
+    },
+    {
+     "area": "CA",
+     "as_of": "2026-01-05",
+     "dataset": "country_tax",
+     "detail": {},
+     "field": "tax",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "countries",
+     "skipped": [],
+     "source": "tax_foundation",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls",
+     "value": 26.14
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "margins.global",
+     "detail": {},
+     "field": "gross_margin",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginGlobal.xls",
+     "value": 26.53
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "margins.global",
+     "detail": {
+      "operating_margin": 0.143445
+     },
+     "field": "opex",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginGlobal.xls",
+     "value": 12.18
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "margins.global",
+     "detail": {
+      "ebitda_margin": 0.224764,
+      "operating_margin": 0.143445
+     },
+     "field": "da",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginGlobal.xls",
+     "value": 8.13
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.global",
+     "detail": {},
+     "field": "entry_mult",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaGlobal.xls",
+     "value": 7.47
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.global",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "exit_mult",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaGlobal.xls",
+     "value": 7.47
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "capex.global",
+     "detail": {
+      "capex_to_da": 1.641001,
+      "da": 0.081319
+     },
+     "field": "capex",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexGlobal.xls",
+     "value": 13.34
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.global",
+     "detail": {},
+     "field": "ar_days",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataGlobal.xls",
+     "value": 43.9
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.global",
+     "detail": {},
+     "field": "inv_days",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataGlobal.xls",
+     "value": 13.9
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.global",
+     "detail": {},
+     "field": "ap_days",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataGlobal.xls",
+     "value": 51.9
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.global",
+     "detail": {
+      "growth": 4.04,
+      "noncash_wc_sales": -0.012555
+     },
+     "field": "nwc",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataGlobal.xls",
+     "value": -0.05
+    },
+    {
+     "area": "global",
+     "as_of": "2026-01-05",
+     "dataset": "debt.global",
+     "detail": {
+      "debt_ebitda": 2.497173,
+      "ev_ebitda": 7.474116,
+      "note": "listed_company_leverage"
+     },
+     "field": "debt_pct",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundGlobal.xls",
+     "value": 33.41
+    },
+    {
+     "area": "global",
+     "as_of": null,
+     "dataset": "listed_company_leverage",
+     "detail": {},
+     "field": "senior_pct",
+     "level": "global",
+     "sample": null,
+     "sample_kind": null,
+     "skipped": [],
+     "source": "choice",
+     "url": null,
+     "value": 100.0
+    },
+    {
+     "area": "global",
+     "as_of": "2026-09-28",
+     "dataset": "policy_rate",
+     "detail": {
+      "benchmark": "policy_rate",
+      "benchmark_basis": "observed",
+      "benchmark_level": 2.25,
+      "benchmark_source": "bis",
+      "interest_coverage": 6.09,
+      "rating": "A+",
+      "spread": 0.7,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "base_rate",
+     "level": "global",
+     "sample": 359,
+     "sample_kind": "companies",
+     "skipped": [
+      {
+       "area": "aus_nz_canada",
+       "reason": "thin",
+       "sample": 8
+      }
+     ],
+     "source": "benchmark",
+     "url": "https://data.bis.org/topics/CBPOL/BIS%2CWS_CBPOL%2C1.0/D.CA",
+     "value": 2.95
+    }
+   ],
+   "industry": "shipbuilding_marine",
+   "industry_name": "Shipbuilding & Marine",
+   "inputs": {
+    "ap_days": 51.9,
+    "ar_days": 43.9,
+    "base_rate": 2.95,
+    "capex": 13.34,
+    "da": 8.13,
+    "debt_pct": 33.41,
+    "entry_mult": 7.47,
+    "exit_mult": 7.47,
+    "gross_margin": 26.53,
+    "growth": 4.04,
+    "inv_days": 13.9,
+    "nwc": -0.05,
+    "opex": 12.18,
+    "senior_pct": 100.0,
+    "tax": 26.14
+   },
+   "min_firms": 20,
+   "missing": [],
+   "notes": [
+    "size_not_split",
+    "exit_equals_entry",
+    "listed_company_leverage"
+   ],
+   "refreshed_at": null,
+   "region": "aus_nz_canada",
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   }
+  },
+  "DE|machinery|EUR": {
+   "chain": [
+    "europe",
+    "global"
+   ],
+   "country": "DE",
+   "currency": "EUR",
+   "figures": [
+    {
+     "area": "DE",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 2.7,
+      "period": "2026",
+      "real_growth": 0.8,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/DEU"
+     },
+     "field": "growth",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/DEU",
+     "value": 3.52
+    },
+    {
+     "area": "DE",
+     "as_of": "2026-01-05",
+     "dataset": "country_tax",
+     "detail": {},
+     "field": "tax",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "countries",
+     "skipped": [],
+     "source": "tax_foundation",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls",
+     "value": 29.93
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {},
+     "field": "gross_margin",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 44.68
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {
+      "operating_margin": 0.117119
+     },
+     "field": "opex",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 32.97
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {
+      "ebitda_margin": 0.129671,
+      "operating_margin": 0.117119
+     },
+     "field": "da",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 1.26
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {},
+     "field": "entry_mult",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 14.98
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "exit_mult",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 14.98
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "capex.europe",
+     "detail": {
+      "capex_to_da": 0.791256,
+      "da": 0.012552
+     },
+     "field": "capex",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexEurope.xls",
+     "value": 0.99
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "ar_days",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 67.2
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "inv_days",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 117.3
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "ap_days",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 67.1
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {
+      "growth": 3.52,
+      "noncash_wc_sales": 0.17367
+     },
+     "field": "nwc",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 0.59
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "debt.europe",
+     "detail": {
+      "debt_ebitda": 1.871635,
+      "ev_ebitda": 14.980532,
+      "note": "listed_company_leverage"
+     },
+     "field": "debt_pct",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundEurope.xls",
+     "value": 12.49
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "listed_company_leverage",
+     "detail": {},
+     "field": "senior_pct",
+     "level": "region",
+     "sample": null,
+     "sample_kind": null,
+     "skipped": [],
+     "source": "choice",
+     "url": null,
+     "value": 100.0
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-09",
+     "dataset": "EURIBOR",
+     "detail": {
+      "benchmark": "EURIBOR",
+      "benchmark_basis": "benchmark",
+      "benchmark_level": 2.6350455,
+      "benchmark_source": "ecb",
+      "interest_coverage": 10.65,
+      "rating": "AAA",
+      "spread": 0.4,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "base_rate",
+     "level": "region",
+     "sample": 210,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "benchmark",
+     "url": "https://data.ecb.europa.eu/data/datasets/FM/FM.M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA",
+     "value": 3.04
+    }
+   ],
+   "industry": "machinery",
+   "industry_name": "Machinery",
+   "inputs": {
+    "ap_days": 67.1,
+    "ar_days": 67.2,
+    "base_rate": 3.04,
+    "capex": 0.99,
+    "da": 1.26,
+    "debt_pct": 12.49,
+    "entry_mult": 14.98,
+    "exit_mult": 14.98,
+    "gross_margin": 44.68,
+    "growth": 3.52,
+    "inv_days": 117.3,
+    "nwc": 0.59,
+    "opex": 32.97,
+    "senior_pct": 100.0,
+    "tax": 29.93
+   },
+   "min_firms": 20,
+   "missing": [],
+   "notes": [
+    "size_not_split",
+    "exit_equals_entry",
+    "listed_company_leverage"
+   ],
+   "refreshed_at": null,
+   "region": "europe",
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   }
+  },
+  "GB|all|GBP": {
+   "chain": [
+    "europe",
+    "global"
+   ],
+   "country": "GB",
+   "currency": "GBP",
+   "figures": [
+    {
+     "area": "GB",
+     "as_of": "2026",
+     "dataset": "NGDP_RPCH+PCPIPCH",
+     "detail": {
+      "inflation": 3.2,
+      "period": "2026",
+      "real_growth": 0.8,
+      "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/GBR"
+     },
+     "field": "growth",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "economies",
+     "skipped": [],
+     "source": "imf",
+     "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/GBR",
+     "value": 4.03
+    },
+    {
+     "area": "GB",
+     "as_of": "2026-01-05",
+     "dataset": "country_tax",
+     "detail": {},
+     "field": "tax",
+     "level": "country",
+     "sample": 1,
+     "sample_kind": "countries",
+     "skipped": [],
+     "source": "tax_foundation",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls",
+     "value": 25.0
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {},
+     "field": "gross_margin",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 34.67
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {
+      "operating_margin": 0.120498
+     },
+     "field": "opex",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 22.62
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "margins.europe",
+     "detail": {
+      "ebitda_margin": 0.156982,
+      "operating_margin": 0.120498
+     },
+     "field": "da",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+     "value": 3.65
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {},
+     "field": "entry_mult",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 10.77
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "multiples.europe",
+     "detail": {
+      "note": "exit_equals_entry"
+     },
+     "field": "exit_mult",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+     "value": 10.77
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "capex.europe",
+     "detail": {
+      "capex_to_da": 1.201045,
+      "da": 0.036484
+     },
+     "field": "capex",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/capexEurope.xls",
+     "value": 4.38
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "ar_days",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 52.1
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "inv_days",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 69.2
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {},
+     "field": "ap_days",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 86.8
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "working_capital.europe",
+     "detail": {
+      "growth": 4.03,
+      "noncash_wc_sales": 0.058762
+     },
+     "field": "nwc",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/wcdataEurope.xls",
+     "value": 0.23
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-01-05",
+     "dataset": "debt.europe",
+     "detail": {
+      "debt_ebitda": 3.127945,
+      "ev_ebitda": 10.773111,
+      "note": "listed_company_leverage"
+     },
+     "field": "debt_pct",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "damodaran",
+     "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundEurope.xls",
+     "value": 29.03
+    },
+    {
+     "area": "europe",
+     "as_of": null,
+     "dataset": "listed_company_leverage",
+     "detail": {},
+     "field": "senior_pct",
+     "level": "region",
+     "sample": null,
+     "sample_kind": null,
+     "skipped": [],
+     "source": "choice",
+     "url": null,
+     "value": 100.0
+    },
+    {
+     "area": "europe",
+     "as_of": "2026-10-02",
+     "dataset": "SONIA",
+     "detail": {
+      "benchmark": "SONIA",
+      "benchmark_basis": "benchmark",
+      "benchmark_level": 3.7317,
+      "benchmark_source": "fred",
+      "interest_coverage": 4.54,
+      "rating": "A",
+      "spread": 0.78,
+      "spread_source": "damodaran_ratings_2026",
+      "spread_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/ratings.html"
+     },
+     "field": "base_rate",
+     "level": "region",
+     "sample": 5757,
+     "sample_kind": "companies",
+     "skipped": [],
+     "source": "benchmark",
+     "url": "https://fred.stlouisfed.org/series/IUDSOIA",
+     "value": 4.51
+    }
+   ],
+   "industry": "all",
+   "industry_name": "Total Market (without financials)",
+   "inputs": {
+    "ap_days": 86.8,
+    "ar_days": 52.1,
+    "base_rate": 4.51,
+    "capex": 4.38,
+    "da": 3.65,
+    "debt_pct": 29.03,
+    "entry_mult": 10.77,
+    "exit_mult": 10.77,
+    "gross_margin": 34.67,
+    "growth": 4.03,
+    "inv_days": 69.2,
+    "nwc": 0.23,
+    "opex": 22.62,
+    "senior_pct": 100.0,
+    "tax": 25.0
+   },
+   "min_firms": 20,
+   "missing": [],
+   "notes": [
+    "size_not_split",
+    "exit_equals_entry",
+    "listed_company_leverage"
+   ],
+   "refreshed_at": null,
+   "region": "europe",
+   "source": {
+    "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+    "id": "damodaran",
+    "publisher": "Aswath Damodaran, NYU Stern",
+    "title": "Damodaran Online: industry averages by region",
+    "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+    "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+   }
+  }
+ }
+}
