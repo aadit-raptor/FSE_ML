@@ -499,6 +499,21 @@ class RiskWarning(BaseModel):
     sources: List[RiskSource]
 
 
+class CreditView(BaseModel):
+    """Year-one interest coverage and the default risk it implies, shown on
+    every deal (PLAN.md 4.6). The same reading as the ``implied_rating``
+    warning, which is raised only for a speculative grade."""
+    coverage: Optional[float] = Field(description="Year-one EBIT / interest; none without interest")
+    rating: Optional[str] = Field(description="Damodaran's coverage band's rating")
+    study_row: Optional[str] = Field(description="The row of S&P's study read for it")
+    band_low: Optional[float]
+    band_high: Optional[float]
+    years: int = Field(description="The deal's hold, the horizon of the default rate")
+    default_pct: Optional[float] = Field(description="S&P's average cumulative default rate (%) over the hold")
+    speculative: Optional[bool]
+    sources: List[RiskSource]
+
+
 class DealRunResponse(BaseModel):
     returns: model_from_dataclass(ReturnsResult)
     operating_model: model_from_dataclass(OperatingModelResult)
@@ -521,6 +536,7 @@ class DealRunResponse(BaseModel):
     risk_warnings: List[RiskWarning] = Field(
         default_factory=list,
         description="Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)")
+    credit: CreditView
     money: Money
     model: ModelStamp
 
@@ -577,6 +593,7 @@ class RiskSummary(BaseModel):
     p95_irr: Optional[float]
     p_above_hurdle: Optional[float]
     wipeout_rate: Optional[float]
+    p_loss: Optional[float] = Field(None, description="Share of paths with MOIC below 1 (PLAN.md 4.6)")
     hurdle: float
 
 
@@ -969,6 +986,12 @@ class StoredActuals(BaseModel):
     updated_at: Optional[str] = Field(None, description="UTC, ISO 8601")
 
 
+class ValidationConsent(Strict):
+    """Whether the deal's plan-vs-actual result counts, anonymised, in the
+    model validation report (PLAN.md 4.6)."""
+    opt_in: bool = Field(description="True to count it; false (the default) keeps it out")
+
+
 # ---------------------------------------------------------------------------
 # Export
 # ---------------------------------------------------------------------------
@@ -1178,7 +1201,8 @@ class VersionList(BaseModel):
 
 AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
                       "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
-                      "shared", "library_switched", "reference_proposed", "reference_reviewed"]
+                      "shared", "library_switched", "reference_proposed", "reference_reviewed",
+                      "validation_opted_in", "validation_opted_out"]
 
 
 class AuditEntry(BaseModel):
@@ -1982,3 +2006,90 @@ class SourcedFeesResponse(BaseModel):
     min_deals: int = Field(description="Deals a figure needs before it is offered")
     library_size: int
     settings: Dict[FeeSetting, Optional[SourcedFee]]
+
+
+# ---------------------------------------------------------------------------
+# Model validation (PLAN.md 4.6, validation/)
+# ---------------------------------------------------------------------------
+class ProbabilityStats(BaseModel):
+    """A predicted probability against what happened, for one group."""
+    predicted_pct: Optional[float] = Field(description="Mean predicted probability, per cent")
+    observed_pct: Optional[float] = Field(description="Share that happened, per cent")
+    expected: Optional[float] = Field(description="Sum of the predicted probabilities")
+    observed: int
+    bias_pp: Optional[float] = Field(description="Observed minus predicted, percentage points")
+    brier: Optional[float] = Field(description="Mean squared error of the probabilities (0 is perfect)")
+    z: Optional[float] = Field(description="(observed - expected) / its standard deviation")
+    consistent: Optional[bool] = Field(description="|z| at most 1.96")
+
+
+class RangeLevel(BaseModel):
+    claimed_pct: int = Field(description="The central share of simulated paths the range holds")
+    inside_pct: Optional[float] = Field(description="How often the actual IRR fell inside it, per cent")
+    interval_pct: List[Optional[float]] = Field(description="95% Wilson interval of inside_pct")
+    consistent: bool
+
+
+class RangeStats(BaseModel):
+    """The plan's IRR ranges against actual IRRs, for one group."""
+    levels: List[RangeLevel]
+    bias_pp: Optional[float] = Field(description="Mean of actual minus planned IRR, percentage points")
+    mean_percentile: Optional[float] = Field(description="Where actual IRRs fell among the paths (50 = unbiased)")
+    consistent: bool
+
+
+class ValidationCell(BaseModel):
+    """One group. ``n`` and ``contributed_n`` are null when suppressed: too few
+    users' deals to show without risking one being singled out."""
+    n: Optional[int]
+    library_n: int
+    contributed_n: Optional[int]
+    suppressed: bool
+    enough: bool = Field(description="At least the report's min_cases, so statistics are shown")
+    stats: Optional[Union[RangeStats, ProbabilityStats]]
+
+
+class ValidationBucket(ValidationCell):
+    bucket: str
+
+
+class ValidationSample(BaseModel):
+    overall: ValidationCell
+    splits: Dict[str, List[ValidationBucket]] = Field(description="region, sector, size and era")
+
+
+class ValidationSamples(BaseModel):
+    out_of_time: ValidationSample = Field(description="Outcomes newer than the prediction's data: the headline")
+    in_sample: ValidationSample
+
+
+class ValidationCheck(BaseModel):
+    id: Literal["default", "irr_range", "loss"]
+    samples: ValidationSamples
+
+
+class ValidationRules(BaseModel):
+    min_cases: int
+    min_contributed: int
+    levels: List[int]
+    z: float
+
+
+class ValidationCases(BaseModel):
+    library: int
+    contributed_deals: Optional[int] = Field(description="Null when fewer than min_contributed")
+
+
+class ValidationReportOut(BaseModel):
+    generated_at: str = Field(description="UTC, ISO 8601")
+    engine_version: str
+    library_included: bool
+    fit_until: Dict[str, int] = Field(description="Per check, the newest year of data its predictions read")
+    rules: ValidationRules
+    cases: ValidationCases
+    dimensions: List[str]
+    checks: List[ValidationCheck]
+
+
+class ValidationReportResponse(BaseModel):
+    report: Optional[ValidationReportOut] = Field(description="The newest report; null before the first")

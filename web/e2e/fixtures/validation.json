@@ -1,0 +1,1709 @@
+{
+ "report": {
+  "cases": {
+   "contributed_deals": 13,
+   "library": 10
+  },
+  "checks": [
+   {
+    "id": "default",
+    "samples": {
+     "in_sample": {
+      "overall": {
+       "contributed_n": 0,
+       "enough": true,
+       "library_n": 10,
+       "n": 10,
+       "stats": {
+        "bias_pp": -6.73,
+        "brier": 0.1242,
+        "consistent": true,
+        "expected": 1.67,
+        "observed": 1,
+        "observed_pct": 10.0,
+        "predicted_pct": 16.73,
+        "z": -0.63
+       },
+       "suppressed": false
+      },
+      "splits": {
+       "era": [
+        {
+         "bucket": "before_2000",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 1,
+         "n": 1,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2000_2007",
+         "contributed_n": 0,
+         "enough": true,
+         "library_n": 6,
+         "n": 6,
+         "stats": {
+          "bias_pp": -4.1,
+          "brier": 0.1971,
+          "consistent": true,
+          "expected": 1.25,
+          "observed": 1,
+          "observed_pct": 16.67,
+          "predicted_pct": 20.77,
+          "z": -0.28
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "2008_2014",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 2,
+         "n": 2,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2015_2019",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 1,
+         "n": 1,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2020_on",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "region": [
+        {
+         "bucket": "us",
+         "contributed_n": 0,
+         "enough": true,
+         "library_n": 6,
+         "n": 6,
+         "stats": {
+          "bias_pp": -17.43,
+          "brier": 0.0497,
+          "consistent": true,
+          "expected": 1.05,
+          "observed": 0,
+          "observed_pct": 0.0,
+          "predicted_pct": 17.43,
+          "z": -1.21
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "europe",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 1,
+         "n": 1,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "emerging",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 1,
+         "n": 1,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "other_developed",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 2,
+         "n": 2,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "sector": [
+        {
+         "bucket": "communication_services",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 1,
+         "n": 1,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_discretionary",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 4,
+         "n": 4,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_staples",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "energy",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "financials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "health_care",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 1,
+         "n": 1,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "industrials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 2,
+         "n": 2,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "information_technology",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 2,
+         "n": 2,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "materials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "real_estate",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "utilities",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "size": [
+        {
+         "bucket": "under_100m",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "100m_1bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "1bn_10bn",
+         "contributed_n": 0,
+         "enough": true,
+         "library_n": 8,
+         "n": 8,
+         "stats": {
+          "bias_pp": -8.14,
+          "brier": 0.1553,
+          "consistent": true,
+          "expected": 1.65,
+          "observed": 1,
+          "observed_pct": 12.5,
+          "predicted_pct": 20.64,
+          "z": -0.62
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "over_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 2,
+         "n": 2,
+         "stats": null,
+         "suppressed": false
+        }
+       ]
+      }
+     },
+     "out_of_time": {
+      "overall": {
+       "contributed_n": 0,
+       "enough": false,
+       "library_n": 0,
+       "n": 0,
+       "stats": null,
+       "suppressed": false
+      },
+      "splits": {
+       "era": [
+        {
+         "bucket": "before_2000",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2000_2007",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2008_2014",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2015_2019",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2020_on",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "region": [
+        {
+         "bucket": "us",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "europe",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "emerging",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "other_developed",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "sector": [
+        {
+         "bucket": "communication_services",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_discretionary",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_staples",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "energy",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "financials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "health_care",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "industrials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "information_technology",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "materials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "real_estate",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "utilities",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "size": [
+        {
+         "bucket": "under_100m",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "100m_1bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "1bn_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "over_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "id": "irr_range",
+    "samples": {
+     "in_sample": {
+      "overall": {
+       "contributed_n": 0,
+       "enough": false,
+       "library_n": 0,
+       "n": 0,
+       "stats": null,
+       "suppressed": false
+      },
+      "splits": {
+       "era": [
+        {
+         "bucket": "before_2000",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2000_2007",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2008_2014",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2015_2019",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2020_on",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "region": [
+        {
+         "bucket": "us",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "europe",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "emerging",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "other_developed",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "sector": [
+        {
+         "bucket": "communication_services",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_discretionary",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_staples",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "energy",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "financials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "health_care",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "industrials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "information_technology",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "materials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "real_estate",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "utilities",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "size": [
+        {
+         "bucket": "under_100m",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "100m_1bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "1bn_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "over_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ]
+      }
+     },
+     "out_of_time": {
+      "overall": {
+       "contributed_n": 13,
+       "enough": true,
+       "library_n": 0,
+       "n": 13,
+       "stats": {
+        "bias_pp": -1.0,
+        "consistent": true,
+        "levels": [
+         {
+          "claimed_pct": 50,
+          "consistent": true,
+          "inside_pct": 61.54,
+          "interval_pct": [
+           35.52,
+           82.29
+          ]
+         },
+         {
+          "claimed_pct": 80,
+          "consistent": true,
+          "inside_pct": 84.62,
+          "interval_pct": [
+           57.76,
+           95.67
+          ]
+         },
+         {
+          "claimed_pct": 90,
+          "consistent": true,
+          "inside_pct": 92.31,
+          "interval_pct": [
+           66.69,
+           98.63
+          ]
+         }
+        ],
+        "mean_percentile": 47.38
+       },
+       "suppressed": false
+      },
+      "splits": {
+       "era": [
+        {
+         "bucket": "before_2000",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2000_2007",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2008_2014",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2015_2019",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2020_on",
+         "contributed_n": 13,
+         "enough": true,
+         "library_n": 0,
+         "n": 13,
+         "stats": {
+          "bias_pp": -1.0,
+          "consistent": true,
+          "levels": [
+           {
+            "claimed_pct": 50,
+            "consistent": true,
+            "inside_pct": 61.54,
+            "interval_pct": [
+             35.52,
+             82.29
+            ]
+           },
+           {
+            "claimed_pct": 80,
+            "consistent": true,
+            "inside_pct": 84.62,
+            "interval_pct": [
+             57.76,
+             95.67
+            ]
+           },
+           {
+            "claimed_pct": 90,
+            "consistent": true,
+            "inside_pct": 92.31,
+            "interval_pct": [
+             66.69,
+             98.63
+            ]
+           }
+          ],
+          "mean_percentile": 47.38
+         },
+         "suppressed": false
+        }
+       ],
+       "region": [
+        {
+         "bucket": "us",
+         "contributed_n": null,
+         "enough": false,
+         "library_n": 0,
+         "n": null,
+         "stats": null,
+         "suppressed": true
+        },
+        {
+         "bucket": "europe",
+         "contributed_n": 6,
+         "enough": true,
+         "library_n": 0,
+         "n": 6,
+         "stats": {
+          "bias_pp": -2.83,
+          "consistent": true,
+          "levels": [
+           {
+            "claimed_pct": 50,
+            "consistent": true,
+            "inside_pct": 50.0,
+            "interval_pct": [
+             18.76,
+             81.24
+            ]
+           },
+           {
+            "claimed_pct": 80,
+            "consistent": true,
+            "inside_pct": 83.33,
+            "interval_pct": [
+             43.65,
+             96.99
+            ]
+           },
+           {
+            "claimed_pct": 90,
+            "consistent": true,
+            "inside_pct": 83.33,
+            "interval_pct": [
+             43.65,
+             96.99
+            ]
+           }
+          ],
+          "mean_percentile": 40.33
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "emerging",
+         "contributed_n": null,
+         "enough": false,
+         "library_n": 0,
+         "n": null,
+         "stats": null,
+         "suppressed": true
+        },
+        {
+         "bucket": "other_developed",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "sector": [
+        {
+         "bucket": "communication_services",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_discretionary",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_staples",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "energy",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "financials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "health_care",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "industrials",
+         "contributed_n": 13,
+         "enough": true,
+         "library_n": 0,
+         "n": 13,
+         "stats": {
+          "bias_pp": -1.0,
+          "consistent": true,
+          "levels": [
+           {
+            "claimed_pct": 50,
+            "consistent": true,
+            "inside_pct": 61.54,
+            "interval_pct": [
+             35.52,
+             82.29
+            ]
+           },
+           {
+            "claimed_pct": 80,
+            "consistent": true,
+            "inside_pct": 84.62,
+            "interval_pct": [
+             57.76,
+             95.67
+            ]
+           },
+           {
+            "claimed_pct": 90,
+            "consistent": true,
+            "inside_pct": 92.31,
+            "interval_pct": [
+             66.69,
+             98.63
+            ]
+           }
+          ],
+          "mean_percentile": 47.38
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "information_technology",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "materials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "real_estate",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "utilities",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "size": [
+        {
+         "bucket": "under_100m",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "100m_1bn",
+         "contributed_n": 13,
+         "enough": true,
+         "library_n": 0,
+         "n": 13,
+         "stats": {
+          "bias_pp": -1.0,
+          "consistent": true,
+          "levels": [
+           {
+            "claimed_pct": 50,
+            "consistent": true,
+            "inside_pct": 61.54,
+            "interval_pct": [
+             35.52,
+             82.29
+            ]
+           },
+           {
+            "claimed_pct": 80,
+            "consistent": true,
+            "inside_pct": 84.62,
+            "interval_pct": [
+             57.76,
+             95.67
+            ]
+           },
+           {
+            "claimed_pct": 90,
+            "consistent": true,
+            "inside_pct": 92.31,
+            "interval_pct": [
+             66.69,
+             98.63
+            ]
+           }
+          ],
+          "mean_percentile": 47.38
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "1bn_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "over_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "id": "loss",
+    "samples": {
+     "in_sample": {
+      "overall": {
+       "contributed_n": 0,
+       "enough": false,
+       "library_n": 0,
+       "n": 0,
+       "stats": null,
+       "suppressed": false
+      },
+      "splits": {
+       "era": [
+        {
+         "bucket": "before_2000",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2000_2007",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2008_2014",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2015_2019",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2020_on",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "region": [
+        {
+         "bucket": "us",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "europe",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "emerging",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "other_developed",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "sector": [
+        {
+         "bucket": "communication_services",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_discretionary",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_staples",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "energy",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "financials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "health_care",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "industrials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "information_technology",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "materials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "real_estate",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "utilities",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "size": [
+        {
+         "bucket": "under_100m",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "100m_1bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "1bn_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "over_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ]
+      }
+     },
+     "out_of_time": {
+      "overall": {
+       "contributed_n": 13,
+       "enough": true,
+       "library_n": 0,
+       "n": 13,
+       "stats": {
+        "bias_pp": -2.92,
+        "brier": 0.0596,
+        "consistent": true,
+        "expected": 1.38,
+        "observed": 1,
+        "observed_pct": 7.69,
+        "predicted_pct": 10.62,
+        "z": -0.35
+       },
+       "suppressed": false
+      },
+      "splits": {
+       "era": [
+        {
+         "bucket": "before_2000",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2000_2007",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2008_2014",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2015_2019",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "2020_on",
+         "contributed_n": 13,
+         "enough": true,
+         "library_n": 0,
+         "n": 13,
+         "stats": {
+          "bias_pp": -2.92,
+          "brier": 0.0596,
+          "consistent": true,
+          "expected": 1.38,
+          "observed": 1,
+          "observed_pct": 7.69,
+          "predicted_pct": 10.62,
+          "z": -0.35
+         },
+         "suppressed": false
+        }
+       ],
+       "region": [
+        {
+         "bucket": "us",
+         "contributed_n": null,
+         "enough": false,
+         "library_n": 0,
+         "n": null,
+         "stats": null,
+         "suppressed": true
+        },
+        {
+         "bucket": "europe",
+         "contributed_n": 6,
+         "enough": true,
+         "library_n": 0,
+         "n": 6,
+         "stats": {
+          "bias_pp": 6.5,
+          "brier": 0.1128,
+          "consistent": true,
+          "expected": 0.61,
+          "observed": 1,
+          "observed_pct": 16.67,
+          "predicted_pct": 10.17,
+          "z": 0.53
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "emerging",
+         "contributed_n": null,
+         "enough": false,
+         "library_n": 0,
+         "n": null,
+         "stats": null,
+         "suppressed": true
+        },
+        {
+         "bucket": "other_developed",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "sector": [
+        {
+         "bucket": "communication_services",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_discretionary",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "consumer_staples",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "energy",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "financials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "health_care",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "industrials",
+         "contributed_n": 13,
+         "enough": true,
+         "library_n": 0,
+         "n": 13,
+         "stats": {
+          "bias_pp": -2.92,
+          "brier": 0.0596,
+          "consistent": true,
+          "expected": 1.38,
+          "observed": 1,
+          "observed_pct": 7.69,
+          "predicted_pct": 10.62,
+          "z": -0.35
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "information_technology",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "materials",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "real_estate",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "utilities",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ],
+       "size": [
+        {
+         "bucket": "under_100m",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "100m_1bn",
+         "contributed_n": 13,
+         "enough": true,
+         "library_n": 0,
+         "n": 13,
+         "stats": {
+          "bias_pp": -2.92,
+          "brier": 0.0596,
+          "consistent": true,
+          "expected": 1.38,
+          "observed": 1,
+          "observed_pct": 7.69,
+          "predicted_pct": 10.62,
+          "z": -0.35
+         },
+         "suppressed": false
+        },
+        {
+         "bucket": "1bn_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        },
+        {
+         "bucket": "over_10bn",
+         "contributed_n": 0,
+         "enough": false,
+         "library_n": 0,
+         "n": 0,
+         "stats": null,
+         "suppressed": false
+        }
+       ]
+      }
+     }
+    }
+   }
+  ],
+  "dimensions": [
+   "region",
+   "sector",
+   "size",
+   "era"
+  ],
+  "engine_version": "1.0.0",
+  "fit_until": {
+   "default": 2025
+  },
+  "generated_at": "2026-10-08T02:30:00Z",
+  "library_included": true,
+  "rules": {
+   "levels": [
+    50,
+    80,
+    90
+   ],
+   "min_cases": 5,
+   "min_contributed": 5,
+   "z": 1.96
+  }
+ }
+}

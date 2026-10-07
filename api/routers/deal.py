@@ -14,7 +14,7 @@ from core.deal import (
 )
 from core.model_version import stamp
 from core.money import in_unit, rescale, to_millions
-from core.risk_warnings import risk_warnings
+from core.risk_warnings import credit_view, risk_warnings
 from core.tax import PRESETS as TAX_PRESETS
 
 router = APIRouter(prefix="/deal", tags=["deal"])
@@ -96,6 +96,7 @@ def post_run(req: DealRunRequest):
         "tax": to_json(result.tax),
         "leases": to_json(lease_summary(deal, result)),
         "risk_warnings": risk_warnings(deal, result),
+        "credit": credit_view(result),
     }
     return {**rescale(answer, in_unit(1.0, req.inputs.unit), DEAL_MONEY_KEYS), "money": req.inputs.money(),
             "model": model}

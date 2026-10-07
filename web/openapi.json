@@ -438,7 +438,9 @@
               "shared",
               "library_switched",
               "reference_proposed",
-              "reference_reviewed"
+              "reference_reviewed",
+              "validation_opted_in",
+              "validation_opted_out"
             ],
             "title": "Action",
             "type": "string"
@@ -2682,6 +2684,117 @@
         "title": "CoverageResponse",
         "type": "object"
       },
+      "CreditView": {
+        "description": "Year-one interest coverage and the default risk it implies, shown on\nevery deal (PLAN.md 4.6). The same reading as the ``implied_rating``\nwarning, which is raised only for a speculative grade.",
+        "properties": {
+          "band_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band High"
+          },
+          "band_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band Low"
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-one EBIT / interest; none without interest",
+            "title": "Coverage"
+          },
+          "default_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "S&P's average cumulative default rate (%) over the hold",
+            "title": "Default Pct"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Damodaran's coverage band's rating",
+            "title": "Rating"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RiskSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "speculative": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speculative"
+          },
+          "study_row": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The row of S&P's study read for it",
+            "title": "Study Row"
+          },
+          "years": {
+            "description": "The deal's hold, the horizon of the default rate",
+            "title": "Years",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "coverage",
+          "rating",
+          "study_row",
+          "band_low",
+          "band_high",
+          "years",
+          "default_pct",
+          "speculative",
+          "sources"
+        ],
+        "title": "CreditView",
+        "type": "object"
+      },
       "CumulativeRates": {
         "properties": {
           "horizons": {
@@ -3487,6 +3600,9 @@
           "cash_flow": {
             "$ref": "#/components/schemas/CashFlowResult"
           },
+          "credit": {
+            "$ref": "#/components/schemas/CreditView"
+          },
           "debt_schedule": {
             "additionalProperties": true,
             "description": "Totals per year; per-tranche detail in tranches",
@@ -3566,6 +3682,7 @@
           "bridge_steps",
           "exit_sensitivity",
           "interest_converged",
+          "credit",
           "money",
           "model"
         ],
@@ -7713,6 +7830,207 @@
         "title": "PreloadedDeal",
         "type": "object"
       },
+      "ProbabilityStats": {
+        "description": "A predicted probability against what happened, for one group.",
+        "properties": {
+          "bias_pp": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Observed minus predicted, percentage points",
+            "title": "Bias Pp"
+          },
+          "brier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean squared error of the probabilities (0 is perfect)",
+            "title": "Brier"
+          },
+          "consistent": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "|z| at most 1.96",
+            "title": "Consistent"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sum of the predicted probabilities",
+            "title": "Expected"
+          },
+          "observed": {
+            "title": "Observed",
+            "type": "integer"
+          },
+          "observed_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share that happened, per cent",
+            "title": "Observed Pct"
+          },
+          "predicted_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean predicted probability, per cent",
+            "title": "Predicted Pct"
+          },
+          "z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "(observed - expected) / its standard deviation",
+            "title": "Z"
+          }
+        },
+        "required": [
+          "predicted_pct",
+          "observed_pct",
+          "expected",
+          "observed",
+          "bias_pp",
+          "brier",
+          "z",
+          "consistent"
+        ],
+        "title": "ProbabilityStats",
+        "type": "object"
+      },
+      "RangeLevel": {
+        "properties": {
+          "claimed_pct": {
+            "description": "The central share of simulated paths the range holds",
+            "title": "Claimed Pct",
+            "type": "integer"
+          },
+          "consistent": {
+            "title": "Consistent",
+            "type": "boolean"
+          },
+          "inside_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How often the actual IRR fell inside it, per cent",
+            "title": "Inside Pct"
+          },
+          "interval_pct": {
+            "description": "95% Wilson interval of inside_pct",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Interval Pct",
+            "type": "array"
+          }
+        },
+        "required": [
+          "claimed_pct",
+          "inside_pct",
+          "interval_pct",
+          "consistent"
+        ],
+        "title": "RangeLevel",
+        "type": "object"
+      },
+      "RangeStats": {
+        "description": "The plan's IRR ranges against actual IRRs, for one group.",
+        "properties": {
+          "bias_pp": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean of actual minus planned IRR, percentage points",
+            "title": "Bias Pp"
+          },
+          "consistent": {
+            "title": "Consistent",
+            "type": "boolean"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/RangeLevel"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "mean_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where actual IRRs fell among the paths (50 = unbiased)",
+            "title": "Mean Percentile"
+          }
+        },
+        "required": [
+          "levels",
+          "bias_pp",
+          "mean_percentile",
+          "consistent"
+        ],
+        "title": "RangeStats",
+        "type": "object"
+      },
       "RecoveryBaseRates": {
         "properties": {
           "by_region": {
@@ -9926,6 +10244,18 @@
               }
             ],
             "title": "P Above Hurdle"
+          },
+          "p_loss": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of paths with MOIC below 1 (PLAN.md 4.6)",
+            "title": "P Loss"
           },
           "wipeout_rate": {
             "anyOf": [
@@ -12251,6 +12581,202 @@
         "title": "TrancheYear",
         "type": "object"
       },
+      "ValidationBucket": {
+        "properties": {
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "contributed_n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contributed N"
+          },
+          "enough": {
+            "description": "At least the report's min_cases, so statistics are shown",
+            "title": "Enough",
+            "type": "boolean"
+          },
+          "library_n": {
+            "title": "Library N",
+            "type": "integer"
+          },
+          "n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RangeStats"
+              },
+              {
+                "$ref": "#/components/schemas/ProbabilityStats"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stats"
+          },
+          "suppressed": {
+            "title": "Suppressed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "n",
+          "library_n",
+          "contributed_n",
+          "suppressed",
+          "enough",
+          "stats",
+          "bucket"
+        ],
+        "title": "ValidationBucket",
+        "type": "object"
+      },
+      "ValidationCases": {
+        "properties": {
+          "contributed_deals": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when fewer than min_contributed",
+            "title": "Contributed Deals"
+          },
+          "library": {
+            "title": "Library",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "library",
+          "contributed_deals"
+        ],
+        "title": "ValidationCases",
+        "type": "object"
+      },
+      "ValidationCell": {
+        "description": "One group. ``n`` and ``contributed_n`` are null when suppressed: too few\nusers' deals to show without risking one being singled out.",
+        "properties": {
+          "contributed_n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contributed N"
+          },
+          "enough": {
+            "description": "At least the report's min_cases, so statistics are shown",
+            "title": "Enough",
+            "type": "boolean"
+          },
+          "library_n": {
+            "title": "Library N",
+            "type": "integer"
+          },
+          "n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N"
+          },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RangeStats"
+              },
+              {
+                "$ref": "#/components/schemas/ProbabilityStats"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stats"
+          },
+          "suppressed": {
+            "title": "Suppressed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "n",
+          "library_n",
+          "contributed_n",
+          "suppressed",
+          "enough",
+          "stats"
+        ],
+        "title": "ValidationCell",
+        "type": "object"
+      },
+      "ValidationCheck": {
+        "properties": {
+          "id": {
+            "enum": [
+              "default",
+              "irr_range",
+              "loss"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "samples": {
+            "$ref": "#/components/schemas/ValidationSamples"
+          }
+        },
+        "required": [
+          "id",
+          "samples"
+        ],
+        "title": "ValidationCheck",
+        "type": "object"
+      },
+      "ValidationConsent": {
+        "additionalProperties": false,
+        "description": "Whether the deal's plan-vs-actual result counts, anonymised, in the\nmodel validation report (PLAN.md 4.6).",
+        "properties": {
+          "opt_in": {
+            "description": "True to count it; false (the default) keeps it out",
+            "title": "Opt In",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "opt_in"
+        ],
+        "title": "ValidationConsent",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -12289,6 +12815,155 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationReportOut": {
+        "properties": {
+          "cases": {
+            "$ref": "#/components/schemas/ValidationCases"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "dimensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "fit_until": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Per check, the newest year of data its predictions read",
+            "title": "Fit Until",
+            "type": "object"
+          },
+          "generated_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "library_included": {
+            "title": "Library Included",
+            "type": "boolean"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/ValidationRules"
+          }
+        },
+        "required": [
+          "generated_at",
+          "engine_version",
+          "library_included",
+          "fit_until",
+          "rules",
+          "cases",
+          "dimensions",
+          "checks"
+        ],
+        "title": "ValidationReportOut",
+        "type": "object"
+      },
+      "ValidationReportResponse": {
+        "properties": {
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValidationReportOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The newest report; null before the first"
+          }
+        },
+        "required": [
+          "report"
+        ],
+        "title": "ValidationReportResponse",
+        "type": "object"
+      },
+      "ValidationRules": {
+        "properties": {
+          "levels": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "min_cases": {
+            "title": "Min Cases",
+            "type": "integer"
+          },
+          "min_contributed": {
+            "title": "Min Contributed",
+            "type": "integer"
+          },
+          "z": {
+            "title": "Z",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min_cases",
+          "min_contributed",
+          "levels",
+          "z"
+        ],
+        "title": "ValidationRules",
+        "type": "object"
+      },
+      "ValidationSample": {
+        "properties": {
+          "overall": {
+            "$ref": "#/components/schemas/ValidationCell"
+          },
+          "splits": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/ValidationBucket"
+              },
+              "type": "array"
+            },
+            "description": "region, sector, size and era",
+            "title": "Splits",
+            "type": "object"
+          }
+        },
+        "required": [
+          "overall",
+          "splits"
+        ],
+        "title": "ValidationSample",
+        "type": "object"
+      },
+      "ValidationSamples": {
+        "properties": {
+          "in_sample": {
+            "$ref": "#/components/schemas/ValidationSample"
+          },
+          "out_of_time": {
+            "$ref": "#/components/schemas/ValidationSample",
+            "description": "Outcomes newer than the prediction's data: the headline"
+          }
+        },
+        "required": [
+          "out_of_time",
+          "in_sample"
+        ],
+        "title": "ValidationSamples",
         "type": "object"
       },
       "VersionDetail": {
@@ -14371,6 +15046,132 @@
           }
         ],
         "summary": "Deal History",
+        "tags": [
+          "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/validation": {
+      "get": {
+        "description": "Whether the deal counts in the model validation report (PLAN.md 4.6).",
+        "operationId": "get_validation_consent_api_deals__deal_id__validation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationConsent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Validation Consent",
+        "tags": [
+          "saved deals"
+        ]
+      },
+      "put": {
+        "description": "Let the deal's plan-vs-actual result count, anonymised, in the model\nvalidation report, or stop it counting from the next report on.",
+        "operationId": "put_validation_consent_api_deals__deal_id__validation_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationConsent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationConsent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Validation Consent",
         "tags": [
           "saved deals"
         ]
@@ -16464,6 +17265,43 @@
         "summary": "Post Settings Validate",
         "tags": [
           "settings & integrations"
+        ]
+      }
+    },
+    "/api/validation/report": {
+      "get": {
+        "description": "The newest model validation report: calibration and bias of the\nmodel's ranges and default risk, overall and by region, sector, size and\nera, out of time and in-sample. Holds no deal, owner or figure.",
+        "operationId": "get_report_api_validation_report_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Report",
+        "tags": [
+          "validation"
         ]
       }
     }

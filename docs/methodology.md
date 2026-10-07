@@ -39,7 +39,7 @@ deal model to match to 0.01.
 13. [Estimates: the ML panels and filings](#13-estimates-the-ml-panels-and-filings)
 14. [Figures made for display](#14-figures-made-for-display), and [a new deal's starting figures](#starting-figures)
 15. [Regional differences at a glance](#15-regional-differences-at-a-glance)
-16. [Known limitations](#known-limitations)
+16. [Model validation](#model-validation) and [known limitations](#known-limitations)
 17. [Constants](#17-constants) and [Settings defaults](#18-settings-defaults)
 18. [Appendix: functions that affect no number](#appendix-functions-that-affect-no-number)
 
@@ -490,7 +490,7 @@ packs them; the words live in the translation catalogue). Four warnings:
 - **Leverage above guidance** (`_leverage_warning`): `leverage_at_close` =
   (debt at close + lease liability on the post view) / valuation EBITDA, warned
   above `LEVERAGE_GUIDANCE_X` (the ECB and US supervisory guidance).
-- **Implied rating** (`_rating_warning`): year-one EBIT / interest is mapped
+- **Implied rating** (`_rating_warning`, reading `credit_view`): year-one EBIT / interest is mapped
   to a rating through Damodaran's coverage table for large non-financial firms
   (`rating_for_coverage`, January 2026). If the rating is speculative grade
   (`is_speculative`: below BBB−), the warning adds S&P's cumulative default rate
@@ -503,6 +503,16 @@ packs them; the words live in the translation catalogue). Four warnings:
   computes, each year, mandatory repayments − levered FCF − cash carried above
   the minimum − revolver draws; anything above `ROUNDING` is the cash the
   engine supplied out of nothing (finding 11).
+
+**Coverage and default risk on every deal** (PLAN.md 4.6): `credit_view`
+answers the same reading -- coverage, its rating and band, S&P's cumulative
+default rate over the hold, whether it is speculative grade, and the sources
+(`CREDIT_SOURCES`) -- for every deal, investment grade too, as the deal
+answer's `credit` block; without interest every figure is empty. The default
+deal: EBIT 88.85 over interest 46.20 in year one is 1.92x, a B+ (1.75 to
+2.00), and S&P's B+ row gives 12.88% over five years. The deal summary shows
+it beside the IRR, the MOIC and the simulation's probability of loss and
+downside (§9).
 
 **Regional differences.** The leverage guidance is the euro area's and the
 United States'; the rating and default tables are US-based global studies.
@@ -570,7 +580,10 @@ share of paths with zero exit equity.
 **Summaries.** `risk_summary` (via `calculate_risk_metrics` in
 [analytics/risk_metrics.py](../analytics/risk_metrics.py)): mean and median
 IRR, 5th and 95th percentiles, the share of paths above the hurdle, the
-wipeout rate. `analysis_sample` takes up to 50,000 paths (fixed seed) for the
+wipeout rate, and the probability of loss (`probability_of_loss`: the share
+of paths whose MOIC is below 1, which on one investment and one exit is an
+IRR below zero; the deal summary shows it with the 5th percentile as the
+downside case, PLAN.md 4.6). `analysis_sample` takes up to 50,000 paths (fixed seed) for the
 charts: `empirical_correlations` (Pearson, drivers and IRR/MOIC),
 `driver_sensitivity` (Spearman's ρ of each driver with IRR, sorted by size) and
 `driver_fits` (least-squares line of IRR on each driver, with r).
@@ -1025,6 +1038,85 @@ warnings reads it**, so switching it off (`library/switch.py`) moves no result.
 | Monte Carlo ranges | Spreads, correlations and presets from each region's and country's history | §9 |
 | Macro | US FRED series only | §13 |
 | Fiscal years | Labels follow the year-end month | §1 |
+
+## Model validation
+
+[validation/cases.py](../validation/cases.py),
+[validation/report.py](../validation/report.py),
+[validation/tags.py](../validation/tags.py),
+[validation/run.py](../validation/run.py). Tests:
+[tests/test_validation.py](../tests/test_validation.py). PLAN.md 4.6: does
+the model's risk read come true as often as it claims? The nightly
+`validation-report` task (`run`, `build`) writes a report the Backtest ->
+Validation step shows.
+
+**Three checks.**
+
+- **Default risk** (`default`), on the approved reference transactions (§14,
+  only while the library is on). `predicted_default` is what the app answers
+  for the deal entered with its filed headline figures only -- EBITDA, entry
+  multiple = value paid / EBITDA, debt share = debt / value -- every other
+  input and Setting at its default, for the default hold of five years: the
+  `credit_view` of §8. `library_case` says what happened: distress (missed
+  payment, bankruptcy, restructuring) within the hold of the closing year; an
+  exit before then counts as none (so the observed rate is a lower bound); a
+  deal still held counts once the hold has passed, not before.
+- **IRR range** (`irr_range`) and **loss** (`loss`), on users' deals whose
+  owners opted in and which have an exit. `contributed_cases` runs plan vs
+  actual (§10) with `PATHS` = 2,000 simulated paths (seed 42): the percentile
+  at which the actual IRR fell among the plan's paths, actual minus planned
+  IRR, the plan's probability of loss (paths with IRR below zero) and whether
+  the actual IRR was below zero. `_read` refuses a deal without an exit, with
+  actuals in another currency or that the model refuses; such deals are
+  counted in the run log, never in the report.
+
+**Always tested on newer data.** A case is *out of time*, the report's
+headline, only if its outcome became known after everything its prediction
+was made from. For the default check that is after `fit_until`: the newest
+year in the tables `credit_view` reads (S&P's study sample ends 2024;
+Damodaran's January 2026 table is built from 2025), so 2025. For a user's
+deal, `plan_for` takes the newest version saved **before the deal's actuals
+were first saved** (`deals.actuals_first_saved_at`, kept when actuals are
+cleared); without one, the working copy is used and the case is in-sample.
+In-sample cases are reported apart and never as the headline.
+
+**Groups** (`reference_tags`, `deal_tags`, `_known`): S&P's region, GICS
+sector, entry enterprise value in US dollars (the library's size bands) and
+era (the library's), every bucket listed and `unknown` for what a deal does
+not say. A user's deal's sector comes from its Damodaran industry through
+`INDUSTRY_SECTOR`; its size converts entry EBITDA x entry multiple at the
+ECB's rate on the day the plan was saved (`_usd_per`: the newest stored rate
+when that day is older than the 400 days kept); its era is that day's year.
+
+**Statistics** (`build`, `sample`, `split`, `_cell`, `_stats`; a group
+needs `MIN_CASES` = 5 cases):
+
+- Probabilities (`probability_stats`): mean predicted and observed share
+  (per cent), expected (sum of p) and observed counts, bias = observed -
+  predicted (percentage points), Brier score = mean (p - outcome)^2, and
+  z = (observed - expected) / sqrt(sum p(1 - p)), *consistent* when
+  |z| <= 1.96.
+- Ranges (`range_stats`): for the central 50, 80 and 90% of paths
+  (`inside`: from (100 - L)/2 to 100 - (100 - L)/2), the share of actual
+  IRRs inside, its 95% Wilson interval (`wilson`: centre
+  (p + z^2/2n)/(1 + z^2/n), half-width z sqrt(p(1-p)/n + z^2/4n^2)/(1 + z^2/n)),
+  *consistent* when every claimed level lies in its interval; bias = mean
+  actual - planned IRR (points) and the mean percentile (50 if unbiased).
+
+**Anonymity.** The report holds counts and rates per group, never a deal,
+owner, name or figure. Users' deals count only in groups (`_contributed`,
+`_too_few`): a group with 1-4 of them shows neither its statistics nor its
+count of them; within a dimension, if the hidden groups hold fewer than
+`MIN_CONTRIBUTED` = 5 users' deals together, the smallest shown groups
+holding any are hidden too until they do, so the overall figures less the
+shown groups never single out fewer than five. Reference transactions are
+public filings and always counted. Values are rounded (`_r`).
+
+Worked: the ten repository transactions (all in-sample: every outcome is
+before 2026) predict a mean default risk of 16.73% over five years against
+one distress within it (Masonite, 2009): 10.0% observed, bias -6.73 points,
+Brier 0.1242, z = -0.63, consistent. Toys "R" Us and Gymboree defaulted
+after their fifth year, so count as none.
 
 ## Known limitations
 

@@ -20,7 +20,8 @@ from api.auth import AuthUser, require_user
 from api.observability import log_event
 from api.schemas import (
     AccountSettings, AuditHistory, DealActuals, DealContent, DealCreate, DealDetail, DealDuplicate,
-    DealList, DealPatch, StoredActuals, VersionDetail, VersionList, VersionSave, VersionSummary,
+    DealList, DealPatch, StoredActuals, ValidationConsent, VersionDetail, VersionList, VersionSave,
+    VersionSummary,
 )
 from core import model_version
 from core.config import resolve_config
@@ -187,6 +188,21 @@ def delete_actuals(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """Forget the deal's actuals."""
     with store_errors():
         return _actuals(*store.save_actuals(user.subject, deal_id, None))
+
+
+@router.get("/deals/{deal_id}/validation", response_model=ValidationConsent)
+def get_validation_consent(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    """Whether the deal counts in the model validation report (PLAN.md 4.6)."""
+    with store_errors():
+        return {"opt_in": store.validation_opt_in(user.subject, deal_id)}
+
+
+@router.put("/deals/{deal_id}/validation", response_model=ValidationConsent)
+def put_validation_consent(deal_id: uuid.UUID, req: ValidationConsent, user: AuthUser = Depends(require_user)):
+    """Let the deal's plan-vs-actual result count, anonymised, in the model
+    validation report, or stop it counting from the next report on."""
+    with store_errors():
+        return {"opt_in": store.set_validation_opt_in(user.subject, deal_id, req.opt_in)}
 
 
 # ---------------------------------------------------------------------------

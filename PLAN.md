@@ -149,7 +149,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☑ |
 | 4.5a | Reference library: admin switch, base rates, coverage page | 4.1 | ☑ |
 | 4.5b | Reference library: sourced transactions, two-person review, fees and amortisation | 4.5a | ☑ |
-| 4.6 | Model validation framework | 4.3, 4.5b, 2.7 | ☐ |
+| 4.6 | Model validation framework | 4.3, 4.5b, 2.7 | ☑ |
 | **5** | **ML done properly** | | |
 | 5.1 | ML evaluation harness and model cards | 4.6 | ☐ |
 | 5.2 | Deal risk score from market data | 5.1, 2.8 | ☐ |
@@ -963,6 +963,34 @@ can check it.
   Report generation runs as a scheduled job.
 - **Done when:** a report is generated on staging with all splits; anonymisation
   is tested; the deal summary shows the full metric set.
+- **Done (2026-10-08).** `validation/` (cases, report, groups, run), the
+  nightly `validation-report` task (`scheduled.yml`, and `staging.yml` after
+  every staging deploy, which requires three checks and four splits),
+  `GET /api/validation/report`, Backtest -> Validation, migration 0016
+  (`deals.validation_opt_in`, `deals.actuals_first_saved_at`,
+  `validation_reports`, two audit actions), `docs/methodology.md` "Model
+  validation". Three checks: the deal summary's **default risk** against
+  distress within five years on the approved reference transactions (the
+  app's answer for each deal's filed headline figures, everything else at
+  defaults); the plan's **IRR range** (central 50/80/90% of paths, Wilson
+  intervals) and **probability of loss** (Brier, z) on users' deals that
+  opted in and have exited. Decided in the session: **"newer data" is
+  strict** -- a case is out of time only when its outcome became known after
+  everything its prediction read (for default risk, after 2025: S&P's study
+  sample ends 2024 and Damodaran's January 2026 table reads 2025; for a
+  user's deal, a plan version saved before its actuals were first entered),
+  so the ten repository transactions are all in-sample and the headline
+  waits for newer outcomes; in-sample results are shown apart, never as the
+  headline. **Anonymised by aggregation**: no per-deal record is stored;
+  the report holds counts and rates per group, a group with 1-4 users' deals
+  is hidden, and the next-smallest groups are hidden with it until the
+  hidden ones hold five (so subtraction can't single one out). Opt-in is
+  per deal, off by default, on Backtest -> Plan and actuals; `/privacy`
+  says what it does. The deal summary now shows IRR, MOIC, probability of
+  loss and downside (the simulation's 5th percentile; the summary runs the
+  simulation itself when none is current), interest cover and default risk
+  together (the deal answer's `credit` block, `core.risk_warnings.credit_view`;
+  the simulation's `p_loss`). No engine version moved: both are new outputs.
 
 ---
 

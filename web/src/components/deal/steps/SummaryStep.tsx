@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { DataTable, type Row } from "@/components/charts/DataTable";
 import { DownloadButton } from "@/components/ui/DownloadButton";
@@ -19,6 +19,8 @@ import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 import { useUnitLabel } from "@/lib/i18n/useFieldText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { MONEY } from "@/lib/money";
+
+import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
 
 import { useDeal } from "../DealProvider";
 import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
@@ -91,6 +93,35 @@ export function SummaryStep() {
     >
       {run.result ? <SummaryResults /> : <LoadingTiles />}
     </DealScreen>
+  );
+}
+
+/**
+ * Probability of loss and the downside case come from the Monte Carlo simulation of this deal. The
+ * summary shows them beside the deal model's figures, so it runs the simulation itself when there is
+ * none for the deal as it is now: once per visit, through the same provider as the Monte Carlo screen.
+ */
+function SimulatedRisk() {
+  const t = useTranslations("deal");
+  const { run, stale, runNow } = useMonteCarlo();
+  const asked = useRef(false);
+  const current = !!run.result && !stale && run.status !== "running";
+  useEffect(() => {
+    if (asked.current || run.status === "running" || current) return;
+    asked.current = true;
+    runNow();
+  }, [current, run.status, runNow]);
+  const summary = current ? run.result!.summary : null;
+  const sub = current
+    ? t("simulatedPaths", { count: run.result!.n })
+    : run.status === "error"
+      ? t("simulationFailed")
+      : t("simulating");
+  return (
+    <>
+      <Kpi title={t("kpiProbabilityOfLoss")} value={fmtRate(summary?.p_loss)} sub={sub} tone={run.status === "error" ? "loss" : undefined} />
+      <Kpi title={t("kpiDownside")} value={fmtRate(summary?.p5_irr)} sub={current ? t("downsideSub") : sub} tone={run.status === "error" ? "loss" : undefined} />
+    </>
   );
 }
 
@@ -236,12 +267,27 @@ function SummaryResults() {
 
   return (
     <Tiles>
+      {/* The full metric set, always together (PLAN.md 4.6) */}
       <Kpi title={t("kpiIrr")} value={fmtRate(r.irr)} lead {...hurdleSub(r.irr, hurdle)} />
       <Kpi title={t("kpiMoic")} value={fmtMultiple(r.moic)} sub={units("holdYears", { years: r.holding_period ?? inputs.hold })} />
-      <Kpi title={t("kpiEquityIn")} value={fmtMoney(r.entry_equity)} sub={mu} />
-      <Kpi title={t("kpiEquityOut")} value={fmtMoney(r.net_exit_equity)} sub={mu} />
-      <Kpi title={t("kpiTotalGain")} value={fmtMoney(br.total_gain)} sub={mu} />
+      <SimulatedRisk />
       <Kpi
+        title={t("kpiCoverage")}
+        value={fmtMultiple(res.credit.coverage, 2)}
+        sub={res.credit.coverage == null ? t("noInterest") : t("coverageSub")}
+        tone={res.credit.speculative ? "attention" : undefined}
+      />
+      <Kpi
+        title={t("kpiDefaultRisk")}
+        value={fmtPct(res.credit.default_pct, 2)}
+        sub={res.credit.rating ? t("defaultRiskSub", { rating: res.credit.rating, years: res.credit.years }) : t("noInterest")}
+        tone={res.credit.speculative ? "attention" : undefined}
+      />
+      <Kpi span={3} title={t("kpiEquityIn")} value={fmtMoney(r.entry_equity)} sub={mu} />
+      <Kpi span={3} title={t("kpiEquityOut")} value={fmtMoney(r.net_exit_equity)} sub={mu} />
+      <Kpi span={3} title={t("kpiTotalGain")} value={fmtMoney(br.total_gain)} sub={mu} />
+      <Kpi
+        span={3}
         title={t("kpiBridgeResidual")}
         value={fmtMoney(br.residual)}
         sub={t("shouldBeZero", { money: mu })}
