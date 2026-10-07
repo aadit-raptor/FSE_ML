@@ -10,23 +10,15 @@ from __future__ import annotations
 
 from typing import get_args
 
-from api.schemas import DealInputsIn, StartingField
-from benchmarks import registry
+from api.schemas import DealInputsIn, RiskSetting, StartingField
+from benchmarks import registry, risk
 from core.config import DEFAULTS
 
 # The illustrative Settings defaults left after 4.3. Remove a key when its
 # task sources it; never add one.
 PENDING_PINNED = frozenset({
-    # 4.5: fees and amortisation from the reference transactions' filings
+    # 4.5b: fees and amortisation from the reference transactions' filings
     "tx_fee_pct", "fin_fee_pct", "def_senior_amort",
-    # 4.4: ranges, correlations and scenarios by region
-    "mc_growth_mean", "mc_growth_std", "mc_exit_mean", "mc_exit_std", "mc_rate_mean", "mc_rate_std",
-    "mc_gm_mean", "mc_gm_std",
-    "corr_g_em", "corr_g_ir", "corr_g_gm", "corr_g_sh", "corr_em_ir", "corr_em_gm", "corr_em_sh",
-    "corr_ir_gm", "corr_ir_sh", "corr_gm_sh",
-    "bull_growth_mult", "bull_exit_mult", "bull_rate_mult", "bull_margin_mult",
-    "rec_growth_adj", "rec_growth_floor", "rec_exit_mult", "rec_rate_mult", "rec_margin_mult",
-    "stag_growth_adj", "stag_growth_floor", "stag_exit_mult", "stag_rate_mult", "stag_margin_mult",
 })
 
 
@@ -54,6 +46,11 @@ def test_nothing_a_new_deal_starts_from_is_illustrative():
 def test_every_sourced_input_is_one_the_starting_figures_produce():
     sourced = {k for k, v in registry.DEAL_INPUTS.items() if v["basis"] == "sourced"}
     assert sourced == set(get_args(StartingField))
+
+
+def test_every_sourced_setting_is_one_the_risk_figures_produce():
+    sourced = {k for k, v in registry.SETTINGS.items() if v["basis"] == "sourced"}
+    assert sourced == set(risk.SETTINGS) == set(get_args(RiskSetting))
 
 
 def test_the_illustrative_defaults_left_can_only_shrink():

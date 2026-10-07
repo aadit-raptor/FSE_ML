@@ -534,7 +534,7 @@ function Activity({ bump, onError }: { bump: number; onError: (e?: string) => vo
                   </td>
                 )}
                 <th scope="row" className="border-b border-grid px-2 py-1.5 text-start font-normal">
-                  {t(`activity_${entry.action}`, { count: entry.count, version: String(entry.version ?? "") })}
+                  {t(`activity_${entry.action}`, { count: entry.count, version: String(entry.version ?? ""), enabled: String(entry.enabled ?? "") })}
                 </th>
                 <td className="border-b border-grid px-2 py-1.5 text-muted">{detail(entry)}</td>
               </tr>

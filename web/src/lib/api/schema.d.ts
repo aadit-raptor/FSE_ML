@@ -175,6 +175,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/benchmarks/risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Risk */
+        get: operations["get_risk_api_benchmarks_risk_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/benchmarks/starting": {
         parameters: {
             query?: never;
@@ -889,6 +906,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get State
+         * @description Whether the library is shown, and whether the caller may switch it.
+         */
+        get: operations["get_state_api_library_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/base-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Base Rates
+         * @description Published default and recovery rates by region, rating band and year, each with its source.
+         */
+        get: operations["get_base_rates_api_library_base_rates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Coverage
+         * @description What the library covers, in counts by region, size, sector, era and outcome.
+         */
+        get: operations["get_coverage_api_library_coverage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/switch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Switch
+         * @description Show or hide the library for everyone (administrators only).
+         */
+        put: operations["put_switch_api_library_switch_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ml/deal-risk": {
         parameters: {
             query?: never;
@@ -1265,6 +1362,32 @@ export interface components {
              */
             total_debt?: number | null;
         };
+        /** AnnualByGrade */
+        AnnualByGrade: {
+            /**
+             * Defaults
+             * @description Defaults that year, including issuers no longer rated
+             */
+            defaults: number[];
+            /** Rates */
+            rates: {
+                [key: string]: number[];
+            };
+            /** Years */
+            years: number[];
+        };
+        /** AnnualByRating */
+        AnnualByRating: {
+            /**
+             * Rates
+             * @description Per cent of issuers rated at the start of the year
+             */
+            rates: {
+                [key: string]: number[];
+            };
+            /** Years */
+            years: number[];
+        };
         /**
          * AuditEntry
          * @description One thing done to a deal or the account's settings (PLAN.md 3.3). Holds
@@ -1275,7 +1398,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -1296,6 +1419,11 @@ export interface components {
              * @description The deal's name now (account history only); null once it is deleted
              */
             deal_name?: string | null;
+            /**
+             * Enabled
+             * @description Whether the reference library was shown or hidden
+             */
+            enabled?: boolean | null;
             /** Export */
             export?: ("workbook" | "simulation_sample") | null;
             /**
@@ -1506,6 +1634,129 @@ export interface components {
             p75: number[];
             /** P95 */
             p95: number[];
+        };
+        /** BaseRateCoverage */
+        BaseRateCoverage: {
+            /**
+             * Bands
+             * @description Rating bands, grades or seniority classes
+             */
+            bands: number;
+            /** First Year */
+            first_year: number;
+            /** Last Year */
+            last_year: number;
+            /**
+             * Observations
+             * @description Issuers or borrowers behind the table
+             */
+            observations?: number | null;
+            /** Regions */
+            regions: number;
+            /** Source */
+            source: string;
+            /**
+             * Table
+             * @enum {string}
+             */
+            table: "annual_by_rating" | "annual_by_grade" | "speculative_by_region" | "cumulative_global" | "cumulative_by_region" | "lgd_by_seniority" | "lgd_by_year" | "lgd_by_region";
+        };
+        /** BaseRateSample */
+        BaseRateSample: {
+            /** Count */
+            count: number;
+            /** First Year */
+            first_year: number;
+            /** Last Year */
+            last_year: number;
+            /** What */
+            what: string;
+        };
+        /** BaseRateSource */
+        BaseRateSource: {
+            /**
+             * Checked On
+             * @description When this edition was last confirmed as the newest free to read
+             */
+            checked_on: string;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "sp_default_study_2024" | "gcd_lgd_2020";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "default" | "recovery";
+            /** Note */
+            note: string;
+            /**
+             * Published
+             * @description ISO date, or year and month
+             */
+            published: string;
+            /** Publisher */
+            publisher: string;
+            /**
+             * Recheck Due
+             * @description A year after checked_on
+             */
+            recheck_due: string;
+            sample: components["schemas"]["BaseRateSample"];
+            /**
+             * Stale
+             * @description True once recheck_due has passed: a newer edition may exist
+             */
+            stale: boolean;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+        };
+        /** BaseRateTable */
+        BaseRateTable: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "annual_by_rating" | "annual_by_grade" | "speculative_by_region" | "cumulative_global" | "cumulative_by_region" | "lgd_by_seniority" | "lgd_by_year" | "lgd_by_region";
+            /** Source */
+            source: string;
+            /**
+             * Table
+             * @description The table's number in its source
+             */
+            table: string;
+            /**
+             * Title
+             * @description The table's title as its source prints it
+             */
+            title: string;
+        };
+        /** BaseRatesResponse */
+        BaseRatesResponse: {
+            /**
+             * Country
+             * @description The country asked about
+             */
+            country?: string | null;
+            default?: components["schemas"]["DefaultBaseRates"] | null;
+            /**
+             * Enabled
+             * @description False when the library is switched off: everything else is empty
+             */
+            enabled: boolean;
+            recovery?: components["schemas"]["RecoveryBaseRates"] | null;
+            /** Sources */
+            sources: components["schemas"]["BaseRateSource"][];
+            /**
+             * Sp Region
+             * @description S&P's region for that country
+             */
+            sp_region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /** Tables */
+            tables: components["schemas"]["BaseRateTable"][];
         };
         /** BenchmarkIndustriesResponse */
         BenchmarkIndustriesResponse: {
@@ -1914,6 +2165,66 @@ export interface components {
              * Format: date
              */
             period_end: string;
+        };
+        /** CoverageBucket */
+        CoverageBucket: {
+            /** Bucket */
+            bucket: string;
+            /** Count */
+            count: number;
+        };
+        /** CoverageCollection */
+        CoverageCollection: {
+            /** Count */
+            count: number;
+            /** Dimensions */
+            dimensions: {
+                [key: string]: components["schemas"]["CoverageBucket"][];
+            };
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "reference_deals" | "examples";
+            /**
+             * Sourced
+             * @description Whether every figure in its deals carries a source
+             */
+            sourced: boolean;
+        };
+        /** CoverageResponse */
+        CoverageResponse: {
+            /** Base Rates */
+            base_rates: components["schemas"]["BaseRateCoverage"][];
+            /** Collections */
+            collections: components["schemas"]["CoverageCollection"][];
+            /** Enabled */
+            enabled: boolean;
+        };
+        /** CumulativeRates */
+        CumulativeRates: {
+            /**
+             * Horizons
+             * @description Years after the rating: rates[k][i] is after i + 1 years
+             */
+            horizons: number;
+            /**
+             * Rates
+             * @description By rating, and investment_grade, speculative_grade, all_rated
+             */
+            rates: {
+                [key: string]: number[];
+            };
+            /**
+             * Region
+             * @enum {string}
+             */
+            region: "global" | "us" | "europe" | "emerging";
+            /**
+             * Table
+             * @enum {string}
+             */
+            table: "annual_by_rating" | "annual_by_grade" | "speculative_by_region" | "cumulative_global" | "cumulative_by_region" | "lgd_by_seniority" | "lgd_by_year" | "lgd_by_region";
         };
         /**
          * DealActuals
@@ -2443,6 +2754,16 @@ export interface components {
              * @description UTC, ISO 8601
              */
             updated_at: string;
+        };
+        /** DefaultBaseRates */
+        DefaultBaseRates: {
+            annual_by_grade: components["schemas"]["AnnualByGrade"];
+            annual_by_rating: components["schemas"]["AnnualByRating"];
+            /** Cumulative */
+            cumulative: components["schemas"]["CumulativeRates"][];
+            /** Ratings */
+            ratings: ("AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC/C")[];
+            speculative_by_region: components["schemas"]["SpeculativeByRegion"];
         };
         /** DrillJob */
         DrillJob: {
@@ -3250,6 +3571,58 @@ export interface components {
              */
             view: "" | "pre_ifrs16" | "post_ifrs16";
         };
+        /** LgdRow */
+        LgdRow: {
+            /**
+             * Defaults
+             * @description Defaulted borrowers
+             */
+            defaults: number;
+            /** Key */
+            key: string;
+            /**
+             * Lgd Pct
+             * @description Loss given default, per cent of exposure; recovery is 100 less this
+             */
+            lgd_pct: number;
+        };
+        /** LgdYear */
+        LgdYear: {
+            /** Defaults */
+            defaults: number;
+            /** Lgd Pct */
+            lgd_pct: number;
+            /** Year */
+            year: number;
+        };
+        /** LibraryState */
+        LibraryState: {
+            /**
+             * Can Switch
+             * @description The caller is an administrator and may switch it
+             */
+            can_switch: boolean;
+            /**
+             * Enabled
+             * @description Whether the library is shown to everyone
+             */
+            enabled: boolean;
+            /**
+             * Locked Off
+             * @description The server's configuration forces it off (FSE_EXAMPLE_LIBRARY=0)
+             */
+            locked_off: boolean;
+            /**
+             * Updated At
+             * @description When an administrator last switched it (UTC)
+             */
+            updated_at?: string | null;
+        };
+        /** LibrarySwitch */
+        LibrarySwitch: {
+            /** Enabled */
+            enabled: boolean;
+        };
         /** LimitInfo */
         LimitInfo: {
             /** Limit */
@@ -3789,6 +4162,15 @@ export interface components {
             /** Sector */
             sector?: string | null;
         };
+        /** RecoveryBaseRates */
+        RecoveryBaseRates: {
+            /** By Region */
+            by_region: components["schemas"]["LgdRow"][];
+            /** By Seniority */
+            by_seniority: components["schemas"]["LgdRow"][];
+            /** By Year */
+            by_year: components["schemas"]["LgdYear"][];
+        };
         /** ReferenceRatesResponse */
         ReferenceRatesResponse: {
             /**
@@ -3867,6 +4249,184 @@ export interface components {
             /** Net Exit Equity */
             net_exit_equity?: number | null;
         };
+        /** RiskAssumptionsResponse */
+        RiskAssumptionsResponse: {
+            correlation: components["schemas"]["RiskCorrelation"];
+            /** Country */
+            country: string;
+            /** Currency */
+            currency: string;
+            /** Figures */
+            figures: components["schemas"]["RiskFigure"][];
+            /** Industry */
+            industry: string;
+            /**
+             * Industry Name
+             * @description The industry as the source names it; null before the first refresh
+             */
+            industry_name?: string | null;
+            /**
+             * Min Years
+             * @description A spread needs at least this many usable years
+             */
+            min_years: number;
+            /**
+             * Missing
+             * @description Settings with no sourced figure: they keep their value
+             */
+            missing: components["schemas"]["RiskMissing"][];
+            /** Notes */
+            notes: ("size_not_split" | "growth_economy_wide" | "rate_policy_only" | "industry_aggregates")[];
+            /**
+             * Refreshed At
+             * @description When the stored averages were last read (UTC)
+             */
+            refreshed_at?: string | null;
+            /**
+             * Region
+             * @enum {string}
+             */
+            region: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+            /** Scenarios */
+            scenarios: {
+                [key: string]: components["schemas"]["RiskScenario"];
+            };
+            /**
+             * Settings
+             * @description The value of each Setting found
+             */
+            settings: {
+                [key: string]: number;
+            };
+            source: components["schemas"]["BenchmarkSourceOut"];
+            /**
+             * Window Start
+             * @description The first year of economic history read
+             */
+            window_start: number;
+        };
+        /** RiskCorrelation */
+        RiskCorrelation: {
+            /** Economies */
+            economies: number;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+            /** Labels */
+            labels: string[];
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Matrix
+             * @description The valid matrix the Settings take
+             */
+            matrix: number[][];
+            /**
+             * Observations
+             * @description What each correlation rests on: industry-years, or years for growth and the rate
+             */
+            observations: number[][];
+            /** Period */
+            period?: string | null;
+            /**
+             * Rows
+             * @description Industry-years in the panel
+             */
+            rows: number;
+            /**
+             * Shrink
+             * @description How far the measured matrix was shrunk toward no correlation to be valid (0 = not at all)
+             */
+            shrink: number;
+        };
+        /** RiskFigure */
+        RiskFigure: {
+            /**
+             * Area
+             * @description The group or country the figure is for
+             */
+            area: string;
+            /**
+             * As Of
+             * @description The publisher's date, when there is one
+             */
+            as_of?: string | null;
+            /**
+             * Dataset
+             * @description The table or series read
+             */
+            dataset: string;
+            /**
+             * Detail
+             * @description The years and published figures it was worked out from
+             */
+            detail: {
+                [key: string]: unknown;
+            };
+            /**
+             * Field
+             * @description The Setting this figure fills
+             * @enum {string}
+             */
+            field: "mc_growth_mean" | "mc_exit_mean" | "mc_rate_mean" | "mc_gm_mean" | "mc_growth_std" | "mc_exit_std" | "mc_rate_std" | "mc_gm_std" | "corr_g_em" | "corr_g_ir" | "corr_g_gm" | "corr_g_sh" | "corr_em_ir" | "corr_em_gm" | "corr_em_sh" | "corr_ir_gm" | "corr_ir_sh" | "corr_gm_sh" | "bull_growth_mult" | "bull_exit_mult" | "bull_rate_mult" | "bull_margin_mult" | "rec_growth_adj" | "rec_growth_floor" | "rec_exit_mult" | "rec_rate_mult" | "rec_margin_mult" | "stag_growth_adj" | "stag_growth_floor" | "stag_exit_mult" | "stag_rate_mult" | "stag_margin_mult";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Sample
+             * @description Companies, economies, years or industry-years behind it
+             */
+            sample?: number | null;
+            /** Sample Kind */
+            sample_kind?: ("companies" | "economies" | "countries" | "years" | "industry_years") | null;
+            /**
+             * Skipped
+             * @description Closer groups passed over, and why
+             */
+            skipped: components["schemas"]["RiskSkipped"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "damodaran" | "imf" | "bis" | "benchmark" | "tax_foundation" | "choice" | "damodaran+imf+bis";
+            /** Url */
+            url?: string | null;
+            /**
+             * Value
+             * @description As the Setting reads it: per cent, a multiple, a multiplier or a correlation
+             */
+            value: number;
+        };
+        /** RiskMissing */
+        RiskMissing: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "mc_growth_mean" | "mc_exit_mean" | "mc_rate_mean" | "mc_gm_mean" | "mc_growth_std" | "mc_exit_std" | "mc_rate_std" | "mc_gm_std" | "corr_g_em" | "corr_g_ir" | "corr_g_gm" | "corr_g_sh" | "corr_em_ir" | "corr_em_gm" | "corr_em_sh" | "corr_ir_gm" | "corr_ir_sh" | "corr_gm_sh" | "bull_growth_mult" | "bull_exit_mult" | "bull_rate_mult" | "bull_margin_mult" | "rec_growth_adj" | "rec_growth_floor" | "rec_exit_mult" | "rec_rate_mult" | "rec_margin_mult" | "stag_growth_adj" | "stag_growth_floor" | "stag_exit_mult" | "stag_rate_mult" | "stag_margin_mult";
+            /** Skipped */
+            skipped: components["schemas"]["RiskSkipped"][];
+        };
+        /** RiskPeriod */
+        RiskPeriod: {
+            /**
+             * End
+             * @description Its last year (the same for a single year)
+             */
+            end: number;
+            /**
+             * Start
+             * @description The period's first year
+             */
+            start: number;
+        };
         /** RiskSample */
         RiskSample: {
             /** Count */
@@ -3880,6 +4440,68 @@ export interface components {
              * @description What was counted, e.g. issuers
              */
             what: string;
+        };
+        /** RiskScenario */
+        RiskScenario: {
+            /**
+             * Area
+             * @description The country, or the group whose economies' median stands in for it
+             */
+            area: string;
+            /** Economies */
+            economies: number;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "recession" | "stagflation" | "bull";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Of Years
+             * @description How many years they were chosen from
+             */
+            of_years: number;
+            /**
+             * Periods
+             * @description The years, consecutive ones joined
+             */
+            periods: components["schemas"]["RiskPeriod"][];
+            /**
+             * Rule
+             * @description The fifth of the economy's years the preset is built from: lowest real GDP growth, highest inflation, highest real GDP growth
+             * @enum {string}
+             */
+            rule: "weakest_growth" | "highest_inflation" | "strongest_growth";
+            /**
+             * Window
+             * @description First and last year looked at
+             */
+            window?: string | null;
+            /** Years */
+            years: number[];
+        };
+        /** RiskSkipped */
+        RiskSkipped: {
+            /**
+             * Area
+             * @description A group (benchmarks/catalogue.py REGIONS), a country or a currency code
+             */
+            area: string;
+            /**
+             * Reason
+             * @description short: fewer usable years than min_years; base_not_positive: a multiplier needs a positive mean to scale; no_history_in_years: the industry's history has none of the scenario's years; the rest as for the starting figures
+             * @enum {string}
+             */
+            reason: "thin" | "unusable" | "missing" | "short" | "base_not_positive" | "no_history_in_years";
+            /**
+             * Sample
+             * @description Companies (or usable years, when short), when known
+             */
+            sample?: number | null;
         };
         /**
          * RiskSource
@@ -4280,6 +4902,20 @@ export interface components {
             tranches?: components["schemas"]["TrancheSource"][];
             /** Transaction Fees */
             transaction_fees: number;
+        };
+        /** SpeculativeByRegion */
+        SpeculativeByRegion: {
+            /**
+             * Rates
+             * @description Null where the source has no figure
+             */
+            rates: {
+                [key: string]: (number | null)[];
+            };
+            /** Regions */
+            regions: ("us" | "europe" | "emerging" | "other_developed")[];
+            /** Years */
+            years: number[];
         };
         /** StartingAssumptionsResponse */
         StartingAssumptionsResponse: {
@@ -5349,6 +5985,51 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BenchmarkIndustriesResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_risk_api_benchmarks_risk_get: {
+        parameters: {
+            query: {
+                /** @description ISO 3166-1 alpha-2 */
+                country: string;
+                /** @description An id from /api/benchmarks/industries */
+                industry?: string;
+                /** @description ISO 4217 */
+                currency: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiskAssumptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description A usage limit was reached */
@@ -6878,6 +7559,147 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_state_api_library_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryState"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_base_rates_api_library_base_rates_get: {
+        parameters: {
+            query?: {
+                /** @description ISO country code, to name its S&P region */
+                country?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaseRatesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_coverage_api_library_coverage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_switch_api_library_switch_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LibrarySwitch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryState"];
                 };
             };
             /** @description Validation Error */

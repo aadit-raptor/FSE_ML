@@ -588,8 +588,110 @@ mean + 2σ; **each cell is a full deal-model run** at the simulation's mean
 rate and margin (finding 3), on the deal's own structure with references
 shifted to the rail's rate.
 
-**Regional differences.** None in the mechanics. The spreads and correlations
-are illustrative Settings, not calibrated to any market.
+**Regional differences.** None in the mechanics. The means, spreads,
+correlations and presets are Settings; their factory values are
+illustrative, and a deal with a country gets sourced ones (below).
+
+### Sourced ranges, correlations and scenarios
+
+PLAN.md 4.4, [benchmarks/risk.py](../benchmarks/risk.py) (`risk_assumptions`),
+on the history read by [benchmarks/history.py](../benchmarks/history.py).
+These are **Settings values**, applied when the user asks ("Use sourced
+figures" on the Monte Carlo rail) and stored with the deal like typed ones,
+so nothing in the engine moves and no engine version changes. Worked figures
+below are for a UK machinery deal on the recorded data
+([tests/test_risk_ranges.py](../tests/test_risk_ranges.py)).
+
+**The history.** Damodaran archives each January edition of his industry
+averages; `archive_url` names the file (`marginEurope16.xls` is the January
+2017 edition, so it describes 2016) and `archive_years` the years kept, 2011
+to the year before last; the current edition (already stored for §14's
+starting figures) describes last year. `read_archive` reads an edition with
+`parse_industries` in its lenient form (older editions print fewer columns:
+gross margin only since 2017, EBITDA / sales since 2013); `merge` adds its
+rows to the group's history, keeping the smaller company count of the two
+data sets in a year; `industry_years` joins the archive and the current
+edition and `industries_in` lists what a group has. `to_read`, `read_key`
+and `fill` read the archive a batch at a time (a file read once is final,
+except a missing one of the newest archived year), `table_name` names the
+stored tables. The economic history (`read_macro`): real GDP growth and
+inflation by year from the IMF's World Economic Outlook (`_imf`), and the
+BIS's monthly policy rates averaged over each full year (`_bis`), from
+`WINDOW_START` (2000; earlier rates include the 1990s hyperinflations) to
+last year, read back by `macro_series`; a euro member's policy rate is the
+euro area's (`policy_area`).
+
+**Means** are the deal's own sourced starting figures (§14): growth, the exit
+multiple (equal to the entry), the base rate and the gross margin.
+
+**Spreads** (standard deviations, the sample formula):
+
+- **Exit multiple and gross margin**: the spread of the industry's own
+  EV / EBITDA and gross margin across its years (`industry_series`: years
+  with at least `MIN_FIRMS` companies and a usable figure), in the closest
+  group of the country's `chain` with at least `MIN_YEARS` such years
+  (`_pick`, which reports a group passed over as missing or short;
+  `_multiple_usable`, `_margin_usable`; `_industry_figure` records the group,
+  its latest company count via `_latest_firms`, and the years). UK machinery reads developed Europe (210 companies): EV / EBITDA over 14
+  years, 2011-2025, mean 12.81x, spread **2.55x**; gross margin over 9 years,
+  2017-2025, spread **1.39 points**.
+- **Growth**: the spread of the country's nominal GDP growth year to year
+  (`nominal_growth`: (1 + real growth)(1 + inflation) − 1), since no free
+  source gives an industry's revenue growth by year; a country outside the
+  catalogue takes the median spread of its region's economies, then the
+  world's (`_economy_spread`, `members`, `_window`, `_period`).
+- **Rate**: the spread of the yearly change in the country's average policy
+  rate (`rate_changes`): the UK's nominal growth spread is **4.08 points** over
+  2000-2025 and its Bank Rate's yearly change **1.17 points**. Credit spreads have no free source that may be shown
+  (PLAN.md 4.2), so the rate moves with policy only.
+
+**Correlations**, per group (`correlations`, `history_group`: the closest
+group with history). `panel` builds one row per industry and year with at
+least `MIN_FIRMS` companies in both years: the group's median nominal growth
+that year (`_median_by_year`), the change in EV / EBITDA, the median change
+in the policy rate, the change in gross margin and the relative change in
+EBITDA margin (`_change`). `raw_correlations` measures each pair's Spearman
+rank correlation over the rows that have both (growth and the rate, which are
+economy-wide, over years), needing `MIN_PAIR_OBSERVATIONS` rows (else 0), and
+`_rank_correlation` turns ρ into the normal correlation that has it,
+2 sin(πρ / 6). `valid_matrix` shrinks the matrix toward the identity,
+(1 − s)M + sI in steps of `SHRINK_STEP`, until its smallest eigenvalue is at
+least `EIGEN_FLOOR`, rounds it to `CORR_DECIMALS` and checks it the way the
+simulation does (`is_valid_corr`). The UK reads developed Europe's panel, 2012-2025; every group's matrix
+is valid without shrinking on the recorded data, and the test checks all
+eight.
+
+**Scenarios** (`_scenario`), from the country's own years since 2000 (or its
+region's median by year, `_economy_years`): a **recession** is the weakest
+fifth of its years by real GDP growth, **stagflation** the fifth with the
+highest inflation, **bull** the strongest fifth (`fifth`, `SHARE`; `periods`
+joins consecutive years). Each preset moves growth by the gap between
+nominal growth in its years and the average (bull as a multiplier of the
+growth mean; recession and stagflation as points, with the worst year's
+nominal growth as the floor), the rate by the policy rate's average change
+in those years, written as a multiplier of the rate mean, and the exit
+multiple and gross margin by the industry's figure in those years over its
+average (`_mean_in`). A preset whose years the industry history doesn't
+reach keeps its value and says so. The UK's recession years are 2008-2009, 2011, 2020 and 2023: nominal
+growth 3.30 points below its average (floor -9.19%, 2020), Bank Rate down
+0.45 points a year on average (×0.891 of a 4.13% mean), and European
+machinery's multiple at 13.76x in the archive's three of those years against
+12.81x on average (×1.074: in a downturn EBITDA tends to fall faster than
+values).
+
+Size is not split (no free source does), and an industry average is an
+aggregate over listed companies, so a single company's swings are wider;
+the screen says both.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `benchmarks.risk.MIN_YEARS` | 6 | usable years a spread needs |
+| `benchmarks.risk.SHARE` | 0.2 | a scenario's share of the years |
+| `benchmarks.risk.MIN_PAIR_OBSERVATIONS` | 30 | industry-years a correlation needs |
+| `benchmarks.risk.EIGEN_FLOOR` | 0.05 | smallest eigenvalue a correlation matrix keeps |
+| `benchmarks.risk.SHRINK_STEP` | 0.01 | step of the shrink toward no correlation |
+| `benchmarks.history.WINDOW_START` | 2000 | first year of economic history |
+| `benchmarks.history.FIRST_YEAR` | 2011 | first year of industry history |
 
 ## 10. Plan vs actual
 
@@ -621,8 +723,8 @@ are illustrative Settings, not calibrated to any market.
 Actuals in another unit are converted; another currency is refused.
 
 `examples` serves the optional example library (four inception-era US deals,
-`_plan` and `_actuals` build their inputs; hidden when `library_enabled` is
-false). They are never an input to any calculation.
+`_plan` and `_actuals` build their inputs; hidden when the library is switched
+off, [§14](#the-reference-library)). They are never an input to any calculation.
 
 The old backtest (`backtest_summary`, kept as the golden parity record):
 `predicted_ebitda` grows revenue at the plan growth at a constant margin
@@ -830,6 +932,38 @@ default comes from; `tests/test_defaults_registry.py` keeps it complete.
 | `benchmarks.starting.MAX_MULTIPLE` | 100.0 | a higher EV / EBITDA is not a starting point |
 | `benchmarks.starting.MAX_CAPEX_TO_DA` | 10.0 | a higher capex / D&A is not a starting point |
 
+### The reference library
+
+The optional reference library (PLAN.md 4.5, Library mode) shows published
+figures beside a deal; **nothing in the deal model, the simulation or the risk
+warnings reads it**, so switching it off (`library/switch.py`) moves no result.
+
+- **Base rates** ([library/base_rates.py](../library/base_rates.py)) are
+  transcribed tables, never estimates. Default rates come from S&P Global
+  Ratings' 2024 global default study: the annual rate by rating category
+  (Table 3) and by grade (Table 1), 1981-2024; the speculative-grade rate by
+  region (Table 5: the U.S. and tax havens, Europe, emerging and frontier
+  markets, other developed); and the average cumulative rate after 1 to 15
+  years by rating, globally (Table 24) and for the U.S., Europe and emerging
+  markets (Table 25). Recovery comes from Global Credit Data's 2020 report on
+  bank loans to large corporates (2000-2016 defaults, 11,527 borrowers): loss
+  given default by seniority and collateral (Table 2), year of default (Table 3)
+  and region (Table 4); recovery is 100 less it. `base_rates` lays them out by
+  year (`_years`) with their sources (`_source`). `sp_region` reads a country
+  into S&P's region from the study's own lists (anything unlisted is an
+  emerging or frontier market). Each source records the day its edition was
+  last confirmed as the newest one free to read; `recheck_due` is a year later
+  (`_add_months`) and `stale` turns true from then, shown on screen and failed
+  by the daily production check.
+- **Coverage** ([library/coverage.py](../library/coverage.py)) counts the
+  library's deals by region (S&P's), size (`size`: enterprise value at entry in
+  US dollars, under 100m, 100m-1bn, 1-10bn, over 10bn), sector, era (`era`:
+  entry year before 2000, 2000-2007, 2008-2014, 2015-2019, 2020 on) and outcome,
+  listing empty buckets (`_band`, `_counts`, `collection`). `example_tags` tags
+  each example (its year from its name, `_deal_year`); `coverage` adds the
+  base-rate tables' regions, bands, years and observations
+  (`base_rates.coverage`).
+
 ## 15. Regional differences at a glance
 
 | Area | What varies by region | Where |
@@ -839,8 +973,10 @@ default comes from; `tests/test_defaults_registry.py` keeps it complete.
 | Accounting | IFRS 16 leases in EBITDA and net debt (IFRS) or not (US GAAP) | §6 |
 | Tax | Rate, interest limit, loss rules, minimum tax per country preset | §7 |
 | Risk thresholds | ECB/US leverage guidance; US-based rating and default studies | §8 |
+| Base rates | Default rates for the U.S., Europe, emerging and other developed markets; recovery for six regions | §14 |
 | Filings | SEC EDGAR only (US GAAP and IFRS filers) | §13 |
 | Starting figures | Industry averages by region, growth and tax by country, rate by currency | §14 |
+| Monte Carlo ranges | Spreads, correlations and presets from each region's and country's history | §9 |
 | Macro | US FRED series only | §13 |
 | Fiscal years | Labels follow the year-end month | §1 |
 

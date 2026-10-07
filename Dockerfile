@@ -33,6 +33,7 @@ COPY db ./db
 COPY economy ./economy
 COPY jobs ./jobs
 COPY lbo_engine ./lbo_engine
+COPY library ./library
 COPY ml ./ml
 COPY simulation ./simulation
 

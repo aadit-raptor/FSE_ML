@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { useDeal } from "@/components/deal/DealProvider";
+import { useLibrary } from "@/components/library/LibraryProvider";
 import { type Settings, useSettings } from "@/components/settings/SettingsProvider";
 import { api, type Schemas } from "@/lib/api/client";
 import { type ActualsDraft, apiActuals, blankDraft, draftFrom, hasFigures, resizeYears, scaleDraft } from "@/lib/backtest/actuals";
@@ -73,7 +74,10 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(0);
   const [deals, setDeals] = useState<DealSummary[] | null>(null);
   const [library, setLibrary] = useState<{ enabled: boolean; examples: ExampleDeal[] }>({ enabled: false, examples: [] });
-  const [listed, setListed] = useState(false);
+  // The plan list is fetched again when an administrator shows or hides the example library
+  const libraryOn = useLibrary().state?.enabled ?? null;
+  const [listedFor, setListedFor] = useState<boolean | null | undefined>(undefined);
+  const listed = listedFor === libraryOn;
   const [selected, setSelected] = useState<PlanRef | null>(null);
   const [stored, setStored] = useState<Omit<Plan, "settings" | "inputs"> & { inputs?: DealInputsIn; settings?: Settings } | null>(null);
   const [actuals, setActualsState] = useState<ActualsDraft | null>(null);
@@ -100,7 +104,7 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       setDeals(saved);
       setLibrary(lib);
-      setListed(true);
+      setListedFor(libraryOn);
       // The deal open on the Deal screens first, else the newest saved deal, else an example
       const open = current && saved?.find((d) => d.id === current.id);
       const first = open ?? saved?.[0];
@@ -113,7 +117,7 @@ export function BacktestProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [enabled, listed, current, showExample]);
+  }, [enabled, listed, libraryOn, current, showExample]);
 
   // Load the selected saved deal and its stored actuals
   useEffect(() => {

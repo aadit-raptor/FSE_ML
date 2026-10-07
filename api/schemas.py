@@ -1178,7 +1178,7 @@ class VersionList(BaseModel):
 
 AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
                       "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
-                      "shared"]
+                      "shared", "library_switched"]
 
 
 class AuditEntry(BaseModel):
@@ -1198,6 +1198,7 @@ class AuditEntry(BaseModel):
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
     export: Optional[Literal["workbook", "simulation_sample"]] = None
+    enabled: Optional[bool] = Field(None, description="Whether the reference library was shown or hidden")
 
 
 class AuditHistory(BaseModel):
@@ -1505,6 +1506,100 @@ class StartingAssumptionsResponse(BaseModel):
     refreshed_at: Optional[datetime] = Field(None, description="When the stored averages were last read (UTC)")
 
 
+# PLAN.md 4.4: the Monte Carlo Settings worked out from published history (benchmarks/risk.py SETTINGS)
+RiskSetting = Literal[
+    "mc_growth_mean", "mc_exit_mean", "mc_rate_mean", "mc_gm_mean",
+    "mc_growth_std", "mc_exit_std", "mc_rate_std", "mc_gm_std",
+    "corr_g_em", "corr_g_ir", "corr_g_gm", "corr_g_sh", "corr_em_ir", "corr_em_gm", "corr_em_sh",
+    "corr_ir_gm", "corr_ir_sh", "corr_gm_sh",
+    "bull_growth_mult", "bull_exit_mult", "bull_rate_mult", "bull_margin_mult",
+    "rec_growth_adj", "rec_growth_floor", "rec_exit_mult", "rec_rate_mult", "rec_margin_mult",
+    "stag_growth_adj", "stag_growth_floor", "stag_exit_mult", "stag_rate_mult", "stag_margin_mult",
+]
+RiskScenarioId = Literal["recession", "stagflation", "bull"]
+
+
+class RiskSkipped(BaseModel):
+    area: str = Field(description="A group (benchmarks/catalogue.py REGIONS), a country or a currency code")
+    reason: Literal["thin", "unusable", "missing", "short", "base_not_positive", "no_history_in_years"] = Field(
+        description="short: fewer usable years than min_years; base_not_positive: a multiplier needs a "
+                    "positive mean to scale; no_history_in_years: the industry's history has none of the "
+                    "scenario's years; the rest as for the starting figures")
+    sample: Optional[int] = Field(None, description="Companies (or usable years, when short), when known")
+
+
+class RiskFigure(BaseModel):
+    field: RiskSetting = Field(description="The Setting this figure fills")
+    value: float = Field(description="As the Setting reads it: per cent, a multiple, a multiplier or a correlation")
+    source: Literal["damodaran", "imf", "bis", "benchmark", "tax_foundation", "choice", "damodaran+imf+bis"]
+    dataset: str = Field(description="The table or series read")
+    area: str = Field(description="The group or country the figure is for")
+    level: BenchmarkLevel
+    sample: Optional[int] = Field(None, description="Companies, economies, years or industry-years behind it")
+    sample_kind: Optional[Literal["companies", "economies", "countries", "years", "industry_years"]] = None
+    as_of: Optional[str] = Field(None, description="The publisher's date, when there is one")
+    url: Optional[str] = None
+    skipped: List[RiskSkipped] = Field(description="Closer groups passed over, and why")
+    detail: Dict[str, Any] = Field(description="The years and published figures it was worked out from")
+
+
+class RiskMissing(BaseModel):
+    field: RiskSetting
+    skipped: List[RiskSkipped]
+
+
+class RiskPeriod(BaseModel):
+    start: int = Field(description="The period's first year")
+    end: int = Field(description="Its last year (the same for a single year)")
+
+
+class RiskScenario(BaseModel):
+    id: RiskScenarioId
+    rule: Literal["weakest_growth", "highest_inflation", "strongest_growth"] = Field(
+        description="The fifth of the economy's years the preset is built from: lowest real GDP growth, "
+                    "highest inflation, highest real GDP growth")
+    area: str = Field(description="The country, or the group whose economies' median stands in for it")
+    level: BenchmarkLevel
+    economies: int
+    years: List[int]
+    periods: List[RiskPeriod] = Field(description="The years, consecutive ones joined")
+    of_years: int = Field(description="How many years they were chosen from")
+    window: Optional[str] = Field(None, description="First and last year looked at")
+
+
+class RiskCorrelation(BaseModel):
+    group: BenchmarkArea
+    level: BenchmarkLevel
+    labels: List[str]
+    matrix: List[List[float]] = Field(description="The valid matrix the Settings take")
+    observations: List[List[int]] = Field(description="What each correlation rests on: industry-years, or "
+                                                      "years for growth and the rate")
+    rows: int = Field(description="Industry-years in the panel")
+    economies: int
+    period: Optional[str] = None
+    shrink: float = Field(description="How far the measured matrix was shrunk toward no correlation to be "
+                                      "valid (0 = not at all)")
+
+
+class RiskAssumptionsResponse(BaseModel):
+    country: str
+    industry: str
+    industry_name: Optional[str] = Field(None, description="The industry as the source names it; null before "
+                                                           "the first refresh")
+    currency: str
+    region: BenchmarkArea
+    settings: Dict[RiskSetting, float] = Field(description="The value of each Setting found")
+    figures: List[RiskFigure]
+    missing: List[RiskMissing] = Field(description="Settings with no sourced figure: they keep their value")
+    scenarios: Dict[RiskScenarioId, RiskScenario]
+    correlation: RiskCorrelation
+    window_start: int = Field(description="The first year of economic history read")
+    min_years: int = Field(description="A spread needs at least this many usable years")
+    notes: List[Literal["size_not_split", "growth_economy_wide", "rate_policy_only", "industry_aggregates"]]
+    source: BenchmarkSourceOut
+    refreshed_at: Optional[datetime] = Field(None, description="When the stored averages were last read (UTC)")
+
+
 class BenchmarkIndustry(BaseModel):
     id: str = Field(description="all, or the industry's name as an id (machinery, oil_gas_integrated ...)")
     name: str = Field(description="The industry as the source names it")
@@ -1522,3 +1617,139 @@ class CompanyLoadRequest(Strict):
     source: CompanySource
     id: str = Field(min_length=1, max_length=20)
     years: int = Field(3, ge=2, le=5, strict=True, description="Fiscal years to read, newest last")
+
+
+# ---------------------------------------------------------------------------
+# Reference library (PLAN.md 4.5)
+# ---------------------------------------------------------------------------
+class LibraryState(BaseModel):
+    enabled: bool = Field(description="Whether the library is shown to everyone")
+    locked_off: bool = Field(description="The server's configuration forces it off (FSE_EXAMPLE_LIBRARY=0)")
+    can_switch: bool = Field(description="The caller is an administrator and may switch it")
+    updated_at: Optional[datetime] = Field(None, description="When an administrator last switched it (UTC)")
+
+
+class LibrarySwitch(Strict):
+    enabled: bool = Field(strict=True)
+
+
+class BaseRateSample(BaseModel):
+    count: int
+    what: str
+    first_year: int
+    last_year: int
+
+
+class BaseRateSource(BaseModel):
+    id: Literal["sp_default_study_2024", "gcd_lgd_2020"]
+    kind: Literal["default", "recovery"]
+    publisher: str
+    title: str
+    published: str = Field(description="ISO date, or year and month")
+    url: str
+    sample: BaseRateSample
+    note: str
+    checked_on: str = Field(description="When this edition was last confirmed as the newest free to read")
+    recheck_due: str = Field(description="A year after checked_on")
+    stale: bool = Field(description="True once recheck_due has passed: a newer edition may exist")
+
+
+BaseRateTableId = Literal["annual_by_rating", "annual_by_grade", "speculative_by_region", "cumulative_global",
+                          "cumulative_by_region", "lgd_by_seniority", "lgd_by_year", "lgd_by_region"]
+SpRegion = Literal["us", "europe", "emerging", "other_developed"]
+Rating = Literal["AAA", "AA", "A", "BBB", "BB", "B", "CCC/C"]
+
+
+class BaseRateTable(BaseModel):
+    id: BaseRateTableId
+    source: str
+    table: str = Field(description="The table's number in its source")
+    title: str = Field(description="The table's title as its source prints it")
+
+
+class AnnualByRating(BaseModel):
+    years: List[int]
+    rates: Dict[Rating, List[float]] = Field(description="Per cent of issuers rated at the start of the year")
+
+
+class AnnualByGrade(BaseModel):
+    years: List[int]
+    defaults: List[int] = Field(description="Defaults that year, including issuers no longer rated")
+    rates: Dict[Literal["all_rated", "investment_grade", "speculative_grade"], List[float]]
+
+
+class SpeculativeByRegion(BaseModel):
+    years: List[int]
+    regions: List[SpRegion]
+    rates: Dict[SpRegion, List[Optional[float]]] = Field(description="Null where the source has no figure")
+
+
+class CumulativeRates(BaseModel):
+    region: Literal["global", "us", "europe", "emerging"]
+    table: BaseRateTableId
+    horizons: int = Field(description="Years after the rating: rates[k][i] is after i + 1 years")
+    rates: Dict[str, List[float]] = Field(description="By rating, and investment_grade, speculative_grade, all_rated")
+
+
+class DefaultBaseRates(BaseModel):
+    ratings: List[Rating]
+    annual_by_rating: AnnualByRating
+    annual_by_grade: AnnualByGrade
+    speculative_by_region: SpeculativeByRegion
+    cumulative: List[CumulativeRates]
+
+
+class LgdRow(BaseModel):
+    key: str
+    defaults: int = Field(description="Defaulted borrowers")
+    lgd_pct: float = Field(description="Loss given default, per cent of exposure; recovery is 100 less this")
+
+
+class LgdYear(BaseModel):
+    year: int
+    defaults: int
+    lgd_pct: float
+
+
+class RecoveryBaseRates(BaseModel):
+    by_seniority: List[LgdRow]
+    by_year: List[LgdYear]
+    by_region: List[LgdRow]
+
+
+class BaseRatesResponse(BaseModel):
+    enabled: bool = Field(description="False when the library is switched off: everything else is empty")
+    sources: List[BaseRateSource]
+    tables: List[BaseRateTable]
+    country: Optional[str] = Field(None, description="The country asked about")
+    sp_region: Optional[SpRegion] = Field(None, description="S&P's region for that country")
+    default: Optional[DefaultBaseRates] = None
+    recovery: Optional[RecoveryBaseRates] = None
+
+
+class CoverageBucket(BaseModel):
+    bucket: str
+    count: int
+
+
+class CoverageCollection(BaseModel):
+    id: Literal["reference_deals", "examples"]
+    count: int
+    sourced: bool = Field(description="Whether every figure in its deals carries a source")
+    dimensions: Dict[Literal["region", "size", "sector", "era", "outcome"], List[CoverageBucket]]
+
+
+class BaseRateCoverage(BaseModel):
+    table: BaseRateTableId
+    source: str
+    regions: int
+    bands: int = Field(description="Rating bands, grades or seniority classes")
+    first_year: int
+    last_year: int
+    observations: Optional[int] = Field(None, description="Issuers or borrowers behind the table")
+
+
+class CoverageResponse(BaseModel):
+    enabled: bool
+    collections: List[CoverageCollection]
+    base_rates: List[BaseRateCoverage]

@@ -51,6 +51,13 @@ jobs:
         continue-on-error: true
         working-directory: .
         run: python3 ops/check_headers.py --web https://variater.com --api https://api.variater.com
+      # The reference library's default and recovery studies: each edition is
+      # rechecked for a newer one a year after it was last confirmed (PLAN.md 4.5)
+      - name: Base rates editions check
+        id: base_rates
+        continue-on-error: true
+        working-directory: .
+        run: python3 -m ops.check_base_rates
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:live
@@ -59,8 +66,8 @@ jobs:
           E2E_EXPECT_ENV: production
       # Uptime monitors check that production is reachable; this catches a
       # site that is up but giving wrong answers (PLAN.md 1.2)
-      - name: Fail the run if the database, limits or header check failed
-        if: steps.database.outcome == 'failure' || steps.limits.outcome == 'failure' || steps.headers.outcome == 'failure'
+      - name: Fail the run if the database, limits, header or base rates check failed
+        if: steps.database.outcome == 'failure' || steps.limits.outcome == 'failure' || steps.headers.outcome == 'failure' || steps.base_rates.outcome == 'failure'
         run: exit 1
       - name: Alert if the live checks failed
         if: failure()
@@ -68,4 +75,4 @@ jobs:
         env:
           BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
         run: |
-          python3 ops/betterstack.py incident --name "Production checks failed" --summary "Live checks failed (browser, database, usage limits or headers): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          python3 ops/betterstack.py incident --name "Production checks failed" --summary "Live checks failed (browser, database, usage limits, headers or base rates): $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

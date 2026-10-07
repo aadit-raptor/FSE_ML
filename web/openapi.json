@@ -336,6 +336,88 @@
         "title": "ActualYearIn",
         "type": "object"
       },
+      "AnnualByGrade": {
+        "properties": {
+          "defaults": {
+            "description": "Defaults that year, including issuers no longer rated",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Defaults",
+            "type": "array"
+          },
+          "rates": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "enum": [
+                "all_rated",
+                "investment_grade",
+                "speculative_grade"
+              ]
+            },
+            "title": "Rates",
+            "type": "object"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "years",
+          "defaults",
+          "rates"
+        ],
+        "title": "AnnualByGrade",
+        "type": "object"
+      },
+      "AnnualByRating": {
+        "properties": {
+          "rates": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "Per cent of issuers rated at the start of the year",
+            "propertyNames": {
+              "enum": [
+                "AAA",
+                "AA",
+                "A",
+                "BBB",
+                "BB",
+                "B",
+                "CCC/C"
+              ]
+            },
+            "title": "Rates",
+            "type": "object"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "years",
+          "rates"
+        ],
+        "title": "AnnualByRating",
+        "type": "object"
+      },
       "AuditEntry": {
         "description": "One thing done to a deal or the account's settings (PLAN.md 3.3). Holds\nwhat was touched, never a figure, a name or a label.",
         "properties": {
@@ -353,7 +435,8 @@
               "exported",
               "deleted",
               "settings_changed",
-              "shared"
+              "shared",
+              "library_switched"
             ],
             "title": "Action",
             "type": "string"
@@ -391,6 +474,18 @@
             ],
             "description": "The deal's name now (account history only); null once it is deleted",
             "title": "Deal Name"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the reference library was shown or hidden",
+            "title": "Enabled"
           },
           "export": {
             "anyOf": [
@@ -975,6 +1070,289 @@
           "p95"
         ],
         "title": "Bands",
+        "type": "object"
+      },
+      "BaseRateCoverage": {
+        "properties": {
+          "bands": {
+            "description": "Rating bands, grades or seniority classes",
+            "title": "Bands",
+            "type": "integer"
+          },
+          "first_year": {
+            "title": "First Year",
+            "type": "integer"
+          },
+          "last_year": {
+            "title": "Last Year",
+            "type": "integer"
+          },
+          "observations": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Issuers or borrowers behind the table",
+            "title": "Observations"
+          },
+          "regions": {
+            "title": "Regions",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "table": {
+            "enum": [
+              "annual_by_rating",
+              "annual_by_grade",
+              "speculative_by_region",
+              "cumulative_global",
+              "cumulative_by_region",
+              "lgd_by_seniority",
+              "lgd_by_year",
+              "lgd_by_region"
+            ],
+            "title": "Table",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table",
+          "source",
+          "regions",
+          "bands",
+          "first_year",
+          "last_year"
+        ],
+        "title": "BaseRateCoverage",
+        "type": "object"
+      },
+      "BaseRateSample": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "first_year": {
+            "title": "First Year",
+            "type": "integer"
+          },
+          "last_year": {
+            "title": "Last Year",
+            "type": "integer"
+          },
+          "what": {
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "count",
+          "what",
+          "first_year",
+          "last_year"
+        ],
+        "title": "BaseRateSample",
+        "type": "object"
+      },
+      "BaseRateSource": {
+        "properties": {
+          "checked_on": {
+            "description": "When this edition was last confirmed as the newest free to read",
+            "title": "Checked On",
+            "type": "string"
+          },
+          "id": {
+            "enum": [
+              "sp_default_study_2024",
+              "gcd_lgd_2020"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "default",
+              "recovery"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "published": {
+            "description": "ISO date, or year and month",
+            "title": "Published",
+            "type": "string"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "recheck_due": {
+            "description": "A year after checked_on",
+            "title": "Recheck Due",
+            "type": "string"
+          },
+          "sample": {
+            "$ref": "#/components/schemas/BaseRateSample"
+          },
+          "stale": {
+            "description": "True once recheck_due has passed: a newer edition may exist",
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "publisher",
+          "title",
+          "published",
+          "url",
+          "sample",
+          "note",
+          "checked_on",
+          "recheck_due",
+          "stale"
+        ],
+        "title": "BaseRateSource",
+        "type": "object"
+      },
+      "BaseRateTable": {
+        "properties": {
+          "id": {
+            "enum": [
+              "annual_by_rating",
+              "annual_by_grade",
+              "speculative_by_region",
+              "cumulative_global",
+              "cumulative_by_region",
+              "lgd_by_seniority",
+              "lgd_by_year",
+              "lgd_by_region"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "table": {
+            "description": "The table's number in its source",
+            "title": "Table",
+            "type": "string"
+          },
+          "title": {
+            "description": "The table's title as its source prints it",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "table",
+          "title"
+        ],
+        "title": "BaseRateTable",
+        "type": "object"
+      },
+      "BaseRatesResponse": {
+        "properties": {
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The country asked about",
+            "title": "Country"
+          },
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DefaultBaseRates"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "description": "False when the library is switched off: everything else is empty",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "recovery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecoveryBaseRates"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/BaseRateSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "sp_region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "S&P's region for that country",
+            "title": "Sp Region"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/BaseRateTable"
+            },
+            "title": "Tables",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled",
+          "sources",
+          "tables"
+        ],
+        "title": "BaseRatesResponse",
         "type": "object"
       },
       "BenchmarkIndustriesResponse": {
@@ -2073,6 +2451,153 @@
         "title": "CompanyYearOut",
         "type": "object"
       },
+      "CoverageBucket": {
+        "properties": {
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bucket",
+          "count"
+        ],
+        "title": "CoverageBucket",
+        "type": "object"
+      },
+      "CoverageCollection": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "dimensions": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/CoverageBucket"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "enum": [
+                "region",
+                "size",
+                "sector",
+                "era",
+                "outcome"
+              ]
+            },
+            "title": "Dimensions",
+            "type": "object"
+          },
+          "id": {
+            "enum": [
+              "reference_deals",
+              "examples"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "sourced": {
+            "description": "Whether every figure in its deals carries a source",
+            "title": "Sourced",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "count",
+          "sourced",
+          "dimensions"
+        ],
+        "title": "CoverageCollection",
+        "type": "object"
+      },
+      "CoverageResponse": {
+        "properties": {
+          "base_rates": {
+            "items": {
+              "$ref": "#/components/schemas/BaseRateCoverage"
+            },
+            "title": "Base Rates",
+            "type": "array"
+          },
+          "collections": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageCollection"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "collections",
+          "base_rates"
+        ],
+        "title": "CoverageResponse",
+        "type": "object"
+      },
+      "CumulativeRates": {
+        "properties": {
+          "horizons": {
+            "description": "Years after the rating: rates[k][i] is after i + 1 years",
+            "title": "Horizons",
+            "type": "integer"
+          },
+          "rates": {
+            "additionalProperties": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "description": "By rating, and investment_grade, speculative_grade, all_rated",
+            "title": "Rates",
+            "type": "object"
+          },
+          "region": {
+            "enum": [
+              "global",
+              "us",
+              "europe",
+              "emerging"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "table": {
+            "enum": [
+              "annual_by_rating",
+              "annual_by_grade",
+              "speculative_by_region",
+              "cumulative_global",
+              "cumulative_by_region",
+              "lgd_by_seniority",
+              "lgd_by_year",
+              "lgd_by_region"
+            ],
+            "title": "Table",
+            "type": "string"
+          }
+        },
+        "required": [
+          "region",
+          "table",
+          "horizons",
+          "rates"
+        ],
+        "title": "CumulativeRates",
+        "type": "object"
+      },
       "DealActuals": {
         "additionalProperties": false,
         "description": "What happened to a deal: results for its first years (as many as are\nknown, up to its hold) and, once it has been sold, the exit.",
@@ -2950,6 +3475,51 @@
           "updated_at"
         ],
         "title": "DealSummary",
+        "type": "object"
+      },
+      "DefaultBaseRates": {
+        "properties": {
+          "annual_by_grade": {
+            "$ref": "#/components/schemas/AnnualByGrade"
+          },
+          "annual_by_rating": {
+            "$ref": "#/components/schemas/AnnualByRating"
+          },
+          "cumulative": {
+            "items": {
+              "$ref": "#/components/schemas/CumulativeRates"
+            },
+            "title": "Cumulative",
+            "type": "array"
+          },
+          "ratings": {
+            "items": {
+              "enum": [
+                "AAA",
+                "AA",
+                "A",
+                "BBB",
+                "BB",
+                "B",
+                "CCC/C"
+              ],
+              "type": "string"
+            },
+            "title": "Ratings",
+            "type": "array"
+          },
+          "speculative_by_region": {
+            "$ref": "#/components/schemas/SpeculativeByRegion"
+          }
+        },
+        "required": [
+          "ratings",
+          "annual_by_rating",
+          "annual_by_grade",
+          "speculative_by_region",
+          "cumulative"
+        ],
+        "title": "DefaultBaseRates",
         "type": "object"
       },
       "DrillJob": {
@@ -5491,6 +6061,107 @@
         "title": "LeaseSummary",
         "type": "object"
       },
+      "LgdRow": {
+        "properties": {
+          "defaults": {
+            "description": "Defaulted borrowers",
+            "title": "Defaults",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "lgd_pct": {
+            "description": "Loss given default, per cent of exposure; recovery is 100 less this",
+            "title": "Lgd Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "defaults",
+          "lgd_pct"
+        ],
+        "title": "LgdRow",
+        "type": "object"
+      },
+      "LgdYear": {
+        "properties": {
+          "defaults": {
+            "title": "Defaults",
+            "type": "integer"
+          },
+          "lgd_pct": {
+            "title": "Lgd Pct",
+            "type": "number"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "defaults",
+          "lgd_pct"
+        ],
+        "title": "LgdYear",
+        "type": "object"
+      },
+      "LibraryState": {
+        "properties": {
+          "can_switch": {
+            "description": "The caller is an administrator and may switch it",
+            "title": "Can Switch",
+            "type": "boolean"
+          },
+          "enabled": {
+            "description": "Whether the library is shown to everyone",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "locked_off": {
+            "description": "The server's configuration forces it off (FSE_EXAMPLE_LIBRARY=0)",
+            "title": "Locked Off",
+            "type": "boolean"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When an administrator last switched it (UTC)",
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "enabled",
+          "locked_off",
+          "can_switch"
+        ],
+        "title": "LibraryState",
+        "type": "object"
+      },
+      "LibrarySwitch": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "LibrarySwitch",
+        "type": "object"
+      },
       "LimitInfo": {
         "properties": {
           "limit": {
@@ -6906,6 +7577,38 @@
         "title": "PreloadedDeal",
         "type": "object"
       },
+      "RecoveryBaseRates": {
+        "properties": {
+          "by_region": {
+            "items": {
+              "$ref": "#/components/schemas/LgdRow"
+            },
+            "title": "By Region",
+            "type": "array"
+          },
+          "by_seniority": {
+            "items": {
+              "$ref": "#/components/schemas/LgdRow"
+            },
+            "title": "By Seniority",
+            "type": "array"
+          },
+          "by_year": {
+            "items": {
+              "$ref": "#/components/schemas/LgdYear"
+            },
+            "title": "By Year",
+            "type": "array"
+          }
+        },
+        "required": [
+          "by_seniority",
+          "by_year",
+          "by_region"
+        ],
+        "title": "RecoveryBaseRates",
+        "type": "object"
+      },
       "ReferenceRatesResponse": {
         "properties": {
           "as_of": {
@@ -7193,6 +7896,507 @@
         "title": "ReturnsResult",
         "type": "object"
       },
+      "RiskAssumptionsResponse": {
+        "properties": {
+          "correlation": {
+            "$ref": "#/components/schemas/RiskCorrelation"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/RiskFigure"
+            },
+            "title": "Figures",
+            "type": "array"
+          },
+          "industry": {
+            "title": "Industry",
+            "type": "string"
+          },
+          "industry_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The industry as the source names it; null before the first refresh",
+            "title": "Industry Name"
+          },
+          "min_years": {
+            "description": "A spread needs at least this many usable years",
+            "title": "Min Years",
+            "type": "integer"
+          },
+          "missing": {
+            "description": "Settings with no sourced figure: they keep their value",
+            "items": {
+              "$ref": "#/components/schemas/RiskMissing"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "size_not_split",
+                "growth_economy_wide",
+                "rate_policy_only",
+                "industry_aggregates"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the stored averages were last read (UTC)",
+            "title": "Refreshed At"
+          },
+          "region": {
+            "enum": [
+              "us",
+              "japan",
+              "china",
+              "india",
+              "europe",
+              "aus_nz_canada",
+              "emerging",
+              "global"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "scenarios": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RiskScenario"
+            },
+            "propertyNames": {
+              "enum": [
+                "recession",
+                "stagflation",
+                "bull"
+              ]
+            },
+            "title": "Scenarios",
+            "type": "object"
+          },
+          "settings": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "The value of each Setting found",
+            "propertyNames": {
+              "enum": [
+                "mc_growth_mean",
+                "mc_exit_mean",
+                "mc_rate_mean",
+                "mc_gm_mean",
+                "mc_growth_std",
+                "mc_exit_std",
+                "mc_rate_std",
+                "mc_gm_std",
+                "corr_g_em",
+                "corr_g_ir",
+                "corr_g_gm",
+                "corr_g_sh",
+                "corr_em_ir",
+                "corr_em_gm",
+                "corr_em_sh",
+                "corr_ir_gm",
+                "corr_ir_sh",
+                "corr_gm_sh",
+                "bull_growth_mult",
+                "bull_exit_mult",
+                "bull_rate_mult",
+                "bull_margin_mult",
+                "rec_growth_adj",
+                "rec_growth_floor",
+                "rec_exit_mult",
+                "rec_rate_mult",
+                "rec_margin_mult",
+                "stag_growth_adj",
+                "stag_growth_floor",
+                "stag_exit_mult",
+                "stag_rate_mult",
+                "stag_margin_mult"
+              ]
+            },
+            "title": "Settings",
+            "type": "object"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BenchmarkSourceOut"
+          },
+          "window_start": {
+            "description": "The first year of economic history read",
+            "title": "Window Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "country",
+          "industry",
+          "currency",
+          "region",
+          "settings",
+          "figures",
+          "missing",
+          "scenarios",
+          "correlation",
+          "window_start",
+          "min_years",
+          "notes",
+          "source"
+        ],
+        "title": "RiskAssumptionsResponse",
+        "type": "object"
+      },
+      "RiskCorrelation": {
+        "properties": {
+          "economies": {
+            "title": "Economies",
+            "type": "integer"
+          },
+          "group": {
+            "enum": [
+              "us",
+              "japan",
+              "china",
+              "india",
+              "europe",
+              "aus_nz_canada",
+              "emerging",
+              "global"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "level": {
+            "enum": [
+              "country",
+              "region",
+              "global"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "matrix": {
+            "description": "The valid matrix the Settings take",
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Matrix",
+            "type": "array"
+          },
+          "observations": {
+            "description": "What each correlation rests on: industry-years, or years for growth and the rate",
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Observations",
+            "type": "array"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "rows": {
+            "description": "Industry-years in the panel",
+            "title": "Rows",
+            "type": "integer"
+          },
+          "shrink": {
+            "description": "How far the measured matrix was shrunk toward no correlation to be valid (0 = not at all)",
+            "title": "Shrink",
+            "type": "number"
+          }
+        },
+        "required": [
+          "group",
+          "level",
+          "labels",
+          "matrix",
+          "observations",
+          "rows",
+          "economies",
+          "shrink"
+        ],
+        "title": "RiskCorrelation",
+        "type": "object"
+      },
+      "RiskFigure": {
+        "properties": {
+          "area": {
+            "description": "The group or country the figure is for",
+            "title": "Area",
+            "type": "string"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The publisher's date, when there is one",
+            "title": "As Of"
+          },
+          "dataset": {
+            "description": "The table or series read",
+            "title": "Dataset",
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "description": "The years and published figures it was worked out from",
+            "title": "Detail",
+            "type": "object"
+          },
+          "field": {
+            "description": "The Setting this figure fills",
+            "enum": [
+              "mc_growth_mean",
+              "mc_exit_mean",
+              "mc_rate_mean",
+              "mc_gm_mean",
+              "mc_growth_std",
+              "mc_exit_std",
+              "mc_rate_std",
+              "mc_gm_std",
+              "corr_g_em",
+              "corr_g_ir",
+              "corr_g_gm",
+              "corr_g_sh",
+              "corr_em_ir",
+              "corr_em_gm",
+              "corr_em_sh",
+              "corr_ir_gm",
+              "corr_ir_sh",
+              "corr_gm_sh",
+              "bull_growth_mult",
+              "bull_exit_mult",
+              "bull_rate_mult",
+              "bull_margin_mult",
+              "rec_growth_adj",
+              "rec_growth_floor",
+              "rec_exit_mult",
+              "rec_rate_mult",
+              "rec_margin_mult",
+              "stag_growth_adj",
+              "stag_growth_floor",
+              "stag_exit_mult",
+              "stag_rate_mult",
+              "stag_margin_mult"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "country",
+              "region",
+              "global"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Companies, economies, years or industry-years behind it",
+            "title": "Sample"
+          },
+          "sample_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "companies",
+                  "economies",
+                  "countries",
+                  "years",
+                  "industry_years"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Kind"
+          },
+          "skipped": {
+            "description": "Closer groups passed over, and why",
+            "items": {
+              "$ref": "#/components/schemas/RiskSkipped"
+            },
+            "title": "Skipped",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "damodaran",
+              "imf",
+              "bis",
+              "benchmark",
+              "tax_foundation",
+              "choice",
+              "damodaran+imf+bis"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "value": {
+            "description": "As the Setting reads it: per cent, a multiple, a multiplier or a correlation",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "source",
+          "dataset",
+          "area",
+          "level",
+          "skipped",
+          "detail"
+        ],
+        "title": "RiskFigure",
+        "type": "object"
+      },
+      "RiskMissing": {
+        "properties": {
+          "field": {
+            "enum": [
+              "mc_growth_mean",
+              "mc_exit_mean",
+              "mc_rate_mean",
+              "mc_gm_mean",
+              "mc_growth_std",
+              "mc_exit_std",
+              "mc_rate_std",
+              "mc_gm_std",
+              "corr_g_em",
+              "corr_g_ir",
+              "corr_g_gm",
+              "corr_g_sh",
+              "corr_em_ir",
+              "corr_em_gm",
+              "corr_em_sh",
+              "corr_ir_gm",
+              "corr_ir_sh",
+              "corr_gm_sh",
+              "bull_growth_mult",
+              "bull_exit_mult",
+              "bull_rate_mult",
+              "bull_margin_mult",
+              "rec_growth_adj",
+              "rec_growth_floor",
+              "rec_exit_mult",
+              "rec_rate_mult",
+              "rec_margin_mult",
+              "stag_growth_adj",
+              "stag_growth_floor",
+              "stag_exit_mult",
+              "stag_rate_mult",
+              "stag_margin_mult"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/RiskSkipped"
+            },
+            "title": "Skipped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "field",
+          "skipped"
+        ],
+        "title": "RiskMissing",
+        "type": "object"
+      },
+      "RiskPeriod": {
+        "properties": {
+          "end": {
+            "description": "Its last year (the same for a single year)",
+            "title": "End",
+            "type": "integer"
+          },
+          "start": {
+            "description": "The period's first year",
+            "title": "Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "RiskPeriod",
+        "type": "object"
+      },
       "RiskSample": {
         "properties": {
           "count": {
@@ -7220,6 +8424,131 @@
           "last_year"
         ],
         "title": "RiskSample",
+        "type": "object"
+      },
+      "RiskScenario": {
+        "properties": {
+          "area": {
+            "description": "The country, or the group whose economies' median stands in for it",
+            "title": "Area",
+            "type": "string"
+          },
+          "economies": {
+            "title": "Economies",
+            "type": "integer"
+          },
+          "id": {
+            "enum": [
+              "recession",
+              "stagflation",
+              "bull"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "country",
+              "region",
+              "global"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "of_years": {
+            "description": "How many years they were chosen from",
+            "title": "Of Years",
+            "type": "integer"
+          },
+          "periods": {
+            "description": "The years, consecutive ones joined",
+            "items": {
+              "$ref": "#/components/schemas/RiskPeriod"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "rule": {
+            "description": "The fifth of the economy's years the preset is built from: lowest real GDP growth, highest inflation, highest real GDP growth",
+            "enum": [
+              "weakest_growth",
+              "highest_inflation",
+              "strongest_growth"
+            ],
+            "title": "Rule",
+            "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "First and last year looked at",
+            "title": "Window"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "rule",
+          "area",
+          "level",
+          "economies",
+          "years",
+          "periods",
+          "of_years"
+        ],
+        "title": "RiskScenario",
+        "type": "object"
+      },
+      "RiskSkipped": {
+        "properties": {
+          "area": {
+            "description": "A group (benchmarks/catalogue.py REGIONS), a country or a currency code",
+            "title": "Area",
+            "type": "string"
+          },
+          "reason": {
+            "description": "short: fewer usable years than min_years; base_not_positive: a multiplier needs a positive mean to scale; no_history_in_years: the industry's history has none of the scenario's years; the rest as for the starting figures",
+            "enum": [
+              "thin",
+              "unusable",
+              "missing",
+              "short",
+              "base_not_positive",
+              "no_history_in_years"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Companies (or usable years, when short), when known",
+            "title": "Sample"
+          }
+        },
+        "required": [
+          "area",
+          "reason"
+        ],
+        "title": "RiskSkipped",
         "type": "object"
       },
       "RiskSource": {
@@ -8124,6 +9453,63 @@
           "model"
         ],
         "title": "SourcesUsesResponse",
+        "type": "object"
+      },
+      "SpeculativeByRegion": {
+        "properties": {
+          "rates": {
+            "additionalProperties": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "description": "Null where the source has no figure",
+            "propertyNames": {
+              "enum": [
+                "us",
+                "europe",
+                "emerging",
+                "other_developed"
+              ]
+            },
+            "title": "Rates",
+            "type": "object"
+          },
+          "regions": {
+            "items": {
+              "enum": [
+                "us",
+                "europe",
+                "emerging",
+                "other_developed"
+              ],
+              "type": "string"
+            },
+            "title": "Regions",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "years",
+          "regions",
+          "rates"
+        ],
+        "title": "SpeculativeByRegion",
         "type": "object"
       },
       "StartingAssumptionsResponse": {
@@ -10330,6 +11716,91 @@
           }
         ],
         "summary": "Get Industries",
+        "tags": [
+          "benchmarks"
+        ]
+      }
+    },
+    "/api/benchmarks/risk": {
+      "get": {
+        "operationId": "get_risk_api_benchmarks_risk_get",
+        "parameters": [
+          {
+            "description": "ISO 3166-1 alpha-2",
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "description": "ISO 3166-1 alpha-2",
+              "pattern": "^[A-Z]{2}$",
+              "title": "Country",
+              "type": "string"
+            }
+          },
+          {
+            "description": "An id from /api/benchmarks/industries",
+            "in": "query",
+            "name": "industry",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "An id from /api/benchmarks/industries",
+              "pattern": "^[a-z0-9_]{1,60}$",
+              "title": "Industry",
+              "type": "string"
+            }
+          },
+          {
+            "description": "ISO 4217",
+            "in": "query",
+            "name": "currency",
+            "required": true,
+            "schema": {
+              "description": "ISO 4217",
+              "pattern": "^[A-Z]{3}$",
+              "title": "Currency",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskAssumptionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Risk",
         "tags": [
           "benchmarks"
         ]
@@ -12603,6 +14074,205 @@
         "summary": "Cancel Job",
         "tags": [
           "jobs"
+        ]
+      }
+    },
+    "/api/library": {
+      "get": {
+        "description": "Whether the library is shown, and whether the caller may switch it.",
+        "operationId": "get_state_api_library_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get State",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/base-rates": {
+      "get": {
+        "description": "Published default and recovery rates by region, rating band and year, each with its source.",
+        "operationId": "get_base_rates_api_library_base_rates_get",
+        "parameters": [
+          {
+            "description": "ISO country code, to name its S&P region",
+            "in": "query",
+            "name": "country",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Za-z]{2}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ISO country code, to name its S&P region",
+              "title": "Country"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseRatesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Base Rates",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/coverage": {
+      "get": {
+        "description": "What the library covers, in counts by region, size, sector, era and outcome.",
+        "operationId": "get_coverage_api_library_coverage_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Coverage",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/switch": {
+      "put": {
+        "description": "Show or hide the library for everyone (administrators only).",
+        "operationId": "put_switch_api_library_switch_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibrarySwitch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Switch",
+        "tags": [
+          "library"
         ]
       }
     },

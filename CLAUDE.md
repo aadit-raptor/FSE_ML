@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-07 (PLAN.md 4.3: sourced starting figures by region, industry and size). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-07 (PLAN.md 4.5a: reference library switch, base rates and coverage). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -754,6 +754,76 @@ amortisation) may only shrink. Tests replay trimmed real workbooks
 `xlwt`); the browser tests replay `web/e2e/fixtures/benchmarks.json` from
 `python -m tests.e2e_benchmarks`, checked stale by `tests/test_benchmarks.py`.
 
+Risk ranges, correlations and scenarios (PLAN.md 4.4): **every Monte Carlo
+Setting is sourced** for the deal's country and industry by
+`benchmarks/risk.py` (`GET /api/benchmarks/risk`), each with source, group,
+sample and years, on history from `benchmarks/history.py`: Damodaran's
+**archive** of past January editions (file `marginEurope16.xls` = the
+January 2017 edition = **year 2016**; the current edition is last year) per
+group, as tables `history.<group>` plus a read log `history.read`, and
+`history.macro` (IMF growth and inflation, BIS monthly policy rates averaged
+over full years, from `WINDOW_START` 2000). Both live in `benchmark_tables`
+(budget now 8 MB; `all_tables()` leaves `history.*` out unless asked).
+`benchmarks-refresh` reads the current tables, then (in a later call, to
+stay inside the scheduler's two minutes) **a dozen archive files a call**,
+answering `more` until done, so both workflows run it with `--repeat 24`;
+staging requires `history_groups == 8`, `history_left == 0` and
+`macro_economies >= 20`. A file read once is final, except a missing one of
+the newest archived year. Means = the 4.3 starting figures; spreads = the
+industry's year-to-year spread of EV/EBITDA and gross margin (closest group
+with `MIN_YEARS` 6), the country's nominal GDP growth, the policy rate's
+yearly change; correlations per group = Spearman of yearly changes pooled
+over industries, turned normal (2 sin(pi rho / 6)), shrunk toward identity
+only when needed (`valid_matrix`, eigenvalue floor 0.05 so 2-decimal
+rounding stays valid); presets = the country's weakest-growth,
+highest-inflation and strongest-growth **fifth of years** since 2000, listed
+as periods, moving each mean by what happened then (a rate change or a bull
+growth change is written as a multiplier of the sourced mean). **These are
+Settings values applied by the user** (Monte Carlo rail group "Sources",
+"Use sourced figures"; the Scenarios step's tile lists sources and preset
+years), stored with the deal; the engine and the pinned simulation are
+untouched. **Decided 2026-10-07: the simulation's means stay Settings**
+(applied with the rest), not tied to the deal, so the screen's stale
+behaviour and pinned Monte Carlo numbers are unchanged. The registry's only
+`pending` Settings left are 4.5's fees and amortisation. Tests replay
+`tests/fixtures/benchmarks/history` (`python -m benchmarks.record --history`,
+about 15 minutes paced; workbooks trimmed to ten industries, an unreadable
+edition kept as its first 4 KB); browser tests replay the `risk` answers in
+`web/e2e/fixtures/benchmarks.json`.
+
+Reference library, part one (PLAN.md 4.5a; 4.5b adds the sourced
+transactions and two-person review): a **Library** tab (`nav.ts` mode
+`library`, `optional: true`, last so hiding it moves no Alt shortcut; the
+shell lists modes through `components/shell/useModes.ts`) with Base rates,
+Examples and Coverage. **Base rates** (`library/base_rates.py`,
+`GET /api/library/base-rates?country=`) are transcribed tables, never
+estimates: S&P's 2024 global default study (the Maalot copy, as 2.8 uses;
+Tables 1, 3, 5, 24, 25) and Global Credit Data's 2020 LGD report on bank
+loans to large corporates (Tables 2-4), parsed from the PDFs with
+`pdftotext -table` (not `-layout`, which scrambles rows) and checked in
+`tests/test_base_rates.py` against the sources' own summary rows (S&P's
+Table 4 minimum, maximum and median per rating; GCD's totals). **Decided
+with the user (2026-10-07): fixed editions, not live data** -- each source
+has `checked_on`; a year later the screen says "due a check" and
+`ops/check_base_rates.py` fails `live.yml`; then transcribe a newer edition
+or confirm none is free and move `checked_on`. Nothing in the deal model,
+simulation or risk warnings reads the library. **Coverage**
+(`library/coverage.py`, `GET /api/library/coverage`) counts deals by S&P
+region, size (entry EV in US dollars), sector, era and outcome, empty
+buckets listed; the four inception deals are the `examples` collection
+(unsourced, tagged US in `EXAMPLE_COUNTRY`) and `reference_deals` is
+reserved for 4.5b. **The admin switch** (`library/switch.py`): on unless an
+administrator hides it (`PUT /api/library/switch`, table `app_flags`,
+migration 0014, one `library_switched` audit entry per change, none for a
+repeat) or `FSE_EXAMPLE_LIBRARY=0` forces it off (409 to switching then).
+**Administrators are `FSE_ADMINS`** (comma-separated Clerk user ids on the
+Render service; none set means nobody can switch). The stored choice is
+cached a minute per process (`CACHE_S`; `tests/conftest.py` resets it).
+Off: the tab disappears except for administrators, `/library/*` says it is
+off, examples and library endpoints answer `enabled: false`;
+`e2e/library.spec.ts` opens every other step with it off. `core/examples.py`
+no longer reads the switch; the routers do.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -798,7 +868,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). **Next is 4.4** (risk ranges, correlations and scenarios by region).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 was split: **4.5a** is done (the library's switch, base rates and coverage, below). **Next is 4.5b** (reference transactions, two-person review, fees and amortisation).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1020,7 +1090,8 @@ golden snapshot is untouched and parity tests explain every departure.
 | `lbo_engine/tax.py`, `core/tax.py`, `web/src/components/deal/steps/TaxRules.tsx` | Tax rules (PLAN.md 2.5): the mechanics (one function for deal and simulation), the country presets with sources and dates and the deal-to-rules conversion, the Tax rail group |
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
 | `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder, the summary as deal inputs and forecast rows (`use.py`); storage, budget and the EDINET index; the endpoints |
-| `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx` | Sourced starting figures (PLAN.md 4.3): regions and data sets read, the workbook reader, a deal's starting figures, the weekly-gated refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and Starting figures tile |
+| `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx`, `web/src/components/montecarlo/SourcedRisk.tsx` | Sourced starting figures (PLAN.md 4.3) and risk ranges (4.4): regions and data sets read, the workbook reader, a deal's starting figures, the archive and economic history (`history.py`), the Monte Carlo Settings from it (`risk.py`), the refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and tile, the Monte Carlo "Sources" rail group and tile |
+| `library/`, `db/flags.py`, `api/routers/library.py`, `web/src/components/library/`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5a): the cited base-rate tables, the coverage counts and the admin switch; site-wide switches; the endpoints; the Library screens and their provider; the yearly editions check |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
 | `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
@@ -1334,6 +1405,14 @@ Skills load when a session starts: install first, then open a new session.
   Germanys. `lib/locale.ts` `countryOptions` drops any code that
   `Intl.getCanonicalLocales` maps elsewhere; accounts saved earlier may hold
   one, so the API reads them through `benchmarks.catalogue.canonical`.
+- A refresh must store the `now` it judges freshness by (`db/benchmarks.py`
+  `save(tables, now)`): storing the wall clock made "a week old" depend on the
+  day the tests ran (a 4.3 test went red the day after its fixture was
+  recorded).
+- Damodaran's archive names a file by the year it describes, one less than
+  its edition: `vebitdaEurope24.xls` is January 2025's. Older editions print
+  fewer columns and some are missing or not workbooks at all; read them with
+  `parse_industries(..., every_column=False)`.
 - Damodaran's workbooks name the same figure differently in each data set,
   and a column name can mislead: "Net Cap Ex/Sales" includes acquisitions
   and R&D. Read the "Variables & FAQ" sheet before mapping a column, and
@@ -1362,6 +1441,12 @@ Skills load when a session starts: install first, then open a new session.
   (`_recorded_on`), never today, or they go stale on their own; a refresh's
   exchange rate request depends on what is stored, so the test transport
   answers the recorded rates for any start day.
+- A table transcribed from a PDF: read it with `pdftotext -table` (the
+  scratchpad has it via Git's mingw64; `-layout` interleaves rows), convert it
+  with a script rather than by hand, and test it against the source's own
+  summary rows. Some free copies only download (maalot.co.il); the user
+  agreed (2026-10-07) to downloading public source documents into the
+  scratchpad to read them.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.

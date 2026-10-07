@@ -136,3 +136,13 @@ export async function replayBenchmarks(page: Page) {
     return answer ? route.fulfill({ json: answer }) : route.fulfill({ status: 404, json: { detail: "Not recorded." } });
   });
 }
+
+/** The sourced Monte Carlo ranges (PLAN.md 4.4), replayed from the same file. */
+export async function replayRisk(page: Page) {
+  const recorded = recordedBenchmarks();
+  await page.route("**/api/benchmarks/risk?*", (route) => {
+    const q = new URL(route.request().url()).searchParams;
+    const answer = recorded.risk[`${q.get("country")}|${q.get("industry")}|${q.get("currency")}`];
+    return answer ? route.fulfill({ json: answer }) : route.fulfill({ status: 404, json: { detail: "Not recorded." } });
+  });
+}
