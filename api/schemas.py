@@ -1178,7 +1178,7 @@ class VersionList(BaseModel):
 
 AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
                       "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
-                      "shared", "library_switched"]
+                      "shared", "library_switched", "reference_proposed", "reference_reviewed"]
 
 
 class AuditEntry(BaseModel):
@@ -1199,6 +1199,8 @@ class AuditEntry(BaseModel):
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
     export: Optional[Literal["workbook", "simulation_sample"]] = None
     enabled: Optional[bool] = Field(None, description="Whether the reference library was shown or hidden")
+    reference: Optional[str] = Field(None, description="The reference transaction proposed or reviewed")
+    verdict: Optional[Literal["approve", "reject"]] = Field(None, description="The review given")
 
 
 class AuditHistory(BaseModel):
@@ -1735,6 +1737,7 @@ class CoverageBucket(BaseModel):
 class CoverageCollection(BaseModel):
     id: Literal["reference_deals", "examples"]
     count: int
+    awaiting_review: Optional[int] = Field(None, description="Reference transactions proposed, not yet decided")
     sourced: bool = Field(description="Whether every figure in its deals carries a source")
     dimensions: Dict[Literal["region", "size", "sector", "era", "outcome"], List[CoverageBucket]]
 
@@ -1753,3 +1756,229 @@ class CoverageResponse(BaseModel):
     enabled: bool
     collections: List[CoverageCollection]
     base_rates: List[BaseRateCoverage]
+
+
+# ---------------------------------------------------------------------------
+# Reference transactions and their review (PLAN.md 4.5b, library/references.py)
+# ---------------------------------------------------------------------------
+ReferenceSector = Literal["communication_services", "consumer_discretionary", "consumer_staples", "energy",
+                          "financials", "health_care", "industrials", "information_technology", "materials",
+                          "real_estate", "utilities"]
+SourceId = Annotated[str, Field(pattern=r"^[a-z0-9_]{1,60}$")]
+Words = Annotated[str, Field(min_length=1, max_length=300)]
+
+
+class ReferenceSource(Strict):
+    filer: Annotated[str, Field(min_length=1, max_length=200)]
+    form: Annotated[str, Field(min_length=1, max_length=20, description="The filing's form, e.g. 10-K, 424B4")]
+    filed: date
+    url: Annotated[str, Field(pattern=r"^https://", max_length=500,
+                              description="The filing on its regulator's or exchange's own site")]
+
+
+class ReferencePart(Strict):
+    label: Words
+    value: float
+    source: SourceId
+    where: Words
+    quote: Optional[Words] = None
+
+
+class _Cited(Strict):
+    source: Optional[SourceId] = None
+    where: Optional[Words] = None
+    quote: Optional[Words] = None
+    note: Optional[Annotated[str, Field(max_length=400)]] = None
+
+
+class ReferenceFigure(_Cited):
+    """A figure read from one place in a filing, or the sum of ``parts``
+    read from several (each with its own source)."""
+    value: float
+    parts: Optional[Annotated[List[ReferencePart], Field(min_length=1, max_length=12)]] = None
+
+    @model_validator(mode="after")
+    def _cited(self):
+        if not self.parts and not (self.source and self.where):
+            raise ValueError("a figure needs a source and where in it, or parts that each have one")
+        return self
+
+
+class ReferenceValue(ReferenceFigure):
+    basis: Literal["stated", "equity_value", "uses_less_fees", "funds_needed"]
+
+
+class ReferenceEbitda(ReferenceFigure):
+    basis: Literal["reported", "adjusted", "stated", "projection"]
+    year: Annotated[int, Field(ge=1950, le=2100, description="The fiscal year it covers")]
+
+
+class ReferenceFigures(Strict):
+    transaction_value: ReferenceValue
+    transaction_value_usd: Optional[ReferenceFigure] = Field(
+        None, description="Needed when the deal is not in US dollars, for its size")
+    ebitda: ReferenceEbitda
+    debt: ReferenceFigure
+    equity: Optional[ReferenceFigure] = None
+    transaction_fees: Optional[ReferenceFigure] = None
+    financing_fees: Optional[ReferenceFigure] = None
+    senior_amort_pct: Optional[ReferenceFigure] = Field(None, description="Per cent of the original principal a year")
+
+
+class ReferenceClosed(Strict):
+    date: date
+    source: SourceId
+    where: Words
+    quote: Optional[Words] = None
+
+
+class ReferenceOutcome(Strict):
+    kind: Literal["success", "distress", "held"]
+    event: Literal["ipo", "sale", "relisted", "missed_payment", "bankruptcy", "restructuring", "held"]
+    year: Annotated[int, Field(ge=1950, le=2100)]
+    source: SourceId
+    where: Words
+    quote: Optional[Words] = None
+    note: Optional[Annotated[str, Field(max_length=400)]] = None
+
+
+class ReferenceDealIn(Strict):
+    """A reference transaction as proposed: money in millions of ``currency``."""
+    key: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]{2,79}$", description="e.g. hca-2006")]
+    target: Annotated[str, Field(min_length=1, max_length=200)]
+    country: Annotated[str, Field(pattern=r"^[A-Z]{2}$", description="Where the business is, ISO 3166-1")]
+    sector: ReferenceSector
+    kind: Literal["take_private", "carve_out", "recapitalization", "secondary"]
+    sponsors: Annotated[List[Annotated[str, Field(min_length=1, max_length=100)]], Field(min_length=1, max_length=12)]
+    currency: Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+    closed: ReferenceClosed
+    figures: ReferenceFigures
+    outcome: ReferenceOutcome
+    sources: Annotated[Dict[SourceId, ReferenceSource], Field(min_length=1, max_length=20)]
+
+
+class ReferenceDerived(BaseModel):
+    entry_multiple: Optional[float] = Field(None, description="Transaction value over EBITDA")
+    leverage: Optional[float] = Field(None, description="Debt over EBITDA")
+    debt_share_pct: Optional[float] = Field(None, description="Debt, per cent of the transaction value")
+    tx_fee_pct: Optional[float] = Field(None, description="Transaction fees, per cent of the transaction value")
+    fin_fee_pct: Optional[float] = Field(None, description="Financing fees, per cent of the debt")
+    def_senior_amort: Optional[float] = Field(None, description="Senior amortisation, per cent a year")
+
+
+class ReferenceTags(BaseModel):
+    region: Optional[SpRegion] = None
+    size: Optional[str] = None
+    sector: str
+    era: Optional[str] = None
+    outcome: str
+
+
+class ReferenceDealView(BaseModel):
+    """A reference transaction with what its figures say together and its coverage buckets."""
+    key: str
+    target: str
+    country: str
+    sector: ReferenceSector
+    kind: str
+    sponsors: List[str]
+    currency: str
+    closed: ReferenceClosed
+    figures: ReferenceFigures
+    outcome: ReferenceOutcome
+    sources: Dict[str, ReferenceSource]
+    derived: ReferenceDerived
+    tags: ReferenceTags
+    approved_at: Optional[datetime] = None
+
+
+class ReferenceDealsResponse(BaseModel):
+    enabled: bool
+    deals: List[ReferenceDealView] = Field(description="The approved reference transactions")
+    awaiting_review: int = Field(description="Proposed and not yet decided")
+
+
+RuleCode = Literal["no_sponsor", "missing_figure", "unknown_figure", "missing_source", "not_a_filing",
+                   "unused_source", "parts_dont_add_up", "not_positive", "multiple_out_of_range",
+                   "debt_exceeds_value", "fee_out_of_range", "amortisation_out_of_range", "closed_in_future",
+                   "outcome_before_close", "event_doesnt_match_outcome"]
+RejectReason = Literal["figure_wrong", "source_wrong", "not_a_buyout", "duplicate", "other"]
+BalanceDimension = Literal["region", "size", "sector", "era", "outcome"]
+
+
+class RuleProblem(BaseModel):
+    code: RuleCode
+    at: Optional[str] = Field(None, description="The figure, source or field it concerns")
+
+
+class BalanceOver(BaseModel):
+    dimension: BalanceDimension
+    bucket: Optional[str] = None
+    share_pct: float = Field(description="The bucket's share of the library with this deal added")
+
+
+class BalanceFill(BaseModel):
+    dimension: BalanceDimension
+    bucket: Optional[str] = None
+
+
+class Balance(BaseModel):
+    over: List[BalanceOver] = Field(description="Buckets this deal would push past half the library")
+    fills: List[BalanceFill] = Field(description="Empty buckets this deal would fill")
+
+
+class ReviewProposal(BaseModel):
+    id: str
+    key: str
+    origin: Literal["repository", "user"]
+    status: Literal["proposed", "approved", "rejected", "superseded"]
+    proposed_at: datetime
+    decided_at: Optional[datetime] = None
+    approvals: int
+    approvals_needed: int
+    rejections: int
+    reasons: List[RejectReason]
+    mine: bool = Field(description="The caller proposed it, so may not review it")
+    my_verdict: Optional[Literal["approve", "reject"]] = None
+    replaces_approved: bool = Field(description="An approved version of this transaction is in the library")
+    deal: ReferenceDealView
+    problems: List[RuleProblem] = Field(description="The inclusion rules' findings; any blocks approval")
+    balance: Balance
+
+
+class ReviewQueue(BaseModel):
+    enabled: bool
+    proposals: List[ReviewProposal] = Field(description="Awaiting review, oldest first")
+    decided: List[ReviewProposal] = Field(description="The latest decided, newest first")
+    library_size: int
+
+
+class ReviewVerdict(Strict):
+    verdict: Literal["approve", "reject"]
+    reason: Optional[RejectReason] = None
+
+    @model_validator(mode="after")
+    def _reason(self):
+        if self.verdict == "reject" and self.reason is None:
+            raise ValueError("a rejection needs a reason")
+        return self
+
+
+FeeSetting = Literal["tx_fee_pct", "fin_fee_pct", "def_senior_amort"]
+
+
+class SourcedFee(BaseModel):
+    value: float = Field(description="The median across the deals, per cent")
+    n: int
+    low: float
+    high: float
+    first_year: int
+    last_year: int
+    deals: List[str] = Field(description="The reference transactions' keys")
+
+
+class SourcedFeesResponse(BaseModel):
+    enabled: bool
+    min_deals: int = Field(description="Deals a figure needs before it is offered")
+    library_size: int
+    settings: Dict[FeeSetting, Optional[SourcedFee]]

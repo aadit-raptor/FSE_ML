@@ -263,7 +263,9 @@ class DealVersion(Base):
 AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
                  "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed", "shared",
                  # An administrator showed or hid the reference library (PLAN.md 4.5)
-                 "library_switched")
+                 "library_switched",
+                 # An administrator proposed or reviewed a reference transaction (PLAN.md 4.5b)
+                 "reference_proposed", "reference_reviewed")
 
 
 class AuditEvent(Base):
@@ -557,7 +559,70 @@ class AppFlag(Base):
         BigInteger, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
 
-__all__ = ["AUDIT_ACTIONS", "AppFlag", "AuditEvent", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
+REFERENCE_STATUSES = ("proposed", "approved", "rejected", "superseded")
+REFERENCE_ORIGINS = ("repository", "user")
+REVIEW_VERDICTS = ("approve", "reject")
+REJECT_REASONS = ("figure_wrong", "source_wrong", "not_a_buyout", "duplicate", "other")
+
+
+class ReferenceDeal(Base):
+    """A reference transaction proposed for the library (PLAN.md 4.5b,
+    ``library/references.py``).
+
+    Public filing data, like ``companies``. ``content`` is the transaction as
+    proposed -- figures, sources, outcome -- and never changes: a correction
+    is a new proposal, which on approval supersedes the older approved row of
+    the same ``key``. ``origin`` says who proposed it: the repository
+    (``reference_deals.json``, ``proposed_by`` empty) or an administrator.
+    ``status`` moves from ``proposed`` to ``approved`` on the second approval
+    by an administrator other than the proposer, or to ``rejected`` on the
+    first rejection (``reference_reviews``)."""
+
+    __tablename__ = "reference_deals"
+    __table_args__ = (
+        UniqueConstraint("key", "content_hash", name="uq_reference_deals_key_content_hash"),
+        CheckConstraint("status IN (" + ", ".join(f"'{s}'" for s in REFERENCE_STATUSES) + ")", name="status"),
+        CheckConstraint("origin IN (" + ", ".join(f"'{o}'" for o in REFERENCE_ORIGINS) + ")", name="origin"),
+        Index("ix_reference_deals_status", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    key: Mapped[str] = mapped_column(String(80), nullable=False)
+    content: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    origin: Mapped[str] = mapped_column(String(12), nullable=False)
+    status: Mapped[str] = mapped_column(String(12), nullable=False, server_default="proposed")
+    proposed_by: Mapped[Optional[int]] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    decided_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+
+
+class ReferenceReview(Base):
+    """One administrator's verdict on a proposed reference transaction. One
+    per reviewer and proposal; a rejection says why with a code, never in
+    words (the screen words it)."""
+
+    __tablename__ = "reference_reviews"
+    __table_args__ = (
+        UniqueConstraint("reference_id", "reviewer_id", name="uq_reference_reviews_reference_id_reviewer_id"),
+        CheckConstraint("verdict IN (" + ", ".join(f"'{v}'" for v in REVIEW_VERDICTS) + ")", name="verdict"),
+        CheckConstraint("reason IS NULL OR reason IN (" + ", ".join(f"'{r}'" for r in REJECT_REASONS) + ")",
+                        name="reason"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    reference_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("reference_deals.id", ondelete="CASCADE"), nullable=False)
+    reviewer_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    verdict: Mapped[str] = mapped_column(String(8), nullable=False)
+    reason: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+__all__ = ["AUDIT_ACTIONS", "AppFlag", "AuditEvent", "REFERENCE_ORIGINS", "REFERENCE_STATUSES", "REJECT_REASONS",
+           "REVIEW_VERDICTS", "ReferenceDeal", "ReferenceReview", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
            "UTCDateTime", "VERSION_KINDS", "check_conventions", "utc_now"]

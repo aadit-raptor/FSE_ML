@@ -1,0 +1,3637 @@
+{
+ "approvals_needed": 2,
+ "fees": {
+  "enabled": true,
+  "library_size": 10,
+  "min_deals": 3,
+  "settings": {
+   "def_senior_amort": {
+    "deals": [
+     "dollar-general-2007",
+     "dun-bradstreet-2019",
+     "gymboree-2010"
+    ],
+    "first_year": 2007,
+    "high": 1.0,
+    "last_year": 2019,
+    "low": 1.0,
+    "n": 3,
+    "value": 1.0
+   },
+   "fin_fee_pct": {
+    "deals": [
+     "dollar-general-2007",
+     "dominos-1998",
+     "dun-bradstreet-2019",
+     "gymboree-2010",
+     "hca-2006",
+     "nxp-2006",
+     "toys-r-us-2005"
+    ],
+    "first_year": 1998,
+    "high": 6.0,
+    "last_year": 2019,
+    "low": 1.94,
+    "n": 7,
+    "value": 3.07
+   },
+   "tx_fee_pct": {
+    "deals": [
+     "dollar-general-2007",
+     "dominos-1998",
+     "dun-bradstreet-2019",
+     "gymboree-2010",
+     "hca-2006",
+     "toys-r-us-2005"
+    ],
+    "first_year": 1998,
+    "high": 3.53,
+    "last_year": 2019,
+    "low": 0.63,
+    "n": 6,
+    "value": 1.24
+   }
+  }
+ },
+ "references": {
+  "awaiting_review": 0,
+  "deals": [
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2006-11-17",
+     "quote": "were consummated on November 17, 2006",
+     "source": "hca_10k_2006",
+     "where": "Item 1, Business"
+    },
+    "country": "US",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 60.5,
+     "def_senior_amort": null,
+     "entry_multiple": 7.63,
+     "fin_fee_pct": 2.85,
+     "leverage": 4.61,
+     "tx_fee_pct": 0.63
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": null,
+      "quote": "by incurring $19.964 billion of indebtedness",
+      "source": "hca_10k_2006",
+      "value": 19964.0,
+      "where": "Notes to the consolidated financial statements, the Recapitalization"
+     },
+     "ebitda": {
+      "basis": "projection",
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "hca_proxy_2006",
+      "value": 4327.0,
+      "where": "Special Factors, Final Management Projections (EBITDA, 2006)",
+      "year": 2006
+     },
+     "equity": {
+      "note": null,
+      "parts": null,
+      "quote": "funded by $3.782 billion of equity contributions",
+      "source": "hca_10k_2006",
+      "value": 3782.0,
+      "where": "Notes to the consolidated financial statements, the Recapitalization"
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": null,
+      "quote": "$568 million of transaction costs were capitalized as deferred loan costs",
+      "source": "hca_10k_2006",
+      "value": 568.0,
+      "where": "Note 2, Recapitalization Transaction Costs"
+     },
+     "senior_amort_pct": null,
+     "transaction_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Consulting, legal, accounting and other transaction costs",
+        "quote": null,
+        "source": "hca_10k_2006",
+        "value": 131.0,
+        "where": "Note 2, Recapitalization Transaction Costs"
+       },
+       {
+        "label": "Transaction costs recorded directly to shareholders' deficit",
+        "quote": "approximately $77 million of transaction costs were recorded directly to shareholders' deficit",
+        "source": "hca_10k_2006",
+        "value": 77.0,
+        "where": "Note 2, Recapitalization Transaction Costs"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 208.0,
+      "where": null
+     },
+     "transaction_value": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": "had a transaction value of approximately $33.0 billion",
+      "source": "hca_10k_2006",
+      "value": 33000.0,
+      "where": "Item 1, Business"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "hca-2006",
+    "kind": "take_private",
+    "outcome": {
+     "event": "ipo",
+     "kind": "success",
+     "note": null,
+     "quote": "126,200,000 Shares Common Stock $30.00 per share",
+     "source": "hca_ipo_2011",
+     "where": "Cover page",
+     "year": 2011
+    },
+    "sector": "health_care",
+    "sources": {
+     "hca_10k_2006": {
+      "filed": "2007-03-27",
+      "filer": "HCA Inc.",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/860730/000095014407002713/g05969e10vk.htm"
+     },
+     "hca_ipo_2011": {
+      "filed": "2011-03-11",
+      "filer": "HCA Holdings, Inc.",
+      "form": "424B4",
+      "url": "https://www.sec.gov/Archives/edgar/data/860730/000095012311024716/y83802b4e424b4.htm"
+     },
+     "hca_proxy_2006": {
+      "filed": "2006-10-17",
+      "filer": "HCA Inc.",
+      "form": "DEFM14A",
+      "url": "https://www.sec.gov/Archives/edgar/data/860730/000095014406009545/g02699ddefm14a.htm"
+     }
+    },
+    "sponsors": [
+     "Bain Capital",
+     "Kohlberg Kravis Roberts & Co.",
+     "Merrill Lynch Global Private Equity"
+    ],
+    "tags": {
+     "era": "2000_2007",
+     "outcome": "success",
+     "region": "us",
+     "sector": "health_care",
+     "size": "over_10bn"
+    },
+    "target": "HCA Inc."
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2005-07-21",
+     "quote": "We refer to the July 21, 2005 Merger and recapitalization as the “Merger Transaction.”",
+     "source": "toys_10k_2005",
+     "where": "Note 1, Merger Transaction"
+    },
+    "country": "US",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 66.67,
+     "def_senior_amort": null,
+     "entry_multiple": 10.03,
+     "fin_fee_pct": 3.07,
+     "leverage": 6.69,
+     "tx_fee_pct": 3.53
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Secured revolving credit facility drawn at closing",
+        "quote": "of which $700 million was drawn at closing",
+        "source": "toys_10k_2005",
+        "value": 700.0,
+        "where": "Note 1, Merger Transaction"
+       },
+       {
+        "label": "Unsecured bridge loan, all drawn at closing",
+        "quote": null,
+        "source": "toys_10k_2005",
+        "value": 1900.0,
+        "where": "Note 1, Merger Transaction"
+       },
+       {
+        "label": "European bridge loan facility drawn at closing",
+        "quote": null,
+        "source": "toys_10k_2005",
+        "value": 1000.0,
+        "where": "Note 1, Merger Transaction"
+       },
+       {
+        "label": "Mortgage loan agreements, all drawn at closing",
+        "quote": null,
+        "source": "toys_10k_2005",
+        "value": 800.0,
+        "where": "Note 1, Merger Transaction"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 4400.0,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "reported",
+      "note": null,
+      "parts": [
+       {
+        "label": "Operating earnings, fiscal 2004",
+        "quote": null,
+        "source": "toys_10k_2004",
+        "value": 304.0,
+        "where": "Consolidated statements of operations"
+       },
+       {
+        "label": "Depreciation and amortization, fiscal 2004",
+        "quote": "Depreciation and amortization was $354 million in 2004",
+        "source": "toys_10k_2004",
+        "value": 354.0,
+        "where": "Consolidated statements of operations"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 658.0,
+      "where": null,
+      "year": 2004
+     },
+     "equity": {
+      "note": null,
+      "parts": null,
+      "quote": "Aggregate cash equity contributions of $1.3 billion were made by the Investors",
+      "source": "toys_10k_2005",
+      "value": 1300.0,
+      "where": "Note 1, Merger Transaction"
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": null,
+      "quote": "advisory fees and expenses of $78 million, financing fees of $135 million",
+      "source": "toys_10k_2005",
+      "value": 135.0,
+      "where": "Note 1, Merger Transaction"
+     },
+     "senior_amort_pct": null,
+     "transaction_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Advisory fees and expenses",
+        "quote": null,
+        "source": "toys_10k_2005",
+        "value": 78.0,
+        "where": "Note 1, Merger Transaction"
+       },
+       {
+        "label": "Sponsor fees",
+        "quote": null,
+        "source": "toys_10k_2005",
+        "value": 81.0,
+        "where": "Note 1, Merger Transaction"
+       },
+       {
+        "label": "Other fees and expenses",
+        "quote": null,
+        "source": "toys_10k_2005",
+        "value": 74.0,
+        "where": "Note 1, Merger Transaction"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 233.0,
+      "where": null
+     },
+     "transaction_value": {
+      "basis": "equity_value",
+      "note": "The value of the equity bought; the merger proxy calls it \"approximately $6.6 billion of aggregate equity value\".",
+      "parts": null,
+      "quote": "consummated through a $6.6 billion merger",
+      "source": "toys_10k_2005",
+      "value": 6600.0,
+      "where": "Item 1, Business"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "toys-r-us-2005",
+    "kind": "take_private",
+    "outcome": {
+     "event": "bankruptcy",
+     "kind": "distress",
+     "note": null,
+     "quote": "filed voluntary petitions for relief under Chapter 11",
+     "source": "toys_8k_2017",
+     "where": "Item 7.01",
+     "year": 2017
+    },
+    "sector": "consumer_discretionary",
+    "sources": {
+     "toys_10k_2004": {
+      "filed": "2005-04-29",
+      "filer": "Toys \"R\" Us, Inc.",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/1005414/000119312505090701/d10k.htm"
+     },
+     "toys_10k_2005": {
+      "filed": "2006-04-28",
+      "filer": "Toys \"R\" Us, Inc.",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/1005414/000119312506093096/d10k.htm"
+     },
+     "toys_8k_2017": {
+      "filed": "2017-09-19",
+      "filer": "Toys \"R\" Us, Inc.",
+      "form": "8-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/1005414/000119312517287834/d451484d8k.htm"
+     }
+    },
+    "sponsors": [
+     "Bain Capital",
+     "Kohlberg Kravis Roberts & Co.",
+     "Vornado Realty Trust"
+    ],
+    "tags": {
+     "era": "2000_2007",
+     "outcome": "distress",
+     "region": "us",
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn"
+    },
+    "target": "Toys \"R\" Us, Inc."
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2007-07-06",
+     "quote": "The Company’s results of operations after July 6, 2007 include the effects of the Merger.",
+     "source": "dg_10k_2007",
+     "where": "Note 2, Merger"
+    },
+    "country": "US",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 63.38,
+     "def_senior_amort": 1.0,
+     "entry_multiple": 15.82,
+     "fin_fee_pct": 1.94,
+     "leverage": 10.02,
+     "tx_fee_pct": 0.89
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Senior secured term loan facility",
+        "quote": "a $2.3 billion senior secured term loan facility",
+        "source": "dg_10k_2007",
+        "value": 2300.0,
+        "where": "Item 1, Business"
+       },
+       {
+        "label": "Asset-based revolving facility drawn at closing",
+        "quote": "of which $432.3 million was drawn at closing",
+        "source": "dg_10k_2007",
+        "value": 432.3,
+        "where": "Item 1, Business"
+       },
+       {
+        "label": "Paid down on the same day",
+        "quote": "$132.3 million was paid down on the same day",
+        "source": "dg_10k_2007",
+        "value": -132.3,
+        "where": "Item 1, Business"
+       },
+       {
+        "label": "10.625% senior notes due 2015",
+        "quote": null,
+        "source": "dg_10k_2007",
+        "value": 1175.0,
+        "where": "Item 1, Business"
+       },
+       {
+        "label": "11.875%/12.625% senior subordinated toggle notes due 2017",
+        "quote": null,
+        "source": "dg_10k_2007",
+        "value": 725.0,
+        "where": "Item 1, Business"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 4500.0,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "reported",
+      "note": null,
+      "parts": [
+       {
+        "label": "Operating profit, fiscal 2006",
+        "quote": null,
+        "source": "dg_10k_2006",
+        "value": 248.3,
+        "where": "Item 7, results of operations table"
+       },
+       {
+        "label": "Depreciation and amortization, fiscal 2006 (thousands: 200,608)",
+        "quote": null,
+        "source": "dg_10k_2006",
+        "value": 200.6,
+        "where": "Consolidated statements of cash flows"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 448.9,
+      "where": null,
+      "year": 2006
+     },
+     "equity": {
+      "note": null,
+      "parts": null,
+      "quote": "of approximately $2.8 billion (553.4 million shares of new common stock",
+      "source": "dg_10k_2007",
+      "value": 2800.0,
+      "where": "Note 2, Merger"
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": null,
+      "quote": "Capitalized debt issuance costs, related to financing the Merger of $87.4 million",
+      "source": "dg_10k_2007",
+      "value": 87.4,
+      "where": "Note 2, Merger"
+     },
+     "senior_amort_pct": {
+      "note": null,
+      "parts": null,
+      "quote": "an aggregate amount per annum equal to 1% of the total funded principal amount",
+      "source": "dg_10k_2007",
+      "value": 1.0,
+      "where": "Item 7, Liquidity, Term Loan Facility, Amortization"
+     },
+     "transaction_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Fees and expenses related to the Merger",
+        "quote": "Fees and expenses related to the Merger totaled $102.6 million",
+        "source": "dg_10k_2007",
+        "value": 102.6,
+        "where": "Note 2, Merger"
+       },
+       {
+        "label": "Less stock compensation included in them",
+        "quote": "stock compensation ($39.4 million",
+        "source": "dg_10k_2007",
+        "value": -39.4,
+        "where": "Note 2, Merger"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 63.2,
+      "where": null
+     },
+     "transaction_value": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": "The aggregate purchase price was approximately $7.1 billion, including direct costs of the Merger",
+      "source": "dg_10k_2007",
+      "value": 7100.0,
+      "where": "Note 2, Merger"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "dollar-general-2007",
+    "kind": "take_private",
+    "outcome": {
+     "event": "ipo",
+     "kind": "success",
+     "note": null,
+     "quote": null,
+     "source": "dg_ipo_2009",
+     "where": "Cover page",
+     "year": 2009
+    },
+    "sector": "consumer_discretionary",
+    "sources": {
+     "dg_10k_2006": {
+      "filed": "2007-03-29",
+      "filer": "Dollar General Corporation",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/29534/000002953407000023/f200610kfinal.htm"
+     },
+     "dg_10k_2007": {
+      "filed": "2008-03-28",
+      "filer": "Dollar General Corporation",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/29534/000100579408000099/dollargeneral10k2008.htm"
+     },
+     "dg_ipo_2009": {
+      "filed": "2009-11-13",
+      "filer": "Dollar General Corporation",
+      "form": "424B4",
+      "url": "https://www.sec.gov/Archives/edgar/data/29534/000104746909010136/a2195522z424b4.htm"
+     }
+    },
+    "sponsors": [
+     "Kohlberg Kravis Roberts & Co.",
+     "GS Capital Partners"
+    ],
+    "tags": {
+     "era": "2000_2007",
+     "outcome": "success",
+     "region": "us",
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn"
+    },
+    "target": "Dollar General Corporation"
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "1998-12-21",
+     "quote": "the recapitalization as of December 21, 1998",
+     "source": "dom_s4_1999",
+     "where": "Summary, Sources and Uses"
+    },
+    "country": "US",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 70.75,
+     "def_senior_amort": null,
+     "entry_multiple": 10.74,
+     "fin_fee_pct": 6.0,
+     "leverage": 7.6,
+     "tx_fee_pct": 0.64
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Revolving credit facility",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 2.1,
+        "where": "Summary, Sources and Uses"
+       },
+       {
+        "label": "Term loan facilities",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 445.0,
+        "where": "Summary, Sources and Uses"
+       },
+       {
+        "label": "Notes",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 275.0,
+        "where": "Summary, Sources and Uses"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 722.1,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "dom_s4_1999",
+      "value": 95.0,
+      "where": "Summary historical financial data, EBITDA, fiscal year ended January 3, 1999",
+      "year": 1998
+     },
+     "equity": {
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "dom_s4_1999",
+      "value": 330.8,
+      "where": "Summary, Sources and Uses"
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": null,
+      "quote": "payment of $43.3 million of deferred financing costs",
+      "source": "dom_s4_1999",
+      "value": 43.3,
+      "where": "Management's discussion and analysis, liquidity"
+     },
+     "senior_amort_pct": null,
+     "transaction_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Transaction fees and expenses",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 49.8,
+        "where": "Summary, Sources and Uses"
+       },
+       {
+        "label": "Less deferred financing costs paid",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": -43.3,
+        "where": "Management's discussion and analysis, liquidity"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 6.5,
+      "where": null
+     },
+     "transaction_value": {
+      "basis": "uses_less_fees",
+      "note": "Every use of funds except the fees: the price of the business, including the debt repaid and the founder's non-compete payment.",
+      "parts": [
+       {
+        "label": "Redemption of capital stock of TISM",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 903.2,
+        "where": "Summary, Sources and Uses"
+       },
+       {
+        "label": "Rollover of equity by existing stockholders",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 17.5,
+        "where": "Summary, Sources and Uses"
+       },
+       {
+        "label": "Repayment of existing liabilities",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 49.9,
+        "where": "Summary, Sources and Uses"
+       },
+       {
+        "label": "Non-compete agreement",
+        "quote": null,
+        "source": "dom_s4_1999",
+        "value": 50.0,
+        "where": "Summary, Sources and Uses"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 1020.6,
+      "where": null
+     },
+     "transaction_value_usd": null
+    },
+    "key": "dominos-1998",
+    "kind": "recapitalization",
+    "outcome": {
+     "event": "ipo",
+     "kind": "success",
+     "note": null,
+     "quote": null,
+     "source": "dom_ipo_2004",
+     "where": "Cover page",
+     "year": 2004
+    },
+    "sector": "consumer_discretionary",
+    "sources": {
+     "dom_ipo_2004": {
+      "filed": "2004-07-14",
+      "filer": "Domino's Pizza, Inc.",
+      "form": "424B4",
+      "url": "https://www.sec.gov/Archives/edgar/data/1286681/000119312504117543/d424b4.htm"
+     },
+     "dom_s4_1999": {
+      "filed": "1999-05-12",
+      "filer": "Domino's, Inc.",
+      "form": "S-4/A",
+      "url": "https://www.sec.gov/Archives/edgar/data/1079458/0000927016-99-001907.txt"
+     }
+    },
+    "sponsors": [
+     "Bain Capital"
+    ],
+    "tags": {
+     "era": "before_2000",
+     "outcome": "success",
+     "region": "us",
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn"
+    },
+    "target": "Domino's, Inc."
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2010-11-23",
+     "quote": "Equity holders received $65.40 per share of Company common stock owned on November 23, 2010.",
+     "source": "gym_10k_2011",
+     "where": "Note 1, The Transaction"
+    },
+    "country": "US",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 68.09,
+     "def_senior_amort": 1.0,
+     "entry_multiple": 9.11,
+     "fin_fee_pct": 5.08,
+     "leverage": 6.2,
+     "tx_fee_pct": 1.58
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Term loan (thousands: 815,900)",
+        "quote": null,
+        "source": "gym_10k_2011",
+        "value": 815.9,
+        "where": "Note 1, The Transaction, sources of funds"
+       },
+       {
+        "label": "Asset-based revolving facility drawn",
+        "quote": null,
+        "source": "gym_10k_2011",
+        "value": 30.0,
+        "where": "Note 1, The Transaction, sources of funds"
+       },
+       {
+        "label": "Senior notes",
+        "quote": null,
+        "source": "gym_10k_2011",
+        "value": 400.0,
+        "where": "Note 1, The Transaction, sources of funds"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 1245.9,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "reported",
+      "note": null,
+      "parts": [
+       {
+        "label": "Operating income, fiscal 2009 (thousands: 163,638)",
+        "quote": null,
+        "source": "gym_10k_2009",
+        "value": 163.6,
+        "where": "Consolidated statements of operations"
+       },
+       {
+        "label": "Depreciation and amortization, fiscal 2009 (thousands: 37,302)",
+        "quote": null,
+        "source": "gym_10k_2009",
+        "value": 37.3,
+        "where": "Consolidated statements of cash flows"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 200.9,
+      "where": null,
+      "year": 2009
+     },
+     "equity": {
+      "note": null,
+      "parts": null,
+      "quote": "Aggregate cash equity contributions of approximately $508 million were made by Parent",
+      "source": "gym_10k_2011",
+      "value": 508.0,
+      "where": "Note 1, The Transaction"
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": null,
+      "quote": "Approximately $63.3 million of these costs were determined to be related to the issuance",
+      "source": "gym_10k_2011",
+      "value": 63.3,
+      "where": "Note 1, The Transaction"
+     },
+     "senior_amort_pct": {
+      "note": "Four quarterly payments of 0.25%.",
+      "parts": null,
+      "quote": "quarterly payments each equal to 0.25% of the original $820 million principal amount",
+      "source": "gym_10k_2011",
+      "value": 1.0,
+      "where": "Item 7, Liquidity, Term Loan"
+     },
+     "transaction_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Transaction costs, November 23, 2010 to January 29, 2011",
+        "quote": null,
+        "source": "gym_10k_2011",
+        "value": 74.4,
+        "where": "Note 1, The Transaction"
+       },
+       {
+        "label": "Transaction costs, January 31 to November 22, 2010",
+        "quote": null,
+        "source": "gym_10k_2011",
+        "value": 17.9,
+        "where": "Note 1, The Transaction"
+       },
+       {
+        "label": "Less those related to the issuance of debt",
+        "quote": null,
+        "source": "gym_10k_2011",
+        "value": -63.3,
+        "where": "Note 1, The Transaction"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 29.0,
+      "where": null
+     },
+     "transaction_value": {
+      "basis": "equity_value",
+      "note": "The company had no debt before the buyout, so the equity bought is the business.",
+      "parts": null,
+      "quote": "Consideration paid to equity holders",
+      "source": "gym_10k_2011",
+      "value": 1829.7,
+      "where": "Note 1, The Transaction (thousands: 1,829,660)"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "gymboree-2010",
+    "kind": "take_private",
+    "outcome": {
+     "event": "missed_payment",
+     "kind": "distress",
+     "note": null,
+     "quote": "has elected not to make the interest payment due on June 1, 2017",
+     "source": "gym_8k_2017",
+     "where": "Item 7.01",
+     "year": 2017
+    },
+    "sector": "consumer_discretionary",
+    "sources": {
+     "gym_10k_2009": {
+      "filed": "2010-03-30",
+      "filer": "The Gymboree Corporation",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/786110/000119312510071089/d10k.htm"
+     },
+     "gym_10k_2011": {
+      "filed": "2012-04-26",
+      "filer": "The Gymboree Corporation",
+      "form": "10-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/786110/000119312512185221/d285883d10k.htm"
+     },
+     "gym_8k_2017": {
+      "filed": "2017-06-01",
+      "filer": "The Gymboree Corporation",
+      "form": "8-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/786110/000119312517191156/d408107d8k.htm"
+     }
+    },
+    "sponsors": [
+     "Bain Capital"
+    ],
+    "tags": {
+     "era": "2008_2014",
+     "outcome": "distress",
+     "region": "us",
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn"
+    },
+    "target": "The Gymboree Corporation"
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2019-02-08",
+     "quote": "In connection with the Take-Private Transaction on February 8, 2019",
+     "source": "dnb_ipo_2020",
+     "where": "Note 5, Notes Payable and Indebtedness"
+    },
+    "country": "US",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 65.58,
+     "def_senior_amort": 1.0,
+     "entry_multiple": 10.67,
+     "fin_fee_pct": 3.08,
+     "leverage": 7.0,
+     "tx_fee_pct": 3.29
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "New term loan facility",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 2530.0,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       },
+       {
+        "label": "New senior secured notes due 2026",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 700.0,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       },
+       {
+        "label": "New senior unsecured notes due 2027",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 750.0,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 3980.0,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "adjusted",
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "dnb_ipo_2020",
+      "value": 568.6,
+      "where": "Summary historical financial data, Adjusted EBITDA, year ended December 31, 2018",
+      "year": 2018
+     },
+     "equity": {
+      "note": "Common equity only; the Series A preferred stock issued to finance the deal is left out.",
+      "parts": null,
+      "quote": null,
+      "source": "dnb_ipo_2020",
+      "value": 2048.4,
+      "where": "Statement of stockholder equity, Take-Private Transaction"
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Debt issuance costs, term loan",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 62.1,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       },
+       {
+        "label": "Debt issuance costs, revolving facility",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 9.6,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       },
+       {
+        "label": "Debt issuance costs, repatriation bridge",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 1.5,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       },
+       {
+        "label": "Debt issuance costs, 6.875% senior secured notes",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 17.9,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       },
+       {
+        "label": "Debt issuance costs, 10.250% senior unsecured notes",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 31.6,
+        "where": "Note 5, Notes Payable and Indebtedness"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 122.7,
+      "where": null
+     },
+     "senior_amort_pct": {
+      "note": null,
+      "parts": null,
+      "quote": "in an aggregate annual amount equal to 1.00% of the original principal amount",
+      "source": "dnb_ipo_2020",
+      "value": 1.0,
+      "where": "Note 5, New Term Loan Facility"
+     },
+     "transaction_fees": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Transaction costs incurred by Merger Sub",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 147.4,
+        "where": "Note 12, Take-Private Transaction"
+       },
+       {
+        "label": "Transaction costs incurred by the Predecessor",
+        "quote": null,
+        "source": "dnb_ipo_2020",
+        "value": 52.0,
+        "where": "Summary historical financial data, note 2"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 199.4,
+      "where": null
+     },
+     "transaction_value": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": "Take-Private Transaction was valued at $6,068.7 million",
+      "source": "dnb_ipo_2020",
+      "value": 6068.7,
+      "where": "Note 12, Take-Private Transaction"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "dun-bradstreet-2019",
+    "kind": "take_private",
+    "outcome": {
+     "event": "ipo",
+     "kind": "success",
+     "note": null,
+     "quote": null,
+     "source": "dnb_ipo_2020",
+     "where": "Cover page",
+     "year": 2020
+    },
+    "sector": "industrials",
+    "sources": {
+     "dnb_ipo_2020": {
+      "filed": "2020-07-02",
+      "filer": "Dun & Bradstreet Holdings, Inc.",
+      "form": "424B4",
+      "url": "https://www.sec.gov/Archives/edgar/data/1799208/000104746920003957/a2242014z424b4.htm"
+     }
+    },
+    "sponsors": [
+     "Thomas H. Lee Partners",
+     "Cannae Holdings",
+     "Black Knight",
+     "CC Capital"
+    ],
+    "tags": {
+     "era": "2015_2019",
+     "outcome": "success",
+     "region": "us",
+     "sector": "industrials",
+     "size": "1bn_10bn"
+    },
+    "target": "The Dun & Bradstreet Corporation"
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2006-09-29",
+     "quote": "acquired 100% of our issued and outstanding shares from Philips on September 29, 2006",
+     "source": "nxp_424b3_2007",
+     "where": "Recent Significant Transactions"
+    },
+    "country": "NL",
+    "currency": "EUR",
+    "derived": {
+     "debt_share_pct": 55.18,
+     "def_senior_amort": null,
+     "entry_multiple": 7.68,
+     "fin_fee_pct": 2.87,
+     "leverage": 4.24,
+     "tx_fee_pct": null
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": null,
+      "quote": "we issued approximately €4,529 million euro-equivalent secured and senior notes",
+      "source": "nxp_424b3_2007",
+      "value": 4529.0,
+      "where": "Recent Significant Transactions, Financing Transactions"
+     },
+     "ebitda": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "nxp_424b3_2007",
+      "value": 1069.0,
+      "where": "Summary financial data, EBITDA, 2005",
+      "year": 2005
+     },
+     "equity": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Consortium Holding, 80.1%",
+        "quote": null,
+        "source": "nxp_424b3_2007",
+        "value": 3451.0,
+        "where": "Recent Significant Transactions"
+       },
+       {
+        "label": "Philips, 19.9%",
+        "quote": null,
+        "source": "nxp_424b3_2007",
+        "value": 854.0,
+        "where": "Recent Significant Transactions"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 4305.0,
+      "where": null
+     },
+     "financing_fees": {
+      "note": null,
+      "parts": null,
+      "quote": "The total financing fees and expenses were approximately €130 million.",
+      "source": "nxp_424b3_2007",
+      "value": 130.0,
+      "where": "Unaudited pro forma financial information"
+     },
+     "senior_amort_pct": null,
+     "transaction_fees": null,
+     "transaction_value": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": "for an aggregate purchase price of €8,208 million",
+      "source": "nxp_424b3_2007",
+      "value": 8208.0,
+      "where": "Recent Significant Transactions"
+     },
+     "transaction_value_usd": {
+      "note": null,
+      "parts": null,
+      "quote": "the $10,601 million purchase price has been “pushed down”",
+      "source": "nxp_ipo_2010",
+      "value": 10601.0,
+      "where": "Management's discussion and analysis, effect of acquisition accounting"
+     }
+    },
+    "key": "nxp-2006",
+    "kind": "carve_out",
+    "outcome": {
+     "event": "ipo",
+     "kind": "success",
+     "note": null,
+     "quote": null,
+     "source": "nxp_ipo_2010",
+     "where": "Cover page",
+     "year": 2010
+    },
+    "sector": "information_technology",
+    "sources": {
+     "nxp_424b3_2007": {
+      "filed": "2007-04-27",
+      "filer": "NXP B.V.",
+      "form": "424B3",
+      "url": "https://www.sec.gov/Archives/edgar/data/1396945/000104746907003368/a2177460z424b3.htm"
+     },
+     "nxp_ipo_2010": {
+      "filed": "2010-08-06",
+      "filer": "NXP Semiconductors N.V.",
+      "form": "424B4",
+      "url": "https://www.sec.gov/Archives/edgar/data/1413447/000119312510180623/d424b4.htm"
+     }
+    },
+    "sponsors": [
+     "Kohlberg Kravis Roberts & Co.",
+     "Silver Lake",
+     "Bain Capital",
+     "Apax Partners",
+     "AlpInvest Partners"
+    ],
+    "tags": {
+     "era": "2000_2007",
+     "outcome": "success",
+     "region": "europe",
+     "sector": "information_technology",
+     "size": "over_10bn"
+    },
+    "target": "NXP B.V. (Philips Semiconductors)"
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2005-04-06",
+     "quote": "We were acquired on April 6, 2005 by an affiliate of KKR.",
+     "source": "mas_f4_2007",
+     "where": "Business, Post-Transaction Initiatives"
+    },
+    "country": "CA",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 72.04,
+     "def_senior_amort": null,
+     "entry_multiple": 9.4,
+     "fin_fee_pct": null,
+     "leverage": 6.77,
+     "tx_fee_pct": null
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Term loan facility",
+        "quote": "a $1,175.0 million term loan facility",
+        "source": "mas_f4_2007",
+        "value": 1175.0,
+        "where": "The Transaction"
+       },
+       {
+        "label": "Senior subordinated loan facility",
+        "quote": "a $770.0 million senior subordinated loan facility",
+        "source": "mas_f4_2007",
+        "value": 770.0,
+        "where": "The Transaction"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 1945.0,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "mas_f4_2007",
+      "value": 287.3,
+      "where": "Summary historical financial data, reconciliation of net income to EBITDA, fiscal year 2004",
+      "year": 2004
+     },
+     "equity": {
+      "note": null,
+      "parts": [
+       {
+        "label": "New equity provided by KKR",
+        "quote": null,
+        "source": "mas_f4_2007",
+        "value": 551.5,
+        "where": "The Transaction"
+       },
+       {
+        "label": "Equity invested by management at closing",
+        "quote": null,
+        "source": "mas_f4_2007",
+        "value": 24.3,
+        "where": "The Transaction"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 575.8,
+      "where": null
+     },
+     "financing_fees": null,
+     "senior_amort_pct": null,
+     "transaction_fees": null,
+     "transaction_value": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": "including the assumption of indebtedness, premiums, fees and expenses, was approximately $2.7 billion",
+      "source": "mas_f4_2007",
+      "value": 2700.0,
+      "where": "The Transaction"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "masonite-2005",
+    "kind": "take_private",
+    "outcome": {
+     "event": "restructuring",
+     "kind": "distress",
+     "note": null,
+     "quote": "voluntary Chapter 11 proceedings in the United States and similar proceedings under the Companies’ Creditors Arrangement Act",
+     "source": "mas_6k_2009",
+     "where": "Exhibit 99.1",
+     "year": 2009
+    },
+    "sector": "industrials",
+    "sources": {
+     "mas_6k_2009": {
+      "filed": "2009-03-10",
+      "filer": "Masonite International Inc.",
+      "form": "6-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/1383505/000110465909015773/a09-7323_1ex99d1.htm"
+     },
+     "mas_f4_2007": {
+      "filed": "2007-01-04",
+      "filer": "Masonite International Corporation",
+      "form": "F-4",
+      "url": "https://www.sec.gov/Archives/edgar/data/893691/000104746907000031/a2174230zf-4.htm"
+     }
+    },
+    "sponsors": [
+     "Kohlberg Kravis Roberts & Co."
+    ],
+    "tags": {
+     "era": "2000_2007",
+     "outcome": "distress",
+     "region": "other_developed",
+     "sector": "industrials",
+     "size": "1bn_10bn"
+    },
+    "target": "Masonite International Corporation"
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2005-12-01",
+     "quote": "On December 1, 2005, our parent company",
+     "source": "avago_f4_2006",
+     "where": "Significant Transactions"
+    },
+    "country": "SG",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 54.63,
+     "def_senior_amort": null,
+     "entry_multiple": 24.32,
+     "fin_fee_pct": null,
+     "leverage": 13.29,
+     "tx_fee_pct": null
+    },
+    "figures": {
+     "debt": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Notes",
+        "quote": "we issued $1,000 million principal amount of notes",
+        "source": "avago_f4_2006",
+        "value": 1000.0,
+        "where": "Significant Transactions"
+       },
+       {
+        "label": "Term loan drawn at closing",
+        "quote": "of which $475 million was drawn at the closing of the Acquisition",
+        "source": "avago_f4_2006",
+        "value": 475.0,
+        "where": "Significant Transactions"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 1475.0,
+      "where": null
+     },
+     "ebitda": {
+      "basis": "reported",
+      "note": null,
+      "parts": [
+       {
+        "label": "Income from operations, year ended October 31, 2005",
+        "quote": null,
+        "source": "avago_f4_2006",
+        "value": 48.0,
+        "where": "Summary historical financial data"
+       },
+       {
+        "label": "Depreciation and amortization, year ended October 31, 2005",
+        "quote": null,
+        "source": "avago_f4_2006",
+        "value": 63.0,
+        "where": "Combined statements of cash flows of the predecessor"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 111.0,
+      "where": null,
+      "year": 2005
+     },
+     "equity": {
+      "note": null,
+      "parts": null,
+      "quote": "Investors (the “Equity Investors”) invested approximately $1,300 million",
+      "source": "avago_f4_2006",
+      "value": 1300.0,
+      "where": "Significant Transactions"
+     },
+     "financing_fees": null,
+     "senior_amort_pct": null,
+     "transaction_fees": null,
+     "transaction_value": {
+      "basis": "stated",
+      "note": null,
+      "parts": null,
+      "quote": "Products Group business segment (the “Acquisition”) for approximately $2.7 billion",
+      "source": "avago_f4_2006",
+      "value": 2700.0,
+      "where": "Significant Transactions"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "avago-2005",
+    "kind": "carve_out",
+    "outcome": {
+     "event": "ipo",
+     "kind": "success",
+     "note": null,
+     "quote": null,
+     "source": "avago_ipo_2009",
+     "where": "Cover page",
+     "year": 2009
+    },
+    "sector": "information_technology",
+    "sources": {
+     "avago_f4_2006": {
+      "filed": "2006-12-15",
+      "filer": "Avago Technologies Finance Pte. Ltd.",
+      "form": "F-4/A",
+      "url": "https://www.sec.gov/Archives/edgar/data/1376400/000095013406023204/f23597a2fv4za.htm"
+     },
+     "avago_ipo_2009": {
+      "filed": "2009-08-06",
+      "filer": "Avago Technologies Limited",
+      "form": "424B4",
+      "url": "https://www.sec.gov/Archives/edgar/data/1441634/000119312509166258/d424b4.htm"
+     }
+    },
+    "sponsors": [
+     "Kohlberg Kravis Roberts & Co.",
+     "Silver Lake"
+    ],
+    "tags": {
+     "era": "2000_2007",
+     "outcome": "success",
+     "region": "other_developed",
+     "sector": "information_technology",
+     "size": "1bn_10bn"
+    },
+    "target": "Avago Technologies (Agilent's Semiconductor Products Group)"
+   },
+   {
+    "approved_at": "2026-10-07T12:00:00Z",
+    "closed": {
+     "date": "2013-05-23",
+     "quote": "the merger became effective on May 23, 2013",
+     "source": "focus_13e3_final_2013",
+     "where": "Introduction"
+    },
+    "country": "CN",
+    "currency": "USD",
+    "derived": {
+     "debt_share_pct": 39.89,
+     "def_senior_amort": null,
+     "entry_multiple": 9.17,
+     "fin_fee_pct": null,
+     "leverage": 3.66,
+     "tx_fee_pct": null
+    },
+    "figures": {
+     "debt": {
+      "note": "The debt committed; the filings do not say how much was drawn.",
+      "parts": null,
+      "quote": "a debt commitment up to $1.525 billion under the Senior Secured Credit Facilities",
+      "source": "focus_proxy_2013",
+      "value": 1525.0,
+      "where": "Summary Term Sheet, Financing of the Merger"
+     },
+     "ebitda": {
+      "basis": "projection",
+      "note": null,
+      "parts": null,
+      "quote": null,
+      "source": "focus_proxy_2013",
+      "value": 417.0,
+      "where": "Special Factors, Management Projections, 2012E",
+      "year": 2012
+     },
+     "equity": {
+      "note": null,
+      "parts": [
+       {
+        "label": "Sponsor equity commitments",
+        "quote": null,
+        "source": "focus_proxy_2013",
+        "value": 1181.0,
+        "where": "Summary Term Sheet, Financing of the Merger"
+       },
+       {
+        "label": "Chairman's rolled-over shares",
+        "quote": null,
+        "source": "focus_proxy_2013",
+        "value": 710.0,
+        "where": "Summary Term Sheet, Financing of the Merger"
+       },
+       {
+        "label": "Fosun's rolled-over shares",
+        "quote": null,
+        "source": "focus_proxy_2013",
+        "value": 400.0,
+        "where": "Summary Term Sheet, Financing of the Merger"
+       },
+       {
+        "label": "Management's rolled-over units",
+        "quote": null,
+        "source": "focus_proxy_2013",
+        "value": 7.0,
+        "where": "Summary Term Sheet, Financing of the Merger"
+       }
+      ],
+      "quote": null,
+      "source": null,
+      "value": 2298.0,
+      "where": null
+     },
+     "financing_fees": null,
+     "senior_amort_pct": null,
+     "transaction_fees": null,
+     "transaction_value": {
+      "basis": "funds_needed",
+      "note": "Total funds to complete the merger, rolled-over shares included; the company's own cash is not netted.",
+      "parts": null,
+      "quote": "is anticipated to be approximately $3.823 billion",
+      "source": "focus_proxy_2013",
+      "value": 3823.0,
+      "where": "Summary Term Sheet, Financing of the Merger"
+     },
+     "transaction_value_usd": null
+    },
+    "key": "focus-media-2013",
+    "kind": "take_private",
+    "outcome": {
+     "event": "relisted",
+     "kind": "success",
+     "note": "The year is that of the filing which says the business is listed again.",
+     "quote": "Focus Media Information Technology Co., Ltd., a company listed on the Shenzhen Stock Exchange",
+     "source": "soufun_6k_2016",
+     "where": "Exhibit 99.2, directors",
+     "year": 2016
+    },
+    "sector": "communication_services",
+    "sources": {
+     "focus_13e3_final_2013": {
+      "filed": "2013-05-24",
+      "filer": "Focus Media Holding Limited",
+      "form": "SC 13E3/A",
+      "url": "https://www.sec.gov/Archives/edgar/data/1330017/000119312513234271/d461081dsc13e3a.htm"
+     },
+     "focus_proxy_2013": {
+      "filed": "2013-03-25",
+      "filer": "Focus Media Holding Limited",
+      "form": "SC 13E3/A",
+      "url": "https://www.sec.gov/Archives/edgar/data/1330017/000119312513124513/d461081dex99a1.htm"
+     },
+     "soufun_6k_2016": {
+      "filed": "2016-08-11",
+      "filer": "SouFun Holdings Limited",
+      "form": "6-K",
+      "url": "https://www.sec.gov/Archives/edgar/data/1294404/000114420416118177/v446676_ex99-2.htm"
+     }
+    },
+    "sponsors": [
+     "The Carlyle Group",
+     "FountainVest Partners",
+     "CITIC Capital",
+     "China Everbright",
+     "Fosun"
+    ],
+    "tags": {
+     "era": "2008_2014",
+     "outcome": "success",
+     "region": "emerging",
+     "sector": "communication_services",
+     "size": "1bn_10bn"
+    },
+    "target": "Focus Media Holding Limited"
+   }
+  ],
+  "enabled": true
+ },
+ "review": {
+  "decided": [],
+  "enabled": true,
+  "library_size": 0,
+  "proposals": [
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "us",
+       "dimension": "region"
+      },
+      {
+       "bucket": "over_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "health_care",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2000_2007",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2006-11-17",
+      "quote": "were consummated on November 17, 2006",
+      "source": "hca_10k_2006",
+      "where": "Item 1, Business"
+     },
+     "country": "US",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 60.5,
+      "def_senior_amort": null,
+      "entry_multiple": 7.63,
+      "fin_fee_pct": 2.85,
+      "leverage": 4.61,
+      "tx_fee_pct": 0.63
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": null,
+       "quote": "by incurring $19.964 billion of indebtedness",
+       "source": "hca_10k_2006",
+       "value": 19964.0,
+       "where": "Notes to the consolidated financial statements, the Recapitalization"
+      },
+      "ebitda": {
+       "basis": "projection",
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "hca_proxy_2006",
+       "value": 4327.0,
+       "where": "Special Factors, Final Management Projections (EBITDA, 2006)",
+       "year": 2006
+      },
+      "equity": {
+       "note": null,
+       "parts": null,
+       "quote": "funded by $3.782 billion of equity contributions",
+       "source": "hca_10k_2006",
+       "value": 3782.0,
+       "where": "Notes to the consolidated financial statements, the Recapitalization"
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": null,
+       "quote": "$568 million of transaction costs were capitalized as deferred loan costs",
+       "source": "hca_10k_2006",
+       "value": 568.0,
+       "where": "Note 2, Recapitalization Transaction Costs"
+      },
+      "senior_amort_pct": null,
+      "transaction_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Consulting, legal, accounting and other transaction costs",
+         "quote": null,
+         "source": "hca_10k_2006",
+         "value": 131.0,
+         "where": "Note 2, Recapitalization Transaction Costs"
+        },
+        {
+         "label": "Transaction costs recorded directly to shareholders' deficit",
+         "quote": "approximately $77 million of transaction costs were recorded directly to shareholders' deficit",
+         "source": "hca_10k_2006",
+         "value": 77.0,
+         "where": "Note 2, Recapitalization Transaction Costs"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 208.0,
+       "where": null
+      },
+      "transaction_value": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": "had a transaction value of approximately $33.0 billion",
+       "source": "hca_10k_2006",
+       "value": 33000.0,
+       "where": "Item 1, Business"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "hca-2006",
+     "kind": "take_private",
+     "outcome": {
+      "event": "ipo",
+      "kind": "success",
+      "note": null,
+      "quote": "126,200,000 Shares Common Stock $30.00 per share",
+      "source": "hca_ipo_2011",
+      "where": "Cover page",
+      "year": 2011
+     },
+     "sector": "health_care",
+     "sources": {
+      "hca_10k_2006": {
+       "filed": "2007-03-27",
+       "filer": "HCA Inc.",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/860730/000095014407002713/g05969e10vk.htm"
+      },
+      "hca_ipo_2011": {
+       "filed": "2011-03-11",
+       "filer": "HCA Holdings, Inc.",
+       "form": "424B4",
+       "url": "https://www.sec.gov/Archives/edgar/data/860730/000095012311024716/y83802b4e424b4.htm"
+      },
+      "hca_proxy_2006": {
+       "filed": "2006-10-17",
+       "filer": "HCA Inc.",
+       "form": "DEFM14A",
+       "url": "https://www.sec.gov/Archives/edgar/data/860730/000095014406009545/g02699ddefm14a.htm"
+      }
+     },
+     "sponsors": [
+      "Bain Capital",
+      "Kohlberg Kravis Roberts & Co.",
+      "Merrill Lynch Global Private Equity"
+     ],
+     "tags": {
+      "era": "2000_2007",
+      "outcome": "success",
+      "region": "us",
+      "sector": "health_care",
+      "size": "over_10bn"
+     },
+     "target": "HCA Inc."
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000001",
+    "key": "hca-2006",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "us",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "consumer_discretionary",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2000_2007",
+       "dimension": "era"
+      },
+      {
+       "bucket": "distress",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2005-07-21",
+      "quote": "We refer to the July 21, 2005 Merger and recapitalization as the “Merger Transaction.”",
+      "source": "toys_10k_2005",
+      "where": "Note 1, Merger Transaction"
+     },
+     "country": "US",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 66.67,
+      "def_senior_amort": null,
+      "entry_multiple": 10.03,
+      "fin_fee_pct": 3.07,
+      "leverage": 6.69,
+      "tx_fee_pct": 3.53
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Secured revolving credit facility drawn at closing",
+         "quote": "of which $700 million was drawn at closing",
+         "source": "toys_10k_2005",
+         "value": 700.0,
+         "where": "Note 1, Merger Transaction"
+        },
+        {
+         "label": "Unsecured bridge loan, all drawn at closing",
+         "quote": null,
+         "source": "toys_10k_2005",
+         "value": 1900.0,
+         "where": "Note 1, Merger Transaction"
+        },
+        {
+         "label": "European bridge loan facility drawn at closing",
+         "quote": null,
+         "source": "toys_10k_2005",
+         "value": 1000.0,
+         "where": "Note 1, Merger Transaction"
+        },
+        {
+         "label": "Mortgage loan agreements, all drawn at closing",
+         "quote": null,
+         "source": "toys_10k_2005",
+         "value": 800.0,
+         "where": "Note 1, Merger Transaction"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 4400.0,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "reported",
+       "note": null,
+       "parts": [
+        {
+         "label": "Operating earnings, fiscal 2004",
+         "quote": null,
+         "source": "toys_10k_2004",
+         "value": 304.0,
+         "where": "Consolidated statements of operations"
+        },
+        {
+         "label": "Depreciation and amortization, fiscal 2004",
+         "quote": "Depreciation and amortization was $354 million in 2004",
+         "source": "toys_10k_2004",
+         "value": 354.0,
+         "where": "Consolidated statements of operations"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 658.0,
+       "where": null,
+       "year": 2004
+      },
+      "equity": {
+       "note": null,
+       "parts": null,
+       "quote": "Aggregate cash equity contributions of $1.3 billion were made by the Investors",
+       "source": "toys_10k_2005",
+       "value": 1300.0,
+       "where": "Note 1, Merger Transaction"
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": null,
+       "quote": "advisory fees and expenses of $78 million, financing fees of $135 million",
+       "source": "toys_10k_2005",
+       "value": 135.0,
+       "where": "Note 1, Merger Transaction"
+      },
+      "senior_amort_pct": null,
+      "transaction_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Advisory fees and expenses",
+         "quote": null,
+         "source": "toys_10k_2005",
+         "value": 78.0,
+         "where": "Note 1, Merger Transaction"
+        },
+        {
+         "label": "Sponsor fees",
+         "quote": null,
+         "source": "toys_10k_2005",
+         "value": 81.0,
+         "where": "Note 1, Merger Transaction"
+        },
+        {
+         "label": "Other fees and expenses",
+         "quote": null,
+         "source": "toys_10k_2005",
+         "value": 74.0,
+         "where": "Note 1, Merger Transaction"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 233.0,
+       "where": null
+      },
+      "transaction_value": {
+       "basis": "equity_value",
+       "note": "The value of the equity bought; the merger proxy calls it \"approximately $6.6 billion of aggregate equity value\".",
+       "parts": null,
+       "quote": "consummated through a $6.6 billion merger",
+       "source": "toys_10k_2005",
+       "value": 6600.0,
+       "where": "Item 1, Business"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "toys-r-us-2005",
+     "kind": "take_private",
+     "outcome": {
+      "event": "bankruptcy",
+      "kind": "distress",
+      "note": null,
+      "quote": "filed voluntary petitions for relief under Chapter 11",
+      "source": "toys_8k_2017",
+      "where": "Item 7.01",
+      "year": 2017
+     },
+     "sector": "consumer_discretionary",
+     "sources": {
+      "toys_10k_2004": {
+       "filed": "2005-04-29",
+       "filer": "Toys \"R\" Us, Inc.",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1005414/000119312505090701/d10k.htm"
+      },
+      "toys_10k_2005": {
+       "filed": "2006-04-28",
+       "filer": "Toys \"R\" Us, Inc.",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1005414/000119312506093096/d10k.htm"
+      },
+      "toys_8k_2017": {
+       "filed": "2017-09-19",
+       "filer": "Toys \"R\" Us, Inc.",
+       "form": "8-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1005414/000119312517287834/d451484d8k.htm"
+      }
+     },
+     "sponsors": [
+      "Bain Capital",
+      "Kohlberg Kravis Roberts & Co.",
+      "Vornado Realty Trust"
+     ],
+     "tags": {
+      "era": "2000_2007",
+      "outcome": "distress",
+      "region": "us",
+      "sector": "consumer_discretionary",
+      "size": "1bn_10bn"
+     },
+     "target": "Toys \"R\" Us, Inc."
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000002",
+    "key": "toys-r-us-2005",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "us",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "consumer_discretionary",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2000_2007",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2007-07-06",
+      "quote": "The Company’s results of operations after July 6, 2007 include the effects of the Merger.",
+      "source": "dg_10k_2007",
+      "where": "Note 2, Merger"
+     },
+     "country": "US",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 63.38,
+      "def_senior_amort": 1.0,
+      "entry_multiple": 15.82,
+      "fin_fee_pct": 1.94,
+      "leverage": 10.02,
+      "tx_fee_pct": 0.89
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Senior secured term loan facility",
+         "quote": "a $2.3 billion senior secured term loan facility",
+         "source": "dg_10k_2007",
+         "value": 2300.0,
+         "where": "Item 1, Business"
+        },
+        {
+         "label": "Asset-based revolving facility drawn at closing",
+         "quote": "of which $432.3 million was drawn at closing",
+         "source": "dg_10k_2007",
+         "value": 432.3,
+         "where": "Item 1, Business"
+        },
+        {
+         "label": "Paid down on the same day",
+         "quote": "$132.3 million was paid down on the same day",
+         "source": "dg_10k_2007",
+         "value": -132.3,
+         "where": "Item 1, Business"
+        },
+        {
+         "label": "10.625% senior notes due 2015",
+         "quote": null,
+         "source": "dg_10k_2007",
+         "value": 1175.0,
+         "where": "Item 1, Business"
+        },
+        {
+         "label": "11.875%/12.625% senior subordinated toggle notes due 2017",
+         "quote": null,
+         "source": "dg_10k_2007",
+         "value": 725.0,
+         "where": "Item 1, Business"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 4500.0,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "reported",
+       "note": null,
+       "parts": [
+        {
+         "label": "Operating profit, fiscal 2006",
+         "quote": null,
+         "source": "dg_10k_2006",
+         "value": 248.3,
+         "where": "Item 7, results of operations table"
+        },
+        {
+         "label": "Depreciation and amortization, fiscal 2006 (thousands: 200,608)",
+         "quote": null,
+         "source": "dg_10k_2006",
+         "value": 200.6,
+         "where": "Consolidated statements of cash flows"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 448.9,
+       "where": null,
+       "year": 2006
+      },
+      "equity": {
+       "note": null,
+       "parts": null,
+       "quote": "of approximately $2.8 billion (553.4 million shares of new common stock",
+       "source": "dg_10k_2007",
+       "value": 2800.0,
+       "where": "Note 2, Merger"
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": null,
+       "quote": "Capitalized debt issuance costs, related to financing the Merger of $87.4 million",
+       "source": "dg_10k_2007",
+       "value": 87.4,
+       "where": "Note 2, Merger"
+      },
+      "senior_amort_pct": {
+       "note": null,
+       "parts": null,
+       "quote": "an aggregate amount per annum equal to 1% of the total funded principal amount",
+       "source": "dg_10k_2007",
+       "value": 1.0,
+       "where": "Item 7, Liquidity, Term Loan Facility, Amortization"
+      },
+      "transaction_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Fees and expenses related to the Merger",
+         "quote": "Fees and expenses related to the Merger totaled $102.6 million",
+         "source": "dg_10k_2007",
+         "value": 102.6,
+         "where": "Note 2, Merger"
+        },
+        {
+         "label": "Less stock compensation included in them",
+         "quote": "stock compensation ($39.4 million",
+         "source": "dg_10k_2007",
+         "value": -39.4,
+         "where": "Note 2, Merger"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 63.2,
+       "where": null
+      },
+      "transaction_value": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": "The aggregate purchase price was approximately $7.1 billion, including direct costs of the Merger",
+       "source": "dg_10k_2007",
+       "value": 7100.0,
+       "where": "Note 2, Merger"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "dollar-general-2007",
+     "kind": "take_private",
+     "outcome": {
+      "event": "ipo",
+      "kind": "success",
+      "note": null,
+      "quote": null,
+      "source": "dg_ipo_2009",
+      "where": "Cover page",
+      "year": 2009
+     },
+     "sector": "consumer_discretionary",
+     "sources": {
+      "dg_10k_2006": {
+       "filed": "2007-03-29",
+       "filer": "Dollar General Corporation",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/29534/000002953407000023/f200610kfinal.htm"
+      },
+      "dg_10k_2007": {
+       "filed": "2008-03-28",
+       "filer": "Dollar General Corporation",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/29534/000100579408000099/dollargeneral10k2008.htm"
+      },
+      "dg_ipo_2009": {
+       "filed": "2009-11-13",
+       "filer": "Dollar General Corporation",
+       "form": "424B4",
+       "url": "https://www.sec.gov/Archives/edgar/data/29534/000104746909010136/a2195522z424b4.htm"
+      }
+     },
+     "sponsors": [
+      "Kohlberg Kravis Roberts & Co.",
+      "GS Capital Partners"
+     ],
+     "tags": {
+      "era": "2000_2007",
+      "outcome": "success",
+      "region": "us",
+      "sector": "consumer_discretionary",
+      "size": "1bn_10bn"
+     },
+     "target": "Dollar General Corporation"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000003",
+    "key": "dollar-general-2007",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "us",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "consumer_discretionary",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "before_2000",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "1998-12-21",
+      "quote": "the recapitalization as of December 21, 1998",
+      "source": "dom_s4_1999",
+      "where": "Summary, Sources and Uses"
+     },
+     "country": "US",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 70.75,
+      "def_senior_amort": null,
+      "entry_multiple": 10.74,
+      "fin_fee_pct": 6.0,
+      "leverage": 7.6,
+      "tx_fee_pct": 0.64
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Revolving credit facility",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 2.1,
+         "where": "Summary, Sources and Uses"
+        },
+        {
+         "label": "Term loan facilities",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 445.0,
+         "where": "Summary, Sources and Uses"
+        },
+        {
+         "label": "Notes",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 275.0,
+         "where": "Summary, Sources and Uses"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 722.1,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "dom_s4_1999",
+       "value": 95.0,
+       "where": "Summary historical financial data, EBITDA, fiscal year ended January 3, 1999",
+       "year": 1998
+      },
+      "equity": {
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "dom_s4_1999",
+       "value": 330.8,
+       "where": "Summary, Sources and Uses"
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": null,
+       "quote": "payment of $43.3 million of deferred financing costs",
+       "source": "dom_s4_1999",
+       "value": 43.3,
+       "where": "Management's discussion and analysis, liquidity"
+      },
+      "senior_amort_pct": null,
+      "transaction_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Transaction fees and expenses",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 49.8,
+         "where": "Summary, Sources and Uses"
+        },
+        {
+         "label": "Less deferred financing costs paid",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": -43.3,
+         "where": "Management's discussion and analysis, liquidity"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 6.5,
+       "where": null
+      },
+      "transaction_value": {
+       "basis": "uses_less_fees",
+       "note": "Every use of funds except the fees: the price of the business, including the debt repaid and the founder's non-compete payment.",
+       "parts": [
+        {
+         "label": "Redemption of capital stock of TISM",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 903.2,
+         "where": "Summary, Sources and Uses"
+        },
+        {
+         "label": "Rollover of equity by existing stockholders",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 17.5,
+         "where": "Summary, Sources and Uses"
+        },
+        {
+         "label": "Repayment of existing liabilities",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 49.9,
+         "where": "Summary, Sources and Uses"
+        },
+        {
+         "label": "Non-compete agreement",
+         "quote": null,
+         "source": "dom_s4_1999",
+         "value": 50.0,
+         "where": "Summary, Sources and Uses"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 1020.6,
+       "where": null
+      },
+      "transaction_value_usd": null
+     },
+     "key": "dominos-1998",
+     "kind": "recapitalization",
+     "outcome": {
+      "event": "ipo",
+      "kind": "success",
+      "note": null,
+      "quote": null,
+      "source": "dom_ipo_2004",
+      "where": "Cover page",
+      "year": 2004
+     },
+     "sector": "consumer_discretionary",
+     "sources": {
+      "dom_ipo_2004": {
+       "filed": "2004-07-14",
+       "filer": "Domino's Pizza, Inc.",
+       "form": "424B4",
+       "url": "https://www.sec.gov/Archives/edgar/data/1286681/000119312504117543/d424b4.htm"
+      },
+      "dom_s4_1999": {
+       "filed": "1999-05-12",
+       "filer": "Domino's, Inc.",
+       "form": "S-4/A",
+       "url": "https://www.sec.gov/Archives/edgar/data/1079458/0000927016-99-001907.txt"
+      }
+     },
+     "sponsors": [
+      "Bain Capital"
+     ],
+     "tags": {
+      "era": "before_2000",
+      "outcome": "success",
+      "region": "us",
+      "sector": "consumer_discretionary",
+      "size": "1bn_10bn"
+     },
+     "target": "Domino's, Inc."
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000004",
+    "key": "dominos-1998",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "us",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "consumer_discretionary",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2008_2014",
+       "dimension": "era"
+      },
+      {
+       "bucket": "distress",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2010-11-23",
+      "quote": "Equity holders received $65.40 per share of Company common stock owned on November 23, 2010.",
+      "source": "gym_10k_2011",
+      "where": "Note 1, The Transaction"
+     },
+     "country": "US",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 68.09,
+      "def_senior_amort": 1.0,
+      "entry_multiple": 9.11,
+      "fin_fee_pct": 5.08,
+      "leverage": 6.2,
+      "tx_fee_pct": 1.58
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Term loan (thousands: 815,900)",
+         "quote": null,
+         "source": "gym_10k_2011",
+         "value": 815.9,
+         "where": "Note 1, The Transaction, sources of funds"
+        },
+        {
+         "label": "Asset-based revolving facility drawn",
+         "quote": null,
+         "source": "gym_10k_2011",
+         "value": 30.0,
+         "where": "Note 1, The Transaction, sources of funds"
+        },
+        {
+         "label": "Senior notes",
+         "quote": null,
+         "source": "gym_10k_2011",
+         "value": 400.0,
+         "where": "Note 1, The Transaction, sources of funds"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 1245.9,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "reported",
+       "note": null,
+       "parts": [
+        {
+         "label": "Operating income, fiscal 2009 (thousands: 163,638)",
+         "quote": null,
+         "source": "gym_10k_2009",
+         "value": 163.6,
+         "where": "Consolidated statements of operations"
+        },
+        {
+         "label": "Depreciation and amortization, fiscal 2009 (thousands: 37,302)",
+         "quote": null,
+         "source": "gym_10k_2009",
+         "value": 37.3,
+         "where": "Consolidated statements of cash flows"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 200.9,
+       "where": null,
+       "year": 2009
+      },
+      "equity": {
+       "note": null,
+       "parts": null,
+       "quote": "Aggregate cash equity contributions of approximately $508 million were made by Parent",
+       "source": "gym_10k_2011",
+       "value": 508.0,
+       "where": "Note 1, The Transaction"
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": null,
+       "quote": "Approximately $63.3 million of these costs were determined to be related to the issuance",
+       "source": "gym_10k_2011",
+       "value": 63.3,
+       "where": "Note 1, The Transaction"
+      },
+      "senior_amort_pct": {
+       "note": "Four quarterly payments of 0.25%.",
+       "parts": null,
+       "quote": "quarterly payments each equal to 0.25% of the original $820 million principal amount",
+       "source": "gym_10k_2011",
+       "value": 1.0,
+       "where": "Item 7, Liquidity, Term Loan"
+      },
+      "transaction_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Transaction costs, November 23, 2010 to January 29, 2011",
+         "quote": null,
+         "source": "gym_10k_2011",
+         "value": 74.4,
+         "where": "Note 1, The Transaction"
+        },
+        {
+         "label": "Transaction costs, January 31 to November 22, 2010",
+         "quote": null,
+         "source": "gym_10k_2011",
+         "value": 17.9,
+         "where": "Note 1, The Transaction"
+        },
+        {
+         "label": "Less those related to the issuance of debt",
+         "quote": null,
+         "source": "gym_10k_2011",
+         "value": -63.3,
+         "where": "Note 1, The Transaction"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 29.0,
+       "where": null
+      },
+      "transaction_value": {
+       "basis": "equity_value",
+       "note": "The company had no debt before the buyout, so the equity bought is the business.",
+       "parts": null,
+       "quote": "Consideration paid to equity holders",
+       "source": "gym_10k_2011",
+       "value": 1829.7,
+       "where": "Note 1, The Transaction (thousands: 1,829,660)"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "gymboree-2010",
+     "kind": "take_private",
+     "outcome": {
+      "event": "missed_payment",
+      "kind": "distress",
+      "note": null,
+      "quote": "has elected not to make the interest payment due on June 1, 2017",
+      "source": "gym_8k_2017",
+      "where": "Item 7.01",
+      "year": 2017
+     },
+     "sector": "consumer_discretionary",
+     "sources": {
+      "gym_10k_2009": {
+       "filed": "2010-03-30",
+       "filer": "The Gymboree Corporation",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/786110/000119312510071089/d10k.htm"
+      },
+      "gym_10k_2011": {
+       "filed": "2012-04-26",
+       "filer": "The Gymboree Corporation",
+       "form": "10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/786110/000119312512185221/d285883d10k.htm"
+      },
+      "gym_8k_2017": {
+       "filed": "2017-06-01",
+       "filer": "The Gymboree Corporation",
+       "form": "8-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/786110/000119312517191156/d408107d8k.htm"
+      }
+     },
+     "sponsors": [
+      "Bain Capital"
+     ],
+     "tags": {
+      "era": "2008_2014",
+      "outcome": "distress",
+      "region": "us",
+      "sector": "consumer_discretionary",
+      "size": "1bn_10bn"
+     },
+     "target": "The Gymboree Corporation"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000005",
+    "key": "gymboree-2010",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "us",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "industrials",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2015_2019",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2019-02-08",
+      "quote": "In connection with the Take-Private Transaction on February 8, 2019",
+      "source": "dnb_ipo_2020",
+      "where": "Note 5, Notes Payable and Indebtedness"
+     },
+     "country": "US",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 65.58,
+      "def_senior_amort": 1.0,
+      "entry_multiple": 10.67,
+      "fin_fee_pct": 3.08,
+      "leverage": 7.0,
+      "tx_fee_pct": 3.29
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "New term loan facility",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 2530.0,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        },
+        {
+         "label": "New senior secured notes due 2026",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 700.0,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        },
+        {
+         "label": "New senior unsecured notes due 2027",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 750.0,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 3980.0,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "adjusted",
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "dnb_ipo_2020",
+       "value": 568.6,
+       "where": "Summary historical financial data, Adjusted EBITDA, year ended December 31, 2018",
+       "year": 2018
+      },
+      "equity": {
+       "note": "Common equity only; the Series A preferred stock issued to finance the deal is left out.",
+       "parts": null,
+       "quote": null,
+       "source": "dnb_ipo_2020",
+       "value": 2048.4,
+       "where": "Statement of stockholder equity, Take-Private Transaction"
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Debt issuance costs, term loan",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 62.1,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        },
+        {
+         "label": "Debt issuance costs, revolving facility",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 9.6,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        },
+        {
+         "label": "Debt issuance costs, repatriation bridge",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 1.5,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        },
+        {
+         "label": "Debt issuance costs, 6.875% senior secured notes",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 17.9,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        },
+        {
+         "label": "Debt issuance costs, 10.250% senior unsecured notes",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 31.6,
+         "where": "Note 5, Notes Payable and Indebtedness"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 122.7,
+       "where": null
+      },
+      "senior_amort_pct": {
+       "note": null,
+       "parts": null,
+       "quote": "in an aggregate annual amount equal to 1.00% of the original principal amount",
+       "source": "dnb_ipo_2020",
+       "value": 1.0,
+       "where": "Note 5, New Term Loan Facility"
+      },
+      "transaction_fees": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Transaction costs incurred by Merger Sub",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 147.4,
+         "where": "Note 12, Take-Private Transaction"
+        },
+        {
+         "label": "Transaction costs incurred by the Predecessor",
+         "quote": null,
+         "source": "dnb_ipo_2020",
+         "value": 52.0,
+         "where": "Summary historical financial data, note 2"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 199.4,
+       "where": null
+      },
+      "transaction_value": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": "Take-Private Transaction was valued at $6,068.7 million",
+       "source": "dnb_ipo_2020",
+       "value": 6068.7,
+       "where": "Note 12, Take-Private Transaction"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "dun-bradstreet-2019",
+     "kind": "take_private",
+     "outcome": {
+      "event": "ipo",
+      "kind": "success",
+      "note": null,
+      "quote": null,
+      "source": "dnb_ipo_2020",
+      "where": "Cover page",
+      "year": 2020
+     },
+     "sector": "industrials",
+     "sources": {
+      "dnb_ipo_2020": {
+       "filed": "2020-07-02",
+       "filer": "Dun & Bradstreet Holdings, Inc.",
+       "form": "424B4",
+       "url": "https://www.sec.gov/Archives/edgar/data/1799208/000104746920003957/a2242014z424b4.htm"
+      }
+     },
+     "sponsors": [
+      "Thomas H. Lee Partners",
+      "Cannae Holdings",
+      "Black Knight",
+      "CC Capital"
+     ],
+     "tags": {
+      "era": "2015_2019",
+      "outcome": "success",
+      "region": "us",
+      "sector": "industrials",
+      "size": "1bn_10bn"
+     },
+     "target": "The Dun & Bradstreet Corporation"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000006",
+    "key": "dun-bradstreet-2019",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "europe",
+       "dimension": "region"
+      },
+      {
+       "bucket": "over_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "information_technology",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2000_2007",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2006-09-29",
+      "quote": "acquired 100% of our issued and outstanding shares from Philips on September 29, 2006",
+      "source": "nxp_424b3_2007",
+      "where": "Recent Significant Transactions"
+     },
+     "country": "NL",
+     "currency": "EUR",
+     "derived": {
+      "debt_share_pct": 55.18,
+      "def_senior_amort": null,
+      "entry_multiple": 7.68,
+      "fin_fee_pct": 2.87,
+      "leverage": 4.24,
+      "tx_fee_pct": null
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": null,
+       "quote": "we issued approximately €4,529 million euro-equivalent secured and senior notes",
+       "source": "nxp_424b3_2007",
+       "value": 4529.0,
+       "where": "Recent Significant Transactions, Financing Transactions"
+      },
+      "ebitda": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "nxp_424b3_2007",
+       "value": 1069.0,
+       "where": "Summary financial data, EBITDA, 2005",
+       "year": 2005
+      },
+      "equity": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Consortium Holding, 80.1%",
+         "quote": null,
+         "source": "nxp_424b3_2007",
+         "value": 3451.0,
+         "where": "Recent Significant Transactions"
+        },
+        {
+         "label": "Philips, 19.9%",
+         "quote": null,
+         "source": "nxp_424b3_2007",
+         "value": 854.0,
+         "where": "Recent Significant Transactions"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 4305.0,
+       "where": null
+      },
+      "financing_fees": {
+       "note": null,
+       "parts": null,
+       "quote": "The total financing fees and expenses were approximately €130 million.",
+       "source": "nxp_424b3_2007",
+       "value": 130.0,
+       "where": "Unaudited pro forma financial information"
+      },
+      "senior_amort_pct": null,
+      "transaction_fees": null,
+      "transaction_value": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": "for an aggregate purchase price of €8,208 million",
+       "source": "nxp_424b3_2007",
+       "value": 8208.0,
+       "where": "Recent Significant Transactions"
+      },
+      "transaction_value_usd": {
+       "note": null,
+       "parts": null,
+       "quote": "the $10,601 million purchase price has been “pushed down”",
+       "source": "nxp_ipo_2010",
+       "value": 10601.0,
+       "where": "Management's discussion and analysis, effect of acquisition accounting"
+      }
+     },
+     "key": "nxp-2006",
+     "kind": "carve_out",
+     "outcome": {
+      "event": "ipo",
+      "kind": "success",
+      "note": null,
+      "quote": null,
+      "source": "nxp_ipo_2010",
+      "where": "Cover page",
+      "year": 2010
+     },
+     "sector": "information_technology",
+     "sources": {
+      "nxp_424b3_2007": {
+       "filed": "2007-04-27",
+       "filer": "NXP B.V.",
+       "form": "424B3",
+       "url": "https://www.sec.gov/Archives/edgar/data/1396945/000104746907003368/a2177460z424b3.htm"
+      },
+      "nxp_ipo_2010": {
+       "filed": "2010-08-06",
+       "filer": "NXP Semiconductors N.V.",
+       "form": "424B4",
+       "url": "https://www.sec.gov/Archives/edgar/data/1413447/000119312510180623/d424b4.htm"
+      }
+     },
+     "sponsors": [
+      "Kohlberg Kravis Roberts & Co.",
+      "Silver Lake",
+      "Bain Capital",
+      "Apax Partners",
+      "AlpInvest Partners"
+     ],
+     "tags": {
+      "era": "2000_2007",
+      "outcome": "success",
+      "region": "europe",
+      "sector": "information_technology",
+      "size": "over_10bn"
+     },
+     "target": "NXP B.V. (Philips Semiconductors)"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000007",
+    "key": "nxp-2006",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "other_developed",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "industrials",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2000_2007",
+       "dimension": "era"
+      },
+      {
+       "bucket": "distress",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2005-04-06",
+      "quote": "We were acquired on April 6, 2005 by an affiliate of KKR.",
+      "source": "mas_f4_2007",
+      "where": "Business, Post-Transaction Initiatives"
+     },
+     "country": "CA",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 72.04,
+      "def_senior_amort": null,
+      "entry_multiple": 9.4,
+      "fin_fee_pct": null,
+      "leverage": 6.77,
+      "tx_fee_pct": null
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Term loan facility",
+         "quote": "a $1,175.0 million term loan facility",
+         "source": "mas_f4_2007",
+         "value": 1175.0,
+         "where": "The Transaction"
+        },
+        {
+         "label": "Senior subordinated loan facility",
+         "quote": "a $770.0 million senior subordinated loan facility",
+         "source": "mas_f4_2007",
+         "value": 770.0,
+         "where": "The Transaction"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 1945.0,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "mas_f4_2007",
+       "value": 287.3,
+       "where": "Summary historical financial data, reconciliation of net income to EBITDA, fiscal year 2004",
+       "year": 2004
+      },
+      "equity": {
+       "note": null,
+       "parts": [
+        {
+         "label": "New equity provided by KKR",
+         "quote": null,
+         "source": "mas_f4_2007",
+         "value": 551.5,
+         "where": "The Transaction"
+        },
+        {
+         "label": "Equity invested by management at closing",
+         "quote": null,
+         "source": "mas_f4_2007",
+         "value": 24.3,
+         "where": "The Transaction"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 575.8,
+       "where": null
+      },
+      "financing_fees": null,
+      "senior_amort_pct": null,
+      "transaction_fees": null,
+      "transaction_value": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": "including the assumption of indebtedness, premiums, fees and expenses, was approximately $2.7 billion",
+       "source": "mas_f4_2007",
+       "value": 2700.0,
+       "where": "The Transaction"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "masonite-2005",
+     "kind": "take_private",
+     "outcome": {
+      "event": "restructuring",
+      "kind": "distress",
+      "note": null,
+      "quote": "voluntary Chapter 11 proceedings in the United States and similar proceedings under the Companies’ Creditors Arrangement Act",
+      "source": "mas_6k_2009",
+      "where": "Exhibit 99.1",
+      "year": 2009
+     },
+     "sector": "industrials",
+     "sources": {
+      "mas_6k_2009": {
+       "filed": "2009-03-10",
+       "filer": "Masonite International Inc.",
+       "form": "6-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1383505/000110465909015773/a09-7323_1ex99d1.htm"
+      },
+      "mas_f4_2007": {
+       "filed": "2007-01-04",
+       "filer": "Masonite International Corporation",
+       "form": "F-4",
+       "url": "https://www.sec.gov/Archives/edgar/data/893691/000104746907000031/a2174230zf-4.htm"
+      }
+     },
+     "sponsors": [
+      "Kohlberg Kravis Roberts & Co."
+     ],
+     "tags": {
+      "era": "2000_2007",
+      "outcome": "distress",
+      "region": "other_developed",
+      "sector": "industrials",
+      "size": "1bn_10bn"
+     },
+     "target": "Masonite International Corporation"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000008",
+    "key": "masonite-2005",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "other_developed",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "information_technology",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2000_2007",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2005-12-01",
+      "quote": "On December 1, 2005, our parent company",
+      "source": "avago_f4_2006",
+      "where": "Significant Transactions"
+     },
+     "country": "SG",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 54.63,
+      "def_senior_amort": null,
+      "entry_multiple": 24.32,
+      "fin_fee_pct": null,
+      "leverage": 13.29,
+      "tx_fee_pct": null
+     },
+     "figures": {
+      "debt": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Notes",
+         "quote": "we issued $1,000 million principal amount of notes",
+         "source": "avago_f4_2006",
+         "value": 1000.0,
+         "where": "Significant Transactions"
+        },
+        {
+         "label": "Term loan drawn at closing",
+         "quote": "of which $475 million was drawn at the closing of the Acquisition",
+         "source": "avago_f4_2006",
+         "value": 475.0,
+         "where": "Significant Transactions"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 1475.0,
+       "where": null
+      },
+      "ebitda": {
+       "basis": "reported",
+       "note": null,
+       "parts": [
+        {
+         "label": "Income from operations, year ended October 31, 2005",
+         "quote": null,
+         "source": "avago_f4_2006",
+         "value": 48.0,
+         "where": "Summary historical financial data"
+        },
+        {
+         "label": "Depreciation and amortization, year ended October 31, 2005",
+         "quote": null,
+         "source": "avago_f4_2006",
+         "value": 63.0,
+         "where": "Combined statements of cash flows of the predecessor"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 111.0,
+       "where": null,
+       "year": 2005
+      },
+      "equity": {
+       "note": null,
+       "parts": null,
+       "quote": "Investors (the “Equity Investors”) invested approximately $1,300 million",
+       "source": "avago_f4_2006",
+       "value": 1300.0,
+       "where": "Significant Transactions"
+      },
+      "financing_fees": null,
+      "senior_amort_pct": null,
+      "transaction_fees": null,
+      "transaction_value": {
+       "basis": "stated",
+       "note": null,
+       "parts": null,
+       "quote": "Products Group business segment (the “Acquisition”) for approximately $2.7 billion",
+       "source": "avago_f4_2006",
+       "value": 2700.0,
+       "where": "Significant Transactions"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "avago-2005",
+     "kind": "carve_out",
+     "outcome": {
+      "event": "ipo",
+      "kind": "success",
+      "note": null,
+      "quote": null,
+      "source": "avago_ipo_2009",
+      "where": "Cover page",
+      "year": 2009
+     },
+     "sector": "information_technology",
+     "sources": {
+      "avago_f4_2006": {
+       "filed": "2006-12-15",
+       "filer": "Avago Technologies Finance Pte. Ltd.",
+       "form": "F-4/A",
+       "url": "https://www.sec.gov/Archives/edgar/data/1376400/000095013406023204/f23597a2fv4za.htm"
+      },
+      "avago_ipo_2009": {
+       "filed": "2009-08-06",
+       "filer": "Avago Technologies Limited",
+       "form": "424B4",
+       "url": "https://www.sec.gov/Archives/edgar/data/1441634/000119312509166258/d424b4.htm"
+      }
+     },
+     "sponsors": [
+      "Kohlberg Kravis Roberts & Co.",
+      "Silver Lake"
+     ],
+     "tags": {
+      "era": "2000_2007",
+      "outcome": "success",
+      "region": "other_developed",
+      "sector": "information_technology",
+      "size": "1bn_10bn"
+     },
+     "target": "Avago Technologies (Agilent's Semiconductor Products Group)"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-000000000009",
+    "key": "avago-2005",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   },
+   {
+    "approvals": 0,
+    "approvals_needed": 2,
+    "balance": {
+     "fills": [
+      {
+       "bucket": "emerging",
+       "dimension": "region"
+      },
+      {
+       "bucket": "1bn_10bn",
+       "dimension": "size"
+      },
+      {
+       "bucket": "communication_services",
+       "dimension": "sector"
+      },
+      {
+       "bucket": "2008_2014",
+       "dimension": "era"
+      },
+      {
+       "bucket": "success",
+       "dimension": "outcome"
+      }
+     ],
+     "over": []
+    },
+    "deal": {
+     "approved_at": null,
+     "closed": {
+      "date": "2013-05-23",
+      "quote": "the merger became effective on May 23, 2013",
+      "source": "focus_13e3_final_2013",
+      "where": "Introduction"
+     },
+     "country": "CN",
+     "currency": "USD",
+     "derived": {
+      "debt_share_pct": 39.89,
+      "def_senior_amort": null,
+      "entry_multiple": 9.17,
+      "fin_fee_pct": null,
+      "leverage": 3.66,
+      "tx_fee_pct": null
+     },
+     "figures": {
+      "debt": {
+       "note": "The debt committed; the filings do not say how much was drawn.",
+       "parts": null,
+       "quote": "a debt commitment up to $1.525 billion under the Senior Secured Credit Facilities",
+       "source": "focus_proxy_2013",
+       "value": 1525.0,
+       "where": "Summary Term Sheet, Financing of the Merger"
+      },
+      "ebitda": {
+       "basis": "projection",
+       "note": null,
+       "parts": null,
+       "quote": null,
+       "source": "focus_proxy_2013",
+       "value": 417.0,
+       "where": "Special Factors, Management Projections, 2012E",
+       "year": 2012
+      },
+      "equity": {
+       "note": null,
+       "parts": [
+        {
+         "label": "Sponsor equity commitments",
+         "quote": null,
+         "source": "focus_proxy_2013",
+         "value": 1181.0,
+         "where": "Summary Term Sheet, Financing of the Merger"
+        },
+        {
+         "label": "Chairman's rolled-over shares",
+         "quote": null,
+         "source": "focus_proxy_2013",
+         "value": 710.0,
+         "where": "Summary Term Sheet, Financing of the Merger"
+        },
+        {
+         "label": "Fosun's rolled-over shares",
+         "quote": null,
+         "source": "focus_proxy_2013",
+         "value": 400.0,
+         "where": "Summary Term Sheet, Financing of the Merger"
+        },
+        {
+         "label": "Management's rolled-over units",
+         "quote": null,
+         "source": "focus_proxy_2013",
+         "value": 7.0,
+         "where": "Summary Term Sheet, Financing of the Merger"
+        }
+       ],
+       "quote": null,
+       "source": null,
+       "value": 2298.0,
+       "where": null
+      },
+      "financing_fees": null,
+      "senior_amort_pct": null,
+      "transaction_fees": null,
+      "transaction_value": {
+       "basis": "funds_needed",
+       "note": "Total funds to complete the merger, rolled-over shares included; the company's own cash is not netted.",
+       "parts": null,
+       "quote": "is anticipated to be approximately $3.823 billion",
+       "source": "focus_proxy_2013",
+       "value": 3823.0,
+       "where": "Summary Term Sheet, Financing of the Merger"
+      },
+      "transaction_value_usd": null
+     },
+     "key": "focus-media-2013",
+     "kind": "take_private",
+     "outcome": {
+      "event": "relisted",
+      "kind": "success",
+      "note": "The year is that of the filing which says the business is listed again.",
+      "quote": "Focus Media Information Technology Co., Ltd., a company listed on the Shenzhen Stock Exchange",
+      "source": "soufun_6k_2016",
+      "where": "Exhibit 99.2, directors",
+      "year": 2016
+     },
+     "sector": "communication_services",
+     "sources": {
+      "focus_13e3_final_2013": {
+       "filed": "2013-05-24",
+       "filer": "Focus Media Holding Limited",
+       "form": "SC 13E3/A",
+       "url": "https://www.sec.gov/Archives/edgar/data/1330017/000119312513234271/d461081dsc13e3a.htm"
+      },
+      "focus_proxy_2013": {
+       "filed": "2013-03-25",
+       "filer": "Focus Media Holding Limited",
+       "form": "SC 13E3/A",
+       "url": "https://www.sec.gov/Archives/edgar/data/1330017/000119312513124513/d461081dex99a1.htm"
+      },
+      "soufun_6k_2016": {
+       "filed": "2016-08-11",
+       "filer": "SouFun Holdings Limited",
+       "form": "6-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1294404/000114420416118177/v446676_ex99-2.htm"
+      }
+     },
+     "sponsors": [
+      "The Carlyle Group",
+      "FountainVest Partners",
+      "CITIC Capital",
+      "China Everbright",
+      "Fosun"
+     ],
+     "tags": {
+      "era": "2008_2014",
+      "outcome": "success",
+      "region": "emerging",
+      "sector": "communication_services",
+      "size": "1bn_10bn"
+     },
+     "target": "Focus Media Holding Limited"
+    },
+    "decided_at": null,
+    "id": "00000000-0000-0000-0000-00000000000a",
+    "key": "focus-media-2013",
+    "mine": false,
+    "my_verdict": null,
+    "origin": "repository",
+    "problems": [],
+    "proposed_at": "2026-10-07T12:00:00Z",
+    "reasons": [],
+    "rejections": 0,
+    "replaces_approved": false,
+    "status": "proposed"
+   }
+  ]
+ }
+}

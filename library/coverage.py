@@ -2,10 +2,11 @@
 
 Each collection of deals is counted by the dimensions a balanced library
 needs -- region, size, sector, era and outcome -- with every bucket listed,
-empty ones too, so a gap shows as a zero rather than as nothing. Today the
-only deals are the four inception-era examples (unsourced, so counted apart
-from sourced references); 4.5b adds the sourced reference transactions as
-their own collection. The base rates are counted per table.
+empty ones too, so a gap shows as a zero rather than as nothing. The sourced
+reference transactions (PLAN.md 4.5b, ``library/references.py``) are counted
+once two administrators have approved them, with how many await review; the
+four inception-era examples are unsourced and counted apart. The base rates
+are counted per table.
 """
 from __future__ import annotations
 
@@ -72,10 +73,10 @@ def example_tags(example: dict) -> dict:
     }
 
 
-def _counts(tagged: Iterable[dict]) -> dict:
+def _counts(tagged: Iterable[dict], sectors: Optional[tuple[str, ...]] = None) -> dict:
     tagged = list(tagged)
     fixed = {"region": REGIONS, "size": tuple(n for n, *_ in SIZES), "era": tuple(n for n, *_ in ERAS),
-             "outcome": OUTCOMES}
+             "outcome": OUTCOMES, **({"sector": sectors} if sectors else {})}
     out = {}
     for dim in DIMENSIONS:
         seen = Counter(t[dim] for t in tagged if t.get(dim))
@@ -84,15 +85,21 @@ def _counts(tagged: Iterable[dict]) -> dict:
     return out
 
 
-def collection(id_: str, tagged: list[dict], *, sourced: bool) -> dict:
-    return {"id": id_, "count": len(tagged), "sourced": sourced, "dimensions": _counts(tagged)}
+def collection(id_: str, tagged: list[dict], *, sourced: bool, sectors: Optional[tuple[str, ...]] = None,
+               awaiting_review: Optional[int] = None) -> dict:
+    out = {"id": id_, "count": len(tagged), "sourced": sourced, "dimensions": _counts(tagged, sectors)}
+    if awaiting_review is not None:
+        out["awaiting_review"] = awaiting_review
+    return out
 
 
-def coverage() -> dict:
+def coverage(reference_deals: Iterable[dict] = (), awaiting_review: int = 0) -> dict:
+    """``reference_deals`` are the approved reference transactions."""
+    from library import references  # it reads this module's buckets
     return {
         "collections": [
-            # Sourced reference transactions arrive with 4.5b
-            collection("reference_deals", [], sourced=True),
+            collection("reference_deals", [references.tags(d) for d in reference_deals], sourced=True,
+                       sectors=references.SECTORS, awaiting_review=awaiting_review),
             collection("examples", [example_tags(x) for x in examples()], sourced=False),
         ],
         "base_rates": base_rates.coverage(),

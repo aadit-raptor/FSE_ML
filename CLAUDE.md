@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-07 (PLAN.md 4.5a: reference library switch, base rates and coverage). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-08 (PLAN.md 4.5b: reference transactions, two-person review and sourced fees). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -812,7 +812,7 @@ simulation or risk warnings reads the library. **Coverage**
 region, size (entry EV in US dollars), sector, era and outcome, empty
 buckets listed; the four inception deals are the `examples` collection
 (unsourced, tagged US in `EXAMPLE_COUNTRY`) and `reference_deals` is
-reserved for 4.5b. **The admin switch** (`library/switch.py`): on unless an
+the approved reference transactions (4.5b, below). **The admin switch** (`library/switch.py`): on unless an
 administrator hides it (`PUT /api/library/switch`, table `app_flags`,
 migration 0014, one `library_switched` audit entry per change, none for a
 repeat) or `FSE_EXAMPLE_LIBRARY=0` forces it off (409 to switching then).
@@ -823,6 +823,50 @@ Off: the tab disappears except for administrators, `/library/*` says it is
 off, examples and library endpoints answer `enabled: false`;
 `e2e/library.spec.ts` opens every other step with it off. `core/examples.py`
 no longer reads the switch; the routers do.
+
+Reference library, part two (PLAN.md 4.5b): **reference transactions**,
+real buyouts with **every figure read from a filing**
+(`library/reference_deals.json`, `library/references.py`). A figure is one
+place in a filing (`source`, `where`, a few verbatim words in `quote`) or
+the sum of cited `parts` (EBITDA as operating income plus D&A, debt as its
+facilities, fees less financing costs); money in millions of the deal's
+currency, plus a filed US dollar value for any other currency (sizes are
+US dollars). The repository proposes ten (SEC filings only: HCA, Toys "R"
+Us, Dollar General, Domino's, Gymboree, Dun & Bradstreet, NXP, Masonite,
+Avago, Focus Media; 1998-2019; seven exits, three distressed). **Inclusion
+rules** (`problems`, codes the screen words) refuse what can't be checked:
+a missing required figure (transaction value, EBITDA, debt), a source that
+is not on `FILING_HOSTS` over https, an unused source, pieces off by more
+than 0.05, a multiple outside 2-40x, debt above the value, a fee outside
+0-10%, dates out of order, an event that doesn't fit the outcome.
+**Balance rules** (`balance`) are advice: a bucket over half the library
+once it holds six, and the empty buckets a proposal fills. **Two-person
+review** (`library/review.py`, `db/references.py`, migration 0015: tables
+`reference_deals`, `reference_reviews`): only administrators (`FSE_ADMINS`)
+see Library -> Review or propose (from a JSON file in the repository's
+format); a proposal joins on the **second approval by an administrator
+other than its proposer** (the repository's have no proposer), one
+rejection with a reason code decides it, a rules finding blocks approval
+(409 with the codes), each administrator reviews once, and a corrected
+version of an approved deal supersedes it. The review runs in one
+transaction with the proposal row locked (`FOR UPDATE`), so two
+administrators can't both be the deciding approval. The repository's
+proposals are queued (`sync_repository`, keyed by `key` and
+`content_hash`) whenever an administrator opens the queue; **changing a
+transaction in the JSON makes a new proposal**, approved again. Audit
+actions `reference_proposed` and `reference_reviewed` (detail `reference`,
+`verdict`). Library -> Reference deals lists the approved ones, every
+figure linked to its filing; Coverage counts them (GICS sectors) with how
+many await review. **Fees and amortisation** (`library/fees.py`): the
+median of each across approved deals that give it (at least
+`MIN_DEALS` 3), offered on Settings -> Fees beside the values in force with
+"Use sourced figures"; decided in the session: **offered Settings, never
+factory defaults**, like 4.4's ranges, so no saved deal and no engine
+version moves. With the ten approved: transaction fees 1.24% of value (six
+deals), financing fees 3.07% of debt (seven), senior amortisation 1% a year
+(three). The defaults registry has no `pending` entry left. Browser tests
+replay `web/e2e/fixtures/references.json` from `python -m
+tests.e2e_references`, checked stale by `tests/test_references.py`.
 
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
@@ -868,7 +912,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 was split: **4.5a** is done (the library's switch, base rates and coverage, below). **Next is 4.5b** (reference transactions, two-person review, fees and amortisation).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. **Next is 4.6** (model validation framework).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1050,6 +1094,13 @@ golden snapshot is untouched and parity tests explain every departure.
 - Macro regime detection: `FRED_API_KEY` is set (PLAN.md 4.2); the ML
   image still needs the model trained (`python -m ml.macro_regime`), and 5.7
   rebuilds it on 4.2's data.
+- PLAN.md 4.5b: approving the repository's ten reference transactions needs
+  **two administrators**: add a second Clerk user id to `FSE_ADMINS` on
+  `fse-api` (and on `fse-api-staging`, whose Clerk instance has its own ids),
+  then each opens Library -> Review and approves (three ids for a proposal an
+  administrator makes in the app). Until then the library holds none and
+  Settings -> Fees offers no sourced fees.
+
 - Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
   multiple predictor, growth calibrator, NLP extractor, correlation updater,
   personalization). SHAP and distress need no keys.
@@ -1091,7 +1142,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/plan_actual.py`, `core/examples.py`, `web/src/lib/backtest/actuals.ts` | Plan vs actual (PLAN.md 2.7): the comparison and attribution, the optional example library, the actuals editor shape and its CSV |
 | `companies/`, `db/companies.py`, `api/routers/companies.py` | Company filings (PLAN.md 4.1): the interface and its connectors (SEC, ESEF, Companies House, EDINET, GLEIF), the summary figures and concept maps, paced HTTP, the recorder, the summary as deal inputs and forecast rows (`use.py`); storage, budget and the EDINET index; the endpoints |
 | `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx`, `web/src/components/montecarlo/SourcedRisk.tsx` | Sourced starting figures (PLAN.md 4.3) and risk ranges (4.4): regions and data sets read, the workbook reader, a deal's starting figures, the archive and economic history (`history.py`), the Monte Carlo Settings from it (`risk.py`), the refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and tile, the Monte Carlo "Sources" rail group and tile |
-| `library/`, `db/flags.py`, `api/routers/library.py`, `web/src/components/library/`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5a): the cited base-rate tables, the coverage counts and the admin switch; site-wide switches; the endpoints; the Library screens and their provider; the yearly editions check |
+| `library/`, `db/flags.py`, `db/references.py`, `api/routers/library.py`, `web/src/components/library/`, `web/src/components/settings/SourcedFees.tsx`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5): the cited base-rate tables, the coverage counts, the admin switch, the reference transactions (`reference_deals.json`, `references.py` with the inclusion and balance rules, `review.py`) and their fees (`fees.py`); site-wide switches; proposals and the two-person review stored; the endpoints; the Library screens (Reference deals, Review) and their provider; the sourced fees tile on Settings -> Fees; the yearly editions check |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
 | `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |
 | `tests/reference/`, `tests/test_reference_cases.py` | Reference cases (PLAN.md 3.4): 26 deals solved by hand, their spreadsheet and the builder that writes it; the test that the engine matches each to 0.01 |
@@ -1104,7 +1155,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,153 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,317 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (Windows, from the repo root)
 
@@ -1400,6 +1451,24 @@ Skills load when a session starts: install first, then open a new session.
   added in three places: a `COPY` line in the `Dockerfile` (it copies
   packages by name), `buildFilter` in `render.yaml`, and `API_PATHS` in
   `staging.yml`. CI's `docker` job fails at start-up if the first is missing.
+- A reference transaction's figure must be read, not worked out: cite the
+  filing, where in it, and a **verbatim** `quote` (or none; a table cell is
+  not a quote). Find filings with EDGAR full-text search
+  (`efts.sec.gov/LATEST/search-index?q=...`, 2001 on, User-Agent with a
+  contact) or a company's `data.sec.gov/submissions/CIK##########.json`
+  (only its newest 1,000 filings: older ones need the company browse page).
+  A merger proxy (DEFM14A, SC 13E3) gives price, financing and the EBITDA in
+  management's projections; the first post-buyout 10-K, S-4 or F-4 (filed
+  for the buyout bonds) gives sources and uses, fees and amortisation; an
+  IPO 424B4 or an 8-K gives the outcome.
+- gitleaks' `generic-api-key` rule reads a slug after the word `key`
+  (`"key": "masonite-2005"`) as a secret, and the `secrets` check scans all
+  history, so a commit can't be undone, only allowed. `.gitleaks.toml` keeps
+  every default rule and allows that slug shape in the reference files only;
+  widen its `paths` rather than loosen the regex.
+- The Bash tool sometimes fails a heredoc whose body holds apostrophes
+  ("unexpected EOF while looking for matching `''"). Write the script with
+  the Write tool and run the file instead.
 - `Intl.DisplayNames` names retired region codes too ("DD" is "Germany",
   "UK" is "United Kingdom"), so a country list built from it offers two
   Germanys. `lib/locale.ts` `countryOptions` drops any code that

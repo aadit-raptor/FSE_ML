@@ -436,7 +436,9 @@
               "deleted",
               "settings_changed",
               "shared",
-              "library_switched"
+              "library_switched",
+              "reference_proposed",
+              "reference_reviewed"
             ],
             "title": "Action",
             "type": "string"
@@ -521,6 +523,18 @@
             "title": "Id",
             "type": "integer"
           },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The reference transaction proposed or reviewed",
+            "title": "Reference"
+          },
           "source_deal": {
             "anyOf": [
               {
@@ -544,6 +558,22 @@
             ],
             "description": "The last of the merged actions (UTC), when count > 1",
             "title": "Until"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "approve",
+                  "reject"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The review given",
+            "title": "Verdict"
           },
           "version": {
             "anyOf": [
@@ -1022,6 +1052,100 @@
           "actual_total_debt"
         ],
         "title": "BacktestYear",
+        "type": "object"
+      },
+      "Balance": {
+        "properties": {
+          "fills": {
+            "description": "Empty buckets this deal would fill",
+            "items": {
+              "$ref": "#/components/schemas/BalanceFill"
+            },
+            "title": "Fills",
+            "type": "array"
+          },
+          "over": {
+            "description": "Buckets this deal would push past half the library",
+            "items": {
+              "$ref": "#/components/schemas/BalanceOver"
+            },
+            "title": "Over",
+            "type": "array"
+          }
+        },
+        "required": [
+          "over",
+          "fills"
+        ],
+        "title": "Balance",
+        "type": "object"
+      },
+      "BalanceFill": {
+        "properties": {
+          "bucket": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bucket"
+          },
+          "dimension": {
+            "enum": [
+              "region",
+              "size",
+              "sector",
+              "era",
+              "outcome"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dimension"
+        ],
+        "title": "BalanceFill",
+        "type": "object"
+      },
+      "BalanceOver": {
+        "properties": {
+          "bucket": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bucket"
+          },
+          "dimension": {
+            "enum": [
+              "region",
+              "size",
+              "sector",
+              "era",
+              "outcome"
+            ],
+            "title": "Dimension",
+            "type": "string"
+          },
+          "share_pct": {
+            "description": "The bucket's share of the library with this deal added",
+            "title": "Share Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "dimension",
+          "share_pct"
+        ],
+        "title": "BalanceOver",
         "type": "object"
       },
       "Bands": {
@@ -2471,6 +2595,18 @@
       },
       "CoverageCollection": {
         "properties": {
+          "awaiting_review": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reference transactions proposed, not yet decided",
+            "title": "Awaiting Review"
+          },
           "count": {
             "title": "Count",
             "type": "integer"
@@ -7609,6 +7745,733 @@
         "title": "RecoveryBaseRates",
         "type": "object"
       },
+      "ReferenceClosed": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "source": {
+            "pattern": "^[a-z0-9_]{1,60}$",
+            "title": "Source",
+            "type": "string"
+          },
+          "where": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Where",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "source",
+          "where"
+        ],
+        "title": "ReferenceClosed",
+        "type": "object"
+      },
+      "ReferenceDealIn": {
+        "additionalProperties": false,
+        "description": "A reference transaction as proposed: money in millions of ``currency``.",
+        "properties": {
+          "closed": {
+            "$ref": "#/components/schemas/ReferenceClosed"
+          },
+          "country": {
+            "description": "Where the business is, ISO 3166-1",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Country",
+            "type": "string"
+          },
+          "currency": {
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "figures": {
+            "$ref": "#/components/schemas/ReferenceFigures"
+          },
+          "key": {
+            "description": "e.g. hca-2006",
+            "pattern": "^[a-z0-9][a-z0-9-]{2,79}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "take_private",
+              "carve_out",
+              "recapitalization",
+              "secondary"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ReferenceOutcome"
+          },
+          "sector": {
+            "enum": [
+              "communication_services",
+              "consumer_discretionary",
+              "consumer_staples",
+              "energy",
+              "financials",
+              "health_care",
+              "industrials",
+              "information_technology",
+              "materials",
+              "real_estate",
+              "utilities"
+            ],
+            "title": "Sector",
+            "type": "string"
+          },
+          "sources": {
+            "maxProperties": 20,
+            "minProperties": 1,
+            "patternProperties": {
+              "^[a-z0-9_]{1,60}$": {
+                "$ref": "#/components/schemas/ReferenceSource"
+              }
+            },
+            "title": "Sources",
+            "type": "object"
+          },
+          "sponsors": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Sponsors",
+            "type": "array"
+          },
+          "target": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "target",
+          "country",
+          "sector",
+          "kind",
+          "sponsors",
+          "currency",
+          "closed",
+          "figures",
+          "outcome",
+          "sources"
+        ],
+        "title": "ReferenceDealIn",
+        "type": "object"
+      },
+      "ReferenceDealView": {
+        "description": "A reference transaction with what its figures say together and its coverage buckets.",
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "closed": {
+            "$ref": "#/components/schemas/ReferenceClosed"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "derived": {
+            "$ref": "#/components/schemas/ReferenceDerived"
+          },
+          "figures": {
+            "$ref": "#/components/schemas/ReferenceFigures"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ReferenceOutcome"
+          },
+          "sector": {
+            "enum": [
+              "communication_services",
+              "consumer_discretionary",
+              "consumer_staples",
+              "energy",
+              "financials",
+              "health_care",
+              "industrials",
+              "information_technology",
+              "materials",
+              "real_estate",
+              "utilities"
+            ],
+            "title": "Sector",
+            "type": "string"
+          },
+          "sources": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ReferenceSource"
+            },
+            "title": "Sources",
+            "type": "object"
+          },
+          "sponsors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sponsors",
+            "type": "array"
+          },
+          "tags": {
+            "$ref": "#/components/schemas/ReferenceTags"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "target",
+          "country",
+          "sector",
+          "kind",
+          "sponsors",
+          "currency",
+          "closed",
+          "figures",
+          "outcome",
+          "sources",
+          "derived",
+          "tags"
+        ],
+        "title": "ReferenceDealView",
+        "type": "object"
+      },
+      "ReferenceDealsResponse": {
+        "properties": {
+          "awaiting_review": {
+            "description": "Proposed and not yet decided",
+            "title": "Awaiting Review",
+            "type": "integer"
+          },
+          "deals": {
+            "description": "The approved reference transactions",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceDealView"
+            },
+            "title": "Deals",
+            "type": "array"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "deals",
+          "awaiting_review"
+        ],
+        "title": "ReferenceDealsResponse",
+        "type": "object"
+      },
+      "ReferenceDerived": {
+        "properties": {
+          "debt_share_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Debt, per cent of the transaction value",
+            "title": "Debt Share Pct"
+          },
+          "def_senior_amort": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Senior amortisation, per cent a year",
+            "title": "Def Senior Amort"
+          },
+          "entry_multiple": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Transaction value over EBITDA",
+            "title": "Entry Multiple"
+          },
+          "fin_fee_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Financing fees, per cent of the debt",
+            "title": "Fin Fee Pct"
+          },
+          "leverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Debt over EBITDA",
+            "title": "Leverage"
+          },
+          "tx_fee_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Transaction fees, per cent of the transaction value",
+            "title": "Tx Fee Pct"
+          }
+        },
+        "title": "ReferenceDerived",
+        "type": "object"
+      },
+      "ReferenceEbitda": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "reported",
+              "adjusted",
+              "stated",
+              "projection"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReferencePart"
+                },
+                "maxItems": 12,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9_]{1,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "where": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Where"
+          },
+          "year": {
+            "description": "The fiscal year it covers",
+            "maximum": 2100.0,
+            "minimum": 1950.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "basis",
+          "year"
+        ],
+        "title": "ReferenceEbitda",
+        "type": "object"
+      },
+      "ReferenceFigure": {
+        "additionalProperties": false,
+        "description": "A figure read from one place in a filing, or the sum of ``parts``\nread from several (each with its own source).",
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReferencePart"
+                },
+                "maxItems": 12,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9_]{1,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "where": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Where"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "ReferenceFigure",
+        "type": "object"
+      },
+      "ReferenceFigures": {
+        "additionalProperties": false,
+        "properties": {
+          "debt": {
+            "$ref": "#/components/schemas/ReferenceFigure"
+          },
+          "ebitda": {
+            "$ref": "#/components/schemas/ReferenceEbitda"
+          },
+          "equity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReferenceFigure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "financing_fees": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReferenceFigure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "senior_amort_pct": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReferenceFigure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Per cent of the original principal a year"
+          },
+          "transaction_fees": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReferenceFigure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transaction_value": {
+            "$ref": "#/components/schemas/ReferenceValue"
+          },
+          "transaction_value_usd": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReferenceFigure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Needed when the deal is not in US dollars, for its size"
+          }
+        },
+        "required": [
+          "transaction_value",
+          "ebitda",
+          "debt"
+        ],
+        "title": "ReferenceFigures",
+        "type": "object"
+      },
+      "ReferenceOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "enum": [
+              "ipo",
+              "sale",
+              "relisted",
+              "missed_payment",
+              "bankruptcy",
+              "restructuring",
+              "held"
+            ],
+            "title": "Event",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "success",
+              "distress",
+              "held"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "source": {
+            "pattern": "^[a-z0-9_]{1,60}$",
+            "title": "Source",
+            "type": "string"
+          },
+          "where": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Where",
+            "type": "string"
+          },
+          "year": {
+            "maximum": 2100.0,
+            "minimum": 1950.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "event",
+          "year",
+          "source",
+          "where"
+        ],
+        "title": "ReferenceOutcome",
+        "type": "object"
+      },
+      "ReferencePart": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "source": {
+            "pattern": "^[a-z0-9_]{1,60}$",
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "where": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Where",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "value",
+          "source",
+          "where"
+        ],
+        "title": "ReferencePart",
+        "type": "object"
+      },
       "ReferenceRatesResponse": {
         "properties": {
           "as_of": {
@@ -7662,6 +8525,192 @@
           "currency_benchmarks"
         ],
         "title": "ReferenceRatesResponse",
+        "type": "object"
+      },
+      "ReferenceSource": {
+        "additionalProperties": false,
+        "properties": {
+          "filed": {
+            "format": "date",
+            "title": "Filed",
+            "type": "string"
+          },
+          "filer": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Filer",
+            "type": "string"
+          },
+          "form": {
+            "description": "The filing's form, e.g. 10-K, 424B4",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Form",
+            "type": "string"
+          },
+          "url": {
+            "description": "The filing on its regulator's or exchange's own site",
+            "maxLength": 500,
+            "pattern": "^https://",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filer",
+          "form",
+          "filed",
+          "url"
+        ],
+        "title": "ReferenceSource",
+        "type": "object"
+      },
+      "ReferenceTags": {
+        "properties": {
+          "era": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Era"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          }
+        },
+        "required": [
+          "sector",
+          "outcome"
+        ],
+        "title": "ReferenceTags",
+        "type": "object"
+      },
+      "ReferenceValue": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "stated",
+              "equity_value",
+              "uses_less_fees",
+              "funds_needed"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReferencePart"
+                },
+                "maxItems": 12,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9_]{1,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "where": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Where"
+          }
+        },
+        "required": [
+          "value",
+          "basis"
+        ],
+        "title": "ReferenceValue",
         "type": "object"
       },
       "ReportedRun": {
@@ -7894,6 +8943,208 @@
           }
         },
         "title": "ReturnsResult",
+        "type": "object"
+      },
+      "ReviewProposal": {
+        "properties": {
+          "approvals": {
+            "title": "Approvals",
+            "type": "integer"
+          },
+          "approvals_needed": {
+            "title": "Approvals Needed",
+            "type": "integer"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
+          },
+          "deal": {
+            "$ref": "#/components/schemas/ReferenceDealView"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "mine": {
+            "description": "The caller proposed it, so may not review it",
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "my_verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "approve",
+                  "reject"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Verdict"
+          },
+          "origin": {
+            "enum": [
+              "repository",
+              "user"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "problems": {
+            "description": "The inclusion rules' findings; any blocks approval",
+            "items": {
+              "$ref": "#/components/schemas/RuleProblem"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "proposed_at": {
+            "format": "date-time",
+            "title": "Proposed At",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "enum": [
+                "figure_wrong",
+                "source_wrong",
+                "not_a_buyout",
+                "duplicate",
+                "other"
+              ],
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "rejections": {
+            "title": "Rejections",
+            "type": "integer"
+          },
+          "replaces_approved": {
+            "description": "An approved version of this transaction is in the library",
+            "title": "Replaces Approved",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "approved",
+              "rejected",
+              "superseded"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "origin",
+          "status",
+          "proposed_at",
+          "approvals",
+          "approvals_needed",
+          "rejections",
+          "reasons",
+          "mine",
+          "replaces_approved",
+          "deal",
+          "problems",
+          "balance"
+        ],
+        "title": "ReviewProposal",
+        "type": "object"
+      },
+      "ReviewQueue": {
+        "properties": {
+          "decided": {
+            "description": "The latest decided, newest first",
+            "items": {
+              "$ref": "#/components/schemas/ReviewProposal"
+            },
+            "title": "Decided",
+            "type": "array"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "library_size": {
+            "title": "Library Size",
+            "type": "integer"
+          },
+          "proposals": {
+            "description": "Awaiting review, oldest first",
+            "items": {
+              "$ref": "#/components/schemas/ReviewProposal"
+            },
+            "title": "Proposals",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled",
+          "proposals",
+          "decided",
+          "library_size"
+        ],
+        "title": "ReviewQueue",
+        "type": "object"
+      },
+      "ReviewVerdict": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "figure_wrong",
+                  "source_wrong",
+                  "not_a_buyout",
+                  "duplicate",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "verdict": {
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict"
+        ],
+        "title": "ReviewVerdict",
         "type": "object"
       },
       "RiskAssumptionsResponse": {
@@ -8751,6 +10002,48 @@
         "title": "RiskWarning",
         "type": "object"
       },
+      "RuleProblem": {
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The figure, source or field it concerns",
+            "title": "At"
+          },
+          "code": {
+            "enum": [
+              "no_sponsor",
+              "missing_figure",
+              "unknown_figure",
+              "missing_source",
+              "not_a_filing",
+              "unused_source",
+              "parts_dont_add_up",
+              "not_positive",
+              "multiple_out_of_range",
+              "debt_exceeds_value",
+              "fee_out_of_range",
+              "amortisation_out_of_range",
+              "closed_in_future",
+              "outcome_before_close",
+              "event_doesnt_match_outcome"
+            ],
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "RuleProblem",
+        "type": "object"
+      },
       "SavedModel": {
         "description": "The stamp a saved deal or version keeps, with what the deal gave then.",
         "properties": {
@@ -9194,6 +10487,100 @@
           }
         },
         "title": "SettingsValidateRequest",
+        "type": "object"
+      },
+      "SourcedFee": {
+        "properties": {
+          "deals": {
+            "description": "The reference transactions' keys",
+            "items": {
+              "type": "string"
+            },
+            "title": "Deals",
+            "type": "array"
+          },
+          "first_year": {
+            "title": "First Year",
+            "type": "integer"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "last_year": {
+            "title": "Last Year",
+            "type": "integer"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "value": {
+            "description": "The median across the deals, per cent",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "n",
+          "low",
+          "high",
+          "first_year",
+          "last_year",
+          "deals"
+        ],
+        "title": "SourcedFee",
+        "type": "object"
+      },
+      "SourcedFeesResponse": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "library_size": {
+            "title": "Library Size",
+            "type": "integer"
+          },
+          "min_deals": {
+            "description": "Deals a figure needs before it is offered",
+            "title": "Min Deals",
+            "type": "integer"
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SourcedFee"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "propertyNames": {
+              "enum": [
+                "tx_fee_pct",
+                "fin_fee_pct",
+                "def_senior_amort"
+              ]
+            },
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "enabled",
+          "min_deals",
+          "library_size",
+          "settings"
+        ],
+        "title": "SourcedFeesResponse",
         "type": "object"
       },
       "SourcesUsesRequest": {
@@ -14214,6 +15601,241 @@
           }
         ],
         "summary": "Get Coverage",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/fees": {
+      "get": {
+        "description": "Transaction fees, financing fees and senior amortisation from the\napproved reference transactions' filings, offered as Settings.",
+        "operationId": "get_fees_api_library_fees_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourcedFeesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Fees",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/references": {
+      "get": {
+        "description": "The approved reference transactions, every figure with its filing.",
+        "operationId": "get_references_api_library_references_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceDealsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get References",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/review": {
+      "get": {
+        "description": "Proposals awaiting review, with the inclusion and balance rules' findings (administrators only).",
+        "operationId": "get_review_api_library_review_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueue"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Review",
+        "tags": [
+          "library"
+        ]
+      },
+      "post": {
+        "description": "Propose a reference transaction (administrators only); two other administrators decide it.",
+        "operationId": "post_proposal_api_library_review_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferenceDealIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewProposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Proposal",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/review/{reference_id}": {
+      "post": {
+        "description": "Approve or reject a proposal (administrators other than its proposer, once each).",
+        "operationId": "post_verdict_api_library_review__reference_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reference_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Reference Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewVerdict"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewProposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Verdict",
         "tags": [
           "library"
         ]

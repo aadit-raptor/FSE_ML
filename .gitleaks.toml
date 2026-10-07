@@ -1,0 +1,16 @@
+# gitleaks reads this from the repository root (security.yml, "secrets").
+# Every default rule stays on; the one exception below is narrow.
+[extend]
+useDefault = true
+
+# Reference transactions (PLAN.md 4.5b) are keyed by a public slug -- the
+# company and the year of the buyout, e.g. "masonite-2005" -- which the
+# generic-api-key rule reads as a key after the word "key". Allowed only when
+# the value is that shape AND it is in the files that hold those keys (and
+# CLAUDE.md, whose gotcha quotes one).
+[[allowlists]]
+description = "Reference transaction keys: a company slug and a year, public data"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^[a-z0-9]+(?:-[a-z0-9]+)*-(?:19|20)\d{2}$''']
+paths = ['''^(?:CLAUDE.md|library/reference_deals\.json|web/e2e/fixtures/references\.json|tests/test_references\.py)$''']

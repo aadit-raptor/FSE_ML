@@ -10,16 +10,14 @@ from __future__ import annotations
 
 from typing import get_args
 
-from api.schemas import DealInputsIn, RiskSetting, StartingField
+from api.schemas import DealInputsIn, FeeSetting, RiskSetting, StartingField
 from benchmarks import registry, risk
 from core.config import DEFAULTS
+from library import fees
 
-# The illustrative Settings defaults left after 4.3. Remove a key when its
-# task sources it; never add one.
-PENDING_PINNED = frozenset({
-    # 4.5b: fees and amortisation from the reference transactions' filings
-    "tx_fee_pct", "fin_fee_pct", "def_senior_amort",
-})
+# The illustrative Settings defaults left. Every one is sourced since 4.5b
+# (fees and amortisation from the reference transactions' filings); never add one.
+PENDING_PINNED: frozenset = frozenset()
 
 
 def test_every_deal_input_says_where_its_starting_value_comes_from():
@@ -48,9 +46,13 @@ def test_every_sourced_input_is_one_the_starting_figures_produce():
     assert sourced == set(get_args(StartingField))
 
 
-def test_every_sourced_setting_is_one_the_risk_figures_produce():
+def test_every_sourced_setting_is_one_the_risk_figures_or_the_reference_fees_produce():
     sourced = {k for k, v in registry.SETTINGS.items() if v["basis"] == "sourced"}
-    assert sourced == set(risk.SETTINGS) == set(get_args(RiskSetting))
+    assert set(risk.SETTINGS) == set(get_args(RiskSetting))
+    assert set(fees.SETTINGS) == set(get_args(FeeSetting))
+    assert sourced == set(risk.SETTINGS) | set(fees.SETTINGS)
+    for key in fees.SETTINGS:
+        assert registry.SETTINGS[key]["by"] == "library/fees.py"
 
 
 def test_the_illustrative_defaults_left_can_only_shrink():

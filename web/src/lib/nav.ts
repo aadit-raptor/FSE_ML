@@ -86,8 +86,10 @@ export const MODES: Mode[] = [
     optional: true,
     steps: [
       { slug: "base-rates", labelKey: "libraryBaseRates", summaryKey: "libraryBaseRatesSummary" },
+      { slug: "references", labelKey: "libraryReferences", summaryKey: "libraryReferencesSummary" },
       { slug: "examples", labelKey: "libraryExamples", summaryKey: "libraryExamplesSummary" },
       { slug: "coverage", labelKey: "libraryCoverage", summaryKey: "libraryCoverageSummary" },
+      { slug: "review", labelKey: "libraryReview", summaryKey: "libraryReviewSummary" },
     ],
   },
 ];

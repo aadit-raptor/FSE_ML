@@ -966,6 +966,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/library/fees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Fees
+         * @description Transaction fees, financing fees and senior amortisation from the
+         *     approved reference transactions' filings, offered as Settings.
+         */
+        get: operations["get_fees_api_library_fees_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get References
+         * @description The approved reference transactions, every figure with its filing.
+         */
+        get: operations["get_references_api_library_references_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Review
+         * @description Proposals awaiting review, with the inclusion and balance rules' findings (administrators only).
+         */
+        get: operations["get_review_api_library_review_get"];
+        put?: never;
+        /**
+         * Post Proposal
+         * @description Propose a reference transaction (administrators only); two other administrators decide it.
+         */
+        post: operations["post_proposal_api_library_review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/review/{reference_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Verdict
+         * @description Approve or reject a proposal (administrators other than its proposer, once each).
+         */
+        post: operations["post_verdict_api_library_review__reference_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/library/switch": {
         parameters: {
             query?: never;
@@ -1398,7 +1483,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -1434,6 +1519,11 @@ export interface components {
             /** Id */
             id: number;
             /**
+             * Reference
+             * @description The reference transaction proposed or reviewed
+             */
+            reference?: string | null;
+            /**
              * Source Deal
              * @description The deal a duplicate was made from
              */
@@ -1443,6 +1533,11 @@ export interface components {
              * @description The last of the merged actions (UTC), when count > 1
              */
             until?: string | null;
+            /**
+             * Verdict
+             * @description The review given
+             */
+            verdict?: ("approve" | "reject") | null;
             /**
              * Version
              * @description The version kept or restored
@@ -1621,6 +1716,44 @@ export interface components {
             predicted_ebitda: number;
             /** Year Index */
             year_index: number;
+        };
+        /** Balance */
+        Balance: {
+            /**
+             * Fills
+             * @description Empty buckets this deal would fill
+             */
+            fills: components["schemas"]["BalanceFill"][];
+            /**
+             * Over
+             * @description Buckets this deal would push past half the library
+             */
+            over: components["schemas"]["BalanceOver"][];
+        };
+        /** BalanceFill */
+        BalanceFill: {
+            /** Bucket */
+            bucket?: string | null;
+            /**
+             * Dimension
+             * @enum {string}
+             */
+            dimension: "region" | "size" | "sector" | "era" | "outcome";
+        };
+        /** BalanceOver */
+        BalanceOver: {
+            /** Bucket */
+            bucket?: string | null;
+            /**
+             * Dimension
+             * @enum {string}
+             */
+            dimension: "region" | "size" | "sector" | "era" | "outcome";
+            /**
+             * Share Pct
+             * @description The bucket's share of the library with this deal added
+             */
+            share_pct: number;
         };
         /** Bands */
         Bands: {
@@ -2175,6 +2308,11 @@ export interface components {
         };
         /** CoverageCollection */
         CoverageCollection: {
+            /**
+             * Awaiting Review
+             * @description Reference transactions proposed, not yet decided
+             */
+            awaiting_review?: number | null;
             /** Count */
             count: number;
             /** Dimensions */
@@ -4171,6 +4309,234 @@ export interface components {
             /** By Year */
             by_year: components["schemas"]["LgdYear"][];
         };
+        /** ReferenceClosed */
+        ReferenceClosed: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Quote */
+            quote?: string | null;
+            /** Source */
+            source: string;
+            /** Where */
+            where: string;
+        };
+        /**
+         * ReferenceDealIn
+         * @description A reference transaction as proposed: money in millions of ``currency``.
+         */
+        ReferenceDealIn: {
+            closed: components["schemas"]["ReferenceClosed"];
+            /**
+             * Country
+             * @description Where the business is, ISO 3166-1
+             */
+            country: string;
+            /** Currency */
+            currency: string;
+            figures: components["schemas"]["ReferenceFigures"];
+            /**
+             * Key
+             * @description e.g. hca-2006
+             */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "take_private" | "carve_out" | "recapitalization" | "secondary";
+            outcome: components["schemas"]["ReferenceOutcome"];
+            /**
+             * Sector
+             * @enum {string}
+             */
+            sector: "communication_services" | "consumer_discretionary" | "consumer_staples" | "energy" | "financials" | "health_care" | "industrials" | "information_technology" | "materials" | "real_estate" | "utilities";
+            /** Sources */
+            sources: {
+                [key: string]: components["schemas"]["ReferenceSource"];
+            };
+            /** Sponsors */
+            sponsors: string[];
+            /** Target */
+            target: string;
+        };
+        /**
+         * ReferenceDealView
+         * @description A reference transaction with what its figures say together and its coverage buckets.
+         */
+        ReferenceDealView: {
+            /** Approved At */
+            approved_at?: string | null;
+            closed: components["schemas"]["ReferenceClosed"];
+            /** Country */
+            country: string;
+            /** Currency */
+            currency: string;
+            derived: components["schemas"]["ReferenceDerived"];
+            figures: components["schemas"]["ReferenceFigures"];
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            outcome: components["schemas"]["ReferenceOutcome"];
+            /**
+             * Sector
+             * @enum {string}
+             */
+            sector: "communication_services" | "consumer_discretionary" | "consumer_staples" | "energy" | "financials" | "health_care" | "industrials" | "information_technology" | "materials" | "real_estate" | "utilities";
+            /** Sources */
+            sources: {
+                [key: string]: components["schemas"]["ReferenceSource"];
+            };
+            /** Sponsors */
+            sponsors: string[];
+            tags: components["schemas"]["ReferenceTags"];
+            /** Target */
+            target: string;
+        };
+        /** ReferenceDealsResponse */
+        ReferenceDealsResponse: {
+            /**
+             * Awaiting Review
+             * @description Proposed and not yet decided
+             */
+            awaiting_review: number;
+            /**
+             * Deals
+             * @description The approved reference transactions
+             */
+            deals: components["schemas"]["ReferenceDealView"][];
+            /** Enabled */
+            enabled: boolean;
+        };
+        /** ReferenceDerived */
+        ReferenceDerived: {
+            /**
+             * Debt Share Pct
+             * @description Debt, per cent of the transaction value
+             */
+            debt_share_pct?: number | null;
+            /**
+             * Def Senior Amort
+             * @description Senior amortisation, per cent a year
+             */
+            def_senior_amort?: number | null;
+            /**
+             * Entry Multiple
+             * @description Transaction value over EBITDA
+             */
+            entry_multiple?: number | null;
+            /**
+             * Fin Fee Pct
+             * @description Financing fees, per cent of the debt
+             */
+            fin_fee_pct?: number | null;
+            /**
+             * Leverage
+             * @description Debt over EBITDA
+             */
+            leverage?: number | null;
+            /**
+             * Tx Fee Pct
+             * @description Transaction fees, per cent of the transaction value
+             */
+            tx_fee_pct?: number | null;
+        };
+        /** ReferenceEbitda */
+        ReferenceEbitda: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "reported" | "adjusted" | "stated" | "projection";
+            /** Note */
+            note?: string | null;
+            /** Parts */
+            parts?: components["schemas"]["ReferencePart"][] | null;
+            /** Quote */
+            quote?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Value */
+            value: number;
+            /** Where */
+            where?: string | null;
+            /**
+             * Year
+             * @description The fiscal year it covers
+             */
+            year: number;
+        };
+        /**
+         * ReferenceFigure
+         * @description A figure read from one place in a filing, or the sum of ``parts``
+         *     read from several (each with its own source).
+         */
+        ReferenceFigure: {
+            /** Note */
+            note?: string | null;
+            /** Parts */
+            parts?: components["schemas"]["ReferencePart"][] | null;
+            /** Quote */
+            quote?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Value */
+            value: number;
+            /** Where */
+            where?: string | null;
+        };
+        /** ReferenceFigures */
+        ReferenceFigures: {
+            debt: components["schemas"]["ReferenceFigure"];
+            ebitda: components["schemas"]["ReferenceEbitda"];
+            equity?: components["schemas"]["ReferenceFigure"] | null;
+            financing_fees?: components["schemas"]["ReferenceFigure"] | null;
+            /** @description Per cent of the original principal a year */
+            senior_amort_pct?: components["schemas"]["ReferenceFigure"] | null;
+            transaction_fees?: components["schemas"]["ReferenceFigure"] | null;
+            transaction_value: components["schemas"]["ReferenceValue"];
+            /** @description Needed when the deal is not in US dollars, for its size */
+            transaction_value_usd?: components["schemas"]["ReferenceFigure"] | null;
+        };
+        /** ReferenceOutcome */
+        ReferenceOutcome: {
+            /**
+             * Event
+             * @enum {string}
+             */
+            event: "ipo" | "sale" | "relisted" | "missed_payment" | "bankruptcy" | "restructuring" | "held";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "success" | "distress" | "held";
+            /** Note */
+            note?: string | null;
+            /** Quote */
+            quote?: string | null;
+            /** Source */
+            source: string;
+            /** Where */
+            where: string;
+            /** Year */
+            year: number;
+        };
+        /** ReferencePart */
+        ReferencePart: {
+            /** Label */
+            label: string;
+            /** Quote */
+            quote?: string | null;
+            /** Source */
+            source: string;
+            /** Value */
+            value: number;
+            /** Where */
+            where: string;
+        };
         /** ReferenceRatesResponse */
         ReferenceRatesResponse: {
             /**
@@ -4194,6 +4560,59 @@ export interface components {
             };
             /** Refreshed At */
             refreshed_at?: string | null;
+        };
+        /** ReferenceSource */
+        ReferenceSource: {
+            /**
+             * Filed
+             * Format: date
+             */
+            filed: string;
+            /** Filer */
+            filer: string;
+            /**
+             * Form
+             * @description The filing's form, e.g. 10-K, 424B4
+             */
+            form: string;
+            /**
+             * Url
+             * @description The filing on its regulator's or exchange's own site
+             */
+            url: string;
+        };
+        /** ReferenceTags */
+        ReferenceTags: {
+            /** Era */
+            era?: string | null;
+            /** Outcome */
+            outcome: string;
+            /** Region */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /** Sector */
+            sector: string;
+            /** Size */
+            size?: string | null;
+        };
+        /** ReferenceValue */
+        ReferenceValue: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "stated" | "equity_value" | "uses_less_fees" | "funds_needed";
+            /** Note */
+            note?: string | null;
+            /** Parts */
+            parts?: components["schemas"]["ReferencePart"][] | null;
+            /** Quote */
+            quote?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Value */
+            value: number;
+            /** Where */
+            where?: string | null;
         };
         /** ReportedRun */
         ReportedRun: {
@@ -4248,6 +4667,84 @@ export interface components {
             net_debt_at_exit?: number | null;
             /** Net Exit Equity */
             net_exit_equity?: number | null;
+        };
+        /** ReviewProposal */
+        ReviewProposal: {
+            /** Approvals */
+            approvals: number;
+            /** Approvals Needed */
+            approvals_needed: number;
+            balance: components["schemas"]["Balance"];
+            deal: components["schemas"]["ReferenceDealView"];
+            /** Decided At */
+            decided_at?: string | null;
+            /** Id */
+            id: string;
+            /** Key */
+            key: string;
+            /**
+             * Mine
+             * @description The caller proposed it, so may not review it
+             */
+            mine: boolean;
+            /** My Verdict */
+            my_verdict?: ("approve" | "reject") | null;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "repository" | "user";
+            /**
+             * Problems
+             * @description The inclusion rules' findings; any blocks approval
+             */
+            problems: components["schemas"]["RuleProblem"][];
+            /**
+             * Proposed At
+             * Format: date-time
+             */
+            proposed_at: string;
+            /** Reasons */
+            reasons: ("figure_wrong" | "source_wrong" | "not_a_buyout" | "duplicate" | "other")[];
+            /** Rejections */
+            rejections: number;
+            /**
+             * Replaces Approved
+             * @description An approved version of this transaction is in the library
+             */
+            replaces_approved: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "proposed" | "approved" | "rejected" | "superseded";
+        };
+        /** ReviewQueue */
+        ReviewQueue: {
+            /**
+             * Decided
+             * @description The latest decided, newest first
+             */
+            decided: components["schemas"]["ReviewProposal"][];
+            /** Enabled */
+            enabled: boolean;
+            /** Library Size */
+            library_size: number;
+            /**
+             * Proposals
+             * @description Awaiting review, oldest first
+             */
+            proposals: components["schemas"]["ReviewProposal"][];
+        };
+        /** ReviewVerdict */
+        ReviewVerdict: {
+            /** Reason */
+            reason?: ("figure_wrong" | "source_wrong" | "not_a_buyout" | "duplicate" | "other") | null;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "approve" | "reject";
         };
         /** RiskAssumptionsResponse */
         RiskAssumptionsResponse: {
@@ -4575,6 +5072,19 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["RiskSource"][];
         };
+        /** RuleProblem */
+        RuleProblem: {
+            /**
+             * At
+             * @description The figure, source or field it concerns
+             */
+            at?: string | null;
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "no_sponsor" | "missing_figure" | "unknown_figure" | "missing_source" | "not_a_filing" | "unused_source" | "parts_dont_add_up" | "not_positive" | "multiple_out_of_range" | "debt_exceeds_value" | "fee_out_of_range" | "amortisation_out_of_range" | "closed_in_future" | "outcome_before_close" | "event_doesnt_match_outcome";
+        };
         /**
          * SavedModel
          * @description The stamp a saved deal or version keeps, with what the deal gave then.
@@ -4755,6 +5265,45 @@ export interface components {
              */
             settings: {
                 [key: string]: number | boolean;
+            };
+        };
+        /** SourcedFee */
+        SourcedFee: {
+            /**
+             * Deals
+             * @description The reference transactions' keys
+             */
+            deals: string[];
+            /** First Year */
+            first_year: number;
+            /** High */
+            high: number;
+            /** Last Year */
+            last_year: number;
+            /** Low */
+            low: number;
+            /** N */
+            n: number;
+            /**
+             * Value
+             * @description The median across the deals, per cent
+             */
+            value: number;
+        };
+        /** SourcedFeesResponse */
+        SourcedFeesResponse: {
+            /** Enabled */
+            enabled: boolean;
+            /** Library Size */
+            library_size: number;
+            /**
+             * Min Deals
+             * @description Deals a figure needs before it is offered
+             */
+            min_deals: number;
+            /** Settings */
+            settings: {
+                [key: string]: components["schemas"]["SourcedFee"] | null;
             };
         };
         /** SourcesUsesRequest */
@@ -7667,6 +8216,179 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CoverageResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_fees_api_library_fees_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcedFeesResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_references_api_library_references_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceDealsResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_review_api_library_review_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewQueue"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_proposal_api_library_review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferenceDealIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewProposal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_verdict_api_library_review__reference_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reference_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewVerdict"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewProposal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description A usage limit was reached */

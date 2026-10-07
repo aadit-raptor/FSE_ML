@@ -38,6 +38,8 @@ EXTRA_MODULES = (
     "benchmarks/history.py",         # the history they are measured on
     "library/base_rates.py",         # published default and recovery rates (PLAN.md 4.5)
     "library/coverage.py",           # the reference library's coverage counts
+    "library/references.py",         # reference transactions and their rules (PLAN.md 4.5b)
+    "library/fees.py",               # fees and amortisation from them
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.
 SKIPPED_METHODS = {"__init__", "__post_init__", "__repr__", "forward"}
