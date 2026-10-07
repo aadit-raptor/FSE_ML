@@ -12,7 +12,20 @@ import { fmtCount, fmtMultiple, fmtNumber, fmtPct, isNum } from "@/lib/format";
 import { useProvenance } from "@/lib/i18n/useProvenance";
 import { regionName } from "@/lib/locale";
 
-import { useMonteCarlo } from "./MonteCarloProvider";
+import { type SimKey, useMonteCarlo } from "./MonteCarloProvider";
+
+/** The rail fields the sourced Settings fill: a rail edit of one of them overrides the sourced figure. */
+const RAIL_SETTING: Partial<Record<SimKey, RiskSetting>> = {
+  growth_mean: "mc_growth_mean",
+  growth_std: "mc_growth_std",
+  exit_mean: "mc_exit_mean",
+  exit_std: "mc_exit_std",
+  rate_mean: "mc_rate_mean",
+  rate_std: "mc_rate_std",
+  gm_mean: "mc_gm_mean",
+  gm_std: "mc_gm_std",
+};
+const RAIL_KEYS = Object.keys(RAIL_SETTING) as SimKey[];
 
 const ALL = "all";
 const SCENARIO_ORDER = ["recession", "stagflation", "bull"] as const;
@@ -43,15 +56,22 @@ export function useSourcedRisk(): { risk: Risk | null; country: string } {
 /** The sourced Settings that differ from the ones in use, and the call that applies them all. */
 function useApply(risk: Risk | null) {
   const { effective, overrides, replace } = useSettings();
-  const { clearSimEdits } = useMonteCarlo();
-  const differing = risk ? (Object.keys(risk.settings) as RiskSetting[]).filter((k) => effective[k] !== risk.settings[k]) : [];
+  const { sim, clearSimEdits } = useMonteCarlo();
+  // A Setting differs when Settings hold another value, or the rail overrides it
+  const railValue = (k: RiskSetting) => {
+    const field = RAIL_KEYS.find((f) => RAIL_SETTING[f] === k);
+    return field ? sim[field] : effective[k];
+  };
+  const differing = risk
+    ? (Object.keys(risk.settings) as RiskSetting[]).filter((k) => effective[k] !== risk.settings[k] || railValue(k) !== risk.settings[k])
+    : [];
   const apply = () => {
     if (!risk) return;
     replace({ ...overrides, ...risk.settings });
-    // The rail shows the Settings again, now the sourced ones
-    clearSimEdits();
+    // The rail's ranges show the Settings again, now the sourced ones; paths, hurdle and seed stay as edited
+    clearSimEdits(RAIL_KEYS);
   };
-  return { differing, apply, effective };
+  return { differing, apply, effective, railValue };
 }
 
 /** i18n-keys: starting.area_* */
@@ -138,7 +158,7 @@ export function SourcedRiskTile() {
 }
 
 function RiskTable({ risk }: { risk: Risk }) {
-  const { differing, apply, effective } = useApply(risk);
+  const { differing, apply, railValue } = useApply(risk);
   const { t, areaName, value, source, skipped, periods, period } = useFigureText(risk);
   const title = t("tileTitle", { country: areaName(risk.country), industry: risk.industry_name ?? t("allIndustries") });
   const corr = risk.correlation;
@@ -176,7 +196,7 @@ function RiskTable({ risk }: { risk: Risk }) {
           </thead>
           <tbody>
             {risk.figures.map((f) => {
-              const now = effective[f.field];
+              const now = railValue(f.field);
               return (
                 <tr key={f.field} className="border-t border-line align-top" data-setting={f.field}>
                   <th scope="row" className="type-input-label px-2 py-1 text-start font-normal">{t(`label_${f.field}`)}</th>

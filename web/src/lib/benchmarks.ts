@@ -98,6 +98,7 @@ export function riskKind(setting: RiskSetting): "pct" | "multiple" | "multiplier
   if (setting.startsWith("corr_")) return "correlation";
   if (setting === "mc_exit_mean" || setting === "mc_exit_std") return "multiple";
   if (setting.endsWith("_mult")) return "multiplier";
-  if (setting.endsWith("_adj") || setting.endsWith("_floor")) return "points";
+  // A growth floor is a level (the lowest growth the preset allows), an adjustment a shift
+  if (setting.endsWith("_adj")) return "points";
   return "pct";
 }

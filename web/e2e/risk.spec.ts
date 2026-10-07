@@ -1,6 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { dealSettled, field, kpi, modeTab, recordedBenchmarks, replayBenchmarks, replayRisk, simulationSettled, stepLink } from "./helpers";
+import {
+  dealSettled, field, kpi, modeTab, recordedBenchmarks, replayBenchmarks, replayRisk, setField, simulationSettled, stepLink,
+} from "./helpers";
 
 /**
  * Sourced risk ranges, correlations and scenarios (PLAN.md 4.4): once a deal has a country and an
@@ -43,7 +45,10 @@ test.describe("Sourced risk ranges", () => {
     // 1. Until applied, the rail says the ranges are illustrative and offers the sourced ones
     await expect(rail).toContainText("Illustrative defaults");
     const before = await kpi(page, "Mean IRR").textContent();
+    // A rail edit the sourced figures don't cover survives applying them
+    await setField(page, "Paths", "20000");
     await rail.getByRole("button", { name: /^Use sourced figures \(\d+\)$/ }).click();
+    await expect(field(page, "Paths")).toHaveValue("20000");
 
     // 2. The rail now shows the sourced figures, and says where they come from
     await expect(page.getByTestId("risk-sourced")).toContainText("Machinery, United Kingdom");
@@ -55,6 +60,14 @@ test.describe("Sourced risk ranges", () => {
     await page.getByRole("button", { name: "Run Monte Carlo" }).click();
     await simulationSettled(page);
     await expect(kpi(page, "Mean IRR")).not.toHaveText(before ?? "");
+
+    // A rail override of a sourced figure makes the label honest again
+    await setField(page, "Std dev", "5", "Exit multiple");
+    await expect(page.getByTestId("risk-sourced")).toHaveCount(0);
+    await expect(rail).toContainText("Illustrative defaults");
+    await rail.getByRole("button", { name: "Use sourced figures (1)" }).click();
+    await expect(field(page, "Std dev", "Exit multiple")).toHaveValue(shown(UK.settings.mc_exit_std, 2));
+    await expect(page.getByTestId("risk-sourced")).toBeVisible();
 
     // 4. Each preset lists the historical years it is built from, and every figure its source
     await stepLink(page, "Scenarios").click();
