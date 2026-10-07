@@ -127,6 +127,9 @@ OMIT_WHEN_DEFAULT = {
     # Labels only (PLAN.md 2.3a)
     "fiscal_year_end_month": 12,
     "first_fiscal_year": None,
+    # Where the starting figures were sourced for (PLAN.md 4.3), labels only
+    "country": "",
+    "industry": "",
     # The deal's facilities (PLAN.md 2.4); empty means sized by percentages
     "tranches": [],
     # Tax rules (PLAN.md 2.5), each stored only when switched on or changed

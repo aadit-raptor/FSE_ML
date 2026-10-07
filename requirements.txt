@@ -12,4 +12,5 @@ alembic>=1.13            # schema migrations (db/migrations)
 psycopg[binary]>=3.2     # Postgres driver
 pyjwt[crypto]>=2.9      # verifies Clerk session tokens locally (api/auth.py)
 cryptography>=42         # AES-256-GCM for database backups (ops/encryption.py); pyjwt[crypto] pulls it in too
+xlrd>=2.0                # reads the published industry averages (.xls, benchmarks/)
 tzdata>=2024.1           # IANA time zones for account profiles (slim images have none)

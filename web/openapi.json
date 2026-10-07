@@ -977,6 +977,154 @@
         "title": "Bands",
         "type": "object"
       },
+      "BenchmarkIndustriesResponse": {
+        "properties": {
+          "industries": {
+            "description": "Empty until the first refresh",
+            "items": {
+              "$ref": "#/components/schemas/BenchmarkIndustry"
+            },
+            "title": "Industries",
+            "type": "array"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The averages' date, as their publisher gives it",
+            "title": "Published"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refreshed At"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BenchmarkSourceOut"
+          }
+        },
+        "required": [
+          "industries",
+          "source"
+        ],
+        "title": "BenchmarkIndustriesResponse",
+        "type": "object"
+      },
+      "BenchmarkIndustry": {
+        "properties": {
+          "firms": {
+            "description": "Listed companies in it worldwide",
+            "title": "Firms",
+            "type": "integer"
+          },
+          "id": {
+            "description": "all, or the industry's name as an id (machinery, oil_gas_integrated ...)",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "description": "The industry as the source names it",
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "firms"
+        ],
+        "title": "BenchmarkIndustry",
+        "type": "object"
+      },
+      "BenchmarkSkipped": {
+        "properties": {
+          "area": {
+            "description": "A group (benchmarks/catalogue.py REGIONS) or a country or currency code",
+            "title": "Area",
+            "type": "string"
+          },
+          "reason": {
+            "description": "thin: fewer companies than min_firms; unusable: a figure the model can't start from; missing: the group has no figure",
+            "enum": [
+              "thin",
+              "unusable",
+              "missing"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How many companies the group has, when known",
+            "title": "Sample"
+          }
+        },
+        "required": [
+          "area",
+          "reason"
+        ],
+        "title": "BenchmarkSkipped",
+        "type": "object"
+      },
+      "BenchmarkSourceOut": {
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "id": {
+            "const": "damodaran",
+            "title": "Id",
+            "type": "string"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "usage": {
+            "title": "Usage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "publisher",
+          "title",
+          "url",
+          "basis",
+          "usage"
+        ],
+        "title": "BenchmarkSourceOut",
+        "type": "object"
+      },
       "BridgeStep": {
         "properties": {
           "is_total": {
@@ -2199,6 +2347,13 @@
             "title": "Capex",
             "type": "number"
           },
+          "country": {
+            "default": "",
+            "description": "The deal's country (ISO 3166-1 alpha-2) its starting figures were sourced for, a label only",
+            "pattern": "^([A-Z]{2})?$",
+            "title": "Country",
+            "type": "string"
+          },
           "currency": {
             "default": "USD",
             "description": "The deal's currency (ISO 4217)",
@@ -2290,6 +2445,13 @@
             "minimum": 1.0,
             "title": "Hold",
             "type": "integer"
+          },
+          "industry": {
+            "default": "",
+            "description": "The industry its starting figures were sourced for (/api/benchmarks/industries), a label only",
+            "pattern": "^[a-z0-9_]{0,60}$",
+            "title": "Industry",
+            "type": "string"
           },
           "inv_days": {
             "default": 30.0,
@@ -2525,6 +2687,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "country": "",
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -2535,6 +2698,7 @@
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
+              "industry": "",
               "inv_days": 30.0,
               "lease_cost": 0.0,
               "lease_liability": 0.0,
@@ -2585,6 +2749,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "country": "",
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -2595,6 +2760,7 @@
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
+              "industry": "",
               "inv_days": 30.0,
               "lease_cost": 0.0,
               "lease_liability": 0.0,
@@ -5645,6 +5811,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "country": "",
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -5655,6 +5822,7 @@
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
+              "industry": "",
               "inv_days": 30.0,
               "lease_cost": 0.0,
               "lease_liability": 0.0,
@@ -7475,6 +7643,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "country": "",
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -7485,6 +7654,7 @@
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
+              "industry": "",
               "inv_days": 30.0,
               "lease_cost": 0.0,
               "lease_liability": 0.0,
@@ -7956,6 +8126,333 @@
         "title": "SourcesUsesResponse",
         "type": "object"
       },
+      "StartingAssumptionsResponse": {
+        "properties": {
+          "chain": {
+            "description": "The groups looked in, closest first",
+            "items": {
+              "enum": [
+                "us",
+                "japan",
+                "china",
+                "india",
+                "europe",
+                "aus_nz_canada",
+                "emerging",
+                "global"
+              ],
+              "type": "string"
+            },
+            "title": "Chain",
+            "type": "array"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/StartingFigure"
+            },
+            "title": "Figures",
+            "type": "array"
+          },
+          "industry": {
+            "title": "Industry",
+            "type": "string"
+          },
+          "industry_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The industry as the source names it; null before the first refresh",
+            "title": "Industry Name"
+          },
+          "inputs": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "The starting value of each deal input found",
+            "propertyNames": {
+              "enum": [
+                "growth",
+                "tax",
+                "gross_margin",
+                "opex",
+                "da",
+                "entry_mult",
+                "exit_mult",
+                "capex",
+                "ar_days",
+                "inv_days",
+                "ap_days",
+                "nwc",
+                "debt_pct",
+                "senior_pct",
+                "base_rate"
+              ]
+            },
+            "title": "Inputs",
+            "type": "object"
+          },
+          "min_firms": {
+            "description": "A group with fewer companies hands over to the next",
+            "title": "Min Firms",
+            "type": "integer"
+          },
+          "missing": {
+            "description": "Inputs with no sourced figure: the deal keeps its own",
+            "items": {
+              "$ref": "#/components/schemas/StartingMissing"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "size_not_split",
+                "exit_equals_entry",
+                "listed_company_leverage"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the stored averages were last read (UTC)",
+            "title": "Refreshed At"
+          },
+          "region": {
+            "description": "The country's region, where its figures are pooled when it has none",
+            "enum": [
+              "us",
+              "japan",
+              "china",
+              "india",
+              "europe",
+              "aus_nz_canada",
+              "emerging",
+              "global"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BenchmarkSourceOut"
+          }
+        },
+        "required": [
+          "country",
+          "industry",
+          "currency",
+          "region",
+          "chain",
+          "min_firms",
+          "inputs",
+          "figures",
+          "missing",
+          "notes",
+          "source"
+        ],
+        "title": "StartingAssumptionsResponse",
+        "type": "object"
+      },
+      "StartingFigure": {
+        "properties": {
+          "area": {
+            "description": "The group or country the figure is for",
+            "title": "Area",
+            "type": "string"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The publisher's date, or the period the figure is for",
+            "title": "As Of"
+          },
+          "dataset": {
+            "description": "The table or series read",
+            "title": "Dataset",
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "description": "The published figures it was worked out from",
+            "title": "Detail",
+            "type": "object"
+          },
+          "field": {
+            "description": "The deal input this figure fills",
+            "enum": [
+              "growth",
+              "tax",
+              "gross_margin",
+              "opex",
+              "da",
+              "entry_mult",
+              "exit_mult",
+              "capex",
+              "ar_days",
+              "inv_days",
+              "ap_days",
+              "nwc",
+              "debt_pct",
+              "senior_pct",
+              "base_rate"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "country",
+              "region",
+              "global"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Companies, economies or countries behind the figure",
+            "title": "Sample"
+          },
+          "sample_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "companies",
+                  "economies",
+                  "countries"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Kind"
+          },
+          "skipped": {
+            "description": "Closer groups passed over, and why",
+            "items": {
+              "$ref": "#/components/schemas/BenchmarkSkipped"
+            },
+            "title": "Skipped",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "damodaran",
+              "imf",
+              "tax_foundation",
+              "benchmark",
+              "choice"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "value": {
+            "description": "As the deal input reads it: per cent, a multiple or days",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "source",
+          "dataset",
+          "area",
+          "level",
+          "skipped",
+          "detail"
+        ],
+        "title": "StartingFigure",
+        "type": "object"
+      },
+      "StartingMissing": {
+        "properties": {
+          "field": {
+            "enum": [
+              "growth",
+              "tax",
+              "gross_margin",
+              "opex",
+              "da",
+              "entry_mult",
+              "exit_mult",
+              "capex",
+              "ar_days",
+              "inv_days",
+              "ap_days",
+              "nwc",
+              "debt_pct",
+              "senior_pct",
+              "base_rate"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/BenchmarkSkipped"
+            },
+            "title": "Skipped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "field",
+          "skipped"
+        ],
+        "title": "StartingMissing",
+        "type": "object"
+      },
       "StoredActuals": {
         "properties": {
           "actuals": {
@@ -7999,6 +8496,7 @@
               "ar_days": 45.0,
               "base_rate": 6.5,
               "capex": 4.0,
+              "country": "",
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -8009,6 +8507,7 @@
               "gross_margin": 40.0,
               "growth": 5.0,
               "hold": 5,
+              "industry": "",
               "inv_days": 30.0,
               "lease_cost": 0.0,
               "lease_liability": 0.0,
@@ -9797,6 +10296,127 @@
         "summary": "Post Run",
         "tags": [
           "backtesting"
+        ]
+      }
+    },
+    "/api/benchmarks/industries": {
+      "get": {
+        "operationId": "get_industries_api_benchmarks_industries_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkIndustriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Industries",
+        "tags": [
+          "benchmarks"
+        ]
+      }
+    },
+    "/api/benchmarks/starting": {
+      "get": {
+        "operationId": "get_starting_api_benchmarks_starting_get",
+        "parameters": [
+          {
+            "description": "ISO 3166-1 alpha-2",
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "description": "ISO 3166-1 alpha-2",
+              "pattern": "^[A-Z]{2}$",
+              "title": "Country",
+              "type": "string"
+            }
+          },
+          {
+            "description": "An id from /api/benchmarks/industries",
+            "in": "query",
+            "name": "industry",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "An id from /api/benchmarks/industries",
+              "pattern": "^[a-z0-9_]{1,60}$",
+              "title": "Industry",
+              "type": "string"
+            }
+          },
+          {
+            "description": "ISO 4217",
+            "in": "query",
+            "name": "currency",
+            "required": true,
+            "schema": {
+              "description": "ISO 4217",
+              "pattern": "^[A-Z]{3}$",
+              "title": "Currency",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartingAssumptionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Starting",
+        "tags": [
+          "benchmarks"
         ]
       }
     },

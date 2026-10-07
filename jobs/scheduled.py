@@ -83,6 +83,13 @@ def economy_refresh() -> dict:
     return refresh.run()
 
 
+@task("benchmarks-refresh", "Refresh the published industry averages and country tax rates new "
+                            "deals start from (PLAN.md 4.3, benchmarks/refresh.py).")
+def benchmarks_refresh() -> dict:
+    from benchmarks import refresh
+    return refresh.run()
+
+
 # ---------------------------------------------------------------------------
 # The run log
 # ---------------------------------------------------------------------------

@@ -121,3 +121,18 @@ export async function replayEconomy(page: Page) {
   const recorded = recordedEconomy();
   await page.route("**/api/economy/reference-rates", (route) => route.fulfill({ json: recorded.reference_rates }));
 }
+
+/** The starting figures the scheduled refresh would have stored (PLAN.md 4.3), replayed from tests/e2e_benchmarks.py's file. */
+export function recordedBenchmarks() {
+  return JSON.parse(readFileSync(path.join(__dirname, "fixtures", "benchmarks.json"), "utf-8"));
+}
+
+export async function replayBenchmarks(page: Page) {
+  const recorded = recordedBenchmarks();
+  await page.route("**/api/benchmarks/industries", (route) => route.fulfill({ json: recorded.industries }));
+  await page.route("**/api/benchmarks/starting?*", (route) => {
+    const q = new URL(route.request().url()).searchParams;
+    const answer = recorded.starting[`${q.get("country")}|${q.get("industry")}|${q.get("currency")}`];
+    return answer ? route.fulfill({ json: answer }) : route.fulfill({ status: 404, json: { detail: "Not recorded." } });
+  });
+}

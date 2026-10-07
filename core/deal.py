@@ -55,6 +55,9 @@ class DealInputs:
     # mezz_spread -- which is how every deal before 2.4 is financed. A tranche
     # list replaces all four: it says what each facility is, costs and repays.
     tranches: tuple = ()
+    # Where the starting figures were sourced for (PLAN.md 4.3): labels only
+    country: str = ""
+    industry: str = ""
     # Tax rules beyond the flat rate above (PLAN.md 2.5, core/tax.py). Every
     # default is off, so a deal that sets none is taxed exactly as before.
     tax_preset: str = ""                    # the country preset applied, a label only
