@@ -63,3 +63,42 @@ export function figureKind(field: StartingField): "pct" | "multiple" | "days" {
   if (field === "ar_days" || field === "inv_days" || field === "ap_days") return "days";
   return "pct";
 }
+
+export type Risk = Schemas["RiskAssumptionsResponse"];
+export type RiskFigure = Risk["figures"][number];
+export type RiskSetting = RiskFigure["field"];
+export type RiskScenario = Risk["scenarios"][keyof Risk["scenarios"]];
+
+/**
+ * The Monte Carlo means, spreads, correlations and scenario presets sourced for a country, industry
+ * and currency (PLAN.md 4.4), each with its source and years. One read per combination and page
+ * load: the rail and the Scenarios tile share it. A failed read is asked again next time.
+ */
+const riskPending = new Map<string, Promise<Risk | null>>();
+
+export function fetchRisk(country: string, industry: string, currency: string): Promise<Risk | null> {
+  const key = `${country}|${industry}|${currency}`;
+  let found = riskPending.get(key);
+  if (!found) {
+    found = api
+      .GET("/api/benchmarks/risk", { params: { query: { country, industry, currency } } })
+      .then(({ data }) => data ?? null)
+      .catch(() => null)
+      .then((r) => {
+        if (!r) riskPending.delete(key);
+        return r;
+      });
+    riskPending.set(key, found);
+  }
+  return found;
+}
+
+/** How a sourced Setting reads: a per cent, a multiple, a multiplier, percentage points or a correlation. */
+export function riskKind(setting: RiskSetting): "pct" | "multiple" | "multiplier" | "points" | "correlation" {
+  if (setting.startsWith("corr_")) return "correlation";
+  if (setting === "mc_exit_mean" || setting === "mc_exit_std") return "multiple";
+  if (setting.endsWith("_mult")) return "multiplier";
+  // A growth floor is a level (the lowest growth the preset allows), an adjustment a shift
+  if (setting.endsWith("_adj")) return "points";
+  return "pct";
+}

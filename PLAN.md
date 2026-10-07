@@ -146,7 +146,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.1b | Company filings: the screen | 4.1a | ☑ |
 | 4.2 | Economic data by country, and exchange rates | 1.9 | ☑ |
 | 4.3 | Sourced defaults by region, sector and size | 4.1, 4.2 | ☑ |
-| 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☐ |
+| 4.4 | Risk ranges, correlations and scenarios by region | 4.2, 4.3 | ☑ |
 | 4.5 | Optional reference library (deals and base rates) | 4.1 | ☐ |
 | 4.6 | Model validation framework | 4.3, 4.5, 2.7 | ☐ |
 | **5** | **ML done properly** | | |
@@ -868,6 +868,28 @@ can check it.
   sourced.
 - **Done when:** UK and India deals get different sourced ranges; each scenario
   lists its historical periods; all correlation matrices pass validity (test).
+- **Built as (done):** `benchmarks/history.py` reads Damodaran's archive of
+  past January editions (EV/EBITDA since 2011, EBITDA/sales since 2013, gross
+  margin since 2017, for all eight groups; the file for year NN is the
+  January NN+1 edition) and the IMF's growth and inflation and the BIS's
+  monthly policy rates (averaged over full years) since 2000; the nightly
+  `benchmarks-refresh` fills it a dozen archive files a call (`more`,
+  `--repeat`), reading each file once. `benchmarks/risk.py` turns it into
+  every Monte Carlo Setting, each with source, group, sample and years:
+  means are the deal's sourced starting figures; spreads are the industry's
+  own year-to-year spread of EV/EBITDA and gross margin (closest group with
+  six usable years), the country's nominal GDP growth and policy-rate
+  changes; correlations per group are rank correlations of yearly changes
+  pooled over industries, shrunk toward none only if needed to be valid
+  (none needed on the recorded data); recession, stagflation and bull are the
+  country's weakest-growth, highest-inflation and strongest-growth fifth of
+  years since 2000, listed as periods, moving each mean by what happened in
+  them. `GET /api/benchmarks/risk`; the Monte Carlo rail's "Sources" group
+  applies them as Settings ("Use sourced figures"), the Scenarios step lists
+  every figure's source and each preset's years. Decided in the session:
+  the simulation's means stay Settings (applied with the rest) rather than
+  following the deal, which keeps the screen's agreed stale behaviour; no
+  free source splits by size or gives credit spreads, which the screen says.
 
 ### 4.5 Optional reference library (deals and base rates)
 - **Claude does:** reference transactions with inclusion rules for balanced
@@ -1347,8 +1369,8 @@ when a limit is actually reached or before charging customers.
 | `ml/edgar_extractor.py` | US SEC only, `us-gaap` tags, USD, US fiscal years | 2.6, 4.1 |
 | `lbo_engine/capital_structure.py` `build_simple_two_tranche_structure` | One fixed-rate senior loan (5% amortisation) plus one mezzanine bullet | 2.4a — still the default when a deal lists no tranches; `core/debt.py` now takes any structure |
 | `lbo_engine/operating_model.py` and returns | Flat tax, interest always fully deductible | 2.5 |
-| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source. Since 4.3 a new deal starts from sourced figures instead and `benchmarks/registry.py` gives every default a basis; ranges, correlations and scenarios (4.4) and fees and amortisation (4.5) stay illustrative | 2.1, 4.3, 4.4, 4.5 |
-| `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in | 4.4 |
+| `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source. Since 4.3 a new deal starts from sourced figures instead and `benchmarks/registry.py` gives every default a basis; since 4.4 the Monte Carlo means, ranges, correlations and presets are sourced per country and industry (the factory values stay the illustrative fallback, labelled); fees and amortisation (4.5) stay illustrative | 2.1, 4.3, 4.4, 4.5 |
+| `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in; used only when no matrix is passed (every app run passes the Settings', sourced per region since 4.4) | 4.4 |
 | `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5 |
 | `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 |
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |

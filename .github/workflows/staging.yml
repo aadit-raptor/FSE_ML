@@ -161,13 +161,15 @@ jobs:
 
       # Industry averages (PLAN.md 4.3): the 41 tables new deals start from.
       # Read again only when a week old, so most deploys answer what is stored;
-      # the task's own answer must show every table and every industry
+      # the task's own answer must show every table and every industry. The
+      # history the risk ranges read (PLAN.md 4.4) must be complete: every
+      # group's archive read and the economic history of 20+ economies
       - name: Industry averages refresh on staging
         run: |
           set -o pipefail
-          python3 -m ops.scheduled task benchmarks-refresh --api "$STAGING_API" --environment staging | tee benchmarks.log
-          sed -n 's/^task benchmarks-refresh: succeeded //p' benchmarks.log > benchmarks.json
-          jq -e '.tables_stored == 41 and .industries >= 80 and .tables_missing == ""' benchmarks.json
+          python3 -m ops.scheduled task benchmarks-refresh --repeat 24 --api "$STAGING_API" --environment staging | tee benchmarks.log
+          sed -n 's/^task benchmarks-refresh: succeeded //p' benchmarks.log | tail -n 1 > benchmarks.json
+          jq -e '.tables_stored == 41 and .industries >= 80 and .tables_missing == "" and .history_groups == 8 and .history_left == 0 and .macro_economies >= 20' benchmarks.json
 
       # Background jobs (PLAN.md 1.9): ten seeded simulations queued at once
       # must all finish with the pinned result while /api/health keeps

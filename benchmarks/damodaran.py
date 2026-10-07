@@ -12,6 +12,7 @@ with no header row is ``Unreadable``.
 """
 from __future__ import annotations
 
+import io
 import math
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -68,7 +69,8 @@ def _header(text) -> str:
 def _book(content: bytes):
     import xlrd
     try:
-        return xlrd.open_workbook(file_contents=content)
+        # xlrd prints what it finds odd in a broken file; untrusted input stays out of the log
+        return xlrd.open_workbook(file_contents=content, logfile=io.StringIO())
     except Exception as exc:        # xlrd raises its own errors and struct/compound-file ones
         raise Unreadable("not a workbook") from exc
 
@@ -90,9 +92,13 @@ def _find_sheet(book, first_header: str):
     raise Unreadable(f"no {first_header!r} row")
 
 
-def parse_industries(content: bytes, dataset: Dataset) -> tuple[Optional[date], dict[str, dict]]:
+def parse_industries(content: bytes, dataset: Dataset, every_column: bool = True) -> tuple[Optional[date], dict[str, dict]]:
     """The figures by industry id: ``{"machinery": {"name": "Machinery",
-    "firms": 210, "gross_margin": 0.31, ...}}``, fractions as printed."""
+    "firms": 210, "gross_margin": 0.31, ...}}``, fractions as printed.
+
+    ``every_column=False`` reads an older edition (PLAN.md 4.4's history),
+    whose workbooks print fewer columns: the ones it has are read, and only a
+    workbook with none of them is ``Unreadable``."""
     sheet, header_row = _find_sheet(_book(content), "industryname")
     headers = [_header(h) for h in sheet.row_values(header_row)]
     firms_col = next((i for i, h in enumerate(headers) if h == "numberoffirms"), None)
@@ -101,9 +107,12 @@ def parse_industries(content: bytes, dataset: Dataset) -> tuple[Optional[date], 
     columns = {}
     for metric_header, metric in dataset.columns.items():
         col = next((i for i, h in enumerate(headers) if h == metric_header), None)
-        if col is None:
+        if col is not None:
+            columns[metric] = col
+        elif every_column:
             raise Unreadable(f"no {metric_header!r} column")
-        columns[metric] = col
+    if not columns:
+        raise Unreadable("none of the columns read")
     rows = {}
     for r in range(header_row + 1, sheet.nrows):
         values = sheet.row_values(r)
@@ -117,7 +126,8 @@ def parse_industries(content: bytes, dataset: Dataset) -> tuple[Optional[date], 
             if value is not None:
                 figures[metric] = value
         rows[industry_id(name)] = figures
-    if ALL_INDUSTRIES_ID not in rows:
+    # An older edition may name its total differently; the history never reads it
+    if every_column and ALL_INDUSTRIES_ID not in rows:
         raise Unreadable("no all-industry row")
     return _published(sheet), rows
 

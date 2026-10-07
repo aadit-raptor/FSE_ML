@@ -175,6 +175,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/benchmarks/risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Risk */
+        get: operations["get_risk_api_benchmarks_risk_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/benchmarks/starting": {
         parameters: {
             query?: never;
@@ -3867,6 +3884,184 @@ export interface components {
             /** Net Exit Equity */
             net_exit_equity?: number | null;
         };
+        /** RiskAssumptionsResponse */
+        RiskAssumptionsResponse: {
+            correlation: components["schemas"]["RiskCorrelation"];
+            /** Country */
+            country: string;
+            /** Currency */
+            currency: string;
+            /** Figures */
+            figures: components["schemas"]["RiskFigure"][];
+            /** Industry */
+            industry: string;
+            /**
+             * Industry Name
+             * @description The industry as the source names it; null before the first refresh
+             */
+            industry_name?: string | null;
+            /**
+             * Min Years
+             * @description A spread needs at least this many usable years
+             */
+            min_years: number;
+            /**
+             * Missing
+             * @description Settings with no sourced figure: they keep their value
+             */
+            missing: components["schemas"]["RiskMissing"][];
+            /** Notes */
+            notes: ("size_not_split" | "growth_economy_wide" | "rate_policy_only" | "industry_aggregates")[];
+            /**
+             * Refreshed At
+             * @description When the stored averages were last read (UTC)
+             */
+            refreshed_at?: string | null;
+            /**
+             * Region
+             * @enum {string}
+             */
+            region: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+            /** Scenarios */
+            scenarios: {
+                [key: string]: components["schemas"]["RiskScenario"];
+            };
+            /**
+             * Settings
+             * @description The value of each Setting found
+             */
+            settings: {
+                [key: string]: number;
+            };
+            source: components["schemas"]["BenchmarkSourceOut"];
+            /**
+             * Window Start
+             * @description The first year of economic history read
+             */
+            window_start: number;
+        };
+        /** RiskCorrelation */
+        RiskCorrelation: {
+            /** Economies */
+            economies: number;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+            /** Labels */
+            labels: string[];
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Matrix
+             * @description The valid matrix the Settings take
+             */
+            matrix: number[][];
+            /**
+             * Observations
+             * @description What each correlation rests on: industry-years, or years for growth and the rate
+             */
+            observations: number[][];
+            /** Period */
+            period?: string | null;
+            /**
+             * Rows
+             * @description Industry-years in the panel
+             */
+            rows: number;
+            /**
+             * Shrink
+             * @description How far the measured matrix was shrunk toward no correlation to be valid (0 = not at all)
+             */
+            shrink: number;
+        };
+        /** RiskFigure */
+        RiskFigure: {
+            /**
+             * Area
+             * @description The group or country the figure is for
+             */
+            area: string;
+            /**
+             * As Of
+             * @description The publisher's date, when there is one
+             */
+            as_of?: string | null;
+            /**
+             * Dataset
+             * @description The table or series read
+             */
+            dataset: string;
+            /**
+             * Detail
+             * @description The years and published figures it was worked out from
+             */
+            detail: {
+                [key: string]: unknown;
+            };
+            /**
+             * Field
+             * @description The Setting this figure fills
+             * @enum {string}
+             */
+            field: "mc_growth_mean" | "mc_exit_mean" | "mc_rate_mean" | "mc_gm_mean" | "mc_growth_std" | "mc_exit_std" | "mc_rate_std" | "mc_gm_std" | "corr_g_em" | "corr_g_ir" | "corr_g_gm" | "corr_g_sh" | "corr_em_ir" | "corr_em_gm" | "corr_em_sh" | "corr_ir_gm" | "corr_ir_sh" | "corr_gm_sh" | "bull_growth_mult" | "bull_exit_mult" | "bull_rate_mult" | "bull_margin_mult" | "rec_growth_adj" | "rec_growth_floor" | "rec_exit_mult" | "rec_rate_mult" | "rec_margin_mult" | "stag_growth_adj" | "stag_growth_floor" | "stag_exit_mult" | "stag_rate_mult" | "stag_margin_mult";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Sample
+             * @description Companies, economies, years or industry-years behind it
+             */
+            sample?: number | null;
+            /** Sample Kind */
+            sample_kind?: ("companies" | "economies" | "countries" | "years" | "industry_years") | null;
+            /**
+             * Skipped
+             * @description Closer groups passed over, and why
+             */
+            skipped: components["schemas"]["RiskSkipped"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "damodaran" | "imf" | "bis" | "benchmark" | "tax_foundation" | "choice" | "damodaran+imf+bis";
+            /** Url */
+            url?: string | null;
+            /**
+             * Value
+             * @description As the Setting reads it: per cent, a multiple, a multiplier or a correlation
+             */
+            value: number;
+        };
+        /** RiskMissing */
+        RiskMissing: {
+            /**
+             * Field
+             * @enum {string}
+             */
+            field: "mc_growth_mean" | "mc_exit_mean" | "mc_rate_mean" | "mc_gm_mean" | "mc_growth_std" | "mc_exit_std" | "mc_rate_std" | "mc_gm_std" | "corr_g_em" | "corr_g_ir" | "corr_g_gm" | "corr_g_sh" | "corr_em_ir" | "corr_em_gm" | "corr_em_sh" | "corr_ir_gm" | "corr_ir_sh" | "corr_gm_sh" | "bull_growth_mult" | "bull_exit_mult" | "bull_rate_mult" | "bull_margin_mult" | "rec_growth_adj" | "rec_growth_floor" | "rec_exit_mult" | "rec_rate_mult" | "rec_margin_mult" | "stag_growth_adj" | "stag_growth_floor" | "stag_exit_mult" | "stag_rate_mult" | "stag_margin_mult";
+            /** Skipped */
+            skipped: components["schemas"]["RiskSkipped"][];
+        };
+        /** RiskPeriod */
+        RiskPeriod: {
+            /**
+             * End
+             * @description Its last year (the same for a single year)
+             */
+            end: number;
+            /**
+             * Start
+             * @description The period's first year
+             */
+            start: number;
+        };
         /** RiskSample */
         RiskSample: {
             /** Count */
@@ -3880,6 +4075,68 @@ export interface components {
              * @description What was counted, e.g. issuers
              */
             what: string;
+        };
+        /** RiskScenario */
+        RiskScenario: {
+            /**
+             * Area
+             * @description The country, or the group whose economies' median stands in for it
+             */
+            area: string;
+            /** Economies */
+            economies: number;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "recession" | "stagflation" | "bull";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /**
+             * Of Years
+             * @description How many years they were chosen from
+             */
+            of_years: number;
+            /**
+             * Periods
+             * @description The years, consecutive ones joined
+             */
+            periods: components["schemas"]["RiskPeriod"][];
+            /**
+             * Rule
+             * @description The fifth of the economy's years the preset is built from: lowest real GDP growth, highest inflation, highest real GDP growth
+             * @enum {string}
+             */
+            rule: "weakest_growth" | "highest_inflation" | "strongest_growth";
+            /**
+             * Window
+             * @description First and last year looked at
+             */
+            window?: string | null;
+            /** Years */
+            years: number[];
+        };
+        /** RiskSkipped */
+        RiskSkipped: {
+            /**
+             * Area
+             * @description A group (benchmarks/catalogue.py REGIONS), a country or a currency code
+             */
+            area: string;
+            /**
+             * Reason
+             * @description short: fewer usable years than min_years; base_not_positive: a multiplier needs a positive mean to scale; no_history_in_years: the industry's history has none of the scenario's years; the rest as for the starting figures
+             * @enum {string}
+             */
+            reason: "thin" | "unusable" | "missing" | "short" | "base_not_positive" | "no_history_in_years";
+            /**
+             * Sample
+             * @description Companies (or usable years, when short), when known
+             */
+            sample?: number | null;
         };
         /**
          * RiskSource
@@ -5349,6 +5606,51 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BenchmarkIndustriesResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_risk_api_benchmarks_risk_get: {
+        parameters: {
+            query: {
+                /** @description ISO 3166-1 alpha-2 */
+                country: string;
+                /** @description An id from /api/benchmarks/industries */
+                industry?: string;
+                /** @description ISO 4217 */
+                currency: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiskAssumptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description A usage limit was reached */
