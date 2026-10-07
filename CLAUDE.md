@@ -1461,6 +1461,11 @@ Skills load when a session starts: install first, then open a new session.
   management's projections; the first post-buyout 10-K, S-4 or F-4 (filed
   for the buyout bonds) gives sources and uses, fees and amortisation; an
   IPO 424B4 or an 8-K gives the outcome.
+- gitleaks' `generic-api-key` rule reads a slug after the word `key`
+  (`"key": "masonite-2005"`) as a secret, and the `secrets` check scans all
+  history, so a commit can't be undone, only allowed. `.gitleaks.toml` keeps
+  every default rule and allows that slug shape in the reference files only;
+  widen its `paths` rather than loosen the regex.
 - The Bash tool sometimes fails a heredoc whose body holds apostrophes
   ("unexpected EOF while looking for matching `''"). Write the script with
   the Write tool and run the file instead.
