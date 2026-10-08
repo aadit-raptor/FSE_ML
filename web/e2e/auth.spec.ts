@@ -59,6 +59,30 @@ test("signing in reaches the deal screens, and signing out closes them again", a
   await expect(page).toHaveURL(/\/sign-in/);
 });
 
+test("every sign-in lands on the launcher; an open session carries on where it was", async ({ page }) => {
+  // Opening the site signed out asks for no particular screen
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await page.getByLabel("Development user").fill("e2e");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/start$/);
+  await expect(page.getByRole("heading", { name: "Choose a workspace" })).toBeVisible();
+
+  // Work somewhere, then come back to the site still signed in: straight back there
+  await page.getByRole("link", { name: "Open Equity research" }).click();
+  await expect(page).toHaveURL(/\/forecast\/historicals$/);
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/forecast\/historicals$/);
+
+  // Signing out and in again is a fresh start: the launcher, not the last screen
+  await page.goto("/account");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/sign-in/);
+  await page.getByLabel("Development user").fill("e2e");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/start$/);
+});
+
 test("a new account answers four questions before the deal screens open", async ({ page }) => {
   // A name of its own, so this account has never set a profile
   const name = `new${Date.now().toString(36)}`;
@@ -80,6 +104,9 @@ test("a new account answers four questions before the deal screens open", async 
   await expect(page.locator('[data-account="preview"]')).toContainText("￥1,234,568");
 
   await page.getByRole("button", { name: "Save and start" }).click();
+  // A finished account starts at the launcher, then the chosen workspace
+  await expect(page).toHaveURL(/\/start$/);
+  await page.getByRole("link", { name: "Open LBO" }).click();
   await expect(page).toHaveURL(/\/deal\/inputs/);
   await dealSettled(page);
 
@@ -103,7 +130,7 @@ test("one account never sees another's answers", async ({ page }) => {
   await page.getByLabel("Number and date format").fill("pt-BR");
   await page.getByLabel("Time zone").selectOption("America/Sao_Paulo");
   await page.getByRole("button", { name: "Save and start" }).click();
-  await expect(page).toHaveURL(/\/deal\/inputs/);
+  await expect(page).toHaveURL(/\/start$/);
 
   await page.goto("/account");
   await page.getByRole("button", { name: "Sign out" }).click();

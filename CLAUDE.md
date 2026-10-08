@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-08 (PLAN.md 4.6: model validation framework). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-08 (PLAN.md 7.10: workspaces, out of turn; next is still 5.1). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -911,6 +911,22 @@ default risk (the deal answer's new `credit` block, always present; the
 engine version moved. Browser tests replay `web/e2e/fixtures/validation.json`
 from `python -m tests.e2e_validation`, checked stale by `tests/test_validation.py`.
 
+Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
+`web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
+Monte Carlo, Backtest, Settings, Library) and **Equity research**
+(Forecast). A mode belongs to exactly one workspace, so **addresses have no
+workspace prefix** (`/deal/inputs` as before); a new mode goes in `MODES`
+and in one workspace's `modes`. **Every sign-in lands on the launcher**
+(`/start`, `AFTER_SIGN_IN`), except a visitor sent to sign in from a
+particular screen, who goes back there; **the root (`/`) carries on at the
+last screen this browser showed** (`lib/lastScreen.ts`, localStorage), else
+the launcher, and `proxy.ts` never sends the root through sign-in as a way
+back (it would skip the launcher). Tabs and Alt 1-9 list the current
+workspace's modes (`useWorkspaceModes`; the account screen keeps the last
+workspace's); Ctrl K searches all of them. The user's parked market-event
+model ideas (NIFTY reconstitution, F&O positioning, IPO lock-ins) are in
+PLAN.md 7.10, not scheduled.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -1020,7 +1036,9 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   below, Ctrl K search on the right. No Run button in the top bar. The deal
   model reruns automatically on edit; Monte Carlo is marked **stale** (tab
   chip + dimmed tiles) and rerun from a changes bar above the results.
-  Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
+  Shortcuts: Ctrl K, Alt 1–5, `[` `]`. Since PLAN.md 7.10 the modes sit in
+  **workspaces** (LBO, Equity research): a launcher after sign-in, a
+  switcher beside the brand, and tabs and Alt numbers per workspace.
 - Screens show open model findings as visible markers rather than hiding them
   (none are open in the web app now).
 - **Sign-in, sign-up and the account screen** use the same tokens: Clerk's

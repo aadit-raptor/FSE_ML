@@ -35,7 +35,12 @@ export function isPublicRoute(pathname: string): boolean {
 export const SIGN_IN_URL = "/sign-in";
 export const SIGN_UP_URL = "/sign-up";
 
-/** Where a signed-in visitor lands once their account is complete. */
-export const AFTER_SIGN_IN = "/deal/inputs";
+/**
+ * Where a sign-in lands once the account is complete: the launcher, to choose
+ * a workspace. A visitor sent to sign in from a particular screen goes back
+ * to that screen instead; one who opened the site's root does not carry on
+ * where they last were, because signing in is a fresh start (proxy.ts).
+ */
+export const AFTER_SIGN_IN = "/start";
 /** Sign-up finishes on the account screen, which asks for country and currency. */
 export const AFTER_SIGN_UP = "/account";

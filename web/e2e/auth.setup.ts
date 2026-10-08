@@ -21,9 +21,9 @@ setup("sign in and finish the account", async ({ page, request }) => {
   await page.goto("/sign-in");
   await page.getByLabel("Development user").fill("e2e");
   await page.getByRole("button", { name: "Sign in" }).click();
-  // Signed in: the app has left the sign-in page (straight to the deal, or to
-  // the account screen when this account hasn't answered the questions yet)
-  await expect(page).toHaveURL(/\/(deal|account)/);
+  // Signed in: the app has left the sign-in page (to the launcher, or to the
+  // account screen when this account hasn't answered the questions yet)
+  await expect(page).toHaveURL(/\/(start|account)/);
 
   // Answer the four account questions (saving again is harmless, so this
   // works whether or not a previous run already did it)
