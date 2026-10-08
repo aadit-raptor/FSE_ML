@@ -940,7 +940,9 @@ every region; 23 deals lie inside its training ranges. Training functions
 take an output directory (`train_detector(out_dir)`, `generate(out_dir=)`,
 `train(base=)`, `SurrogatePredictor(base)`) so CI never overwrites the
 committed files; `fit_detector`/`assess` are the in-memory fit and score the
-harness uses. Nothing the app shows changed.
+harness uses. Nothing the app shows changed. **Retraining by hand is parked** (the user,
+2026-10-08: PLAN.md 5.10, not scheduled): don't offer the Run workflow
+button as a step for the user; tasks 5.2-5.9 retrain in their own PR.
 
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
