@@ -2248,3 +2248,81 @@ class DealRiskResponse(BaseModel):
     notes: List[Literal["size_not_split", "listed_company_figures"]]
     source: BenchmarkSourceOut
     model: ModelStamp
+
+
+# ---------------------------------------------------------------------------
+# Multiple predictor (PLAN.md 5.4)
+# ---------------------------------------------------------------------------
+class MultiplesRequest(Strict):
+    inputs: DealInputsIn = DealInputsIn()
+
+
+class MultipleBand(BaseModel):
+    low: float = Field(description="The 10th percentile: the range's low end, x EBITDA")
+    median: float = Field(description="The 50th percentile: the suggestion")
+    high: float = Field(description="The 90th percentile: the range's high end")
+    pairs: int = Field(description="Industry moves over this many years in the group the range rests on")
+
+
+class MultipleCardResult(BaseModel):
+    verdict: Verdict = Field(description="The card's verdict for this range in the region "
+                                         "(docs/model-cards/multiples.md)")
+    cases: int = Field(description="Industry-years the card tested in the region")
+    model: Optional[float] = Field(None, description="The card's headline statistic (interval score) for the range")
+    baseline: Optional[float] = Field(None, description="The same for the region's whole market")
+
+
+class MultipleRange(BaseModel):
+    horizon: int = Field(description="Years after the latest published multiple")
+    year: int = Field(description="The year the range is for")
+    shown: bool = Field(description="Whether the card says this range beats the baseline in the deal's region")
+    range: Optional[MultipleBand] = Field(None, description="Only when shown")
+    card: MultipleCardResult
+
+
+class MultipleByGroup(BaseModel):
+    group: BenchmarkArea
+    level: Literal["country", "region", "global"]
+    used: bool = Field(description="The peer group the ranges are built in")
+    enough: bool = Field(description="At least min_firms companies and a usable multiple")
+    year: int
+    firms: Optional[int] = None
+    multiple: Optional[float] = None
+
+
+class MultipleSectorPeer(BaseModel):
+    industry: str
+    name: str
+    this: bool = Field(description="The deal's own industry")
+    year: int
+    firms: Optional[int] = None
+    multiple: float
+
+
+class MultiplesResponse(BaseModel):
+    status: Literal["ok", "not_enough_data"]
+    reason: Optional[Literal["no_country", "no_peers"]] = None
+    country: str
+    industry: str
+    industry_name: Optional[str] = None
+    region: Optional[SpRegion] = Field(None, description="The country's S&P region (the card's regions)")
+    hold: int
+    min_firms: int
+    min_pairs: int = Field(description="A range needs this many industry moves in the group")
+    quantiles: List[float]
+    group: Optional[BenchmarkArea] = Field(None, description="The peer group: never the global one")
+    level: Optional[Literal["country", "region"]] = None
+    firms: Optional[int] = Field(None, description="Companies behind the industry's latest multiple in the group")
+    latest_year: Optional[int] = Field(None, description="The year the latest published multiple describes")
+    latest: Optional[float] = Field(None, description="The industry's latest multiple in the group")
+    published: Optional[date] = None
+    url: Optional[str] = None
+    skipped: List[PeerSkipped]
+    entry: Optional[MultipleRange] = None
+    exit: Optional[MultipleRange] = None
+    regions: List[MultipleByGroup] = Field(description="The industry's latest multiple in every group")
+    sector: List[MultipleSectorPeer] = Field(description="The group's industries in the same GICS sector")
+    deals: SimilarDeals
+    notes: List[Literal["size_not_split", "listed_company_figures"]]
+    source: BenchmarkSourceOut
+    model: ModelStamp

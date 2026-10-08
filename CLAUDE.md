@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-08 (PLAN.md 5.3: distress predictor). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-08 (PLAN.md 5.4: multiple predictor). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -930,7 +930,7 @@ the PR. **`ml.yml`**: evaluates on PRs touching models or `simulation/`;
 trains by hand (`workflow_dispatch`, which Claude's token can't trigger)
 into a scratch directory and uploads files and card as an artifact for a
 person to review and commit -- never commits itself. Cards: the **deal
-risk score** (5.2, below); the **distress predictor** (5.3, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
+risk score** (5.2, below); the **distress predictor** (5.3, below); the **multiple predictor** (5.4, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
 regional_deals.json`, from the recorded sources by `python -m
 tests.ml_regional_deals`, checked stale) is 0.54 points off the median IRR
 against 0.79 for a 200-path simulation (truth: 10,000 paths) and beats it in
@@ -1002,6 +1002,31 @@ Debt "Distress by year" and the Credit rail group (business risk), Monte
 Carlo -> Distribution (`components/deal/Distress.tsx`, namespace
 `distress`); `country` and `business_risk` mark Monte Carlo stale.
 
+Multiple predictor (PLAN.md 5.4): **`ml/multiple_predictor.py` trains
+nothing** (its 25 typed-in rows are gone). The deal industry's latest
+EV/EBITDA among its region's listed companies (Damodaran, 4.3; peer group as
+5.2: own file or region, `MIN_FIRMS` 20, **never global**) is moved by the
+group's own record of moves over the same horizon in his archive (4.4's
+`history.<group>`, every edition since 2011): the moves are fitted by least
+squares on the industry's gap from the group's median industry that year
+(**mean reversion**, `Fit`: `b` is negative in every group), and the range is
+the 10th/50th/90th percentile of what the line missed (`MIN_PAIRS` 30).
+Entry is the year after the latest edition, exit entry + hold. **Each range
+is shown only where `ml/cards/multiples.json` says it beats the region's
+whole market** (sets `entry` and `exit`, headline the interval score);
+today every region beats it in both, about 73% of held-out multiples inside
+the 80% range. The card is **walk-forward, a cutoff a year from 2014, on
+every industry** (`ml/evaluation/data/multiple_history.json`, 13,544
+industry-years), written by `python -m tests.ml_multiple_history`, which
+calls Damodaran's archive (about 120 workbooks, a few minutes); the browser
+fixture `web/e2e/fixtures/multiples.json` comes from `python -m
+tests.e2e_multiples` (answers given on a fixed day, `DAY`).
+`POST /api/ml/multiples` (in `RUN_PATHS`, reads storage only, with the
+history tables) answers the ranges, the industry in every group, its sector
+in the region and, with the library on, the reference transactions like it.
+Screen: Deal -> Returns, Multiples tile (`components/deal/Multiples.tsx`,
+namespace `multiples`), "Use suggestion" sets `entry_mult` and `exit_mult`.
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1062,8 +1087,8 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). **Next is 5.4** (multiple
-predictor by region).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). **Next is 5.5** (growth
+calibrator by region).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1271,9 +1296,9 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
-- Whether to wire up the unused `ml/` modules (SHAP drivers, multiple
-  predictor, growth calibrator, NLP extractor, correlation updater,
-  personalization); PLAN.md 5.4-5.7 rebuild most of them. SHAP needs no keys.
+- Whether to wire up the unused `ml/` modules (SHAP drivers, growth
+  calibrator, NLP extractor, correlation updater, personalization); PLAN.md
+  5.5-5.7 rebuild most of them. SHAP needs no keys.
 
 ---
 
@@ -1315,6 +1340,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `library/`, `db/flags.py`, `db/references.py`, `api/routers/library.py`, `web/src/components/library/`, `web/src/components/settings/SourcedFees.tsx`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5): the cited base-rate tables, the coverage counts, the admin switch, the reference transactions (`reference_deals.json`, `references.py` with the inclusion and balance rules, `review.py`) and their fees (`fees.py`); site-wide switches; proposals and the two-person review stored; the endpoints; the Library screens (Reference deals, Review) and their provider; the sourced fees tile on Settings -> Fees; the yearly editions check |
 | `validation/`, `db/validation.py`, `api/routers/validation.py`, `web/src/components/backtest/Validation.tsx`, `tests/e2e_validation.py` | Model validation (PLAN.md 4.6): the cases (newer-data rule), the report (calibration, bias, anonymity rules), the groups, the nightly run; opted-in deals and stored reports; the endpoint; Backtest -> Validation and the per-deal opt-in switch; the browser tests' recorded report |
 | `ml/distress_model.py`, `ml/evaluation/distress.py`, `components/deal/Distress.tsx`, `tests/test_distress.py` | Distress predictor (PLAN.md 5.3): each year's band and default rate from published tables, gated by its card; the card (reference transactions and calibration); the Debt and Monte Carlo tiles and the business risk choice; the tests |
+| `ml/multiple_predictor.py`, `ml/evaluation/multiples.py`, `components/deal/Multiples.tsx`, `tests/ml_multiple_history.py`, `tests/e2e_multiples.py` | Multiple predictor (PLAN.md 5.4): entry and exit ranges from the region's industry multiples and their archive, gated by its card; the walk-forward card; the Returns tile; the writers of the card's data and the browser tests' answers |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
@@ -1748,5 +1774,12 @@ Skills load when a session starts: install first, then open a new session.
   cards. If a card got worse, `ops/model_gate.py` fails the PR on purpose.
   The surrogate's evaluation runs 230 simulations of 10,200 paths: a few
   minutes on a busy laptop, about a minute in CI.
+- `ml/evaluation/data/multiple_history.json` holds every industry's
+  multiples from Damodaran's archive, which CI can't download:
+  `tests/test_multiples.py` checks it only against the ten industries the
+  recorded fixtures keep. Rewrite it (`python -m tests.ml_multiple_history`,
+  then `python -m ml.evaluation evaluate` and `python -m tests.e2e_multiples`)
+  when a new January edition is recorded. No group's 2014 archive edition can
+  be read (missing or not a workbook), so the history skips that year.
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.

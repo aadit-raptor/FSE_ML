@@ -1139,6 +1139,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ml/multiples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Multiples
+         * @description Entry and exit EV/EBITDA ranges for the deal's industry in its region
+         *     (PLAN.md 5.4), each where its card says it beats the region's whole
+         *     market, with the comparables: the industry in every group, the region's
+         *     industries in the same sector and, when the library is on, the
+         *     reference transactions like it.
+         */
+        post: operations["post_multiples_api_ml_multiples_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ml/surrogate": {
         parameters: {
             query?: never;
@@ -4351,6 +4375,245 @@ export interface components {
             /** Scenario */
             scenario: ("recession" | "base" | "bull" | "stagflation") | null;
             summary: components["schemas"]["RiskSummary"];
+        };
+        /** MultipleBand */
+        MultipleBand: {
+            /**
+             * High
+             * @description The 90th percentile: the range's high end
+             */
+            high: number;
+            /**
+             * Low
+             * @description The 10th percentile: the range's low end, x EBITDA
+             */
+            low: number;
+            /**
+             * Median
+             * @description The 50th percentile: the suggestion
+             */
+            median: number;
+            /**
+             * Pairs
+             * @description Industry moves over this many years in the group the range rests on
+             */
+            pairs: number;
+        };
+        /** MultipleByGroup */
+        MultipleByGroup: {
+            /**
+             * Enough
+             * @description At least min_firms companies and a usable multiple
+             */
+            enough: boolean;
+            /** Firms */
+            firms?: number | null;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "country" | "region" | "global";
+            /** Multiple */
+            multiple?: number | null;
+            /**
+             * Used
+             * @description The peer group the ranges are built in
+             */
+            used: boolean;
+            /** Year */
+            year: number;
+        };
+        /** MultipleCardResult */
+        MultipleCardResult: {
+            /**
+             * Baseline
+             * @description The same for the region's whole market
+             */
+            baseline?: number | null;
+            /**
+             * Cases
+             * @description Industry-years the card tested in the region
+             */
+            cases: number;
+            /**
+             * Model
+             * @description The card's headline statistic (interval score) for the range
+             */
+            model?: number | null;
+            /**
+             * Verdict
+             * @description The card's verdict for this range in the region (docs/model-cards/multiples.md)
+             * @enum {string}
+             */
+            verdict: "beats_baseline" | "does_not_beat_baseline" | "not_enough_data";
+        };
+        /** MultipleRange */
+        MultipleRange: {
+            card: components["schemas"]["MultipleCardResult"];
+            /**
+             * Horizon
+             * @description Years after the latest published multiple
+             */
+            horizon: number;
+            /** @description Only when shown */
+            range?: components["schemas"]["MultipleBand"] | null;
+            /**
+             * Shown
+             * @description Whether the card says this range beats the baseline in the deal's region
+             */
+            shown: boolean;
+            /**
+             * Year
+             * @description The year the range is for
+             */
+            year: number;
+        };
+        /** MultipleSectorPeer */
+        MultipleSectorPeer: {
+            /** Firms */
+            firms?: number | null;
+            /** Industry */
+            industry: string;
+            /** Multiple */
+            multiple: number;
+            /** Name */
+            name: string;
+            /**
+             * This
+             * @description The deal's own industry
+             */
+            this: boolean;
+            /** Year */
+            year: number;
+        };
+        /** MultiplesRequest */
+        MultiplesRequest: {
+            /**
+             * @default {
+             *       "accounting_standard": "",
+             *       "ap_days": 60,
+             *       "ar_days": 45,
+             *       "base_rate": 6.5,
+             *       "business_risk": 4,
+             *       "capex": 4,
+             *       "country": "",
+             *       "currency": "USD",
+             *       "da": 4,
+             *       "debt_pct": 60,
+             *       "ebitda": 100,
+             *       "entry_mult": 10,
+             *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
+             *       "gross_margin": 40,
+             *       "growth": 5,
+             *       "hold": 5,
+             *       "industry": "",
+             *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
+             *       "mezz_spread": 4,
+             *       "mincash": 0,
+             *       "nwc": 1,
+             *       "opex": 18,
+             *       "senior_pct": 70,
+             *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
+             *       "tranches": [],
+             *       "unit": "millions",
+             *       "wsp_mode": false
+             *     }
+             */
+            inputs: components["schemas"]["DealInputsIn"];
+        };
+        /** MultiplesResponse */
+        MultiplesResponse: {
+            /** Country */
+            country: string;
+            deals: components["schemas"]["SimilarDeals"];
+            entry?: components["schemas"]["MultipleRange"] | null;
+            exit?: components["schemas"]["MultipleRange"] | null;
+            /**
+             * Firms
+             * @description Companies behind the industry's latest multiple in the group
+             */
+            firms?: number | null;
+            /**
+             * Group
+             * @description The peer group: never the global one
+             */
+            group?: ("us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global") | null;
+            /** Hold */
+            hold: number;
+            /** Industry */
+            industry: string;
+            /** Industry Name */
+            industry_name?: string | null;
+            /**
+             * Latest
+             * @description The industry's latest multiple in the group
+             */
+            latest?: number | null;
+            /**
+             * Latest Year
+             * @description The year the latest published multiple describes
+             */
+            latest_year?: number | null;
+            /** Level */
+            level?: ("country" | "region") | null;
+            /** Min Firms */
+            min_firms: number;
+            /**
+             * Min Pairs
+             * @description A range needs this many industry moves in the group
+             */
+            min_pairs: number;
+            model: components["schemas"]["ModelStamp"];
+            /** Notes */
+            notes: ("size_not_split" | "listed_company_figures")[];
+            /** Published */
+            published?: string | null;
+            /** Quantiles */
+            quantiles: number[];
+            /** Reason */
+            reason?: ("no_country" | "no_peers") | null;
+            /**
+             * Region
+             * @description The country's S&P region (the card's regions)
+             */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
+             * Regions
+             * @description The industry's latest multiple in every group
+             */
+            regions: components["schemas"]["MultipleByGroup"][];
+            /**
+             * Sector
+             * @description The group's industries in the same GICS sector
+             */
+            sector: components["schemas"]["MultipleSectorPeer"][];
+            /** Skipped */
+            skipped: components["schemas"]["PeerSkipped"][];
+            source: components["schemas"]["BenchmarkSourceOut"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "not_enough_data";
+            /** Url */
+            url?: string | null;
         };
         /** OperatingModelResult */
         OperatingModelResult: {
@@ -9311,6 +9574,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_multiples_api_ml_multiples_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MultiplesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MultiplesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description A usage limit was reached */

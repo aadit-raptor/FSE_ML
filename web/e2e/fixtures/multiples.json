@@ -1,0 +1,1000 @@
+{
+ "de": {
+  "country": "DE",
+  "deals": {
+   "deals": [],
+   "enabled": false,
+   "region": null,
+   "sector": null,
+   "size": null
+  },
+  "entry": {
+   "card": {
+    "baseline": 21.6529,
+    "cases": 672,
+    "model": 14.6628,
+    "verdict": "beats_baseline"
+   },
+   "horizon": 1,
+   "range": {
+    "high": 20.5,
+    "low": 10.92,
+    "median": 15.43,
+    "pairs": 801
+   },
+   "shown": true,
+   "year": 2026
+  },
+  "exit": {
+   "card": {
+    "baseline": 25.2729,
+    "cases": 2116,
+    "model": 19.4641,
+    "verdict": "beats_baseline"
+   },
+   "horizon": 6,
+   "range": {
+    "high": 24.17,
+    "low": 10.2,
+    "median": 16.12,
+    "pairs": 470
+   },
+   "shown": true,
+   "year": 2031
+  },
+  "firms": 210,
+  "group": "europe",
+  "hold": 5,
+  "industry": "machinery",
+  "industry_name": "Machinery",
+  "latest": 14.98,
+  "latest_year": 2025,
+  "level": "region",
+  "min_firms": 20,
+  "min_pairs": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "published": "2026-01-05",
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "reason": null,
+  "region": "europe",
+  "regions": [
+   {
+    "enough": true,
+    "firms": 105,
+    "group": "us",
+    "level": "country",
+    "multiple": 16.22,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 221,
+    "group": "japan",
+    "level": "country",
+    "multiple": 12.15,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 422,
+    "group": "china",
+    "level": "country",
+    "multiple": 29.11,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 187,
+    "group": "india",
+    "level": "country",
+    "multiple": 26.85,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 210,
+    "group": "europe",
+    "level": "region",
+    "multiple": 14.98,
+    "used": true,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 30,
+    "group": "aus_nz_canada",
+    "level": "region",
+    "multiple": 18.27,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 987,
+    "group": "emerging",
+    "level": "region",
+    "multiple": 24.98,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 1553,
+    "group": "global",
+    "level": "global",
+    "multiple": 16.88,
+    "used": false,
+    "year": 2025
+   }
+  ],
+  "sector": [
+   {
+    "firms": 65,
+    "industry": "shipbuilding_marine",
+    "multiple": 6.65,
+    "name": "Shipbuilding & Marine",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 33,
+    "industry": "air_transport",
+    "multiple": 7.65,
+    "name": "Air Transport",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 20,
+    "industry": "office_equipment_services",
+    "multiple": 7.96,
+    "name": "Office Equipment & Services",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 160,
+    "industry": "engineering_construction",
+    "multiple": 9.71,
+    "name": "Engineering/Construction",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 48,
+    "industry": "environmental_waste_services",
+    "multiple": 10.37,
+    "name": "Environmental & Waste Services",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 56,
+    "industry": "transportation",
+    "multiple": 12.6,
+    "name": "Transportation",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 176,
+    "industry": "business_consumer_services",
+    "multiple": 12.81,
+    "name": "Business & Consumer Services",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 84,
+    "industry": "building_materials",
+    "multiple": 14.34,
+    "name": "Building Materials",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 210,
+    "industry": "machinery",
+    "multiple": 14.98,
+    "name": "Machinery",
+    "this": true,
+    "year": 2025
+   },
+   {
+    "firms": 146,
+    "industry": "electrical_equipment",
+    "multiple": 18.94,
+    "name": "Electrical Equipment",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 67,
+    "industry": "aerospace_defense",
+    "multiple": 21.62,
+    "name": "Aerospace/Defense",
+    "this": false,
+    "year": 2025
+   }
+  ],
+  "skipped": [],
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "ok",
+  "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls"
+ },
+ "thin": {
+  "country": "CA",
+  "deals": {
+   "deals": [],
+   "enabled": false,
+   "region": null,
+   "sector": null,
+   "size": null
+  },
+  "entry": null,
+  "exit": null,
+  "firms": null,
+  "group": null,
+  "hold": 5,
+  "industry": "shipbuilding_marine",
+  "industry_name": "Shipbuilding & Marine",
+  "latest": null,
+  "latest_year": null,
+  "level": null,
+  "min_firms": 20,
+  "min_pairs": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "published": null,
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "reason": "no_peers",
+  "region": "other_developed",
+  "regions": [
+   {
+    "enough": false,
+    "firms": 8,
+    "group": "us",
+    "level": "country",
+    "multiple": 7.95,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 26,
+    "group": "japan",
+    "level": "country",
+    "multiple": 9.55,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 39,
+    "group": "china",
+    "level": "country",
+    "multiple": 6.8,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 28,
+    "group": "india",
+    "level": "country",
+    "multiple": 17.55,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 65,
+    "group": "europe",
+    "level": "region",
+    "multiple": 6.65,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": false,
+    "firms": 8,
+    "group": "aus_nz_canada",
+    "level": "region",
+    "multiple": 17.84,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 252,
+    "group": "emerging",
+    "level": "region",
+    "multiple": 7.34,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 359,
+    "group": "global",
+    "level": "global",
+    "multiple": 7.47,
+    "used": false,
+    "year": 2025
+   }
+  ],
+  "sector": [],
+  "skipped": [
+   {
+    "area": "aus_nz_canada",
+    "reason": "thin",
+    "sample": 8
+   }
+  ],
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "not_enough_data",
+  "url": null
+ },
+ "us": {
+  "country": "US",
+  "deals": {
+   "deals": [
+    {
+     "country": "US",
+     "entry_multiple": 9.11,
+     "event": "missed_payment",
+     "key": "gymboree-2010",
+     "leverage": 6.2,
+     "outcome": "distress",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "The Gymboree Corporation",
+     "year": 2010
+    },
+    {
+     "country": "US",
+     "entry_multiple": 15.82,
+     "event": "ipo",
+     "key": "dollar-general-2007",
+     "leverage": 10.02,
+     "outcome": "success",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "Dollar General Corporation",
+     "year": 2007
+    },
+    {
+     "country": "US",
+     "entry_multiple": 10.03,
+     "event": "bankruptcy",
+     "key": "toys-r-us-2005",
+     "leverage": 6.69,
+     "outcome": "distress",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "Toys \"R\" Us, Inc.",
+     "year": 2005
+    },
+    {
+     "country": "US",
+     "entry_multiple": 10.74,
+     "event": "ipo",
+     "key": "dominos-1998",
+     "leverage": 7.6,
+     "outcome": "success",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "Domino's, Inc.",
+     "year": 1998
+    }
+   ],
+   "enabled": true,
+   "region": "us",
+   "sector": "consumer_discretionary",
+   "size": "1bn_10bn"
+  },
+  "entry": {
+   "card": {
+    "baseline": 21.3425,
+    "cases": 608,
+    "model": 13.5312,
+    "verdict": "beats_baseline"
+   },
+   "horizon": 1,
+   "range": {
+    "high": 16.35,
+    "low": 9.06,
+    "median": 12.44,
+    "pairs": 715
+   },
+   "shown": true,
+   "year": 2026
+  },
+  "exit": {
+   "card": {
+    "baseline": 24.501,
+    "cases": 1645,
+    "model": 19.8378,
+    "verdict": "beats_baseline"
+   },
+   "horizon": 6,
+   "range": {
+    "high": 20.23,
+    "low": 9.05,
+    "median": 13.68,
+    "pairs": 380
+   },
+   "shown": true,
+   "year": 2031
+  },
+  "firms": 94,
+  "group": "us",
+  "hold": 5,
+  "industry": "retail_special_lines",
+  "industry_name": "Retail (Special Lines)",
+  "latest": 11.47,
+  "latest_year": 2025,
+  "level": "country",
+  "min_firms": 20,
+  "min_pairs": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "published": "2026-01-05",
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "reason": null,
+  "region": "us",
+  "regions": [
+   {
+    "enough": true,
+    "firms": 94,
+    "group": "us",
+    "level": "country",
+    "multiple": 11.47,
+    "used": true,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 131,
+    "group": "japan",
+    "level": "country",
+    "multiple": 12.84,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 45,
+    "group": "china",
+    "level": "country",
+    "multiple": 21.92,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 61,
+    "group": "india",
+    "level": "country",
+    "multiple": 46.2,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 105,
+    "group": "europe",
+    "level": "region",
+    "multiple": 14.06,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 37,
+    "group": "aus_nz_canada",
+    "level": "region",
+    "multiple": 17.18,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 282,
+    "group": "emerging",
+    "level": "region",
+    "multiple": 15.32,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 649,
+    "group": "global",
+    "level": "global",
+    "multiple": 13.11,
+    "used": false,
+    "year": 2025
+   }
+  ],
+  "sector": [
+   {
+    "firms": 35,
+    "industry": "auto_parts",
+    "multiple": 6.43,
+    "name": "Auto Parts",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 30,
+    "industry": "homebuilding",
+    "multiple": 8.92,
+    "name": "Homebuilding",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 32,
+    "industry": "education",
+    "multiple": 9.26,
+    "name": "Education",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 35,
+    "industry": "apparel",
+    "multiple": 10.3,
+    "name": "Apparel",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 49,
+    "industry": "recreation",
+    "multiple": 10.39,
+    "name": "Recreation",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 27,
+    "industry": "furn_home_furnishings",
+    "multiple": 11.27,
+    "name": "Furn/Home Furnishings",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 94,
+    "industry": "retail_special_lines",
+    "multiple": 11.47,
+    "name": "Retail (Special Lines)",
+    "this": true,
+    "year": 2025
+   },
+   {
+    "firms": 62,
+    "industry": "retail_distributors",
+    "multiple": 13.71,
+    "name": "Retail (Distributors)",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 34,
+    "industry": "retail_automotive",
+    "multiple": 14.79,
+    "name": "Retail (Automotive)",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 63,
+    "industry": "hotel_gaming",
+    "multiple": 14.93,
+    "name": "Hotel/Gaming",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 23,
+    "industry": "retail_general",
+    "multiple": 17.38,
+    "name": "Retail (General)",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 64,
+    "industry": "restaurant_dining",
+    "multiple": 17.49,
+    "name": "Restaurant/Dining",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 33,
+    "industry": "auto_truck",
+    "multiple": 47.76,
+    "name": "Auto & Truck",
+    "this": false,
+    "year": 2025
+   }
+  ],
+  "skipped": [],
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "ok",
+  "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitda.xls"
+ },
+ "us_library_off": {
+  "country": "US",
+  "deals": {
+   "deals": [],
+   "enabled": false,
+   "region": null,
+   "sector": null,
+   "size": null
+  },
+  "entry": {
+   "card": {
+    "baseline": 21.3425,
+    "cases": 608,
+    "model": 13.5312,
+    "verdict": "beats_baseline"
+   },
+   "horizon": 1,
+   "range": {
+    "high": 16.35,
+    "low": 9.06,
+    "median": 12.44,
+    "pairs": 715
+   },
+   "shown": true,
+   "year": 2026
+  },
+  "exit": {
+   "card": {
+    "baseline": 24.501,
+    "cases": 1645,
+    "model": 19.8378,
+    "verdict": "beats_baseline"
+   },
+   "horizon": 6,
+   "range": {
+    "high": 20.23,
+    "low": 9.05,
+    "median": 13.68,
+    "pairs": 380
+   },
+   "shown": true,
+   "year": 2031
+  },
+  "firms": 94,
+  "group": "us",
+  "hold": 5,
+  "industry": "retail_special_lines",
+  "industry_name": "Retail (Special Lines)",
+  "latest": 11.47,
+  "latest_year": 2025,
+  "level": "country",
+  "min_firms": 20,
+  "min_pairs": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "published": "2026-01-05",
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "reason": null,
+  "region": "us",
+  "regions": [
+   {
+    "enough": true,
+    "firms": 94,
+    "group": "us",
+    "level": "country",
+    "multiple": 11.47,
+    "used": true,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 131,
+    "group": "japan",
+    "level": "country",
+    "multiple": 12.84,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 45,
+    "group": "china",
+    "level": "country",
+    "multiple": 21.92,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 61,
+    "group": "india",
+    "level": "country",
+    "multiple": 46.2,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 105,
+    "group": "europe",
+    "level": "region",
+    "multiple": 14.06,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 37,
+    "group": "aus_nz_canada",
+    "level": "region",
+    "multiple": 17.18,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 282,
+    "group": "emerging",
+    "level": "region",
+    "multiple": 15.32,
+    "used": false,
+    "year": 2025
+   },
+   {
+    "enough": true,
+    "firms": 649,
+    "group": "global",
+    "level": "global",
+    "multiple": 13.11,
+    "used": false,
+    "year": 2025
+   }
+  ],
+  "sector": [
+   {
+    "firms": 35,
+    "industry": "auto_parts",
+    "multiple": 6.43,
+    "name": "Auto Parts",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 30,
+    "industry": "homebuilding",
+    "multiple": 8.92,
+    "name": "Homebuilding",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 32,
+    "industry": "education",
+    "multiple": 9.26,
+    "name": "Education",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 35,
+    "industry": "apparel",
+    "multiple": 10.3,
+    "name": "Apparel",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 49,
+    "industry": "recreation",
+    "multiple": 10.39,
+    "name": "Recreation",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 27,
+    "industry": "furn_home_furnishings",
+    "multiple": 11.27,
+    "name": "Furn/Home Furnishings",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 94,
+    "industry": "retail_special_lines",
+    "multiple": 11.47,
+    "name": "Retail (Special Lines)",
+    "this": true,
+    "year": 2025
+   },
+   {
+    "firms": 62,
+    "industry": "retail_distributors",
+    "multiple": 13.71,
+    "name": "Retail (Distributors)",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 34,
+    "industry": "retail_automotive",
+    "multiple": 14.79,
+    "name": "Retail (Automotive)",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 63,
+    "industry": "hotel_gaming",
+    "multiple": 14.93,
+    "name": "Hotel/Gaming",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 23,
+    "industry": "retail_general",
+    "multiple": 17.38,
+    "name": "Retail (General)",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 64,
+    "industry": "restaurant_dining",
+    "multiple": 17.49,
+    "name": "Restaurant/Dining",
+    "this": false,
+    "year": 2025
+   },
+   {
+    "firms": 33,
+    "industry": "auto_truck",
+    "multiple": 47.76,
+    "name": "Auto & Truck",
+    "this": false,
+    "year": 2025
+   }
+  ],
+  "skipped": [],
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "ok",
+  "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitda.xls"
+ }
+}
