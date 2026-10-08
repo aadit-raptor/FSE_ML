@@ -5,38 +5,40 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { stepHref } from "@/lib/nav";
+import { stepHref, workspaceOf } from "@/lib/nav";
 
 import { useModes } from "./useModes";
 
 import { useWorkspace } from "./workspace";
 
-type Entry = { href: string; mode: string; step: string; summary: string };
+type Entry = { href: string; workspace: string; mode: string; step: string; summary: string };
 
-/** Every word of the query must appear in the mode, step or summary. */
+/** Every word of the query must appear in the workspace, mode, step or summary. */
 function searchEntries(query: string, entries: Entry[]): Entry[] {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!words.length) return entries;
   return entries.filter((e) => {
-    const hay = `${e.mode} ${e.step} ${e.summary}`.toLowerCase();
+    const hay = `${e.workspace} ${e.mode} ${e.step} ${e.summary}`.toLowerCase();
     return words.every((w) => hay.includes(w));
   });
 }
 
-/** Mode, step and summary in the account's language, so search matches what is on screen. */
+/** Every screen of every workspace, in the account's language, so search matches what is on screen. */
 function useEntries(): Entry[] {
   const nav = useTranslations("nav");
   const modes = useModes();
   return useMemo(
     () =>
-      modes.flatMap((m) =>
-        m.steps.map((s) => ({
+      modes.flatMap((m) => {
+        const workspace = workspaceOf(m);
+        return m.steps.map((s) => ({
           href: stepHref(m.slug, s.slug),
+          workspace: workspace ? nav(workspace.labelKey) : "",
           mode: nav(m.labelKey),
           step: nav(s.labelKey),
           summary: nav(s.summaryKey),
-        })),
-      ),
+        }));
+      }),
     [nav, modes],
   );
 }
@@ -115,7 +117,10 @@ function SearchBody({ onDone }: { onDone: () => void }) {
             onClick={() => go(r)}
             className={`grid cursor-pointer grid-cols-[150px_1fr] gap-3 px-4 py-2 ${i === active ? "bg-[#1f2a30] shadow-[inset_2px_0_0_var(--color-accent)]" : ""}`}
           >
-            <span className="type-control self-center">{r.mode}</span>
+            <span className="grid content-center gap-0.5">
+              <span className="type-control text-dim">{r.workspace}</span>
+              <span className="type-control">{r.mode}</span>
+            </span>
             <span className="grid gap-0.5">
               <span className="type-input-label">{r.step}</span>
               <span className="type-body text-[9px] leading-snug">{r.summary}</span>

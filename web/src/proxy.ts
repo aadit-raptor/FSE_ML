@@ -45,8 +45,18 @@ function development(request: NextRequest) {
   if (isPublicRoute(pathname) || devUserFromCookies(request.headers.get("cookie"))) {
     return withPolicy(request);
   }
-  const signIn = new URL("/sign-in", request.url);
-  signIn.searchParams.set("next", pathname);
+  return toSignIn(request);
+}
+
+/**
+ * Sends a signed-out visitor to sign in, and back to the screen they asked
+ * for afterwards. The site's root asks for no screen, so it carries no way
+ * back and the sign-in lands on the launcher (lib/auth/mode.ts AFTER_SIGN_IN).
+ */
+function toSignIn(request: NextRequest): NextResponse {
+  const { pathname } = request.nextUrl;
+  const signIn = new URL(SIGN_IN_URL, request.url);
+  if (pathname !== "/") signIn.searchParams.set("next", pathname);
   return NextResponse.redirect(signIn);
 }
 
@@ -54,6 +64,8 @@ function development(request: NextRequest) {
 export default AUTH_MODE === "clerk"
   ? clerkMiddleware(
       async (auth, request) => {
+        // protect() would send the root back to itself after sign-in, past the launcher
+        if (request.nextUrl.pathname === "/" && !(await auth()).userId) return toSignIn(request);
         if (!isPublicRoute(request.nextUrl.pathname)) await auth.protect();
         return withPolicy(request);
       },

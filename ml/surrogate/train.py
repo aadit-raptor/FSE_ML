@@ -52,9 +52,11 @@ class SurrogateNet(nn.Module):
         return self.net(x)
 
 
-def train():
+def train(base: str = BASE, max_epochs: int = 300):
+    """Train on ``base``/training_data.parquet and write the model and
+    scalers beside it (GitHub Actions trains into a scratch directory)."""
     print("Loading training data...")
-    df = pd.read_parquet(os.path.join(BASE, 'training_data.parquet'))
+    df = pd.read_parquet(os.path.join(base, 'training_data.parquet'))
     print(f"Loaded {len(df)} samples")
 
     X = df[X_COLS].values.astype(np.float32)
@@ -68,8 +70,8 @@ def train():
     scaler_X = StandardScaler().fit(X_train)
     scaler_y = StandardScaler().fit(y_train)
 
-    joblib.dump(scaler_X, os.path.join(BASE, 'scaler_X.pkl'))
-    joblib.dump(scaler_y, os.path.join(BASE, 'scaler_y.pkl'))
+    joblib.dump(scaler_X, os.path.join(base, 'scaler_X.pkl'))
+    joblib.dump(scaler_y, os.path.join(base, 'scaler_y.pkl'))
 
     X_train_t = torch.tensor(scaler_X.transform(X_train))
     y_train_t = torch.tensor(scaler_y.transform(y_train))
@@ -91,7 +93,7 @@ def train():
     patience = 20
     no_improve = 0
 
-    for epoch in range(300):
+    for epoch in range(max_epochs):
         model.train()
         train_loss = 0.0
         for xb, yb in train_dl:
@@ -122,7 +124,7 @@ def train():
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                torch.save(model.state_dict(), os.path.join(BASE, 'model.pt'))
+                torch.save(model.state_dict(), os.path.join(base, 'model.pt'))
                 no_improve = 0
             else:
                 no_improve += 1
@@ -131,7 +133,7 @@ def train():
                     break
 
     print(f"Training complete. Best validation loss: {best_val_loss:.4f}")
-    print(f"Model saved to {os.path.join(BASE, 'model.pt')}")
+    print(f"Model saved to {os.path.join(base, 'model.pt')}")
 
 if __name__ == '__main__':
     train()

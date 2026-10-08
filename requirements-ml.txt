@@ -5,5 +5,6 @@
 scikit-learn>=1.8,<1.9  # 1.8: the committed anomaly-detector models were saved with 1.8.0
 joblib>=1.3           # model persistence
 torch>=2.2            # surrogate live-slider model
+pyarrow>=15           # the surrogate's training data (parquet; ml.yml's train job)
 hmmlearn>=0.3         # macro regime model
 fredapi>=0.5          # macro regime data (needs FRED_API_KEY)

@@ -151,7 +151,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.5b | Reference library: sourced transactions, two-person review, fees and amortisation | 4.5a | ☑ |
 | 4.6 | Model validation framework | 4.3, 4.5b, 2.7 | ☑ |
 | **5** | **ML done properly** | | |
-| 5.1 | ML evaluation harness and model cards | 4.6 | ☐ |
+| 5.1 | ML evaluation harness and model cards | 4.6 | ☑ |
 | 5.2 | Deal risk score from market data | 5.1, 2.8 | ☐ |
 | 5.3 | Distress predictor | 5.1 | ☐ |
 | 5.4 | Multiple predictor by region | 5.1, 4.3 | ☐ |
@@ -175,6 +175,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
 | 7.8 | More languages | 2.3b | ☐ |
 | 7.9 | Charts in every Excel download | 2.3a | ☐ |
+| 7.10 | Workspaces: LBO and equity research, launcher after sign-in | 1.4 | ☑ |
 | **8** | **Ready to scale** | | |
 | 8.1 | Result caching | 1.9 | ☐ |
 | 8.2 | Speed budgets (web and API) | 1.2 | ☐ |
@@ -1008,6 +1009,27 @@ enough for the free server.
   worse; training and evaluation run as GitHub Actions jobs.
 - **Done when:** the surrogate and anomaly detector have cards with per-region
   results.
+- **Done (2026-10-08).** `ml/evaluation/` (`harness.py`: walk-forward time
+  splits, S&P's four regions, a baseline per model and the verdict "beats the
+  baseline", "does not beat the baseline" or "not enough data" under five
+  cases; `card.py`: the one card template; `anomaly.py`, `surrogate.py`: each
+  model's cases, baseline and statistics; `python -m ml.evaluation evaluate |
+  train`), the registry `ml/registry.json` (every trained file, hashed in its
+  card), cards in `ml/cards/` and `docs/model-cards/`, the gate
+  `ops/model_gate.py` (in tests.yml's required ml job: a statistic worse than
+  the base branch's beyond its tolerance, overall or in any region, fails the
+  pull request), and `ml.yml` (evaluates on pull requests; trains by hand into
+  a scratch directory and uploads files and card for review). Results: the
+  **risk score**, out of time (refitted on deals before 2008 and 2010, 14 US
+  deals), ranks every distressed deal first (AUC 1.0) but so does leverage
+  alone, so it **does not beat the baseline**, and every other region has no
+  data. The **live sliders**, on 230 deals built from the sourced figures of
+  23 economies and ten industries, are 0.54 points off the median IRR against
+  0.79 for a live 200-path simulation and beat it in every region; only 23 of
+  the 230 lie inside the network's training ranges (5.8 widens them), and its
+  95th percentile is 3.1 points off in emerging markets. Nothing the app shows
+  changed; 5.2 onward use the harness and show "not enough data" where a card
+  says so.
 
 ### 5.2 Deal risk score from market data
 - **Claude does:** rebuild `ml/anomaly_detector.py` to compare a deal with
@@ -1222,6 +1244,44 @@ workbooks.
   same chart over the same cells (a test reads the chart's series ranges back
   with openpyxl and checks they point at the right cells), and changing a
   cell moves the chart.
+
+### 7.10 Workspaces: LBO and equity research, launcher after sign-in
+Asked for by the user (2026-10-08), done out of turn after 4.6: the modes are
+grouped into workspaces, and a sign-in offers them instead of opening Deal
+inputs.
+- **Claude does:**
+  - `web/src/lib/nav.ts` `WORKSPACES`: **LBO** (Deal, Monte Carlo, Backtest,
+    Settings, Library) and **Equity research** (Forecast; DCF, comps and more
+    later). A mode belongs to exactly one workspace, so addresses stay as they
+    were (`/deal/inputs`), with no prefix: bookmarks and links keep working;
+  - the launcher at `/start` (`components/shell/Launcher.tsx`): a tile per
+    workspace with its screens and an "Open" action, the LBO tile naming the
+    open deal; the brand mark leads there;
+  - **every sign-in lands on the launcher** (`AFTER_SIGN_IN`), the first one
+    after the account questions; a visitor sent to sign in from a particular
+    screen goes back to it; **the site's root carries on at the last screen
+    this browser showed** (`lib/lastScreen.ts`, localStorage), so someone
+    still signed in continues where they were, and the root never carries a
+    way back to itself through sign-in (`proxy.ts`), so signing in from it
+    lands on the launcher too;
+  - the top bar's workspace switcher; mode tabs and Alt 1-9 list only the
+    current workspace's modes (the account screen keeps the last workspace's);
+    Ctrl K searches every workspace and names each result's.
+- **Done when:** sign-in (first or again) lands on the launcher, an open
+  session's visit to the root returns to its last screen, each workspace shows
+  only its own tabs and shortcuts, and search crosses workspaces
+  (`e2e/shell.spec.ts`, `e2e/auth.spec.ts`).
+- **Parked ideas (the user, 2026-10-08), not scheduled:** a third workspace of
+  India-first market-event models, kept as ideas until the user asks:
+  (a) NIFTY 50 reconstitution predictor (NSE's published rules as dated data,
+  probability of inclusion by simulating prices to the cutoff, passive-flow
+  size; other rule-based indices later); (b) NSE F&O positioning screener (OI
+  build-up buckets, 52-week and 3-year OI extremes, basis, PCR); (c) IPO
+  lock-in expiry calendar (SEBI lock-in rules, holidays, unlock value against
+  free float). The user has one of them built in Excel to share. Open
+  questions before any of them: NSE data access and its redistribution terms
+  (user uploads of the bhavcopy, or a fetch with uploads as the fallback), and
+  SME lock-in rules.
 
 ---
 

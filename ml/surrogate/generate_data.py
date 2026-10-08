@@ -33,7 +33,16 @@ TRAINING_FIXED = dict(
     other_uses=DEFAULTS["other_uses"],
 )
 
-def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42):
+# The sampled inputs and their ranges: the surrogate is only tested inside
+# them (ml/evaluation/surrogate.py)
+X_COLS = ['growth_mean', 'growth_std', 'exit_mean', 'exit_std', 'interest_mean',
+          'gross_margin_mean', 'gross_margin_std', 'da_pct', 'capex_pct', 'nwc_pct', 'debt_pct']
+L_BOUNDS = [0.00, 0.005, 5.0, 0.3, 0.015, 0.15, 0.01, 0.02, 0.01, 0.005, 0.25]
+U_BOUNDS = [0.18, 0.10,  20.0, 4.0, 0.14,  0.80, 0.08, 0.09, 0.10, 0.05,  0.90]
+
+
+def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42,
+             out_dir: str = os.path.dirname(__file__)):
     """
     Latin Hypercube Sampling gives better parameter space coverage
     than pure random sampling with the same number of points.
@@ -46,9 +55,7 @@ def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42):
     # [growth_mean, growth_std, exit_mean, exit_std, interest_mean,
     #  gross_margin_mean, gross_margin_std, da_pct, capex_pct,
     #  nwc_pct, debt_pct]
-    l_bounds = [0.00, 0.005, 5.0, 0.3, 0.015, 0.15, 0.01, 0.02, 0.01, 0.005, 0.25]
-    u_bounds = [0.18, 0.10,  20.0, 4.0, 0.14,  0.80, 0.08, 0.09, 0.10, 0.05,  0.90]
-    scaled = qmc.scale(sample, l_bounds, u_bounds)
+    scaled = qmc.scale(sample, L_BOUNDS, U_BOUNDS)
 
     records = []
     print(f"Generating {n_samples} training samples...")
@@ -109,7 +116,7 @@ def generate(n_samples: int = 100_000, n_per_call: int = 2000, seed: int = 42):
             continue
 
     df = pd.DataFrame(records)
-    out_path = os.path.join(os.path.dirname(__file__), 'training_data.parquet')
+    out_path = os.path.join(out_dir, 'training_data.parquet')
     df.to_parquet(out_path, index=False)
     print(f"Saved {len(df)} samples to {out_path}")
     print(f"Feature summary:\n{df.describe()}")

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { MODES } from "../src/lib/nav";
+import { MODES, WORKSPACES, workspaceModes } from "../src/lib/nav";
 
 import refs from "./fixtures/references.json";
 import { kpi, modeTab, resetAllSettings, settingsSaved, stepLink } from "./helpers";
@@ -102,7 +102,9 @@ test.describe("Reference library", () => {
   test("with the library off, its tab is gone and every other screen and result works", async ({ page }) => {
     await page.goto("/deal/returns");
     const irr = await kpi(page, "IRR").textContent();
-    const tabs = MODES.filter((m) => !m.optional).length;
+    // The library is an LBO mode: count that workspace's tabs (PLAN.md 7.10)
+    const lbo = WORKSPACES.find((w) => w.slug === "lbo")!;
+    const tabs = workspaceModes(lbo, MODES.filter((m) => !m.optional)).length;
     await expect(page.getByRole("navigation", { name: "Modes" }).getByRole("link")).toHaveCount(tabs + 1);
 
     await libraryOff(page);

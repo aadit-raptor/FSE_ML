@@ -1,10 +1,10 @@
 {
   "app": {
     "brand": "Variater",
-    "description": "LBO modelling: deal returns, Monte Carlo simulation, backtesting and forecasting.",
+    "description": "LBO and equity research: deal returns, Monte Carlo simulation, backtesting and forecasting.",
     "notFoundTitle": "Screen not found",
     "notFoundBody": "That address isn't a screen in Variater. Use the menu above or search with Ctrl K.",
-    "notFoundAction": "Go to deal inputs",
+    "notFoundAction": "Choose a workspace",
     "screenErrorTitle": "This screen hit an error",
     "screenErrorBody": "Your inputs are kept. Try again, or switch screens with the menu above.",
     "tryAgain": "Try again"
@@ -75,7 +75,12 @@
     "libraryReferences": "Reference deals",
     "libraryReferencesSummary": "Real buyouts with every figure read from a filing, approved by two administrators.",
     "libraryReview": "Review",
-    "libraryReviewSummary": "Administrators approve or reject proposed reference transactions; two approvals admit one."
+    "libraryReviewSummary": "Administrators approve or reject proposed reference transactions; two approvals admit one.",
+    "launcher": "Workspaces",
+    "workspaceLbo": "LBO",
+    "workspaceLboSummary": "Model a leveraged buyout: deal returns, Monte Carlo simulation, plan against actual results, and the reference library.",
+    "workspaceResearch": "Equity research",
+    "workspaceResearchSummary": "Research a listed company: its filed figures, and a three-statement forecast with simulation."
   },
   "shell": {
     "modes": "Modes",
@@ -98,7 +103,16 @@
     "apiUnreachable": "unreachable · {hint}",
     "apiHintLocal": "start it with uvicorn api.main:app --port 8000",
     "apiHintDeployed": "it may be starting up, retrying",
-    "apiCheckedAt": "API checked {when}"
+    "apiCheckedAt": "API checked {when}",
+    "workspaces": "Workspaces",
+    "launcherTitle": "Choose a workspace"
+  },
+  "launcher": {
+    "title": "Choose a workspace",
+    "intro": "Each workspace has its own screens. Switch at any time from the top bar, or search every screen with Ctrl K.",
+    "openDeal": "Open deal",
+    "modesOf": "{workspace} screens",
+    "open": "Open {workspace}"
   },
   "ui": {
     "inputs": "Inputs",

@@ -1,0 +1,224 @@
+{
+ "estimates": "The Monte Carlo simulation's IRR percentiles, mean, spread, chance of beating 20% and wipeout rate, from eleven inputs, in under a millisecond",
+ "evaluation": {
+  "baseline": {
+   "description": "The simulation itself on 200 paths, fast enough to run live; truth is the simulation on 10,000 paths",
+   "id": "simulation_200"
+  },
+  "headline_metric": "median_irr_error_pp",
+  "headline_set": "all_regional_deals",
+  "metrics": [
+   {
+    "better": "lower",
+    "description": "Mean absolute error of the median IRR, percentage points",
+    "id": "median_irr_error_pp",
+    "tolerance": 0.02
+   },
+   {
+    "better": "lower",
+    "description": "Mean absolute error of the 5th-percentile IRR, percentage points",
+    "id": "p5_irr_error_pp",
+    "tolerance": 0.02
+   },
+   {
+    "better": "lower",
+    "description": "Mean absolute error of the 95th-percentile IRR, percentage points",
+    "id": "p95_irr_error_pp",
+    "tolerance": 0.02
+   },
+   {
+    "better": "lower",
+    "description": "Mean absolute error of the share of paths that lose all equity, percentage points",
+    "id": "wipeout_error_pp",
+    "tolerance": 0.02
+   }
+  ],
+  "sets": {
+   "all_regional_deals": {
+    "by_region": {
+     "emerging": {
+      "baseline": {
+       "median_irr_error_pp": 0.8568,
+       "p5_irr_error_pp": 2.3805,
+       "p95_irr_error_pp": 1.1533,
+       "wipeout_error_pp": 0.12
+      },
+      "cases": 80,
+      "model": {
+       "median_irr_error_pp": 0.7815,
+       "p5_irr_error_pp": 0.627,
+       "p95_irr_error_pp": 3.1053,
+       "wipeout_error_pp": 0.076
+      },
+      "verdict": "beats_baseline"
+     },
+     "europe": {
+      "baseline": {
+       "median_irr_error_pp": 0.8182,
+       "p5_irr_error_pp": 5.6597,
+       "p95_irr_error_pp": 1.0817,
+       "wipeout_error_pp": 0.3661
+      },
+      "cases": 100,
+      "model": {
+       "median_irr_error_pp": 0.3843,
+       "p5_irr_error_pp": 1.6606,
+       "p95_irr_error_pp": 1.0034,
+       "wipeout_error_pp": 0.0864
+      },
+      "verdict": "beats_baseline"
+     },
+     "other_developed": {
+      "baseline": {
+       "median_irr_error_pp": 0.6356,
+       "p5_irr_error_pp": 1.9935,
+       "p95_irr_error_pp": 0.9658,
+       "wipeout_error_pp": 0.1342
+      },
+      "cases": 40,
+      "model": {
+       "median_irr_error_pp": 0.4732,
+       "p5_irr_error_pp": 0.7196,
+       "p95_irr_error_pp": 0.6219,
+       "wipeout_error_pp": 0.0554
+      },
+      "verdict": "beats_baseline"
+     },
+     "us": {
+      "baseline": {
+       "median_irr_error_pp": 0.5481,
+       "p5_irr_error_pp": 1.558,
+       "p95_irr_error_pp": 1.0962,
+       "wipeout_error_pp": 0.083
+      },
+      "cases": 10,
+      "model": {
+       "median_irr_error_pp": 0.4039,
+       "p5_irr_error_pp": 0.4846,
+       "p95_irr_error_pp": 0.6442,
+       "wipeout_error_pp": 0.0367
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "Every regional deal, as a user there would enter it",
+    "overall": {
+     "baseline": {
+      "median_irr_error_pp": 0.7881,
+      "p5_irr_error_pp": 3.7032,
+      "p95_irr_error_pp": 1.0871,
+      "wipeout_error_pp": 0.2279
+     },
+     "cases": 230,
+     "model": {
+      "median_irr_error_pp": 0.5388,
+      "p5_irr_error_pp": 1.0863,
+      "p95_irr_error_pp": 1.6525,
+      "wipeout_error_pp": 0.0752
+     },
+     "verdict": "beats_baseline"
+    }
+   },
+   "in_training_range": {
+    "by_region": {
+     "emerging": {
+      "baseline": {
+       "median_irr_error_pp": 0.5641,
+       "p5_irr_error_pp": 1.7888,
+       "p95_irr_error_pp": 1.16,
+       "wipeout_error_pp": 0.0046
+      },
+      "cases": 13,
+      "model": {
+       "median_irr_error_pp": 0.2829,
+       "p5_irr_error_pp": 0.3121,
+       "p95_irr_error_pp": 0.2388,
+       "wipeout_error_pp": 0.0026
+      },
+      "verdict": "beats_baseline"
+     },
+     "europe": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "other_developed": {
+      "baseline": {
+       "median_irr_error_pp": 0.2992,
+       "p5_irr_error_pp": 1.3711,
+       "p95_irr_error_pp": 0.8328,
+       "wipeout_error_pp": 0.004
+      },
+      "cases": 5,
+      "model": {
+       "median_irr_error_pp": 0.4571,
+       "p5_irr_error_pp": 0.3856,
+       "p95_irr_error_pp": 0.6357,
+       "wipeout_error_pp": 0.004
+      },
+      "verdict": "does_not_beat_baseline"
+     },
+     "us": {
+      "cases": 4,
+      "verdict": "not_enough_data"
+     }
+    },
+    "description": "The regional deals whose every input lies inside the network's training ranges",
+    "overall": {
+     "baseline": {
+      "median_irr_error_pp": 0.5475,
+      "p5_irr_error_pp": 1.8396,
+      "p95_irr_error_pp": 0.9824,
+      "wipeout_error_pp": 0.0326
+     },
+     "cases": 23,
+     "model": {
+      "median_irr_error_pp": 0.3598,
+      "p5_irr_error_pp": 0.3296,
+      "p95_irr_error_pp": 0.4063,
+      "wipeout_error_pp": 0.0133
+     },
+     "verdict": "beats_baseline"
+    }
+   }
+  },
+  "split": {
+   "kind": "none",
+   "why": "trained on simulated deals, which have no dates; the cases are the sourced figures recorded on 2026-10-06"
+  }
+ },
+ "format": 1,
+ "id": "surrogate",
+ "limitations": [
+  "Every term outside the eleven inputs is the fixed training deal's; the Live screen lists the deal's differences. PLAN.md 5.8 retrains across deal terms.",
+  "Sourced regional inputs often fall outside the training ranges (D&A, working capital and capex shares below them, exit multiples and their spreads above them); the network extrapolates there, and the in-training-range set shows how it does inside them.",
+  "Truth is itself a simulation of 10,000 paths, so a median error below about 0.1 points is within its noise."
+ ],
+ "min_cases": 5,
+ "module": "ml/surrogate/predict.py",
+ "name": "Live sliders (surrogate network)",
+ "registry": {
+  "artifacts": [
+   {
+    "bytes": 1626449,
+    "path": "ml/surrogate/model.pt",
+    "sha256": "8cadccca49c3af4d5fdca874a38f99cc3f5f0b9f50e349ee380c32b36c554171"
+   },
+   {
+    "bytes": 831,
+    "path": "ml/surrogate/scaler_X.pkl",
+    "sha256": "a77ea9f03c144c76afa0bd57fea2457d63cd3aaabaa805c23f7754187001e12a"
+   },
+   {
+    "bytes": 831,
+    "path": "ml/surrogate/scaler_y.pkl",
+    "sha256": "062ce1b936cb93c4a65712e0fabb0d078432e4aa75496dcebd9fd71b85c7d9ad"
+   }
+  ]
+ },
+ "training": {
+  "command": "python -m ml.evaluation train surrogate",
+  "data": "100,000 simulations of one fixed deal (entry multiple 10x, five-year hold, the default fees and debt split), Latin hypercube over the eleven inputs; 2,000 paths each",
+  "deterministic": false
+ },
+ "used_by": "Monte Carlo -> Live (POST /api/ml/surrogate)"
+}

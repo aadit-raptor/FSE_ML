@@ -191,3 +191,17 @@ def test_the_title_check_runs_on_every_title_change_with_a_read_only_token():
     assert flow["permissions"] == {"contents": "read"}
     runs = _run_lines(flow["jobs"]["title"])
     assert "ops.pr_title" in runs and "${{" not in runs  # the title reaches it via env, never the script
+
+
+def test_a_model_that_got_worse_fails_the_required_ml_job():
+    """PLAN.md 5.1: the gate runs in tests.yml's ml job (a required check),
+    and ml.yml evaluates and trains with a read-only token."""
+    job = _workflow("tests.yml")["jobs"]["ml"]
+    assert 'ops.model_gate --base "origin/$BASE_REF"' in _run_lines(job)
+    flow = _workflow("ml.yml")
+    assert flow["permissions"] == {"contents": "read"}
+    evaluate = _run_lines(flow["jobs"]["evaluate"])
+    assert "ml.evaluation evaluate --check" in evaluate and "ops.model_gate" in evaluate
+    assert "ml.evaluation train" in _run_lines(flow["jobs"]["train"])
+    for name in ("evaluate", "train"):
+        assert "${{" not in _run_lines(flow["jobs"][name])  # inputs reach the scripts via env

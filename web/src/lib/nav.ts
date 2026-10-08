@@ -81,7 +81,7 @@ export const MODES: Mode[] = [
     ],
   },
   {
-    // The optional reference library (PLAN.md 4.5): last, so hiding it moves no other mode's shortcut
+    // The optional reference library (PLAN.md 4.5): last in its workspace, so hiding it moves no other mode's shortcut
     slug: "library",
     labelKey: "modeLibrary",
     optional: true,
@@ -95,7 +95,41 @@ export const MODES: Mode[] = [
   },
 ];
 
-export const DEFAULT_HREF = stepHref("deal", "inputs");
+/**
+ * Workspaces group the modes: the launcher offers them after sign-in, the top
+ * bar's switcher moves between them, and the mode tabs and Alt shortcuts list
+ * only the current one's modes. A mode belongs to exactly one workspace, so
+ * the address (`/deal/inputs`) says which workspace it is in and needs no
+ * prefix.
+ */
+export type Workspace = {
+  slug: string;
+  labelKey: string;
+  /** Key of the one line the launcher shows under its name. */
+  summaryKey: string;
+  /** Mode slugs, in tab and Alt-shortcut order. */
+  modes: string[];
+};
+
+export const WORKSPACES: Workspace[] = [
+  {
+    slug: "lbo",
+    labelKey: "workspaceLbo",
+    summaryKey: "workspaceLboSummary",
+    modes: ["deal", "monte-carlo", "backtest", "settings", "library"],
+  },
+  {
+    slug: "research",
+    labelKey: "workspaceResearch",
+    summaryKey: "workspaceResearchSummary",
+    modes: ["forecast"],
+  },
+];
+
+/** The launcher: where every sign-in lands, and where the brand mark leads. */
+export const LAUNCHER_HREF = "/start";
+
+export const DEFAULT_HREF = LAUNCHER_HREF;
 
 export function stepHref(mode: string, step: string): string {
   return `/${mode}/${step}`;
@@ -103,6 +137,15 @@ export function stepHref(mode: string, step: string): string {
 
 export function findMode(slug: string | undefined): Mode | undefined {
   return MODES.find((m) => m.slug === slug);
+}
+
+export function workspaceOf(mode: Mode | undefined): Workspace | undefined {
+  return mode && WORKSPACES.find((w) => w.modes.includes(mode.slug));
+}
+
+/** The modes of a workspace among those shown (an optional mode may be hidden). */
+export function workspaceModes(workspace: Workspace, shown: Mode[]): Mode[] {
+  return workspace.modes.flatMap((slug) => shown.filter((m) => m.slug === slug));
 }
 
 /** Mode and step slugs from a pathname like "/deal/returns". */

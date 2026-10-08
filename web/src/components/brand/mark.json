@@ -1,0 +1,20 @@
+{
+  "_about": "The Variater mark: a waterfall that dips once and then climbs. The one source for the logo; web/scripts/brand.mjs draws every icon and image from it, and BrandMark.tsx draws it in the app. Bar widths match Orbitron 900's stroke at cap height (64 units). Change a colour here, then run the script.",
+  "width": 85,
+  "height": 64,
+  "radius": 2.5,
+  "bars": [
+    { "role": "start", "x": 0, "y": 34, "w": 13, "h": 30 },
+    { "role": "dip", "x": 18, "y": 34, "w": 13, "h": 16 },
+    { "role": "rise", "x": 36, "y": 26, "w": 13, "h": 24 },
+    { "role": "rise", "x": 54, "y": 0, "w": 13, "h": 26 },
+    { "role": "end", "x": 72, "y": 0, "w": 13, "h": 64 }
+  ],
+  "tones": {
+    "dark": { "start": "#D5DDE1", "dip": "#5C6A71", "rise": "#62B6CB", "end": "#D5DDE1", "text": "#D5DDE1", "background": "#0C1012" },
+    "light": { "start": "#0C1012", "dip": "#8A979D", "rise": "#1F6C80", "end": "#0C1012", "text": "#0C1012", "background": "#FFFFFF" },
+    "black": { "start": "#000000", "dip": "#000000", "rise": "#000000", "end": "#000000", "text": "#000000", "background": "#FFFFFF", "dipOutline": true },
+    "white": { "start": "#FFFFFF", "dip": "#FFFFFF", "rise": "#FFFFFF", "end": "#FFFFFF", "text": "#FFFFFF", "background": "#000000", "dipOutline": true },
+    "onCyan": { "start": "#0C1012", "dip": "#0C1012", "rise": "#0C1012", "end": "#0C1012", "text": "#0C1012", "background": "#62B6CB", "dipOpacity": 0.45 }
+  }
+}
