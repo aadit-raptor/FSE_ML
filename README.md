@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="web/public/brand/logo-horizontal-dark.png">
+  <img alt="Variater" src="web/public/brand/logo-horizontal-light.png" width="320">
+</picture>
+
 # Variater — LBO analysis platform
 
 Deal model, Monte Carlo simulation, backtesting against historical LBOs,

@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { AuthProvider, useSession } from "@/components/auth/AuthProvider";
 import { ProfileProvider, useProfile } from "@/components/auth/ProfileProvider";
 import { BacktestProvider } from "@/components/backtest/BacktestProvider";
+import { BrandLockup } from "@/components/brand/BrandMark";
 import { CompanyProvider } from "@/components/companies/CompanyProvider";
 import { DealProvider } from "@/components/deal/DealProvider";
 import { ForecastProvider } from "@/components/forecast/ForecastProvider";
@@ -114,7 +115,7 @@ function PublicShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
       <header className="flex min-h-[42px] flex-none items-center border-b border-line bg-panel px-4">
-        <span className="type-brand">{app("brand")}</span>
+        <BrandLockup name={app("brand")} />
       </header>
       <main id="content" className="min-h-0 flex-1 overflow-auto">
         {children}

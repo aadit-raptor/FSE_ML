@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useSession } from "@/components/auth/AuthProvider";
+import { BrandLockup } from "@/components/brand/BrandMark";
 import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
 import { LAUNCHER_HREF, parsePath, stepHref, WORKSPACES, workspaceModes } from "@/lib/nav";
 
@@ -34,7 +35,7 @@ export function TopBar() {
   return (
     <header className="flex min-h-[42px] flex-none items-stretch border-b border-line bg-panel">
       <Link href={LAUNCHER_HREF} title={t("launcherTitle")} className="flex items-center border-e border-line px-4">
-        <span className="type-brand">{app("brand")}</span>
+        <BrandLockup name={app("brand")} />
       </Link>
 
       {/* The workspace switcher: each workspace opens on its first mode's first step */}
