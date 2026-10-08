@@ -18,6 +18,7 @@ import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 
 import { useDeal } from "../DealProvider";
+import { Multiples } from "../Multiples";
 import { DealField, DealScreen, LoadingTiles, RailGroup, TranchesOnDebtStep } from "../DealScreen";
 import { baseCell, debtSeries, debtYears, totals, useHurdleSub } from "./shared";
 
@@ -153,6 +154,7 @@ function ReturnsResults() {
         />
       </Tile>
       {leases && <LeasesTile leases={leases} />}
+      <Multiples />
     </Tiles>
   );
 }

@@ -16,6 +16,13 @@
    "train": null
   },
   {
+   "id": "multiples",
+   "evaluation": "ml.evaluation.multiples",
+   "loaded_by": "api/routers/integrations.py",
+   "artifacts": [],
+   "train": null
+  },
+  {
    "id": "surrogate",
    "evaluation": "ml.evaluation.surrogate",
    "loaded_by": "api/routers/integrations.py",

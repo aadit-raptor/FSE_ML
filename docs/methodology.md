@@ -891,6 +891,51 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   fair business risk) and 1.92x coverage (B+, so B): band B; year three's
   4.66x is aggressive ('bb-') and 2.32x is BB+, so BB. Europe's table gives
   year one 1.75%, year two (4.72 − 1.75) / 98.25 = 3.02% of the survivors.
+- **Multiple predictor** ([ml/multiple_predictor.py](../ml/multiple_predictor.py),
+  `predict`; PLAN.md 5.4). Entry and exit EV/EBITDA ranges for the deal's
+  industry in its region, from Damodaran's averages (§14) and his archive of
+  past editions (§14's history): nothing is fitted to deals. *The peer
+  group* (`peer_group`) is the closest group in the country's chain whose
+  industry has `MIN_FIRMS` = 20 companies and a usable multiple (`usable`:
+  above 0 and at most 100x) in its latest year, **never the global group**
+  (`no_peers`; without a country `no_country`; an empty industry is the
+  whole market). `series` is the industry's usable multiple by year in the
+  group, `group_series` every industry's. *The moves* (`moves`): for a
+  horizon of h years, every pair of an industry's multiples h years apart
+  in the group, as (`gap` in the base year, ln(later / earlier)), where the
+  gap is ln(multiple / the group's median industry that year,
+  `market_median`, worked out once a year by `market_medians`; `quantile`
+  interpolates linearly). *The line* (`fit`,
+  a `Fit`): the moves' least-squares line on the gap, a + b x gap (b is
+  negative: expensive industries cheapen, cheap ones catch up), and its
+  sorted misses; under `MIN_PAIRS` = 30 moves there is no range. *The
+  range* (`band`): the latest multiple x exp(a + b x its gap + the misses'
+  10th, 50th and 90th percentiles, `QUANTILES`): low, suggestion, high.
+  *Horizons* (`ranges`, `entry_horizon`): entry is the year after the
+  latest published one (a later year if the stored edition is older),
+  exit is entry plus the deal's hold; figures are rounded to two places
+  (`_rounded`). *Shown only where its card beats the baseline*: `shown`
+  reads each range's verdict from the card's `entry` and `exit` sets
+  (`card_result`, `_card`) for the S&P region of the peer group the range
+  is built from (`GROUP_REGION`: a Korean deal's peers are Damodaran's
+  emerging markets, so emerging's verdict decides), and gives its figures
+  only for a horizon the card tested (`TESTED_HORIZONS`: entry 1, exit 4
+  to 8, holds of three to seven years) where the verdict is "beats the
+  baseline"; `hidden_because` says why not (`untested_horizon`,
+  `few_moves`, or the verdict). Only the history of the deal's own groups
+  is read (`history_groups`: its chain without the global group). *Comparables*: `by_region`, the industry's latest multiple in
+  every group (`_latest`); `same_sector`, the peer group's industries with
+  20 companies in the same GICS sector (`sector_of`, §14's map; `_name`
+  reads names), cheapest first; and, only while the reference library is on,
+  the approved reference transactions like it (the risk score's
+  `similar_deals`). `market_band` is the card's baseline: the same
+  percentiles across the group's industries in a year. Worked: a German
+  machinery deal held five years reads Developed Europe's 210 machinery
+  companies at 14.98x (2025) against a market median of 12.03x, a gap of
+  ln(14.98 / 12.03) = 0.22; the 801 one-year moves give a = 0.048 and
+  b = -0.135, so the entry range for 2026 is 10.92x to 20.50x around 15.43x,
+  and the 470 six-year moves an exit range for 2031 of 10.20x to 24.17x
+  around 16.12x.
 - **Live sliders** ([ml/surrogate/predict.py](../ml/surrogate/predict.py),
   [core/surrogate.py](../core/surrogate.py)). A small neural network
   (`SurrogatePredictor.predict`, loaded once by `SurrogatePredictor.get_instance`)
@@ -1189,6 +1234,7 @@ after their fifth year, so count as none.
 [ml/evaluation/harness.py](../ml/evaluation/harness.py),
 [ml/evaluation/deal_risk.py](../ml/evaluation/deal_risk.py),
 [ml/evaluation/distress.py](../ml/evaluation/distress.py),
+[ml/evaluation/multiples.py](../ml/evaluation/multiples.py),
 [ml/evaluation/surrogate.py](../ml/evaluation/surrogate.py). Tests:
 [tests/test_ml_evaluation.py](../tests/test_ml_evaluation.py),
 [tests/test_model_cards.py](../tests/test_model_cards.py). PLAN.md 5.1: every
@@ -1247,6 +1293,27 @@ calibration gap is 0.00 (the baseline is off by up to 19.39 points in
 emerging markets); on the reference transactions the predictor's AUC is
 0.43 against the year-one default risk's 0.52 (US, six deals: 0.25 against
 0.375), so it is shown nowhere.
+
+**Multiple predictor** (`ml.evaluation.multiples`). Cases (`cases`): every
+industry's multiple in every year of every group but the global one, from
+the archive and the January 2026 edition as recorded (`tables`,
+`data/multiple_history.json`, every industry), predicted from its multiple h
+years earlier, with that year's gap; each group in its S&P region
+(`GROUP_REGION`). Two sets: `entry` (h = 1, the headline) and `exit` (h = 4
+to 8, holds of three to seven years). Walk-forward, a cutoff each year from
+`FIRST_CUTOFF` = 2014 to the newest year stored (`cutoffs`): `fit` draws the line through the moves that ended
+before the cutoff, by group and horizon, and `predict` gives the app's
+range (`band`); a horizon with too few earlier moves gives none and the case
+is left out (`scored`). Baseline: `market_band` in the base year, the
+region's whole market. Statistics: `interval_score` (the headline: the
+range's width plus 2 / 0.2 = ten times how far the multiple fell outside
+it, Gneiting and Raftery's score for a central 80% range), `inside` (the
+share inside it), `median_error` (the suggestion's mean distance from the
+multiple) and `width`, all in turns of EBITDA. `_set` and `evaluate` write
+both sets. Worked: entry, 3,401 industry-years from 2016 to 2025, interval
+score 17.48 against the market's 26.82, 73% inside; exit, 10,143, 23.41
+against 29.07, 73% inside. Every region beats the baseline in both sets,
+so both ranges are shown everywhere a peer group has enough companies.
 
 **Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
 deals, each economy the app covers with ten industries, whose inputs are

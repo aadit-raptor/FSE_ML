@@ -7440,6 +7440,593 @@
         "title": "MonteCarloResponse",
         "type": "object"
       },
+      "MultipleBand": {
+        "properties": {
+          "high": {
+            "description": "The 90th percentile: the range's high end",
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "description": "The 10th percentile: the range's low end, x EBITDA",
+            "title": "Low",
+            "type": "number"
+          },
+          "median": {
+            "description": "The 50th percentile: the suggestion",
+            "title": "Median",
+            "type": "number"
+          },
+          "pairs": {
+            "description": "Industry moves over this many years in the group the range rests on",
+            "title": "Pairs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "low",
+          "median",
+          "high",
+          "pairs"
+        ],
+        "title": "MultipleBand",
+        "type": "object"
+      },
+      "MultipleByGroup": {
+        "properties": {
+          "enough": {
+            "description": "At least min_firms companies and a usable multiple",
+            "title": "Enough",
+            "type": "boolean"
+          },
+          "firms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firms"
+          },
+          "group": {
+            "enum": [
+              "us",
+              "japan",
+              "china",
+              "india",
+              "europe",
+              "aus_nz_canada",
+              "emerging",
+              "global"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "country",
+              "region",
+              "global"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "multiple": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiple"
+          },
+          "used": {
+            "description": "The peer group the ranges are built in",
+            "title": "Used",
+            "type": "boolean"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group",
+          "level",
+          "used",
+          "enough",
+          "year"
+        ],
+        "title": "MultipleByGroup",
+        "type": "object"
+      },
+      "MultipleCardResult": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The same for the region's whole market",
+            "title": "Baseline"
+          },
+          "cases": {
+            "description": "Industry-years the card tested in the region",
+            "title": "Cases",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The card's headline statistic (interval score) for the range",
+            "title": "Model"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The S&P region whose cases the card tested: the peer group's",
+            "title": "Region"
+          },
+          "verdict": {
+            "description": "The card's verdict for this range in the region (docs/model-cards/multiples.md)",
+            "enum": [
+              "beats_baseline",
+              "does_not_beat_baseline",
+              "not_enough_data"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "cases"
+        ],
+        "title": "MultipleCardResult",
+        "type": "object"
+      },
+      "MultipleRange": {
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/MultipleCardResult"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "enum": [
+                  "untested_horizon",
+                  "few_moves",
+                  "does_not_beat_baseline",
+                  "not_enough_data"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why it is not shown: a horizon the card didn't test, too few moves over it in the group, or the card's verdict",
+            "title": "Hidden"
+          },
+          "horizon": {
+            "description": "Years after the latest published multiple",
+            "title": "Horizon",
+            "type": "integer"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultipleBand"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when shown"
+          },
+          "shown": {
+            "description": "Whether the card tested this horizon and says the range beats the baseline in the region of the group it is built from",
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "year": {
+            "description": "The year the range is for",
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "horizon",
+          "year",
+          "shown",
+          "card"
+        ],
+        "title": "MultipleRange",
+        "type": "object"
+      },
+      "MultipleSectorPeer": {
+        "properties": {
+          "firms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firms"
+          },
+          "industry": {
+            "title": "Industry",
+            "type": "string"
+          },
+          "multiple": {
+            "title": "Multiple",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "this": {
+            "description": "The deal's own industry",
+            "title": "This",
+            "type": "boolean"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "industry",
+          "name",
+          "this",
+          "year",
+          "multiple"
+        ],
+        "title": "MultipleSectorPeer",
+        "type": "object"
+      },
+      "MultiplesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "accounting_standard": "",
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "business_risk": 4,
+              "capex": 4.0,
+              "country": "",
+              "currency": "USD",
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "industry": "",
+              "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
+              "tranches": [],
+              "unit": "millions",
+              "wsp_mode": false
+            }
+          }
+        },
+        "title": "MultiplesRequest",
+        "type": "object"
+      },
+      "MultiplesResponse": {
+        "properties": {
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "deals": {
+            "$ref": "#/components/schemas/SimilarDeals"
+          },
+          "entry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultipleRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultipleRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "firms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Companies behind the industry's latest multiple in the group",
+            "title": "Firms"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "japan",
+                  "china",
+                  "india",
+                  "europe",
+                  "aus_nz_canada",
+                  "emerging",
+                  "global"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The peer group: never the global one",
+            "title": "Group"
+          },
+          "hold": {
+            "title": "Hold",
+            "type": "integer"
+          },
+          "industry": {
+            "title": "Industry",
+            "type": "string"
+          },
+          "industry_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry Name"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The industry's latest multiple in the group",
+            "title": "Latest"
+          },
+          "latest_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The year the latest published multiple describes",
+            "title": "Latest Year"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "country",
+                  "region"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "min_firms": {
+            "title": "Min Firms",
+            "type": "integer"
+          },
+          "min_pairs": {
+            "description": "A range needs this many industry moves in the group",
+            "title": "Min Pairs",
+            "type": "integer"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "size_not_split",
+                "listed_company_figures"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published"
+          },
+          "quantiles": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Quantiles",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "no_country",
+                  "no_peers"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The country's S&P region (the card's regions)",
+            "title": "Region"
+          },
+          "regions": {
+            "description": "The industry's latest multiple in every group",
+            "items": {
+              "$ref": "#/components/schemas/MultipleByGroup"
+            },
+            "title": "Regions",
+            "type": "array"
+          },
+          "sector": {
+            "description": "The group's industries in the same GICS sector",
+            "items": {
+              "$ref": "#/components/schemas/MultipleSectorPeer"
+            },
+            "title": "Sector",
+            "type": "array"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/PeerSkipped"
+            },
+            "title": "Skipped",
+            "type": "array"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BenchmarkSourceOut"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "not_enough_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "status",
+          "country",
+          "industry",
+          "hold",
+          "min_firms",
+          "min_pairs",
+          "quantiles",
+          "skipped",
+          "regions",
+          "sector",
+          "deals",
+          "notes",
+          "source",
+          "model"
+        ],
+        "title": "MultiplesResponse",
+        "type": "object"
+      },
       "OperatingModelResult": {
         "properties": {
           "cogs": {
@@ -17820,6 +18407,63 @@
           }
         ],
         "summary": "Post Macro Regime",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/ml/multiples": {
+      "post": {
+        "description": "Entry and exit EV/EBITDA ranges for the deal's industry in its region\n(PLAN.md 5.4), each where its card says it beats the region's whole\nmarket, with the comparables: the industry in every group, the region's\nindustries in the same sector and, when the library is on, the\nreference transactions like it.",
+        "operationId": "post_multiples_api_ml_multiples_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultiplesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultiplesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Multiples",
         "tags": [
           "settings & integrations"
         ]

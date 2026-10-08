@@ -15,22 +15,18 @@ def main():
 
     # The deal risk score (PLAN.md 5.2) reads published averages: nothing to train
 
-    # Priority 8: Multiple predictor (<10 seconds)
-    print("\n[1/3] Training multiple predictor...")
-    from ml.multiple_predictor import train_multiple_predictor
-    train_multiple_predictor()
-    print("✓ Multiple predictor ready")
+    # The multiple predictor (PLAN.md 5.4) reads published averages: nothing to train
 
     # The distress predictor (PLAN.md 5.3) reads published tables: nothing to train
 
     # Priority 5: SHAP model (~10 minutes)
-    print("\n[2/3] Training SHAP model (this takes ~10 minutes)...")
+    print("\n[1/2] Training SHAP model (this takes ~10 minutes)...")
     from ml.shap_attribution import train_shap_model
     train_shap_model()
     print("✓ SHAP model ready")
 
     # Priority 1: Surrogate model (~30 minutes)
-    print("\n[3/3] Generating surrogate training data and training (~30 minutes)...")
+    print("\n[2/2] Generating surrogate training data and training (~30 minutes)...")
     from ml.surrogate.generate_data import generate
     generate(n_samples=50_000, n_per_call=1000)
     from ml.surrogate.train import train

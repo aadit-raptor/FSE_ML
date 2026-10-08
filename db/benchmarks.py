@@ -14,7 +14,7 @@ whole; the history grows by one year each January.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Iterable, Optional
 
 from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
@@ -46,13 +46,18 @@ def save(tables: list[Table], now: Optional[datetime] = None) -> int:
 HISTORY_PREFIX = "history."
 
 
-def all_tables(history: bool = False) -> tuple[dict[str, Table], Optional[datetime]]:
+def all_tables(history: bool = False, history_groups: Optional[Iterable[str]] = None
+               ) -> tuple[dict[str, Table], Optional[datetime]]:
     """Every stored table by name, and when the oldest current one was
     refreshed (a refresh reads them all again once that is old enough).
     The history tables (``history.*``) only when asked for: they are the
-    larger ones, and only the risk ranges read them."""
+    larger ones, and only the risk ranges and the multiple predictor read
+    them; ``history_groups`` reads only those groups' ``history.<group>``."""
     query = select(BenchmarkTable)
-    if not history:
+    if history_groups is not None:
+        wanted = [f"{HISTORY_PREFIX}{g}" for g in history_groups]
+        query = query.where(~BenchmarkTable.name.startswith(HISTORY_PREFIX) | BenchmarkTable.name.in_(wanted))
+    elif not history:
         query = query.where(~BenchmarkTable.name.startswith(HISTORY_PREFIX))
     with connect() as conn:
         rows = conn.execute(query).all()
