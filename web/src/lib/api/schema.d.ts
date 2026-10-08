@@ -2604,7 +2604,7 @@ export interface components {
             cumulative: number | null;
             /**
              * Leverage
-             * @description Debt at the start of the year / the year's EBITDA; none when EBITDA is not positive
+             * @description Debt at the start of the year / the year's EBITDA (0 without debt); none for debt against an EBITDA that is not positive
              */
             leverage: number | null;
             /**

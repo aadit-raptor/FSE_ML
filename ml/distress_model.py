@@ -117,10 +117,17 @@ def coverage_band(ebit, interest):
     return np.where(paying, _COVERAGE_GRADES[np.searchsorted(_COVERAGE_LOWS, coverage, side="right")], 0)
 
 
-def leverage_band(debt, ebitda, business: int = DEFAULT_BUSINESS_RISK):
-    """The anchor's letter grade for debt / EBITDA at ``business`` risk."""
+def leverage_of(debt, ebitda):
+    """Debt / EBITDA; no debt is no leverage whatever the EBITDA, and debt
+    against a non-positive EBITDA is infinite (highly leveraged)."""
     debt, ebitda = np.asarray(debt, dtype=float), np.asarray(ebitda, dtype=float)
     leverage = np.divide(debt, ebitda, out=np.full(np.broadcast(debt, ebitda).shape, np.inf), where=ebitda > 0)
+    return np.where(debt <= 0, 0.0, leverage)
+
+
+def leverage_band(debt, ebitda, business: int = DEFAULT_BUSINESS_RISK):
+    """The anchor's letter grade for debt / EBITDA at ``business`` risk."""
+    leverage = leverage_of(debt, ebitda)
     grades = np.array([band_of(anchor(business, p)) for p in range(1, HIGHLY_LEVERAGED + 1)])
     return grades[leverage_profile(leverage) - 1]
 
@@ -208,15 +215,16 @@ def deal_view(d, result, card: Optional[Mapping] = None) -> dict:
     path = bands(ebit, ebitda, interest, debt, business)
     yearly, cumulative = probabilities(path, ctx["table"])
     cov, lev = coverage_band(ebit, interest), leverage_band(debt, ebitda, business)
+    leverage = leverage_of(debt, ebitda)
     shown = ctx["shown"]
     years = []
     for t in range(len(path)):
         years.append({
             "year": t + 1,
             "coverage": _figure(ebit[t] / interest[t]) if interest[t] > 0 else None,
-            "leverage": _figure(debt[t] / ebitda[t]) if ebitda[t] > 0 else None,
+            "leverage": _figure(leverage[t]),
             "coverage_band": BANDS[cov[t]], "leverage_band": BANDS[lev[t]],
-            "leverage_profile": int(leverage_profile(debt[t] / ebitda[t] if ebitda[t] > 0 else np.inf)),
+            "leverage_profile": int(leverage_profile(leverage[t])),
             "band": BANDS[path[t]],
             "probability": float(yearly[t]) if shown else None,
             "cumulative": float(cumulative[t]) if shown else None,

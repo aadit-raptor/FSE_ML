@@ -866,7 +866,8 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   S&P's Corporate Methodology (January 2024): Table 17's standard-volatility
   bounds give the financial risk profile (`leverage_profile`: under 1.5x
   minimal, 1.5-2 modest, 2-3 intermediate, 3-4 significant, 4-5 aggressive,
-  over 5 or a non-positive EBITDA highly leveraged), and Table 3 combines it
+  over 5 or debt against a non-positive EBITDA highly leveraged; no debt is
+  minimal, `leverage_of`), and Table 3 combines it
   with the deal's business risk profile into an anchor (`anchor`, the weaker
   where the table prints two; `business_risk` is a deal input,
   `DEFAULT_BUSINESS_RISK` = 4, fair). *The rate* (`probabilities`): S&P's

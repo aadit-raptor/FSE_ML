@@ -545,8 +545,8 @@ class DistressContext(BaseModel):
 class DealDistressYear(BaseModel):
     year: int
     coverage: Optional[float] = Field(description="EBIT / interest; none without interest")
-    leverage: Optional[float] = Field(description="Debt at the start of the year / the year's EBITDA; "
-                                                  "none when EBITDA is not positive")
+    leverage: Optional[float] = Field(description="Debt at the start of the year / the year's EBITDA (0 without "
+                                                  "debt); none for debt against an EBITDA that is not positive")
     coverage_band: RatingBand
     leverage_band: RatingBand
     leverage_profile: int = Field(description="S&P's financial risk profile for the leverage, 1-6 (Table 17)")

@@ -990,7 +990,8 @@ with the user 2026-10-08), `OMIT_WHEN_DEFAULT`, registry basis `choice`.
 The deal answer's `distress` and the Monte Carlo answer's `distress` (share
 of paths per band each year; the simulation returns `credit_paths` only when
 `run_vectorized_simulation_full(..., credit=True)`, dropped after use by
-`core.montecarlo.simulated_distress`; the pinned simulation is untouched).
+`core.montecarlo.simulated_distress`; the pinned simulation is untouched;
+about 20 MB more traced at the caps, 100,000 paths and 15 years).
 **Probabilities are sent only where `ml/cards/distress.json` says "beats the
 baseline"** for the deal's S&P region; **today nowhere** (decided with the
 user: the phase rule holds): on the ten reference transactions AUC 0.43

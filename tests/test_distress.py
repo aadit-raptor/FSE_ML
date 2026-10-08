@@ -53,6 +53,12 @@ def test_table_17_turns_leverage_into_a_financial_risk_profile(leverage, profile
     assert int(dm.leverage_profile(leverage)) == profile
 
 
+def test_no_debt_is_minimal_leverage_whatever_the_ebitda():
+    assert dm.leverage_of(0.0, -5.0) == 0.0 and dm.leverage_of(10.0, 0.0) == float("inf")
+    assert int(dm.leverage_band(0.0, -5.0, 4)) == dm.band_of(dm.anchor(4, 1))      # 'bbb-' -> BBB
+    assert int(dm.leverage_band(10.0, -5.0, 4)) == dm.band_of(dm.anchor(4, 6))     # 'b' -> B
+
+
 def test_table_3_is_read_at_the_weaker_of_two_anchors():
     assert dm.anchor(1, 1) == "aa+"      # "aaa/aa+"
     assert dm.anchor(1, 6) == "bb+"      # "bbb-/bb+"
