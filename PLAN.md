@@ -175,6 +175,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
 | 7.8 | More languages | 2.3b | ☐ |
 | 7.9 | Charts in every Excel download | 2.3a | ☐ |
+| 7.10 | Workspaces: LBO and equity research, launcher after sign-in | 1.4 | ☑ |
 | **8** | **Ready to scale** | | |
 | 8.1 | Result caching | 1.9 | ☐ |
 | 8.2 | Speed budgets (web and API) | 1.2 | ☐ |
@@ -1222,6 +1223,44 @@ workbooks.
   same chart over the same cells (a test reads the chart's series ranges back
   with openpyxl and checks they point at the right cells), and changing a
   cell moves the chart.
+
+### 7.10 Workspaces: LBO and equity research, launcher after sign-in
+Asked for by the user (2026-10-08), done out of turn after 4.6: the modes are
+grouped into workspaces, and a sign-in offers them instead of opening Deal
+inputs.
+- **Claude does:**
+  - `web/src/lib/nav.ts` `WORKSPACES`: **LBO** (Deal, Monte Carlo, Backtest,
+    Settings, Library) and **Equity research** (Forecast; DCF, comps and more
+    later). A mode belongs to exactly one workspace, so addresses stay as they
+    were (`/deal/inputs`), with no prefix: bookmarks and links keep working;
+  - the launcher at `/start` (`components/shell/Launcher.tsx`): a tile per
+    workspace with its screens and an "Open" action, the LBO tile naming the
+    open deal; the brand mark leads there;
+  - **every sign-in lands on the launcher** (`AFTER_SIGN_IN`), the first one
+    after the account questions; a visitor sent to sign in from a particular
+    screen goes back to it; **the site's root carries on at the last screen
+    this browser showed** (`lib/lastScreen.ts`, localStorage), so someone
+    still signed in continues where they were, and the root never carries a
+    way back to itself through sign-in (`proxy.ts`), so signing in from it
+    lands on the launcher too;
+  - the top bar's workspace switcher; mode tabs and Alt 1-9 list only the
+    current workspace's modes (the account screen keeps the last workspace's);
+    Ctrl K searches every workspace and names each result's.
+- **Done when:** sign-in (first or again) lands on the launcher, an open
+  session's visit to the root returns to its last screen, each workspace shows
+  only its own tabs and shortcuts, and search crosses workspaces
+  (`e2e/shell.spec.ts`, `e2e/auth.spec.ts`).
+- **Parked ideas (the user, 2026-10-08), not scheduled:** a third workspace of
+  India-first market-event models, kept as ideas until the user asks:
+  (a) NIFTY 50 reconstitution predictor (NSE's published rules as dated data,
+  probability of inclusion by simulating prices to the cutoff, passive-flow
+  size; other rule-based indices later); (b) NSE F&O positioning screener (OI
+  build-up buckets, 52-week and 3-year OI extremes, basis, PCR); (c) IPO
+  lock-in expiry calendar (SEBI lock-in rules, holidays, unlock value against
+  free float). The user has one of them built in Excel to share. Open
+  questions before any of them: NSE data access and its redistribution terms
+  (user uploads of the bhavcopy, or a fetch with uploads as the fallback), and
+  SME lock-in rules.
 
 ---
 

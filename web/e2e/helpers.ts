@@ -63,7 +63,7 @@ export async function signInAs(page: Page, user: string, locale: string, groupin
   await page.goto("/sign-in");
   await page.getByLabel("Development user").fill(user);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/(deal|account)/);
+  await expect(page).toHaveURL(/\/(start|account)/);
   await page.goto("/account");
   await page.getByLabel("Country").selectOption(locale.slice(-2));
   await page.getByLabel("Currency").selectOption("USD");

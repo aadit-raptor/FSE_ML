@@ -8,9 +8,9 @@ import { usePathname } from "next/navigation";
 
 import { useSession } from "@/components/auth/AuthProvider";
 import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
-import { parsePath, stepHref } from "@/lib/nav";
+import { LAUNCHER_HREF, parsePath, stepHref, WORKSPACES, workspaceModes } from "@/lib/nav";
 
-import { useModes } from "./useModes";
+import { useCurrentWorkspace, useModes, useWorkspaceModes } from "./useModes";
 import { useWorkspace } from "./workspace";
 
 export function TopBar() {
@@ -18,7 +18,9 @@ export function TopBar() {
   const { mode: current } = parsePath(pathname);
   const { setSearchOpen } = useWorkspace();
   const { label } = useSession();
-  const modes = useModes();
+  const modes = useWorkspaceModes();
+  const shown = useModes();
+  const workspace = useCurrentWorkspace();
   const t = useTranslations("shell");
   const nav = useTranslations("nav");
   const app = useTranslations("app");
@@ -31,9 +33,31 @@ export function TopBar() {
 
   return (
     <header className="flex min-h-[42px] flex-none items-stretch border-b border-line bg-panel">
-      <Link href="/" className="flex items-center border-e border-line px-4">
+      <Link href={LAUNCHER_HREF} title={t("launcherTitle")} className="flex items-center border-e border-line px-4">
         <span className="type-brand">{app("brand")}</span>
       </Link>
+
+      {/* The workspace switcher: each workspace opens on its first mode's first step */}
+      <nav aria-label={t("workspaces")} className="flex flex-col justify-center border-e border-line px-3 py-1">
+        {WORKSPACES.map((w) => {
+          const first = workspaceModes(w, shown)[0];
+          if (!first) return null;
+          const active = w.slug === workspace?.slug;
+          return (
+            <Link
+              key={w.slug}
+              href={stepHref(first.slug, first.steps[0].slug)}
+              aria-current={active ? "true" : undefined}
+              className={`type-control flex items-center gap-1.5 leading-[1.6] whitespace-nowrap hover:text-ink ${active ? "text-accent" : ""}`}
+            >
+              {nav(w.labelKey)}
+              {/* A run carries on in another workspace: say so here, where its tab isn't */}
+              {!active && w.modes.some((m) => staleModes.has(m)) && <span className="chip text-attention">{mcText("chipStale")}</span>}
+              {!active && w.modes.some((m) => runningModes.has(m)) && <span className="chip text-accent">{mcText("chipRunning")}</span>}
+            </Link>
+          );
+        })}
+      </nav>
 
       <nav aria-label={t("modes")} className="flex">
         {modes.map((mode, i) => {

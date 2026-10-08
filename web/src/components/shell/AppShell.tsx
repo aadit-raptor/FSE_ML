@@ -23,6 +23,7 @@ import { Shortcuts } from "./Shortcuts";
 import { StatusBar } from "./StatusBar";
 import { StepBar } from "./StepBar";
 import { TopBar } from "./TopBar";
+import { useTrackPlace } from "./useModes";
 import { WorkspaceProvider } from "./workspace";
 
 /** The Guided shell: mode tabs, step row, search, content, status bar. */
@@ -93,6 +94,7 @@ function Shell({ children }: { children: React.ReactNode }) {
                         {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
                         <CommandSearch />
                         <Shortcuts />
+                        <TrackPlace />
                       </CompanyProvider>
                     </ForecastProvider>
                   </BacktestProvider>
@@ -120,6 +122,12 @@ function PublicShell({ children }: { children: React.ReactNode }) {
       <StatusBar />
     </div>
   );
+}
+
+/** Notes the workspace and screen as the visitor moves (useModes.ts). */
+function TrackPlace() {
+  useTrackPlace();
+  return null;
 }
 
 function SessionGate({ ready }: { ready: boolean }) {
