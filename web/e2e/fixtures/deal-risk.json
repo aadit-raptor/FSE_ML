@@ -76,11 +76,13 @@
   "min_firms": 20,
   "model": {
    "commit": null,
-   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_fingerprint": "c9bcfa3cba40",
    "data_sets": {
     "damodaran_ratings_2026": "2026-01",
     "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
     "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
     "tax_presets": "2026-01",
     "us_leveraged_2013": "2013-03-21"
    },
@@ -213,11 +215,13 @@
   "min_firms": 20,
   "model": {
    "commit": null,
-   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_fingerprint": "c9bcfa3cba40",
    "data_sets": {
     "damodaran_ratings_2026": "2026-01",
     "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
     "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
     "tax_presets": "2026-01",
     "us_leveraged_2013": "2013-03-21"
    },
@@ -382,11 +386,13 @@
   "min_firms": 20,
   "model": {
    "commit": null,
-   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_fingerprint": "c9bcfa3cba40",
    "data_sets": {
     "damodaran_ratings_2026": "2026-01",
     "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
     "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
     "tax_presets": "2026-01",
     "us_leveraged_2013": "2013-03-21"
    },
@@ -501,11 +507,13 @@
   "min_firms": 20,
   "model": {
    "commit": null,
-   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_fingerprint": "c9bcfa3cba40",
    "data_sets": {
     "damodaran_ratings_2026": "2026-01",
     "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
     "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
     "tax_presets": "2026-01",
     "us_leveraged_2013": "2013-03-21"
    },

@@ -9,6 +9,13 @@
    "train": null
   },
   {
+   "id": "distress",
+   "evaluation": "ml.evaluation.distress",
+   "loaded_by": "api/routers/deal.py",
+   "artifacts": [],
+   "train": null
+  },
+  {
    "id": "surrogate",
    "evaluation": "ml.evaluation.surrogate",
    "loaded_by": "api/routers/integrations.py",

@@ -3,7 +3,9 @@
 Part of the optional reference library: shown on Library -> Base rates and
 hidden with it (``library.switch``). Nothing in the deal model, the simulation
 or the risk warnings reads these tables, so switching the library off changes
-no result.
+no result. The distress predictor (``ml/distress_model.py``, PLAN.md 5.3)
+reads the cumulative tables (``CUMULATIVE``) whatever the switch says: they
+are published data, not the library's deals.
 
 Every figure is **transcribed** from a published table named in ``TABLES``,
 never estimated: to change one, transcribe a newer edition of its source and

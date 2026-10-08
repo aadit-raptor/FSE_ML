@@ -14,7 +14,7 @@ from core.money import in_unit, rescale
 from core.montecarlo import (
     MC_MONEY_KEYS, MCInputs, analysis_sample, mc_in_millions, apply_scenario, build_sim_params, driver_fits,
     driver_sensitivity, empirical_correlations, growth_exit_heatmap, risk_summary,
-    run_scenarios, scenario_stats,
+    run_scenarios, scenario_stats, simulated_distress,
 )
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
@@ -43,9 +43,10 @@ def post_run(req: MonteCarloRequest):
 
     t0 = time.perf_counter()
     with model_timer("montecarlo.run"):
-        sim = run_vectorized_simulation_full(params, seed=req.seed)
+        sim = run_vectorized_simulation_full(params, seed=req.seed, credit=True)
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
+    distress = simulated_distress(sim, deal)
     sample = analysis_sample(sim)
     corr = empirical_correlations(sample)
     scatter = sample[SCATTER_COLUMNS].head(req.scatter_points)
@@ -72,6 +73,7 @@ def post_run(req: MonteCarloRequest):
             "note": "Each cell is a full deal-model run at the simulation's mean "
                     "assumptions for that growth and exit multiple.",
         },
+        "distress": distress,
         "money": req.deal.money(),
         "model": model,
     }

@@ -1,0 +1,172 @@
+{
+ "estimates": "Each year's chance of default: the year's rating band (the weaker of EBIT / interest through Damodaran's coverage table and debt / EBITDA through S&P's Corporate Methodology Tables 17 and 3) and S&P's forward default rate for that band and age in the deal's region",
+ "evaluation": {
+  "baseline": {
+   "description": "The deal summary's default risk: year-one EBIT / interest through Damodaran's coverage table, and S&P's global cumulative default rate for that rating over the hold",
+   "id": "year_one_default_risk"
+  },
+  "calibration_tolerance_pp": 0.01,
+  "headline_metric": "auc",
+  "headline_set": "reference_deals",
+  "metrics": [
+   {
+    "better": "higher",
+    "description": "Chance a distressed deal is given a higher chance of default than a deal that wasn't (0.5 = no better than chance)",
+    "id": "auc",
+    "tolerance": 0.005
+   },
+   {
+    "better": "lower",
+    "description": "Mean squared gap between the chance of default over the hold and what happened (distress = 1)",
+    "id": "brier",
+    "tolerance": 0.005
+   },
+   {
+    "better": "lower",
+    "description": "Mean gap (percentage points) between the implied cumulative default rate and S&P's for the same band, region and horizon",
+    "id": "mean_abs_gap_pp",
+    "tolerance": 0.005
+   },
+   {
+    "better": "lower",
+    "description": "The largest of those gaps",
+    "id": "max_abs_gap_pp",
+    "tolerance": 0.005
+   }
+  ],
+  "sets": {
+   "calibration": {
+    "by_region": {
+     "emerging": {
+      "baseline": {
+       "max_abs_gap_pp": 19.39,
+       "mean_abs_gap_pp": 3.343
+      },
+      "cases": 70,
+      "model": {
+       "max_abs_gap_pp": 0.0,
+       "mean_abs_gap_pp": 0.0
+      },
+      "verdict": "beats_baseline"
+     },
+     "europe": {
+      "baseline": {
+       "max_abs_gap_pp": 5.21,
+       "mean_abs_gap_pp": 1.1849
+      },
+      "cases": 70,
+      "model": {
+       "max_abs_gap_pp": 0.0,
+       "mean_abs_gap_pp": 0.0
+      },
+      "verdict": "beats_baseline"
+     },
+     "other_developed": {
+      "baseline": {
+       "max_abs_gap_pp": 0.0,
+       "mean_abs_gap_pp": 0.0
+      },
+      "cases": 105,
+      "model": {
+       "max_abs_gap_pp": 0.0,
+       "mean_abs_gap_pp": 0.0
+      },
+      "verdict": "does_not_beat_baseline"
+     },
+     "us": {
+      "baseline": {
+       "max_abs_gap_pp": 5.47,
+       "mean_abs_gap_pp": 1.3863
+      },
+      "cases": 105,
+      "model": {
+       "max_abs_gap_pp": 0.0,
+       "mean_abs_gap_pp": 0.0
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "A deal held in one band, against S&P's cumulative default rate for that band in its region at every horizon printed (350 cases: Table 25 for the US, Europe and emerging markets, Table 24 for the other developed markets); the baseline reads Table 24 everywhere",
+    "overall": {
+     "baseline": {
+      "max_abs_gap_pp": 19.39,
+      "mean_abs_gap_pp": 1.3215
+     },
+     "cases": 350,
+     "model": {
+      "max_abs_gap_pp": 0.0,
+      "mean_abs_gap_pp": 0.0
+     },
+     "verdict": "beats_baseline"
+    }
+   },
+   "reference_deals": {
+    "by_region": {
+     "emerging": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "europe": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "other_developed": {
+      "cases": 2,
+      "verdict": "not_enough_data"
+     },
+     "us": {
+      "baseline": {
+       "auc": 0.375,
+       "brier": 0.2911
+      },
+      "cases": 6,
+      "model": {
+       "auc": 0.25,
+       "brier": 0.2949
+      },
+      "verdict": "does_not_beat_baseline"
+     }
+    },
+    "description": "The sourced reference transactions (10), each entered with its filed EBITDA, multiple and debt share in its own country, everything else at the defaults, business risk 4 (fair); truth: distress at any time after closing",
+    "overall": {
+     "baseline": {
+      "auc": 0.5238,
+      "brier": 0.2691
+     },
+     "cases": 10,
+     "model": {
+      "auc": 0.4286,
+      "brier": 0.2746
+     },
+     "verdict": "does_not_beat_baseline"
+    }
+   }
+  },
+  "split": {
+   "kind": "none",
+   "why": "the predictor fits nothing to outcomes, so no case can leak into it; every case reads the tables of S&P's 2024 study and its January 2024 methodology"
+  }
+ },
+ "format": 1,
+ "id": "distress",
+ "limitations": [
+  "Ten sourced transactions: only the United States has enough (six, two distressed); every other region shows not enough data.",
+  "On those ten deals it does not rank distress better than the year-one default risk: Dollar General (10x leverage) and Avago (13x) exited well while Toys \"R\" Us and Gymboree (about 6.5x) failed years later. The app therefore shows the bands but not the probabilities anywhere today.",
+  "Truth is distress at any time after closing; the predictor's horizon is the hold, so a failure years after an exit counts against it.",
+  "S&P's regional tables print letter grades only and ten years for Europe and emerging markets; past the last year the last year's rate is held.",
+  "The business risk profile is the user's choice (4, fair, unless changed); where Table 3 gives two anchors the weaker is read.",
+  "Calibration is exact by construction for a deal that stays in one band; a deal that moves between bands reads each band's rate at its age, which S&P's tables don't test."
+ ],
+ "min_cases": 5,
+ "module": "ml/distress_model.py",
+ "name": "Distress predictor (default probability by year)",
+ "registry": {
+  "artifacts": []
+ },
+ "training": {
+  "command": null,
+  "data": "Nothing is trained: the predictor reads published tables (S&P's 2024 default study, Tables 24 and 25; S&P's January 2024 Corporate Methodology, Tables 3 and 17; Damodaran's January 2026 coverage table)",
+  "deterministic": true
+ },
+ "used_by": "Deal -> Debt and Monte Carlo -> Risk, distress by year (POST /api/deal/run, POST /api/montecarlo/run); probabilities shown only in regions where this card says it beats the baseline"
+}

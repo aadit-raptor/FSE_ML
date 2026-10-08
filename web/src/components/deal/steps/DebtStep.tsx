@@ -16,6 +16,7 @@ import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 
 import { useDeal } from "../DealProvider";
+import { BusinessRiskSelect, DealDistressTile } from "../Distress";
 import { DealField, DealScreen, LoadingTiles, RailGroup, WspToggle } from "../DealScreen";
 import { debtSeries, debtYears, totals } from "./shared";
 import { TrancheList, UseTranchesButton } from "./TrancheList";
@@ -123,6 +124,9 @@ export function DebtStep() {
             <DealField name="inv_days" disabled={!inputs.wsp_mode} />
             <DealField name="ap_days" disabled={!inputs.wsp_mode} />
           </RailGroup>
+          <RailGroup title={t("groupCredit")}>
+            <BusinessRiskSelect />
+          </RailGroup>
         </>
       }
     >
@@ -186,6 +190,8 @@ function DebtResults() {
           ]}
         />
       </Tile>
+
+      <DealDistressTile d={res.distress} years={years} />
 
       {(res.capital_structure?.length ?? 0) > 0 && (
         <Tile span={6} title={t("tileCapitalStructure")} unit={mu}>

@@ -100,6 +100,8 @@ const SIM_DEAL_KEYS: (keyof DealInputs)[] = [
   "ebitda", "entry_mult", "hold", "opex", "da", "tax", "capex", "nwc", "debt_pct", "senior_pct", "mezz_spread", "tranches",
   "tax_interest_limit", "tax_interest_limit_pct", "tax_interest_limit_amount", "tax_loss_carryforward",
   "tax_loss_limit_pct", "tax_loss_limit_amount", "tax_minimum_pct",
+  // The distress predictor's region and business risk (PLAN.md 5.3, the answer's distress block)
+  "country", "business_risk",
 ];
 
 /** What a run was for; `dealId` is the saved deal it ran on (null if unsaved), so its downloads go in that deal's history. */

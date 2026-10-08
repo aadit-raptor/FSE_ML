@@ -60,6 +60,8 @@ DEAL_INPUTS: Mapping[str, dict] = {
     "mezz_spread": {"basis": "choice", "reason": "applies only to a mezzanine tranche; the starting "
                                                  "structure is all senior"},
     "wsp_mode": {"basis": "choice", "reason": "flat working capital unless days are chosen"},
+    "business_risk": {"basis": "choice", "reason": "S&P's business risk profile, 4 (fair) unless chosen; read "
+                                                   "only by the distress predictor (PLAN.md 5.3)"},
 }
 
 _TEMPLATE = {"basis": "template", "reason": "Settings' starting values: applied only when asked"}

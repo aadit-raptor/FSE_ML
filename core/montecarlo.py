@@ -151,6 +151,18 @@ def risk_summary(sim, hurdle_pct):
     }
 
 
+def simulated_distress(sim, deal: DealInputs) -> dict:
+    """The distress predictor on every path (PLAN.md 5.3), from a run made
+    with ``credit=True``; debt and EBITDA count leases as the deal is priced.
+    The paths' yearly figures are dropped afterwards (they are the largest
+    arrays a run holds)."""
+    from ml.distress_model import simulated_view
+    paths, p = sim.credit_paths, sim.params
+    sim.credit_paths = None
+    return simulated_view(paths["ebit"], paths["ebitda"] + p.lease_ebitda_addback, paths["interest"],
+                          paths["debt"] + p.lease_liability, country=deal.country, business=deal.business_risk)
+
+
 def probability_of_loss(moic) -> float:
     """Share of paths returning less than the equity put in (MOIC below 1),
     the deal summary's probability of loss (PLAN.md 4.6)."""

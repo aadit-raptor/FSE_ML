@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { DivergingBars, RangeRows, Scatter } from "@/components/charts/Bars";
 import { useDeal } from "@/components/deal/DealProvider";
+import { SimulatedDistressTile } from "@/components/deal/Distress";
 import { heat } from "@/components/charts/HeatTable";
 import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
@@ -12,10 +13,11 @@ import { DownloadButton } from "@/components/ui/DownloadButton";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { floatingCount } from "@/lib/deal/capital";
-import { apiInputs } from "@/lib/deal/fields";
+import { apiInputs, dealFiscal } from "@/lib/deal/fields";
 import { downloadMonteCarloSample, downloadWorkbook, fraction, sheet } from "@/lib/export";
 import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
+import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 
 import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
@@ -46,6 +48,7 @@ function Distribution() {
   const t = useTranslations("montecarlo");
   const s = r.summary;
   const staleClass = useStaleClass();
+  const fiscalLabels = useFiscalLabels();
   const p = r.params as Record<string, number>;
   const count = (share: number | null | undefined, n: number) => (isNum(share) ? fmtCount(share * n) : fmtCount(null));
   const assumptions: [string, string][] = [
@@ -160,6 +163,7 @@ function Distribution() {
             </tbody>
           </table>
         </Tile>
+        <SimulatedDistressTile d={r.distress} years={fiscalLabels.deal(r.distress.years.length, dealFiscal(ranFor.deal))} />
       </Tiles>
     </div>
   );

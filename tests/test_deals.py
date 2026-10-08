@@ -34,7 +34,9 @@ INPUTS = {"ebitda": 240.0, "entry_mult": 9.0, "exit_mult": 10.5, "hold": 6, "gro
           # Accounting standard and leases (PLAN.md 2.6), the same way
           "accounting_standard": "", "lease_view": "", "lease_cost": 0.0, "lease_liability": 0.0,
           # Where the starting figures were sourced for (PLAN.md 4.3), the same way
-          "country": "", "industry": ""}
+          "country": "", "industry": "",
+          # The distress predictor's business risk (PLAN.md 5.3), the same way
+          "business_risk": 4}
 # Every field of DealInputsIn, as the API answers: the fiscal year labels
 # (PLAN.md 2.3a) and the tranche list (PLAN.md 2.4) are stored only when set
 # but always come back

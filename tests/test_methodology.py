@@ -29,6 +29,7 @@ MODEL_PACKAGES = ("core", "lbo_engine", "simulation", "analytics")
 EXTRA_MODULES = (
     "api/serialize.py",              # histogram, percentile curve
     "ml/anomaly_detector.py",        # risk score (PLAN.md 5.2)
+    "ml/distress_model.py",          # distress predictor (PLAN.md 5.3)
     "ml/surrogate/predict.py",       # Live sliders
     "ml/surrogate/generate_data.py",
     "ml/macro_regime.py",            # macro regime
@@ -45,7 +46,8 @@ EXTRA_MODULES = (
     "validation/tags.py",            # the groups
     "validation/run.py",             # and the nightly report
     "ml/evaluation/harness.py",      # ML evaluation (PLAN.md 5.1): the statistics,
-    "ml/evaluation/deal_risk.py",    # the risk score's cards
+    "ml/evaluation/deal_risk.py",    # the risk score's cards,
+    "ml/evaluation/distress.py",     # the distress predictor's
     "ml/evaluation/surrogate.py",    # and the live sliders'
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.

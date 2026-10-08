@@ -76,6 +76,10 @@ class DealInputs:
     lease_view: str = ""                    # "" (the standard's own) | "pre_ifrs16" | "post_ifrs16"
     lease_cost: float = 0.0                 # money a year
     lease_liability: float = 0.0            # money at close
+    # S&P's business risk profile, 1 excellent .. 6 vulnerable (PLAN.md 5.3):
+    # read only by the distress predictor (ml/distress_model.py), with
+    # leverage, for each year's rating band. A choice, not a sourced figure.
+    business_risk: int = 4
 
     def __post_init__(self):
         # Routers build DealInputs(**model_dump()), so tranches arrive as
