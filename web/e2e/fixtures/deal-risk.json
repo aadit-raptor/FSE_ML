@@ -1,0 +1,546 @@
+{
+ "de": {
+  "comparisons": [
+   {
+    "deal": 4.2,
+    "firms": 210,
+    "group": "europe",
+    "industries": 65,
+    "level": "region",
+    "metric": "leverage",
+    "peer": 1.8716,
+    "position": "above",
+    "published": "2026-01-05",
+    "risk_z": 1.2857,
+    "scored": true,
+    "skipped": [],
+    "spread": 1.811,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfundEurope.xls",
+    "z": 1.2857
+   },
+   {
+    "deal": 10.0,
+    "firms": 210,
+    "group": "europe",
+    "industries": 65,
+    "level": "region",
+    "metric": "entry_multiple",
+    "peer": 14.9805,
+    "position": "below",
+    "published": "2026-01-05",
+    "risk_z": -1.3046,
+    "scored": true,
+    "skipped": [],
+    "spread": 3.8175,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitdaEurope.xls",
+    "z": -1.3046
+   },
+   {
+    "deal": 26.0,
+    "firms": 210,
+    "group": "europe",
+    "industries": 65,
+    "level": "region",
+    "metric": "ebitda_margin",
+    "peer": 12.9671,
+    "position": "well_above",
+    "published": "2026-01-05",
+    "risk_z": -2.1451,
+    "scored": false,
+    "skipped": [],
+    "spread": 6.0757,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/marginEurope.xls",
+    "z": 2.1451
+   }
+  ],
+  "country": "DE",
+  "deals": {
+   "deals": [],
+   "enabled": false,
+   "region": null,
+   "sector": null,
+   "size": null
+  },
+  "industry": "machinery",
+  "industry_name": "Machinery",
+  "inputs": {
+   "ebitda_margin": 26.0,
+   "entry_mult": 10.0,
+   "growth_pct": 5.0,
+   "leverage": 4.2,
+   "rate": 7.261904761904762
+  },
+  "min_firms": 20,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_default_study_2024": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "reason": null,
+  "region": "europe",
+  "sample": {
+   "firms": 210,
+   "group": "europe"
+  },
+  "score": {
+   "baseline": null,
+   "cases": 1,
+   "model": null,
+   "region": "europe",
+   "shown": false,
+   "value": null,
+   "verdict": "not_enough_data"
+  },
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "ok",
+  "unusual": false
+ },
+ "thin": {
+  "comparisons": [
+   {
+    "deal": 4.2,
+    "firms": null,
+    "group": null,
+    "industries": null,
+    "level": null,
+    "metric": "leverage",
+    "peer": null,
+    "position": null,
+    "published": null,
+    "risk_z": null,
+    "scored": true,
+    "skipped": [
+     {
+      "area": "aus_nz_canada",
+      "reason": "thin",
+      "sample": 8
+     }
+    ],
+    "spread": null,
+    "status": "not_enough_data",
+    "url": null,
+    "z": null
+   },
+   {
+    "deal": 10.0,
+    "firms": null,
+    "group": null,
+    "industries": null,
+    "level": null,
+    "metric": "entry_multiple",
+    "peer": null,
+    "position": null,
+    "published": null,
+    "risk_z": null,
+    "scored": true,
+    "skipped": [
+     {
+      "area": "aus_nz_canada",
+      "reason": "thin",
+      "sample": 8
+     }
+    ],
+    "spread": null,
+    "status": "not_enough_data",
+    "url": null,
+    "z": null
+   },
+   {
+    "deal": 26.0,
+    "firms": null,
+    "group": null,
+    "industries": null,
+    "level": null,
+    "metric": "ebitda_margin",
+    "peer": null,
+    "position": null,
+    "published": null,
+    "risk_z": null,
+    "scored": false,
+    "skipped": [
+     {
+      "area": "aus_nz_canada",
+      "reason": "thin",
+      "sample": 8
+     }
+    ],
+    "spread": null,
+    "status": "not_enough_data",
+    "url": null,
+    "z": null
+   }
+  ],
+  "country": "CA",
+  "deals": {
+   "deals": [],
+   "enabled": false,
+   "region": null,
+   "sector": null,
+   "size": null
+  },
+  "industry": "shipbuilding_marine",
+  "industry_name": "Shipbuilding & Marine",
+  "inputs": {
+   "ebitda_margin": 26.0,
+   "entry_mult": 10.0,
+   "growth_pct": 5.0,
+   "leverage": 4.2,
+   "rate": 7.261904761904762
+  },
+  "min_firms": 20,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_default_study_2024": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "reason": "no_peers",
+  "region": "other_developed",
+  "sample": null,
+  "score": {
+   "baseline": null,
+   "cases": 1,
+   "model": null,
+   "region": "other_developed",
+   "shown": false,
+   "value": null,
+   "verdict": "not_enough_data"
+  },
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "not_enough_data",
+  "unusual": false
+ },
+ "us": {
+  "comparisons": [
+   {
+    "deal": 4.2,
+    "firms": 94,
+    "group": "us",
+    "industries": 56,
+    "level": "country",
+    "metric": "leverage",
+    "peer": 2.8754,
+    "position": "in_line",
+    "published": "2026-01-05",
+    "risk_z": 0.9949,
+    "scored": true,
+    "skipped": [],
+    "spread": 1.3314,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfund.xls",
+    "z": 0.9949
+   },
+   {
+    "deal": 10.0,
+    "firms": 94,
+    "group": "us",
+    "industries": 56,
+    "level": "country",
+    "metric": "entry_multiple",
+    "peer": 11.4675,
+    "position": "in_line",
+    "published": "2026-01-05",
+    "risk_z": -0.2623,
+    "scored": true,
+    "skipped": [],
+    "spread": 5.5959,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitda.xls",
+    "z": -0.2623
+   },
+   {
+    "deal": 26.0,
+    "firms": 94,
+    "group": "us",
+    "industries": 56,
+    "level": "country",
+    "metric": "ebitda_margin",
+    "peer": 9.8532,
+    "position": "above",
+    "published": "2026-01-05",
+    "risk_z": -1.6978,
+    "scored": false,
+    "skipped": [],
+    "spread": 9.5103,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/margin.xls",
+    "z": 1.6978
+   }
+  ],
+  "country": "US",
+  "deals": {
+   "deals": [
+    {
+     "country": "US",
+     "entry_multiple": 9.11,
+     "event": "missed_payment",
+     "key": "gymboree-2010",
+     "leverage": 6.2,
+     "outcome": "distress",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "The Gymboree Corporation",
+     "year": 2010
+    },
+    {
+     "country": "US",
+     "entry_multiple": 15.82,
+     "event": "ipo",
+     "key": "dollar-general-2007",
+     "leverage": 10.02,
+     "outcome": "success",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "Dollar General Corporation",
+     "year": 2007
+    },
+    {
+     "country": "US",
+     "entry_multiple": 10.03,
+     "event": "bankruptcy",
+     "key": "toys-r-us-2005",
+     "leverage": 6.69,
+     "outcome": "distress",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "Toys \"R\" Us, Inc.",
+     "year": 2005
+    },
+    {
+     "country": "US",
+     "entry_multiple": 10.74,
+     "event": "ipo",
+     "key": "dominos-1998",
+     "leverage": 7.6,
+     "outcome": "success",
+     "same_size": true,
+     "sector": "consumer_discretionary",
+     "size": "1bn_10bn",
+     "target": "Domino's, Inc.",
+     "year": 1998
+    }
+   ],
+   "enabled": true,
+   "region": "us",
+   "sector": "consumer_discretionary",
+   "size": "1bn_10bn"
+  },
+  "industry": "retail_special_lines",
+  "industry_name": "Retail (Special Lines)",
+  "inputs": {
+   "ebitda_margin": 26.0,
+   "entry_mult": 10.0,
+   "growth_pct": 5.0,
+   "leverage": 4.2,
+   "rate": 7.261904761904762
+  },
+  "min_firms": 20,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_default_study_2024": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "reason": null,
+  "region": "us",
+  "sample": {
+   "firms": 94,
+   "group": "us"
+  },
+  "score": {
+   "baseline": 0.3333,
+   "cases": 5,
+   "model": 0.6667,
+   "region": "us",
+   "shown": true,
+   "value": 0.9949,
+   "verdict": "beats_baseline"
+  },
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "ok",
+  "unusual": false
+ },
+ "us_library_off": {
+  "comparisons": [
+   {
+    "deal": 4.2,
+    "firms": 94,
+    "group": "us",
+    "industries": 56,
+    "level": "country",
+    "metric": "leverage",
+    "peer": 2.8754,
+    "position": "in_line",
+    "published": "2026-01-05",
+    "risk_z": 0.9949,
+    "scored": true,
+    "skipped": [],
+    "spread": 1.3314,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/dbtfund.xls",
+    "z": 0.9949
+   },
+   {
+    "deal": 10.0,
+    "firms": 94,
+    "group": "us",
+    "industries": 56,
+    "level": "country",
+    "metric": "entry_multiple",
+    "peer": 11.4675,
+    "position": "in_line",
+    "published": "2026-01-05",
+    "risk_z": -0.2623,
+    "scored": true,
+    "skipped": [],
+    "spread": 5.5959,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/vebitda.xls",
+    "z": -0.2623
+   },
+   {
+    "deal": 26.0,
+    "firms": 94,
+    "group": "us",
+    "industries": 56,
+    "level": "country",
+    "metric": "ebitda_margin",
+    "peer": 9.8532,
+    "position": "above",
+    "published": "2026-01-05",
+    "risk_z": -1.6978,
+    "scored": false,
+    "skipped": [],
+    "spread": 9.5103,
+    "status": "ok",
+    "url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/margin.xls",
+    "z": 1.6978
+   }
+  ],
+  "country": "US",
+  "deals": {
+   "deals": [],
+   "enabled": false,
+   "region": null,
+   "sector": null,
+   "size": null
+  },
+  "industry": "retail_special_lines",
+  "industry_name": "Retail (Special Lines)",
+  "inputs": {
+   "ebitda_margin": 26.0,
+   "entry_mult": 10.0,
+   "growth_pct": 5.0,
+   "leverage": 4.2,
+   "rate": 7.261904761904762
+  },
+  "min_firms": 20,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "6d9ff4e8d7d7",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_default_study_2024": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "size_not_split",
+   "listed_company_figures"
+  ],
+  "reason": null,
+  "region": "us",
+  "sample": {
+   "firms": 94,
+   "group": "us"
+  },
+  "score": {
+   "baseline": 0.3333,
+   "cases": 5,
+   "model": 0.6667,
+   "region": "us",
+   "shown": true,
+   "value": 0.9949,
+   "verdict": "beats_baseline"
+  },
+  "source": {
+   "basis": "Listed companies, aggregated by industry (sums over sums); from Bloomberg, Morningstar, Capital IQ and Compustat",
+   "id": "damodaran",
+   "publisher": "Aswath Damodaran, NYU Stern",
+   "title": "Damodaran Online: industry averages by region",
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+   "usage": "Free to use for corporate finance and valuation, with acknowledgement"
+  },
+  "status": "ok",
+  "unusual": false
+ }
+}

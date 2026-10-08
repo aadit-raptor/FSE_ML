@@ -2,13 +2,12 @@
  * Honest labels for inception-era numbers (PLAN.md 2.1). Defaults, ranges,
  * correlations and presets were typed in without a source; the example deals
  * and the ML training sets are small. These labels stay until sourced data
- * replaces them (PLAN.md 4.3, 4.4, 2.7, 2.8, 5.2, 5.8).
+ * replaces them (PLAN.md 4.3, 4.4, 2.7, 2.8, 5.8). The risk score's was retired by 5.2,
+ * which compares the deal with sourced industry averages and says how many companies.
  *
  * The wording is in the `provenance` namespace of the translation files
  * (PLAN.md 2.3b); this works out the counts and spans the wording needs.
  */
-
-export type HistoricalSample = { deals: number; first_year: number | null; last_year: number | null };
 
 /**
  * The counts behind "4 example deals from the 2006-2013 US market".

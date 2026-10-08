@@ -815,16 +815,40 @@ moved; different content is "unknown".
 These are estimates and are labelled as such on screen (PLAN.md principle 5).
 
 - **Risk score** ([ml/anomaly_detector.py](../ml/anomaly_detector.py),
-  `check_deal`). An isolation forest and nearest-neighbour search over 30
-  hand-entered, mostly US historical LBOs plus 500 synthetic deals jittered
-  around the successes (`_build_training_data`, `train_detector`), on the five
-  inputs of `risk_model_inputs`. Score = 1 + min(max(leverage − 4, 0) × 0.5, 3)
-  + min(max(entry multiple − 8, 0) × 0.3, 2) + min(max(2 − coverage, 0) × 2, 2)
-  + 2 × anomaly severity, clipped to 1–10, where coverage = 100 / (leverage ×
-  rate) and severity = how far the forest's score falls below its threshold,
-  scaled to 0–1. The figures are unsourced; the screen shows the sample size
-  (`historical_sample`; `detector_is_trained` says whether the files exist).
-  PLAN.md 5.2 replaces it.
+  `assess`; PLAN.md 5.2). The deal against companies and deals like it. It
+  reads three of the deal's figures (`DealShape`, from `risk_model_inputs`):
+  leverage (drawn debt / EBITDA), the entry multiple and the EBITDA margin,
+  and compares each (`compare_one`, for each `Metric` of `METRICS`) with its
+  industry's in Damodaran's averages for the deal's region (§14's tables).
+  *The peer group* (`peer_group`) is the closest group in the country's chain
+  whose industry row has `MIN_FIRMS` = 20 companies and the figure: the
+  country's own file (US, Japan, China, India), else its region; **never the
+  global group**, so a region with too few companies in the industry says
+  "not enough data" (`compare`: `no_peers`; without a country, `no_country`;
+  an empty industry is the whole market). *How far off*: `spread` is how
+  much the group's industries differ, 1.4826 × the median absolute deviation
+  of the figure over its industries with 20 companies or more (at least
+  `MIN_INDUSTRIES` = 10 of them), and z = (deal − industry) / spread, the
+  margin in per cent; `risk_z` is z signed so that positive is riskier
+  (lower margin, higher leverage and price); `position` names it (in line
+  under 1, above or below from 1, well above or below from 2). *The score*
+  (`score_of`) is the sum of the positive `risk_z` of leverage and the entry
+  multiple (the margin is shown, not scored: the transactions it is tested
+  on don't all give revenue), none unless both have a peer group; the deal
+  is *unusual* (`unusual`) when any figure's `risk_z` is 2 or more. *Shown
+  only where its card beats the baseline*: `shown_score` reads the headline
+  verdict for the deal's S&P region from the card (`card_result`, `_card`)
+  and gives the value only when it is "beats the baseline". *Deals like it*
+  (`similar_deals`, only while the reference library is on): the approved
+  reference transactions in the same S&P region and GICS sector
+  (`sector_of`, §14's industry map), the same size bucket (entry value in US
+  dollars) first. `_value` and `_number` read figures. Worked: a German
+  machinery deal at 5.0x debt and 11.0x EBITDA with a 15% margin sits
+  against Developed Europe's 210 machinery companies (1.87x, 14.98x,
+  12.97%); Europe's 65 industries spread 1.81x on leverage, so leverage is
+  (5.0 − 1.87) / 1.81 = 1.73 spreads above, the price 1.04 below, the margin
+  0.33 above: score 1.73, not unusual, and not shown, because the card has
+  one European case.
 - **Live sliders** ([ml/surrogate/predict.py](../ml/surrogate/predict.py),
   [core/surrogate.py](../core/surrogate.py)). A small neural network
   (`SurrogatePredictor.predict`, loaded once by `SurrogatePredictor.get_instance`)
@@ -1121,7 +1145,7 @@ after their fifth year, so count as none.
 ## ML evaluation and model cards
 
 [ml/evaluation/harness.py](../ml/evaluation/harness.py),
-[ml/evaluation/anomaly.py](../ml/evaluation/anomaly.py),
+[ml/evaluation/deal_risk.py](../ml/evaluation/deal_risk.py),
 [ml/evaluation/surrogate.py](../ml/evaluation/surrogate.py). Tests:
 [tests/test_ml_evaluation.py](../tests/test_ml_evaluation.py),
 [tests/test_model_cards.py](../tests/test_model_cards.py). PLAN.md 5.1: every
@@ -1145,20 +1169,22 @@ absolute error; `share`, the share of true flags. Values are rounded to four
 places (`_round`); `metric_specs` records each statistic's direction and the
 tolerance the CI gate allows.
 
-**Risk score** (`ml.evaluation.anomaly`). Cases (`cases`, `_row`): the 30
-deals of `HISTORICAL_DEALS`, dated by the year in their names, all US
-buyouts, truth = distressed. Out of time (the headline): cutoffs 2008 and
-2010; `fit` refits the detector on the older deals only (`fit_detector`,
-the same fit `train_detector` saves; `deal_records` lists the deals for the
-neighbour search) and `predict` gives the score and flag the app shows
-(`assess`, which `check_deal` calls with `load_detector`'s files). In
-sample: the committed files on all 30. Baseline (`baseline`): leverage as
-the score, flagged above the 6.0x of §8. Statistics: `_auc` of the score
-against distress, `_caught` (distressed deals flagged) and `_false_alarms`
-(other deals flagged). `evaluate` writes both sets. Worked: out of time, 14
-deals (four distressed); the score and leverage both rank every distressed
-deal above every other (AUC 1.0), so the score does not beat the baseline;
-the other regions have no deals.
+**Risk score** (`ml.evaluation.deal_risk`). Cases (`cases`): the ten
+sourced reference transactions in the repository (§14), each in its S&P
+region with the Damodaran industry of its business (`INDUSTRY`), truth =
+distress. Peers: the January 2026 averages as recorded
+(`peer_tables`, `data/peer_tables.json`). `predict` gives the score and flag
+the app shows (`compare`); a deal the app would answer "not enough data" is
+left out with its baseline (`scored`). No time split: the score fits nothing
+to outcomes. Baseline (`baseline`): leverage as the score, flagged above the
+6.0x of §8. Statistics: `_auc` of the score against distress, `_caught`
+(distressed deals flagged) and `_false_alarms` (other deals flagged).
+`evaluate` writes the one set. Worked: eight transactions scored (D&B's 15
+US information services companies and Masonite's 8 Canadian building
+materials companies are too few); in the US, five, two distressed, the score
+ranks a distressed deal above another in 4 of 6 pairs (AUC 0.67) against
+leverage's 2 of 6 (0.33), so it beats the baseline there and is shown for US
+deals; every other region has one case.
 
 **Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
 deals, each economy the app covers with ten industries, whose inputs are

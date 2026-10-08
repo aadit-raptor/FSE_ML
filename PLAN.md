@@ -152,7 +152,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.6 | Model validation framework | 4.3, 4.5b, 2.7 | ☑ |
 | **5** | **ML done properly** | | |
 | 5.1 | ML evaluation harness and model cards | 4.6 | ☑ |
-| 5.2 | Deal risk score from market data | 5.1, 2.8 | ☐ |
+| 5.2 | Deal risk score from market data | 5.1, 2.8 | ☑ |
 | 5.3 | Distress predictor | 5.1 | ☐ |
 | 5.4 | Multiple predictor by region | 5.1, 4.3 | ☐ |
 | 5.5 | Growth calibrator by region | 5.1, 4.3 | ☐ |
@@ -1039,6 +1039,27 @@ enough for the free server.
   where N is too small.
 - **Done when:** it works with the library off; each region has its own
   comparison group (test); thin regions show "not enough data".
+- **Done (2026-10-08).** `ml/anomaly_detector.py` no longer trains anything:
+  it compares the deal's leverage, entry multiple and EBITDA margin with its
+  industry's listed companies **in its own region** (Damodaran's averages,
+  4.3: the country's own file or its region, at least 20 companies, **never
+  the global group**), each as spreads from the industry's (how much the
+  region's industries differ: 1.4826 x their median absolute deviation, at
+  least ten industries). "Based on N companies in [group, industry]"; a
+  region with too few companies says "not enough data" and names it. The
+  score (how far leverage and price sit above the industry's) is **shown only
+  where its card says it beats leverage alone** (the phase rule): the new
+  card `deal_risk` (ml/evaluation/deal_risk.py) scores the ten sourced
+  reference transactions against the recorded averages; eight have a peer
+  group, and in the US (five, two distressed) it ranks distress better than
+  leverage (AUC 0.67 against 0.33), so US deals show it; every other region
+  has one case and shows "not enough data". With the library on, the
+  approved reference transactions in the same S&P region and sector are
+  listed, the same size first; off, nothing else changes (tests). The old
+  card `anomaly_detector` and its trained files are retired (the CI gate
+  reports the removal); the score needs no ML packages, so it shows on every
+  server with stored averages. Browser tests replay
+  `web/e2e/fixtures/deal-risk.json` from `python -m tests.e2e_deal_risk`.
 
 ### 5.3 Distress predictor
 - **Claude does:** rebuild `ml/distress_model.py` from coverage and leverage
@@ -1530,7 +1551,7 @@ when a limit is actually reached or before charging customers.
 | `core/config.py` `DEFAULTS` | Growth, margins, multiples, rates, leverage, fees, ranges, correlations, scenario multipliers and the 20% hurdle typed in with no source. Since 4.3 a new deal starts from sourced figures instead and `benchmarks/registry.py` gives every default a basis; since 4.4 the Monte Carlo means, ranges, correlations and presets are sourced per country and industry (the factory values stay the illustrative fallback, labelled); since 4.5b fees and amortisation are offered from the approved reference transactions' filings (`library/fees.py`), so no default is left without a source | 2.1, 4.3, 4.4, 4.5b (done) |
 | `simulation/vectorized_simulation.py` `DEFAULT_CORR` | Correlation matrix typed in; used only when no matrix is passed (every app run passes the Settings', sourced per region since 4.4) | 4.4 |
 | `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5a (done: labelled unsourced examples in the Library, counted apart), 4.5b (done: sourced reference transactions beside them, counted apart) |
-| `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 |
+| `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 (done: compares the deal with its region's industry averages; the 30 deals are gone) |
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
 | `ml/multiple_predictor.py` | 25 rows | 5.4 |
 | `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 |

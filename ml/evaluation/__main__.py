@@ -70,16 +70,14 @@ def stale(model_id: str) -> list[str]:
 def train(model_id: str, out: Path, samples: int, epochs: int) -> dict:
     """Train ``model_id`` into ``out`` and return the card for what it made."""
     out.mkdir(parents=True, exist_ok=True)
-    if model_id == "anomaly_detector":
-        from ml.anomaly_detector import train_detector
-        train_detector(str(out))
-    elif model_id == "surrogate":
+    if model_id == "surrogate":
         from ml.surrogate.generate_data import generate
         from ml.surrogate.train import train as train_network
         generate(n_samples=samples, n_per_call=SURROGATE_PATHS, out_dir=str(out))
         train_network(base=str(out), max_epochs=epochs)
     else:
-        raise SystemExit(f"no training recipe for {model_id}")
+        raise SystemExit(f"{model_id} has nothing to train" if card.entry(model_id)["train"] is None
+                         else f"no training recipe for {model_id}")
     new = model_card(model_id, out)
     card.write(new, out / "cards", out / "docs")
     return new

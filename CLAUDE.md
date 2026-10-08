@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-08 (PLAN.md 5.1: ML evaluation harness and model cards; 7.10 workspaces landed out of turn just before). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-08 (PLAN.md 5.2: deal risk score from market data). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -929,20 +929,50 @@ tolerance, overall or in any region, or a region losing its results, fails
 the PR. **`ml.yml`**: evaluates on PRs touching models or `simulation/`;
 trains by hand (`workflow_dispatch`, which Claude's token can't trigger)
 into a scratch directory and uploads files and card as an artifact for a
-person to review and commit -- never commits itself. Cards: the **risk
-score** (out of time, cutoffs 2008/2010, 14 US deals) ties leverage alone
-(AUC 1.0 each), so "does not beat the baseline", and no other region has a
-deal; the **surrogate** on 230 regional deals (`ml/evaluation/data/
+person to review and commit -- never commits itself. Cards: the **deal
+risk score** (5.2, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
 regional_deals.json`, from the recorded sources by `python -m
 tests.ml_regional_deals`, checked stale) is 0.54 points off the median IRR
 against 0.79 for a 200-path simulation (truth: 10,000 paths) and beats it in
 every region; 23 deals lie inside its training ranges. Training functions
-take an output directory (`train_detector(out_dir)`, `generate(out_dir=)`,
-`train(base=)`, `SurrogatePredictor(base)`) so CI never overwrites the
-committed files; `fit_detector`/`assess` are the in-memory fit and score the
-harness uses. Nothing the app shows changed. **Retraining by hand is parked** (the user,
+take an output directory (`generate(out_dir=)`, `train(base=)`,
+`SurrogatePredictor(base)`) so CI never overwrites the committed files. A
+model with nothing to train has `"train": null` and `"artifacts": []` in the
+registry and `training.command` null in its card. `card.write` renders the
+Markdown from the stored (key-sorted) JSON, as the staleness check does. Nothing the app shows changed. **Retraining by hand is parked** (the user,
 2026-10-08: PLAN.md 5.10, not scheduled): don't offer the Run workflow
 button as a step for the user; tasks 5.2-5.9 retrain in their own PR.
+
+Deal risk score (PLAN.md 5.2): **`ml/anomaly_detector.py` compares the deal
+with its industry's listed companies in its own region** and trains nothing
+(its pickles and the 30 unsourced deals are gone; capabilities'
+`anomaly_detector` is always true). Leverage, entry multiple and EBITDA
+margin against Damodaran's stored averages (4.3) for the deal's industry,
+the peer group being the country's own file or its region with
+`MIN_FIRMS` 20 companies, **never the global group** (a thin region says
+"not enough data", names the group and uses nobody else's companies); each
+as z = (deal - industry) / the robust spread across the group's industries
+(1.4826 x MAD, `MIN_INDUSTRIES` 10), `risk_z` signed so positive is riskier.
+**Score** = sum of the positive `risk_z` of leverage and price (the margin
+is shown, not scored: the test cases lack revenue); unusual at `risk_z` >= 2.
+**The score's value is sent only where its card (`ml/cards/deal_risk.json`,
+read at run time) says "beats the baseline" for the deal's S&P region**:
+today the US only (5 sourced transactions, AUC 0.67 vs leverage's 0.33);
+elsewhere the screen shows the comparison and "Not enough data" for the
+score. The card (`ml/evaluation/deal_risk.py`) scores the repository's ten
+reference transactions (each given a Damodaran industry in `INDUSTRY`)
+against `ml/evaluation/data/peer_tables.json` (`python -m
+tests.ml_peer_tables`, checked stale); no time split (nothing is fitted).
+**Library on**: approved reference transactions in the same S&P region and
+GICS sector (`validation.tags.INDUSTRY_SECTOR`), same size bucket first
+(entry value in US dollars at the ECB's newest rate); **off**: the same
+answer without deals (`deals.enabled` false). `POST /api/ml/deal-risk`
+(`DealRiskResponse`) reads storage only; without a database it answers
+`no_peers`, without a country `no_country`. The deal's tile is
+`components/deal/DealRisk.tsx` (namespace `dealRisk`); browser tests replay
+`web/e2e/fixtures/deal-risk.json` (`python -m tests.e2e_deal_risk`, checked
+stale by `tests/test_deal_risk.py`), except the first, which checks the
+real endpoint gets the deal's leverage.
 
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
@@ -1004,7 +1034,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). **Next is 5.2** (deal risk score from market data).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). **Next is 5.3** (distress predictor).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1101,11 +1131,10 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   visible label until sourced data replaces them. Wording lives in
   `web/src/lib/provenance.ts`: Settings (every step) and the Monte Carlo rail say
   "Illustrative defaults — not market data"; Backtest counts its example deals
-  from the deal list; the risk score's sample size comes from
-  `historical_sample` in `/api/ml/deal-risk`; Live lists the surrogate's fixed
+  from the deal list; the risk score says how many companies it compares
+  the deal with (PLAN.md 5.2, `web/e2e/deal-risk.spec.ts`); Live lists the surrogate's fixed
   training deal from `training_deal` in `/api/ml/surrogate`. Keep these when
-  editing those screens; `web/e2e/provenance.spec.ts` checks them (risk and
-  Live replay `web/e2e/fixtures/ml-responses.json`, recorded from a real ML
+  editing those screens; `web/e2e/provenance.spec.ts` checks them (Live replays `web/e2e/fixtures/ml-responses.json`, recorded from a real ML
   server, because CI's e2e job has no ML layer — re-record it if those
   responses change).
 
@@ -1229,7 +1258,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `lbo_engine/` | Deterministic LBO engine (operating model, cash flow, debt, returns) |
 | `simulation/vectorized_simulation.py`, `simulation/tranches.py` | Vectorized Monte Carlo engine; the tranche path's debt schedule (PLAN.md 2.4b) |
 | `analytics/` | Risk metrics |
-| `ml/` | Optional ML: anomaly detector, surrogate network, macro regime, EDGAR extractor, plus unused modules |
+| `ml/` | ML: the deal risk score (needs no ML packages since PLAN.md 5.2), and optional: surrogate network, macro regime, EDGAR extractor, plus unused modules |
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
@@ -1256,6 +1285,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx`, `web/src/components/montecarlo/SourcedRisk.tsx` | Sourced starting figures (PLAN.md 4.3) and risk ranges (4.4): regions and data sets read, the workbook reader, a deal's starting figures, the archive and economic history (`history.py`), the Monte Carlo Settings from it (`risk.py`), the refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and tile, the Monte Carlo "Sources" rail group and tile |
 | `library/`, `db/flags.py`, `db/references.py`, `api/routers/library.py`, `web/src/components/library/`, `web/src/components/settings/SourcedFees.tsx`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5): the cited base-rate tables, the coverage counts, the admin switch, the reference transactions (`reference_deals.json`, `references.py` with the inclusion and balance rules, `review.py`) and their fees (`fees.py`); site-wide switches; proposals and the two-person review stored; the endpoints; the Library screens (Reference deals, Review) and their provider; the sourced fees tile on Settings -> Fees; the yearly editions check |
 | `validation/`, `db/validation.py`, `api/routers/validation.py`, `web/src/components/backtest/Validation.tsx`, `tests/e2e_validation.py` | Model validation (PLAN.md 4.6): the cases (newer-data rule), the report (calibration, bias, anonymity rules), the groups, the nightly run; opted-in deals and stored reports; the endpoint; Backtest -> Validation and the per-deal opt-in switch; the browser tests' recorded report |
+| `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
 | `web/src/components/companies/`, `tests/e2e_companies.py` | Company search on Deal and Forecast (PLAN.md 4.1b): the shared provider, the search panel with "Use in deal"/"Use in forecast", the figures tile; the writer of the browser tests' recorded company answers |

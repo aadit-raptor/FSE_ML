@@ -165,7 +165,7 @@ jobs:
           retention-days: 7
 
   ml:
-    # Optional ML layer: runs the anomaly-detector and surrogate tests.
+    # Optional ML layer: runs the surrogate's tests and every model card's.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # Same database as the core job
