@@ -1,5 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { JetBrains_Mono, Michroma, Orbitron } from "next/font/google";
 
@@ -14,10 +14,19 @@ const michroma = Michroma({ weight: "400", subsets: ["latin"], variable: "--font
 const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron", display: "swap" });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono", display: "swap" });
 
+// The icons, apple-icon and link-preview image are files beside this one
+// (icon.svg, favicon.ico, apple-icon.png, opengraph-image.png), drawn by
+// scripts/brand.mjs from components/brand/mark.json
 export const metadata: Metadata = {
   title: { default: APP_BRAND, template: `%s · ${APP_BRAND}` },
   description: APP_DESCRIPTION,
+  // Link previews need absolute addresses; staging previews point at production's image
+  metadataBase: new URL("https://variater.com"),
+  openGraph: { type: "website", siteName: APP_BRAND, title: APP_BRAND, description: APP_DESCRIPTION },
+  twitter: { card: "summary_large_image", title: APP_BRAND, description: APP_DESCRIPTION },
 };
+
+export const viewport: Viewport = { themeColor: "#0C1012" };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Rendered per request, never prerendered: each page's scripts carry the
