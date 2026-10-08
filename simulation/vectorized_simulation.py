@@ -266,6 +266,9 @@ class SimulationResult:
     n_valid: int
     n_wiped: int
     params: SimulationParams
+    # Each path's yearly EBITDA, EBIT, interest and opening debt, when the
+    # run was asked for them (``credit=True``, PLAN.md 5.3)
+    credit_paths: Optional[dict] = None
 
     @property
     def irr(self) -> np.ndarray:
@@ -422,6 +425,7 @@ def _draw_correlated_inputs(
 def _run_vectorized_core(
     params: SimulationParams,
     draws: dict,
+    credit: bool = False,
 ) -> dict:
     """
     Core vectorized LBO computation.
@@ -441,9 +445,13 @@ def _run_vectorized_core(
     A deal that lists its tranches takes ``_run_tranche_core`` instead; the
     body below is the two-bucket path, unchanged since before PLAN.md 2.4b
     and pinned by tests/test_montecarlo_baseline.py.
+
+    ``credit`` also returns ``credit_paths``: each path's EBITDA, EBIT,
+    interest and debt at the start of each year, shape (N, years), for the
+    distress predictor (PLAN.md 5.3). It changes no other figure.
     """
     if params.tranches:
-        return _run_tranche_core(params, draws)
+        return _run_tranche_core(params, draws, credit)
 
     N = params.n
     n_yr = params.holding_period
@@ -549,10 +557,13 @@ def _run_vectorized_core(
         mezz_bal   = np.full(N, mezz_debt,   dtype=float)
         cash_bal   = np.full(N, minimum_cash, dtype=float)
         interest_new = np.zeros((N, n_yr), dtype=float)
+        debt_yr = np.zeros((N, n_yr), dtype=float) if credit else None
 
         senior_amort_annual = senior_debt * p.senior_amort_pct   # scalar
 
         for t in range(n_yr):
+            if debt_yr is not None:
+                debt_yr[:, t] = senior_bal + mezz_bal
             # Interest on beginning balance
             int_s = senior_bal * senior_rate   # (N,)
             int_m = mezz_bal   * mezz_rate     # (N,)
@@ -604,7 +615,7 @@ def _run_vectorized_core(
     if params.clip_irr:
         irr = np.clip(irr, -1.0, 5.0)
 
-    return {
+    out = {
         "IRR":           irr,
         "MOIC":          moic,
         "Exit Equity":   exit_equity,
@@ -617,6 +628,10 @@ def _run_vectorized_core(
         "EBITDA Shock":  ebitda_shock,
         "Net Debt Exit": net_debt_at_exit,
     }
+    if credit:
+        out["credit_paths"] = {"ebitda": ebitda_yr, "ebit": ebit_yr, "interest": interest_expense,
+                               "debt": debt_yr}
+    return out
 
 
 def _ruled_taxes(p: SimulationParams, ebitda_yr, da_yr, interest_yr):
@@ -656,7 +671,7 @@ def _operating_paths(p: SimulationParams, draws: dict):
     return revenue_yr, ebitda_yr, da_yr
 
 
-def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
+def _run_tranche_core(p: SimulationParams, draws: dict, credit: bool = False) -> dict:
     """The simulation for a deal financed tranche by tranche (PLAN.md 2.4b).
 
     The operating model, taxes, cash flow, interest passes, exit and returns
@@ -697,7 +712,7 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
         net_income = ebt - taxes
         fcf = (net_income + da_yr - revenue_yr * p.capex_pct - revenue_yr * p.nwc_pct
                + non_cash)
-        schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash)
+        schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash, track_debt=credit)
         interest, non_cash = schedule.interest, schedule.non_cash
 
     net_debt_at_exit = schedule.ending_debt - schedule.ending_cash + p.lease_liability
@@ -710,7 +725,7 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
     if p.clip_irr:
         irr = np.clip(irr, -1.0, 5.0)
 
-    return {
+    out = {
         "IRR":           irr,
         "MOIC":          moic,
         "Exit Equity":   exit_equity,
@@ -723,6 +738,10 @@ def _run_tranche_core(p: SimulationParams, draws: dict) -> dict:
         "EBITDA Shock":  draws["ebitda_shock"],
         "Net Debt Exit": net_debt_at_exit,
     }
+    if credit:
+        out["credit_paths"] = {"ebitda": ebitda_yr, "ebit": ebitda_yr - da_yr, "interest": interest,
+                               "debt": schedule.beginning_debt}
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -836,6 +855,7 @@ def run_vectorized_simulation(
 def run_vectorized_simulation_full(
     params: SimulationParams,
     seed: Optional[int] = None,
+    credit: bool = False,
 ) -> SimulationResult:
     """
     Full simulation returning a SimulationResult object.
@@ -852,7 +872,8 @@ def run_vectorized_simulation_full(
     SimulationResult
     """
     draws  = _draw_correlated_inputs(params, seed=seed)
-    output = _run_vectorized_core(params, draws)
+    output = _run_vectorized_core(params, draws, credit=credit)
+    credit_paths = output.pop("credit_paths", None)
 
     df = pd.DataFrame(output)
 
@@ -864,6 +885,7 @@ def run_vectorized_simulation_full(
         n_valid=n_valid,
         n_wiped=n_wiped,
         params=params,
+        credit_paths=credit_paths,
     )
 
 

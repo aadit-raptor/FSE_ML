@@ -139,6 +139,8 @@ OMIT_WHEN_DEFAULT = {
     "lease_view": "",
     "lease_cost": 0.0,
     "lease_liability": 0.0,
+    # Business risk profile (PLAN.md 5.3), stored only when changed
+    "business_risk": 4,
 }
 
 

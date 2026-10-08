@@ -3056,6 +3056,192 @@
         "title": "DealDetail",
         "type": "object"
       },
+      "DealDistress": {
+        "description": "Each year's rating band and, where the card allows, chance of default.",
+        "properties": {
+          "business_risk": {
+            "description": "The business risk profile read (1 excellent .. 6 vulnerable)",
+            "title": "Business Risk",
+            "type": "integer"
+          },
+          "card": {
+            "$ref": "#/components/schemas/DistressCard"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "S&P's region for the deal's country; none without a country",
+            "title": "Region"
+          },
+          "shown": {
+            "description": "Whether the card lets the probabilities be shown in this region; they are null when not",
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RiskSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "table": {
+            "description": "The block of S&P's study read: Table 25's for the region, else Table 24 (global)",
+            "enum": [
+              "us",
+              "europe",
+              "emerging",
+              "global"
+            ],
+            "title": "Table",
+            "type": "string"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/DealDistressYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "region",
+          "table",
+          "business_risk",
+          "shown",
+          "card",
+          "sources",
+          "years"
+        ],
+        "title": "DealDistress",
+        "type": "object"
+      },
+      "DealDistressYear": {
+        "properties": {
+          "band": {
+            "description": "The weaker of the two reads",
+            "enum": [
+              "AAA",
+              "AA",
+              "A",
+              "BBB",
+              "BB",
+              "B",
+              "CCC/C"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "EBIT / interest; none without interest",
+            "title": "Coverage"
+          },
+          "coverage_band": {
+            "enum": [
+              "AAA",
+              "AA",
+              "A",
+              "BBB",
+              "BB",
+              "B",
+              "CCC/C"
+            ],
+            "title": "Coverage Band",
+            "type": "string"
+          },
+          "cumulative": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chance of default by the end of this year; null where not shown",
+            "title": "Cumulative"
+          },
+          "leverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Debt at the start of the year / the year's EBITDA; none when EBITDA is not positive",
+            "title": "Leverage"
+          },
+          "leverage_band": {
+            "enum": [
+              "AAA",
+              "AA",
+              "A",
+              "BBB",
+              "BB",
+              "B",
+              "CCC/C"
+            ],
+            "title": "Leverage Band",
+            "type": "string"
+          },
+          "leverage_profile": {
+            "description": "S&P's financial risk profile for the leverage, 1-6 (Table 17)",
+            "title": "Leverage Profile",
+            "type": "integer"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chance of default in this year (fraction); null where not shown",
+            "title": "Probability"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "coverage",
+          "leverage",
+          "coverage_band",
+          "leverage_band",
+          "leverage_profile",
+          "band",
+          "probability",
+          "cumulative"
+        ],
+        "title": "DealDistressYear",
+        "type": "object"
+      },
       "DealDuplicate": {
         "additionalProperties": false,
         "properties": {
@@ -3113,6 +3299,14 @@
             "minimum": 0.0,
             "title": "Base Rate",
             "type": "number"
+          },
+          "business_risk": {
+            "default": 4,
+            "description": "S&P's business risk profile, 1 (excellent) to 6 (vulnerable); with leverage it gives each year's rating band (Corporate Methodology, Table 3)",
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Business Risk",
+            "type": "integer"
           },
           "capex": {
             "default": 4.0,
@@ -3461,6 +3655,7 @@
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
+              "business_risk": 4,
               "capex": 4.0,
               "country": "",
               "currency": "USD",
@@ -3746,6 +3941,7 @@
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
+              "business_risk": 4,
               "capex": 4.0,
               "country": "",
               "currency": "USD",
@@ -3833,6 +4029,9 @@
             "title": "Debt Schedule",
             "type": "object"
           },
+          "distress": {
+            "$ref": "#/components/schemas/DealDistress"
+          },
           "equity_bridge": {
             "$ref": "#/components/schemas/EquityBridge"
           },
@@ -3907,6 +4106,7 @@
           "exit_sensitivity",
           "interest_converged",
           "credit",
+          "distress",
           "money",
           "model"
         ],
@@ -3997,6 +4197,54 @@
           "cumulative"
         ],
         "title": "DefaultBaseRates",
+        "type": "object"
+      },
+      "DistressCard": {
+        "description": "What the predictor's card says for the deal's region.",
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The same for the year-one default risk",
+            "title": "Baseline"
+          },
+          "cases": {
+            "title": "Cases",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The card's headline statistic (AUC) for the predictor",
+            "title": "Model"
+          },
+          "verdict": {
+            "enum": [
+              "beats_baseline",
+              "does_not_beat_baseline",
+              "not_enough_data"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "cases"
+        ],
+        "title": "DistressCard",
         "type": "object"
       },
       "DrillJob": {
@@ -6958,6 +7206,7 @@
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
+              "business_risk": 4,
               "capex": 4.0,
               "country": "",
               "currency": "USD",
@@ -7084,6 +7333,9 @@
             "title": "Correlations",
             "type": "object"
           },
+          "distress": {
+            "$ref": "#/components/schemas/SimulatedDistress"
+          },
           "driver_fits": {
             "additionalProperties": {
               "$ref": "#/components/schemas/DriverFit"
@@ -7181,6 +7433,7 @@
           "correlations",
           "scatter",
           "heatmap",
+          "distress",
           "money",
           "model"
         ],
@@ -11091,6 +11344,7 @@
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
+              "business_risk": 4,
               "capex": 4.0,
               "country": "",
               "currency": "USD",
@@ -11465,6 +11719,137 @@
           "deals"
         ],
         "title": "SimilarDeals",
+        "type": "object"
+      },
+      "SimulatedDistress": {
+        "description": "The distress predictor on every simulated path.",
+        "properties": {
+          "business_risk": {
+            "description": "The business risk profile read (1 excellent .. 6 vulnerable)",
+            "title": "Business Risk",
+            "type": "integer"
+          },
+          "card": {
+            "$ref": "#/components/schemas/DistressCard"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "S&P's region for the deal's country; none without a country",
+            "title": "Region"
+          },
+          "shown": {
+            "description": "Whether the card lets the probabilities be shown in this region; they are null when not",
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RiskSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "table": {
+            "description": "The block of S&P's study read: Table 25's for the region, else Table 24 (global)",
+            "enum": [
+              "us",
+              "europe",
+              "emerging",
+              "global"
+            ],
+            "title": "Table",
+            "type": "string"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/SimulatedDistressYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "region",
+          "table",
+          "business_risk",
+          "shown",
+          "card",
+          "sources",
+          "years"
+        ],
+        "title": "SimulatedDistress",
+        "type": "object"
+      },
+      "SimulatedDistressYear": {
+        "properties": {
+          "band_shares": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Share of paths in each band",
+            "propertyNames": {
+              "enum": [
+                "AAA",
+                "AA",
+                "A",
+                "BBB",
+                "BB",
+                "B",
+                "CCC/C"
+              ]
+            },
+            "title": "Band Shares",
+            "type": "object"
+          },
+          "cumulative": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean chance of default by the end of this year; null where not shown",
+            "title": "Cumulative"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean chance of default in this year over the paths; null where not shown",
+            "title": "Probability"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "band_shares",
+          "probability",
+          "cumulative"
+        ],
+        "title": "SimulatedDistressYear",
         "type": "object"
       },
       "SourcedFee": {
@@ -12246,6 +12631,7 @@
               "ap_days": 60.0,
               "ar_days": 45.0,
               "base_rate": 6.5,
+              "business_risk": 4,
               "capex": 4.0,
               "country": "",
               "currency": "USD",

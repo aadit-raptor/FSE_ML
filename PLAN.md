@@ -153,7 +153,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **5** | **ML done properly** | | |
 | 5.1 | ML evaluation harness and model cards | 4.6 | ☑ |
 | 5.2 | Deal risk score from market data | 5.1, 2.8 | ☑ |
-| 5.3 | Distress predictor | 5.1 | ☐ |
+| 5.3 | Distress predictor | 5.1 | ☑ |
 | 5.4 | Multiple predictor by region | 5.1, 4.3 | ☐ |
 | 5.5 | Growth calibrator by region | 5.1, 4.3 | ☐ |
 | 5.6 | Driver explanations | 5.1 | ☐ |
@@ -1067,6 +1067,30 @@ enough for the free server.
   yearly distress probability on Debt and in Monte Carlo; model card.
 - **Done when:** implied default rates match base rates for comparable bands
   within the card's tolerance; higher leverage raises risk (test).
+- **Done (2026-10-08).** `ml/distress_model.py` trains nothing (the 39
+  hand-entered cases and the logistic regression are gone). Each year of the
+  deal model's run, and of every simulated path, gets a **rating band**: the
+  weaker of EBIT / interest through Damodaran's coverage table and debt at
+  the start of the year over the year's EBITDA through S&P's Corporate
+  Methodology (January 2024, the free Maalot copy: Table 17's standard
+  volatility bounds, then Table 3 with the deal's **business risk profile**,
+  a new deal input, 4 "fair" by default, decided with the user), folded to
+  S&P's letter grades. The band's **forward default rate at that age** comes
+  from S&P's 2024 study, Table 25 for the US, Europe and emerging markets,
+  Table 24 elsewhere; a deal held in one band defaults exactly as the table
+  says (the card's calibration set: 350 cases, every gap 0.00 points, within
+  the 0.01 tolerance; the region-blind baseline is off by up to 19.39).
+  Higher leverage and a weaker business both raise the chance of default
+  (tests). The card `distress` tests it on the ten sourced reference
+  transactions against the deal's year-one default risk: it does **not**
+  beat it (AUC 0.43 against 0.52; US, six deals, 0.25 against 0.375:
+  Dollar General at 10x and Avago at 13x exited well, Toys "R" Us and
+  Gymboree at about 6.5x failed years later). **Decided with the user: the
+  phase rule holds**, so Deal -> Debt and Monte Carlo -> Distribution show
+  each year's coverage, leverage and band (the simulation: the share of
+  paths in each band) everywhere, and the chances of default nowhere today
+  ("not enough data"); they appear by themselves in a region once its card
+  says it beats the baseline.
 
 ### 5.4 Multiple predictor by region
 - **Claude does:** rebuild `ml/multiple_predictor.py` on regional listed-company

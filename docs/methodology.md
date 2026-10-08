@@ -573,7 +573,11 @@ multiple − net debt at exit, 0); MOIC = exit equity / entry equity; IRR =
 to −100%…500% when `mc_clip_irr` is on. `SimulationResult.irr` and
 `SimulationResult.moic` hold the arrays; `SimulationResult.wipeout_rate` is the
 share of paths with zero exit equity.
-`run_vectorized_simulation_full` runs one simulation; the older
+`run_vectorized_simulation_full` runs one simulation; with `credit` it also
+keeps each path's yearly EBITDA, EBIT, interest and debt at the start of the
+year (`credit_paths`; the tranche path's `run_tranche_schedule` records the
+opening debt with `track_debt`) for §13's distress predictor, and changes no
+other figure. The older
 `run_vectorized_simulation` infers opex and gross margin from an EBITDA margin
 (opex = 69% of it) and returns a table, and is kept for the engine's tests.
 
@@ -849,6 +853,43 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   (5.0 − 1.87) / 1.81 = 1.73 spreads above, the price 1.04 below, the margin
   0.33 above: score 1.73, not unusual, and not shown, because the card has
   one European case.
+- **Distress predictor** ([ml/distress_model.py](../ml/distress_model.py);
+  PLAN.md 5.3). Each year's chance of default, from published tables only:
+  nothing is trained. *Each year's band* (`bands`) is the weaker of two
+  reads, both folded to the letter grades S&P's regional tables print
+  (`band_of`: 'bb-' is BB, CCC to D are CCC/C; `BANDS`). Coverage
+  (`coverage_band`): EBIT / interest through Damodaran's table (§8's
+  `rating_for_coverage`, the same bounds); a year with no interest is not
+  held back by it. Leverage (`leverage_band`): debt at the start of the year
+  over the year's EBITDA, as the deal is priced (with leases on the post
+  view, the liability added to debt and the lease cost to EBITDA), through
+  S&P's Corporate Methodology (January 2024): Table 17's standard-volatility
+  bounds give the financial risk profile (`leverage_profile`: under 1.5x
+  minimal, 1.5-2 modest, 2-3 intermediate, 3-4 significant, 4-5 aggressive,
+  over 5 or a non-positive EBITDA highly leveraged), and Table 3 combines it
+  with the deal's business risk profile into an anchor (`anchor`, the weaker
+  where the table prints two; `business_risk` is a deal input,
+  `DEFAULT_BUSINESS_RISK` = 4, fair). *The rate* (`probabilities`): S&P's
+  2024 study's average cumulative default rates C for the band, Table 25's
+  block for the US, Europe and emerging markets, else Table 24's global one
+  (`table_for`), turned into forward rates h(t) = (C(t) − C(t−1)) / (100 −
+  C(t−1)) (`hazards`), read at the year's age and, past the last year
+  printed, at the last; the yearly probability is S(t−1) × h(t) and the
+  cumulative 1 − S(t), S being the chance of no default by the end of a
+  year. A deal held in one band therefore defaults exactly as the table
+  says. *Shown only where its card beats the baseline* (`card_result`,
+  `_card`, `_context`): the bands, coverage and leverage are always
+  answered; the probabilities only in a region where the card's headline
+  verdict is "beats the baseline", which today is none. `deal_view` reads
+  the deal model's run (`_figure` drops a non-finite ratio); `simulated_view`
+  reads every simulated path (§9's `credit` run, handed over by
+  `simulated_distress` in [core/montecarlo.py](../core/montecarlo.py), which
+  adds the leases and drops the paths) and answers each year's share of
+  paths in each band and the mean probabilities. Worked: the default deal
+  in the UK opens year one at 600 / 105 = 5.71x (highly leveraged, 'b' at
+  fair business risk) and 1.92x coverage (B+, so B): band B; year three's
+  4.66x is aggressive ('bb-') and 2.32x is BB+, so BB. Europe's table gives
+  year one 1.75%, year two (4.72 − 1.75) / 98.25 = 3.02% of the survivors.
 - **Live sliders** ([ml/surrogate/predict.py](../ml/surrogate/predict.py),
   [core/surrogate.py](../core/surrogate.py)). A small neural network
   (`SurrogatePredictor.predict`, loaded once by `SurrogatePredictor.get_instance`)
@@ -1146,6 +1187,7 @@ after their fifth year, so count as none.
 
 [ml/evaluation/harness.py](../ml/evaluation/harness.py),
 [ml/evaluation/deal_risk.py](../ml/evaluation/deal_risk.py),
+[ml/evaluation/distress.py](../ml/evaluation/distress.py),
 [ml/evaluation/surrogate.py](../ml/evaluation/surrogate.py). Tests:
 [tests/test_ml_evaluation.py](../tests/test_ml_evaluation.py),
 [tests/test_model_cards.py](../tests/test_model_cards.py). PLAN.md 5.1: every
@@ -1185,6 +1227,25 @@ materials companies are too few); in the US, five, two distressed, the score
 ranks a distressed deal above another in 4 of 6 pairs (AUC 0.67) against
 leverage's 2 of 6 (0.33), so it beats the baseline there and is shown for US
 deals; every other region has one case.
+
+**Distress predictor** (`ml.evaluation.distress`). Two sets. The headline,
+`reference_deals`: the ten sourced transactions (`cases`), each entered
+with its filed EBITDA, multiple and debt share in its own country and
+everything else at the defaults (`deal_inputs`, `run`, as the validation
+report's default check), truth = distress at any time. `predict` is the
+predictor's cumulative chance of default over the hold, read with every
+region shown; `baseline` is the deal's year-one default risk (§8's
+`credit_view`) as a fraction. Statistics: `_auc` and `_brier`, the mean
+squared gap between the chance and what happened. `calibration`
+(`calibration_cases`, `calibration_rows`): one case per S&P table, band and
+horizon printed, the predictor's cumulative rate for a deal held in the band
+(`implied_pct`) against the table's, the baseline reading Table 24 in every
+region; `_gaps`, `_mean_gap` and `_max_gap` in percentage points, within
+`CALIBRATION_TOLERANCE_PP` = 0.01. `evaluate` writes both. Worked: every
+calibration gap is 0.00 (the baseline is off by up to 19.39 points in
+emerging markets); on the reference transactions the predictor's AUC is
+0.43 against the year-one default risk's 0.52 (US, six deals: 0.25 against
+0.375), so it is shown nowhere.
 
 **Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
 deals, each economy the app covers with ten industries, whose inputs are

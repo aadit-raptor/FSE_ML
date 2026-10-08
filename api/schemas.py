@@ -280,6 +280,10 @@ class DealInputsIn(Strict):
     lease_cost: float = Field(0.0, ge=0, le=MAX_MONEY, description="What the leases cost a year (in currency and unit)")
     lease_liability: float = Field(
         0.0, ge=0, le=MAX_MONEY, description="The lease liability at close (in currency and unit)")
+    # PLAN.md 5.3: read only by the distress predictor; stored only when set
+    business_risk: int = Field(
+        4, ge=1, le=6, description="S&P's business risk profile, 1 (excellent) to 6 (vulnerable); with "
+                                   "leverage it gives each year's rating band (Corporate Methodology, Table 3)")
 
     @model_validator(mode="after")
     def _only_a_committed_line_is_partly_drawn(self) -> "DealInputsIn":
@@ -514,6 +518,64 @@ class CreditView(BaseModel):
     sources: List[RiskSource]
 
 
+# The distress predictor (PLAN.md 5.3, ml/distress_model.py)
+RatingBand = Literal["AAA", "AA", "A", "BBB", "BB", "B", "CCC/C"]
+
+
+class DistressCard(BaseModel):
+    """What the predictor's card says for the deal's region."""
+    verdict: Literal["beats_baseline", "does_not_beat_baseline", "not_enough_data"]
+    cases: int
+    model: Optional[float] = Field(None, description="The card's headline statistic (AUC) for the predictor")
+    baseline: Optional[float] = Field(None, description="The same for the year-one default risk")
+
+
+class DistressContext(BaseModel):
+    region: Optional[Literal["us", "europe", "emerging", "other_developed"]] = Field(
+        description="S&P's region for the deal's country; none without a country")
+    table: Literal["us", "europe", "emerging", "global"] = Field(
+        description="The block of S&P's study read: Table 25's for the region, else Table 24 (global)")
+    business_risk: int = Field(description="The business risk profile read (1 excellent .. 6 vulnerable)")
+    shown: bool = Field(description="Whether the card lets the probabilities be shown in this region; "
+                                    "they are null when not")
+    card: DistressCard
+    sources: List[RiskSource]
+
+
+class DealDistressYear(BaseModel):
+    year: int
+    coverage: Optional[float] = Field(description="EBIT / interest; none without interest")
+    leverage: Optional[float] = Field(description="Debt at the start of the year / the year's EBITDA; "
+                                                  "none when EBITDA is not positive")
+    coverage_band: RatingBand
+    leverage_band: RatingBand
+    leverage_profile: int = Field(description="S&P's financial risk profile for the leverage, 1-6 (Table 17)")
+    band: RatingBand = Field(description="The weaker of the two reads")
+    probability: Optional[float] = Field(description="Chance of default in this year (fraction); null where "
+                                                     "not shown")
+    cumulative: Optional[float] = Field(description="Chance of default by the end of this year; null where "
+                                                    "not shown")
+
+
+class DealDistress(DistressContext):
+    """Each year's rating band and, where the card allows, chance of default."""
+    years: List[DealDistressYear]
+
+
+class SimulatedDistressYear(BaseModel):
+    year: int
+    band_shares: Dict[RatingBand, float] = Field(description="Share of paths in each band")
+    probability: Optional[float] = Field(description="Mean chance of default in this year over the paths; "
+                                                     "null where not shown")
+    cumulative: Optional[float] = Field(description="Mean chance of default by the end of this year; null "
+                                                    "where not shown")
+
+
+class SimulatedDistress(DistressContext):
+    """The distress predictor on every simulated path."""
+    years: List[SimulatedDistressYear]
+
+
 class DealRunResponse(BaseModel):
     returns: model_from_dataclass(ReturnsResult)
     operating_model: model_from_dataclass(OperatingModelResult)
@@ -537,6 +599,7 @@ class DealRunResponse(BaseModel):
         default_factory=list,
         description="Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)")
     credit: CreditView
+    distress: DealDistress
     money: Money
     model: ModelStamp
 
@@ -629,6 +692,7 @@ class MonteCarloResponse(BaseModel):
     correlations: Dict[str, object]
     scatter: Dict[str, List[Optional[float]]]
     heatmap: Heatmap
+    distress: SimulatedDistress
     money: Money
     model: ModelStamp
 

@@ -1,164 +1,245 @@
+"""Distress predictor: the chance a deal defaults, year by year (PLAN.md 5.3).
+
+Nothing is trained. Each year of a deal's model run (or of every simulated
+path) is given a **rating band** from two published tables, and the band's
+**default rate from S&P's study for the deal's region**:
+
+1. **Coverage**: EBIT / interest through Damodaran's coverage-to-rating table
+   (``core.risk_sources.COVERAGE_BANDS``, the table the deal's default risk
+   already reads).
+2. **Leverage**: debt at the start of the year over the year's EBITDA through
+   S&P's Corporate Methodology: Table 17 (standard volatility) gives the
+   financial risk profile, 1 minimal to 6 highly leveraged, and Table 3
+   combines it with the deal's business risk profile (``business_risk``, a
+   deal input, 4 "fair" unless the user says otherwise) into an anchor. Where
+   Table 3 lists two anchors ("bbb-/bb+") the weaker is read: the criteria
+   choose between them on facts the model doesn't have.
+3. The year's band is the **weaker** of the two reads, folded to the letter
+   grades S&P's regional tables use (AAA, AA, A, BBB, BB, B, CCC/C).
+4. The band's **forward default rate at that age** comes from S&P's 2024
+   study, Table 25 for the US, Europe and emerging markets, Table 24 (global)
+   for the other developed markets and for a deal with no country:
+   ``h = (C(t) - C(t-1)) / (100 - C(t-1))`` from the average cumulative
+   default rates ``C``. A deal that stays in one band therefore defaults
+   exactly as often as the table says (the card's calibration set); past the
+   table's last year the last year's rate is held.
+
+The yearly probability is ``S(t-1) * h(t)`` and the cumulative ``1 - S(t)``
+with ``S`` the chance of reaching the end of a year without default; the
+simulation's figures are their means over the paths.
+
+**Shown only where its card says it beats the baseline** (phase 5's rule):
+``ml/cards/distress.json`` tests it on the sourced reference transactions
+against the deal's year-one default risk (``core.risk_warnings.credit_view``).
+Elsewhere the probabilities are not sent and the screen says "not enough
+data"; the bands, coverage and leverage, read from the deal's own figures
+through published tables, are always shown. Every function here works on one
+deal's numbers and on arrays of paths alike (numpy only, no ML packages).
 """
-Predicts year-by-year probability of financial distress.
-Uses: DSCR (Debt Service Coverage Ratio), leverage, margin, FCF conversion.
-Trained on Altman Z-score + LBO-specific features.
-"""
+from __future__ import annotations
+
+import json
+from functools import lru_cache
+from pathlib import Path
+from typing import Mapping, Optional
 
 import numpy as np
-import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
-import joblib
-import os
 
-BASE = os.path.dirname(__file__)
+from core.risk_sources import COVERAGE_BANDS, SOURCES
+from library import base_rates
 
-# Training data: year-level observations from historical LBO deals
-# Features: DSCR, leverage, FCF_pct, margin_chg, year_in_hold
-# Label: 1 = distressed in next 12 months, 0 = healthy
-# Sources: Moody's Annual Default Study, Altman research, academic papers
+CARD = Path(__file__).parent / "cards" / "distress.json"
 
-DISTRESS_TRAINING = [
-    # DSCR, leverage, fcf_pct_ebitda, margin_chg, year, distress_next
-    # Healthy deals — various years
-    [3.5, 5.0,  0.45, +0.02, 1, 0],
-    [3.0, 5.5,  0.40, +0.01, 2, 0],
-    [2.8, 5.2,  0.38, +0.02, 3, 0],
-    [3.2, 4.8,  0.42, +0.03, 4, 0],
-    [3.8, 4.5,  0.48, +0.02, 5, 0],
-    [2.5, 6.0,  0.35, +0.01, 1, 0],
-    [2.2, 6.5,  0.30, -0.01, 2, 0],
-    [2.0, 6.8,  0.28, +0.01, 3, 0],
-    [2.5, 6.0,  0.35, +0.03, 4, 0],
-    [3.0, 5.5,  0.40, +0.02, 5, 0],
-    [4.0, 4.0,  0.55, +0.04, 1, 0],
-    [3.5, 4.5,  0.50, +0.03, 2, 0],
-    [3.2, 4.8,  0.45, +0.02, 3, 0],
-    [2.8, 5.0,  0.40, +0.01, 4, 0],
-    [2.5, 5.5,  0.35, 0.00,  5, 0],
-    [2.0, 6.0,  0.30, -0.01, 1, 0],
-    [1.8, 7.0,  0.25, -0.02, 2, 0],
-    [2.1, 6.5,  0.32, +0.01, 3, 0],
-    [2.5, 6.0,  0.38, +0.02, 4, 0],
-    [3.0, 5.5,  0.42, +0.01, 5, 0],
-    # Pre-distress — heading to default
-    [1.8, 8.5,  0.10, -0.04, 1, 0],
-    [1.4, 9.0,  0.05, -0.06, 2, 1],  # distressed in year 3
-    [0.9, 9.5, -0.05, -0.08, 3, 1],
-    [1.2, 9.0,  0.02, -0.05, 1, 0],
-    [1.0, 9.5, -0.02, -0.07, 2, 1],
-    [0.8, 10.0,-0.08, -0.10, 3, 1],
-    [1.5, 8.0,  0.08, -0.03, 1, 0],
-    [1.3, 8.5,  0.04, -0.05, 2, 0],
-    [1.0, 9.0, -0.02, -0.07, 3, 1],
-    [0.7, 10.5,-0.10, -0.12, 4, 1],
-    # Borderline cases
-    [1.8, 7.0,  0.20, -0.02, 1, 0],
-    [1.6, 7.5,  0.15, -0.03, 2, 0],
-    [1.4, 8.0,  0.10, -0.04, 3, 1],
-    [1.9, 6.8,  0.22, +0.01, 1, 0],
-    [1.7, 7.2,  0.18, -0.01, 2, 0],
-    [1.5, 7.8,  0.12, -0.03, 3, 0],
-    [2.1, 6.5,  0.28, +0.00, 2, 0],
-    [1.9, 7.0,  0.24, -0.01, 3, 0],
-    [1.6, 7.5,  0.18, -0.03, 4, 1],
-]
+# S&P's regional tables' bands, strongest first; a band is its index here
+BANDS = ("AAA", "AA", "A", "BBB", "BB", "B", "CCC/C")
+WEAKEST = len(BANDS) - 1
 
-FEATURE_NAMES = ['dscr', 'leverage', 'fcf_pct', 'margin_chg', 'year_in_hold']
+# S&P Corporate Methodology (January 7, 2024), Table 17, standard volatility:
+# debt / EBITDA below each bound is the profile beside it ("Minimal: less than
+# 1.5", "Modest: 1.5-2", "Intermediate: 2-3", "Significant: 3-4",
+# "Aggressive: 4-5"); above 5 is 6, highly leveraged ("greater than 5").
+LEVERAGE_PROFILES: tuple[tuple[float, int], ...] = ((1.5, 1), (2.0, 2), (3.0, 3), (4.0, 4), (5.0, 5))
+HIGHLY_LEVERAGED = 6
+PROFILE_NAMES = ("minimal", "modest", "intermediate", "significant", "aggressive", "highly_leveraged")
+
+# Table 3: the anchor for business risk profile 1 (excellent) .. 6
+# (vulnerable), by financial risk profile 1 (minimal) .. 6 (highly leveraged),
+# as printed
+ANCHORS: dict[int, tuple[str, ...]] = {
+    1: ("aaa/aa+", "aa", "a+/a", "a-", "bbb", "bbb-/bb+"),
+    2: ("aa/aa-", "a+/a", "a-/bbb+", "bbb", "bb+", "bb"),
+    3: ("a/a-", "bbb+", "bbb/bbb-", "bbb-/bb+", "bb", "b+"),
+    4: ("bbb/bbb-", "bbb-", "bb+", "bb", "bb-", "b"),
+    5: ("bb+", "bb+", "bb", "bb-", "b+", "b/b-"),
+    6: ("bb-", "bb-", "bb-/b+", "b+", "b", "b-"),
+}
+BUSINESS_RISK = ("excellent", "strong", "satisfactory", "fair", "weak", "vulnerable")
+DEFAULT_BUSINESS_RISK = 4
+
+SOURCE_IDS = ("sp_corporate_methodology_2024", "damodaran_ratings_2026", "sp_default_study_2024_regions",
+              "deal_model")
 
 
-def train_distress_model():
-    df  = pd.DataFrame(DISTRESS_TRAINING,
-                        columns=FEATURE_NAMES + ['distress_next'])
-    X   = df[FEATURE_NAMES].values
-    y   = df['distress_next'].values
-
-    scaler = StandardScaler()
-    X_s    = scaler.fit_transform(X)
-
-    model = LogisticRegression(
-        C=1.0, class_weight='balanced',
-        max_iter=500, random_state=42,
-    )
-    model.fit(X_s, y)
-
-    joblib.dump(model,  os.path.join(BASE, 'distress_model.pkl'))
-    joblib.dump(scaler, os.path.join(BASE, 'distress_scaler.pkl'))
-    print("Distress model trained.")
-    return model, scaler
+def band_of(rating: str) -> int:
+    """A rating's letter grade ('bb-' -> BB, 'CC' -> CCC/C) as a band index."""
+    letters = rating.upper().rstrip("+-")
+    return WEAKEST if letters in ("CCC", "CC", "C", "D") else BANDS.index(letters)
 
 
-def compute_distress_probs(
-    ebitda_path:    list,   # EBITDA each year [M]
-    interest_path:  list,   # interest expense each year [M]
-    mandatory_path: list,   # mandatory amort each year [M]
-    fcf_path:       list,   # levered FCF each year [M]
-    ending_debt:    list,   # total debt at year end [M]
-) -> dict:
-    """
-    Compute year-by-year distress probability given deal outputs.
-    Returns dict with probabilities and risk levels.
-    """
-    model_path   = os.path.join(BASE, 'distress_model.pkl')
-    scaler_path  = os.path.join(BASE, 'distress_scaler.pkl')
+def anchor(business: int, profile: int) -> str:
+    """Table 3's anchor, the weaker of two where it lists two."""
+    return ANCHORS[int(business)][int(profile) - 1].split("/")[-1]
 
-    if not os.path.exists(model_path):
-        train_distress_model()
 
-    model  = joblib.load(model_path)
-    scaler = joblib.load(scaler_path)
+def leverage_profile(leverage):
+    """Table 17's financial risk profile (1-6) for debt / EBITDA; a
+    non-positive EBITDA (``leverage`` NaN or infinite) is highly leveraged."""
+    lev = np.asarray(leverage, dtype=float)
+    out = np.full(lev.shape, HIGHLY_LEVERAGED, dtype=int)
+    # Exactly 5 is aggressive: highly leveraged is "greater than 5"
+    out = np.where(np.isfinite(lev) & (lev <= LEVERAGE_PROFILES[-1][0]), LEVERAGE_PROFILES[-1][1], out)
+    for bound, profile in reversed(LEVERAGE_PROFILES[:-1]):
+        out = np.where(np.isfinite(lev) & (lev < bound), profile, out)
+    return out
 
-    n_years = len(ebitda_path)
-    probs   = []
-    dscrs   = []
-    levers  = []
 
-    prev_margin = None
+# The coverage table's lower bounds and each band's letter grade
+_COVERAGE_LOWS = np.array([low for low, _ in COVERAGE_BANDS[1:]])
+_COVERAGE_GRADES = np.array([band_of(r) for _, r in COVERAGE_BANDS])
 
-    for t in range(n_years):
-        ebitda  = max(ebitda_path[t], 0.1)
-        debt    = max(ending_debt[t], 0.1)
-        intexp  = interest_path[t]
-        mand    = mandatory_path[t]
-        fcf     = fcf_path[t]
 
-        # DSCR = EBITDA / (interest + mandatory amort)
-        debt_service = intexp + mand
-        dscr = ebitda / max(debt_service, 0.1)
+def coverage_band(ebit, interest):
+    """Damodaran's coverage band as a letter grade; a year with no interest
+    is not held back by coverage (AAA)."""
+    ebit, interest = np.asarray(ebit, dtype=float), np.asarray(interest, dtype=float)
+    paying = interest > 0
+    coverage = np.divide(ebit, interest, out=np.zeros(np.broadcast(ebit, interest).shape), where=paying)
+    return np.where(paying, _COVERAGE_GRADES[np.searchsorted(_COVERAGE_LOWS, coverage, side="right")], 0)
 
-        # Leverage = Debt / EBITDA
-        leverage = debt / ebitda
 
-        # FCF as % of EBITDA
-        fcf_pct = fcf / ebitda
+def leverage_band(debt, ebitda, business: int = DEFAULT_BUSINESS_RISK):
+    """The anchor's letter grade for debt / EBITDA at ``business`` risk."""
+    debt, ebitda = np.asarray(debt, dtype=float), np.asarray(ebitda, dtype=float)
+    leverage = np.divide(debt, ebitda, out=np.full(np.broadcast(debt, ebitda).shape, np.inf), where=ebitda > 0)
+    grades = np.array([band_of(anchor(business, p)) for p in range(1, HIGHLY_LEVERAGED + 1)])
+    return grades[leverage_profile(leverage) - 1]
 
-        # Margin change (approximated from EBITDA change)
-        if t > 0:
-            margin_chg = (ebitda - ebitda_path[t-1]) / max(ebitda_path[t-1], 0.1)
-        else:
-            margin_chg = 0.0
 
-        dscrs.append(dscr)
-        levers.append(leverage)
+def bands(ebit, ebitda, interest, debt, business: int = DEFAULT_BUSINESS_RISK):
+    """Each year's band: the weaker of the coverage and the leverage read."""
+    return np.maximum(coverage_band(ebit, interest), leverage_band(debt, ebitda, business))
 
-        x = np.array([[dscr, leverage, fcf_pct, margin_chg, t+1]])
-        x_s = scaler.transform(x)
-        prob = float(model.predict_proba(x_s)[0][1])
-        probs.append(prob)
 
-    # Risk level classification
-    max_prob = max(probs)
-    if max_prob < 0.10:   overall_risk = 'Low'
-    elif max_prob < 0.25: overall_risk = 'Moderate'
-    elif max_prob < 0.45: overall_risk = 'High'
-    else:                  overall_risk = 'Critical'
+def table_for(region: Optional[str]) -> str:
+    """The block of S&P's study a region reads: its own (Table 25) where the
+    study prints one, else the global table (Table 24)."""
+    return region if region in base_rates.CUMULATIVE and region != "global" else "global"
 
-    return {
-        'year_probs':    probs,
-        'dscr_path':     dscrs,
-        'leverage_path': levers,
-        'max_prob':      max_prob,
-        'max_prob_year': int(np.argmax(probs)) + 1,
-        'overall_risk':  overall_risk,
-        'covenant_breach_years': [t+1 for t, d in enumerate(dscrs) if d < 1.1],
-    }
+
+@lru_cache(maxsize=None)
+def hazards(table: str) -> np.ndarray:
+    """Forward default rates (fractions), shape (bands, years printed): the
+    chance a company in a band at an age defaults in that year, having
+    survived to it."""
+    rows = base_rates.CUMULATIVE[table]
+    out = []
+    for band in BANDS:
+        c = np.concatenate([[0.0], np.asarray(rows[band], dtype=float)])
+        out.append((c[1:] - c[:-1]) / (100.0 - c[:-1]))
+    return np.array(out)
+
+
+def probabilities(band_path, table: str) -> tuple[np.ndarray, np.ndarray]:
+    """Yearly and cumulative default probability for a path of bands (the
+    last axis is the year). Past the table's last year its last rate holds."""
+    band_path = np.asarray(band_path, dtype=int)
+    h = hazards(table)
+    ages = np.minimum(np.arange(band_path.shape[-1]), h.shape[1] - 1)
+    rate = h[band_path, ages]
+    survive = np.cumprod(1.0 - rate, axis=-1)
+    before = np.concatenate([np.ones(survive.shape[:-1] + (1,)), survive[..., :-1]], axis=-1)
+    return before * rate, 1.0 - survive
+
+
+# ---------------------------------------------------------------------------
+# The card decides where the probabilities are shown
+# ---------------------------------------------------------------------------
+@lru_cache(maxsize=1)
+def _card() -> dict:
+    return json.loads(CARD.read_text(encoding="utf-8"))
+
+
+def card_result(region: Optional[str], card: Optional[Mapping] = None) -> dict:
+    """The card's headline verdict for ``region`` (S&P's)."""
+    ev = (card or _card())["evaluation"]
+    group = ev["sets"][ev["headline_set"]]["by_region"].get(region) if region else None
+    if not group:
+        return {"verdict": "not_enough_data", "cases": 0, "model": None, "baseline": None}
+    head = ev["headline_metric"]
+    return {"verdict": group["verdict"], "cases": group["cases"],
+            "model": (group.get("model") or {}).get(head), "baseline": (group.get("baseline") or {}).get(head)}
+
+
+def _context(country: str, business: int, card: Optional[Mapping]) -> dict:
+    region = base_rates.sp_region(country)
+    result = card_result(region, card)
+    return {"region": region, "table": table_for(region), "business_risk": int(business),
+            "shown": result["verdict"] == "beats_baseline", "card": result,
+            "sources": [{"id": s, **SOURCES[s]} for s in SOURCE_IDS]}
+
+
+def _figure(x: float) -> Optional[float]:
+    return float(x) if np.isfinite(x) else None
+
+
+def deal_view(d, result, card: Optional[Mapping] = None) -> dict:
+    """The deal's yearly coverage, leverage, band and (where shown) default
+    probability. ``d`` is the deal in millions and ``result`` its model run;
+    leases count as the deal values them (``core.risk_warnings.leverage_at_close``)."""
+    from core.deal import leases_of
+    om, ds = result.operating_model, result.debt_schedule
+    terms = leases_of(d)
+    ebit = np.asarray(om.ebit, dtype=float)
+    interest = np.asarray(om.interest_expense, dtype=float)
+    ebitda = np.asarray(om.ebitda, dtype=float) + terms.valuation_addback
+    debt = np.asarray(ds.total_beginning_debt, dtype=float) + terms.debt_like
+    business = getattr(d, "business_risk", DEFAULT_BUSINESS_RISK)
+    ctx = _context(d.country, business, card)
+    path = bands(ebit, ebitda, interest, debt, business)
+    yearly, cumulative = probabilities(path, ctx["table"])
+    cov, lev = coverage_band(ebit, interest), leverage_band(debt, ebitda, business)
+    shown = ctx["shown"]
+    years = []
+    for t in range(len(path)):
+        years.append({
+            "year": t + 1,
+            "coverage": _figure(ebit[t] / interest[t]) if interest[t] > 0 else None,
+            "leverage": _figure(debt[t] / ebitda[t]) if ebitda[t] > 0 else None,
+            "coverage_band": BANDS[cov[t]], "leverage_band": BANDS[lev[t]],
+            "leverage_profile": int(leverage_profile(debt[t] / ebitda[t] if ebitda[t] > 0 else np.inf)),
+            "band": BANDS[path[t]],
+            "probability": float(yearly[t]) if shown else None,
+            "cumulative": float(cumulative[t]) if shown else None,
+        })
+    return {**ctx, "years": years}
+
+
+def simulated_view(ebit, ebitda, interest, debt, *, country: str, business: int,
+                   card: Optional[Mapping] = None) -> dict:
+    """The simulation's version, from (paths, years) arrays: per year the
+    share of paths in each band and (where shown) the mean probabilities."""
+    ctx = _context(country, business, card)
+    path = bands(ebit, ebitda, interest, debt, business)
+    yearly, cumulative = probabilities(path, ctx["table"])
+    shown = ctx["shown"]
+    n = path.shape[0]
+    years = []
+    for t in range(path.shape[1]):
+        counts = np.bincount(path[:, t], minlength=len(BANDS))
+        years.append({
+            "year": t + 1,
+            "band_shares": {b: float(c / n) for b, c in zip(BANDS, counts)},
+            "probability": float(yearly[:, t].mean()) if shown else None,
+            "cumulative": float(cumulative[:, t].mean()) if shown else None,
+        })
+    return {**ctx, "years": years}

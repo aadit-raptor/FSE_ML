@@ -103,6 +103,9 @@ class ScheduleResult:
     non_cash: np.ndarray        # (N, n_years): the part of it that accrued (PIK)
     ending_debt: np.ndarray     # (N,): every facility's balance after the last year
     ending_cash: np.ndarray     # (N,): the balance sheet's cash after the last year
+    # (N, n_years): every facility's balance at the start of each year, when
+    # asked for (``track_debt``, the distress predictor, PLAN.md 5.3)
+    beginning_debt: Optional[np.ndarray] = None
 
 
 def run_tranche_schedule(
@@ -110,6 +113,7 @@ def run_tranche_schedule(
     shock: np.ndarray,
     fcf: np.ndarray,
     minimum_cash: float,
+    track_debt: bool = False,
 ) -> ScheduleResult:
     """The year-by-year schedule on every path at once.
 
@@ -123,12 +127,15 @@ def run_tranche_schedule(
     cash = np.full(N, minimum_cash, dtype=float)
     interest = np.zeros((N, n_years))
     non_cash = np.zeros((N, n_years))
+    beginning_debt = np.zeros((N, n_years)) if track_debt else None
     sweep_order = sorted((i for i, t in enumerate(tranches) if t.sweep),
                          key=lambda i: tranches[i].sweep_priority)
 
     for y in range(n_years):
         year = y + 1
         beginning = balances
+        if beginning_debt is not None and tranches:
+            beginning_debt[:, y] = sum(beginning)
         # The coupon splits into what accrues and what is paid; the fee on the
         # undrawn commitment is a cash cost beside it
         pik, mandatory = [], []
@@ -179,4 +186,5 @@ def run_tranche_schedule(
         non_cash=non_cash,
         ending_debt=sum(balances) if tranches else np.zeros(N),
         ending_cash=cash,
+        beginning_debt=beginning_debt,
     )
