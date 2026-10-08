@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-08 (PLAN.md 5.2: deal risk score from market data). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-08 (PLAN.md 5.3: distress predictor). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -930,7 +930,7 @@ the PR. **`ml.yml`**: evaluates on PRs touching models or `simulation/`;
 trains by hand (`workflow_dispatch`, which Claude's token can't trigger)
 into a scratch directory and uploads files and card as an artifact for a
 person to review and commit -- never commits itself. Cards: the **deal
-risk score** (5.2, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
+risk score** (5.2, below); the **distress predictor** (5.3, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
 regional_deals.json`, from the recorded sources by `python -m
 tests.ml_regional_deals`, checked stale) is 0.54 points off the median IRR
 against 0.79 for a 200-path simulation (truth: 10,000 paths) and beats it in
@@ -973,6 +973,34 @@ answer without deals (`deals.enabled` false). `POST /api/ml/deal-risk`
 `web/e2e/fixtures/deal-risk.json` (`python -m tests.e2e_deal_risk`, checked
 stale by `tests/test_deal_risk.py`), except the first, which checks the
 real endpoint gets the deal's leverage.
+
+Distress predictor (PLAN.md 5.3): **`ml/distress_model.py` trains nothing**
+(its 39 hand-entered cases are gone). Each year's **rating band** is the
+weaker of EBIT / interest through Damodaran's coverage table
+(`core.risk_sources.COVERAGE_BANDS`) and debt at the start of the year over
+the year's EBITDA through **S&P's Corporate Methodology** (January 2024,
+`sp_corporate_methodology_2024`: Table 17 standard volatility bounds, then
+Table 3 with the deal's `business_risk`, the weaker anchor where it prints
+two), folded to letter grades; the year's default rate is the band's
+**forward rate at that age** from S&P's 2024 study, **Table 25 for us,
+europe and emerging, Table 24 (global) otherwise**
+(`library/base_rates.py` `CUMULATIVE`, read whatever the library switch
+says). `business_risk` is a deal input, 1-6, **default 4 "fair"** (decided
+with the user 2026-10-08), `OMIT_WHEN_DEFAULT`, registry basis `choice`.
+The deal answer's `distress` and the Monte Carlo answer's `distress` (share
+of paths per band each year; the simulation returns `credit_paths` only when
+`run_vectorized_simulation_full(..., credit=True)`, dropped after use by
+`core.montecarlo.simulated_distress`; the pinned simulation is untouched;
+about 20 MB more traced at the caps, 100,000 paths and 15 years).
+**Probabilities are sent only where `ml/cards/distress.json` says "beats the
+baseline"** for the deal's S&P region; **today nowhere** (decided with the
+user: the phase rule holds): on the ten reference transactions AUC 0.43
+against the year-one default risk's 0.52 (US 0.25 vs 0.375). The card's
+second set, `calibration`, holds a one-band deal to S&P's table for every
+region, band and horizon (gap 0.00, tolerance 0.01 points). Screens: Deal ->
+Debt "Distress by year" and the Credit rail group (business risk), Monte
+Carlo -> Distribution (`components/deal/Distress.tsx`, namespace
+`distress`); `country` and `business_risk` mark Monte Carlo stale.
 
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
@@ -1034,7 +1062,8 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). **Next is 5.3** (distress predictor).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). **Next is 5.4** (multiple
+predictor by region).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1242,9 +1271,9 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
-- Whether to wire up the unused `ml/` modules (distress model, SHAP drivers,
-  multiple predictor, growth calibrator, NLP extractor, correlation updater,
-  personalization). SHAP and distress need no keys.
+- Whether to wire up the unused `ml/` modules (SHAP drivers, multiple
+  predictor, growth calibrator, NLP extractor, correlation updater,
+  personalization); PLAN.md 5.4-5.7 rebuild most of them. SHAP needs no keys.
 
 ---
 
@@ -1285,6 +1314,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `benchmarks/`, `db/benchmarks.py`, `api/routers/benchmarks.py`, `web/src/lib/benchmarks.ts`, `web/src/components/deal/StartingPoint.tsx`, `web/src/components/montecarlo/SourcedRisk.tsx` | Sourced starting figures (PLAN.md 4.3) and risk ranges (4.4): regions and data sets read, the workbook reader, a deal's starting figures, the archive and economic history (`history.py`), the Monte Carlo Settings from it (`risk.py`), the refresh, the recorder and the defaults registry; storage; the endpoints; the Starting point rail group and tile, the Monte Carlo "Sources" rail group and tile |
 | `library/`, `db/flags.py`, `db/references.py`, `api/routers/library.py`, `web/src/components/library/`, `web/src/components/settings/SourcedFees.tsx`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5): the cited base-rate tables, the coverage counts, the admin switch, the reference transactions (`reference_deals.json`, `references.py` with the inclusion and balance rules, `review.py`) and their fees (`fees.py`); site-wide switches; proposals and the two-person review stored; the endpoints; the Library screens (Reference deals, Review) and their provider; the sourced fees tile on Settings -> Fees; the yearly editions check |
 | `validation/`, `db/validation.py`, `api/routers/validation.py`, `web/src/components/backtest/Validation.tsx`, `tests/e2e_validation.py` | Model validation (PLAN.md 4.6): the cases (newer-data rule), the report (calibration, bias, anonymity rules), the groups, the nightly run; opted-in deals and stored reports; the endpoint; Backtest -> Validation and the per-deal opt-in switch; the browser tests' recorded report |
+| `ml/distress_model.py`, `ml/evaluation/distress.py`, `components/deal/Distress.tsx`, `tests/test_distress.py` | Distress predictor (PLAN.md 5.3): each year's band and default rate from published tables, gated by its card; the card (reference transactions and calibration); the Debt and Monte Carlo tiles and the business risk choice; the tests |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |

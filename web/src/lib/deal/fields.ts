@@ -43,7 +43,14 @@ export const LEASE_DEFAULTS = {
 export const LEASE_MONEY_KEYS = ["lease_cost", "lease_liability"] as const;
 /** Where a deal's starting figures were sourced for (PLAN.md 4.3): labels, sent only when set */
 export const START_LABEL_DEFAULTS = { country: "", industry: "" } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
-const OMITTED_AT_DEFAULT: Record<string, unknown> = { ...TAX_RULE_DEFAULTS, ...LEASE_DEFAULTS, ...START_LABEL_DEFAULTS };
+/** S&P's business risk profile (PLAN.md 5.3), read only by the distress predictor: sent only when changed */
+export const DISTRESS_DEFAULTS = { business_risk: 4 } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
+const OMITTED_AT_DEFAULT: Record<string, unknown> = {
+  ...TAX_RULE_DEFAULTS,
+  ...LEASE_DEFAULTS,
+  ...START_LABEL_DEFAULTS,
+  ...DISTRESS_DEFAULTS,
+};
 export type NumericDealKey = Exclude<{ [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs], FiscalDealKey>;
 
 /** Matches the API's DealInputsIn defaults (api/schemas.py). */
@@ -76,6 +83,7 @@ export const DEFAULT_INPUTS: DealInputs = {
   ...TAX_RULE_DEFAULTS,
   ...LEASE_DEFAULTS,
   ...START_LABEL_DEFAULTS,
+  ...DISTRESS_DEFAULTS,
 };
 
 /**
@@ -157,6 +165,8 @@ export const FIELDS: Record<NumericDealKey, FieldSpec> = {
   // Leases (PLAN.md 2.6); bounds mirror DealInputsIn
   lease_cost: { unit: MONEY, step: 1, decimals: 1, min: 0, max: 1e15 },
   lease_liability: { unit: MONEY, step: 5, decimals: 1, min: 0, max: 1e15 },
+  // Chosen from a list (components/deal/Distress.tsx), never typed
+  business_risk: { unit: "", step: 1, decimals: 0, min: 1, max: 6, integer: true },
 };
 
 export { changedKeys, validate };

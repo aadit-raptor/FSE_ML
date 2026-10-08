@@ -231,7 +231,9 @@
     "accounting_standard": "Accounting standard",
     "lease_view": "Priced on",
     "lease_cost": "Lease cost a year",
-    "lease_liability": "Lease liability"
+    "lease_liability": "Lease liability",
+    "business_risk": "Business risk (S&P)",
+    "country": "Country"
   },
   "trancheKinds": {
     "amortising_term_loan": "Amortising term loan",
@@ -586,7 +588,8 @@
     "activity_reference_proposed": "Proposed a reference transaction",
     "activity_reference_reviewed": "{verdict, select, approve {Approved a reference transaction} other {Rejected a reference transaction}}",
     "activity_validation_opted_in": "Counted in model validation",
-    "activity_validation_opted_out": "Stopped counting in model validation"
+    "activity_validation_opted_out": "Stopped counting in model validation",
+    "groupCredit": "Credit"
   },
   "montecarlo": {
     "groupFromDeal": "From the deal",
@@ -1996,5 +1999,40 @@
     "dealsLabel": "Reference deals like it",
     "dealFigures": "{entry} entry · {leverage} leverage",
     "sameSize": "same size"
+  },
+  "distress": {
+    "tile": "Distress by year",
+    "unitDeal": "Rating band each year and the chance of default",
+    "unitSimulated": "Rating bands across the simulated paths",
+    "businessRisk_1": "1 Excellent",
+    "businessRisk_2": "2 Strong",
+    "businessRisk_3": "3 Satisfactory",
+    "businessRisk_4": "4 Fair",
+    "businessRisk_5": "5 Weak",
+    "businessRisk_6": "6 Vulnerable",
+    "businessRiskNote": "S&P's business risk profile. With leverage it sets each year's rating band on Distress by year (Corporate Methodology, Table 3). Your choice, not a sourced figure.",
+    "rowCoverage": "EBIT / interest",
+    "rowLeverage": "Debt / EBITDA",
+    "rowCoverageBand": "Band from coverage",
+    "rowLeverageBand": "Band from leverage",
+    "rowBand": "Rating band",
+    "rowProbability": "Chance of default in the year",
+    "rowCumulative": "Chance of default by year end",
+    "rowPathsAt": "Paths at {band}",
+    "rowMeanProbability": "Mean chance of default in the year",
+    "rowMeanCumulative": "Mean chance of default by year end",
+    "notShown": "n/a",
+    "notEnoughData": "Not enough data.",
+    "noRegion": "deals with no country",
+    "shown": "Tested on {cases, plural, one {# buyout} other {# buyouts}} in {region}: it ranked the distressed ones higher than the year-one default risk did ({model} against {baseline}).",
+    "notBetter": "Chances of default are not shown: tested on {cases, plural, one {# buyout} other {# buyouts}} in {region}, they ranked the distressed ones no better than the year-one default risk ({model} against {baseline}). The bands are shown.",
+    "tooFew": "Chances of default are not shown: tested on {cases, plural, =0 {no buyouts} one {# buyout} other {# buyouts}} in {region}, too few. The bands are shown.",
+    "reads": "Each year's band is the weaker of EBIT / interest (Damodaran's coverage table) and debt at the start of the year over the year's EBITDA at business risk {business} (S&P Tables 17 and 3). Chances of default: S&P's cumulative default rates, {table}.",
+    "table_us": "the U.S. (Table 25)",
+    "table_europe": "Europe (Table 25)",
+    "table_emerging": "emerging markets (Table 25)",
+    "table_global": "global (Table 24)",
+    "sources": "Sources:",
+    "sourceLink": "{publisher}, {title}"
   }
 }

@@ -2547,6 +2547,84 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * DealDistress
+         * @description Each year's rating band and, where the card allows, chance of default.
+         */
+        DealDistress: {
+            /**
+             * Business Risk
+             * @description The business risk profile read (1 excellent .. 6 vulnerable)
+             */
+            business_risk: number;
+            card: components["schemas"]["DistressCard"];
+            /**
+             * Region
+             * @description S&P's region for the deal's country; none without a country
+             */
+            region: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
+             * Shown
+             * @description Whether the card lets the probabilities be shown in this region; they are null when not
+             */
+            shown: boolean;
+            /** Sources */
+            sources: components["schemas"]["RiskSource"][];
+            /**
+             * Table
+             * @description The block of S&P's study read: Table 25's for the region, else Table 24 (global)
+             * @enum {string}
+             */
+            table: "us" | "europe" | "emerging" | "global";
+            /** Years */
+            years: components["schemas"]["DealDistressYear"][];
+        };
+        /** DealDistressYear */
+        DealDistressYear: {
+            /**
+             * Band
+             * @description The weaker of the two reads
+             * @enum {string}
+             */
+            band: "AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC/C";
+            /**
+             * Coverage
+             * @description EBIT / interest; none without interest
+             */
+            coverage: number | null;
+            /**
+             * Coverage Band
+             * @enum {string}
+             */
+            coverage_band: "AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC/C";
+            /**
+             * Cumulative
+             * @description Chance of default by the end of this year; null where not shown
+             */
+            cumulative: number | null;
+            /**
+             * Leverage
+             * @description Debt at the start of the year / the year's EBITDA (0 without debt); none for debt against an EBITDA that is not positive
+             */
+            leverage: number | null;
+            /**
+             * Leverage Band
+             * @enum {string}
+             */
+            leverage_band: "AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC/C";
+            /**
+             * Leverage Profile
+             * @description S&P's financial risk profile for the leverage, 1-6 (Table 17)
+             */
+            leverage_profile: number;
+            /**
+             * Probability
+             * @description Chance of default in this year (fraction); null where not shown
+             */
+            probability: number | null;
+            /** Year */
+            year: number;
+        };
         /** DealDuplicate */
         DealDuplicate: {
             /**
@@ -2589,6 +2667,12 @@ export interface components {
              * @default 6.5
              */
             base_rate: number;
+            /**
+             * Business Risk
+             * @description S&P's business risk profile, 1 (excellent) to 6 (vulnerable); with leverage it gives each year's rating band (Corporate Methodology, Table 3)
+             * @default 4
+             */
+            business_risk: number;
             /**
              * Capex
              * @description Capex / revenue (%)
@@ -2823,6 +2907,7 @@ export interface components {
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
+             *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
              *       "currency": "USD",
@@ -2963,6 +3048,7 @@ export interface components {
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
+             *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
              *       "currency": "USD",
@@ -3026,6 +3112,7 @@ export interface components {
             debt_schedule: {
                 [key: string]: unknown;
             };
+            distress: components["schemas"]["DealDistress"];
             equity_bridge: components["schemas"]["EquityBridge"];
             exit_sensitivity: components["schemas"]["ExitSensitivity"];
             /** Interest Converged */
@@ -3081,6 +3168,29 @@ export interface components {
             /** Ratings */
             ratings: ("AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC/C")[];
             speculative_by_region: components["schemas"]["SpeculativeByRegion"];
+        };
+        /**
+         * DistressCard
+         * @description What the predictor's card says for the deal's region.
+         */
+        DistressCard: {
+            /**
+             * Baseline
+             * @description The same for the year-one default risk
+             */
+            baseline?: number | null;
+            /** Cases */
+            cases: number;
+            /**
+             * Model
+             * @description The card's headline statistic (AUC) for the predictor
+             */
+            model?: number | null;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "beats_baseline" | "does_not_beat_baseline" | "not_enough_data";
         };
         /** DrillJob */
         DrillJob: {
@@ -4126,6 +4236,7 @@ export interface components {
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
+             *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
              *       "currency": "USD",
@@ -4212,6 +4323,7 @@ export interface components {
             correlations: {
                 [key: string]: unknown;
             };
+            distress: components["schemas"]["SimulatedDistress"];
             /** Driver Fits */
             driver_fits: {
                 [key: string]: components["schemas"]["DriverFit"];
@@ -5523,6 +5635,7 @@ export interface components {
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
+             *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
              *       "currency": "USD",
@@ -5692,6 +5805,60 @@ export interface components {
              * @description The deal's size bucket (entry value in US dollars), when known
              */
             size?: string | null;
+        };
+        /**
+         * SimulatedDistress
+         * @description The distress predictor on every simulated path.
+         */
+        SimulatedDistress: {
+            /**
+             * Business Risk
+             * @description The business risk profile read (1 excellent .. 6 vulnerable)
+             */
+            business_risk: number;
+            card: components["schemas"]["DistressCard"];
+            /**
+             * Region
+             * @description S&P's region for the deal's country; none without a country
+             */
+            region: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
+             * Shown
+             * @description Whether the card lets the probabilities be shown in this region; they are null when not
+             */
+            shown: boolean;
+            /** Sources */
+            sources: components["schemas"]["RiskSource"][];
+            /**
+             * Table
+             * @description The block of S&P's study read: Table 25's for the region, else Table 24 (global)
+             * @enum {string}
+             */
+            table: "us" | "europe" | "emerging" | "global";
+            /** Years */
+            years: components["schemas"]["SimulatedDistressYear"][];
+        };
+        /** SimulatedDistressYear */
+        SimulatedDistressYear: {
+            /**
+             * Band Shares
+             * @description Share of paths in each band
+             */
+            band_shares: {
+                [key: string]: number;
+            };
+            /**
+             * Cumulative
+             * @description Mean chance of default by the end of this year; null where not shown
+             */
+            cumulative: number | null;
+            /**
+             * Probability
+             * @description Mean chance of default in this year over the paths; null where not shown
+             */
+            probability: number | null;
+            /** Year */
+            year: number;
         };
         /** SourcedFee */
         SourcedFee: {
@@ -6032,6 +6199,7 @@ export interface components {
              *       "ap_days": 60,
              *       "ar_days": 45,
              *       "base_rate": 6.5,
+             *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
              *       "currency": "USD",

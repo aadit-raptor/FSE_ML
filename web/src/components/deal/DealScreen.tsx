@@ -180,6 +180,7 @@ export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof
       // i18n-keys: deal.taxLimit_*
       if (key === "tax_interest_limit" && typeof v === "string") return t(`taxLimit_${v}`);
       if (key === "tax_preset" && typeof v === "string") return v ? regionName(v) : t("taxPresetNone");
+      if (key === "country" && typeof v === "string") return v ? regionName(v) : fields("none");
       if (key === "fiscal_year_end_month" && typeof v === "number") return monthName(v);
       if (key === "first_fiscal_year") return v === null ? fields("none") : String(v);
       if (typeof v === "boolean") return v ? fields("on") : fields("off");

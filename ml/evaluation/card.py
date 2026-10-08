@@ -75,8 +75,10 @@ def _fmt(x) -> str:
 def _table(card: Mapping, set_name: str) -> list[str]:
     ev = card["evaluation"]
     group = ev["sets"][set_name]
-    ids = [m["id"] for m in ev["metrics"]]
-    head = ["Group", "Cases", "Verdict"] + [f"{i} (model / baseline)" for i in ids]
+    # A set reports its own statistics (a card's sets may measure different things)
+    used = {k for g in [group["overall"], *group["by_region"].values()] for k in g.get("model", {})}
+    ids = [m["id"] for m in ev["metrics"] if m["id"] in used]
+    head =["Group", "Cases", "Verdict"] + [f"{i} (model / baseline)" for i in ids]
     lines = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     rows = [("All regions", group["overall"])] + [
         (REGION_NAMES.get(r, r), g) for r, g in group["by_region"].items()]

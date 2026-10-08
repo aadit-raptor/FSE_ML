@@ -25,6 +25,28 @@ SOURCES: dict[str, dict] = {
         "url": "https://maalot.co.il/Publications/FTS20250331162126.pdf",
         "sample": {"count": 23831, "what": "issuers", "first_year": 1981, "last_year": 2024},
     },
+    # The same study's regional tables, which the distress predictor reads
+    # (ml/distress_model.py, PLAN.md 5.3); transcribed in library/base_rates.py
+    "sp_default_study_2024_regions": {
+        "publisher": "S&P Global Ratings",
+        "title": "Default, Transition, and Recovery: 2024 Annual Global Corporate "
+                 "Default And Rating Transition Study",
+        "published": "2025-03-27",
+        "detail": "Tables 24 and 25, average cumulative default rates by rating category, global and "
+                  "for the U.S., Europe and emerging markets, 1981-2024",
+        "url": "https://maalot.co.il/Publications/FTS20250331162126.pdf",
+        "sample": {"count": 23831, "what": "issuers", "first_year": 1981, "last_year": 2024},
+    },
+    "sp_corporate_methodology_2024": {
+        "publisher": "S&P Global Ratings",
+        "title": "Criteria | Corporates | General: Corporate Methodology",
+        "published": "2024-01-07",
+        "detail": "Table 17, cash flow/leverage analysis ratios (standard volatility), debt / EBITDA "
+                  "to financial risk profile; Table 3, business and financial risk profiles to anchor",
+        # The copy published by S&P Global Ratings Maalot, free to read
+        "url": "https://www.maalot.co.il/Publications/MT20240214173645.PDF",
+        "sample": None,
+    },
     "damodaran_ratings_2026": {
         "publisher": "Aswath Damodaran, NYU Stern",
         "title": "Ratings, Interest Coverage Ratios and Default Spread",

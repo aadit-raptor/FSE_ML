@@ -54,7 +54,7 @@ INPUTS = {"ebitda": 240.0, "entry_mult": 9.0, "exit_mult": 10.5, "hold": 6, "gro
           "tax_interest_limit_amount": 0.0, "tax_loss_carryforward": False,
           "tax_loss_limit_pct": 100.0, "tax_loss_limit_amount": 0.0, "tax_minimum_pct": 0.0,
           "accounting_standard": "", "lease_view": "", "lease_cost": 0.0, "lease_liability": 0.0,
-          "country": "", "industry": ""}
+          "country": "", "industry": "", "business_risk": 4}
 # Every field of DealInputsIn, as the API answers: the fiscal year labels
 # (PLAN.md 2.3a) are stored only when set but always come back
 SETTINGS = {"tx_fee_pct": 3.0}

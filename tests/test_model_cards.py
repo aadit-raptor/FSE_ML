@@ -45,7 +45,7 @@ def test_each_registered_model_names_its_evaluation_and_has_a_card():
     for m in card.registry()["models"]:
         json_path, md_path = card.paths(m["id"])
         assert json_path.exists() and md_path.exists()
-        assert m["evaluation"] in {"ml.evaluation.deal_risk", "ml.evaluation.surrogate"}
+        assert m["evaluation"] in {"ml.evaluation.deal_risk", "ml.evaluation.distress", "ml.evaluation.surrogate"}
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ def test_a_changed_model_file_makes_its_card_stale(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 # Done when: both models have per-region results
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("model_id", ["deal_risk", "surrogate"])
+@pytest.mark.parametrize("model_id", ["deal_risk", "distress", "surrogate"])
 def test_the_card_has_results_for_every_region(model_id, fresh_cards):
     ev = fresh_cards[model_id]["evaluation"]
     headline = ev["sets"][ev["headline_set"]]
@@ -181,6 +181,7 @@ def test_truth_and_baseline_are_the_simulation_on_more_and_fewer_paths():
 # ---------------------------------------------------------------------------
 # Training (what ml.yml's train job runs)
 # ---------------------------------------------------------------------------
-def test_the_deal_risk_score_has_nothing_to_train(tmp_path: Path):
+@pytest.mark.parametrize("model_id", ["deal_risk", "distress"])
+def test_a_model_reading_published_tables_has_nothing_to_train(model_id, tmp_path: Path):
     with pytest.raises(SystemExit, match="nothing to train"):
-        train("deal_risk", tmp_path, samples=0, epochs=0)
+        train(model_id, tmp_path, samples=0, epochs=0)
