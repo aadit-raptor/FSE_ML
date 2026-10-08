@@ -13,8 +13,10 @@
     "baseline": 21.6529,
     "cases": 672,
     "model": 14.6628,
+    "region": "europe",
     "verdict": "beats_baseline"
    },
+   "hidden": null,
    "horizon": 1,
    "range": {
     "high": 20.5,
@@ -30,8 +32,10 @@
     "baseline": 25.2729,
     "cases": 2116,
     "model": 19.4641,
+    "region": "europe",
     "verdict": "beats_baseline"
    },
+   "hidden": null,
    "horizon": 6,
    "range": {
     "high": 24.17,
@@ -465,8 +469,10 @@
     "baseline": 21.3425,
     "cases": 608,
     "model": 13.5312,
+    "region": "us",
     "verdict": "beats_baseline"
    },
+   "hidden": null,
    "horizon": 1,
    "range": {
     "high": 16.35,
@@ -482,8 +488,10 @@
     "baseline": 24.501,
     "cases": 1645,
     "model": 19.8378,
+    "region": "us",
     "verdict": "beats_baseline"
    },
+   "hidden": null,
    "horizon": 6,
    "range": {
     "high": 20.23,
@@ -738,8 +746,10 @@
     "baseline": 21.3425,
     "cases": 608,
     "model": 13.5312,
+    "region": "us",
     "verdict": "beats_baseline"
    },
+   "hidden": null,
    "horizon": 1,
    "range": {
     "high": 16.35,
@@ -755,8 +765,10 @@
     "baseline": 24.501,
     "cases": 1645,
     "model": 19.8378,
+    "region": "us",
     "verdict": "beats_baseline"
    },
+   "hidden": null,
    "horizon": 6,
    "range": {
     "high": 20.23,

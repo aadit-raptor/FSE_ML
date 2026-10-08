@@ -2265,6 +2265,8 @@ class MultipleBand(BaseModel):
 
 
 class MultipleCardResult(BaseModel):
+    region: Optional[SpRegion] = Field(None, description="The S&P region whose cases the card tested: the peer "
+                                                         "group's")
     verdict: Verdict = Field(description="The card's verdict for this range in the region "
                                          "(docs/model-cards/multiples.md)")
     cases: int = Field(description="Industry-years the card tested in the region")
@@ -2275,7 +2277,11 @@ class MultipleCardResult(BaseModel):
 class MultipleRange(BaseModel):
     horizon: int = Field(description="Years after the latest published multiple")
     year: int = Field(description="The year the range is for")
-    shown: bool = Field(description="Whether the card says this range beats the baseline in the deal's region")
+    shown: bool = Field(description="Whether the card tested this horizon and says the range beats the baseline "
+                                    "in the region of the group it is built from")
+    hidden: Optional[Literal["untested_horizon", "few_moves", "does_not_beat_baseline", "not_enough_data"]] = Field(
+        None, description="Why it is not shown: a horizon the card didn't test, too few moves over it in the "
+                          "group, or the card's verdict")
     range: Optional[MultipleBand] = Field(None, description="Only when shown")
     card: MultipleCardResult
 

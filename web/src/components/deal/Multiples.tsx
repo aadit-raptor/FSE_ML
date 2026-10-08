@@ -31,7 +31,7 @@ type RangeName = (typeof RANGES)[number]["key"];
  * and the comparables: the industry in other regions, its sector in this
  * one and, while the library is on, reference transactions like it.
  *
- * i18n-keys: multiples.range_*, multiples.verdict_*, starting.area_*, library.region_*, library.sector_*,
+ * i18n-keys: multiples.range_*, multiples.hidden_*, multiples.why_*, starting.area_*, library.region_*, library.sector_*,
  * i18n-keys: library.bucket_*, library.event_*
  */
 export function Multiples() {
@@ -127,7 +127,6 @@ function RangesTable({ answer }: { answer: Answer }) {
   const t = useTranslations("multiples");
   const lib = useTranslations("library");
   const { inputs, setFields } = useDeal();
-  const region = answer.region ? lib(`region_${answer.region}`) : "";
   const suggestion: Partial<DealInputs> = {};
   for (const { key, field } of RANGES) {
     const r = answer[key];
@@ -164,13 +163,13 @@ function RangesTable({ answer }: { answer: Answer }) {
         const r = answer[key];
         if (!r) return null;
         const c = r.card;
+        // The region whose cases the card tested: the peer group's
+        const region = c.region ? lib(`region_${c.region}`) : "";
         return (
           <p key={key} className="font-mono text-[10px] text-muted" data-card={key}>
-            {r.shown
+            {r.shown || !r.hidden
               ? t("tested", { range: t(`range_${key}`), cases: c.cases, region, model: fmtNumber(c.model, 1), baseline: fmtNumber(c.baseline, 1) })
-              : c.verdict === "does_not_beat_baseline"
-                ? t("notBetter", { range: t(`range_${key}`), region })
-                : t("tooFew", { range: t(`range_${key}`), region })}
+              : t(`why_${r.hidden}`, { range: t(`range_${key}`), region, min: answer.min_pairs })}
           </p>
         );
       })}
@@ -195,7 +194,7 @@ function RangeRow({ name, r, deal }: { name: RangeName; r: Range | null | undefi
         </>
       ) : (
         <td colSpan={3} className="text-end text-attention">
-          {t(`verdict_${r?.card.verdict ?? "not_enough_data"}`)}
+          {t(`hidden_${r?.hidden ?? "not_enough_data"}`)}
         </td>
       )}
       <td className="text-end text-ink">{fmtMultiple(deal, 1)}</td>

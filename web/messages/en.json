@@ -2052,14 +2052,9 @@
     "colDeal": "Deal",
     "range_entry": "Entry",
     "range_exit": "Exit",
-    "verdict_beats_baseline": "tested",
-    "verdict_does_not_beat_baseline": "no better than the market",
-    "verdict_not_enough_data": "not enough data",
     "useSuggestion": "Use suggestion",
     "rangeNote": "Low to high holds four in five of the moves its industries made over as many years in this region; exit is {hold, plural, one {# year} other {# years}} after entry.",
     "tested": "{range}: tested on {cases} industry-years in {region}, a closer range than the whole market's ({model} against {baseline}, lower is better).",
-    "notBetter": "{range}: not shown, in {region} it is no closer than the whole market's range.",
-    "tooFew": "{range}: not shown, too few industry-years tested in {region}.",
     "regionsTitle": "The industry in every region",
     "firms": "{count, plural, one {# company} other {# companies}}",
     "sectorTitle": "Its sector in {group}",
@@ -2070,6 +2065,14 @@
     "dealsNoSector": "Choose the deal's industry to list reference deals like it.",
     "dealsLabel": "Reference deals like it, with their entry multiples",
     "dealEntry": "{entry} entry",
-    "sourceNote": "Listed companies' averages and their archive from {publisher}, {date}; not split by size."
+    "sourceNote": "Listed companies' averages and their archive from {publisher}, {date}; not split by size.",
+    "hidden_untested_horizon": "not tested this far ahead",
+    "hidden_few_moves": "not enough data",
+    "hidden_does_not_beat_baseline": "no better than the market",
+    "hidden_not_enough_data": "not enough data",
+    "why_untested_horizon": "{range}: not shown, the model is tested for holds of three to seven years only.",
+    "why_few_moves": "{range}: not shown, fewer than {min} industry moves over that many years in the region.",
+    "why_does_not_beat_baseline": "{range}: not shown, in {region} it is no closer than the whole market's range.",
+    "why_not_enough_data": "{range}: not shown, too few industry-years tested in {region}."
   }
 }

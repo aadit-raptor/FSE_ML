@@ -4446,6 +4446,11 @@ export interface components {
              */
             model?: number | null;
             /**
+             * Region
+             * @description The S&P region whose cases the card tested: the peer group's
+             */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
              * Verdict
              * @description The card's verdict for this range in the region (docs/model-cards/multiples.md)
              * @enum {string}
@@ -4456,6 +4461,11 @@ export interface components {
         MultipleRange: {
             card: components["schemas"]["MultipleCardResult"];
             /**
+             * Hidden
+             * @description Why it is not shown: a horizon the card didn't test, too few moves over it in the group, or the card's verdict
+             */
+            hidden?: ("untested_horizon" | "few_moves" | "does_not_beat_baseline" | "not_enough_data") | null;
+            /**
              * Horizon
              * @description Years after the latest published multiple
              */
@@ -4464,7 +4474,7 @@ export interface components {
             range?: components["schemas"]["MultipleBand"] | null;
             /**
              * Shown
-             * @description Whether the card says this range beats the baseline in the deal's region
+             * @description Whether the card tested this horizon and says the range beats the baseline in the region of the group it is built from
              */
             shown: boolean;
             /**

@@ -56,6 +56,7 @@ from benchmarks.catalogue import ALL_INDUSTRIES_ID, MIN_FIRMS, REGIONS, SOURCE, 
 from benchmarks.damodaran import Table
 from benchmarks.starting import MAX_MULTIPLE
 from library import base_rates
+from ml.anomaly_detector import sector_of, similar_deals
 
 CARD = Path(__file__).parent / "cards" / "multiples.json"
 # The range's percentiles: its low end, the suggestion and its high end
@@ -64,8 +65,13 @@ QUANTILES = (0.1, 0.5, 0.9)
 MIN_PAIRS = 30
 DECIMALS = 2
 NOTES = ("size_not_split", "listed_company_figures")
-# Card sets: which range each tests
+# Card sets: which range each tests, and the horizons (years after the latest
+# edition) it tests: entry the year after it, exit holds of 3 to 7 after that
 SETS = {"entry": "entry", "exit": "exit"}
+TESTED_HORIZONS = {"entry": (1,), "exit": (4, 5, 6, 7, 8)}
+# Damodaran's groups in S&P's regions (the card's); the global group has none
+GROUP_REGION = {"us": "us", "europe": "europe", "japan": "other_developed", "aus_nz_canada": "other_developed",
+                "china": "emerging", "india": "emerging", "emerging": "emerging"}
 
 
 def usable(value) -> bool:
@@ -92,10 +98,18 @@ def market_median(by_industry: Mapping[str, Mapping[int, float]], year: int) -> 
     return quantile(values, 0.5) if values else None
 
 
-def gap(by_industry: Mapping[str, Mapping[int, float]], value: float, year: int) -> float:
+def market_medians(by_industry: Mapping[str, Mapping[int, float]]) -> dict[int, float]:
+    """``market_median`` for every year the group has."""
+    years = {y for s in by_industry.values() for y in s}
+    return {y: m for y in years if (m := market_median(by_industry, y))}
+
+
+def gap(by_industry: Mapping[str, Mapping[int, float]], value: float, year: int,
+        medians: Optional[Mapping[int, float]] = None) -> float:
     """ln(``value`` / the market's median in ``year``): how far an industry's
-    multiple sits above (positive) or below the group's market."""
-    median = market_median(by_industry, year)
+    multiple sits above (positive) or below the group's market. ``medians``
+    (``market_medians``) saves working each year's out again."""
+    median = medians.get(year) if medians is not None else market_median(by_industry, year)
     return math.log(value / median) if median else 0.0
 
 
@@ -104,12 +118,13 @@ def moves(by_industry: Mapping[str, Mapping[int, float]], horizon: int,
     """``(gap in the base year, ln(multiple / multiple horizon years
     earlier))`` pooled over the industries, for target years before
     ``before`` (all when None)."""
+    medians = market_medians(by_industry)
     out = []
     for s in by_industry.values():
         for y, v in s.items():
             if (before is None or y < before) and (y - horizon) in s:
                 base = s[y - horizon]
-                out.append((gap(by_industry, base, y - horizon), math.log(v / base)))
+                out.append((gap(by_industry, base, y - horizon, medians), math.log(v / base)))
     return out
 
 
@@ -210,9 +225,10 @@ def ranges(tables: Mapping[str, Table], group: str, industry_series: Mapping[int
 # ---------------------------------------------------------------------------
 # Comparables
 # ---------------------------------------------------------------------------
-def sector_of(industry: str) -> Optional[str]:
-    from validation.tags import INDUSTRY_SECTOR
-    return INDUSTRY_SECTOR.get(industry)
+def history_groups(country: str) -> list[str]:
+    """The groups a deal in ``country`` can be ranged in (its chain without
+    the global group): the only history tables the answer reads."""
+    return [a for a in chain(canonical(country)) if REGIONS[a].level != "global"] if country else []
 
 
 def _latest(tables: Mapping[str, Table], group: str, industry: str) -> Optional[dict]:
@@ -274,22 +290,33 @@ def card_result(set_name: str, region: Optional[str], card: Optional[Mapping] = 
     ev = (card or _card())["evaluation"]
     group = ev["sets"][SETS[set_name]]["by_region"].get(region) if region else None
     if not group:
-        return {"verdict": "not_enough_data", "cases": 0, "model": None, "baseline": None}
+        return {"region": region, "verdict": "not_enough_data", "cases": 0, "model": None, "baseline": None}
     head = ev["headline_metric"]
-    return {"verdict": group["verdict"], "cases": group["cases"],
+    return {"region": region, "verdict": group["verdict"], "cases": group["cases"],
             "model": (group.get("model") or {}).get(head), "baseline": (group.get("baseline") or {}).get(head)}
 
 
-def shown(found: Mapping, region: Optional[str], card: Optional[Mapping] = None) -> dict:
-    """Each range as the screen may show it: its figures only where the
-    card says that range beats the baseline in the deal's region."""
+def hidden_because(name: str, r: Mapping, verdict: str) -> Optional[str]:
+    """Why a range is not shown: a horizon the card didn't test, too few
+    moves over it in the group, or the card's verdict; None when shown."""
+    if r["horizon"] not in TESTED_HORIZONS[name]:
+        return "untested_horizon"
+    if r["range"] is None:
+        return "few_moves"
+    return None if verdict == "beats_baseline" else verdict
+
+
+def shown(found: Mapping, group: str, card: Optional[Mapping] = None) -> dict:
+    """Each range as the screen may show it: its figures only for a horizon
+    the card tested, where the card says that range beats the baseline in
+    the S&P region of the group the range is built from."""
     out = {}
     for name in SETS:
         r = found[name]
-        result = card_result(name, region, card)
-        visible = result["verdict"] == "beats_baseline" and r["range"] is not None
-        out[name] = {"horizon": r["horizon"], "year": r["year"], "shown": visible,
-                     "range": r["range"] if visible else None, "card": result}
+        result = card_result(name, GROUP_REGION.get(group), card)
+        why = hidden_because(name, r, result["verdict"])
+        out[name] = {"horizon": r["horizon"], "year": r["year"], "shown": why is None, "hidden": why,
+                     "range": r["range"] if why is None else None, "card": result}
     return out
 
 
@@ -302,7 +329,6 @@ def predict(country: str, industry: str, hold: int, tables: Mapping[str, Table],
     """The whole answer: the peer group's latest multiple, the entry and
     exit ranges where the card allows them, the comparables and, when the
     library is on (``library`` not None), the reference transactions like it."""
-    from ml.anomaly_detector import similar_deals
     country = canonical(country)
     industry = industry or ALL_INDUSTRIES_ID
     region = base_rates.sp_region(country)
@@ -329,5 +355,5 @@ def predict(country: str, industry: str, hold: int, tables: Mapping[str, Table],
             "latest_year": found["latest_year"], "latest": found["latest"],
             "published": current.published if current else None,
             "url": current.url if current else history.ARCHIVE_PAGE,
-            **shown(found, region, card),
+            **shown(found, group, card),
             "regions": by_region(tables, industry, group), "sector": same_sector(tables, group, industry)}

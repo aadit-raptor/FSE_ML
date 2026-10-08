@@ -1114,7 +1114,8 @@ enough for the free server.
   tests.ml_multiple_history`): about 73% of held-out multiples fall inside
   the 80% range in every region (entry 67-78%, exit 72-74%), and the range
   beats the region's whole market on the interval score in every region and
-  both sets, so it shows wherever a peer group is large enough. Deal ->
+  both sets, so it shows wherever a peer group is large enough (the exit
+  range for holds of three to seven years, the horizons tested). Deal ->
   Returns has a Multiples tile: the ranges, "Use suggestion" (sets the entry
   and exit multiples), the industry in every region, its sector in the
   region and, with the library on, the reference transactions like it with

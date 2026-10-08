@@ -36,17 +36,18 @@ from typing import Optional, Sequence
 
 from benchmarks.damodaran import Table
 from ml.evaluation.harness import Case, Metric, evaluate_set, mean_abs, metric_specs, share, walk_forward
-from ml.multiple_predictor import MIN_PAIRS, QUANTILES, band, fit as fit_line, gap, group_series, market_band
+from ml.multiple_predictor import (
+    GROUP_REGION, MIN_PAIRS, QUANTILES, TESTED_HORIZONS, band, fit as fit_line, gap, group_series, market_band,
+    market_medians,
+)
 
 MODEL_ID = "multiples"
 HISTORY = Path(__file__).parent / "data" / "multiple_history.json"
 HEADLINE_SET = "entry"
-# Damodaran's groups in S&P's regions; the global group has none
-GROUP_REGION = {"us": "us", "europe": "europe", "japan": "other_developed", "aus_nz_canada": "other_developed",
-                "china": "emerging", "india": "emerging", "emerging": "emerging"}
-ENTRY_HORIZONS = (1,)
+# The horizons each set tests: the app shows a range only at these
+ENTRY_HORIZONS = TESTED_HORIZONS["entry"]
 # A deal's hold of 3 to 7 years, after the year to its close
-EXIT_HORIZONS = (4, 5, 6, 7, 8)
+EXIT_HORIZONS = TESTED_HORIZONS["exit"]
 # The first year tested: the archive starts with 2011, so earlier cutoffs
 # would rest on two or three years of moves
 FIRST_CUTOFF = 2014
@@ -63,6 +64,7 @@ def cases(by_group: dict[str, dict], horizons: Sequence[int]) -> list[Case]:
     """Every industry-year with a multiple ``h`` years before it, per horizon."""
     out = []
     for group, by_industry in by_group.items():
+        medians = market_medians(by_industry)
         for industry, s in by_industry.items():
             for y, v in s.items():
                 for h in horizons:
@@ -70,7 +72,7 @@ def cases(by_group: dict[str, dict], horizons: Sequence[int]) -> list[Case]:
                         out.append(Case(id=f"{group}.{industry}.{y}.{h}", region=GROUP_REGION[group], year=y,
                                         features={"group": group, "industry": industry, "horizon": h,
                                                   "base_year": y - h, "base": s[y - h],
-                                                  "gap": gap(by_industry, s[y - h], y - h)},
+                                                  "gap": gap(by_industry, s[y - h], y - h, medians)},
                                         truth=v))
     return out
 
@@ -125,13 +127,17 @@ METRICS = (
 HEADLINE = "interval_score"
 
 
+def cutoffs(by_group: dict[str, dict]) -> list[int]:
+    """A cutoff a year, from FIRST_CUTOFF to the newest year stored."""
+    last = max(y for g in by_group.values() for s in g.values() for y in s)
+    return list(range(FIRST_CUTOFF, last + 1))
+
+
 def scored(horizons: Sequence[int], t=None) -> list[tuple[Case, dict, dict]]:
     """``(case, range, baseline range)`` for every case the predictor answers."""
     t = t if t is not None else tables()
     by_group = {g: group_series(t, g) for g in GROUP_REGION}
-    all_cases = cases(by_group, horizons)
-    last = max(c.year for c in all_cases)
-    found = walk_forward(all_cases, list(range(FIRST_CUTOFF, last + 1)), fit, predict)
+    found = walk_forward(cases(by_group, horizons), cutoffs(by_group), fit, predict)
     rows = []
     for c, p in found:
         if p is None:
@@ -156,8 +162,7 @@ def evaluate(base: Optional[str] = None) -> dict:   # noqa: ARG001 -- nothing tr
         "headline_metric": HEADLINE,
         "metrics": metric_specs(METRICS),
         "split": {"kind": "walk_forward", "dated_by": "the year of the multiple predicted",
-                  "cutoffs": list(range(FIRST_CUTOFF, max(c.year for c in cases(
-                      {g: group_series(t, g) for g in GROUP_REGION}, ENTRY_HORIZONS)) + 1))},
+                  "cutoffs": cutoffs({g: group_series(t, g) for g in GROUP_REGION})},
         "baseline": {"id": "market", "description":
                      "The region's whole market: the same percentiles (10th, 50th, 90th) across every "
                      "industry of the group in the base year, whatever the deal's industry"},

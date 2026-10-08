@@ -196,13 +196,39 @@ def test_the_walk_forward_never_reads_a_later_year():
     assert by_case(later) == by_case(TABLES)
 
 
+@pytest.mark.parametrize("hold, why", [(8, "untested_horizon"), (15, "untested_horizon")])
+def test_a_hold_the_card_did_not_test_shows_no_exit_range(hold, why):
+    found = predict("US", hold=hold)
+    assert found["entry"]["shown"] is True
+    assert (found["exit"]["shown"], found["exit"]["hidden"], found["exit"]["range"]) == (False, why, None)
+
+
+def test_a_horizon_with_too_few_moves_says_so():
+    """Exit at a tested horizon, but the group's record is too short for it."""
+    with mock.patch.object(mp, "MIN_PAIRS", 100_000):
+        found = predict("US")
+    assert (found["entry"]["hidden"], found["exit"]["hidden"]) == ("few_moves", "few_moves")
+    assert found["entry"]["card"]["verdict"] == "beats_baseline"
+
+
+def test_the_card_is_read_for_the_region_of_the_group_the_range_comes_from():
+    """A Korean deal is S&P 'other developed' but its peers are Damodaran's
+    emerging markets: the emerging verdict decides."""
+    card = committed_card()
+    card["evaluation"]["sets"]["entry"]["by_region"]["emerging"]["verdict"] = "does_not_beat_baseline"
+    found = predict("KR", card=card)
+    assert (found["region"], found["group"]) == ("other_developed", "emerging")
+    assert found["entry"]["card"]["region"] == "emerging"
+    assert (found["entry"]["shown"], found["entry"]["hidden"]) == (False, "does_not_beat_baseline")
+
+
 def test_a_card_that_does_not_beat_the_baseline_hides_that_range():
     card = committed_card()
     card["evaluation"]["sets"]["exit"]["by_region"]["us"]["verdict"] = "does_not_beat_baseline"
     found = predict("US", card=card)
     assert found["entry"]["shown"] is True and found["entry"]["range"] is not None
     assert found["exit"]["shown"] is False and found["exit"]["range"] is None
-    assert found["exit"]["card"]["verdict"] == "does_not_beat_baseline"
+    assert found["exit"]["card"]["verdict"] == found["exit"]["hidden"] == "does_not_beat_baseline"
     assert found["latest"] is not None                         # the published figure still shows
 
 
@@ -259,7 +285,7 @@ def test_with_the_library_off_the_ranges_are_the_same_and_no_deal_is_listed():
 # ---------------------------------------------------------------------------
 def post(inputs: dict, library=None, usd_per=1.0):
     with mock.patch("api.routers.integrations._peer_data",
-                    lambda currency, history=False: (TABLES, library, usd_per)):
+                    lambda currency, history_groups=None: (TABLES, library, usd_per)):
         resp = client.post("/api/ml/multiples", json={"inputs": inputs})
     assert resp.status_code == 200, resp.text
     return resp.json()
@@ -285,12 +311,21 @@ def test_the_endpoint_works_with_the_library_off_and_lists_deals_with_it_on():
 def test_the_endpoint_reads_the_stored_history():
     seen = {}
 
-    def peer_data(currency, history=False):
-        seen["history"] = history
+    def peer_data(currency, history_groups=None):
+        seen["groups"] = history_groups
         return TABLES, None, 1.0
     with mock.patch("api.routers.integrations._peer_data", peer_data):
-        client.post("/api/ml/multiples", json={"inputs": {"country": "US"}})
-    assert seen == {"history": True}
+        client.post("/api/ml/multiples", json={"inputs": {"country": "IN"}})
+    # India's chain without the global group: only those histories are read
+    assert seen == {"groups": ["india", "emerging"]}
+
+
+def test_only_the_deals_peer_groups_history_is_needed():
+    """The answer read with only the chain's history is the answer read with all of it."""
+    for country in ("IN", "DE", "US"):
+        keep = {f"history.{g}" for g in mp.history_groups(country)}
+        some = {k: v for k, v in TABLES.items() if not k.startswith("history.") or k in keep}
+        assert mp.predict(country, "machinery", 5, some, TODAY) == predict(country), country
 
 
 def test_a_server_without_a_database_says_not_enough_data():
@@ -308,3 +343,12 @@ def test_the_browser_tests_recorded_answers_are_current():
     from tests import e2e_multiples
     assert e2e_multiples.OUT.read_text(encoding="utf-8") == e2e_multiples.text(), (
         "web/e2e/fixtures/multiples.json is stale: run python -m tests.e2e_multiples")
+
+
+def test_the_store_reads_only_the_history_groups_asked_for(fresh_db):  # noqa: ARG001
+    from db import benchmarks as store
+    store.save([TABLES[n] for n in ("history.europe", "history.us", "multiples.europe", "multiples.us")])
+    some, _ = store.all_tables(history_groups=mp.history_groups("DE"))
+    assert set(some) == {"history.europe", "multiples.europe", "multiples.us"}
+    assert set(store.all_tables()[0]) == {"multiples.europe", "multiples.us"}
+    assert len(store.all_tables(history=True)[0]) == 4

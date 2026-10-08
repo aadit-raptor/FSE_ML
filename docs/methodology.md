@@ -904,7 +904,8 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   horizon of h years, every pair of an industry's multiples h years apart
   in the group, as (`gap` in the base year, ln(later / earlier)), where the
   gap is ln(multiple / the group's median industry that year,
-  `market_median`; `quantile` interpolates linearly). *The line* (`fit`,
+  `market_median`, worked out once a year by `market_medians`; `quantile`
+  interpolates linearly). *The line* (`fit`,
   a `Fit`): the moves' least-squares line on the gap, a + b x gap (b is
   negative: expensive industries cheapen, cheap ones catch up), and its
   sorted misses; under `MIN_PAIRS` = 30 moves there is no range. *The
@@ -914,9 +915,15 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   latest published one (a later year if the stored edition is older),
   exit is entry plus the deal's hold; figures are rounded to two places
   (`_rounded`). *Shown only where its card beats the baseline*: `shown`
-  reads each range's verdict for the deal's S&P region from the card's
-  `entry` and `exit` sets (`card_result`, `_card`) and gives its figures
-  only then. *Comparables*: `by_region`, the industry's latest multiple in
+  reads each range's verdict from the card's `entry` and `exit` sets
+  (`card_result`, `_card`) for the S&P region of the peer group the range
+  is built from (`GROUP_REGION`: a Korean deal's peers are Damodaran's
+  emerging markets, so emerging's verdict decides), and gives its figures
+  only for a horizon the card tested (`TESTED_HORIZONS`: entry 1, exit 4
+  to 8, holds of three to seven years) where the verdict is "beats the
+  baseline"; `hidden_because` says why not (`untested_horizon`,
+  `few_moves`, or the verdict). Only the history of the deal's own groups
+  is read (`history_groups`: its chain without the global group). *Comparables*: `by_region`, the industry's latest multiple in
   every group (`_latest`); `same_sector`, the peer group's industries with
   20 companies in the same GICS sector (`sector_of`, §14's map; `_name`
   reads names), cheapest first; and, only while the reference library is on,
@@ -1294,7 +1301,7 @@ the archive and the January 2026 edition as recorded (`tables`,
 years earlier, with that year's gap; each group in its S&P region
 (`GROUP_REGION`). Two sets: `entry` (h = 1, the headline) and `exit` (h = 4
 to 8, holds of three to seven years). Walk-forward, a cutoff each year from
-`FIRST_CUTOFF` = 2014: `fit` draws the line through the moves that ended
+`FIRST_CUTOFF` = 2014 to the newest year stored (`cutoffs`): `fit` draws the line through the moves that ended
 before the cutoff, by group and horizon, and `predict` gives the app's
 range (`band`); a horizon with too few earlier moves gives none and the case
 is left out (`scored`). Baseline: `market_band` in the base year, the

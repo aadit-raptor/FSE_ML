@@ -1013,16 +1013,20 @@ squares on the industry's gap from the group's median industry that year
 the 10th/50th/90th percentile of what the line missed (`MIN_PAIRS` 30).
 Entry is the year after the latest edition, exit entry + hold. **Each range
 is shown only where `ml/cards/multiples.json` says it beats the region's
-whole market** (sets `entry` and `exit`, headline the interval score);
-today every region beats it in both, about 73% of held-out multiples inside
+whole market** (sets `entry` and `exit`, headline the interval score), read
+for the **peer group's** S&P region (`GROUP_REGION`; a Korean deal's peers
+are emerging markets), and **only at horizons the card tested**
+(`TESTED_HORIZONS`: entry 1, exit 4-8, so a hold above 7 gets no exit
+range, `hidden: untested_horizon`); today every region beats it in both,
+about 73% of held-out multiples inside
 the 80% range. The card is **walk-forward, a cutoff a year from 2014, on
 every industry** (`ml/evaluation/data/multiple_history.json`, 13,544
 industry-years), written by `python -m tests.ml_multiple_history`, which
 calls Damodaran's archive (about 120 workbooks, a few minutes); the browser
 fixture `web/e2e/fixtures/multiples.json` comes from `python -m
 tests.e2e_multiples` (answers given on a fixed day, `DAY`).
-`POST /api/ml/multiples` (in `RUN_PATHS`, reads storage only, with the
-history tables) answers the ranges, the industry in every group, its sector
+`POST /api/ml/multiples` (in `RUN_PATHS`, reads storage only, with only
+the deal's own groups' history: `all_tables(history_groups=...)`) answers the ranges, the industry in every group, its sector
 in the region and, with the library on, the reference transactions like it.
 Screen: Deal -> Returns, Multiples tile (`components/deal/Multiples.tsx`,
 namespace `multiples`), "Use suggestion" sets `entry_mult` and `exit_mult`.

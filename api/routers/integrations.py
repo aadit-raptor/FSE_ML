@@ -75,18 +75,18 @@ def get_capabilities():
 
 
 # ---------------------------------------------------------------------------
-def _peer_data(currency: str, history: bool = False) -> tuple[dict, Optional[list], Optional[float]]:
-    """What the deal risk score reads from storage: the industry averages,
-    the approved reference transactions (None while the library is off) and
-    US dollars per unit of ``currency`` (None when not known). A server
-    without a database has none of them, and the score says "not enough
-    data"."""
+def _peer_data(currency: str, history_groups: Optional[list] = None) -> tuple[dict, Optional[list], Optional[float]]:
+    """What the deal risk score and the multiple predictor read from
+    storage: the industry averages (with ``history_groups``' history), the
+    approved reference transactions (None while the library is off) and US
+    dollars per unit of ``currency`` (None when not known). A server without
+    a database has none of them, and they say "not enough data"."""
     if not is_configured():
         return {}, None, None
     from db import benchmarks, economy
     from db import references as stored_references
     from library import switch
-    tables, _ = benchmarks.all_tables(history=history)
+    tables, _ = benchmarks.all_tables(history_groups=history_groups)
     library = stored_references.approved() if switch.enabled() else None
     if currency == "USD":
         return tables, library, 1.0
@@ -126,9 +126,10 @@ def post_multiples(req: MultiplesRequest):
     market, with the comparables: the industry in every group, the region's
     industries in the same sector and, when the library is on, the
     reference transactions like it."""
-    from ml.multiple_predictor import predict
+    from ml.multiple_predictor import history_groups, predict
     d = DealInputs(**req.inputs.model_dump())
-    tables, library, usd_per = _peer_data(d.currency, history=True)
+    # Only the history of the groups the deal can be ranged in: the rest is never read
+    tables, library, usd_per = _peer_data(d.currency, history_groups(d.country))
     ev_usd_m = d.entry_mult * to_millions(d.ebitda, d.unit) * usd_per if usd_per else None
     answer = predict(d.country, d.industry, int(d.hold), tables, _today(), library, ev_usd_m)
     # The ranges read no Settings
