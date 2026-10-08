@@ -44,7 +44,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
-from benchmarks.catalogue import ALL_INDUSTRIES_ID, MIN_FIRMS, REGIONS, SOURCE, chain
+from benchmarks.catalogue import ALL_INDUSTRIES_ID, MIN_FIRMS, REGIONS, SOURCE, canonical, chain
 from benchmarks.damodaran import Table
 from library import base_rates, coverage, references
 
@@ -187,8 +187,9 @@ def unusual(comparisons: Iterable[dict]) -> bool:
 
 def compare(deal: DealShape, tables: Mapping[str, Table]) -> dict:
     """Every figure against the industry's in the deal's region, the score and the flag."""
+    # A retired code (UK, DD) is read as its current country, as the starting figures read it
+    deal = replace(deal, country=canonical(deal.country), industry=deal.industry or ALL_INDUSTRIES_ID)
     region = base_rates.sp_region(deal.country)
-    deal = replace(deal, industry=deal.industry or ALL_INDUSTRIES_ID)
     if not deal.country:
         return {"status": "not_enough_data", "reason": "no_country", "region": None, "comparisons": [],
                 "sample": None, "score": None, "unusual": False}

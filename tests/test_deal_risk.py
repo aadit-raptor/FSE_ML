@@ -283,3 +283,12 @@ def test_the_browser_tests_recorded_answers_are_current():
     from tests import e2e_deal_risk
     assert e2e_deal_risk.OUT.read_text(encoding="utf-8") == e2e_deal_risk.text(), (
         "web/e2e/fixtures/deal-risk.json is stale: run python -m tests.e2e_deal_risk")
+
+
+@pytest.mark.parametrize("retired, current, group", [("UK", "GB", "europe"), ("DD", "DE", "europe")])
+def test_a_retired_country_code_is_compared_as_its_current_country(retired, current, group):
+    """The API accepts codes accounts saved before the country list dropped
+    them; the starting figures read them as the current country, and so does this."""
+    old, new = compare(deal(retired), TABLES), compare(deal(current), TABLES)
+    assert old["sample"]["group"] == group
+    assert old == new
