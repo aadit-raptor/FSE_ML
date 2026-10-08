@@ -1,7 +1,8 @@
 """The model registry and the cards of the models the app loads (PLAN.md 5.1).
 
 "Done when: the surrogate and anomaly detector have cards with per-region
-results." These tests re-evaluate both from their committed files, so a
+results." The anomaly detector became the deal risk score in PLAN.md 5.2.
+These tests re-evaluate both from their committed files, so a
 card can't be edited by hand or left behind by a retrained model, and every
 trained file in ml/ must be registered. They need the ML packages (CI's
 ``ml`` job, which fails on a skip).
@@ -11,13 +12,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 pytest.importorskip("sklearn")
 pytest.importorskip("torch")
 
-from ml.evaluation import anomaly, card, surrogate                # noqa: E402
+from ml.evaluation import card, deal_risk, surrogate              # noqa: E402
 from ml.evaluation.__main__ import model_card, stale, train      # noqa: E402
 from ml.evaluation.harness import NOT_ENOUGH, REGIONS              # noqa: E402
 
@@ -45,7 +45,7 @@ def test_each_registered_model_names_its_evaluation_and_has_a_card():
     for m in card.registry()["models"]:
         json_path, md_path = card.paths(m["id"])
         assert json_path.exists() and md_path.exists()
-        assert m["evaluation"] in {"ml.evaluation.anomaly", "ml.evaluation.surrogate"}
+        assert m["evaluation"] in {"ml.evaluation.deal_risk", "ml.evaluation.surrogate"}
 
 
 # ---------------------------------------------------------------------------
@@ -70,17 +70,17 @@ def test_a_card_records_the_hash_of_every_file_it_evaluated(fresh_cards):
 def test_a_changed_model_file_makes_its_card_stale(tmp_path, monkeypatch):
     """Retraining without re-evaluating fails CI: the hash no longer matches."""
     import ml.evaluation.__main__ as cli
-    committed = json.loads(card.paths("anomaly_detector")[0].read_text(encoding="utf-8"))
+    committed = json.loads(card.paths("surrogate")[0].read_text(encoding="utf-8"))
     changed = json.loads(json.dumps(committed))
     changed["registry"]["artifacts"][0]["sha256"] = "0" * 64
     monkeypatch.setattr(cli, "model_card", lambda model_id, base=None: changed)
-    assert any("sha256" in p for p in stale("anomaly_detector"))
+    assert any("sha256" in p for p in stale("surrogate"))
 
 
 # ---------------------------------------------------------------------------
 # Done when: both models have per-region results
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("model_id", ["anomaly_detector", "surrogate"])
+@pytest.mark.parametrize("model_id", ["deal_risk", "surrogate"])
 def test_the_card_has_results_for_every_region(model_id, fresh_cards):
     ev = fresh_cards[model_id]["evaluation"]
     headline = ev["sets"][ev["headline_set"]]
@@ -91,15 +91,16 @@ def test_the_card_has_results_for_every_region(model_id, fresh_cards):
         assert ("model" in g) == (g["verdict"] != NOT_ENOUGH)
 
 
-def test_the_anomaly_detector_is_tested_out_of_time_and_only_the_us_has_cases(fresh_cards):
-    ev = fresh_cards["anomaly_detector"]["evaluation"]
-    oot = ev["sets"]["out_of_time"]
-    # Deals closed 2008 on: 14 cases, 4 of them distressed
-    assert oot["overall"]["cases"] == 14
-    assert oot["by_region"]["us"]["cases"] == 14
-    assert all(oot["by_region"][r] == {"cases": 0, "verdict": NOT_ENOUGH}
+def test_the_deal_risk_score_is_tested_on_the_reference_transactions_and_only_the_us_has_enough(fresh_cards):
+    ev = fresh_cards["deal_risk"]["evaluation"]
+    every = ev["sets"]["reference_deals"]
+    # Ten transactions; D&B (15 US information services companies) and
+    # Masonite (Canadian building materials) have no peer group in their region
+    assert every["overall"]["cases"] == 8
+    assert every["by_region"]["us"]["cases"] == 5
+    assert all(every["by_region"][r] == {"cases": 1, "verdict": NOT_ENOUGH}
                for r in ("europe", "emerging", "other_developed"))
-    assert ev["sets"]["in_sample"]["overall"]["cases"] == 30
+    assert "dun-bradstreet-2019, masonite-2005" in every["description"]
 
 
 def test_the_surrogate_is_tested_on_deals_from_every_region(fresh_cards):
@@ -112,39 +113,35 @@ def test_the_surrogate_is_tested_on_deals_from_every_region(fresh_cards):
 
 
 # ---------------------------------------------------------------------------
-# The anomaly detector's evaluation
+# The deal risk score's evaluation
 # ---------------------------------------------------------------------------
-def test_refitting_on_every_deal_reproduces_the_committed_detector():
-    """fit_detector is train_detector's fit: the harness refits the very model
-    the app loads, not a look-alike."""
-    from ml.anomaly_detector import fit_detector, load_detector
-    detector, scaler, nn_model, raw_df, n = fit_detector()
-    committed = load_detector()
-    x = np.array([[c.features[k] for k in anomaly.FEATURES] for c in anomaly.cases()])
-    assert n == 530
-    assert np.allclose(scaler.transform(x), committed[1].transform(x), rtol=0, atol=1e-12)
-    assert np.allclose(detector.score_samples(scaler.transform(x)),
-                       committed[0].score_samples(committed[1].transform(x)), rtol=0, atol=1e-12)
+def test_every_reference_transaction_has_an_industry_the_averages_know():
+    tables = deal_risk.peer_tables()
+    keys = {c.id for c in deal_risk.cases()}
+    assert keys == set(deal_risk.INDUSTRY)
+    assert set(deal_risk.INDUSTRY.values()) <= set(tables["debt.global"].rows)
 
 
-def test_the_out_of_time_set_scores_each_deal_with_a_model_fitted_only_on_older_deals(monkeypatch):
-    fitted_on = []
-    real_fit = anomaly.fit
-
-    def spy(train):
-        fitted_on.append(max(c.year for c in train))
-        return real_fit(train)
-    monkeypatch.setattr(anomaly, "fit", spy)
-    from ml.evaluation.harness import walk_forward
-    out = walk_forward(anomaly.cases(), anomaly.CUTOFFS, anomaly.fit, anomaly.predict)
-    assert fitted_on == [2007, 2009]
-    assert sorted({c.year for c, _ in out}) == [2008, 2009, 2010, 2011, 2013, 2014, 2016]
+def test_a_case_is_scored_as_the_app_scores_it():
+    """The evaluation asks ml.anomaly_detector.compare, the app's own function."""
+    from ml.anomaly_detector import DealShape, compare
+    tables = deal_risk.peer_tables()
+    toys = next(c for c in deal_risk.cases() if c.id == "toys-r-us-2005")
+    found = compare(DealShape("US", "retail_special_lines", 6.69, 10.03), tables)
+    assert deal_risk.predict(tables, toys) == {"score": found["score"], "flag": found["unusual"]}
+    assert found["score"] > 0
 
 
 def test_the_baseline_is_leverage_against_the_supervisory_limit():
-    deal = next(c for c in anomaly.cases() if c.id == "Hilton 2007")
-    assert anomaly.baseline(deal) == {"score": 14.6, "flag": True}
-    assert anomaly.baseline(next(c for c in anomaly.cases() if c.id == "Dell 2013"))["flag"] is False
+    by_id = {c.id: c for c in deal_risk.cases()}
+    assert deal_risk.baseline(by_id["toys-r-us-2005"]) == {"score": 6.69, "flag": True}
+    assert deal_risk.baseline(by_id["hca-2006"])["flag"] is False
+
+
+def test_the_peer_tables_file_is_current():
+    from tests import ml_peer_tables
+    assert deal_risk.PEER_TABLES.read_text(encoding="utf-8") == ml_peer_tables.text(), (
+        "ml/evaluation/data/peer_tables.json is stale: run python -m tests.ml_peer_tables")
 
 
 # ---------------------------------------------------------------------------
@@ -184,12 +181,6 @@ def test_truth_and_baseline_are_the_simulation_on_more_and_fewer_paths():
 # ---------------------------------------------------------------------------
 # Training (what ml.yml's train job runs)
 # ---------------------------------------------------------------------------
-def test_training_the_anomaly_detector_gives_the_committed_files_card(tmp_path: Path, fresh_cards):
-    """Deterministic training: the files trained into a scratch directory
-    evaluate to the committed card, and nothing in the repository changes."""
-    before = {a: card.sha256(card.ROOT / a) for a in card.entry("anomaly_detector")["artifacts"]}
-    new = train("anomaly_detector", tmp_path, samples=0, epochs=0)
-    assert {a: card.sha256(card.ROOT / a) for a in before} == before
-    assert (tmp_path / "cards" / "anomaly_detector.json").exists()
-    assert (tmp_path / "docs" / "anomaly_detector.md").exists()
-    assert new["evaluation"] == fresh_cards["anomaly_detector"]["evaluation"]
+def test_the_deal_risk_score_has_nothing_to_train(tmp_path: Path):
+    with pytest.raises(SystemExit, match="nothing to train"):
+        train("deal_risk", tmp_path, samples=0, epochs=0)

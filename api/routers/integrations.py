@@ -1,18 +1,21 @@
 """Settings, capabilities, optional ML features and SEC EDGAR."""
 import importlib.util
 import os
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
 from api.deps import resolve_settings
 from api.schemas import (
-    Capabilities, DealRiskRequest, EdgarResponse, SettingsResponse, SettingsValidateRequest,
+    Capabilities, DealRiskRequest, DealRiskResponse, EdgarResponse, SettingsResponse, SettingsValidateRequest,
     SurrogateRequest, SurrogateResponse,
 )
 from api.serialize import to_json
 from core.model_version import stamp
 from core.config import DEFAULTS, build_corr_matrix, is_valid_corr
 from core.deal import DealInputs, risk_model_inputs
+from core.money import to_millions
+from db.engine import is_configured
 from core.montecarlo import MCInputs
 from core.surrogate import surrogate_features, tail_unreliable, training_term_differences, training_terms
 
@@ -51,13 +54,6 @@ def post_settings_validate(req: SettingsValidateRequest):
 @router.get("/capabilities", response_model=Capabilities)
 def get_capabilities():
     """Which optional features this server can run."""
-    anomaly = False
-    if _installed("sklearn", "joblib"):
-        try:
-            from ml.anomaly_detector import detector_is_trained
-            anomaly = detector_is_trained()
-        except (ImportError, OSError):
-            pass
     # Checked by file, not by importing ml.surrogate.predict: that loads torch,
     # which takes seconds.
     surrogate = _installed("torch", "joblib") and all(
@@ -71,31 +67,51 @@ def get_capabilities():
             regime_trained = model_is_trained()
         except (ImportError, OSError):
             pass
-    return {"anomaly_detector": anomaly, "surrogate": surrogate,
+    # The deal risk score reads stored averages and needs no ML packages (PLAN.md 5.2)
+    return {"anomaly_detector": True, "surrogate": surrogate,
             "macro_regime_installed": regime_installed, "macro_regime_trained": regime_trained,
             "edgar": _installed("requests")}
 
 
 # ---------------------------------------------------------------------------
-@router.post("/ml/deal-risk")
+def _peer_data(currency: str) -> tuple[dict, Optional[list], Optional[float]]:
+    """What the deal risk score reads from storage: the industry averages,
+    the approved reference transactions (None while the library is off) and
+    US dollars per unit of ``currency`` (None when not known). A server
+    without a database has none of them, and the score says "not enough
+    data"."""
+    if not is_configured():
+        return {}, None, None
+    from db import benchmarks, economy
+    from db import references as stored_references
+    from library import switch
+    tables, _ = benchmarks.all_tables()
+    library = stored_references.approved() if switch.enabled() else None
+    if currency == "USD":
+        return tables, library, 1.0
+    # The ECB's newest rates are units per euro
+    day = economy.fx_on()
+    per_euro = {**day.rates, "EUR": 1.0} if day else {}
+    usd, units = per_euro.get("USD"), per_euro.get(currency)
+    return tables, library, (usd / units if usd and units else None)
+
+
+@router.post("/ml/deal-risk", response_model=DealRiskResponse)
 def post_deal_risk(req: DealRiskRequest):
-    """Anomaly detector risk score, flags and the most similar historical deals."""
-    if not _installed("sklearn", "joblib"):
-        _unavailable("the deal risk score", "install requirements-ml.txt")
-    try:
-        from ml.anomaly_detector import check_deal, detector_is_trained, historical_sample
-    except (ImportError, OSError) as e:
-        _unavailable("the deal risk score", str(e))
-    if not detector_is_trained():
-        _unavailable("the deal risk score", "the anomaly detector is not trained")
+    """The deal against companies and deals like it in its region, sector
+    and size (PLAN.md 5.2): its leverage, price and margin beside its
+    industry's, the score where its card says it beats leverage alone, and
+    the reference transactions like it when the library is on."""
+    from ml.anomaly_detector import DealShape, assess
     d = DealInputs(**req.inputs.model_dump())
     kw = risk_model_inputs(d, req.senior_x, req.mezz_x)
-    result = check_deal(entry_mult=kw["entry_mult"], leverage=kw["leverage"],
-                        growth_pct=kw["growth_pct"], ebitda_margin=kw["ebitda_margin"],
-                        interest_rate=kw["rate"])
-    # The risk score reads no Settings
-    return {"inputs": to_json(kw), **to_json(result), "historical_sample": historical_sample(),
-            "model": stamp(None)}
+    tables, library, usd_per = _peer_data(d.currency)
+    ev_usd_m = d.entry_mult * to_millions(d.ebitda, d.unit) * usd_per if usd_per else None
+    answer = assess(DealShape(country=d.country, industry=d.industry, leverage=kw["leverage"],
+                              entry_multiple=kw["entry_mult"], ebitda_margin=kw["ebitda_margin"]),
+                    tables, library, ev_usd_m)
+    # The score reads no Settings
+    return {**answer, "inputs": to_json(kw), "model": stamp(None)}
 
 
 @router.post("/ml/surrogate", response_model=SurrogateResponse)

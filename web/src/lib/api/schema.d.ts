@@ -1107,7 +1107,10 @@ export interface paths {
         put?: never;
         /**
          * Post Deal Risk
-         * @description Anomaly detector risk score, flags and the most similar historical deals.
+         * @description The deal against companies and deals like it in its region, sector
+         *     and size (PLAN.md 5.2): its leverage, price and margin beside its
+         *     industry's, the score where its card says it beats leverage alone, and
+         *     the reference transactions like it when the library is on.
          */
         post: operations["post_deal_risk_api_ml_deal_risk_post"];
         delete?: never;
@@ -2024,7 +2027,10 @@ export interface components {
         };
         /** Capabilities */
         Capabilities: {
-            /** Anomaly Detector */
+            /**
+             * Anomaly Detector
+             * @description The deal risk score (ml/anomaly_detector.py): always true since PLAN.md 5.2, which needs no ML packages
+             */
             anomaly_detector: boolean;
             /** Edgar */
             edgar: boolean;
@@ -2864,6 +2870,90 @@ export interface components {
              * @default 3.4
              */
             senior_x: number;
+        };
+        /** DealRiskResponse */
+        DealRiskResponse: {
+            /** Comparisons */
+            comparisons: components["schemas"]["PeerComparison"][];
+            /** Country */
+            country: string;
+            deals: components["schemas"]["SimilarDeals"];
+            /** Industry */
+            industry: string;
+            /** Industry Name */
+            industry_name?: string | null;
+            /**
+             * Inputs
+             * @description What the score read of the deal
+             */
+            inputs: {
+                [key: string]: number;
+            };
+            /**
+             * Min Firms
+             * @description A peer group needs this many companies
+             */
+            min_firms: number;
+            model: components["schemas"]["ModelStamp"];
+            /** Notes */
+            notes: ("size_not_split" | "listed_company_figures")[];
+            /** Reason */
+            reason?: ("no_country" | "no_peers") | null;
+            /**
+             * Region
+             * @description The country's S&P region (the card's regions)
+             */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /** @description "Based on N companies in [group, industry]" */
+            sample?: components["schemas"]["PeerSample"] | null;
+            score: components["schemas"]["DealRiskScore"];
+            source: components["schemas"]["BenchmarkSourceOut"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "not_enough_data";
+            /**
+             * Unusual
+             * @description A figure sits two spreads or more on the risky side of its industry's
+             */
+            unusual: boolean;
+        };
+        /** DealRiskScore */
+        DealRiskScore: {
+            /**
+             * Baseline
+             * @description The same for leverage alone
+             */
+            baseline?: number | null;
+            /**
+             * Cases
+             * @description Reference transactions the card tested in the region
+             */
+            cases: number;
+            /**
+             * Model
+             * @description The card's headline statistic (AUC) for the score there
+             */
+            model?: number | null;
+            /** Region */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
+             * Shown
+             * @description Whether the score's card says it beats the baseline in the deal's region
+             */
+            shown: boolean;
+            /**
+             * Value
+             * @description The score, only when shown: the sum of how far leverage and the entry multiple sit above the industry's, in spreads
+             */
+            value?: number | null;
+            /**
+             * Verdict
+             * @description The card's verdict for the region (docs/model-cards/deal_risk.md)
+             * @enum {string}
+             */
+            verdict: "beats_baseline" | "does_not_beat_baseline" | "not_enough_data";
         };
         /** DealRunRequest */
         DealRunRequest: {
@@ -4206,6 +4296,109 @@ export interface components {
             /** Years */
             years?: number[];
         };
+        /** PeerComparison */
+        PeerComparison: {
+            /**
+             * Deal
+             * @description The deal's figure: a multiple, or per cent for the margin
+             */
+            deal: number | null;
+            /**
+             * Firms
+             * @description Companies behind the industry's figure
+             */
+            firms?: number | null;
+            /**
+             * Group
+             * @description The group the industry's figure is from; never global
+             */
+            group?: ("us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global") | null;
+            /**
+             * Industries
+             * @description Industries the spread is measured over
+             */
+            industries?: number | null;
+            /** Level */
+            level?: ("country" | "region" | "global") | null;
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "leverage" | "entry_multiple" | "ebitda_margin";
+            /**
+             * Peer
+             * @description The industry's figure in the group, in the deal's terms
+             */
+            peer?: number | null;
+            /** Position */
+            position?: ("well_below" | "below" | "in_line" | "above" | "well_above") | null;
+            /** Published */
+            published?: string | null;
+            /**
+             * Risk Z
+             * @description z signed so that positive is riskier
+             */
+            risk_z?: number | null;
+            /**
+             * Scored
+             * @description Part of the score; the margin is shown but not scored
+             */
+            scored: boolean;
+            /**
+             * Skipped
+             * @description Closer groups passed over, and why
+             */
+            skipped: components["schemas"]["PeerSkipped"][];
+            /**
+             * Spread
+             * @description How much the group's industries differ (robust spread)
+             */
+            spread?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "not_enough_data";
+            /** Url */
+            url?: string | null;
+            /**
+             * Z
+             * @description (deal - peer) / spread
+             */
+            z?: number | null;
+        };
+        /** PeerSample */
+        PeerSample: {
+            /**
+             * Firms
+             * @description The fewest companies behind any figure compared
+             */
+            firms: number;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "us" | "japan" | "china" | "india" | "europe" | "aus_nz_canada" | "emerging" | "global";
+        };
+        /** PeerSkipped */
+        PeerSkipped: {
+            /**
+             * Area
+             * @description A group (benchmarks/catalogue.py REGIONS)
+             */
+            area: string;
+            /**
+             * Reason
+             * @description thin: fewer companies than min_firms; few_industries: too few industries in the group to say how much they differ; the rest as for the starting figures
+             * @enum {string}
+             */
+            reason: "thin" | "unusable" | "missing" | "few_industries";
+            /**
+             * Sample
+             * @description Companies (industries, for few_industries), when known
+             */
+            sample?: number | null;
+        };
         /** PercentileCurve */
         PercentileCurve: {
             /** Percentiles */
@@ -5443,6 +5636,62 @@ export interface components {
             settings: {
                 [key: string]: number | boolean;
             };
+        };
+        /** SimilarDeal */
+        SimilarDeal: {
+            /** Country */
+            country: string;
+            /** Entry Multiple */
+            entry_multiple?: number | null;
+            /** Event */
+            event: string;
+            /** Key */
+            key: string;
+            /** Leverage */
+            leverage?: number | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "success" | "distress" | "held";
+            /** Same Size */
+            same_size: boolean;
+            /** Sector */
+            sector: string;
+            /** Size */
+            size?: string | null;
+            /** Target */
+            target: string;
+            /**
+             * Year
+             * @description The year it closed
+             */
+            year: number;
+        };
+        /** SimilarDeals */
+        SimilarDeals: {
+            /**
+             * Deals
+             * @description Approved reference transactions in the same region and sector
+             */
+            deals: components["schemas"]["SimilarDeal"][];
+            /**
+             * Enabled
+             * @description Whether the reference library is on; off, no deals are listed
+             */
+            enabled: boolean;
+            /** Region */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
+             * Sector
+             * @description The deal industry's GICS sector
+             */
+            sector?: string | null;
+            /**
+             * Size
+             * @description The deal's size bucket (entry value in US dollars), when known
+             */
+            size?: string | null;
         };
         /** SourcedFee */
         SourcedFee: {
@@ -8855,7 +9104,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DealRiskResponse"];
                 };
             };
             /** @description Validation Error */

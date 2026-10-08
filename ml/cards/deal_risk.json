@@ -1,0 +1,103 @@
+{
+ "estimates": "How far a deal's leverage and entry multiple sit above its industry's listed companies in its region (the sum of the positive gaps, each over how much the region's industries differ), and an unusual-deal flag",
+ "evaluation": {
+  "baseline": {
+   "description": "Debt / EBITDA as the score; flagged above 6x (the supervisory leverage limit the deal's risk warnings use)",
+   "id": "leverage"
+  },
+  "headline_metric": "auc",
+  "headline_set": "reference_deals",
+  "metrics": [
+   {
+    "better": "higher",
+    "description": "Chance a distressed deal scores above a deal that wasn't (0.5 = no better than chance)",
+    "id": "auc",
+    "tolerance": 0.005
+   },
+   {
+    "better": "higher",
+    "description": "Share of distressed deals flagged",
+    "id": "distress_flagged",
+    "tolerance": 0.005
+   },
+   {
+    "better": "lower",
+    "description": "Share of deals without distress flagged",
+    "id": "false_alarms",
+    "tolerance": 0.005
+   }
+  ],
+  "sets": {
+   "reference_deals": {
+    "by_region": {
+     "emerging": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "europe": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "other_developed": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "us": {
+      "baseline": {
+       "auc": 0.3333,
+       "distress_flagged": 1.0,
+       "false_alarms": 0.6667
+      },
+      "cases": 5,
+      "model": {
+       "auc": 0.6667,
+       "distress_flagged": 1.0,
+       "false_alarms": 0.6667
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "The sourced reference transactions whose industry has enough companies in their region (8 of 10; left out: dun-bradstreet-2019, masonite-2005)",
+    "overall": {
+     "baseline": {
+      "auc": 0.5,
+      "distress_flagged": 1.0,
+      "false_alarms": 0.5
+     },
+     "cases": 8,
+     "model": {
+      "auc": 0.6667,
+      "distress_flagged": 1.0,
+      "false_alarms": 0.5
+     },
+     "verdict": "beats_baseline"
+    }
+   }
+  },
+  "split": {
+   "kind": "none",
+   "why": "the score fits nothing to outcomes, so no case can leak into it; every case is scored against the January 2026 averages"
+  }
+ },
+ "format": 1,
+ "id": "deal_risk",
+ "limitations": [
+  "Ten sourced transactions, most of them US buyouts: only the United States has five scored cases, two of them distressed; every other region shows not enough data, so the app shows no score there.",
+  "Each case moves the statistics by many points: the verdict says the score ranked these deals better than leverage alone, not that it will in general.",
+  "The averages are January 2026's, later than every deal; industries' leverage and prices in the year each deal closed were different.",
+  "The averages are listed companies' and are not split by size.",
+  "The EBITDA margin is compared on screen but not scored: the transactions' filings don't all give revenue."
+ ],
+ "min_cases": 5,
+ "module": "ml/anomaly_detector.py",
+ "name": "Deal risk score (against companies like it)",
+ "registry": {
+  "artifacts": []
+ },
+ "training": {
+  "command": null,
+  "data": "Nothing is trained: the score reads Damodaran's industry averages for the deal's region (PLAN.md 4.3), refreshed nightly",
+  "deterministic": true
+ },
+ "used_by": "Deal -> Inputs, Deal risk (POST /api/ml/deal-risk); shown only in regions where this card says it beats the baseline"
+}

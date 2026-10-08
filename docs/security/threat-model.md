@@ -143,7 +143,7 @@ The repository is public. Reviewed for data, keys and internal notes:
   build output). Secret *names* (`DATABASE_URL`, `UPSTASH_REDIS_REST_TOKEN`…)
   appear in docs and workflows by design; values never do.
 - **Data:** no user or customer data. `tests/golden/golden.json`,
-  `web/e2e/fixtures/ml-responses.json` and `ml/anomaly_deals.json` hold model
+  `web/e2e/fixtures/ml-responses.json` holds model
   outputs and figures for four well-known public buyouts (the inception-era
   examples PLAN.md 2.1 labels as illustrative). `Simulation_Model_Template.xlsx`
   is an empty template (author metadata: openpyxl).

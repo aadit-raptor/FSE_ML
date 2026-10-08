@@ -13,32 +13,28 @@ def main():
     print("TRAINING ALL ML MODELS")
     print("="*60)
 
-    # Priority 4: Anomaly detector (fastest, <5 seconds)
-    print("\n[1/5] Training anomaly detector...")
-    from ml.anomaly_detector import train_detector
-    train_detector()
-    print("✓ Anomaly detector ready")
+    # The deal risk score (PLAN.md 5.2) reads published averages: nothing to train
 
     # Priority 8: Multiple predictor (<10 seconds)
-    print("\n[2/5] Training multiple predictor...")
+    print("\n[1/4] Training multiple predictor...")
     from ml.multiple_predictor import train_multiple_predictor
     train_multiple_predictor()
     print("✓ Multiple predictor ready")
 
     # Priority 10: Distress model (<5 seconds)
-    print("\n[3/5] Training distress model...")
+    print("\n[2/4] Training distress model...")
     from ml.distress_model import train_distress_model
     train_distress_model()
     print("✓ Distress model ready")
 
     # Priority 5: SHAP model (~10 minutes)
-    print("\n[4/5] Training SHAP model (this takes ~10 minutes)...")
+    print("\n[3/4] Training SHAP model (this takes ~10 minutes)...")
     from ml.shap_attribution import train_shap_model
     train_shap_model()
     print("✓ SHAP model ready")
 
     # Priority 1: Surrogate model (~30 minutes)
-    print("\n[5/5] Generating surrogate training data and training (~30 minutes)...")
+    print("\n[4/4] Generating surrogate training data and training (~30 minutes)...")
     from ml.surrogate.generate_data import generate
     generate(n_samples=50_000, n_per_call=1000)
     from ml.surrogate.train import train

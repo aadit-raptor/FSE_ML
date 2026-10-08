@@ -1,257 +1,276 @@
-"""
-Anomaly detection for LBO deal assumptions.
-Trains on historical deal data. Flags unusual parameter combinations.
-Dataset: the 30 hand-entered, mostly US LBOs in HISTORICAL_DEALS (1989-2016;
-20 successes, 10 distressed), plus 500 synthetic "normal" deals jittered
-around the successes. The figures are unsourced approximations, so the score
-is an early estimate, not a validated model (PLAN.md 2.8 and 5.2 replace it).
-Nothing adds deals automatically; retrain after editing the list.
-"""
+"""The deal risk score: a deal against companies and deals like it (PLAN.md 5.2).
 
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import IsolationForest
-from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import NearestNeighbors
-import joblib
-import os
+The deal's leverage, entry multiple and EBITDA margin are compared with the
+**listed companies of its industry in its own region**: Damodaran's industry
+averages (PLAN.md 4.3, ``benchmarks/``), which say how many companies stand
+behind each figure. Nothing is trained; the comparison reads the stored
+averages, so it follows every refresh.
+
+- **The peer group** of a figure is the closest group in the country's chain
+  (``benchmarks.catalogue.chain``) whose industry row has at least
+  ``MIN_FIRMS`` companies: the country's own file (the US, Japan, China,
+  India), else its region. **Never the global group**: a deal is compared
+  with companies in its own region or not at all, and a region with too few
+  companies in the industry says "not enough data".
+- **How far off** the deal is, ``z``: its figure less the industry's, over
+  how much industries in that group differ from each other -- the robust
+  spread (1.4826 x the median absolute deviation) across the group's
+  industries with ``MIN_FIRMS`` companies, at least ``MIN_INDUSTRIES`` of
+  them. ``z`` is signed so that positive is riskier: higher leverage, a
+  higher price, a lower margin.
+- **The score** is how far the deal's leverage and price sit above its
+  industry's, the sum of their positive ``z``; the margin is shown beside
+  them but not scored, because the deals the score is tested on
+  (``ml/evaluation/deal_risk.py``) don't all publish revenue. The deal is
+  **unusual** when any figure is ``WELL_Z`` or more on the risky side.
+- **The score is shown only where its card says it beats the baseline**
+  (leverage alone) in the deal's S&P region; elsewhere the screen says "not
+  enough data", as PLAN.md phase 5 requires. The comparison itself is
+  published data, shown wherever the peer group is large enough.
+- **Deals like it**, when the reference library is on (PLAN.md 4.5): the
+  approved reference transactions in the same S&P region and GICS sector,
+  marked when they are also the same size. With the library off the score
+  and the comparison are unchanged; only this list is left out.
+
+The industry averages are not split by company size (no free source does),
+which the answer's ``notes`` say.
+"""
+from __future__ import annotations
+
 import json
-from dataclasses import dataclass
-from typing import List, Optional
+import statistics
+from dataclasses import dataclass, replace
+from functools import lru_cache
+from pathlib import Path
+from typing import Iterable, Mapping, Optional
 
-BASE = os.path.dirname(__file__)
+from benchmarks.catalogue import ALL_INDUSTRIES_ID, MIN_FIRMS, REGIONS, SOURCE, chain
+from benchmarks.damodaran import Table
+from library import base_rates, coverage, references
 
-# Historical LBO deal database
-# Source: Academic papers, public filings, Bain PE Report
-# Format: entry_mult, leverage_x_ebitda, revenue_growth_pct,
-#         ebitda_margin_pct, interest_rate_pct, outcome
-# outcome: 1=success(IRR>15%), 0=distressed/failed
-HISTORICAL_DEALS = [
-    # Successful deals
-    [8.75,  5.94, 2.9,  17.8, 6.82, 1, "Burger King 2010"],
-    [6.7,   4.69, -2.0, 10.6, 5.50, 1, "Dell 2013"],
-    [18.5,  14.6, 3.0,  16.2, 7.50, 1, "Hilton 2007"],
-    [8.0,   5.5,  4.0,  22.0, 6.00, 1, "Dollar General 2007"],
-    [9.5,   6.0,  8.0,  20.0, 5.50, 1, "Univision 2006"],
-    [7.5,   5.0,  3.0,  18.0, 6.50, 1, "Community Health 2006"],
-    [10.5,  6.5,  6.0,  24.0, 5.75, 1, "Bausch & Lomb 2007"],
-    [8.2,   5.3,  5.0,  19.0, 6.20, 1, "Biomet 2006"],
-    [7.8,   5.1,  4.5,  17.5, 6.30, 1, "Kinetic Concepts 2011"],
-    [9.0,   5.8,  6.0,  21.0, 5.80, 1, "MultiPlan 2014"],
-    [11.0,  6.2,  7.0,  25.0, 5.60, 1, "IMS Health 2010"],
-    [8.5,   5.5,  4.0,  20.0, 6.00, 1, "Realogy 2006"],
-    [7.0,   4.8,  3.5,  16.0, 6.50, 1, "Aramark 2006"],
-    [9.8,   6.1,  5.5,  22.0, 5.90, 1, "Avaya 2007"],  # initially distressed
-    [6.5,   4.5,  2.0,  15.0, 7.00, 1, "Univar 2010"],
-    [12.0,  7.0,  8.0,  28.0, 5.40, 1, "Vantiv 2009"],
-    [8.0,   5.2,  4.0,  19.5, 6.10, 1, "CKE Restaurants 2010"],
-    [7.5,   5.0,  3.0,  18.0, 6.30, 1, "Emergency Medical Svcs 2011"],
-    [10.0,  6.3,  5.0,  23.0, 5.70, 1, "Veritas 2016"],
-    [9.5,   6.0,  6.5,  21.5, 5.60, 1, "RJR Nabisco 1989"],  # classic
-    # Distressed / failed deals
-    [14.7, 12.5,  4.0,  9.8,  7.80, 0, "Freescale 2006"],
-    [11.0, 10.2,  2.0,  8.5,  7.50, 0, "Tribune Media 2007"],
-    [13.0,  9.8,  1.5,  7.2,  8.20, 0, "Chrysler 2007"],
-    [12.5, 11.0,  3.0,  6.8,  8.00, 0, "TXU Energy 2007"],
-    [10.5,  9.5,  2.5,  8.0,  7.90, 0, "Caesars 2008"],
-    [9.8,   9.0,  2.0,  7.5,  7.60, 0, "Clear Channel 2008"],
-    [11.5,  8.5,  1.0,  9.0,  8.10, 0, "Lehman PE Portfolio 2008"],
-    [8.5,  10.0, -2.0,  6.5,  8.50, 0, "Simmons Bedding 2009"],
-    [15.0,  8.0,  1.0, 12.0,  8.30, 0, "Extended Stay 2007"],
-    [10.0, 11.0,  0.5,  5.8,  9.00, 0, "Sbarro 2006"],
-]
+CARD = Path(__file__).parent / "cards" / "deal_risk.json"
+# A group needs this many industries (each with MIN_FIRMS companies) to say
+# how much industries differ
+MIN_INDUSTRIES = 10
+# Robust spread: the median absolute deviation scaled to a normal's standard deviation
+MAD_TO_SD = 1.4826
+# |z| from which a figure is above (below) its industry's, and well above (below)
+ABOVE_Z = 1.0
+WELL_Z = 2.0
+NOTES = ("size_not_split", "listed_company_figures")
 
 
-@dataclass
-class AnomalyResult:
-    is_anomalous:   bool
-    severity:       float    # 0.0 to 1.0
-    anomaly_score:  float    # raw isolation forest score
-    nearest_deals:  List[dict]  # most similar historical deals
-    risk_score:     float       # 1-10 composite risk score
+@dataclass(frozen=True)
+class Metric:
+    id: str
+    dataset: str           # the benchmarks data set (benchmarks.catalogue.DATASETS)
+    column: str            # its column
+    direction: int         # +1: higher is riskier; -1: lower is riskier
+    scored: bool           # part of the score (and so of its card)
+    percent: bool          # stored as a fraction, compared in per cent
 
 
-def _build_training_data(deals=HISTORICAL_DEALS):
-    df = pd.DataFrame(
-        deals,
-        columns=['entry_mult', 'leverage', 'growth',
-                 'margin', 'interest', 'success', 'name']
-    )
-    # Also generate synthetic "normal" deals around successful ones
-    rng = np.random.default_rng(42)
-    successful = df[df['success'] == 1][['entry_mult','leverage',
-                                          'growth','margin','interest']].values
-    n_synth = 500
-    noise = rng.normal(0, 0.15, size=(n_synth, 5)) * successful.std(axis=0)
-    synthetic = successful[rng.integers(0, len(successful), n_synth)] + noise
-    synthetic = np.clip(synthetic, [4.0, 2.0, -10.0, 3.0, 2.0],
-                                   [25.0, 15.0, 20.0, 45.0, 15.0])
-    synth_df = pd.DataFrame(synthetic, columns=['entry_mult','leverage',
-                                                  'growth','margin','interest'])
-    features_df = pd.concat([
-        df[['entry_mult','leverage','growth','margin','interest']],
-        synth_df
-    ], ignore_index=True)
-    return features_df, df
+METRICS = (
+    Metric("leverage", "debt", "debt_ebitda", 1, True, False),
+    Metric("entry_multiple", "multiples", "ev_ebitda", 1, True, False),
+    Metric("ebitda_margin", "margins", "ebitda_margin", -1, False, True),
+)
+DATASETS_READ = tuple(dict.fromkeys(m.dataset for m in METRICS))
 
 
-def fit_detector(deals=HISTORICAL_DEALS) -> tuple:
-    """Fit the detector, scaler and neighbour search on ``deals`` (rows in
-    HISTORICAL_DEALS' format), in memory. The evaluation harness (PLAN.md
-    5.1) refits on older deals only; ``train_detector`` fits on all of them."""
-    features_df, raw_df = _build_training_data(deals)
-    X = features_df.values
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    detector = IsolationForest(
-        n_estimators=200,
-        contamination=0.12,
-        max_features=1.0,
-        random_state=42,
-    )
-    detector.fit(X_scaled)
-
-    # Also train nearest neighbor for "similar deals" lookup
-    hist_X = raw_df[['entry_mult','leverage','growth',
-                      'margin','interest']].values
-    hist_X_scaled = scaler.transform(hist_X)
-    nn_model = NearestNeighbors(n_neighbors=3, metric='cosine')
-    nn_model.fit(hist_X_scaled)
-    return detector, scaler, nn_model, raw_df, len(X)
+@dataclass(frozen=True)
+class DealShape:
+    """What the score reads of a deal."""
+    country: str               # ISO 3166-1 alpha-2; "" when not chosen
+    industry: str              # a Damodaran industry id; "" for the whole market
+    leverage: float            # debt at close / EBITDA, x
+    entry_multiple: float      # EV / EBITDA, x
+    ebitda_margin: Optional[float] = None   # per cent; None when unknown
 
 
-def train_detector(out_dir: str = BASE) -> tuple:
-    print("Training anomaly detector...")
-    detector, scaler, nn_model, raw_df, n_samples = fit_detector()
-
-    joblib.dump(detector, os.path.join(out_dir, 'anomaly_detector.pkl'))
-    joblib.dump(scaler,   os.path.join(out_dir, 'anomaly_scaler.pkl'))
-    joblib.dump(nn_model, os.path.join(out_dir, 'anomaly_nn.pkl'))
-
-    with open(os.path.join(out_dir, 'anomaly_deals.json'), 'w') as f:
-        json.dump(deal_records(raw_df), f)
-
-    print(f"Anomaly detector trained on {n_samples} samples "
-          f"({len(raw_df)} real + {n_samples-len(raw_df)} synthetic)")
-    return detector, scaler, nn_model, raw_df
+def _number(x) -> bool:
+    return isinstance(x, (int, float)) and not isinstance(x, bool)
 
 
-def deal_records(raw_df) -> List[dict]:
-    """The real deals as the nearest-deal lookup lists them."""
-    return [{
-        'name':       row['name'],
-        'entry_mult': row['entry_mult'],
-        'leverage':   row['leverage'],
-        'growth':     row['growth'],
-        'margin':     row['margin'],
-        'interest':   row['interest'],
-        'success':    bool(row['success']),
-    } for _, row in raw_df.iterrows()]
+def peer_group(tables: Mapping[str, Table], metric: Metric, country: str,
+               industry: str) -> tuple[Optional[str], Optional[dict], list[dict]]:
+    """The closest group in the country's own region with enough companies
+    and a figure: ``(group, row, skipped)``; ``(None, None, skipped)`` when
+    none has. The global group is never used."""
+    skipped = []
+    for area in chain(country):
+        if REGIONS[area].level == "global":
+            break
+        table = tables.get(f"{metric.dataset}.{area}")
+        row = table.rows.get(industry) if table else None
+        if row is None:
+            skipped.append({"area": area, "reason": "missing", "sample": None})
+        elif row.get("firms", 0) < MIN_FIRMS:
+            skipped.append({"area": area, "reason": "thin", "sample": row.get("firms")})
+        elif not _number(row.get(metric.column)):
+            skipped.append({"area": area, "reason": "unusable", "sample": row.get("firms")})
+        else:
+            return area, row, skipped
+    return None, None, skipped
 
 
-def load_detector(base: str = BASE) -> tuple:
-    """The trained detector, scaler, neighbour search and deal list in ``base``."""
-    detector = joblib.load(os.path.join(base, 'anomaly_detector.pkl'))
-    scaler   = joblib.load(os.path.join(base, 'anomaly_scaler.pkl'))
-    nn_model = joblib.load(os.path.join(base, 'anomaly_nn.pkl'))
-    with open(os.path.join(base, 'anomaly_deals.json')) as f:
-        deals_db = json.load(f)
-    return detector, scaler, nn_model, deals_db
+def spread(table: Table, column: str) -> tuple[Optional[float], int]:
+    """How much the group's industries differ on ``column``: the robust
+    spread over its industries with MIN_FIRMS companies, and how many there
+    were; None under MIN_INDUSTRIES or with no spread at all."""
+    values = [r[column] for k, r in table.rows.items()
+              if k != ALL_INDUSTRIES_ID and r.get("firms", 0) >= MIN_FIRMS and _number(r.get(column))]
+    if len(values) < MIN_INDUSTRIES:
+        return None, len(values)
+    middle = statistics.median(values)
+    mad = statistics.median(abs(v - middle) for v in values) * MAD_TO_SD
+    return (mad if mad > 0 else None), len(values)
 
 
-def check_deal(entry_mult:   float,
-               leverage:     float,   # total debt / EBITDA
-               growth_pct:   float,   # revenue growth %
-               ebitda_margin:float,   # EBITDA margin %
-               interest_rate:float    # all-in interest rate %
-               ) -> AnomalyResult:
-    """
-    Check if deal parameters are anomalous vs historical norms.
-    Returns AnomalyResult with the risk score and the nearest historical deals.
-    """
-    return assess(load_detector(), entry_mult, leverage, growth_pct,
-                  ebitda_margin, interest_rate)
+def position(z: float) -> str:
+    """Where the deal's figure sits against its industry's (signed so that
+    ``above`` is a higher figure, whichever way is riskier)."""
+    if z >= WELL_Z:
+        return "well_above"
+    if z >= ABOVE_Z:
+        return "above"
+    if z <= -WELL_Z:
+        return "well_below"
+    if z <= -ABOVE_Z:
+        return "below"
+    return "in_line"
 
 
-def assess(models: tuple, entry_mult: float, leverage: float, growth_pct: float,
-           ebitda_margin: float, interest_rate: float) -> AnomalyResult:
-    """``check_deal`` with the models given (``load_detector``'s tuple, or
-    ``fit_detector``'s first three and the deal list)."""
-    detector, scaler, nn_model, deals_db = models
-    x = np.array([[entry_mult, leverage, growth_pct,
-                   ebitda_margin, interest_rate]])
-    x_scaled = scaler.transform(x)
-
-    raw_score  = float(detector.score_samples(x_scaled)[0])
-    # Use the fitted model's own threshold. The previous hard-coded -0.1 sat
-    # above every historical score (-0.74 .. -0.38), so it flagged 100% of
-    # deals, successful and failed alike; offset_ flags 5% of the successes
-    # and all of the failures.
-    is_anomaly = raw_score < detector.offset_
-    # 0 at the threshold, 1 at the most anomalous historical failure
-    # (about 0.2 below offset_).
-    severity   = float(np.clip((detector.offset_ - raw_score) / 0.2, 0, 1))
-
-    # Find nearest historical deals
-    distances, indices = nn_model.kneighbors(x_scaled)
-    nearest = []
-    for dist, idx in zip(distances[0], indices[0]):
-        if idx < len(deals_db):
-            d = deals_db[idx].copy()
-            d['distance'] = float(dist)
-            nearest.append(d)
-
-    # EBITDA / interest. Leverage is debt / EBITDA, so interest is
-    # leverage * EBITDA * rate and coverage reduces to 100 / (leverage * rate%).
-    # (It previously divided the EBITDA *margin* by leverage * rate, scaling
-    # coverage down by margin/100 -- so nearly every deal breached 1.5x.)
-    # The written-in warnings that used to follow ("a 38% historical distress
-    # rate", "only 2 of 9 such deals ...") had no source and are gone (PLAN.md
-    # 2.8): core/risk_warnings.py computes the deal's warnings from its own
-    # model run and published data.
-    interest_coverage = 100.0 / max(leverage * interest_rate, 0.1)
-
-    # Composite risk score (1=low, 10=high)
-    risk_score = 1.0
-    risk_score += min(max(leverage - 4.0, 0) * 0.5, 3.0)       # leverage contribution
-    risk_score += min(max(entry_mult - 8.0, 0) * 0.3, 2.0)     # multiple contribution
-    risk_score += min(max(2.0 - interest_coverage, 0) * 2.0, 2.0)  # coverage contribution
-    risk_score += severity * 2.0                                 # ML anomaly contribution
-    risk_score = float(np.clip(risk_score, 1.0, 10.0))
-
-    return AnomalyResult(
-        is_anomalous=is_anomaly,
-        severity=severity,
-        anomaly_score=raw_score,
-        nearest_deals=nearest,
-        risk_score=risk_score,
-    )
+def _value(deal: DealShape, metric: Metric) -> Optional[float]:
+    return {"leverage": deal.leverage, "entry_multiple": deal.entry_multiple,
+            "ebitda_margin": deal.ebitda_margin}[metric.id]
 
 
-def historical_sample() -> dict:
-    """Size and year span of the real deals the trained detector learned from.
+def compare_one(tables: Mapping[str, Table], deal: DealShape, metric: Metric) -> dict:
+    """One figure of the deal against its industry's in its region."""
+    value = _value(deal, metric)
+    out = {"metric": metric.id, "scored": metric.scored, "deal": value, "status": "not_enough_data",
+           "peer": None, "spread": None, "z": None, "risk_z": None, "position": None, "group": None,
+           "level": None, "firms": None, "industries": None, "published": None, "url": None, "skipped": []}
+    group, row, skipped = peer_group(tables, metric, deal.country, deal.industry)
+    out["skipped"] = skipped
+    if group is None or value is None:
+        return out
+    table = tables[f"{metric.dataset}.{group}"]
+    s, n = spread(table, metric.column)
+    out.update(group=group, level=REGIONS[group].level, firms=row["firms"], industries=n,
+               published=table.published, url=table.url)
+    if s is None:
+        out["skipped"] = [*skipped, {"area": group, "reason": "few_industries", "sample": n}]
+        return out
+    scale = 100.0 if metric.percent else 1.0
+    peer, s = row[metric.column] * scale, s * scale
+    z = (value - peer) / s
+    out.update(status="ok", peer=round(peer, 4), spread=round(s, 4), z=round(z, 4),
+               risk_z=round(z * metric.direction, 4), position=position(z))
+    return out
 
-    Read from the trained deal file, so labels follow a retrain.
-    """
-    with open(os.path.join(BASE, 'anomaly_deals.json')) as f:
-        names = [d['name'] for d in json.load(f)]
-    years = [int(n.rsplit(' ', 1)[-1]) for n in names if n.rsplit(' ', 1)[-1].isdigit()]
-    return {'deals': len(names),
-            'first_year': min(years) if years else None,
-            'last_year': max(years) if years else None}
+
+def score_of(comparisons: Iterable[dict]) -> Optional[float]:
+    """The sum of the scored figures' positive risk ``z``; None unless every
+    scored figure has a peer group."""
+    scored = [c for c in comparisons if c["scored"]]
+    if not scored or any(c["status"] != "ok" for c in scored):
+        return None
+    return round(sum(max(c["risk_z"], 0.0) for c in scored), 4)
 
 
-def detector_is_trained() -> bool:
-    required = ['anomaly_detector.pkl', 'anomaly_scaler.pkl',
-                'anomaly_nn.pkl', 'anomaly_deals.json']
-    return all(os.path.exists(os.path.join(BASE, f)) for f in required)
+def unusual(comparisons: Iterable[dict]) -> bool:
+    """Whether any figure sits WELL_Z or more on the risky side of its industry's."""
+    return any(c["status"] == "ok" and c["risk_z"] >= WELL_Z for c in comparisons)
 
 
-if __name__ == '__main__':
-    train_detector()
-    result = check_deal(14.7, 12.5, 4.0, 9.8, 7.8)  # Freescale-like
-    print(f"\nFreescale-like deal:")
-    print(f"  Anomalous: {result.is_anomalous}")
-    print(f"  Risk score: {result.risk_score:.1f}/10")
+def compare(deal: DealShape, tables: Mapping[str, Table]) -> dict:
+    """Every figure against the industry's in the deal's region, the score and the flag."""
+    region = base_rates.sp_region(deal.country)
+    deal = replace(deal, industry=deal.industry or ALL_INDUSTRIES_ID)
+    if not deal.country:
+        return {"status": "not_enough_data", "reason": "no_country", "region": None, "comparisons": [],
+                "sample": None, "score": None, "unusual": False}
+    comparisons = [compare_one(tables, deal, m) for m in METRICS]
+    ok = [c for c in comparisons if c["status"] == "ok"]
+    if not ok:
+        return {"status": "not_enough_data", "reason": "no_peers", "region": region, "comparisons": comparisons,
+                "sample": None, "score": None, "unusual": False}
+    # "Based on N companies in [group, industry]": the smallest group a figure came from
+    smallest = min(ok, key=lambda c: c["firms"])
+    return {"status": "ok", "reason": None, "region": region, "comparisons": comparisons,
+            "sample": {"firms": smallest["firms"], "group": smallest["group"]},
+            "score": score_of(comparisons), "unusual": unusual(comparisons)}
+
+
+# ---------------------------------------------------------------------------
+# The card decides where the score is shown
+# ---------------------------------------------------------------------------
+@lru_cache(maxsize=1)
+def _card() -> dict:
+    return json.loads(CARD.read_text(encoding="utf-8"))
+
+
+def card_result(region: Optional[str], card: Optional[Mapping] = None) -> dict:
+    """The card's headline verdict for ``region`` (S&P's), with the cases and
+    the headline statistic for the score and for the baseline."""
+    ev = (card or _card())["evaluation"]
+    group = ev["sets"][ev["headline_set"]]["by_region"].get(region) if region else None
+    if not group:
+        return {"verdict": "not_enough_data", "cases": 0, "model": None, "baseline": None}
+    head = ev["headline_metric"]
+    return {"verdict": group["verdict"], "cases": group["cases"],
+            "model": (group.get("model") or {}).get(head), "baseline": (group.get("baseline") or {}).get(head)}
+
+
+def shown_score(found: Mapping, card: Optional[Mapping] = None) -> dict:
+    """The score as the screen may show it: its value only where the card
+    says it beats the baseline in the deal's region."""
+    result = card_result(found["region"], card)
+    shown = result["verdict"] == "beats_baseline" and found["score"] is not None
+    return {"shown": shown, "value": found["score"] if shown else None, "region": found["region"], **result}
+
+
+# ---------------------------------------------------------------------------
+# Deals like it (the reference library, when it is on)
+# ---------------------------------------------------------------------------
+def sector_of(industry: str) -> Optional[str]:
+    from validation.tags import INDUSTRY_SECTOR
+    return INDUSTRY_SECTOR.get(industry)
+
+
+def similar_deals(library: Iterable[dict], country: str, industry: str, ev_usd_m: Optional[float]) -> dict:
+    """The approved reference transactions in the deal's S&P region and GICS
+    sector, the same size first, then the newest."""
+    region, sector, size = base_rates.sp_region(country), sector_of(industry), coverage.size(ev_usd_m)
+    found = []
+    for d in library:
+        tags = references.tags(d)
+        if not region or not sector or tags["region"] != region or tags["sector"] != sector:
+            continue
+        derived = references.derived(d)
+        found.append({"key": d["key"], "target": d["target"], "country": d["country"], "sector": tags["sector"],
+                      "size": tags["size"], "year": references.closed_year(d), "outcome": d["outcome"]["kind"],
+                      "event": d["outcome"]["event"], "entry_multiple": derived["entry_multiple"],
+                      "leverage": derived["leverage"], "same_size": size is not None and tags["size"] == size})
+    found.sort(key=lambda x: (not x["same_size"], -x["year"], x["key"]))
+    return {"enabled": True, "region": region, "sector": sector, "size": size, "deals": found}
+
+
+def assess(deal: DealShape, tables: Mapping[str, Table], library: Optional[Iterable[dict]] = None,
+           ev_usd_m: Optional[float] = None, card: Optional[Mapping] = None) -> dict:
+    """The whole answer: the comparison, the score as it may be shown and,
+    when the library is on (``library`` not None), the deals like it."""
+    found = compare(deal, tables)
+    world = tables.get("margins.global")
+    industry = deal.industry or ALL_INDUSTRIES_ID
+    deals = (similar_deals(library, deal.country, industry, ev_usd_m) if library is not None
+             else {"enabled": False, "region": None, "sector": None, "size": None, "deals": []})
+    return {
+        "status": found["status"], "reason": found["reason"], "country": deal.country, "industry": industry,
+        "industry_name": world.rows[industry]["name"] if world and industry in world.rows else None,
+        "region": found["region"], "min_firms": MIN_FIRMS, "sample": found["sample"],
+        "comparisons": found["comparisons"], "unusual": found["unusual"],
+        "score": shown_score(found, card), "deals": deals, "notes": list(NOTES), "source": dict(SOURCE),
+    }

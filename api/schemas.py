@@ -1027,7 +1027,8 @@ class WorkbookRequest(Strict):
 # ML and EDGAR
 # ---------------------------------------------------------------------------
 class Capabilities(BaseModel):
-    anomaly_detector: bool
+    anomaly_detector: bool = Field(description="The deal risk score (ml/anomaly_detector.py): always true "
+                                               "since PLAN.md 5.2, which needs no ML packages")
     surrogate: bool
     macro_regime_installed: bool
     macro_regime_trained: bool
@@ -2093,3 +2094,93 @@ class ValidationReportOut(BaseModel):
 
 class ValidationReportResponse(BaseModel):
     report: Optional[ValidationReportOut] = Field(description="The newest report; null before the first")
+
+
+# ---------------------------------------------------------------------------
+# The deal risk score (PLAN.md 5.2, ml/anomaly_detector.py)
+SpRegion = Literal["us", "europe", "emerging", "other_developed"]
+Verdict = Literal["beats_baseline", "does_not_beat_baseline", "not_enough_data"]
+
+
+class PeerSkipped(BaseModel):
+    area: str = Field(description="A group (benchmarks/catalogue.py REGIONS)")
+    reason: Literal["thin", "unusable", "missing", "few_industries"] = Field(
+        description="thin: fewer companies than min_firms; few_industries: too few industries in the group "
+                    "to say how much they differ; the rest as for the starting figures")
+    sample: Optional[int] = Field(None, description="Companies (industries, for few_industries), when known")
+
+
+class PeerComparison(BaseModel):
+    metric: Literal["leverage", "entry_multiple", "ebitda_margin"]
+    scored: bool = Field(description="Part of the score; the margin is shown but not scored")
+    deal: Optional[float] = Field(description="The deal's figure: a multiple, or per cent for the margin")
+    status: Literal["ok", "not_enough_data"]
+    peer: Optional[float] = Field(None, description="The industry's figure in the group, in the deal's terms")
+    spread: Optional[float] = Field(None, description="How much the group's industries differ (robust spread)")
+    z: Optional[float] = Field(None, description="(deal - peer) / spread")
+    risk_z: Optional[float] = Field(None, description="z signed so that positive is riskier")
+    position: Optional[Literal["well_below", "below", "in_line", "above", "well_above"]] = None
+    group: Optional[BenchmarkArea] = Field(None, description="The group the industry's figure is from; never global")
+    level: Optional[BenchmarkLevel] = None
+    firms: Optional[int] = Field(None, description="Companies behind the industry's figure")
+    industries: Optional[int] = Field(None, description="Industries the spread is measured over")
+    published: Optional[date] = None
+    url: Optional[str] = None
+    skipped: List[PeerSkipped] = Field(description="Closer groups passed over, and why")
+
+
+class PeerSample(BaseModel):
+    firms: int = Field(description="The fewest companies behind any figure compared")
+    group: BenchmarkArea
+
+
+class DealRiskScore(BaseModel):
+    shown: bool = Field(description="Whether the score's card says it beats the baseline in the deal's region")
+    value: Optional[float] = Field(None, description="The score, only when shown: the sum of how far leverage "
+                                                     "and the entry multiple sit above the industry's, in spreads")
+    region: Optional[SpRegion] = None
+    verdict: Verdict = Field(description="The card's verdict for the region (docs/model-cards/deal_risk.md)")
+    cases: int = Field(description="Reference transactions the card tested in the region")
+    model: Optional[float] = Field(None, description="The card's headline statistic (AUC) for the score there")
+    baseline: Optional[float] = Field(None, description="The same for leverage alone")
+
+
+class SimilarDeal(BaseModel):
+    key: str
+    target: str
+    country: str
+    sector: str
+    size: Optional[str] = None
+    year: int = Field(description="The year it closed")
+    outcome: Literal["success", "distress", "held"]
+    event: str
+    entry_multiple: Optional[float] = None
+    leverage: Optional[float] = None
+    same_size: bool
+
+
+class SimilarDeals(BaseModel):
+    enabled: bool = Field(description="Whether the reference library is on; off, no deals are listed")
+    region: Optional[SpRegion] = None
+    sector: Optional[str] = Field(None, description="The deal industry's GICS sector")
+    size: Optional[str] = Field(None, description="The deal's size bucket (entry value in US dollars), when known")
+    deals: List[SimilarDeal] = Field(description="Approved reference transactions in the same region and sector")
+
+
+class DealRiskResponse(BaseModel):
+    status: Literal["ok", "not_enough_data"]
+    reason: Optional[Literal["no_country", "no_peers"]] = None
+    country: str
+    industry: str
+    industry_name: Optional[str] = None
+    region: Optional[SpRegion] = Field(None, description="The country's S&P region (the card's regions)")
+    min_firms: int = Field(description="A peer group needs this many companies")
+    sample: Optional[PeerSample] = Field(None, description="\"Based on N companies in [group, industry]\"")
+    inputs: Dict[str, float] = Field(description="What the score read of the deal")
+    comparisons: List[PeerComparison]
+    unusual: bool = Field(description="A figure sits two spreads or more on the risky side of its industry's")
+    score: DealRiskScore
+    deals: SimilarDeals
+    notes: List[Literal["size_not_split", "listed_company_figures"]]
+    source: BenchmarkSourceOut
+    model: ModelStamp

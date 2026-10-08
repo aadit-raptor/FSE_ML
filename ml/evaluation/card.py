@@ -112,8 +112,9 @@ def render(card: Mapping) -> str:
         f"| Used by | {card['used_by']} |",
         f"| Estimates | {card['estimates']} |",
         f"| Training data | {card['training']['data']} |",
-        f"| Trained by | `{card['training']['command']}` (GitHub Actions: `ml.yml`, train) |",
-        f"| Retraining gives the same files | {'yes' if card['training']['deterministic'] else 'no'} |",
+        *([f"| Trained by | `{card['training']['command']}` (GitHub Actions: `ml.yml`, train) |",
+           f"| Retraining gives the same files | {'yes' if card['training']['deterministic'] else 'no'} |"]
+          if card["training"]["command"] else ["| Trained by | nothing to train |"]),
         "",
         "## How it is tested",
         "",
@@ -140,8 +141,13 @@ def render(card: Mapping) -> str:
         lines += _table(card, set_name)
     lines += ["", "## Limitations", ""]
     lines += [f"- {x}" for x in card["limitations"]]
-    lines += ["", "## Files evaluated", "", "| File | Bytes | SHA-256 |", "|---|---|---|"]
-    lines += [f"| `{a['path']}` | {a['bytes']:,} | `{a['sha256'][:16]}…` |" for a in card["registry"]["artifacts"]]
+    lines += ["", "## Files evaluated", ""]
+    if card["registry"]["artifacts"]:
+        lines += ["| File | Bytes | SHA-256 |", "|---|---|---|"]
+        lines += [f"| `{a['path']}` | {a['bytes']:,} | `{a['sha256'][:16]}…` |"
+                  for a in card["registry"]["artifacts"]]
+    else:
+        lines += ["None: the model has no trained files."]
     return "\n".join(lines) + "\n"
 
 
@@ -153,5 +159,7 @@ def write(card: Mapping, cards_dir: Path = CARDS, docs_dir: Path = DOCS) -> None
     cards_dir.mkdir(parents=True, exist_ok=True)
     docs_dir.mkdir(parents=True, exist_ok=True)
     # "\n" on every platform, so a card written on Windows is the bytes CI writes
-    (cards_dir / f"{card['id']}.json").write_text(to_json(card), encoding="utf-8", newline="\n")
-    (docs_dir / f"{card['id']}.md").write_text(render(card), encoding="utf-8", newline="\n")
+    stored = to_json(card)
+    (cards_dir / f"{card['id']}.json").write_text(stored, encoding="utf-8", newline="\n")
+    # From the stored card, as the staleness check renders it (its keys sorted)
+    (docs_dir / f"{card['id']}.md").write_text(render(json.loads(stored)), encoding="utf-8", newline="\n")

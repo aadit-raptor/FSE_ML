@@ -22,8 +22,8 @@ on:
       model:
         description: "Model to train (ml/registry.json)"
         type: choice
-        options: [anomaly_detector, surrogate]
-        default: anomaly_detector
+        options: [surrogate]
+        default: surrogate
       samples:
         description: "Surrogate only: simulated training deals"
         default: "100000"
@@ -79,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.model)) || fromJSON('["anomaly_detector", "surrogate"]') }}
+        model: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.model)) || fromJSON('["surrogate"]') }}
     steps:
       - uses: actions/checkout@v7
         with:

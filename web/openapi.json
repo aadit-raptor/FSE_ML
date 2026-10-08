@@ -1679,6 +1679,7 @@
       "Capabilities": {
         "properties": {
           "anomaly_detector": {
+            "description": "The deal risk score (ml/anomaly_detector.py): always true since PLAN.md 5.2, which needs no ML packages",
             "title": "Anomaly Detector",
             "type": "boolean"
           },
@@ -3510,6 +3511,229 @@
           }
         },
         "title": "DealRiskRequest",
+        "type": "object"
+      },
+      "DealRiskResponse": {
+        "properties": {
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/PeerComparison"
+            },
+            "title": "Comparisons",
+            "type": "array"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "deals": {
+            "$ref": "#/components/schemas/SimilarDeals"
+          },
+          "industry": {
+            "title": "Industry",
+            "type": "string"
+          },
+          "industry_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry Name"
+          },
+          "inputs": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "What the score read of the deal",
+            "title": "Inputs",
+            "type": "object"
+          },
+          "min_firms": {
+            "description": "A peer group needs this many companies",
+            "title": "Min Firms",
+            "type": "integer"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "size_not_split",
+                "listed_company_figures"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "no_country",
+                  "no_peers"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The country's S&P region (the card's regions)",
+            "title": "Region"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PeerSample"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\"Based on N companies in [group, industry]\""
+          },
+          "score": {
+            "$ref": "#/components/schemas/DealRiskScore"
+          },
+          "source": {
+            "$ref": "#/components/schemas/BenchmarkSourceOut"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "not_enough_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unusual": {
+            "description": "A figure sits two spreads or more on the risky side of its industry's",
+            "title": "Unusual",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "country",
+          "industry",
+          "min_firms",
+          "inputs",
+          "comparisons",
+          "unusual",
+          "score",
+          "deals",
+          "notes",
+          "source",
+          "model"
+        ],
+        "title": "DealRiskResponse",
+        "type": "object"
+      },
+      "DealRiskScore": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The same for leverage alone",
+            "title": "Baseline"
+          },
+          "cases": {
+            "description": "Reference transactions the card tested in the region",
+            "title": "Cases",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The card's headline statistic (AUC) for the score there",
+            "title": "Model"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "shown": {
+            "description": "Whether the score's card says it beats the baseline in the deal's region",
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The score, only when shown: the sum of how far leverage and the entry multiple sit above the industry's, in spreads",
+            "title": "Value"
+          },
+          "verdict": {
+            "description": "The card's verdict for the region (docs/model-cards/deal_risk.md)",
+            "enum": [
+              "beats_baseline",
+              "does_not_beat_baseline",
+              "not_enough_data"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shown",
+          "verdict",
+          "cases"
+        ],
+        "title": "DealRiskScore",
         "type": "object"
       },
       "DealRunRequest": {
@@ -7296,6 +7520,279 @@
         "title": "OperatingModelResult",
         "type": "object"
       },
+      "PeerComparison": {
+        "properties": {
+          "deal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The deal's figure: a multiple, or per cent for the margin",
+            "title": "Deal"
+          },
+          "firms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Companies behind the industry's figure",
+            "title": "Firms"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "japan",
+                  "china",
+                  "india",
+                  "europe",
+                  "aus_nz_canada",
+                  "emerging",
+                  "global"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The group the industry's figure is from; never global",
+            "title": "Group"
+          },
+          "industries": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Industries the spread is measured over",
+            "title": "Industries"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "country",
+                  "region",
+                  "global"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "metric": {
+            "enum": [
+              "leverage",
+              "entry_multiple",
+              "ebitda_margin"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "peer": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The industry's figure in the group, in the deal's terms",
+            "title": "Peer"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "enum": [
+                  "well_below",
+                  "below",
+                  "in_line",
+                  "above",
+                  "well_above"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published"
+          },
+          "risk_z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "z signed so that positive is riskier",
+            "title": "Risk Z"
+          },
+          "scored": {
+            "description": "Part of the score; the margin is shown but not scored",
+            "title": "Scored",
+            "type": "boolean"
+          },
+          "skipped": {
+            "description": "Closer groups passed over, and why",
+            "items": {
+              "$ref": "#/components/schemas/PeerSkipped"
+            },
+            "title": "Skipped",
+            "type": "array"
+          },
+          "spread": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How much the group's industries differ (robust spread)",
+            "title": "Spread"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "not_enough_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "(deal - peer) / spread",
+            "title": "Z"
+          }
+        },
+        "required": [
+          "metric",
+          "scored",
+          "deal",
+          "status",
+          "skipped"
+        ],
+        "title": "PeerComparison",
+        "type": "object"
+      },
+      "PeerSample": {
+        "properties": {
+          "firms": {
+            "description": "The fewest companies behind any figure compared",
+            "title": "Firms",
+            "type": "integer"
+          },
+          "group": {
+            "enum": [
+              "us",
+              "japan",
+              "china",
+              "india",
+              "europe",
+              "aus_nz_canada",
+              "emerging",
+              "global"
+            ],
+            "title": "Group",
+            "type": "string"
+          }
+        },
+        "required": [
+          "firms",
+          "group"
+        ],
+        "title": "PeerSample",
+        "type": "object"
+      },
+      "PeerSkipped": {
+        "properties": {
+          "area": {
+            "description": "A group (benchmarks/catalogue.py REGIONS)",
+            "title": "Area",
+            "type": "string"
+          },
+          "reason": {
+            "description": "thin: fewer companies than min_firms; few_industries: too few industries in the group to say how much they differ; the rest as for the starting figures",
+            "enum": [
+              "thin",
+              "unusable",
+              "missing",
+              "few_industries"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Companies (industries, for few_industries), when known",
+            "title": "Sample"
+          }
+        },
+        "required": [
+          "area",
+          "reason"
+        ],
+        "title": "PeerSkipped",
+        "type": "object"
+      },
       "PercentileCurve": {
         "properties": {
           "percentiles": {
@@ -10817,6 +11314,157 @@
           }
         },
         "title": "SettingsValidateRequest",
+        "type": "object"
+      },
+      "SimilarDeal": {
+        "properties": {
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "entry_multiple": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Multiple"
+          },
+          "event": {
+            "title": "Event",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "leverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leverage"
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "distress",
+              "held"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "same_size": {
+            "title": "Same Size",
+            "type": "boolean"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "year": {
+            "description": "The year it closed",
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "target",
+          "country",
+          "sector",
+          "year",
+          "outcome",
+          "event",
+          "same_size"
+        ],
+        "title": "SimilarDeal",
+        "type": "object"
+      },
+      "SimilarDeals": {
+        "properties": {
+          "deals": {
+            "description": "Approved reference transactions in the same region and sector",
+            "items": {
+              "$ref": "#/components/schemas/SimilarDeal"
+            },
+            "title": "Deals",
+            "type": "array"
+          },
+          "enabled": {
+            "description": "Whether the reference library is on; off, no deals are listed",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The deal industry's GICS sector",
+            "title": "Sector"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The deal's size bucket (entry value in US dollars), when known",
+            "title": "Size"
+          }
+        },
+        "required": [
+          "enabled",
+          "deals"
+        ],
+        "title": "SimilarDeals",
         "type": "object"
       },
       "SourcedFee": {
@@ -16701,7 +17349,7 @@
     },
     "/api/ml/deal-risk": {
       "post": {
-        "description": "Anomaly detector risk score, flags and the most similar historical deals.",
+        "description": "The deal against companies and deals like it in its region, sector\nand size (PLAN.md 5.2): its leverage, price and margin beside its\nindustry's, the score where its card says it beats leverage alone, and\nthe reference transactions like it when the library is on.",
         "operationId": "post_deal_risk_api_ml_deal_risk_post",
         "requestBody": {
           "content": {
@@ -16717,7 +17365,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DealRiskResponse"
+                }
               }
             },
             "description": "Successful Response"

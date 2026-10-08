@@ -4,50 +4,10 @@ Skipped automatically when the ML dependencies (requirements-ml.txt) are not
 installed, so the core test run does not depend on them.
 """
 
-import json
-import os
-
 import pytest
 
 pytest.importorskip("sklearn")
 pytest.importorskip("joblib")
-
-import ml.anomaly_detector as ad  # noqa: E402
-
-
-def test_anomaly_flag_separates_historical_outcomes():
-    # The flag must carry information: it should catch the historical
-    # failures while passing nearly all of the successes.
-    with open(os.path.join(ad.BASE, "anomaly_deals.json")) as f:
-        deals = json.load(f)
-    flagged = {True: [], False: []}
-    for d in deals:
-        r = ad.check_deal(d["entry_mult"], d["leverage"], d["growth"],
-                          d["margin"], d["interest"])
-        flagged[d["success"]].append(r.is_anomalous)
-    assert all(flagged[False]), "every historical failure should be flagged"
-    assert sum(flagged[True]) / len(flagged[True]) <= 0.10, (
-        "no more than 10% of historical successes should be flagged")
-
-
-def test_anomaly_docstring_states_the_real_sample():
-    # It once claimed "~100 deals"; the trained file and the docstring must agree
-    sample = ad.historical_sample()
-    assert sample["deals"] == len(ad.HISTORICAL_DEALS) == 30
-    assert "~100" not in ad.__doc__
-    assert f"{sample['deals']} hand-entered" in ad.__doc__
-    assert f"{sample['first_year']}-{sample['last_year']}" in ad.__doc__
-
-
-def test_the_detector_writes_no_warnings_of_its_own():
-    """Its flags quoted statistics nobody could source ("a 38% historical
-    distress rate", "only 2 of 9 ..."); core/risk_warnings.py computes the
-    deal's warnings instead (PLAN.md 2.8)."""
-    import dataclasses
-    result = ad.check_deal(14.7, 12.5, -1.0, 6.0, 9.5)   # trips every old rule
-    assert "warnings" not in {f.name for f in dataclasses.fields(result)}
-    source = open(ad.__file__, encoding="utf-8").read()
-    assert "distress rate." not in source and "avoided covenant" not in source
 
 
 def test_surrogate_tracks_the_simulation():
@@ -96,6 +56,5 @@ def test_surrogate_tracks_the_simulation():
 
 
 if __name__ == "__main__":
-    test_anomaly_flag_separates_historical_outcomes()
     test_surrogate_tracks_the_simulation()
     print("test_ml: PASS")

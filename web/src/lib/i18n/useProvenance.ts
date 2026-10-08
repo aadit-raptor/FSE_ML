@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
-import { backtestSample, type HistoricalSample } from "@/lib/provenance";
+import { backtestSample } from "@/lib/provenance";
 
 /**
  * The honest labels of PLAN.md 2.1, in the account's language (PLAN.md 2.3b).
@@ -27,13 +27,6 @@ export function useProvenance() {
               : t("backtestSpanRange", { first: String(first), last: String(last) });
         return t("backtestSample", { count, span });
       },
-      /** "Early estimate based on 30 historical deals (1989–2016)" */
-      risk: (s: HistoricalSample) =>
-        t("riskSample", {
-          deals: String(s.deals),
-          span: s.first_year && s.last_year ? t("riskSpan", { first: String(s.first_year), last: String(s.last_year) }) : "",
-        }),
-      riskDetail: t("riskDetail"),
     }),
     [t],
   );
