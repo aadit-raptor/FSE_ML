@@ -44,6 +44,9 @@ EXTRA_MODULES = (
     "validation/report.py",          # the calibration and bias statistics,
     "validation/tags.py",            # the groups
     "validation/run.py",             # and the nightly report
+    "ml/evaluation/harness.py",      # ML evaluation (PLAN.md 5.1): the statistics,
+    "ml/evaluation/anomaly.py",      # the risk score's cards
+    "ml/evaluation/surrogate.py",    # and the live sliders'
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.
 SKIPPED_METHODS = {"__init__", "__post_init__", "__repr__", "forward"}

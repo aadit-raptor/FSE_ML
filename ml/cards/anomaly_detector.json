@@ -1,0 +1,172 @@
+{
+ "estimates": "A 1-10 risk score and an unusual-deal flag from entry multiple, leverage, growth, EBITDA margin and interest rate",
+ "evaluation": {
+  "baseline": {
+   "description": "Debt / EBITDA as the score; flagged above 6x (the supervisory leverage limit the deal's risk warnings use)",
+   "id": "leverage"
+  },
+  "headline_metric": "auc",
+  "headline_set": "out_of_time",
+  "metrics": [
+   {
+    "better": "higher",
+    "description": "Chance a distressed deal scores above a deal that wasn't (0.5 = no better than chance)",
+    "id": "auc",
+    "tolerance": 0.005
+   },
+   {
+    "better": "higher",
+    "description": "Share of distressed deals flagged",
+    "id": "distress_flagged",
+    "tolerance": 0.005
+   },
+   {
+    "better": "lower",
+    "description": "Share of deals without distress flagged",
+    "id": "false_alarms",
+    "tolerance": 0.005
+   }
+  ],
+  "sets": {
+   "in_sample": {
+    "by_region": {
+     "emerging": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     },
+     "europe": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     },
+     "other_developed": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     },
+     "us": {
+      "baseline": {
+       "auc": 0.95,
+       "distress_flagged": 1.0,
+       "false_alarms": 0.3
+      },
+      "cases": 30,
+      "model": {
+       "auc": 0.965,
+       "distress_flagged": 1.0,
+       "false_alarms": 0.05
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "The committed model on the 30 deals it learned from (not a test)",
+    "overall": {
+     "baseline": {
+      "auc": 0.95,
+      "distress_flagged": 1.0,
+      "false_alarms": 0.3
+     },
+     "cases": 30,
+     "model": {
+      "auc": 0.965,
+      "distress_flagged": 1.0,
+      "false_alarms": 0.05
+     },
+     "verdict": "beats_baseline"
+    }
+   },
+   "out_of_time": {
+    "by_region": {
+     "emerging": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     },
+     "europe": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     },
+     "other_developed": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     },
+     "us": {
+      "baseline": {
+       "auc": 1.0,
+       "distress_flagged": 1.0,
+       "false_alarms": 0.3
+      },
+      "cases": 14,
+      "model": {
+       "auc": 1.0,
+       "distress_flagged": 1.0,
+       "false_alarms": 0.3
+      },
+      "verdict": "does_not_beat_baseline"
+     }
+    },
+    "description": "Refitted on deals closed before each cutoff; scores the deals closed after it",
+    "overall": {
+     "baseline": {
+      "auc": 1.0,
+      "distress_flagged": 1.0,
+      "false_alarms": 0.3
+     },
+     "cases": 14,
+     "model": {
+      "auc": 1.0,
+      "distress_flagged": 1.0,
+      "false_alarms": 0.3
+     },
+     "verdict": "does_not_beat_baseline"
+    }
+   }
+  },
+  "split": {
+   "cutoffs": [
+    2008,
+    2010
+   ],
+   "dated_by": "year the deal closed",
+   "kind": "walk_forward"
+  }
+ },
+ "format": 1,
+ "id": "anomaly_detector",
+ "limitations": [
+  "Every training deal is a US buyout: Europe, emerging markets and other developed markets have no cases, so the card shows not enough data there.",
+  "The deal figures were typed in without sources; PLAN.md 5.2 rebuilds the score on sourced, regional market data.",
+  "Fourteen out-of-time cases, four of them distressed: each case moves the statistics by several points.",
+  "The score adds fixed rule-of-thumb terms (leverage, multiple, coverage) to the forest's anomaly severity; the card evaluates the score as the app shows it."
+ ],
+ "min_cases": 5,
+ "module": "ml/anomaly_detector.py",
+ "name": "Deal risk score (anomaly detector)",
+ "registry": {
+  "artifacts": [
+   {
+    "bytes": 2362841,
+    "path": "ml/anomaly_detector.pkl",
+    "sha256": "a00fae1ae78d56fed9017c87856acbfe94337e71fb5a97bbc5f34b24e8639785"
+   },
+   {
+    "bytes": 687,
+    "path": "ml/anomaly_scaler.pkl",
+    "sha256": "f3954bd32f8a40a4057cbb26fd40ae20b4a14ec90dce78ff37699f8689838c37"
+   },
+   {
+    "bytes": 1779,
+    "path": "ml/anomaly_nn.pkl",
+    "sha256": "7395955f40a9b6ce7431a9fd6829b9e6494c79d2209326386650f254622590b3"
+   },
+   {
+    "bytes": 3940,
+    "path": "ml/anomaly_deals.json",
+    "sha256": "68f4b81eb5aae71e9d17c2787700c8167e74a83eacb7f7aa563c58faf6f792fe"
+   }
+  ]
+ },
+ "training": {
+  "command": "python -m ml.evaluation train anomaly_detector",
+  "data": "30 hand-entered US LBOs closed 1989-2016 (20 without distress, 10 distressed), plus 500 synthetic deals jittered around the 20; the figures are unsourced approximations",
+  "deterministic": true
+ },
+ "used_by": "Deal -> Inputs risk score (POST /api/ml/deal-risk)"
+}
