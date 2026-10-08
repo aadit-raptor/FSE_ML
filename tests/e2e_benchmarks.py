@@ -34,9 +34,10 @@ CASES = (("DE", "machinery", "EUR"), ("CA", "shipbuilding_marine", "CAD"), ("GB"
 RISK_CASES = (("GB", "machinery", "GBP"), ("IN", "machinery", "INR"))
 
 
-def build() -> dict:
-    from api.auth import AuthUser, require_user
-    from api.main import app
+def recorded_sources() -> tuple[dict, dict, object]:
+    """The industry tables (with history) and economic series the recorded
+    fixtures give, and the day they were recorded (tests.ml_regional_deals
+    reads them too)."""
     from benchmarks import damodaran, history
     from economy import connectors, refresh
     today = recorded_on()
@@ -59,7 +60,13 @@ def build() -> dict:
             found, _ = refresh._read(today)
     finally:
         http.use_transport(None)
-    series = {s.key: s for s in found}
+    return tables, {s.key: s for s in found}, today
+
+
+def build() -> dict:
+    from api.auth import AuthUser, require_user
+    from api.main import app
+    tables, series, today = recorded_sources()
     signed_in = require_user in app.dependency_overrides
     with (mock.patch("api.routers.benchmarks._stored", lambda history=False: (tables, None, series)),
           mock.patch("api.routers.benchmarks._today", lambda: today)):

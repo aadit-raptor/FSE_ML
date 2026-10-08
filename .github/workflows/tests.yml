@@ -220,6 +220,14 @@ jobs:
             echo "::error::ML tests skipped -- dependencies or model files missing"
             exit 1
           fi
+      # PLAN.md 5.1: CI fails if a model gets worse. tests/test_model_cards.py
+      # (above) keeps every card what its committed files give; this compares
+      # the cards with the base branch's.
+      - name: Model cards no worse than the base branch
+        if: github.base_ref != ''
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python -m ops.model_gate --base "origin/$BASE_REF"
       # PLAN.md 0.3. This job runs every test, ML included, so it is the one
       # that checks changed lines: 80% of the Python lines a pull request
       # changes must be covered (ECC's figure). Tests, docs and web files

@@ -151,7 +151,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 4.5b | Reference library: sourced transactions, two-person review, fees and amortisation | 4.5a | ☑ |
 | 4.6 | Model validation framework | 4.3, 4.5b, 2.7 | ☑ |
 | **5** | **ML done properly** | | |
-| 5.1 | ML evaluation harness and model cards | 4.6 | ☐ |
+| 5.1 | ML evaluation harness and model cards | 4.6 | ☑ |
 | 5.2 | Deal risk score from market data | 5.1, 2.8 | ☐ |
 | 5.3 | Distress predictor | 5.1 | ☐ |
 | 5.4 | Multiple predictor by region | 5.1, 4.3 | ☐ |
@@ -1008,6 +1008,27 @@ enough for the free server.
   worse; training and evaluation run as GitHub Actions jobs.
 - **Done when:** the surrogate and anomaly detector have cards with per-region
   results.
+- **Done (2026-10-08).** `ml/evaluation/` (`harness.py`: walk-forward time
+  splits, S&P's four regions, a baseline per model and the verdict "beats the
+  baseline", "does not beat the baseline" or "not enough data" under five
+  cases; `card.py`: the one card template; `anomaly.py`, `surrogate.py`: each
+  model's cases, baseline and statistics; `python -m ml.evaluation evaluate |
+  train`), the registry `ml/registry.json` (every trained file, hashed in its
+  card), cards in `ml/cards/` and `docs/model-cards/`, the gate
+  `ops/model_gate.py` (in tests.yml's required ml job: a statistic worse than
+  the base branch's beyond its tolerance, overall or in any region, fails the
+  pull request), and `ml.yml` (evaluates on pull requests; trains by hand into
+  a scratch directory and uploads files and card for review). Results: the
+  **risk score**, out of time (refitted on deals before 2008 and 2010, 14 US
+  deals), ranks every distressed deal first (AUC 1.0) but so does leverage
+  alone, so it **does not beat the baseline**, and every other region has no
+  data. The **live sliders**, on 230 deals built from the sourced figures of
+  23 economies and ten industries, are 0.54 points off the median IRR against
+  0.79 for a live 200-path simulation and beat it in every region; only 23 of
+  the 230 lie inside the network's training ranges (5.8 widens them), and its
+  95th percentile is 3.1 points off in emerging markets. Nothing the app shows
+  changed; 5.2 onward use the harness and show "not enough data" where a card
+  says so.
 
 ### 5.2 Deal risk score from market data
 - **Claude does:** rebuild `ml/anomaly_detector.py` to compare a deal with

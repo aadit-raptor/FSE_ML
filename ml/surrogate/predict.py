@@ -50,10 +50,10 @@ class SurrogatePrediction:
 class SurrogatePredictor:
     _instance: Optional['SurrogatePredictor'] = None
 
-    def __init__(self):
-        model_path   = os.path.join(BASE, 'model.pt')
-        scaler_X_path = os.path.join(BASE, 'scaler_X.pkl')
-        scaler_y_path = os.path.join(BASE, 'scaler_y.pkl')
+    def __init__(self, base: str = BASE):
+        model_path   = os.path.join(base, 'model.pt')
+        scaler_X_path = os.path.join(base, 'scaler_X.pkl')
+        scaler_y_path = os.path.join(base, 'scaler_y.pkl')
 
         if not all(os.path.exists(p) for p in [model_path, scaler_X_path, scaler_y_path]):
             raise FileNotFoundError(

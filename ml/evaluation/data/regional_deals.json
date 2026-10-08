@@ -1,0 +1,4618 @@
+{
+ "deals": [
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.0255,
+    "da_pct": 0.0376,
+    "debt_pct": 0.6,
+    "exit_mean": 16.22,
+    "exit_std": 2.67,
+    "gross_margin_mean": 0.3747,
+    "gross_margin_std": 0.0117,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0444,
+    "nwc_pct": 0.0129
+   },
+   "id": "US|machinery",
+   "industry": "machinery",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.156,
+    "da_pct": 0.0627,
+    "debt_pct": 0.6,
+    "exit_mean": 8.57,
+    "exit_std": 1.76,
+    "gross_margin_mean": 0.1479,
+    "gross_margin_std": 0.0396,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.1274,
+    "nwc_pct": 0.0086
+   },
+   "id": "US|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.085,
+    "da_pct": 0.0439,
+    "debt_pct": 0.6,
+    "exit_mean": 8.99,
+    "exit_std": 2.37,
+    "gross_margin_mean": 0.1541,
+    "gross_margin_std": 0.0435,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0478,
+    "nwc_pct": 0.0075
+   },
+   "id": "US|steel",
+   "industry": "steel",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.0621,
+    "da_pct": 0.0462,
+    "debt_pct": 0.6,
+    "exit_mean": 10.01,
+    "exit_std": 1.63,
+    "gross_margin_mean": 0.2323,
+    "gross_margin_std": 0.0182,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0459,
+    "nwc_pct": 0.0035
+   },
+   "id": "US|food_processing",
+   "industry": "food_processing",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.0488,
+    "da_pct": 0.0336,
+    "debt_pct": 0.6,
+    "exit_mean": 6.43,
+    "exit_std": 1.16,
+    "gross_margin_mean": 0.1584,
+    "gross_margin_std": 0.0116,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0478,
+    "nwc_pct": 0.0084
+   },
+   "id": "US|auto_parts",
+   "industry": "auto_parts",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.0509,
+    "da_pct": 0.0468,
+    "debt_pct": 0.6,
+    "exit_mean": 11.61,
+    "exit_std": 1.86,
+    "gross_margin_mean": 0.3094,
+    "gross_margin_std": 0.0202,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0444,
+    "nwc_pct": 0.0097
+   },
+   "id": "US|building_materials",
+   "industry": "building_materials",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.0346,
+    "da_pct": 0.0311,
+    "debt_pct": 0.6,
+    "exit_mean": 24.59,
+    "exit_std": 4.35,
+    "gross_margin_mean": 0.3182,
+    "gross_margin_std": 0.0169,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0478,
+    "nwc_pct": 0.0155
+   },
+   "id": "US|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.0632,
+    "da_pct": 0.033,
+    "debt_pct": 0.6,
+    "exit_mean": 17.38,
+    "exit_std": 3.09,
+    "gross_margin_mean": 0.3318,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0429,
+    "nwc_pct": -0.0001
+   },
+   "id": "US|retail_general",
+   "industry": "retail_general",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.1493,
+    "da_pct": 0.1423,
+    "debt_pct": 0.6,
+    "exit_mean": 6.54,
+    "exit_std": 0.96,
+    "gross_margin_mean": 0.5882,
+    "gross_margin_std": 0.0161,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0478,
+    "nwc_pct": -0.0019
+   },
+   "id": "US|telecom_services",
+   "industry": "telecom_services",
+   "region": "us"
+  },
+  {
+   "country": "US",
+   "currency": "USD",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0557,
+    "growth_std": 0.0285,
+    "interest_mean": 0.0478,
+    "nwc_pct": 0.0012
+   },
+   "id": "US|utility_general",
+   "industry": "utility_general",
+   "region": "us"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0413,
+    "nwc_pct": 0.0067
+   },
+   "id": "GB|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.1973,
+    "nwc_pct": 0.007
+   },
+   "id": "GB|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0882,
+    "nwc_pct": 0.0077
+   },
+   "id": "GB|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0451,
+    "nwc_pct": 0.0037
+   },
+   "id": "GB|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0484,
+    "nwc_pct": 0.0005
+   },
+   "id": "GB|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0413,
+    "nwc_pct": 0.0052
+   },
+   "id": "GB|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.1973,
+    "nwc_pct": 0.0066
+   },
+   "id": "GB|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0484,
+    "nwc_pct": 0.0004
+   },
+   "id": "GB|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0462,
+    "nwc_pct": 0.0009
+   },
+   "id": "GB|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "GB",
+   "currency": "GBP",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0403,
+    "growth_std": 0.0408,
+    "interest_mean": 0.0462,
+    "nwc_pct": 0.0009
+   },
+   "id": "GB|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0059
+   },
+   "id": "DE|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0061
+   },
+   "id": "DE|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0773,
+    "nwc_pct": 0.0067
+   },
+   "id": "DE|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0342,
+    "nwc_pct": 0.0033
+   },
+   "id": "DE|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0004
+   },
+   "id": "DE|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0046
+   },
+   "id": "DE|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0058
+   },
+   "id": "DE|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0004
+   },
+   "id": "DE|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0008
+   },
+   "id": "DE|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "DE",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0352,
+    "growth_std": 0.0312,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0007
+   },
+   "id": "DE|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0046
+   },
+   "id": "FR|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0048
+   },
+   "id": "FR|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0773,
+    "nwc_pct": 0.0053
+   },
+   "id": "FR|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0342,
+    "nwc_pct": 0.0025
+   },
+   "id": "FR|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0003
+   },
+   "id": "FR|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0036
+   },
+   "id": "FR|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0045
+   },
+   "id": "FR|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0003
+   },
+   "id": "FR|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0006
+   },
+   "id": "FR|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "FR",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0272,
+    "growth_std": 0.0323,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0006
+   },
+   "id": "FR|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0052
+   },
+   "id": "IT|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0054
+   },
+   "id": "IT|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0773,
+    "nwc_pct": 0.006
+   },
+   "id": "IT|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0342,
+    "nwc_pct": 0.0029
+   },
+   "id": "IT|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0004
+   },
+   "id": "IT|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0041
+   },
+   "id": "IT|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0052
+   },
+   "id": "IT|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0003
+   },
+   "id": "IT|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0007
+   },
+   "id": "IT|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "IT",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0311,
+    "growth_std": 0.0429,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0007
+   },
+   "id": "IT|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0085
+   },
+   "id": "ES|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0088
+   },
+   "id": "ES|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0773,
+    "nwc_pct": 0.0097
+   },
+   "id": "ES|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0342,
+    "nwc_pct": 0.0047
+   },
+   "id": "ES|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0006
+   },
+   "id": "ES|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0066
+   },
+   "id": "ES|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0084
+   },
+   "id": "ES|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0006
+   },
+   "id": "ES|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0011
+   },
+   "id": "ES|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "ES",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0516,
+    "growth_std": 0.0488,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0011
+   },
+   "id": "ES|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0066
+   },
+   "id": "NL|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0068
+   },
+   "id": "NL|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0773,
+    "nwc_pct": 0.0075
+   },
+   "id": "NL|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0342,
+    "nwc_pct": 0.0036
+   },
+   "id": "NL|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0005
+   },
+   "id": "NL|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0304,
+    "nwc_pct": 0.0051
+   },
+   "id": "NL|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.1864,
+    "nwc_pct": 0.0065
+   },
+   "id": "NL|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0375,
+    "nwc_pct": 0.0004
+   },
+   "id": "NL|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0008
+   },
+   "id": "NL|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "NL",
+   "currency": "EUR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0393,
+    "growth_std": 0.037,
+    "interest_mean": 0.0353,
+    "nwc_pct": 0.0008
+   },
+   "id": "NL|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.004,
+    "nwc_pct": 0.0031
+   },
+   "id": "CH|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.16,
+    "nwc_pct": 0.0032
+   },
+   "id": "CH|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.0509,
+    "nwc_pct": 0.0035
+   },
+   "id": "CH|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.0078,
+    "nwc_pct": 0.0017
+   },
+   "id": "CH|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.0111,
+    "nwc_pct": 0.0002
+   },
+   "id": "CH|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.004,
+    "nwc_pct": 0.0024
+   },
+   "id": "CH|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.16,
+    "nwc_pct": 0.0031
+   },
+   "id": "CH|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.0111,
+    "nwc_pct": 0.0002
+   },
+   "id": "CH|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.0089,
+    "nwc_pct": 0.0004
+   },
+   "id": "CH|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "CH",
+   "currency": "CHF",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0181,
+    "growth_std": 0.0243,
+    "interest_mean": 0.0089,
+    "nwc_pct": 0.0004
+   },
+   "id": "CH|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0215,
+    "nwc_pct": 0.0059
+   },
+   "id": "SE|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.1775,
+    "nwc_pct": 0.0061
+   },
+   "id": "SE|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0684,
+    "nwc_pct": 0.0068
+   },
+   "id": "SE|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0253,
+    "nwc_pct": 0.0033
+   },
+   "id": "SE|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0286,
+    "nwc_pct": 0.0004
+   },
+   "id": "SE|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0215,
+    "nwc_pct": 0.0046
+   },
+   "id": "SE|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.1775,
+    "nwc_pct": 0.0059
+   },
+   "id": "SE|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0286,
+    "nwc_pct": 0.0004
+   },
+   "id": "SE|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0264,
+    "nwc_pct": 0.0008
+   },
+   "id": "SE|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "SE",
+   "currency": "SEK",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0353,
+    "growth_std": 0.0262,
+    "interest_mean": 0.0264,
+    "nwc_pct": 0.0007
+   },
+   "id": "SE|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.049,
+    "nwc_pct": 0.008
+   },
+   "id": "NO|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.205,
+    "nwc_pct": 0.0083
+   },
+   "id": "NO|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.0959,
+    "nwc_pct": 0.0092
+   },
+   "id": "NO|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.0528,
+    "nwc_pct": 0.0044
+   },
+   "id": "NO|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.0561,
+    "nwc_pct": 0.0006
+   },
+   "id": "NO|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.049,
+    "nwc_pct": 0.0063
+   },
+   "id": "NO|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.205,
+    "nwc_pct": 0.0079
+   },
+   "id": "NO|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.0561,
+    "nwc_pct": 0.0005
+   },
+   "id": "NO|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.0539,
+    "nwc_pct": 0.001
+   },
+   "id": "NO|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "NO",
+   "currency": "NOK",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0485,
+    "growth_std": 0.0198,
+    "interest_mean": 0.0539,
+    "nwc_pct": 0.001
+   },
+   "id": "NO|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.0099,
+    "da_pct": 0.0126,
+    "debt_pct": 0.6,
+    "exit_mean": 14.98,
+    "exit_std": 2.55,
+    "gross_margin_mean": 0.4468,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0415,
+    "nwc_pct": 0.0109
+   },
+   "id": "PL|machinery",
+   "industry": "machinery",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.0686,
+    "da_pct": 0.0656,
+    "debt_pct": 0.6,
+    "exit_mean": 10.71,
+    "exit_std": 3.72,
+    "gross_margin_mean": 0.2664,
+    "gross_margin_std": 0.0362,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.1975,
+    "nwc_pct": 0.0113
+   },
+   "id": "PL|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.1335,
+    "da_pct": 0.0405,
+    "debt_pct": 0.6,
+    "exit_mean": 8.27,
+    "exit_std": 2.4,
+    "gross_margin_mean": 0.1337,
+    "gross_margin_std": 0.0485,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0884,
+    "nwc_pct": 0.0125
+   },
+   "id": "PL|steel",
+   "industry": "steel",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.0287,
+    "da_pct": 0.0206,
+    "debt_pct": 0.6,
+    "exit_mean": 12.43,
+    "exit_std": 2.04,
+    "gross_margin_mean": 0.3294,
+    "gross_margin_std": 0.0229,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0453,
+    "nwc_pct": 0.006
+   },
+   "id": "PL|food_processing",
+   "industry": "food_processing",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.036,
+    "da_pct": 0.0343,
+    "debt_pct": 0.6,
+    "exit_mean": 5.81,
+    "exit_std": 1.68,
+    "gross_margin_mean": 0.2071,
+    "gross_margin_std": 0.0159,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0486,
+    "nwc_pct": 0.0008
+   },
+   "id": "PL|auto_parts",
+   "industry": "auto_parts",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.0191,
+    "da_pct": 0.0174,
+    "debt_pct": 0.6,
+    "exit_mean": 14.34,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.3609,
+    "gross_margin_std": 0.012,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0415,
+    "nwc_pct": 0.0085
+   },
+   "id": "PL|building_materials",
+   "industry": "building_materials",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.0108,
+    "da_pct": 0.0077,
+    "debt_pct": 0.6,
+    "exit_mean": 18.94,
+    "exit_std": 4.25,
+    "gross_margin_mean": 0.3168,
+    "gross_margin_std": 0.0239,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.1975,
+    "nwc_pct": 0.0108
+   },
+   "id": "PL|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.008,
+    "da_pct": 0.0121,
+    "debt_pct": 0.6,
+    "exit_mean": 23.64,
+    "exit_std": 7.7,
+    "gross_margin_mean": 0.2487,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0486,
+    "nwc_pct": 0.0007
+   },
+   "id": "PL|retail_general",
+   "industry": "retail_general",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.0732,
+    "da_pct": 0.1113,
+    "debt_pct": 0.6,
+    "exit_mean": 7.19,
+    "exit_std": 0.85,
+    "gross_margin_mean": 0.4688,
+    "gross_margin_std": 0.0132,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0464,
+    "nwc_pct": 0.0014
+   },
+   "id": "PL|telecom_services",
+   "industry": "telecom_services",
+   "region": "europe"
+  },
+  {
+   "country": "PL",
+   "currency": "PLN",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.99,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0671,
+    "growth_std": 0.0422,
+    "interest_mean": 0.0464,
+    "nwc_pct": 0.0014
+   },
+   "id": "PL|utility_general",
+   "industry": "utility_general",
+   "region": "europe"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.1816,
+    "da_pct": 0.0391,
+    "debt_pct": 0.6,
+    "exit_mean": 12.15,
+    "exit_std": 1.97,
+    "gross_margin_mean": 0.2702,
+    "gross_margin_std": 0.0133,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0099
+   },
+   "id": "JP|machinery",
+   "industry": "machinery",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.2257,
+    "da_pct": 0.06,
+    "debt_pct": 0.6,
+    "exit_mean": 6.42,
+    "exit_std": 0.86,
+    "gross_margin_mean": 0.2511,
+    "gross_margin_std": 0.0114,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0091
+   },
+   "id": "JP|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.0917,
+    "da_pct": 0.0465,
+    "debt_pct": 0.6,
+    "exit_mean": 7.99,
+    "exit_std": 2.06,
+    "gross_margin_mean": 0.1426,
+    "gross_margin_std": 0.0162,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0075
+   },
+   "id": "JP|steel",
+   "industry": "steel",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.2286,
+    "da_pct": 0.0325,
+    "debt_pct": 0.6,
+    "exit_mean": 8.97,
+    "exit_std": 1.52,
+    "gross_margin_mean": 0.2412,
+    "gross_margin_std": 0.0216,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0049
+   },
+   "id": "JP|food_processing",
+   "industry": "food_processing",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.2402,
+    "da_pct": 0.0437,
+    "debt_pct": 0.6,
+    "exit_mean": 5.39,
+    "exit_std": 1.24,
+    "gross_margin_mean": 0.1584,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0046
+   },
+   "id": "JP|auto_parts",
+   "industry": "auto_parts",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.1555,
+    "da_pct": 0.0464,
+    "debt_pct": 0.6,
+    "exit_mean": 7.59,
+    "exit_std": 1.5,
+    "gross_margin_mean": 0.3018,
+    "gross_margin_std": 0.0057,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0054
+   },
+   "id": "JP|building_materials",
+   "industry": "building_materials",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.0764,
+    "da_pct": 0.0342,
+    "debt_pct": 0.6,
+    "exit_mean": 12.63,
+    "exit_std": 2.46,
+    "gross_margin_mean": 0.2637,
+    "gross_margin_std": 0.0095,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0079
+   },
+   "id": "JP|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.056,
+    "da_pct": 0.0382,
+    "debt_pct": 0.6,
+    "exit_mean": 10.4,
+    "exit_std": 1.12,
+    "gross_margin_mean": 0.3538,
+    "gross_margin_std": 0.013,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0203,
+    "nwc_pct": 0.0057
+   },
+   "id": "JP|retail_general",
+   "industry": "retail_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.1032,
+    "da_pct": 0.1274,
+    "debt_pct": 0.6,
+    "exit_mean": 7.15,
+    "exit_std": 0.67,
+    "gross_margin_mean": 0.4811,
+    "gross_margin_std": 0.0139,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0165,
+    "nwc_pct": 0.0037
+   },
+   "id": "JP|telecom_services",
+   "industry": "telecom_services",
+   "region": "other_developed"
+  },
+  {
+   "country": "JP",
+   "currency": "JPY",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0292,
+    "growth_std": 0.0254,
+    "interest_mean": 0.0214,
+    "nwc_pct": 0.0006
+   },
+   "id": "JP|utility_general",
+   "industry": "utility_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0534,
+    "da_pct": 0.0301,
+    "debt_pct": 0.6,
+    "exit_mean": 29.11,
+    "exit_std": 6.79,
+    "gross_margin_mean": 0.211,
+    "gross_margin_std": 0.0133,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0378,
+    "nwc_pct": 0.023
+   },
+   "id": "CN|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0698,
+    "da_pct": 0.0483,
+    "debt_pct": 0.6,
+    "exit_mean": 18.01,
+    "exit_std": 4.14,
+    "gross_margin_mean": 0.1232,
+    "gross_margin_std": 0.0264,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0438,
+    "nwc_pct": 0.0052
+   },
+   "id": "CN|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0347,
+    "da_pct": 0.0341,
+    "debt_pct": 0.6,
+    "exit_mean": 11.02,
+    "exit_std": 3.94,
+    "gross_margin_mean": 0.0659,
+    "gross_margin_std": 0.0345,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0575,
+    "nwc_pct": -0.0003
+   },
+   "id": "CN|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0383,
+    "da_pct": 0.0303,
+    "debt_pct": 0.6,
+    "exit_mean": 12.85,
+    "exit_std": 2.61,
+    "gross_margin_mean": 0.1901,
+    "gross_margin_std": 0.0399,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.034,
+    "nwc_pct": 0.0056
+   },
+   "id": "CN|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0567,
+    "da_pct": 0.0285,
+    "debt_pct": 0.6,
+    "exit_mean": 21.14,
+    "exit_std": 4.99,
+    "gross_margin_mean": 0.1691,
+    "gross_margin_std": 0.0182,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0355,
+    "nwc_pct": 0.0078
+   },
+   "id": "CN|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0714,
+    "da_pct": 0.0599,
+    "debt_pct": 0.6,
+    "exit_mean": 16.73,
+    "exit_std": 3.7,
+    "gross_margin_mean": 0.2191,
+    "gross_margin_std": 0.0287,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0389,
+    "nwc_pct": 0.012
+   },
+   "id": "CN|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0579,
+    "da_pct": 0.0276,
+    "debt_pct": 0.6,
+    "exit_mean": 21.24,
+    "exit_std": 5.98,
+    "gross_margin_mean": 0.1828,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0355,
+    "nwc_pct": 0.0116
+   },
+   "id": "CN|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0294,
+    "da_pct": 0.044,
+    "debt_pct": 0.6,
+    "exit_mean": 17.15,
+    "exit_std": 2.34,
+    "gross_margin_mean": 0.314,
+    "gross_margin_std": 0.0341,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0809,
+    "nwc_pct": 0.0009
+   },
+   "id": "CN|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0389,
+    "nwc_pct": -0.0014
+   },
+   "id": "CN|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "CN",
+   "currency": "CNY",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0565,
+    "growth_std": 0.0379,
+    "interest_mean": 0.0389,
+    "nwc_pct": 0.0012
+   },
+   "id": "CN|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.057,
+    "da_pct": 0.0257,
+    "debt_pct": 0.6,
+    "exit_mean": 26.85,
+    "exit_std": 8.57,
+    "gross_margin_mean": 0.4451,
+    "gross_margin_std": 0.0093,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.058,
+    "nwc_pct": 0.0275
+   },
+   "id": "IN|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0634,
+    "da_pct": 0.0332,
+    "debt_pct": 0.6,
+    "exit_mean": 18.26,
+    "exit_std": 3.84,
+    "gross_margin_mean": 0.3597,
+    "gross_margin_std": 0.0249,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0603,
+    "nwc_pct": 0.0181
+   },
+   "id": "IN|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0599,
+    "da_pct": 0.0334,
+    "debt_pct": 0.6,
+    "exit_mean": 13.14,
+    "exit_std": 2.71,
+    "gross_margin_mean": 0.4322,
+    "gross_margin_std": 0.0245,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0614,
+    "nwc_pct": 0.0088
+   },
+   "id": "IN|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0282,
+    "da_pct": 0.0182,
+    "debt_pct": 0.6,
+    "exit_mean": 27.45,
+    "exit_std": 7.37,
+    "gross_margin_mean": 0.2499,
+    "gross_margin_std": 0.0226,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0595,
+    "nwc_pct": 0.0106
+   },
+   "id": "IN|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0542,
+    "da_pct": 0.0334,
+    "debt_pct": 0.6,
+    "exit_mean": 23.2,
+    "exit_std": 5.61,
+    "gross_margin_mean": 0.3865,
+    "gross_margin_std": 0.0179,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0603,
+    "nwc_pct": 0.0092
+   },
+   "id": "IN|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0659,
+    "da_pct": 0.0328,
+    "debt_pct": 0.6,
+    "exit_mean": 24.36,
+    "exit_std": 8.66,
+    "gross_margin_mean": 0.3577,
+    "gross_margin_std": 0.0271,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0595,
+    "nwc_pct": 0.0231
+   },
+   "id": "IN|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0176,
+    "da_pct": 0.0057,
+    "debt_pct": 0.6,
+    "exit_mean": 38.69,
+    "exit_std": 14.27,
+    "gross_margin_mean": 0.3012,
+    "gross_margin_std": 0.0212,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.058,
+    "nwc_pct": 0.0259
+   },
+   "id": "IN|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0636,
+    "nwc_pct": -0.0002
+   },
+   "id": "IN|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0614,
+    "nwc_pct": -0.0027
+   },
+   "id": "IN|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "IN",
+   "currency": "INR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.1151,
+    "growth_std": 0.0388,
+    "interest_mean": 0.0614,
+    "nwc_pct": 0.0023
+   },
+   "id": "IN|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.037,
+    "nwc_pct": 0.0165
+   },
+   "id": "KR|machinery",
+   "industry": "machinery",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0575,
+    "nwc_pct": 0.0034
+   },
+   "id": "KR|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0411,
+    "nwc_pct": 0.0037
+   },
+   "id": "KR|steel",
+   "industry": "steel",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0378,
+    "nwc_pct": 0.0047
+   },
+   "id": "KR|food_processing",
+   "industry": "food_processing",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0378,
+    "nwc_pct": 0.0056
+   },
+   "id": "KR|auto_parts",
+   "industry": "auto_parts",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0389,
+    "nwc_pct": 0.0109
+   },
+   "id": "KR|building_materials",
+   "industry": "building_materials",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.037,
+    "nwc_pct": 0.0095
+   },
+   "id": "KR|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0411,
+    "nwc_pct": -0.0001
+   },
+   "id": "KR|retail_general",
+   "industry": "retail_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0389,
+    "nwc_pct": -0.0011
+   },
+   "id": "KR|telecom_services",
+   "industry": "telecom_services",
+   "region": "other_developed"
+  },
+  {
+   "country": "KR",
+   "currency": "KRW",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0445,
+    "growth_std": 0.0278,
+    "interest_mean": 0.0389,
+    "nwc_pct": 0.0009
+   },
+   "id": "KR|utility_general",
+   "industry": "utility_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.0111,
+    "da_pct": 0.0229,
+    "debt_pct": 0.6,
+    "exit_mean": 18.27,
+    "exit_std": 3.83,
+    "gross_margin_mean": 0.3195,
+    "gross_margin_std": 0.0204,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0589,
+    "nwc_pct": 0.0172
+   },
+   "id": "AU|machinery",
+   "industry": "machinery",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.116,
+    "da_pct": 0.0627,
+    "debt_pct": 0.6,
+    "exit_mean": 13.71,
+    "exit_std": 3.48,
+    "gross_margin_mean": 0.1479,
+    "gross_margin_std": 0.0312,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0726,
+    "nwc_pct": 0.0069
+   },
+   "id": "AU|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.3788,
+    "da_pct": 0.0981,
+    "debt_pct": 0.6,
+    "exit_mean": 6.83,
+    "exit_std": 1.92,
+    "gross_margin_mean": 0.3505,
+    "gross_margin_std": 0.0617,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0491,
+    "nwc_pct": 0.0068
+   },
+   "id": "AU|steel",
+   "industry": "steel",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.0233,
+    "da_pct": 0.019,
+    "debt_pct": 0.6,
+    "exit_mean": 10.19,
+    "exit_std": 1.54,
+    "gross_margin_mean": 0.1611,
+    "gross_margin_std": 0.0073,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0529,
+    "nwc_pct": 0.0087
+   },
+   "id": "AU|food_processing",
+   "industry": "food_processing",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.0666,
+    "da_pct": 0.0354,
+    "debt_pct": 0.6,
+    "exit_mean": 9.23,
+    "exit_std": 1.73,
+    "gross_margin_mean": 0.1807,
+    "gross_margin_std": 0.0116,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0529,
+    "nwc_pct": 0.0065
+   },
+   "id": "AU|auto_parts",
+   "industry": "auto_parts",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.0493,
+    "da_pct": 0.0364,
+    "debt_pct": 0.6,
+    "exit_mean": 12.41,
+    "exit_std": 1.81,
+    "gross_margin_mean": 0.3171,
+    "gross_margin_std": 0.0076,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0506,
+    "nwc_pct": 0.0101
+   },
+   "id": "AU|building_materials",
+   "industry": "building_materials",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.049,
+    "da_pct": 0.0219,
+    "debt_pct": 0.6,
+    "exit_mean": 17.76,
+    "exit_std": 5.24,
+    "gross_margin_mean": 0.2407,
+    "gross_margin_std": 0.036,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.1336,
+    "nwc_pct": 0.0136
+   },
+   "id": "AU|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.0522,
+    "da_pct": 0.03,
+    "debt_pct": 0.6,
+    "exit_mean": 17.1,
+    "exit_std": 3.09,
+    "gross_margin_mean": 0.3262,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0491,
+    "nwc_pct": 0.0007
+   },
+   "id": "AU|retail_general",
+   "industry": "retail_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.0907,
+    "da_pct": 0.1297,
+    "debt_pct": 0.6,
+    "exit_mean": 9.44,
+    "exit_std": 1.76,
+    "gross_margin_mean": 0.4395,
+    "gross_margin_std": 0.0121,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.0589,
+    "nwc_pct": 0.0065
+   },
+   "id": "AU|telecom_services",
+   "industry": "telecom_services",
+   "region": "other_developed"
+  },
+  {
+   "country": "AU",
+   "currency": "AUD",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0608,
+    "growth_std": 0.022,
+    "interest_mean": 0.054,
+    "nwc_pct": 0.0013
+   },
+   "id": "AU|utility_general",
+   "industry": "utility_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.0111,
+    "da_pct": 0.0229,
+    "debt_pct": 0.6,
+    "exit_mean": 18.27,
+    "exit_std": 3.83,
+    "gross_margin_mean": 0.3195,
+    "gross_margin_std": 0.0204,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0363,
+    "nwc_pct": 0.0116
+   },
+   "id": "CA|machinery",
+   "industry": "machinery",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.116,
+    "da_pct": 0.0627,
+    "debt_pct": 0.6,
+    "exit_mean": 13.71,
+    "exit_std": 3.48,
+    "gross_margin_mean": 0.1479,
+    "gross_margin_std": 0.0312,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.05,
+    "nwc_pct": 0.0047
+   },
+   "id": "CA|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.3788,
+    "da_pct": 0.0981,
+    "debt_pct": 0.6,
+    "exit_mean": 6.83,
+    "exit_std": 1.92,
+    "gross_margin_mean": 0.3505,
+    "gross_margin_std": 0.0617,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0265,
+    "nwc_pct": 0.0046
+   },
+   "id": "CA|steel",
+   "industry": "steel",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.0233,
+    "da_pct": 0.019,
+    "debt_pct": 0.6,
+    "exit_mean": 10.19,
+    "exit_std": 1.54,
+    "gross_margin_mean": 0.1611,
+    "gross_margin_std": 0.0073,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0303,
+    "nwc_pct": 0.0059
+   },
+   "id": "CA|food_processing",
+   "industry": "food_processing",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.0666,
+    "da_pct": 0.0354,
+    "debt_pct": 0.6,
+    "exit_mean": 9.23,
+    "exit_std": 1.73,
+    "gross_margin_mean": 0.1807,
+    "gross_margin_std": 0.0116,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0303,
+    "nwc_pct": 0.0044
+   },
+   "id": "CA|auto_parts",
+   "industry": "auto_parts",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.0493,
+    "da_pct": 0.0364,
+    "debt_pct": 0.6,
+    "exit_mean": 12.41,
+    "exit_std": 1.81,
+    "gross_margin_mean": 0.3171,
+    "gross_margin_std": 0.0076,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.028,
+    "nwc_pct": 0.0069
+   },
+   "id": "CA|building_materials",
+   "industry": "building_materials",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.049,
+    "da_pct": 0.0219,
+    "debt_pct": 0.6,
+    "exit_mean": 17.76,
+    "exit_std": 5.24,
+    "gross_margin_mean": 0.2407,
+    "gross_margin_std": 0.036,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.111,
+    "nwc_pct": 0.0092
+   },
+   "id": "CA|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.0522,
+    "da_pct": 0.03,
+    "debt_pct": 0.6,
+    "exit_mean": 17.1,
+    "exit_std": 3.09,
+    "gross_margin_mean": 0.3262,
+    "gross_margin_std": 0.0272,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0265,
+    "nwc_pct": 0.0005
+   },
+   "id": "CA|retail_general",
+   "industry": "retail_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.0907,
+    "da_pct": 0.1297,
+    "debt_pct": 0.6,
+    "exit_mean": 9.44,
+    "exit_std": 1.76,
+    "gross_margin_mean": 0.4395,
+    "gross_margin_std": 0.0121,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0363,
+    "nwc_pct": 0.0044
+   },
+   "id": "CA|telecom_services",
+   "industry": "telecom_services",
+   "region": "other_developed"
+  },
+  {
+   "country": "CA",
+   "currency": "CAD",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0404,
+    "growth_std": 0.0313,
+    "interest_mean": 0.0314,
+    "nwc_pct": 0.0009
+   },
+   "id": "CA|utility_general",
+   "industry": "utility_general",
+   "region": "other_developed"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1445,
+    "nwc_pct": 0.0219
+   },
+   "id": "BR|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.165,
+    "nwc_pct": 0.0045
+   },
+   "id": "BR|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1486,
+    "nwc_pct": 0.0049
+   },
+   "id": "BR|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1453,
+    "nwc_pct": 0.0062
+   },
+   "id": "BR|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1453,
+    "nwc_pct": 0.0074
+   },
+   "id": "BR|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1464,
+    "nwc_pct": 0.0144
+   },
+   "id": "BR|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1445,
+    "nwc_pct": 0.0125
+   },
+   "id": "BR|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1486,
+    "nwc_pct": -0.0001
+   },
+   "id": "BR|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1464,
+    "nwc_pct": -0.0015
+   },
+   "id": "BR|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "BR",
+   "currency": "BRL",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0598,
+    "growth_std": 0.0361,
+    "interest_mean": 0.1464,
+    "nwc_pct": 0.0012
+   },
+   "id": "BR|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.072,
+    "nwc_pct": 0.0204
+   },
+   "id": "MX|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0925,
+    "nwc_pct": 0.0042
+   },
+   "id": "MX|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0761,
+    "nwc_pct": 0.0046
+   },
+   "id": "MX|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0728,
+    "nwc_pct": 0.0058
+   },
+   "id": "MX|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0728,
+    "nwc_pct": 0.0069
+   },
+   "id": "MX|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0739,
+    "nwc_pct": 0.0134
+   },
+   "id": "MX|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.072,
+    "nwc_pct": 0.0117
+   },
+   "id": "MX|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0761,
+    "nwc_pct": -0.0001
+   },
+   "id": "MX|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0739,
+    "nwc_pct": -0.0014
+   },
+   "id": "MX|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "MX",
+   "currency": "MXN",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0556,
+    "growth_std": 0.0393,
+    "interest_mean": 0.0739,
+    "nwc_pct": 0.0012
+   },
+   "id": "MX|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0795,
+    "nwc_pct": 0.0182
+   },
+   "id": "ZA|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.1,
+    "nwc_pct": 0.0037
+   },
+   "id": "ZA|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0836,
+    "nwc_pct": 0.0041
+   },
+   "id": "ZA|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0803,
+    "nwc_pct": 0.0051
+   },
+   "id": "ZA|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0803,
+    "nwc_pct": 0.0062
+   },
+   "id": "ZA|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0814,
+    "nwc_pct": 0.012
+   },
+   "id": "ZA|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0795,
+    "nwc_pct": 0.0105
+   },
+   "id": "ZA|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0836,
+    "nwc_pct": -0.0001
+   },
+   "id": "ZA|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0814,
+    "nwc_pct": -0.0012
+   },
+   "id": "ZA|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "ZA",
+   "currency": "ZAR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0494,
+    "growth_std": 0.0339,
+    "interest_mean": 0.0814,
+    "nwc_pct": 0.001
+   },
+   "id": "ZA|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0495,
+    "nwc_pct": 0.0201
+   },
+   "id": "SA|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.07,
+    "nwc_pct": 0.0041
+   },
+   "id": "SA|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0536,
+    "nwc_pct": 0.0045
+   },
+   "id": "SA|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0503,
+    "nwc_pct": 0.0057
+   },
+   "id": "SA|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0503,
+    "nwc_pct": 0.0068
+   },
+   "id": "SA|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0514,
+    "nwc_pct": 0.0132
+   },
+   "id": "SA|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0495,
+    "nwc_pct": 0.0115
+   },
+   "id": "SA|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0536,
+    "nwc_pct": -0.0001
+   },
+   "id": "SA|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0514,
+    "nwc_pct": -0.0014
+   },
+   "id": "SA|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "SA",
+   "currency": "SAR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0547,
+    "growth_std": 0.0452,
+    "interest_mean": 0.0514,
+    "nwc_pct": 0.0011
+   },
+   "id": "SA|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.377,
+    "nwc_pct": 0.0961
+   },
+   "id": "TR|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3975,
+    "nwc_pct": 0.0197
+   },
+   "id": "TR|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3811,
+    "nwc_pct": 0.0216
+   },
+   "id": "TR|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3778,
+    "nwc_pct": 0.0271
+   },
+   "id": "TR|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3778,
+    "nwc_pct": 0.0325
+   },
+   "id": "TR|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3789,
+    "nwc_pct": 0.0632
+   },
+   "id": "TR|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.377,
+    "nwc_pct": 0.0551
+   },
+   "id": "TR|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3811,
+    "nwc_pct": -0.0004
+   },
+   "id": "TR|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3789,
+    "nwc_pct": -0.0066
+   },
+   "id": "TR|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "TR",
+   "currency": "TRY",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.3297,
+    "growth_std": 0.21,
+    "interest_mean": 0.3789,
+    "nwc_pct": 0.0054
+   },
+   "id": "TR|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0505,
+    "da_pct": 0.0281,
+    "debt_pct": 0.6,
+    "exit_mean": 24.98,
+    "exit_std": 4.76,
+    "gross_margin_mean": 0.2391,
+    "gross_margin_std": 0.0084,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0645,
+    "nwc_pct": 0.0292
+   },
+   "id": "ID|machinery",
+   "industry": "machinery",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.1005,
+    "da_pct": 0.0576,
+    "debt_pct": 0.6,
+    "exit_mean": 16.29,
+    "exit_std": 4.51,
+    "gross_margin_mean": 0.1342,
+    "gross_margin_std": 0.0333,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.085,
+    "nwc_pct": 0.006
+   },
+   "id": "ID|chemical_basic",
+   "industry": "chemical_basic",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0625,
+    "da_pct": 0.0377,
+    "debt_pct": 0.6,
+    "exit_mean": 9.25,
+    "exit_std": 1.78,
+    "gross_margin_mean": 0.1562,
+    "gross_margin_std": 0.028,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0686,
+    "nwc_pct": 0.0066
+   },
+   "id": "ID|steel",
+   "industry": "steel",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0377,
+    "da_pct": 0.0264,
+    "debt_pct": 0.6,
+    "exit_mean": 11.05,
+    "exit_std": 1.33,
+    "gross_margin_mean": 0.2347,
+    "gross_margin_std": 0.0173,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0653,
+    "nwc_pct": 0.0082
+   },
+   "id": "ID|food_processing",
+   "industry": "food_processing",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.058,
+    "da_pct": 0.0291,
+    "debt_pct": 0.6,
+    "exit_mean": 15.6,
+    "exit_std": 3.25,
+    "gross_margin_mean": 0.188,
+    "gross_margin_std": 0.0086,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0653,
+    "nwc_pct": 0.0099
+   },
+   "id": "ID|auto_parts",
+   "industry": "auto_parts",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0743,
+    "da_pct": 0.0547,
+    "debt_pct": 0.6,
+    "exit_mean": 14.3,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.2386,
+    "gross_margin_std": 0.0189,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0664,
+    "nwc_pct": 0.0192
+   },
+   "id": "ID|building_materials",
+   "industry": "building_materials",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0674,
+    "da_pct": 0.0246,
+    "debt_pct": 0.6,
+    "exit_mean": 22.09,
+    "exit_std": 6.26,
+    "gross_margin_mean": 0.1836,
+    "gross_margin_std": 0.0091,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0645,
+    "nwc_pct": 0.0168
+   },
+   "id": "ID|electrical_equipment",
+   "industry": "electrical_equipment",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0213,
+    "da_pct": 0.0199,
+    "debt_pct": 0.6,
+    "exit_mean": 14.86,
+    "exit_std": 1.31,
+    "gross_margin_mean": 0.3128,
+    "gross_margin_std": 0.0137,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0686,
+    "nwc_pct": -0.0001
+   },
+   "id": "ID|retail_general",
+   "industry": "retail_general",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.0873,
+    "da_pct": 0.1367,
+    "debt_pct": 0.6,
+    "exit_mean": 6.98,
+    "exit_std": 0.49,
+    "gross_margin_mean": 0.5137,
+    "gross_margin_std": 0.0254,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0664,
+    "nwc_pct": -0.002
+   },
+   "id": "ID|telecom_services",
+   "industry": "telecom_services",
+   "region": "emerging"
+  },
+  {
+   "country": "ID",
+   "currency": "IDR",
+   "features": {
+    "capex_pct": 0.1627,
+    "da_pct": 0.0661,
+    "debt_pct": 0.6,
+    "exit_mean": 10.8,
+    "exit_std": 1.69,
+    "gross_margin_mean": 0.3486,
+    "gross_margin_std": 0.0478,
+    "growth_mean": 0.0815,
+    "growth_std": 0.0418,
+    "interest_mean": 0.0664,
+    "nwc_pct": 0.0017
+   },
+   "id": "ID|utility_general",
+   "industry": "utility_general",
+   "region": "emerging"
+  }
+ ],
+ "debt_pct": 60.0,
+ "recorded_on": "2026-10-06",
+ "skipped": [
+  "SG|machinery",
+  "SG|chemical_basic",
+  "SG|steel",
+  "SG|food_processing",
+  "SG|auto_parts",
+  "SG|building_materials",
+  "SG|electrical_equipment",
+  "SG|retail_general",
+  "SG|telecom_services",
+  "SG|utility_general"
+ ]
+}

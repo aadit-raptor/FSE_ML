@@ -71,9 +71,9 @@ class AnomalyResult:
     risk_score:     float       # 1-10 composite risk score
 
 
-def _build_training_data():
+def _build_training_data(deals=HISTORICAL_DEALS):
     df = pd.DataFrame(
-        HISTORICAL_DEALS,
+        deals,
         columns=['entry_mult', 'leverage', 'growth',
                  'margin', 'interest', 'success', 'name']
     )
@@ -95,9 +95,11 @@ def _build_training_data():
     return features_df, df
 
 
-def train_detector() -> tuple:
-    print("Training anomaly detector...")
-    features_df, raw_df = _build_training_data()
+def fit_detector(deals=HISTORICAL_DEALS) -> tuple:
+    """Fit the detector, scaler and neighbour search on ``deals`` (rows in
+    HISTORICAL_DEALS' format), in memory. The evaluation harness (PLAN.md
+    5.1) refits on older deals only; ``train_detector`` fits on all of them."""
+    features_df, raw_df = _build_training_data(deals)
     X = features_df.values
 
     scaler = StandardScaler()
@@ -117,25 +119,46 @@ def train_detector() -> tuple:
     hist_X_scaled = scaler.transform(hist_X)
     nn_model = NearestNeighbors(n_neighbors=3, metric='cosine')
     nn_model.fit(hist_X_scaled)
+    return detector, scaler, nn_model, raw_df, len(X)
 
-    joblib.dump(detector, os.path.join(BASE, 'anomaly_detector.pkl'))
-    joblib.dump(scaler,   os.path.join(BASE, 'anomaly_scaler.pkl'))
-    joblib.dump(nn_model, os.path.join(BASE, 'anomaly_nn.pkl'))
 
-    with open(os.path.join(BASE, 'anomaly_deals.json'), 'w') as f:
-        json.dump([{
-            'name':       row['name'],
-            'entry_mult': row['entry_mult'],
-            'leverage':   row['leverage'],
-            'growth':     row['growth'],
-            'margin':     row['margin'],
-            'interest':   row['interest'],
-            'success':    bool(row['success']),
-        } for _, row in raw_df.iterrows()], f)
+def train_detector(out_dir: str = BASE) -> tuple:
+    print("Training anomaly detector...")
+    detector, scaler, nn_model, raw_df, n_samples = fit_detector()
 
-    print(f"Anomaly detector trained on {len(X)} samples "
-          f"({len(raw_df)} real + {len(X)-len(raw_df)} synthetic)")
+    joblib.dump(detector, os.path.join(out_dir, 'anomaly_detector.pkl'))
+    joblib.dump(scaler,   os.path.join(out_dir, 'anomaly_scaler.pkl'))
+    joblib.dump(nn_model, os.path.join(out_dir, 'anomaly_nn.pkl'))
+
+    with open(os.path.join(out_dir, 'anomaly_deals.json'), 'w') as f:
+        json.dump(deal_records(raw_df), f)
+
+    print(f"Anomaly detector trained on {n_samples} samples "
+          f"({len(raw_df)} real + {n_samples-len(raw_df)} synthetic)")
     return detector, scaler, nn_model, raw_df
+
+
+def deal_records(raw_df) -> List[dict]:
+    """The real deals as the nearest-deal lookup lists them."""
+    return [{
+        'name':       row['name'],
+        'entry_mult': row['entry_mult'],
+        'leverage':   row['leverage'],
+        'growth':     row['growth'],
+        'margin':     row['margin'],
+        'interest':   row['interest'],
+        'success':    bool(row['success']),
+    } for _, row in raw_df.iterrows()]
+
+
+def load_detector(base: str = BASE) -> tuple:
+    """The trained detector, scaler, neighbour search and deal list in ``base``."""
+    detector = joblib.load(os.path.join(base, 'anomaly_detector.pkl'))
+    scaler   = joblib.load(os.path.join(base, 'anomaly_scaler.pkl'))
+    nn_model = joblib.load(os.path.join(base, 'anomaly_nn.pkl'))
+    with open(os.path.join(base, 'anomaly_deals.json')) as f:
+        deals_db = json.load(f)
+    return detector, scaler, nn_model, deals_db
 
 
 def check_deal(entry_mult:   float,
@@ -148,13 +171,15 @@ def check_deal(entry_mult:   float,
     Check if deal parameters are anomalous vs historical norms.
     Returns AnomalyResult with the risk score and the nearest historical deals.
     """
-    # Load models (cached after first load)
-    detector = joblib.load(os.path.join(BASE, 'anomaly_detector.pkl'))
-    scaler   = joblib.load(os.path.join(BASE, 'anomaly_scaler.pkl'))
-    nn_model = joblib.load(os.path.join(BASE, 'anomaly_nn.pkl'))
-    with open(os.path.join(BASE, 'anomaly_deals.json')) as f:
-        deals_db = json.load(f)
+    return assess(load_detector(), entry_mult, leverage, growth_pct,
+                  ebitda_margin, interest_rate)
 
+
+def assess(models: tuple, entry_mult: float, leverage: float, growth_pct: float,
+           ebitda_margin: float, interest_rate: float) -> AnomalyResult:
+    """``check_deal`` with the models given (``load_detector``'s tuple, or
+    ``fit_detector``'s first three and the deal list)."""
+    detector, scaler, nn_model, deals_db = models
     x = np.array([[entry_mult, leverage, growth_pct,
                    ebitda_margin, interest_rate]])
     x_scaled = scaler.transform(x)

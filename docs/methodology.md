@@ -1118,6 +1118,62 @@ one distress within it (Masonite, 2009): 10.0% observed, bias -6.73 points,
 Brier 0.1242, z = -0.63, consistent. Toys "R" Us and Gymboree defaulted
 after their fifth year, so count as none.
 
+## ML evaluation and model cards
+
+[ml/evaluation/harness.py](../ml/evaluation/harness.py),
+[ml/evaluation/anomaly.py](../ml/evaluation/anomaly.py),
+[ml/evaluation/surrogate.py](../ml/evaluation/surrogate.py). Tests:
+[tests/test_ml_evaluation.py](../tests/test_ml_evaluation.py),
+[tests/test_model_cards.py](../tests/test_model_cards.py). PLAN.md 5.1: every
+model the app loads is tested the same way, and the result is its card
+(`docs/model-cards/<id>.md`, from `ml/cards/<id>.json`). A card changes no
+number the app shows; it says how far to trust one.
+
+**The harness.** `walk_forward` is the time split: for each cutoff year, the
+model is fitted on the cases before it and predicts those from it to the
+next cutoff (the last fold is open-ended); a fold with nothing to train on or
+test is skipped, and a case before the first cutoff or without a date is
+never tested. `summarize` computes each statistic for the model and for a
+simple baseline on the same cases; `better` decides the headline: the
+verdict is *beats the baseline* only when the model is strictly better,
+*not enough data* under `MIN_CASES` = 5 cases or when the headline can't be
+computed, else *does not beat the baseline*. `evaluate_set` does it overall
+and for each of S&P's regions (§14's, as the validation report uses).
+Statistics: `auc`, the share of (distressed, not distressed) pairs in which
+the distressed case scores higher, ties counting half; `mean_abs`, the mean
+absolute error; `share`, the share of true flags. Values are rounded to four
+places (`_round`); `metric_specs` records each statistic's direction and the
+tolerance the CI gate allows.
+
+**Risk score** (`ml.evaluation.anomaly`). Cases (`cases`, `_row`): the 30
+deals of `HISTORICAL_DEALS`, dated by the year in their names, all US
+buyouts, truth = distressed. Out of time (the headline): cutoffs 2008 and
+2010; `fit` refits the detector on the older deals only (`fit_detector`,
+the same fit `train_detector` saves; `deal_records` lists the deals for the
+neighbour search) and `predict` gives the score and flag the app shows
+(`assess`, which `check_deal` calls with `load_detector`'s files). In
+sample: the committed files on all 30. Baseline (`baseline`): leverage as
+the score, flagged above the 6.0x of §8. Statistics: `_auc` of the score
+against distress, `_caught` (distressed deals flagged) and `_false_alarms`
+(other deals flagged). `evaluate` writes both sets. Worked: out of time, 14
+deals (four distressed); the score and leverage both rank every distressed
+deal above every other (AUC 1.0), so the score does not beat the baseline;
+the other regions have no deals.
+
+**Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
+deals, each economy the app covers with ten industries, whose inputs are
+what "Use sourced figures" gives (§9's sourced ranges, §14's starting
+figures, `features_from` turning them into the network's fractions) with
+the default 60% debt, recorded on the economic data's day. `simulate` runs
+§9's simulation on the surrogate's fixed training deal: truth on 10,000
+paths, the baseline on 200 (fast enough to run live), each seeded from the
+deal's id (`_seed`). Statistics (`_mae_pp`): the mean absolute error of the
+median, 5th and 95th percentile IRRs and the wipeout rate, in percentage
+points. `in_range` says whether every input lies inside `L_BOUNDS` and
+`U_BOUNDS`, the training ranges. Worked: the median IRR is 0.54 points off
+over all regions against the 200-path simulation's 0.79, and beats it in
+every region; inside the training ranges, 0.36 against 0.55.
+
 ## Known limitations
 
 Open model findings awaiting the user's approval (CLAUDE.md "Model findings"):

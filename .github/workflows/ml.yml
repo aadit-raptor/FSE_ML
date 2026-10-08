@@ -1,0 +1,111 @@
+name: ml
+
+# Training and evaluation of the models the app loads (PLAN.md 5.1), on
+# GitHub's free runners rather than anyone's laptop.
+#
+# - evaluate: every pull request touching a model, its evaluation or the
+#   simulation re-evaluates every registered model (ml/registry.json), fails
+#   when a committed card is not what its files give, and compares the cards
+#   with the base branch's (ops/model_gate.py: CI fails if a model gets
+#   worse). The cards go in the job summary. The same two checks run in
+#   tests.yml's required ml job.
+# - train: by hand (Run workflow, choose the model) it trains into a scratch
+#   directory, evaluates what it made and uploads the files with their card
+#   as an artifact. Nothing is committed from here (every workflow's token
+#   is read-only): a person reads the card, copies the files into ml/ and
+#   commits them with `python -m ml.evaluation evaluate`'s cards in a pull
+#   request, where the gate compares them with main's. On a pull request
+#   that changes training, a small smoke run proves the job still works.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model to train (ml/registry.json)"
+        type: choice
+        options: [anomaly_detector, surrogate]
+        default: anomaly_detector
+      samples:
+        description: "Surrogate only: simulated training deals"
+        default: "100000"
+  pull_request:
+    paths:
+      - ml/**
+      - simulation/**
+      - ops/model_gate.py
+      - docs/model-cards/**
+      - tests/ml_regional_deals.py
+      - tests/test_model_cards.py
+      - .github/workflows/ml.yml
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # the gate reads the base branch's cards
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      # CPU-only torch first, as in tests.yml
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements-ml.txt
+      - name: Cards are what the committed files give
+        run: python -m ml.evaluation evaluate --check
+      - name: No card worse than the base branch's
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python -m ops.model_gate --base "origin/$BASE_REF"
+      - name: Cards in the summary
+        if: always()
+        run: cat docs/model-cards/*.md >> "$GITHUB_STEP_SUMMARY"
+
+  train:
+    # By hand, or a smoke run on a pull request that changes how models train
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.model)) || fromJSON('["anomaly_detector", "surrogate"]') }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements-ml.txt
+      - name: Train into a scratch directory and evaluate
+        env:
+          MODEL: ${{ matrix.model }}
+          # A pull request's smoke run: a few hundred deals and one epoch
+          SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '300' }}
+          EPOCHS: ${{ github.event_name == 'workflow_dispatch' && '300' || '1' }}
+        run: |
+          python -m ml.evaluation train "$MODEL" --out "$RUNNER_TEMP/trained" \
+            --samples "$SAMPLES" --epochs "$EPOCHS"
+          cat "$RUNNER_TEMP/trained/docs/$MODEL.md" >> "$GITHUB_STEP_SUMMARY"
+          git diff --exit-code -- ml/   # training never touches the committed files
+      - name: Upload the trained files and their card
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-${{ matrix.model }}
+          path: ${{ runner.temp }}/trained
+          retention-days: 7

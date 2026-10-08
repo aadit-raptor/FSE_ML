@@ -1,0 +1,28 @@
+{
+ "about": "Every trained model the app loads (PLAN.md 5.1). Each lists its trained files, which its card (ml/cards/<id>.json, docs/model-cards/<id>.md) records by hash; tests/test_model_cards.py fails when a file here is not registered, a registered file is missing, or a card is not what its files give. Train with the command shown (GitHub Actions: ml.yml); evaluate with python -m ml.evaluation evaluate.",
+ "models": [
+  {
+   "id": "anomaly_detector",
+   "evaluation": "ml.evaluation.anomaly",
+   "loaded_by": "api/routers/integrations.py",
+   "artifacts": [
+    "ml/anomaly_detector.pkl",
+    "ml/anomaly_scaler.pkl",
+    "ml/anomaly_nn.pkl",
+    "ml/anomaly_deals.json"
+   ],
+   "train": "python -m ml.evaluation train anomaly_detector --out <dir>"
+  },
+  {
+   "id": "surrogate",
+   "evaluation": "ml.evaluation.surrogate",
+   "loaded_by": "api/routers/integrations.py",
+   "artifacts": [
+    "ml/surrogate/model.pt",
+    "ml/surrogate/scaler_X.pkl",
+    "ml/surrogate/scaler_y.pkl"
+   ],
+   "train": "python -m ml.evaluation train surrogate --out <dir>"
+  }
+ ]
+}
