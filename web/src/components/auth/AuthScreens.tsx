@@ -91,7 +91,7 @@ function DeveloperSignIn({ heading }: { heading: string }) {
           onClick={() => {
             signInAsDeveloper?.(name);
             const next = params.get("next");
-            router.replace(next && next.startsWith("/") ? next : AFTER_SIGN_IN);
+            router.replace(next && next.startsWith("/") && next !== "/" ? next : AFTER_SIGN_IN);
           }}
         >
           {t("signIn")}

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import { parsePath } from "@/lib/nav";
+import { LAUNCHER_HREF, parsePath } from "@/lib/nav";
 
 /**
  * The browser tab's title in the account's language (PLAN.md 2.3b).
@@ -25,7 +25,14 @@ export function DocumentTitle() {
   useEffect(() => {
     const { mode, step } = parsePath(pathname);
     const brand = app("brand");
-    const parts = mode && step ? [nav(mode.labelKey), nav(step.labelKey)] : pathname === "/account" ? [account("title")] : [];
+    const parts =
+      mode && step
+        ? [nav(mode.labelKey), nav(step.labelKey)]
+        : pathname === "/account"
+          ? [account("title")]
+          : pathname === LAUNCHER_HREF
+            ? [nav("launcher")]
+            : [];
     document.title = [...parts, brand].join(" · ");
   }, [pathname, nav, app, account]);
 

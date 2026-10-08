@@ -34,6 +34,12 @@ test.describe("Monte Carlo", () => {
     await expect(modeTab(page, "Monte Carlo")).not.toContainText("stale");
     await setField(page, "Opex", "20");
     await expect(modeTab(page, "Monte Carlo")).toContainText("stale");
+    // From another workspace the Monte Carlo tab isn't there: the switcher says it instead
+    const workspaces = page.getByRole("navigation", { name: "Workspaces" });
+    await expect(workspaces.getByRole("link", { name: /^LBO/ })).not.toContainText("stale");
+    await workspaces.getByRole("link", { name: /^Equity research/ }).click();
+    await expect(workspaces.getByRole("link", { name: /^LBO/ })).toContainText("stale");
+    await workspaces.getByRole("link", { name: /^LBO/ }).click();
     await modeTab(page, "Monte Carlo").click();
     await expect(page.getByText("Opex 18.0% → 20.0%")).toBeVisible();
   });

@@ -79,12 +79,14 @@
  * Inputs use Michroma thickened with a text stroke (it ships in one weight).
  */
 @layer components {
+  /* The wordmark: Orbitron 900 capitals beside the mark (BrandLockup) */
   .type-brand {
     font-family: var(--extb);
     font-weight: 900;
     font-size: 15px;
-    letter-spacing: 0.14em;
-    color: var(--color-accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink);
   }
 
   /* Top menu: heavy, wide, uppercase */

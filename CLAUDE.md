@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-08 (PLAN.md 5.1: ML evaluation harness and model cards). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-08 (PLAN.md 5.1: ML evaluation harness and model cards; 7.10 workspaces landed out of turn just before). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -942,6 +942,22 @@ take an output directory (`train_detector(out_dir)`, `generate(out_dir=)`,
 committed files; `fit_detector`/`assess` are the in-memory fit and score the
 harness uses. Nothing the app shows changed.
 
+Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
+`web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
+Monte Carlo, Backtest, Settings, Library) and **Equity research**
+(Forecast). A mode belongs to exactly one workspace, so **addresses have no
+workspace prefix** (`/deal/inputs` as before); a new mode goes in `MODES`
+and in one workspace's `modes`. **Every sign-in lands on the launcher**
+(`/start`, `AFTER_SIGN_IN`), except a visitor sent to sign in from a
+particular screen, who goes back there; **the root (`/`) carries on at the
+last screen this browser showed** (`lib/lastScreen.ts`, localStorage), else
+the launcher, and `proxy.ts` never sends the root through sign-in as a way
+back (it would skip the launcher). Tabs and Alt 1-9 list the current
+workspace's modes (`useWorkspaceModes`; the account screen keeps the last
+workspace's); Ctrl K searches all of them. The user's parked market-event
+model ideas (NIFTY reconstitution, F&O positioning, IPO lock-ins) are in
+PLAN.md 7.10, not scheduled.
+
 PLAN.md 7.9 (added 2026-10-05, the user's request) puts native charts in
 every download; 7.3a makes the cells formulas.
 
@@ -1051,7 +1067,9 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   below, Ctrl K search on the right. No Run button in the top bar. The deal
   model reruns automatically on edit; Monte Carlo is marked **stale** (tab
   chip + dimmed tiles) and rerun from a changes bar above the results.
-  Shortcuts: Ctrl K, Alt 1–5, `[` `]`.
+  Shortcuts: Ctrl K, Alt 1–5, `[` `]`. Since PLAN.md 7.10 the modes sit in
+  **workspaces** (LBO, Equity research): a launcher after sign-in, a
+  switcher beside the brand, and tabs and Alt numbers per workspace.
 - Screens show open model findings as visible markers rather than hiding them
   (none are open in the web app now).
 - **Sign-in, sign-up and the account screen** use the same tokens: Clerk's
@@ -1059,6 +1077,24 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   `components/auth/AuthScreens.tsx` (square corners, Tape colours), and the
   account screen is an ordinary form in the `type-*` classes. The top bar's
   right-hand link shows who is signed in.
+- **Logo (decided with the user 2026-10-08, design canvas
+  https://claude.ai/artifact/8CeJbXsbqhwnNHcP1JNDo1, boards 11-14):** the
+  mark is a **waterfall that dips once and then climbs** (start bar, a grey
+  dip, two cyan rises, the end bar), bars as thick as Orbitron 900's stroke,
+  set at the name's capital height beside "VARIATER" in Orbitron 900 caps,
+  ink, letter-spacing 0.12em (`BrandLockup`, `.type-brand`). Colours are
+  theme C1 Tape; the user may still pick another of the canvas's themes,
+  which is a change to `mark.json`'s `tones` only. **One source:**
+  `web/src/components/brand/mark.json`; `BrandMark.tsx` draws it in the app
+  and `node web/scripts/brand.mjs` (`PW_CHANNEL=msedge` locally) draws every
+  file -- `src/app/icon.svg` (follows the browser's light/dark theme),
+  `favicon.ico`, `apple-icon.png`, `opengraph-image.png` (+ alt text),
+  and `public/brand/` (app and maskable icons, the 120 px logo for Google's
+  consent screen and Clerk, avatars, light/dark/one-colour logos, the
+  email logo). Rerun it after any change to `mark.json` and commit what it
+  writes; `tests/test_brand.py` fails on a stale or missing file. The
+  wordmark PNGs are rendered with Orbitron from Google Fonts; there are no
+  SVG files with the name in them (they'd need the font), only marks.
 - **Honest labels (PLAN.md 2.1):** unsourced inception-era numbers carry a
   visible label until sourced data replaces them. Wording lives in
   `web/src/lib/provenance.ts`: Settings (every step) and the Monte Carlo rail say
@@ -1226,6 +1262,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/model_version.py`, `MODEL_CHANGELOG.md`, `tests/model_version_pins.json` | Model version (PLAN.md 3.1): the stamp on every result, the saved stamp and the reopening check; what each engine version changed; reference results per version |
 | `core/risk_warnings.py`, `core/risk_sources.py`, `web/src/components/deal/DealWarnings.tsx` | Risk warnings (PLAN.md 2.8): the four computed warnings, the published tables they read (with sources and samples), the tile |
 | `core/accounting.py`, `ml/edgar_extractor.py`, `tests/fixtures/edgar/` | Accounting standards (PLAN.md 2.6): each standard's line items and the lease rule; the filing reader for 10-K (US GAAP) and 20-F/40-F (IFRS); real recorded filings (SAP, McDonald's) |
+| `web/src/components/brand/`, `web/scripts/brand.mjs`, `web/public/brand/`, `tests/test_brand.py` | The logo: the mark's one source (`mark.json`) and its React component, the script that draws every icon and image, the drawn package, the check that they match |
 | `core/money.py`, `web/src/lib/money.ts`, `web/src/components/ui/MoneyScope.tsx` | Currency and money units (PLAN.md 2.2): conversion to and from millions, the money keys of each answer, labels from CLDR, the money on screen |
 | `jobs/` | Background jobs (PLAN.md 1.9): `queue.py` (the interface and retention rules), `memory.py` and `database.py` (the two queues), `runner.py` (the in-API runner thread), `kinds.py` (what can run as a job), `config.py` (which queue and runner), `scheduled.py` (scheduled tasks and their run log), `drill.py` (the staging drill's pinned answer), `worker.py` (phase 12's dedicated worker). Served by `api/routers/jobs.py` and `api/routers/scheduled.py` |
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |

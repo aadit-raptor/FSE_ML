@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 import { parsePath, stepHref } from "@/lib/nav";
 
-import { useModes } from "./useModes";
+import { useWorkspaceModes } from "./useModes";
 
 import { useWorkspace } from "./workspace";
 
@@ -14,12 +14,12 @@ function isTyping(target: EventTarget | null): boolean {
   return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-/** Ctrl/Cmd K search, Alt 1-6 modes, [ and ] previous / next step. */
+/** Ctrl/Cmd K search, Alt 1-9 the current workspace's modes, [ and ] previous / next step. */
 export function Shortcuts() {
   const router = useRouter();
   const pathname = usePathname();
   const { setSearchOpen } = useWorkspace();
-  const modes = useModes();
+  const modes = useWorkspaceModes();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

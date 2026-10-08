@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { AuthProvider, useSession } from "@/components/auth/AuthProvider";
 import { ProfileProvider, useProfile } from "@/components/auth/ProfileProvider";
 import { BacktestProvider } from "@/components/backtest/BacktestProvider";
+import { BrandLockup } from "@/components/brand/BrandMark";
 import { CompanyProvider } from "@/components/companies/CompanyProvider";
 import { DealProvider } from "@/components/deal/DealProvider";
 import { ForecastProvider } from "@/components/forecast/ForecastProvider";
@@ -23,6 +24,7 @@ import { Shortcuts } from "./Shortcuts";
 import { StatusBar } from "./StatusBar";
 import { StepBar } from "./StepBar";
 import { TopBar } from "./TopBar";
+import { useTrackPlace } from "./useModes";
 import { WorkspaceProvider } from "./workspace";
 
 /** The Guided shell: mode tabs, step row, search, content, status bar. */
@@ -93,6 +95,7 @@ function Shell({ children }: { children: React.ReactNode }) {
                         {/* No figures in these: they mount with the session, so a key pressed while the account loads works */}
                         <CommandSearch />
                         <Shortcuts />
+                        <TrackPlace />
                       </CompanyProvider>
                     </ForecastProvider>
                   </BacktestProvider>
@@ -112,7 +115,7 @@ function PublicShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
       <header className="flex min-h-[42px] flex-none items-center border-b border-line bg-panel px-4">
-        <span className="type-brand">{app("brand")}</span>
+        <BrandLockup name={app("brand")} />
       </header>
       <main id="content" className="min-h-0 flex-1 overflow-auto">
         {children}
@@ -120,6 +123,12 @@ function PublicShell({ children }: { children: React.ReactNode }) {
       <StatusBar />
     </div>
   );
+}
+
+/** Notes the workspace and screen as the visitor moves (useModes.ts). */
+function TrackPlace() {
+  useTrackPlace();
+  return null;
 }
 
 function SessionGate({ ready }: { ready: boolean }) {
