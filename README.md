@@ -67,8 +67,7 @@ The app runs without it; each feature appears only when the API can run it.
 
 | Feature | Where | Enable |
 |---|---|---|
-| Deal risk score (anomaly detector) | Deal inputs | `pip install -r requirements-ml.txt` (model files are committed) |
-| Live IRR sliders (surrogate network) | Monte Carlo → Live | as above; retrain with `python -m ml.surrogate.generate_data && python -m ml.surrogate.train` after changing the simulation engine or its default fees |
+| Live IRR sliders (surrogate network) | Monte Carlo → Live | `pip install -r requirements-ml.txt` (model files are committed); retrain with `python -m ml.surrogate.generate_data && python -m ml.surrogate.train` after changing the simulation engine or its default fees |
 | Macro regime detection | Monte Carlo → Scenarios | as above, set `FRED_API_KEY`, then `python -m ml.macro_regime` |
 
 The surrogate is trained on a fixed deal (10x entry, 5-year hold, default fees
@@ -76,8 +75,12 @@ and operating terms — see `TRAINING_FIXED` in `ml/surrogate/generate_data.py`)
 the Live screen says when a deal differs. Measured against fresh simulations
 on 200 random deals, median-IRR error is 0.19pp (worst 0.86pp); near a 5%
 wipeout rate the 5th percentile is unreliable, so the screen hides it there.
-`requirements-ml.txt` pins scikit-learn to 1.8 because the committed
-anomaly-detector models were saved with 1.8.0.
+`requirements-ml.txt` pins scikit-learn to 1.8 because the surrogate's committed
+scalers were saved with 1.8.0.
+
+The deal risk score (Deal → Inputs) needs none of this since PLAN.md 5.2: it
+compares the deal with its industry's companies in its region, from the stored
+industry averages ([docs/model-cards/deal_risk.md](docs/model-cards/deal_risk.md)).
 
 ## History
 

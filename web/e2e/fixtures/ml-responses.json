@@ -6,56 +6,6 @@
     "macro_regime_trained": false,
     "edgar": true
   },
-  "deal_risk": {
-    "inputs": {
-      "entry_mult": 10.0,
-      "leverage": 4.2,
-      "growth_pct": 5.0,
-      "ebitda_margin": 26.0,
-      "rate": 7.261904761904762
-    },
-    "is_anomalous": true,
-    "severity": 0.2661469009985362,
-    "anomaly_score": -0.5919693991854328,
-    "nearest_deals": [
-      {
-        "name": "Burger King 2010",
-        "entry_mult": 8.75,
-        "leverage": 5.94,
-        "growth": 2.9,
-        "margin": 17.8,
-        "interest": 6.82,
-        "success": true,
-        "distance": 0.5947906485303203
-      },
-      {
-        "name": "Extended Stay 2007",
-        "entry_mult": 15.0,
-        "leverage": 8.0,
-        "growth": 1.0,
-        "margin": 12.0,
-        "interest": 8.3,
-        "success": false,
-        "distance": 0.7022380238903256
-      },
-      {
-        "name": "Dollar General 2007",
-        "entry_mult": 8.0,
-        "leverage": 5.5,
-        "growth": 4.0,
-        "margin": 22.0,
-        "interest": 6.0,
-        "success": true,
-        "distance": 0.7180437520702001
-      }
-    ],
-    "risk_score": 2.2322938019970726,
-    "historical_sample": {
-      "deals": 30,
-      "first_year": 1989,
-      "last_year": 2016
-    }
-  },
   "surrogate": {
     "prediction": {
       "irr_p5": 0.0353831984102726,

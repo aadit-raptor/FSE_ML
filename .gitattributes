@@ -4,5 +4,3 @@ tests/fixtures/companies/** -text
 tests/fixtures/economy/** -text
 # Recorded industry-average workbooks, replayed byte for byte (benchmarks/record.py)
 tests/fixtures/benchmarks/** -text
-# Trained model files are hashed in their model cards (ml/registry.json, PLAN.md 5.1)
-ml/anomaly_deals.json -text

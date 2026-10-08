@@ -73,18 +73,6 @@ test.describe("Streamlit parity", () => {
     expect(body.seed).toBe(42);
   });
 
-  test("deal risk score reacts to leverage (ML layer)", async ({ page }) => {
-    test.skip(!(await capabilities(page)).anomaly_detector, "server has no anomaly detector");
-    await page.goto("/deal/inputs");
-    const score = kpi(page, "Risk score");
-    await expect(score).toHaveText(/\d+\.\d \/ 10/);
-    const before = await score.textContent();
-    await page.getByLabel("Senior debt", { exact: true }).fill("9");
-    await page.getByLabel("Senior debt", { exact: true }).blur();
-    await expect(score).not.toHaveText(before ?? "", { timeout: 20_000 });
-    await expect(page.getByRole("list", { name: "Risk flags" })).toContainText("Leverage");
-  });
-
   test("live mode updates as a slider moves (ML layer)", async ({ page }) => {
     test.skip(!(await capabilities(page)).surrogate, "server has no surrogate model");
     await page.goto("/monte-carlo/live");

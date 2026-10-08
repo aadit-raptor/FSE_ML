@@ -286,22 +286,18 @@ def test_capabilities():
                          "macro_regime_trained", "edgar"}
 
 
-def test_deal_risk_when_available():
-    caps = ok(client.get("/api/capabilities"))
-    r = client.post("/api/ml/deal-risk", json={})
-    if not caps["anomaly_detector"]:
-        assert r.status_code == 503
-        return
-    body = ok(r)
+def test_deal_risk_needs_no_ml_packages():
+    """The deal risk score reads stored averages (PLAN.md 5.2): always
+    available, and without stored averages it says there is not enough data.
+    tests/test_deal_risk.py checks its answers against the recorded averages."""
+    assert ok(client.get("/api/capabilities"))["anomaly_detector"] is True
+    body = ok(client.post("/api/ml/deal-risk", json={}))
     assert body["inputs"]["rate"] == pytest.approx((3.4 * 6.5 + 0.8 * 10.5) / 4.2)
-    assert 1 <= body["risk_score"] <= 10 and len(body["nearest_deals"]) > 0
+    # A deal with no country chosen has nothing to be compared with
+    assert body["status"] == "not_enough_data" and body["reason"] == "no_country"
     # Its written-in warnings had no source; the deal answer's risk_warnings
     # replace them (PLAN.md 2.8)
-    assert "warnings" not in body
-    # The screen's "early estimate based on N historical deals" label comes from this
-    from ml.anomaly_detector import HISTORICAL_DEALS
-    assert body["historical_sample"] == {"deals": len(HISTORICAL_DEALS), "first_year": 1989, "last_year": 2016}
-    assert len(HISTORICAL_DEALS) == 30
+    assert "warnings" not in body and "historical_sample" not in body
 
 
 def test_surrogate_when_available():
