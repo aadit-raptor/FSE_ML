@@ -160,6 +160,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☐ |
 | 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☐ |
 | 5.9 | Personalized defaults | 1.5, 5.1 | ☐ |
+| 5.10 | Retraining models by hand (parked, not scheduled) | 5.1 | ☐ |
 | **6** | **AI features** | | |
 | 6.1 | File uploads | 1.4, 1.9 | ☐ |
 | 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☐ |
@@ -1091,6 +1092,22 @@ enough for the free server.
   user's usual assumptions per region and sector; suggest them alongside
   sourced defaults; off switch.
 - **Done when:** suggestions use only that user's deals (test); off stops them.
+
+### 5.10 Retraining models by hand (parked, not scheduled)
+- **Parked by the user (2026-10-08):** "we will add this idea later". Skip it
+  when picking the lowest open task; do it only when the user asks.
+- **The idea:** the user retrains a model themselves -- Actions -> ml -> Run
+  workflow -> choose the model -- reads the card the run produces, and the
+  new files reach the app only through a reviewed pull request (the 5.1 gate
+  still blocks a worse card). 5.1 already built the `train` job; what is
+  parked is making this a routine the user runs: a step-by-step guide (in
+  the owner's handbook, 11.4), a way to bring the run's files into a pull
+  request without copying by hand, and deciding whether retraining should
+  also run on a schedule.
+- **Until then:** models are retrained only inside the tasks that rebuild
+  them (5.2 to 5.9), by Claude, in the same pull request as their new card.
+- **Done when:** the user can retrain a model and open its pull request by
+  following the guide, without Claude.
 
 ---
 
