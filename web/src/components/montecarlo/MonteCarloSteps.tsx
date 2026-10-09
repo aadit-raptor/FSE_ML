@@ -22,6 +22,7 @@ import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
+import { GrowthCalibrationTile } from "./GrowthCalibration";
 import { SourcedRiskTile } from "./SourcedRisk";
 
 const pct0 = (v: number) => fmtRate(v, 0);
@@ -288,6 +289,7 @@ function Scenarios() {
     </div>
     {/* Sources, not results: never dimmed as out of date */}
     <Tiles>
+      <GrowthCalibrationTile />
       <SourcedRiskTile />
     </Tiles>
     </>

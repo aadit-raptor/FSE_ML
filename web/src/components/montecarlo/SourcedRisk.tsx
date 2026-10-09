@@ -12,6 +12,7 @@ import { fmtCount, fmtMultiple, fmtNumber, fmtPct, isNum } from "@/lib/format";
 import { useProvenance } from "@/lib/i18n/useProvenance";
 import { regionName } from "@/lib/locale";
 
+import { useCalibrate, useGrowth } from "./GrowthCalibration";
 import { type SimKey, useMonteCarlo } from "./MonteCarloProvider";
 
 /** The rail fields the sourced Settings fill: a rail edit of one of them overrides the sourced figure. */
@@ -53,21 +54,31 @@ export function useSourcedRisk(): { risk: Risk | null; country: string } {
   return { risk: country && forThisDeal ? risk : null, country };
 }
 
-/** The sourced Settings that differ from the ones in use, and the call that applies them all. */
+/**
+ * The sourced Settings that differ from the ones in use, and the call that applies them all. Growth
+ * calibrated from the deal's sector and region (PLAN.md 5.5) stands in for the economy-wide growth
+ * figures while it is in use: neither counts as differing, and "Use sourced figures" keeps it.
+ */
 function useApply(risk: Risk | null) {
   const { effective, overrides, replace } = useSettings();
   const { sim, clearSimEdits } = useMonteCarlo();
+  const growth = useGrowth();
+  const { inUse: calibrated } = useCalibrate(growth?.settings);
+  const kept = new Set<RiskSetting>(calibrated ? ["mc_growth_mean", "mc_growth_std"] : []);
   // A Setting differs when Settings hold another value, or the rail overrides it
   const railValue = (k: RiskSetting) => {
     const field = RAIL_KEYS.find((f) => RAIL_SETTING[f] === k);
     return field ? sim[field] : effective[k];
   };
   const differing = risk
-    ? (Object.keys(risk.settings) as RiskSetting[]).filter((k) => effective[k] !== risk.settings[k] || railValue(k) !== risk.settings[k])
+    ? (Object.keys(risk.settings) as RiskSetting[]).filter(
+        (k) => !kept.has(k) && (effective[k] !== risk.settings[k] || railValue(k) !== risk.settings[k]),
+      )
     : [];
   const apply = () => {
     if (!risk) return;
-    replace({ ...overrides, ...risk.settings });
+    const sourced = Object.fromEntries(Object.entries(risk.settings).filter(([k]) => !kept.has(k as RiskSetting)));
+    replace({ ...overrides, ...sourced });
     // The rail's ranges show the Settings again, now the sourced ones; paths, hurdle and seed stay as edited
     clearSimEdits(RAIL_KEYS);
   };

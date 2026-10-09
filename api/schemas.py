@@ -2332,3 +2332,76 @@ class MultiplesResponse(BaseModel):
     notes: List[Literal["size_not_split", "listed_company_figures"]]
     source: BenchmarkSourceOut
     model: ModelStamp
+
+
+# ---------------------------------------------------------------------------
+# Growth calibrator (PLAN.md 5.5)
+# ---------------------------------------------------------------------------
+class GrowthRequest(Strict):
+    inputs: DealInputsIn = DealInputsIn()
+
+
+class GrowthBand(BaseModel):
+    low: float = Field(description="The 10th percentile of yearly revenue growth over the hold, %")
+    median: float = Field(description="The 50th percentile, %")
+    high: float = Field(description="The 90th percentile, %")
+
+
+class GrowthObserved(BaseModel):
+    low: float = Field(description="The 10th percentile of companies' yearly growth over their economy's, as a "
+                                   "rate: (1 + company) / (1 + economy) - 1, %")
+    median: float
+    high: float
+    companies: int = Field(description="Companies the range rests on")
+    cases: int = Field(description="Company spans of the hold's length")
+    first: int = Field(description="The first year of revenue read")
+    last: int = Field(description="The last year of revenue read")
+
+
+class GrowthSettings(BaseModel):
+    mc_growth_mean: float = Field(description="The simulation's growth mean, %: the range's middle")
+    mc_growth_std: float = Field(description="Its spread, %: the normal draw whose central 80% is the range")
+
+
+class GrowthCardResult(BaseModel):
+    region: Optional[SpRegion] = None
+    verdict: Verdict = Field(description="The card's verdict in the region (docs/model-cards/growth.md)")
+    cases: int = Field(description="Company spans the card tested in the region")
+    model: Optional[float] = Field(None, description="The card's interval score for the range, points")
+    baseline: Optional[float] = Field(None, description="The same for the economy-wide range in force")
+
+
+class GrowthSource(BaseModel):
+    publisher: str
+    title: str
+    url: str
+
+
+class GrowthResponse(BaseModel):
+    status: Literal["ok", "not_enough_data"]
+    reason: Optional[Literal["no_country", "no_growth"]] = Field(
+        None, description="No country chosen, or no economic data stored for it")
+    country: str
+    industry: str
+    region: Optional[SpRegion] = Field(None, description="The country's S&P region (the card's regions)")
+    sector: Optional[str] = Field(None, description="The industry's GICS sector")
+    group_sector: Optional[str] = Field(None, description="The sector the range rests on; null when the "
+                                                          "region's every sector stands in")
+    hold: int
+    horizons: List[int] = Field(description="The holds the card tested")
+    quantiles: List[float]
+    min_companies: int
+    floor_usd_m: float = Field(description="Companies with less revenue than this in the start year are left out, "
+                                           "millions of US dollars")
+    shown: bool
+    hidden: Optional[Literal["untested_horizon", "does_not_beat_baseline", "not_enough_data"]] = None
+    anchor: Optional[StartingFigure] = Field(None, description="The country's nominal growth the range is centred on")
+    range: Optional[GrowthBand] = Field(None, description="Only when shown")
+    settings: Optional[GrowthSettings] = Field(None, description="Only when shown")
+    observed: Optional[GrowthObserved] = None
+    card: GrowthCardResult
+    years: List[int] = Field(description="The first and last year of revenue in the data")
+    data_written_on: date
+    sources: Dict[str, GrowthSource]
+    notes: List[Literal["listed_companies", "survivors_only", "acquisitions_included", "size_floor"]]
+    model: ModelStamp

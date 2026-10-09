@@ -16,6 +16,13 @@
    "train": null
   },
   {
+   "id": "growth",
+   "evaluation": "ml.evaluation.growth",
+   "loaded_by": "api/routers/integrations.py",
+   "artifacts": [],
+   "train": null
+  },
+  {
    "id": "multiples",
    "evaluation": "ml.evaluation.multiples",
    "loaded_by": "api/routers/integrations.py",

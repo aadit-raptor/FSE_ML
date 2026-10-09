@@ -1,0 +1,1166 @@
+{
+ "about": "Written by ml.growth_calibrator.write_ranges from ml/evaluation/data/firm_growth.json (python -m tests.ml_firm_growth); do not edit by hand.",
+ "data_written_on": "2026-10-08",
+ "floor_usd_m": 50.0,
+ "min_companies": 30,
+ "quantiles": [
+  0.1,
+  0.5,
+  0.9
+ ],
+ "ranges": {
+  "emerging": {
+   "all": {
+    "3": {
+     "cases": 1335,
+     "companies": 344,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.414668,
+      -0.015267,
+      0.297741
+     ]
+    },
+    "4": {
+     "cases": 973,
+     "companies": 284,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.407526,
+      -0.026655,
+      0.281394
+     ]
+    },
+    "5": {
+     "cases": 682,
+     "companies": 232,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.417599,
+      -0.030264,
+      0.25273
+     ]
+    },
+    "6": {
+     "cases": 451,
+     "companies": 151,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.458128,
+      -0.037635,
+      0.215511
+     ]
+    },
+    "7": {
+     "cases": 301,
+     "companies": 110,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.457892,
+      -0.042306,
+      0.215802
+     ]
+    }
+   },
+   "consumer_discretionary": {
+    "3": {
+     "cases": 305,
+     "companies": 71,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.469987,
+      0.01377,
+      0.344662
+     ]
+    },
+    "4": {
+     "cases": 226,
+     "companies": 62,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.387556,
+      0.009088,
+      0.333552
+     ]
+    },
+    "5": {
+     "cases": 160,
+     "companies": 51,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.560549,
+      0.005169,
+      0.308263
+     ]
+    },
+    "6": {
+     "cases": 105,
+     "companies": 38,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.498857,
+      0.012769,
+      0.275082
+     ]
+    }
+   },
+   "industrials": {
+    "3": {
+     "cases": 201,
+     "companies": 60,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.432606,
+      -0.028643,
+      0.230129
+     ]
+    },
+    "4": {
+     "cases": 142,
+     "companies": 47,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.451707,
+      -0.049861,
+      0.244686
+     ]
+    },
+    "5": {
+     "cases": 98,
+     "companies": 40,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.417926,
+      -0.057181,
+      0.278158
+     ]
+    }
+   },
+   "information_technology": {
+    "3": {
+     "cases": 424,
+     "companies": 96,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.444702,
+      -0.006797,
+      0.329585
+     ]
+    },
+    "4": {
+     "cases": 324,
+     "companies": 79,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.43192,
+      -0.021333,
+      0.300163
+     ]
+    },
+    "5": {
+     "cases": 242,
+     "companies": 64,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.418292,
+      -0.016493,
+      0.255872
+     ]
+    },
+    "6": {
+     "cases": 176,
+     "companies": 53,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.436198,
+      -0.028642,
+      0.21832
+     ]
+    },
+    "7": {
+     "cases": 120,
+     "companies": 42,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.43612,
+      -0.028294,
+      0.224675
+     ]
+    }
+   },
+   "materials": {
+    "3": {
+     "cases": 115,
+     "companies": 31,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.389085,
+      -0.083927,
+      0.102525
+     ]
+    }
+   }
+  },
+  "europe": {
+   "all": {
+    "3": {
+     "cases": 969,
+     "companies": 173,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.15275,
+      0.012573,
+      0.22874
+     ]
+    },
+    "4": {
+     "cases": 765,
+     "companies": 150,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.132514,
+      0.015652,
+      0.211168
+     ]
+    },
+    "5": {
+     "cases": 588,
+     "companies": 122,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.110379,
+      0.013515,
+      0.197154
+     ]
+    },
+    "6": {
+     "cases": 447,
+     "companies": 87,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.098044,
+      0.01378,
+      0.182156
+     ]
+    },
+    "7": {
+     "cases": 344,
+     "companies": 74,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.098435,
+      0.010905,
+      0.17541
+     ]
+    }
+   },
+   "health_care": {
+    "3": {
+     "cases": 190,
+     "companies": 40,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.158358,
+      0.04379,
+      0.35994
+     ]
+    },
+    "4": {
+     "cases": 144,
+     "companies": 34,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.125387,
+      0.042341,
+      0.278917
+     ]
+    }
+   },
+   "industrials": {
+    "3": {
+     "cases": 383,
+     "companies": 50,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.152852,
+      0.010089,
+      0.216645
+     ]
+    },
+    "4": {
+     "cases": 324,
+     "companies": 45,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.141851,
+      0.018196,
+      0.1908
+     ]
+    },
+    "5": {
+     "cases": 272,
+     "companies": 40,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.109685,
+      0.017747,
+      0.167122
+     ]
+    },
+    "6": {
+     "cases": 227,
+     "companies": 37,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.098044,
+      0.019442,
+      0.165137
+     ]
+    },
+    "7": {
+     "cases": 185,
+     "companies": 32,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.08841,
+      0.017392,
+      0.163752
+     ]
+    }
+   }
+  },
+  "other_developed": {
+   "all": {
+    "3": {
+     "cases": 1185,
+     "companies": 237,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.149444,
+      0.013095,
+      0.205659
+     ]
+    },
+    "4": {
+     "cases": 922,
+     "companies": 200,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.140338,
+      0.009549,
+      0.171839
+     ]
+    },
+    "5": {
+     "cases": 696,
+     "companies": 144,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.128824,
+      0.013923,
+      0.162709
+     ]
+    },
+    "6": {
+     "cases": 533,
+     "companies": 112,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.12196,
+      0.006651,
+      0.153028
+     ]
+    },
+    "7": {
+     "cases": 404,
+     "companies": 91,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.117461,
+      0.003239,
+      0.134108
+     ]
+    }
+   },
+   "industrials": {
+    "3": {
+     "cases": 178,
+     "companies": 30,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.095641,
+      0.017281,
+      0.178433
+     ]
+    }
+   },
+   "information_technology": {
+    "3": {
+     "cases": 494,
+     "companies": 74,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.157636,
+      0.020857,
+      0.212738
+     ]
+    },
+    "4": {
+     "cases": 408,
+     "companies": 69,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.145318,
+      0.006714,
+      0.167051
+     ]
+    },
+    "5": {
+     "cases": 326,
+     "companies": 60,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.132547,
+      0.009135,
+      0.150851
+     ]
+    },
+    "6": {
+     "cases": 259,
+     "companies": 54,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.12483,
+      0.00233,
+      0.143217
+     ]
+    },
+    "7": {
+     "cases": 200,
+     "companies": 43,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.128484,
+      -0.004933,
+      0.126988
+     ]
+    }
+   },
+   "materials": {
+    "3": {
+     "cases": 105,
+     "companies": 40,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.085229,
+      0.020629,
+      0.147978
+     ]
+    },
+    "4": {
+     "cases": 65,
+     "companies": 31,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.080607,
+      0.02761,
+      0.106556
+     ]
+    }
+   }
+  },
+  "us": {
+   "all": {
+    "3": {
+     "cases": 27609,
+     "companies": 4078,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.145092,
+      0.005232,
+      0.180283
+     ]
+    },
+    "4": {
+     "cases": 22431,
+     "companies": 3627,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.125386,
+      0.004016,
+      0.157866
+     ]
+    },
+    "5": {
+     "cases": 17842,
+     "companies": 3240,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.110824,
+      0.003201,
+      0.145552
+     ]
+    },
+    "6": {
+     "cases": 13788,
+     "companies": 2893,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.103584,
+      0.001014,
+      0.130235
+     ]
+    },
+    "7": {
+     "cases": 10124,
+     "companies": 2459,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.098392,
+      -0.000939,
+      0.119084
+     ]
+    }
+   },
+   "communication_services": {
+    "3": {
+     "cases": 1463,
+     "companies": 212,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.155787,
+      -0.017386,
+      0.151354
+     ]
+    },
+    "4": {
+     "cases": 1196,
+     "companies": 186,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.152613,
+      -0.019716,
+      0.138438
+     ]
+    },
+    "5": {
+     "cases": 957,
+     "companies": 165,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.143276,
+      -0.021149,
+      0.128239
+     ]
+    },
+    "6": {
+     "cases": 748,
+     "companies": 148,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.130279,
+      -0.02251,
+      0.118462
+     ]
+    },
+    "7": {
+     "cases": 564,
+     "companies": 125,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.119795,
+      -0.021735,
+      0.125769
+     ]
+    }
+   },
+   "consumer_discretionary": {
+    "3": {
+     "cases": 4510,
+     "companies": 620,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.128329,
+      -0.005257,
+      0.127254
+     ]
+    },
+    "4": {
+     "cases": 3665,
+     "companies": 568,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.115605,
+      -0.004975,
+      0.111626
+     ]
+    },
+    "5": {
+     "cases": 2908,
+     "companies": 511,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.100003,
+      -0.004048,
+      0.099328
+     ]
+    },
+    "6": {
+     "cases": 2235,
+     "companies": 463,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.094609,
+      -0.005729,
+      0.085603
+     ]
+    },
+    "7": {
+     "cases": 1622,
+     "companies": 399,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.088941,
+      -0.00664,
+      0.075029
+     ]
+    }
+   },
+   "consumer_staples": {
+    "3": {
+     "cases": 1254,
+     "companies": 192,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.100193,
+      -0.003167,
+      0.130811
+     ]
+    },
+    "4": {
+     "cases": 1010,
+     "companies": 170,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.086806,
+      -0.000391,
+      0.117216
+     ]
+    },
+    "5": {
+     "cases": 800,
+     "companies": 152,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.075673,
+      -0.000624,
+      0.106032
+     ]
+    },
+    "6": {
+     "cases": 618,
+     "companies": 138,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.07371,
+      -0.000638,
+      0.097229
+     ]
+    },
+    "7": {
+     "cases": 449,
+     "companies": 120,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.070239,
+      -0.001475,
+      0.087769
+     ]
+    }
+   },
+   "energy": {
+    "3": {
+     "cases": 1567,
+     "companies": 255,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.262829,
+      0.001814,
+      0.262227
+     ]
+    },
+    "4": {
+     "cases": 1268,
+     "companies": 214,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.213881,
+      -0.003315,
+      0.20868
+     ]
+    },
+    "5": {
+     "cases": 1016,
+     "companies": 182,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.184916,
+      -0.004829,
+      0.184116
+     ]
+    },
+    "6": {
+     "cases": 809,
+     "companies": 165,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.166688,
+      -0.016119,
+      0.1493
+     ]
+    },
+    "7": {
+     "cases": 622,
+     "companies": 146,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.160114,
+      -0.019496,
+      0.135989
+     ]
+    }
+   },
+   "health_care": {
+    "3": {
+     "cases": 2832,
+     "companies": 547,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.173654,
+      0.024782,
+      0.242654
+     ]
+    },
+    "4": {
+     "cases": 2224,
+     "companies": 467,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.151155,
+      0.025791,
+      0.207906
+     ]
+    },
+    "5": {
+     "cases": 1692,
+     "companies": 384,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.113393,
+      0.027949,
+      0.196558
+     ]
+    },
+    "6": {
+     "cases": 1244,
+     "companies": 316,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.102557,
+      0.028524,
+      0.18752
+     ]
+    },
+    "7": {
+     "cases": 866,
+     "companies": 258,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.093817,
+      0.027579,
+      0.174474
+     ]
+    }
+   },
+   "industrials": {
+    "3": {
+     "cases": 6428,
+     "companies": 842,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.137909,
+      0.009058,
+      0.164051
+     ]
+    },
+    "4": {
+     "cases": 5304,
+     "companies": 767,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.117619,
+      0.008547,
+      0.145105
+     ]
+    },
+    "5": {
+     "cases": 4283,
+     "companies": 699,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.104307,
+      0.006468,
+      0.13402
+     ]
+    },
+    "6": {
+     "cases": 3365,
+     "companies": 637,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.090497,
+      0.005428,
+      0.117738
+     ]
+    },
+    "7": {
+     "cases": 2518,
+     "companies": 563,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.088465,
+      0.00482,
+      0.110399
+     ]
+    }
+   },
+   "information_technology": {
+    "3": {
+     "cases": 5567,
+     "companies": 868,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.123068,
+      0.028682,
+      0.218252
+     ]
+    },
+    "4": {
+     "cases": 4441,
+     "companies": 771,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.109661,
+      0.026473,
+      0.198959
+     ]
+    },
+    "5": {
+     "cases": 3448,
+     "companies": 696,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.103238,
+      0.023526,
+      0.182428
+     ]
+    },
+    "6": {
+     "cases": 2572,
+     "companies": 609,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.100459,
+      0.019823,
+      0.171672
+     ]
+    },
+    "7": {
+     "cases": 1793,
+     "companies": 484,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.096476,
+      0.013701,
+      0.15746
+     ]
+    }
+   },
+   "materials": {
+    "3": {
+     "cases": 2062,
+     "companies": 264,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.150557,
+      -0.014189,
+      0.12642
+     ]
+    },
+    "4": {
+     "cases": 1693,
+     "companies": 242,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.125525,
+      -0.013517,
+      0.107543
+     ]
+    },
+    "5": {
+     "cases": 1366,
+     "companies": 226,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.112947,
+      -0.012174,
+      0.101483
+     ]
+    },
+    "6": {
+     "cases": 1061,
+     "companies": 215,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.101975,
+      -0.013526,
+      0.091789
+     ]
+    },
+    "7": {
+     "cases": 776,
+     "companies": 190,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.099099,
+      -0.016792,
+      0.082483
+     ]
+    }
+   },
+   "real_estate": {
+    "3": {
+     "cases": 423,
+     "companies": 77,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.224291,
+      0.002042,
+      0.182763
+     ]
+    },
+    "4": {
+     "cases": 355,
+     "companies": 65,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.238373,
+      -0.004526,
+      0.148044
+     ]
+    },
+    "5": {
+     "cases": 296,
+     "companies": 59,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.233381,
+      -0.00427,
+      0.147472
+     ]
+    },
+    "6": {
+     "cases": 240,
+     "companies": 53,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.23288,
+      0.000193,
+      0.13824
+     ]
+    },
+    "7": {
+     "cases": 186,
+     "companies": 43,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.215611,
+      0.004506,
+      0.135956
+     ]
+    }
+   },
+   "utilities": {
+    "3": {
+     "cases": 1503,
+     "companies": 201,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.104382,
+      -0.016156,
+      0.139189
+     ]
+    },
+    "4": {
+     "cases": 1275,
+     "companies": 177,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.078904,
+      -0.014649,
+      0.120914
+     ]
+    },
+    "5": {
+     "cases": 1076,
+     "companies": 166,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.083246,
+      -0.014822,
+      0.113155
+     ]
+    },
+    "6": {
+     "cases": 896,
+     "companies": 149,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.07339,
+      -0.016408,
+      0.093666
+     ]
+    },
+    "7": {
+     "cases": 728,
+     "companies": 131,
+     "first": 2008,
+     "last": 2025,
+     "quantiles": [
+      -0.069269,
+      -0.01786,
+      0.073535
+     ]
+    }
+   }
+  }
+ },
+ "sources": {
+  "fx": {
+   "publisher": "European Central Bank",
+   "title": "Euro foreign exchange reference rates, yearly averages (EXR)",
+   "url": "https://data.ecb.europa.eu/data/datasets/EXR"
+  },
+  "growth": {
+   "publisher": "International Monetary Fund",
+   "title": "World Economic Outlook (real GDP growth and inflation)",
+   "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+  },
+  "revenue": {
+   "publisher": "U.S. Securities and Exchange Commission",
+   "title": "XBRL frames API",
+   "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+  }
+ },
+ "years": [
+  2008,
+  2025
+ ]
+}

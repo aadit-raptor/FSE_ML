@@ -76,7 +76,7 @@ ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused 
 RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
-    "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/surrogate", "/api/ml/macro-regime",
+    "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/surrogate", "/api/ml/macro-regime",
     "/api/companies/search", "/api/companies/load",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
