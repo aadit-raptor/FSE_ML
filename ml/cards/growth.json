@@ -1,0 +1,180 @@
+{
+ "estimates": "The central 80% range of a company's yearly revenue growth over the deal's hold, as the Monte Carlo growth mean and spread (mc_growth_mean, mc_growth_std)",
+ "evaluation": {
+  "baseline": {
+   "description": "The range in force since PLAN.md 4.4: the country's nominal GDP growth, with the spread of that growth from year to year since 2000 (IMF)",
+   "id": "economy"
+  },
+  "data": {
+   "floor_usd_m": 50.0,
+   "horizons": [
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "min_companies": 30,
+   "written_on": "2026-10-08",
+   "years": [
+    2008,
+    2025
+   ]
+  },
+  "headline_metric": "interval_score",
+  "headline_set": "growth",
+  "metrics": [
+   {
+    "better": "lower",
+    "description": "The central 80% range's width plus ten times how far the yearly growth fell outside it, in percentage points (Gneiting and Raftery's interval score)",
+    "id": "interval_score",
+    "tolerance": 0.1
+   },
+   {
+    "better": "higher",
+    "description": "Share of companies whose yearly growth fell inside the central 80% range (about 0.8 when the range is right)",
+    "id": "inside",
+    "tolerance": 0.01
+   },
+   {
+    "better": "lower",
+    "description": "Mean distance between the range's middle (the simulation's mean) and the growth, in points",
+    "id": "centre_error",
+    "tolerance": 0.1
+   },
+   {
+    "better": "lower",
+    "description": "Mean width of the central 80% range, in percentage points",
+    "id": "width",
+    "tolerance": 0.1
+   }
+  ],
+  "sets": {
+   "growth": {
+    "by_region": {
+     "emerging": {
+      "baseline": {
+       "centre_error": 21.9107,
+       "inside": 0.172,
+       "interval_score": 188.4088,
+       "width": 8.6594
+      },
+      "cases": 2582,
+      "model": {
+       "centre_error": 22.5194,
+       "inside": 0.7804,
+       "interval_score": 117.6247,
+       "width": 69.2525
+      },
+      "verdict": "beats_baseline"
+     },
+     "europe": {
+      "baseline": {
+       "centre_error": 12.3259,
+       "inside": 0.2604,
+       "interval_score": 102.882,
+       "width": 6.1507
+      },
+      "cases": 2124,
+      "model": {
+       "centre_error": 13.1328,
+       "inside": 0.8329,
+       "interval_score": 73.9538,
+       "width": 41.0532
+      },
+      "verdict": "beats_baseline"
+     },
+     "other_developed": {
+      "baseline": {
+       "centre_error": 12.1531,
+       "inside": 0.2669,
+       "interval_score": 96.0306,
+       "width": 7.6234
+      },
+      "cases": 2458,
+      "model": {
+       "centre_error": 12.2406,
+       "inside": 0.7364,
+       "interval_score": 67.1388,
+       "width": 30.8631
+      },
+      "verdict": "beats_baseline"
+     },
+     "us": {
+      "baseline": {
+       "centre_error": 10.3931,
+       "inside": 0.2754,
+       "interval_score": 83.9126,
+       "width": 6.0703
+      },
+      "cases": 60769,
+      "model": {
+       "centre_error": 10.4029,
+       "inside": 0.7728,
+       "interval_score": 57.0017,
+       "width": 28.2776
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "Each company's yearly revenue growth over holds of three to seven years (67933 spans of 4294 companies, starting 2012-2022)",
+    "overall": {
+     "baseline": {
+      "centre_error": 10.9549,
+      "inside": 0.2707,
+      "interval_score": 88.9159,
+      "width": 6.2274
+     },
+     "cases": 67933,
+     "model": {
+      "centre_error": 11.0152,
+      "inside": 0.7736,
+      "interval_score": 60.2027,
+      "width": 30.328
+     },
+     "verdict": "beats_baseline"
+    }
+   }
+  },
+  "split": {
+   "cutoffs": [
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022
+   ],
+   "dated_by": "the start year of the growth predicted; fitted on spans that had ended by then",
+   "kind": "walk_forward"
+  }
+ },
+ "format": 1,
+ "id": "growth",
+ "limitations": [
+  "The companies are SEC filers: almost every U.S. listed company, but outside the U.S. only those listed or registered in the U.S. (in 2019, about 450 a year), so other regions rest on fewer companies and may differ from their home markets.",
+  "Only companies that kept filing are counted: one that failed, was taken private or was bought before a span ended has no growth for it, so the low end may be too high.",
+  "Revenue includes acquisitions; a buy-and-build plan's growth is in the range, an organic plan's range is a little wide.",
+  "Companies with under 50 million US dollars of revenue in the start year are left out; sizes above that are not split.",
+  "Out of time, the centre stands in for the IMF's projection with the economy's growth over the five years before; the app uses the projection itself, which this card can't replay.",
+  "Spans overlap (one company's three- to seven-year spans share years), so a region counts fewer independent observations than cases.",
+  "A company is placed by its business address and its growth is measured in its reporting currency."
+ ],
+ "min_cases": 5,
+ "module": "ml/growth_calibrator.py",
+ "name": "Growth calibrator (revenue growth by sector and region)",
+ "registry": {
+  "artifacts": []
+ },
+ "training": {
+  "command": null,
+  "data": "Nothing is trained: the ranges are percentiles of SEC filers' revenue growth over their country's nominal GDP growth, by S&P region, GICS sector and hold (ml/evaluation/data/firm_growth.json, python -m tests.ml_firm_growth; ml/growth_ranges.json)",
+  "deterministic": true
+ },
+ "used_by": "Monte Carlo -> Scenarios and the rail's Growth group, \"Calibrate from sector and region\" (POST /api/ml/growth); shown only in regions where this card says it beats the baseline"
+}

@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 
 from api.deps import resolve_settings
 from api.schemas import (
-    Capabilities, DealRiskRequest, DealRiskResponse, EdgarResponse, MultiplesRequest, MultiplesResponse, SettingsResponse, SettingsValidateRequest,
+    Capabilities, DealRiskRequest, DealRiskResponse, EdgarResponse, MultiplesRequest, MultiplesResponse, GrowthRequest, GrowthResponse, SettingsResponse, SettingsValidateRequest,
     SurrogateRequest, SurrogateResponse,
 )
 from api.serialize import to_json
@@ -134,6 +134,23 @@ def post_multiples(req: MultiplesRequest):
     answer = predict(d.country, d.industry, int(d.hold), tables, _today(), library, ev_usd_m)
     # The ranges read no Settings
     return {**answer, "model": stamp(None)}
+
+
+@router.post("/ml/growth", response_model=GrowthResponse)
+def post_growth(req: GrowthRequest):
+    """The revenue growth range for the deal's sector and region over its
+    hold (PLAN.md 5.5), and the Monte Carlo Settings that draw it, where
+    its card says it beats the economy-wide range."""
+    from benchmarks.starting import growth_figure
+    from ml.growth_calibrator import calibrate
+    d = DealInputs(**req.inputs.model_dump())
+    anchor = None
+    if d.country and is_configured():
+        from db import economy
+        series, _ = economy.all_series()
+        anchor = growth_figure(series, d.country, _today())
+    # The range reads no Settings
+    return {**calibrate(d.country, d.industry, int(d.hold), anchor), "model": stamp(None)}
 
 
 @router.post("/ml/surrogate", response_model=SurrogateResponse)

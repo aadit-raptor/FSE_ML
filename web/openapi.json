@@ -6002,6 +6002,467 @@
         "title": "ForecastYear",
         "type": "object"
       },
+      "GrowthBand": {
+        "properties": {
+          "high": {
+            "description": "The 90th percentile, %",
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "description": "The 10th percentile of yearly revenue growth over the hold, %",
+            "title": "Low",
+            "type": "number"
+          },
+          "median": {
+            "description": "The 50th percentile, %",
+            "title": "Median",
+            "type": "number"
+          }
+        },
+        "required": [
+          "low",
+          "median",
+          "high"
+        ],
+        "title": "GrowthBand",
+        "type": "object"
+      },
+      "GrowthCardResult": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The same for the economy-wide range in force",
+            "title": "Baseline"
+          },
+          "cases": {
+            "description": "Company spans the card tested in the region",
+            "title": "Cases",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The card's interval score for the range, points",
+            "title": "Model"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "verdict": {
+            "description": "The card's verdict in the region (docs/model-cards/growth.md)",
+            "enum": [
+              "beats_baseline",
+              "does_not_beat_baseline",
+              "not_enough_data"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "cases"
+        ],
+        "title": "GrowthCardResult",
+        "type": "object"
+      },
+      "GrowthObserved": {
+        "properties": {
+          "cases": {
+            "description": "Company spans of the hold's length",
+            "title": "Cases",
+            "type": "integer"
+          },
+          "companies": {
+            "description": "Companies the range rests on",
+            "title": "Companies",
+            "type": "integer"
+          },
+          "first": {
+            "description": "The first year of revenue read",
+            "title": "First",
+            "type": "integer"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "last": {
+            "description": "The last year of revenue read",
+            "title": "Last",
+            "type": "integer"
+          },
+          "low": {
+            "description": "The 10th percentile of companies' yearly growth over their economy's, as a rate: (1 + company) / (1 + economy) - 1, %",
+            "title": "Low",
+            "type": "number"
+          },
+          "median": {
+            "title": "Median",
+            "type": "number"
+          }
+        },
+        "required": [
+          "low",
+          "median",
+          "high",
+          "companies",
+          "cases",
+          "first",
+          "last"
+        ],
+        "title": "GrowthObserved",
+        "type": "object"
+      },
+      "GrowthRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "accounting_standard": "",
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "business_risk": 4,
+              "capex": 4.0,
+              "country": "",
+              "currency": "USD",
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "industry": "",
+              "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
+              "tranches": [],
+              "unit": "millions",
+              "wsp_mode": false
+            }
+          }
+        },
+        "title": "GrowthRequest",
+        "type": "object"
+      },
+      "GrowthResponse": {
+        "properties": {
+          "anchor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StartingFigure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The country's nominal growth the range is centred on"
+          },
+          "card": {
+            "$ref": "#/components/schemas/GrowthCardResult"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "data_written_on": {
+            "format": "date",
+            "title": "Data Written On",
+            "type": "string"
+          },
+          "floor_usd_m": {
+            "description": "Companies with less revenue than this in the start year are left out, millions of US dollars",
+            "title": "Floor Usd M",
+            "type": "number"
+          },
+          "group_sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The sector the range rests on; null when the region's every sector stands in",
+            "title": "Group Sector"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "enum": [
+                  "untested_horizon",
+                  "does_not_beat_baseline",
+                  "not_enough_data"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          },
+          "hold": {
+            "title": "Hold",
+            "type": "integer"
+          },
+          "horizons": {
+            "description": "The holds the card tested",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Horizons",
+            "type": "array"
+          },
+          "industry": {
+            "title": "Industry",
+            "type": "string"
+          },
+          "min_companies": {
+            "title": "Min Companies",
+            "type": "integer"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "listed_companies",
+                "survivors_only",
+                "acquisitions_included",
+                "size_floor"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "observed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrowthObserved"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantiles": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Quantiles",
+            "type": "array"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrowthBand"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when shown"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "no_country",
+                  "no_growth"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "No country chosen, or no economic data stored for it",
+            "title": "Reason"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The country's S&P region (the card's regions)",
+            "title": "Region"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The industry's GICS sector",
+            "title": "Sector"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrowthSettings"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when shown"
+          },
+          "shown": {
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "sources": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/GrowthSource"
+            },
+            "title": "Sources",
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "not_enough_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "years": {
+            "description": "The first and last year of revenue in the data",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "country",
+          "industry",
+          "hold",
+          "horizons",
+          "quantiles",
+          "min_companies",
+          "floor_usd_m",
+          "shown",
+          "card",
+          "years",
+          "data_written_on",
+          "sources",
+          "notes",
+          "model"
+        ],
+        "title": "GrowthResponse",
+        "type": "object"
+      },
+      "GrowthSettings": {
+        "properties": {
+          "mc_growth_mean": {
+            "description": "The simulation's growth mean, %: the range's middle",
+            "title": "Mc Growth Mean",
+            "type": "number"
+          },
+          "mc_growth_std": {
+            "description": "Its spread, %: the normal draw whose central 80% is the range",
+            "title": "Mc Growth Std",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mc_growth_mean",
+          "mc_growth_std"
+        ],
+        "title": "GrowthSettings",
+        "type": "object"
+      },
+      "GrowthSource": {
+        "properties": {
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "publisher",
+          "title",
+          "url"
+        ],
+        "title": "GrowthSource",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -18372,6 +18833,63 @@
           }
         ],
         "summary": "Post Deal Risk",
+        "tags": [
+          "settings & integrations"
+        ]
+      }
+    },
+    "/api/ml/growth": {
+      "post": {
+        "description": "The revenue growth range for the deal's sector and region over its\nhold (PLAN.md 5.5), and the Monte Carlo Settings that draw it, where\nits card says it beats the economy-wide range.",
+        "operationId": "post_growth_api_ml_growth_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrowthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrowthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Growth",
         "tags": [
           "settings & integrations"
         ]

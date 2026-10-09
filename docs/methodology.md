@@ -936,6 +936,48 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   b = -0.135, so the entry range for 2026 is 10.92x to 20.50x around 15.43x,
   and the 470 six-year moves an exit range for 2031 of 10.20x to 24.17x
   around 16.12x.
+- **Growth calibrator** ([ml/growth_calibrator.py](../ml/growth_calibrator.py),
+  `calibrate`; PLAN.md 5.5). Sets the simulation's growth mean and spread
+  (§9's `mc_growth_mean`, `mc_growth_std`) from how listed companies'
+  revenue really grew, by S&P region and GICS sector, where §9's sourced
+  range reads only the economy's growth. *The data* (`load`,
+  `data/firm_growth.json`, written by `python -m tests.ml_firm_growth`):
+  every SEC filer's yearly revenue from the SEC's XBRL frames (the revenue
+  concepts of `US_GAAP_ITEMS` and `IFRS_ITEMS`, every currency), its
+  country (business address) and SIC code, the ECB's yearly average
+  exchange rates and the IMF's nominal growth by economy. *A case*
+  (`spans`, a `Span`): one company's yearly growth over h = 3 to 7 years
+  (`HORIZONS`, `Span.horizon`), (end / start)^(1/h) − 1, both ends from the
+  highest-priority revenue concept reporting both years in one currency
+  (`_pick`, `concept_order`); a company under `FLOOR_USD_M` = 50 million
+  US dollars of revenue in the start year (the ECB's average rate that
+  year) is left out, as is a financial company or one without a code
+  (`sector`, mapping SIC ranges to GICS sectors in `SIC_SECTORS`). *What
+  is measured* (`Span.excess`): ln((1 + company) / (1 + economy)), the
+  economy's growth compounded over the same years (`compound`) for the
+  company's country, else its region's median economy, else every covered
+  economy's (`economy_growth`, the starting figures' rule). *The range*
+  (`fit`, `fit_group`, `lookup`): the excesses' 10th, 50th and 90th
+  percentiles (`quantile`, linear) in the deal's region, sector and hold,
+  or the region's every sector when the sector has fewer than
+  `MIN_COMPANIES` = 30 companies; none under that in the region. `band`
+  applies them to the country's nominal growth this year (the IMF
+  projection the starting figures use, `growth_figure` in
+  [benchmarks/starting.py](../benchmarks/starting.py)): low, middle, high
+  = (1 + growth) × exp(percentile) − 1; the Settings are the normal draw
+  whose central 80% is that range, mean = (low + high) / 2 and spread =
+  (high − low) / (2 × 1.2816), in % to two places (`_pct`). `ranges` fits
+  every group on every case and `write_ranges` stores them in
+  `growth_ranges.json`, which the app reads (`served`, `served_model`).
+  *Shown only where its card beats the baseline*: `card_result` reads the
+  card's verdict for the deal's S&P region, and only holds the card tested
+  get a range (`untested_horizon` otherwise); without a country
+  `no_country`, without stored economic data `no_growth`. Worked: a US
+  software deal held five years rests on 696 US information technology
+  companies (3,448 five-year spans, 2008-2025), whose excesses' percentiles
+  are −0.103, 0.024 and 0.182; with the economy at 4.00% the range is
+  1.04 × e^−0.103 − 1 = −6.20% to 1.04 × e^0.182 − 1 = 24.81%, so the mean
+  is 9.31% and the spread 12.10% (a US utility: 6.08% and 8.10%).
 - **Live sliders** ([ml/surrogate/predict.py](../ml/surrogate/predict.py),
   [core/surrogate.py](../core/surrogate.py)). A small neural network
   (`SurrogatePredictor.predict`, loaded once by `SurrogatePredictor.get_instance`)
@@ -1235,6 +1277,7 @@ after their fifth year, so count as none.
 [ml/evaluation/deal_risk.py](../ml/evaluation/deal_risk.py),
 [ml/evaluation/distress.py](../ml/evaluation/distress.py),
 [ml/evaluation/multiples.py](../ml/evaluation/multiples.py),
+[ml/evaluation/growth.py](../ml/evaluation/growth.py),
 [ml/evaluation/surrogate.py](../ml/evaluation/surrogate.py). Tests:
 [tests/test_ml_evaluation.py](../tests/test_ml_evaluation.py),
 [tests/test_model_cards.py](../tests/test_model_cards.py). PLAN.md 5.1: every
@@ -1314,6 +1357,26 @@ both sets. Worked: entry, 3,401 industry-years from 2016 to 2025, interval
 score 17.48 against the market's 26.82, 73% inside; exit, 10,143, 23.41
 against 29.07, 73% inside. Every region beats the baseline in both sets,
 so both ranges are shown everywhere a peer group has enough companies.
+
+**Growth calibrator** (`ml.evaluation.growth`). Cases: every company span
+the calibrator rests on (`spans`), as `_case`s in the S&P region of the
+company's country. Strictly out of time (`scored`): each start year from
+`FIRST_START` = 2012, the spans starting that year are predicted from a
+`fit` on the spans that had **ended** by then, so nothing a prediction
+reads comes after its start. The economy's growth stands in for the IMF
+projection the app uses (no past projections are free): the country's
+nominal growth compounded over the `FORECAST_YEARS` = 5 years to the start.
+Baseline (`baseline_spread`, `_stdev_to`): the range in force from §9's
+sourced figures, the same centre with the spread of the country's nominal
+growth from year to year since 2000 (at least six years; else its region's
+median spread), as the normal draw's 80%. Statistics, in percentage points
+of yearly growth: `interval_score` (the headline), `inside`, `centre_error`
+(the simulation mean's distance from the growth) and `width`. Worked:
+67,933 spans of 4,294 companies starting 2012-2022; 77% fell inside the
+calibrated range against 27% for the economy-wide one, interval score 60.2
+against 88.9; every region beats the baseline (inside: US 77%, Europe 83%,
+emerging 78%, other developed 74%), so the range is offered everywhere a
+region has enough companies.
 
 **Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
 deals, each economy the app covers with ten industries, whose inputs are
