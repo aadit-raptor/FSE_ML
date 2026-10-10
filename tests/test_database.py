@@ -64,6 +64,35 @@ def test_direct_url_drops_neon_pooler_only():
     assert db_engine.redacted(pooled) == "ep-cool-1234-pooler.us-east-2.aws.neon.tech/neondb"
 
 
+@pytest.mark.parametrize("admin, expected", [
+    # Windows: pgserver listens on TCP
+    ("postgresql://postgres:@127.0.0.1:5433/postgres", "postgresql://postgres:@127.0.0.1:5433/fse"),
+    # macOS and Linux: a Unix socket, its directory in the query
+    ("postgresql://postgres:@/postgres?host=/Users/me/FSE_ML/.localdb",
+     "postgresql://postgres:@/fse?host=%2FUsers%2Fme%2FFSE_ML%2F.localdb"),
+])
+def test_the_local_database_address_keeps_its_server(admin, expected):
+    from db import local
+
+    url = local.database_url(admin, "fse")
+    assert url == expected
+    made, server = make_url(url), make_url(admin)
+    assert made.database == "fse"
+    assert (made.host, made.port, dict(made.query)) == (server.host, server.port, dict(server.query))
+
+
+def test_the_local_database_prints_both_addresses_on_a_unix_socket(monkeypatch, capsys):
+    from db import local
+
+    admin = "postgresql://postgres:@/postgres?host=/Users/me/FSE_ML/.localdb"
+    monkeypatch.setattr(local, "start", lambda: (None, admin))
+    assert local.main([]) == 0
+    printed = dict(line.split("=", 1) for line in capsys.readouterr().out.splitlines())
+    assert printed["TEST_DATABASE_URL"] == admin
+    api = make_url(printed["DATABASE_URL"])
+    assert api.database == local.DEV_DATABASE and api.query["host"] == "/Users/me/FSE_ML/.localdb"
+
+
 def test_models_follow_the_column_rules():
     assert check_conventions(Base.metadata) == []
 
@@ -295,10 +324,15 @@ def free_port() -> int:
 class SuspendingProxy:
     """A TCP proxy in front of Postgres that behaves like Neon's compute
     suspending: ``suspend()`` cuts every open connection and turns new ones
-    away until ``wake_after`` seconds have passed."""
+    away until ``wake_after`` seconds have passed.
+
+    ``target_host`` may be a directory: on macOS and Linux ``python -m
+    db.local`` listens on a Unix socket there, not on TCP."""
 
     def __init__(self, target_host, target_port):
         self.target = (target_host, target_port)
+        self.unix_socket = (f"{target_host}/.s.PGSQL.{target_port}"
+                            if str(target_host).startswith("/") else None)
         self.listener = socket.socket()
         self.listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.listener.bind(("127.0.0.1", 0))
@@ -337,11 +371,18 @@ class SuspendingProxy:
                 self.refused += 1
                 client_sock.close()
                 continue
-            upstream = socket.create_connection(self.target)
+            upstream = self._connect()
             with self.lock:
                 self.sockets += [client_sock, upstream]
             for a, b in ((client_sock, upstream), (upstream, client_sock)):
                 threading.Thread(target=self._pipe, args=(a, b), daemon=True).start()
+
+    def _connect(self):
+        if self.unix_socket is None:
+            return socket.create_connection(self.target)
+        upstream = socket.socket(socket.AF_UNIX)
+        upstream.connect(self.unix_socket)
+        return upstream
 
     @staticmethod
     def _pipe(src, dst):
@@ -361,8 +402,9 @@ class SuspendingProxy:
 @pytest.fixture
 def proxied_db(fresh_db, monkeypatch):
     real = make_url(db_engine.sqlalchemy_url(fresh_db))
-    proxy = SuspendingProxy(real.host, real.port or 5432)
-    url = real.set(host="127.0.0.1", port=proxy.port).render_as_string(hide_password=False) \
+    proxy = SuspendingProxy(real.host or real.query["host"], real.port or 5432)
+    url = real.set(host="127.0.0.1", port=proxy.port).difference_update_query(["host"]) \
+        .render_as_string(hide_password=False) \
         .replace("postgresql+psycopg://", "postgresql://", 1)
     monkeypatch.setenv("DATABASE_URL", url)
     yield proxy

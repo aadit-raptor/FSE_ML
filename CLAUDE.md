@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-09 (PLAN.md 5.5: growth calibrator). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-10 (development moved to a Mac: Commands, Tooling and Gotchas below; no task done). Before that 2026-10-09 (PLAN.md 5.5: growth calibrator). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -42,7 +42,7 @@ that commit and runs the live browser checks there (needs the GitHub secret
 by Claude, then the `staging.yml` and `/api/health` checks. Rollback: DEPLOY.md "Rollback" (default
 is a git revert PR). The free API sleeps after 15 minutes
 idle and takes about a minute to wake. Read-only checks against the live site:
-`E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
+`E2E_LIVE=1 npm --prefix web run test:live`,
 also run daily by `.github/workflows/live.yml`.
 
 Monitoring (PLAN.md 1.2, DEPLOY.md "Monitoring"): Sentry in the API and the
@@ -1216,7 +1216,7 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   theme C1 Tape; the user may still pick another of the canvas's themes,
   which is a change to `mark.json`'s `tones` only. **One source:**
   `web/src/components/brand/mark.json`; `BrandMark.tsx` draws it in the app
-  and `node web/scripts/brand.mjs` (`PW_CHANNEL=msedge` locally) draws every
+  and `node web/scripts/brand.mjs` (from `web/`) draws every
   file -- `src/app/icon.svg` (follows the browser's light/dark theme),
   `favicon.ico`, `apple-icon.png`, `opengraph-image.png` (+ alt text),
   and `public/brand/` (app and maskable icons, the 120 px logo for Google's
@@ -1400,14 +1400,21 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,387 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,609 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
-## Commands (Windows, from the repo root)
+## Commands (macOS, from the repo root)
+
+The project moved from Windows to a Mac (Apple Silicon) on 2026-10-10. On
+Windows the interpreter is `.venv\Scripts\python.exe` and a variable is set
+with `$env:NAME="value"` in PowerShell; everything else is the same.
+`.claude/launch.json` (git-ignored, per machine) holds the preview servers
+`api`, `api-db` (starts the local database first), `web` (`next dev`) and
+`web-start` (the built app), all with the development sign-in.
 
 ```bash
-.venv/Scripts/python.exe -m pytest                       # all tests
-.venv/Scripts/python.exe -m pytest --cov --cov-report=term   # with coverage (CI's floors: .coverage-floor)
-.venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
+.venv/bin/python -m pytest                       # all tests
+.venv/bin/python -m pytest --cov --cov-report=term   # with coverage (CI's floors: .coverage-floor)
+.venv/bin/python -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
 
 # web/ (run the API too; Next proxies /api to FSE_API_URL, default 127.0.0.1:8000)
 npm --prefix web run dev                                 # http://localhost:3000
@@ -1416,19 +1423,19 @@ npm --prefix web run typecheck
 npm --prefix web run build
 
 # After changing API schemas: refresh the snapshot, then the TS types
-.venv/Scripts/python.exe -m api.export_openapi web/openapi.json
+.venv/bin/python -m api.export_openapi web/openapi.json
 npm --prefix web run api:types
 ```
 
 Database (optional locally; the API runs without one):
 
 ```bash
-.venv/Scripts/python.exe -m pip install pgserver         # once: Postgres in a wheel, no Docker needed
-.venv/Scripts/python.exe -m db.local                     # starts it (data in .localdb/), prints DATABASE_URL and TEST_DATABASE_URL
-# set both in the shell (PowerShell: $env:DATABASE_URL="..."), then:
-.venv/Scripts/python.exe -m pytest tests/test_database.py
-.venv/Scripts/python.exe -m db.migrate upgrade | downgrade -1 | current
-.venv/Scripts/python.exe -m db.local stop
+.venv/bin/python -m pip install pgserver         # once: Postgres in a wheel, no Docker needed
+.venv/bin/python -m db.local                     # starts it (data in .localdb/), prints DATABASE_URL and TEST_DATABASE_URL
+# export TEST_DATABASE_URL for the tests (and DATABASE_URL only to run the API or the browser tests), then:
+.venv/bin/python -m pytest tests/test_database.py
+.venv/bin/python -m db.migrate upgrade | downgrade -1 | current
+.venv/bin/python -m db.local stop
 ```
 
 Backups (PLAN.md 1.8). `FSE_BACKUP_DIR` keeps them in a directory instead of
@@ -1437,10 +1444,10 @@ Supabase, which is how to try the whole thing without any account:
 ```bash
 # in the shell: FSE_BACKUP_KEY (32+ characters), FSE_BACKUP_DIR (or SUPABASE_URL
 # + SUPABASE_SERVICE_ROLE_KEY), BACKUP_DATABASE_URL
-.venv/Scripts/python.exe -m ops.backup run --environment local      # dump, encrypt, upload, rotate
-.venv/Scripts/python.exe -m ops.backup list --environment local
-.venv/Scripts/python.exe -m ops.backup verify --environment local   # download and decrypt the newest
-.venv/Scripts/python.exe -m ops.backup drill --environment local --target "$ADMIN_URL"
+.venv/bin/python -m ops.backup run --environment local      # dump, encrypt, upload, rotate
+.venv/bin/python -m ops.backup list --environment local
+.venv/bin/python -m ops.backup verify --environment local   # download and decrypt the newest
+.venv/bin/python -m ops.backup drill --environment local --target "$ADMIN_URL"
 ```
 
 ### Adding a table
@@ -1467,12 +1474,13 @@ Supabase, which is how to try the whole thing without any account:
 Browser tests (`web/e2e/`, Playwright). They start uvicorn and `next start`
 themselves, so build first. They also need a **database** (accounts) and the
 **development sign-in**: start `python -m db.local`, then set `DATABASE_URL`
-and `FSE_AUTH_DEV=1` in the shell. No bundled browser on this machine: use
-Edge.
+and `FSE_AUTH_DEV=1` in the shell. They run in Playwright's own Chromium
+(`npx --prefix web playwright install chromium`, once per Playwright
+version); `PW_CHANNEL=chrome` or `msedge` uses an installed browser instead.
 
 ```bash
 npm --prefix web run build
-PW_CHANNEL=msedge FSE_AUTH_DEV=1 npm --prefix web run test:e2e   # PowerShell: $env:PW_CHANNEL="msedge"
+FSE_AUTH_DEV=1 npm --prefix web run test:e2e
 ```
 
 `e2e/auth.setup.ts` signs in once as `dev:e2e` and saves the browser state
@@ -1540,15 +1548,16 @@ rules below. Where they differ, the rules below win.
 
 ## Tooling
 
-Installed at **user level on the original Windows machine** — on another device,
-reinstall:
+Installed at **user level**, so each machine needs them again (the Mac since
+2026-10-10: Homebrew's `git`, `gh`, `python@3.12` and `node@24`; the skills
+and the ECC plugin are the user's to install, with the commands below):
 
 | Tool | Install | Notes |
 |---|---|---|
 | `design-taste-frontend` (+ companions) | `npx skills add https://github.com/Leonxlnx/taste-skill` | Dials: `DESIGN_VARIANCE`, `MOTION_INTENSITY`, `VISUAL_DENSITY` |
 | `web-design-guidelines` | `npx skills add vercel-labs/agent-skills --skill web-design-guidelines` | Fetches Vercel's guidelines from GitHub each run |
 | `image-to-code` | `npx skills add https://github.com/Leonxlnx/taste-skill --skill image-to-code` | Written for Codex; expects to generate images, which Claude Code can't |
-| Playwright CLI | `npm install -g @playwright/cli@latest` then `playwright-cli install --skills --global` | No Chrome on the original machine: use `--browser=msedge`. Writes to `.playwright-cli/` |
+| Playwright CLI | `npm install -g @playwright/cli@latest` then `playwright-cli install --skills --global` | Writes to `.playwright-cli/`. Pick the browser with `--browser=` (the Windows machine had only Edge: `msedge`) |
 | ECC (Everything Claude Code) | In an interactive `claude` terminal: `/plugin marketplace add https://github.com/affaan-m/ECC`, then `/plugin install ecc@ecc` at **project scope** | Optional (docs/WORKFLOW.md "Installing ECC"). **Installed 2026-09-24, ECC 2.2.2, project scope** (`enabledPlugins` in the committed `.claude/settings.json`). Plugin only: no `install.sh`, no global rules copy, attribution unchanged. ECC's hooks default to **on**; they're **off** through `.claude/settings.json` `env`: `ECC_HOOKS_ENABLED=false`, `ECC_SESSION_START_CONTEXT=off` |
 | awesome-design-md | `git clone https://github.com/VoltAgent/awesome-design-md` | 74 brand `DESIGN.md` files — inspiration only, don't clone a real brand's identity |
 
@@ -1556,10 +1565,34 @@ Skills load when a session starts: install first, then open a new session.
 
 ## Gotchas
 
-- Node may be installed but missing from PATH in an older session:
-  it lives at `C:\Program Files\nodejs`.
-- The Windows console is cp1252 — printing `≥`, `→` etc. from Python fails;
-  write to a file or use ASCII.
+- **macOS: `python -m db.local` listens on a Unix socket, not TCP**, so its
+  addresses carry the socket's directory in the query
+  (`postgresql://postgres:@/fse?host=...`) and no port. Build another
+  database's address with `db.local.database_url` or `make_url(...).set`,
+  never by cutting the string at its last slash (the Mac's first run printed
+  a `DATABASE_URL` pointing nowhere). Quote the addresses in zsh: they hold
+  `?` and `%`.
+- **Run pytest with `TEST_DATABASE_URL` only.** With `DATABASE_URL` also
+  exported, the tests of what the API answers *without* a database fail
+  (seven of them on the Mac's first run). `DATABASE_URL` is for running the
+  API and the browser tests.
+- macOS has no `python` on the PATH: use `.venv/bin/python` (the browser
+  tests find it themselves; `PYTHON=` overrides). Homebrew's tools live in
+  `/opt/homebrew/bin`.
+- zsh reads a bare `==` at the start of a word and an unmatched `*` as
+  patterns: quote `echo "===="` and `--include="*.ts"`.
+- **Windows only** (the first machine; kept for a return to it): Node may be
+  missing from PATH in an older session (`C:\Program Files\nodejs`); the
+  console is cp1252, so printing `≥`, `→` etc. from Python fails and an edit
+  script needs `PYTHONUTF8=1`; in PowerShell, `Get-Content -Raw` then
+  `WriteAllText` turns a non-ASCII character into mojibake (an NBSP became
+  "Â "); Playwright needs `PW_CHANNEL=msedge` (no Chrome, no bundled
+  browser); a full drive C: (it hit 0 bytes twice) stops every command,
+  because the desktop app writes each command's output to
+  `%LOCALAPPDATA%\Temp\claude`, and only the user can free it.
+- Edit source with the Edit/Write tools or a Python script that writes
+  UTF-8, and keep test strings with special spaces as escapes
+  (`"21,2\u00a0%"`).
 - The golden snapshot can't be regenerated any more (Streamlit is gone). Pin
   deliberate model changes with explicit tests instead.
 - **Next.js 16 differs from older versions.** Read `web/node_modules/next/dist/docs/`
@@ -1568,17 +1601,6 @@ Skills load when a session starts: install first, then open a new session.
   re-created by `next dev`; keep it committed.
 - Components that use context or Motion (`MotionConfig`, `motion.*`) must be
   client components; the shell keeps them in `workspace.tsx` and the bars.
-- **Drive C: on the original machine is nearly full.** It hit 0 bytes during
-  step 4 (npm cache, `.next`, an old scratch venv were cleared, leaving ~1 GB).
-  Check `Get-PSDrive C` before builds; "No space left on device" / npm
-  `nospc` errors mean this, not a code problem. **At exactly 0 bytes Claude
-  can't run any command at all**: the desktop app writes each command's output
-  to `%LOCALAPPDATA%\Temp\claude\...`, so every Bash and PowerShell call fails
-  with `ENOSPC` before it starts, and the sandbox refuses
-  `Remove-Item` on `%LOCALAPPDATA%\npm-cache`. Only the Read, Write, Edit,
-  Grep and Glob tools still work (the repo is on D:). The user has to free the
-  space; `%LOCALAPPDATA%\Temp\claude` holds the old sessions' working files and
-  is the usual culprit. It happened again on 2026-09-27, during PLAN.md 2.3b.
 - Playwright: open the app at `localhost`, not `127.0.0.1` (Next's dev server
   blocks its client scripts for other hosts; the page never hydrates). Next.js
   renders a hidden `role="alert"` route announcer, so scope alert locators to
@@ -1588,7 +1610,8 @@ Skills load when a session starts: install first, then open a new session.
   endpoint means this). A `next start` left over from an interrupted run keeps
   serving the old build after a rebuild: the page renders but never hydrates,
   so clicks do nothing and the console shows `ChunkLoadError`. Kill whatever
-  holds the port (`netstat -ano | grep LISTENING | grep :3000`).
+  holds the port (`lsof -iTCP:3000 -sTCP:LISTEN`; on Windows
+  `netstat -ano | grep LISTENING | grep :3000`).
 - The Browser pane's screenshots time out when the Claude window isn't drawn;
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
@@ -1608,10 +1631,6 @@ Skills load when a session starts: install first, then open a new session.
   ships Postgres 16, enough for the local database); `FSE_PG_BIN` overrides
   the search. The first backup attempt failed exactly here, with a message
   naming every binary it found.
-- In this repo's PowerShell, `Get-Content -Raw` then `WriteAllText` turns
-  a non-ASCII character into mojibake (an NBSP became "Â "). Edit source with
-  the Edit/Write tools or a Python script that writes UTF-8; keep test
-  strings with special spaces as escapes (`"21,2\u00a0%"`).
 - A new field on `DealInputsIn` must also go on `core.deal.DealInputs`
   (every router builds it with `DealInputs(**model_dump())`), and a field
   that is only a label, or that old deals should not gain, belongs in
@@ -1755,8 +1774,9 @@ Skills load when a session starts: install first, then open a new session.
   (`_recorded_on`), never today, or they go stale on their own; a refresh's
   exchange rate request depends on what is stored, so the test transport
   answers the recorded rates for any start day.
-- A table transcribed from a PDF: read it with `pdftotext -table` (the
-  scratchpad has it via Git's mingw64; `-layout` interleaves rows), convert it
+- A table transcribed from a PDF: read it with `pdftotext -table` (from
+  `brew install poppler` on the Mac, Git's mingw64 on Windows; `-layout`
+  interleaves rows), convert it
   with a script rather than by hand, and test it against the source's own
   summary rows. Some free copies only download (maalot.co.il); the user
   agreed (2026-10-07) to downloading public source documents into the
