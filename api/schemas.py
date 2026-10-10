@@ -671,6 +671,27 @@ class DriverFit(BaseModel):
     r: Optional[float]
 
 
+class DriverContribution(BaseModel):
+    driver: str
+    irr: Optional[float] = Field(description="What the driver adds to the case's IRR, as a fraction")
+
+
+class ExplainedCase(BaseModel):
+    case: Literal["downside", "upside"]
+    paths: int = Field(description="How many simulated paths the figures average")
+    tail_paths: int = Field(description="How many paths the tail holds; more than `paths` when it is sampled")
+    irr: Optional[float] = Field(description="The mean IRR of those `paths`: base_irr plus the contributions")
+    contributions: List[DriverContribution]
+
+
+class DriverExplanations(BaseModel):
+    """Why the worst and best simulated paths are where they are (PLAN.md
+    5.6): each tail's mean IRR, split exactly between the drivers."""
+    share: float = Field(description="The share of paths in each case")
+    base_irr: Optional[float] = Field(description="The simulation's IRR with every driver at its mean")
+    cases: List[ExplainedCase]
+
+
 class Heatmap(BaseModel):
     growth: List[float]
     exit_multiple: List[float]
@@ -693,6 +714,8 @@ class MonteCarloResponse(BaseModel):
     scatter: Dict[str, List[Optional[float]]]
     heatmap: Heatmap
     distress: SimulatedDistress
+    explanations: Optional[DriverExplanations] = Field(
+        None, description="Left out when the run itself took too long to explain within the timeout")
     money: Money
     model: ModelStamp
 

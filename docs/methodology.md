@@ -592,6 +592,49 @@ charts: `empirical_correlations` (Pearson, drivers and IRR/MOIC),
 `driver_sensitivity` (Spearman's ρ of each driver with IRR, sorted by size) and
 `driver_fits` (least-squares line of IRR on each driver, with r).
 
+**Driver explanations** (PLAN.md 5.6;
+[analytics/driver_attribution.py](../analytics/driver_attribution.py), tests
+[tests/test_driver_explanations.py](../tests/test_driver_explanations.py);
+why this and not a fitted model:
+[driver-explanations.md](driver-explanations.md)). A path's IRR is a function
+of its five draws and nothing else, so the simulation can be asked what it
+would have answered had some of them stayed at their means. `tail_paths`
+ranks the paths by IRR and takes the worst and the best 5% (`TAIL_SHARE`;
+ties, such as wiped-out paths, go by path order, so a tail is never larger
+than its share); a tail of more than 2,500 paths (`MAX_TAIL_PATHS`, a run
+above 50,000) is read at 2,500 evenly spaced through its ranks
+(`evenly_spaced`), and the answer gives both counts. For those paths
+`coalition_irr` reruns the simulation's core 32 times, once for every choice
+of which drivers keep their draws and which sit at the mean (`mean_draws`:
+the four means, and no EBITDA shock), in slices of half the run's size, and
+takes each rerun's mean IRR. `shapley_values` turns the 32 means into one
+contribution a driver: the average, over every order in which the drivers
+could be switched from mean to draw, of what switching it moves,
+
+    φ_i = Σ over S not containing i of |S|! (5 − |S| − 1)! / 5! × (v(S ∪ i) − v(S))
+
+`explain_tails` returns them with the base (all five at the mean) and the
+tail's mean IRR. No model is fitted, so they add up exactly:
+
+    IRR at the mean assumptions + the five contributions = the tail's mean IRR
+
+Default deal, 50,000 paths, seed 42 (IRR, percentage points):
+
+| | Base | Growth | Exit multiple | Rate | Gross margin | EBITDA shock | Tail mean |
+|---|---|---|---|---|---|---|---|
+| Worst 5% | 18.56 | −9.51 | −10.49 | −0.50 | −0.22 | −0.08 | −2.24 |
+| Best 5% | 18.56 | +8.29 | +6.96 | +0.40 | +0.12 | +0.08 | 34.41 |
+
+A driver held at its mean is held there whatever the others do, so a
+contribution is the driver's own effect through the model, not what it
+shares with correlated drivers: the rate's rank correlation with IRR above is
+−0.47, almost all of it borrowed from growth and the exit multiple. A driver
+that cannot move the deal (the rate, when no facility floats) contributes
+exactly zero. The base is the simulation's own IRR at the means, which is not
+the deal model's (the simulation's simplifications, findings 12 and 13). A
+run that itself took more than 20 seconds (`EXPLAIN_RUN_LIMIT_S`) is answered
+without explanations, so they can never be what makes an answer time out.
+
 **Scenarios.** `apply_scenario` moves the means by the Settings' multipliers
 and adjustments (bull, base, recession, stagflation): growth × or + an
 adjustment with a floor, exit multiple ×, rate ×, gross margin ×; with tranches
@@ -1433,6 +1476,9 @@ The values quoted in this document, checked against the code by
 | `core.model_version.RESULT_REL_TOL` | 1e-9 | relative tolerance for "results changed" |
 | `core.model_version.RESULT_ABS_TOL` | 1e-12 | absolute tolerance for "results changed" |
 | `api.limits.MAX_SIMULATION_PATHS` | 100000 | most Monte Carlo or backtest paths |
+| `api.limits.EXPLAIN_RUN_LIMIT_S` | 20 | a Monte Carlo run slower than this (seconds) is not explained |
+| `analytics.driver_attribution.TAIL_SHARE` | 0.05 | the share of paths in each explained tail |
+| `analytics.driver_attribution.MAX_TAIL_PATHS` | 2500 | most paths explained in a tail |
 | `api.limits.MAX_FORECAST_PATHS` | 200000 | most forecast simulation paths |
 | `ml.edgar_extractor._FIRST_WEEK` | 7 | a year ending on or before this day counts as the month before |
 
