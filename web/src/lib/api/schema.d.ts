@@ -3599,7 +3599,7 @@ export interface components {
             contributions: components["schemas"]["DriverContribution"][];
             /**
              * Irr
-             * @description Their mean IRR: base_irr plus the contributions
+             * @description The mean IRR of those `paths`: base_irr plus the contributions
              */
             irr: number | null;
             /**
@@ -4654,7 +4654,8 @@ export interface components {
             drivers: components["schemas"]["DriverSensitivity"][];
             /** Elapsed Ms */
             elapsed_ms: number;
-            explanations: components["schemas"]["DriverExplanations"];
+            /** @description Left out when the run itself took too long to explain within the timeout */
+            explanations?: components["schemas"]["DriverExplanations"] | null;
             heatmap: components["schemas"]["Heatmap"];
             irr_cdf: components["schemas"]["PercentileCurve"];
             irr_histogram: components["schemas"]["Histogram"];

@@ -207,9 +207,29 @@ def test_slicing_does_not_change_the_answer():
 
 def test_explaining_changes_nothing_in_the_run():
     sim = simulate(DEALS["loan and PIK notes"])
-    before, n = sim.df.copy(), sim.params.n
+    before, params = sim.df.copy(), repr(sim.params)
     explain_tails(sim)
-    assert sim.params.n == n and sim.df.equals(before)
+    assert repr(sim.params) == params and sim.df.equals(before)
+
+
+@pytest.mark.parametrize("n", [1, 2, 25])
+def test_a_tiny_run_is_explained_from_one_path_a_tail(n):
+    out = explain_tails(simulate(DealInputs(), n=n))
+    for case in out["cases"]:
+        assert case["paths"] == case["tail_paths"] == 1
+        total = out["base_irr"] + sum(c["irr"] for c in case["contributions"])
+        assert total == pytest.approx(case["irr"], abs=EXACT)
+
+
+def test_a_tail_of_wiped_out_paths_still_adds_up():
+    """At 95% debt and a weak exit most of the worst paths lose everything
+    (-100%, a kink in the IRR): the contributions still sum to it."""
+    sim = simulate(DealInputs(debt_pct=95.0), mc=MCInputs(n=N, exit_mean=7.0))
+    assert sim.wipeout_rate > TAIL_SHARE
+    out = explain_tails(sim)
+    down = out["cases"][0]
+    assert down["irr"] == pytest.approx(-1.0, abs=EXACT)
+    assert out["base_irr"] + sum(c["irr"] for c in down["contributions"]) == pytest.approx(-1.0, abs=EXACT)
 
 
 # ---------------------------------------------------------------------------
@@ -234,6 +254,24 @@ def test_the_endpoint_answers_explanations_that_add_up():
         assert case["paths"] == case["tail_paths"] == N * TAIL_SHARE
     # the tails lie beyond the summary's percentiles
     assert down["irr"] < summary["p5_irr"] < out["base_irr"] < summary["p95_irr"] < up["irr"]
+
+
+def test_a_slow_run_answers_without_explanations(monkeypatch):
+    """The explanation reruns up to 3.2 times the run's paths, so a run that
+    was itself slow is answered as it always was, without them."""
+    from api import limits
+    quick = run()
+    monkeypatch.setattr(limits, "EXPLAIN_RUN_LIMIT_S", 0.0)
+    slow = run()
+    assert slow["explanations"] is None and quick["explanations"] is not None
+    for key in ("summary", "irr_histogram", "drivers", "heatmap", "distress"):
+        assert slow[key] == quick[key], key
+
+
+def test_a_figure_the_simulation_could_not_give_is_sent_as_null():
+    from api.serialize import to_json
+    sent = to_json({"base_irr": float("nan"), "cases": [{"irr": float("inf")}]})
+    assert sent == {"base_irr": None, "cases": [{"irr": None}]}
 
 
 def test_the_explanation_is_the_same_in_any_money_unit():

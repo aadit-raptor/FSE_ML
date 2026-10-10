@@ -20,7 +20,8 @@ What is limited, and why each number:
 - **Request size**: bodies over ``MAX_BODY_BYTES`` get 413.
 - **Run timeout**: a simulation request that hasn't answered within
   ``RUN_TIMEOUT_S`` gets 504 (the work finishes in the background, still
-  holding its slot, so a slow run can't be stacked on).
+  holding its slot, so a slow run can't be stacked on). A Monte Carlo run that
+  took over ``EXPLAIN_RUN_LIMIT_S`` answers without its driver explanations.
 
 Every refusal has a sentence a person can act on in ``detail`` and says when
 to try again (``Retry-After``). Health checks are never limited.
@@ -51,6 +52,10 @@ MAX_SIMULATION_PATHS = 100_000
 MAX_FORECAST_PATHS = 200_000       # the forecast overlay is lighter: 55 MB at 200,000
 MAX_BODY_BYTES = 1_000_000
 RUN_TIMEOUT_S = 100.0              # under the web proxy's own timeout, so this message arrives
+# The driver explanations (PLAN.md 5.6) rerun up to 160,000 paths after a run: at most 3.2 times
+# the run's own time (a 50,000-path run). A run slower than this answers without them, so the
+# extra work can never be what turns an answer into a 504.
+EXPLAIN_RUN_LIMIT_S = 20.0
 SIMULATION_SLOTS = 1
 SLOT_WAIT_S = 30.0
 

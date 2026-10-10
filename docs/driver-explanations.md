@@ -92,7 +92,10 @@ driver at its mean, each driver's contribution, and the tail's mean IRR,
   rule, 10 interest passes) the run took 1.6 s and the explanation 2.3 s,
   with a lower peak in memory (163 MB traced against the run's 234 MB): it
   works in slices of half the run's size and reads at most 2,500 paths a
-  tail. The default run's explanation takes 0.03 s.
+  tail. The default run's explanation takes 0.03 s. The worst ratio is a
+  50,000-path run (two whole tails of 2,500 paths, 32 times each: 3.2 times
+  the run), so a run that itself took over 20 seconds is answered without
+  explanations (`api/limits.py`), and they can never cause a timeout.
 - **No model logic changed.** It calls the simulation's core with chosen
   draws; the pinned simulation and the golden snapshot are untouched, and no
   engine version moves (a new output only).

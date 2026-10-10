@@ -1166,7 +1166,7 @@ enough for the free server.
   (`analytics/driver_attribution.py`), the worst and the best 5% of paths'
   mean IRR split between the simulation's five drivers by Shapley values of
   the simulation itself, so they add up to the simulated figure exactly
-  (`tests/test_driver_explanations.py`, to 1e-12, every debt structure) with
+  (`tests/test_driver_explanations.py`, to 1e-12, every debt structure; a run slower than 20 s answers without them) with
   no trained model and no new package; Monte Carlo -> Drivers shows them
   beside the rank correlations. `ml/shap_attribution.py` is removed: fitted
   to one deal shape, 0.61 points off, explaining against an arbitrary average

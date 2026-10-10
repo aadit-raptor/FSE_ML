@@ -631,7 +631,9 @@ shares with correlated drivers: the rate's rank correlation with IRR above is
 −0.47, almost all of it borrowed from growth and the exit multiple. A driver
 that cannot move the deal (the rate, when no facility floats) contributes
 exactly zero. The base is the simulation's own IRR at the means, which is not
-the deal model's (the simulation's simplifications, findings 12 and 13).
+the deal model's (the simulation's simplifications, findings 12 and 13). A
+run that itself took more than 20 seconds (`EXPLAIN_RUN_LIMIT_S`) is answered
+without explanations, so they can never be what makes an answer time out.
 
 **Scenarios.** `apply_scenario` moves the means by the Settings' multipliers
 and adjustments (bull, base, recession, stagflation): growth × or + an
@@ -1474,6 +1476,7 @@ The values quoted in this document, checked against the code by
 | `core.model_version.RESULT_REL_TOL` | 1e-9 | relative tolerance for "results changed" |
 | `core.model_version.RESULT_ABS_TOL` | 1e-12 | absolute tolerance for "results changed" |
 | `api.limits.MAX_SIMULATION_PATHS` | 100000 | most Monte Carlo or backtest paths |
+| `api.limits.EXPLAIN_RUN_LIMIT_S` | 20 | a Monte Carlo run slower than this (seconds) is not explained |
 | `analytics.driver_attribution.TAIL_SHARE` | 0.05 | the share of paths in each explained tail |
 | `analytics.driver_attribution.MAX_TAIL_PATHS` | 2500 | most paths explained in a tail |
 | `api.limits.MAX_FORECAST_PATHS` | 200000 | most forecast simulation paths |

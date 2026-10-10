@@ -5202,7 +5202,7 @@
                 "type": "null"
               }
             ],
-            "description": "Their mean IRR: base_irr plus the contributions",
+            "description": "The mean IRR of those `paths`: base_irr plus the contributions",
             "title": "Irr"
           },
           "paths": {
@@ -7928,7 +7928,15 @@
             "type": "number"
           },
           "explanations": {
-            "$ref": "#/components/schemas/DriverExplanations"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DriverExplanations"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Left out when the run itself took too long to explain within the timeout"
           },
           "heatmap": {
             "$ref": "#/components/schemas/Heatmap"
@@ -8010,7 +8018,6 @@
           "scatter",
           "heatmap",
           "distress",
-          "explanations",
           "money",
           "model"
         ],

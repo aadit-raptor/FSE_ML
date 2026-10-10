@@ -102,6 +102,12 @@ test.describe("Monte Carlo", () => {
     expect(after.total).toBeGreaterThan(-2.24);
     expect(Math.abs(Number(await growthBar(worst).textContent()))).toBeLessThan(0.5);
     expect(Math.abs(after.base + after.bars.reduce((a, b) => a + b, 0) - after.total)).toBeLessThan(0.04);
+
+    // Above 50,000 paths a tail is read at 2,500 of its paths, and the tile says so
+    await expect(worst.getByText("evenly spaced by rank")).toHaveCount(0);
+    await setField(page, "Paths", "100000");
+    await page.getByRole("button", { name: "Run Monte Carlo" }).click();
+    await expect(worst.getByText("Read at 2,500 of the tail's 5,000 paths, evenly spaced by rank.")).toBeVisible();
   });
 
   // Background jobs (PLAN.md 1.9): the run is queued on the server and polled

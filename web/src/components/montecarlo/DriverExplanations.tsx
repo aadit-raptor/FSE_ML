@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { DivergingBars } from "@/components/charts/Bars";
 import { Tile } from "@/components/ui/Tile";
 import type { components } from "@/lib/api/schema";
-import { fmtCount, fmtNumber, fmtPct, fmtRate } from "@/lib/format";
+import { fmtCount, fmtNumber, fmtPct, fmtRate, isNum } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 
 export type Explanations = components["schemas"]["DriverExplanations"];
@@ -19,9 +19,10 @@ const points = (v: number) => fmtNumber(v * 100, 2, true);
  * from the IRR at the mean assumptions, through each driver's contribution, to the tail's mean IRR.
  * The API's figures add up exactly; nothing is recomputed here.
  */
-export function DriverExplanationTiles({ explanations }: { explanations: Explanations | undefined }) {
-  // An API from before 5.6 (a deploy rolling out, a rollback) answers without them
-  if (!explanations) return null;
+export function DriverExplanationTiles({ explanations }: { explanations: Explanations | null | undefined }) {
+  // A run too slow to explain within the timeout answers null (api/limits.py), and an API from
+  // before 5.6 (a deploy rolling out, a rollback) answers without the field at all
+  if (!explanations?.cases) return null;
   return (
     <>
       {explanations.cases.map((c) => (
@@ -35,8 +36,9 @@ function CaseTile({ explained, base, share }: { explained: Case; base: number | 
   const t = useTranslations("explanations");
   const driverName = useEngineLabel("driver");
   const title = explained.case === "downside" ? t("titleDownside", { share: fmtPct(share * 100, 0) }) : t("titleUpside", { share: fmtPct(share * 100, 0) });
+  // A contribution the API could not give (null) is left out, never drawn as a zero
   const rows = explained.contributions
-    .map((c) => ({ label: driverName(c.driver), value: c.irr ?? 0 }))
+    .flatMap((c) => (isNum(c.irr) ? [{ label: driverName(c.driver), value: c.irr }] : []))
     .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
   const sampled = explained.tail_paths > explained.paths;
 

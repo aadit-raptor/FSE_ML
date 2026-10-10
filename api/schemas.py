@@ -680,7 +680,7 @@ class ExplainedCase(BaseModel):
     case: Literal["downside", "upside"]
     paths: int = Field(description="How many simulated paths the figures average")
     tail_paths: int = Field(description="How many paths the tail holds; more than `paths` when it is sampled")
-    irr: Optional[float] = Field(description="Their mean IRR: base_irr plus the contributions")
+    irr: Optional[float] = Field(description="The mean IRR of those `paths`: base_irr plus the contributions")
     contributions: List[DriverContribution]
 
 
@@ -714,7 +714,8 @@ class MonteCarloResponse(BaseModel):
     scatter: Dict[str, List[Optional[float]]]
     heatmap: Heatmap
     distress: SimulatedDistress
-    explanations: DriverExplanations
+    explanations: Optional[DriverExplanations] = Field(
+        None, description="Left out when the run itself took too long to explain within the timeout")
     money: Money
     model: ModelStamp
 

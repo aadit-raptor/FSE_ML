@@ -38,7 +38,9 @@ MAX_TAIL_PATHS = 2_500
 
 def mean_draws(params: SimulationParams) -> dict:
     """Every driver at its mean, with no EBITDA shock: the path with nothing
-    uncertain in it."""
+    uncertain in it. The means are taken as given: one outside the bounds the
+    simulation clips its draws to (a rate mean under 1%, say) is not a value
+    any path has, and the contributions still add up from it."""
     return {
         "growth": params.growth_mean,
         "exit_multiple": params.exit_mean,
