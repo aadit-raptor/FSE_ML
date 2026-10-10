@@ -129,11 +129,11 @@ staging check, a screenshot or a `javascript_tool` read. The local gates, in
 order:
 
 ```bash
-.venv/Scripts/python.exe -m pytest
+.venv/bin/python -m pytest
 npm --prefix web run lint
 npm --prefix web run typecheck
 npm --prefix web run build
-PW_CHANNEL=msedge FSE_AUTH_DEV=1 npm --prefix web run test:e2e
+FSE_AUTH_DEV=1 npm --prefix web run test:e2e
 ```
 
 If the API schemas changed: refresh `web/openapi.json` and `schema.d.ts`
@@ -157,9 +157,9 @@ is deleted and the total drops, add tests elsewhere rather than lowering).
 Locally:
 
 ```bash
-.venv/Scripts/python.exe -m pytest --cov --cov-report=term    # totals per file
-.venv/Scripts/python.exe -m coverage xml
-.venv/Scripts/python.exe -m diff_cover.diff_cover_tool coverage.xml --compare-branch=origin/main --fail-under=80
+.venv/bin/python -m pytest --cov --cov-report=term    # totals per file
+.venv/bin/python -m coverage xml
+.venv/bin/python -m diff_cover.diff_cover_tool coverage.xml --compare-branch=origin/main --fail-under=80
 ```
 
 The local total differs from CI's when tests skip (no database, no

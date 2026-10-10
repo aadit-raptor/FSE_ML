@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
 import { defineConfig, devices } from "@playwright/test";
 
 import { SIGNED_IN_STATE } from "./e2e/helpers";
@@ -19,8 +22,8 @@ import { SIGNED_IN_STATE } from "./e2e/helpers";
  *
  * Uses `next start`, not `next dev`: the dev server compiles on demand (slow)
  * and blocks its client scripts for hosts other than localhost.
- * Locally there is no bundled browser download: set PW_CHANNEL=msedge (or
- * chrome) to use an installed browser.
+ * Runs in Playwright's own Chromium (`npx playwright install chromium`);
+ * set PW_CHANNEL=msedge (or chrome) to use an installed browser instead.
  */
 const isCI = !!process.env.CI;
 const live = process.env.E2E_LIVE === "1";
@@ -29,8 +32,12 @@ const liveUrl = process.env.E2E_BASE_URL ?? "https://variater.com";
 // lets the staging checks in; e2e/live.spec.ts trades it once for Vercel's
 // bypass cookie and never sends it to other hosts (Clerk, Sentry). Production
 // needs none.
-// Resolved from the repo root (the API server's cwd)
-const python = process.env.PYTHON ?? (process.platform === "win32" ? ".venv\\Scripts\\python.exe" : "python");
+// Resolved from the repo root (the API server's cwd). The repository's
+// virtual environment when there is one (macOS has no bare `python`); CI
+// installs into the runner's own Python.
+const venvPython = process.platform === "win32" ? ".venv\\Scripts\\python.exe" : ".venv/bin/python";
+const python = process.env.PYTHON
+  ?? (process.platform === "win32" || existsSync(join(__dirname, "..", venvPython)) ? venvPython : "python");
 
 export default defineConfig({
   testDir: "./e2e",
