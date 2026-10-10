@@ -4415,6 +4415,68 @@
         "title": "DrillStarted",
         "type": "object"
       },
+      "DriverContribution": {
+        "properties": {
+          "driver": {
+            "title": "Driver",
+            "type": "string"
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the driver adds to the case's IRR, as a fraction",
+            "title": "Irr"
+          }
+        },
+        "required": [
+          "driver",
+          "irr"
+        ],
+        "title": "DriverContribution",
+        "type": "object"
+      },
+      "DriverExplanations": {
+        "description": "Why the worst and best simulated paths are where they are (PLAN.md\n5.6): each tail's mean IRR, split exactly between the drivers.",
+        "properties": {
+          "base_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The simulation's IRR with every driver at its mean",
+            "title": "Base Irr"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/ExplainedCase"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "share": {
+            "description": "The share of paths in each case",
+            "title": "Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "share",
+          "base_irr",
+          "cases"
+        ],
+        "title": "DriverExplanations",
+        "type": "object"
+      },
       "DriverFit": {
         "properties": {
           "intercept": {
@@ -5112,6 +5174,56 @@
           "table"
         ],
         "title": "ExitSensitivity",
+        "type": "object"
+      },
+      "ExplainedCase": {
+        "properties": {
+          "case": {
+            "enum": [
+              "downside",
+              "upside"
+            ],
+            "title": "Case",
+            "type": "string"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/components/schemas/DriverContribution"
+            },
+            "title": "Contributions",
+            "type": "array"
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Their mean IRR: base_irr plus the contributions",
+            "title": "Irr"
+          },
+          "paths": {
+            "description": "How many simulated paths the figures average",
+            "title": "Paths",
+            "type": "integer"
+          },
+          "tail_paths": {
+            "description": "How many paths the tail holds; more than `paths` when it is sampled",
+            "title": "Tail Paths",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "case",
+          "paths",
+          "tail_paths",
+          "irr",
+          "contributions"
+        ],
+        "title": "ExplainedCase",
         "type": "object"
       },
       "FinalStats": {
@@ -7815,6 +7927,9 @@
             "title": "Elapsed Ms",
             "type": "number"
           },
+          "explanations": {
+            "$ref": "#/components/schemas/DriverExplanations"
+          },
           "heatmap": {
             "$ref": "#/components/schemas/Heatmap"
           },
@@ -7895,6 +8010,7 @@
           "scatter",
           "heatmap",
           "distress",
+          "explanations",
           "money",
           "model"
         ],

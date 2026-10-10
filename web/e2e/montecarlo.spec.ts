@@ -61,6 +61,49 @@ test.describe("Monte Carlo", () => {
     await expect(page.locator("main td")).toHaveCount(56);
   });
 
+  // Driver explanations (PLAN.md 5.6): each tail's IRR from the IRR at the means, driver by driver
+  test("driver explanations add up and follow the inputs", async ({ page }) => {
+    await page.goto("/monte-carlo/distribution");
+    await simulationSettled(page);
+    await stepLink(page, "Drivers").click();
+    const worst = page.getByRole("region", { name: "Worst 5% of paths" });
+    const best = page.getByRole("region", { name: "Best 5% of paths" });
+    const shown = async (tile: typeof worst) => {
+      const figure = (text: string | null) => Number((text ?? "").replace(/[^0-9.+-]/g, ""));
+      const base = figure(await tile.locator('[data-explained="base"]').textContent());
+      const total = figure(await tile.locator('[data-explained="total"]').textContent());
+      const bars = (await tile.locator("svg text.chart-value").allTextContents()).map(figure);
+      return { base, total, bars };
+    };
+
+    // Seed 42, the default deal: the API's own figures (docs/methodology.md, section 9)
+    await expect(worst.locator('[data-explained="base"]')).toHaveText("18.56%");
+    await expect(worst.locator('[data-explained="total"]')).toHaveText("-2.24%");
+    await expect(best.locator('[data-explained="total"]')).toHaveText("34.41%");
+    // Largest first: the exit multiple, then growth
+    await expect(worst.locator("svg text.chart-category").first()).toHaveText("Exit multiple");
+    await expect(worst.locator("svg text.chart-value").first()).toHaveText("-10.49");
+    for (const tile of [worst, best]) {
+      const { base, total, bars } = await shown(tile);
+      expect(bars).toHaveLength(5);
+      // Six figures rounded to two decimals: they add up to within the rounding
+      expect(Math.abs(base + bars.reduce((a, b) => a + b, 0) - total)).toBeLessThan(0.04);
+    }
+
+    // With next to no spread in growth (0.1 is the least the rail takes), growth explains next to
+    // nothing of either tail, where it was 9.51 points of the worst one
+    const growthBar = (tile: typeof worst) => tile.locator("svg g").filter({ hasText: "Growth" }).locator("text.chart-value");
+    await expect(growthBar(worst)).toHaveText("-9.51");
+    await setField(page, "Std dev", "0.1", "Revenue growth");
+    await page.getByRole("button", { name: "Run Monte Carlo" }).click();
+    await expect(worst.locator('[data-explained="total"]')).not.toHaveText("-2.24%");
+    const after = await shown(worst);
+    expect(after.base).toBe(18.56);
+    expect(after.total).toBeGreaterThan(-2.24);
+    expect(Math.abs(Number(await growthBar(worst).textContent()))).toBeLessThan(0.5);
+    expect(Math.abs(after.base + after.bars.reduce((a, b) => a + b, 0) - after.total)).toBeLessThan(0.04);
+  });
+
   // Background jobs (PLAN.md 1.9): the run is queued on the server and polled
   test("a run goes on in the background while the rest of the app works", async ({ page }) => {
     await page.goto("/monte-carlo/distribution");

@@ -8,6 +8,7 @@ from api.limits import simulation_slot
 from api.observability import model_timer
 from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
 from api.serialize import box_stats, histogram, percentile_curve, to_json
+from analytics.driver_attribution import explain_tails
 from core.model_version import stamp
 from core.deal import DealInputs
 from core.money import in_unit, rescale
@@ -47,6 +48,8 @@ def post_run(req: MonteCarloRequest):
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
     distress = simulated_distress(sim, deal)
+    with model_timer("montecarlo.explain"):
+        explanations = explain_tails(sim)
     sample = analysis_sample(sim)
     corr = empirical_correlations(sample)
     scatter = sample[SCATTER_COLUMNS].head(req.scatter_points)
@@ -74,6 +77,7 @@ def post_run(req: MonteCarloRequest):
                     "assumptions for that growth and exit multiple.",
         },
         "distress": distress,
+        "explanations": to_json(explanations),
         "money": req.deal.money(),
         "model": model,
     }

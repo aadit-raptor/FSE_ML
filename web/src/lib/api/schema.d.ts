@@ -3289,6 +3289,35 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** DriverContribution */
+        DriverContribution: {
+            /** Driver */
+            driver: string;
+            /**
+             * Irr
+             * @description What the driver adds to the case's IRR, as a fraction
+             */
+            irr: number | null;
+        };
+        /**
+         * DriverExplanations
+         * @description Why the worst and best simulated paths are where they are (PLAN.md
+         *     5.6): each tail's mean IRR, split exactly between the drivers.
+         */
+        DriverExplanations: {
+            /**
+             * Base Irr
+             * @description The simulation's IRR with every driver at its mean
+             */
+            base_irr: number | null;
+            /** Cases */
+            cases: components["schemas"]["ExplainedCase"][];
+            /**
+             * Share
+             * @description The share of paths in each case
+             */
+            share: number;
+        };
         /** DriverFit */
         DriverFit: {
             /** Intercept */
@@ -3558,6 +3587,31 @@ export interface components {
              * @description rows = exit multiples, cols = holding periods
              */
             table: (number | null)[][];
+        };
+        /** ExplainedCase */
+        ExplainedCase: {
+            /**
+             * Case
+             * @enum {string}
+             */
+            case: "downside" | "upside";
+            /** Contributions */
+            contributions: components["schemas"]["DriverContribution"][];
+            /**
+             * Irr
+             * @description Their mean IRR: base_irr plus the contributions
+             */
+            irr: number | null;
+            /**
+             * Paths
+             * @description How many simulated paths the figures average
+             */
+            paths: number;
+            /**
+             * Tail Paths
+             * @description How many paths the tail holds; more than `paths` when it is sampled
+             */
+            tail_paths: number;
         };
         /** FinalStats */
         FinalStats: {
@@ -4600,6 +4654,7 @@ export interface components {
             drivers: components["schemas"]["DriverSensitivity"][];
             /** Elapsed Ms */
             elapsed_ms: number;
+            explanations: components["schemas"]["DriverExplanations"];
             heatmap: components["schemas"]["Heatmap"];
             irr_cdf: components["schemas"]["PercentileCurve"];
             irr_histogram: components["schemas"]["Histogram"];
