@@ -1,7 +1,7 @@
 /**
  * Draws every logo file from src/components/brand/mark.json.
  *
- *   PW_CHANNEL=msedge node scripts/brand.mjs      (from web/)
+ *   node scripts/brand.mjs      (from web/)
  *
  * Writes the browser icons Next.js serves from src/app (icon.svg,
  * favicon.ico, apple-icon.png, opengraph-image.png) and the package in

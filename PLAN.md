@@ -154,8 +154,8 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.1 | ML evaluation harness and model cards | 4.6 | ☑ |
 | 5.2 | Deal risk score from market data | 5.1, 2.8 | ☑ |
 | 5.3 | Distress predictor | 5.1 | ☑ |
-| 5.4 | Multiple predictor by region | 5.1, 4.3 | ☐ |
-| 5.5 | Growth calibrator by region | 5.1, 4.3 | ☐ |
+| 5.4 | Multiple predictor by region | 5.1, 4.3 | ☑ |
+| 5.5 | Growth calibrator by region | 5.1, 4.3 | ☑ |
 | 5.6 | Driver explanations | 5.1 | ☐ |
 | 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☐ |
 | 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☐ |
@@ -1097,6 +1097,31 @@ enough for the free server.
   multiples (4.3); ranges with comparables and "use suggestion".
 - **Done when:** ranges contain actual multiples for most held-out companies per
   region (card); it works with the library off.
+- **Done (2026-10-08).** `ml/multiple_predictor.py` trains nothing (the 25
+  typed-in rows and the gradient boosting are gone). A deal's industry is read
+  among its region's listed companies (Damodaran's averages, 4.3: the
+  country's own file or its region, at least 20 companies, **never the
+  global group**, as 5.2), and the ranges come from how that group's
+  industries' EV/EBITDA moved over the same number of years in Damodaran's
+  archive (4.4, every edition since 2011): each move fitted on the
+  industry's gap from the region's median industry (expensive industries
+  cheapen, cheap ones catch up), the range the latest multiple moved by
+  that line plus the 10th to 90th percentiles of what it missed. Entry is
+  the year after the latest edition, exit that plus the hold. The new card
+  `multiples` (ml/evaluation/multiples.py) tests both walk-forward, a cutoff
+  a year from 2014, on every industry of every group (13,544 industry-years,
+  `ml/evaluation/data/multiple_history.json` from `python -m
+  tests.ml_multiple_history`): about 73% of held-out multiples fall inside
+  the 80% range in every region (entry 67-78%, exit 72-74%), and the range
+  beats the region's whole market on the interval score in every region and
+  both sets, so it shows wherever a peer group is large enough (the exit
+  range for holds of three to seven years, the horizons tested). Deal ->
+  Returns has a Multiples tile: the ranges, "Use suggestion" (sets the entry
+  and exit multiples), the industry in every region, its sector in the
+  region and, with the library on, the reference transactions like it with
+  their entry multiples; off, only that list goes (tests). Browser tests
+  replay `web/e2e/fixtures/multiples.json` from `python -m
+  tests.e2e_multiples`.
 
 ### 5.5 Growth calibrator by region
 - **Claude does:** rebuild `ml/growth_calibrator.py` on the filings store and
@@ -1104,6 +1129,31 @@ enough for the free server.
   sector and region" on Monte Carlo.
 - **Done when:** ranges match observed growth on held-out years per region
   (card); using them changes the simulation.
+- **Done (2026-10-09).** `ml/growth_calibrator.py` is rebuilt on real
+  filings: every SEC filer's yearly revenue from the SEC's XBRL frames (the
+  filings the company search reads, 4.1; 8,451 companies, 2008-2025, US
+  GAAP and IFRS in every currency filed), placed by business address in
+  S&P's regions and by SIC code in GICS sectors, financials left out, and a
+  floor of 50 million US dollars of revenue (ECB yearly rates). A case is
+  a company's yearly growth over a hold of 3 to 7 years **over its own
+  country's nominal GDP growth** in the same years (IMF, 4.2's economies;
+  the region's median elsewhere); the range is the 10th to 90th percentile
+  of those excesses in the deal's region, sector and hold (the region's
+  every sector under 30 companies), centred on the deal country's IMF
+  projection, and becomes the normal draw whose central 80% it is
+  (`mc_growth_mean`, `mc_growth_std`). The card `growth`
+  (ml/evaluation/growth.py) is strictly out of time (each span predicted
+  from spans that had ended by its start, 2012-2022): 77% of 67,933 held-out
+  company spans fell inside the 80% range (US 77%, Europe 83%, emerging
+  78%, other developed 74%) against 27% for the economy-wide range in force
+  since 4.4, and it beats that baseline in every region. Monte Carlo's
+  Revenue growth rail group has "Calibrate from sector and region" and the
+  Scenarios step a tile with the range, its sample and the card's result;
+  a test proves the calibrated Settings change the simulation and that its
+  draws' 10th and 90th percentiles are the range. Written by `python -m
+  tests.ml_firm_growth` (about half an hour; `ml/growth_ranges.json` with
+  it); browser tests replay `web/e2e/fixtures/growth.json` from `python -m
+  tests.e2e_growth`.
 
 ### 5.6 Driver explanations
 - **Claude does:** compare `ml/shap_attribution.py` with the current drivers
@@ -1577,8 +1627,8 @@ when a limit is actually reached or before charging customers.
 | `core/backtesting.py` `PRELOADED_DEALS` | 4 US mega-deals (2006–2013), unsourced actuals | 2.7 (done: now an optional example library, `core/examples.py`), 4.5a (done: labelled unsourced examples in the Library, counted apart), 4.5b (done: sourced reference transactions beside them, counted apart) |
 | `ml/anomaly_detector.py` | 30 US deals plus synthetic; claims "~100"; fixed warning statistics | 2.1, 2.8 (done: its warnings removed; `core/risk_warnings.py` computes them), 5.2 (done: compares the deal with its region's industry averages; the 30 deals are gone) |
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
-| `ml/multiple_predictor.py` | 25 rows | 5.4 |
-| `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 |
+| `ml/multiple_predictor.py` | 25 rows | 5.4 (done: regional listed-company multiples and their archive; the 25 rows are gone) |
+| `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 (done: SEC filers' revenue growth by region and sector over their economy's; the fixed averages are gone) |
 | `ml/macro_regime.py`, `ml/correlation_updater.py` | US-only FRED series (incl. ISM PMI, discontinued 2022) | 4.2, 5.7 |
 | `ml/surrogate/` | One fixed training deal; PyTorch runtime too large for free hosting | 5.8 |
 | `web/src` Backtest screens | Only the preloaded deals can be tested | 2.7 (done: any saved deal) |

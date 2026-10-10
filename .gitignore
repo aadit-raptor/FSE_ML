@@ -25,3 +25,6 @@ base-floor.txt
 
 # Claude Code: personal permissions (not shared)
 .claude/settings.local.json
+
+# macOS Finder metadata
+.DS_Store

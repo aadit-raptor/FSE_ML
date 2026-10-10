@@ -175,6 +175,13 @@ def _growth(economy: Mapping[str, Series], country: str, today: date) -> tuple[O
     return None, skipped
 
 
+def growth_figure(economy: Mapping[str, Series], country: str, today: date) -> Optional[dict]:
+    """The country's nominal growth this year as the starting figures give
+    it (its own, else its region's median), or None when none is stored."""
+    found, _ = _growth(economy, country, today)
+    return _plain(found) if found else None
+
+
 def _tax(tables: Mapping[str, Table], country: str) -> tuple[Optional[Figure], list]:
     table = tables.get(COUNTRY_TAX["id"])
     if table is None:

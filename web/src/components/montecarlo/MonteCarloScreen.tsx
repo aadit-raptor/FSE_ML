@@ -11,6 +11,7 @@ import { floatingCount } from "@/lib/deal/capital";
 import type { FieldSpec } from "@/lib/fields";
 
 import { SCENARIOS, SIM_FIELDS, SIM_LABEL_KEY, type SimKey, useMonteCarlo } from "./MonteCarloProvider";
+import { GrowthCalibrationRail } from "./GrowthCalibration";
 import { SourcedRiskRail } from "./SourcedRisk";
 
 const SEED_SPEC: FieldSpec = { unit: "", step: 1, decimals: 0, min: 0, integer: true };
@@ -62,6 +63,7 @@ function Rail() {
       <RailGroup title={t("groupGrowth")}>
         <SimField name="growth_mean" />
         <SimField name="growth_std" />
+        <GrowthCalibrationRail />
       </RailGroup>
       <RailGroup title={t("groupExitMultiple")}>
         <SimField name="exit_mean" />

@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 
 DATA_DIR = Path(__file__).resolve().parents[1] / ".localdb"
 DEV_DATABASE = "fse"
@@ -45,6 +46,16 @@ def start():
     return server, admin_url
 
 
+def database_url(admin_url: str, name: str) -> str:
+    """The address of another database on the same server.
+
+    On macOS and Linux pgserver listens on a Unix socket and puts its
+    directory in the query (``postgresql://postgres:@/postgres?host=/dir``),
+    so the database is not simply whatever follows the last slash.
+    """
+    return make_url(admin_url).set(database=name).render_as_string(hide_password=False)
+
+
 def main(argv: list[str]) -> int:
     if argv and argv[0] == "stop":
         import pgserver
@@ -52,8 +63,7 @@ def main(argv: list[str]) -> int:
         print("stopped")
         return 0
     _, admin_url = start()
-    dev_url = admin_url.rsplit("/", 1)[0] + "/" + DEV_DATABASE
-    print(f"DATABASE_URL={dev_url}")
+    print(f"DATABASE_URL={database_url(admin_url, DEV_DATABASE)}")
     print(f"TEST_DATABASE_URL={admin_url}")
     return 0
 

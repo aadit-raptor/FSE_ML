@@ -30,6 +30,8 @@ EXTRA_MODULES = (
     "api/serialize.py",              # histogram, percentile curve
     "ml/anomaly_detector.py",        # risk score (PLAN.md 5.2)
     "ml/distress_model.py",          # distress predictor (PLAN.md 5.3)
+    "ml/multiple_predictor.py",      # multiple predictor (PLAN.md 5.4)
+    "ml/growth_calibrator.py",       # growth calibrator (PLAN.md 5.5)
     "ml/surrogate/predict.py",       # Live sliders
     "ml/surrogate/generate_data.py",
     "ml/macro_regime.py",            # macro regime
@@ -48,6 +50,8 @@ EXTRA_MODULES = (
     "ml/evaluation/harness.py",      # ML evaluation (PLAN.md 5.1): the statistics,
     "ml/evaluation/deal_risk.py",    # the risk score's cards,
     "ml/evaluation/distress.py",     # the distress predictor's
+    "ml/evaluation/multiples.py",    # the multiple predictor's
+    "ml/evaluation/growth.py",       # the growth calibrator's
     "ml/evaluation/surrogate.py",    # and the live sliders'
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.

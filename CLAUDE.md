@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-08 (PLAN.md 5.3: distress predictor). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-10 (development moved to a Mac: Commands, Tooling and Gotchas below; no task done). Before that 2026-10-09 (PLAN.md 5.5: growth calibrator). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -42,7 +42,7 @@ that commit and runs the live browser checks there (needs the GitHub secret
 by Claude, then the `staging.yml` and `/api/health` checks. Rollback: DEPLOY.md "Rollback" (default
 is a git revert PR). The free API sleeps after 15 minutes
 idle and takes about a minute to wake. Read-only checks against the live site:
-`E2E_LIVE=1 npm --prefix web run test:live` (PowerShell: `$env:E2E_LIVE="1"`),
+`E2E_LIVE=1 npm --prefix web run test:live`,
 also run daily by `.github/workflows/live.yml`.
 
 Monitoring (PLAN.md 1.2, DEPLOY.md "Monitoring"): Sentry in the API and the
@@ -930,7 +930,7 @@ the PR. **`ml.yml`**: evaluates on PRs touching models or `simulation/`;
 trains by hand (`workflow_dispatch`, which Claude's token can't trigger)
 into a scratch directory and uploads files and card as an artifact for a
 person to review and commit -- never commits itself. Cards: the **deal
-risk score** (5.2, below); the **distress predictor** (5.3, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
+risk score** (5.2, below); the **distress predictor** (5.3, below); the **multiple predictor** (5.4, below); the **growth calibrator** (5.5, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
 regional_deals.json`, from the recorded sources by `python -m
 tests.ml_regional_deals`, checked stale) is 0.54 points off the median IRR
 against 0.79 for a 200-path simulation (truth: 10,000 paths) and beats it in
@@ -1002,6 +1002,75 @@ Debt "Distress by year" and the Credit rail group (business risk), Monte
 Carlo -> Distribution (`components/deal/Distress.tsx`, namespace
 `distress`); `country` and `business_risk` mark Monte Carlo stale.
 
+Multiple predictor (PLAN.md 5.4): **`ml/multiple_predictor.py` trains
+nothing** (its 25 typed-in rows are gone). The deal industry's latest
+EV/EBITDA among its region's listed companies (Damodaran, 4.3; peer group as
+5.2: own file or region, `MIN_FIRMS` 20, **never global**) is moved by the
+group's own record of moves over the same horizon in his archive (4.4's
+`history.<group>`, every edition since 2011): the moves are fitted by least
+squares on the industry's gap from the group's median industry that year
+(**mean reversion**, `Fit`: `b` is negative in every group), and the range is
+the 10th/50th/90th percentile of what the line missed (`MIN_PAIRS` 30).
+Entry is the year after the latest edition, exit entry + hold. **Each range
+is shown only where `ml/cards/multiples.json` says it beats the region's
+whole market** (sets `entry` and `exit`, headline the interval score), read
+for the **peer group's** S&P region (`GROUP_REGION`; a Korean deal's peers
+are emerging markets), and **only at horizons the card tested**
+(`TESTED_HORIZONS`: entry 1, exit 4-8, so a hold above 7 gets no exit
+range, `hidden: untested_horizon`); today every region beats it in both,
+about 73% of held-out multiples inside
+the 80% range. The card is **walk-forward, a cutoff a year from 2014, on
+every industry** (`ml/evaluation/data/multiple_history.json`, 13,544
+industry-years), written by `python -m tests.ml_multiple_history`, which
+calls Damodaran's archive (about 120 workbooks, a few minutes); the browser
+fixture `web/e2e/fixtures/multiples.json` comes from `python -m
+tests.e2e_multiples` (answers given on a fixed day, `DAY`).
+`POST /api/ml/multiples` (in `RUN_PATHS`, reads storage only, with only
+the deal's own groups' history: `all_tables(history_groups=...)`) answers the ranges, the industry in every group, its sector
+in the region and, with the library on, the reference transactions like it.
+Screen: Deal -> Returns, Multiples tile (`components/deal/Multiples.tsx`,
+namespace `multiples`), "Use suggestion" sets `entry_mult` and `exit_mult`.
+
+Growth calibrator (PLAN.md 5.5): **`ml/growth_calibrator.py` trains
+nothing** (its fixed sector table is gone). A deal's revenue growth range
+comes from how **listed companies' revenue really grew**: every SEC filer's
+yearly revenue from the SEC's **XBRL frames** API (one call answers one
+concept and year for every filer; US GAAP and IFRS revenue concepts from
+`core.accounting`, every currency filed), placed by business address in
+S&P's region and by **SIC code in a GICS sector** (`SIC_SECTORS`;
+financials and 9100+ left out), with a **floor of 50 million US dollars**
+of start-year revenue (ECB yearly averages). A case is one company's
+yearly growth over a hold of 3-7 years (`HORIZONS`) as
+**ln((1 + company) / (1 + its country's nominal GDP growth))** over the same
+years (IMF, the 24 economies; elsewhere its region's median, the starting
+figures' rule), so regions pool currencies and a deal's range is centred on
+its own country: the IMF projection the starting figures use
+(`benchmarks.starting.growth_figure`). The range = the excesses' 10th/50th/
+90th percentiles in region x sector x hold (the region's every sector under
+`MIN_COMPANIES` 30), and the Settings are the normal draw whose central 80%
+it is (`mc_growth_std` = width / 2.563). **Shown only where
+`ml/cards/growth.json` beats the baseline** (the economy-wide range in force
+since 4.4) in the deal's S&P region, and only for tested holds
+(`untested_horizon` otherwise). The card is **strictly out of time** (each
+span predicted at its start from spans that had ended by then): 77% of
+67,933 held-out spans inside the 80% range against the baseline's 27%;
+every region beats it (Europe, emerging and other developed rest on
+US-listed foreign filers only, which the card and tile say). Data:
+`ml/evaluation/data/firm_growth.json` (2.4 MB, 8,451 companies) and the
+served percentiles `ml/growth_ranges.json`, both written by `python -m
+tests.ml_firm_growth --cache DIR` (~30 minutes, six calls in flight within
+the SEC's pace; rerun yearly once the new 10-Ks are in, then `python -m
+ml.evaluation evaluate` and `python -m tests.e2e_growth`); a test fails when
+the ranges disagree with the data. `POST /api/ml/growth` (in `RUN_PATHS`,
+reads only stored economic data; without it `no_growth`). Screen: Monte
+Carlo's **Revenue growth** rail group has "Calibrate from sector and region"
+(`components/montecarlo/GrowthCalibration.tsx`, namespace `growth`; sets the
+two Settings and clears the rail's growth edits) and Scenarios a tile with
+the range, its sample, the anchor and the card; while calibrated growth is
+in use the Sources group's "Use sourced figures" leaves it alone. Browser
+tests replay `web/e2e/fixtures/growth.json` (`python -m tests.e2e_growth`,
+checked stale).
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1062,8 +1131,8 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). **Next is 5.4** (multiple
-predictor by region).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). **Next is 5.6** (driver
+explanations).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1147,7 +1216,7 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   theme C1 Tape; the user may still pick another of the canvas's themes,
   which is a change to `mark.json`'s `tones` only. **One source:**
   `web/src/components/brand/mark.json`; `BrandMark.tsx` draws it in the app
-  and `node web/scripts/brand.mjs` (`PW_CHANNEL=msedge` locally) draws every
+  and `node web/scripts/brand.mjs` (from `web/`) draws every
   file -- `src/app/icon.svg` (follows the browser's light/dark theme),
   `favicon.ico`, `apple-icon.png`, `opengraph-image.png` (+ alt text),
   and `public/brand/` (app and maskable icons, the 120 px logo for Google's
@@ -1271,9 +1340,8 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
-- Whether to wire up the unused `ml/` modules (SHAP drivers, multiple
-  predictor, growth calibrator, NLP extractor, correlation updater,
-  personalization); PLAN.md 5.4-5.7 rebuild most of them. SHAP needs no keys.
+- Whether to wire up the unused `ml/` modules (SHAP drivers, NLP extractor, correlation updater, personalization); PLAN.md
+  5.5-5.7 rebuild most of them. SHAP needs no keys.
 
 ---
 
@@ -1315,6 +1383,8 @@ golden snapshot is untouched and parity tests explain every departure.
 | `library/`, `db/flags.py`, `db/references.py`, `api/routers/library.py`, `web/src/components/library/`, `web/src/components/settings/SourcedFees.tsx`, `ops/check_base_rates.py` | Reference library (PLAN.md 4.5): the cited base-rate tables, the coverage counts, the admin switch, the reference transactions (`reference_deals.json`, `references.py` with the inclusion and balance rules, `review.py`) and their fees (`fees.py`); site-wide switches; proposals and the two-person review stored; the endpoints; the Library screens (Reference deals, Review) and their provider; the sourced fees tile on Settings -> Fees; the yearly editions check |
 | `validation/`, `db/validation.py`, `api/routers/validation.py`, `web/src/components/backtest/Validation.tsx`, `tests/e2e_validation.py` | Model validation (PLAN.md 4.6): the cases (newer-data rule), the report (calibration, bias, anonymity rules), the groups, the nightly run; opted-in deals and stored reports; the endpoint; Backtest -> Validation and the per-deal opt-in switch; the browser tests' recorded report |
 | `ml/distress_model.py`, `ml/evaluation/distress.py`, `components/deal/Distress.tsx`, `tests/test_distress.py` | Distress predictor (PLAN.md 5.3): each year's band and default rate from published tables, gated by its card; the card (reference transactions and calibration); the Debt and Monte Carlo tiles and the business risk choice; the tests |
+| `ml/multiple_predictor.py`, `ml/evaluation/multiples.py`, `components/deal/Multiples.tsx`, `tests/ml_multiple_history.py`, `tests/e2e_multiples.py` | Multiple predictor (PLAN.md 5.4): entry and exit ranges from the region's industry multiples and their archive, gated by its card; the walk-forward card; the Returns tile; the writers of the card's data and the browser tests' answers |
+| `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
@@ -1330,14 +1400,21 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,387 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,609 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
-## Commands (Windows, from the repo root)
+## Commands (macOS, from the repo root)
+
+The project moved from Windows to a Mac (Apple Silicon) on 2026-10-10. On
+Windows the interpreter is `.venv\Scripts\python.exe` and a variable is set
+with `$env:NAME="value"` in PowerShell; everything else is the same.
+`.claude/launch.json` (git-ignored, per machine) holds the preview servers
+`api`, `api-db` (starts the local database first), `web` (`next dev`) and
+`web-start` (the built app), all with the development sign-in.
 
 ```bash
-.venv/Scripts/python.exe -m pytest                       # all tests
-.venv/Scripts/python.exe -m pytest --cov --cov-report=term   # with coverage (CI's floors: .coverage-floor)
-.venv/Scripts/python.exe -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
+.venv/bin/python -m pytest                       # all tests
+.venv/bin/python -m pytest --cov --cov-report=term   # with coverage (CI's floors: .coverage-floor)
+.venv/bin/python -m uvicorn api.main:app --reload --port 8000   # API; docs at /api/docs
 
 # web/ (run the API too; Next proxies /api to FSE_API_URL, default 127.0.0.1:8000)
 npm --prefix web run dev                                 # http://localhost:3000
@@ -1346,19 +1423,19 @@ npm --prefix web run typecheck
 npm --prefix web run build
 
 # After changing API schemas: refresh the snapshot, then the TS types
-.venv/Scripts/python.exe -m api.export_openapi web/openapi.json
+.venv/bin/python -m api.export_openapi web/openapi.json
 npm --prefix web run api:types
 ```
 
 Database (optional locally; the API runs without one):
 
 ```bash
-.venv/Scripts/python.exe -m pip install pgserver         # once: Postgres in a wheel, no Docker needed
-.venv/Scripts/python.exe -m db.local                     # starts it (data in .localdb/), prints DATABASE_URL and TEST_DATABASE_URL
-# set both in the shell (PowerShell: $env:DATABASE_URL="..."), then:
-.venv/Scripts/python.exe -m pytest tests/test_database.py
-.venv/Scripts/python.exe -m db.migrate upgrade | downgrade -1 | current
-.venv/Scripts/python.exe -m db.local stop
+.venv/bin/python -m pip install pgserver         # once: Postgres in a wheel, no Docker needed
+.venv/bin/python -m db.local                     # starts it (data in .localdb/), prints DATABASE_URL and TEST_DATABASE_URL
+# export TEST_DATABASE_URL for the tests (and DATABASE_URL only to run the API or the browser tests), then:
+.venv/bin/python -m pytest tests/test_database.py
+.venv/bin/python -m db.migrate upgrade | downgrade -1 | current
+.venv/bin/python -m db.local stop
 ```
 
 Backups (PLAN.md 1.8). `FSE_BACKUP_DIR` keeps them in a directory instead of
@@ -1367,10 +1444,10 @@ Supabase, which is how to try the whole thing without any account:
 ```bash
 # in the shell: FSE_BACKUP_KEY (32+ characters), FSE_BACKUP_DIR (or SUPABASE_URL
 # + SUPABASE_SERVICE_ROLE_KEY), BACKUP_DATABASE_URL
-.venv/Scripts/python.exe -m ops.backup run --environment local      # dump, encrypt, upload, rotate
-.venv/Scripts/python.exe -m ops.backup list --environment local
-.venv/Scripts/python.exe -m ops.backup verify --environment local   # download and decrypt the newest
-.venv/Scripts/python.exe -m ops.backup drill --environment local --target "$ADMIN_URL"
+.venv/bin/python -m ops.backup run --environment local      # dump, encrypt, upload, rotate
+.venv/bin/python -m ops.backup list --environment local
+.venv/bin/python -m ops.backup verify --environment local   # download and decrypt the newest
+.venv/bin/python -m ops.backup drill --environment local --target "$ADMIN_URL"
 ```
 
 ### Adding a table
@@ -1397,12 +1474,13 @@ Supabase, which is how to try the whole thing without any account:
 Browser tests (`web/e2e/`, Playwright). They start uvicorn and `next start`
 themselves, so build first. They also need a **database** (accounts) and the
 **development sign-in**: start `python -m db.local`, then set `DATABASE_URL`
-and `FSE_AUTH_DEV=1` in the shell. No bundled browser on this machine: use
-Edge.
+and `FSE_AUTH_DEV=1` in the shell. They run in Playwright's own Chromium
+(`npx --prefix web playwright install chromium`, once per Playwright
+version); `PW_CHANNEL=chrome` or `msedge` uses an installed browser instead.
 
 ```bash
 npm --prefix web run build
-PW_CHANNEL=msedge FSE_AUTH_DEV=1 npm --prefix web run test:e2e   # PowerShell: $env:PW_CHANNEL="msedge"
+FSE_AUTH_DEV=1 npm --prefix web run test:e2e
 ```
 
 `e2e/auth.setup.ts` signs in once as `dev:e2e` and saves the browser state
@@ -1470,15 +1548,16 @@ rules below. Where they differ, the rules below win.
 
 ## Tooling
 
-Installed at **user level on the original Windows machine** — on another device,
-reinstall:
+Installed at **user level**, so each machine needs them again (the Mac since
+2026-10-10: Homebrew's `git`, `gh`, `python@3.12` and `node@24`; the skills
+and the ECC plugin are the user's to install, with the commands below):
 
 | Tool | Install | Notes |
 |---|---|---|
 | `design-taste-frontend` (+ companions) | `npx skills add https://github.com/Leonxlnx/taste-skill` | Dials: `DESIGN_VARIANCE`, `MOTION_INTENSITY`, `VISUAL_DENSITY` |
 | `web-design-guidelines` | `npx skills add vercel-labs/agent-skills --skill web-design-guidelines` | Fetches Vercel's guidelines from GitHub each run |
 | `image-to-code` | `npx skills add https://github.com/Leonxlnx/taste-skill --skill image-to-code` | Written for Codex; expects to generate images, which Claude Code can't |
-| Playwright CLI | `npm install -g @playwright/cli@latest` then `playwright-cli install --skills --global` | No Chrome on the original machine: use `--browser=msedge`. Writes to `.playwright-cli/` |
+| Playwright CLI | `npm install -g @playwright/cli@latest` then `playwright-cli install --skills --global` | Writes to `.playwright-cli/`. Pick the browser with `--browser=` (the Windows machine had only Edge: `msedge`) |
 | ECC (Everything Claude Code) | In an interactive `claude` terminal: `/plugin marketplace add https://github.com/affaan-m/ECC`, then `/plugin install ecc@ecc` at **project scope** | Optional (docs/WORKFLOW.md "Installing ECC"). **Installed 2026-09-24, ECC 2.2.2, project scope** (`enabledPlugins` in the committed `.claude/settings.json`). Plugin only: no `install.sh`, no global rules copy, attribution unchanged. ECC's hooks default to **on**; they're **off** through `.claude/settings.json` `env`: `ECC_HOOKS_ENABLED=false`, `ECC_SESSION_START_CONTEXT=off` |
 | awesome-design-md | `git clone https://github.com/VoltAgent/awesome-design-md` | 74 brand `DESIGN.md` files — inspiration only, don't clone a real brand's identity |
 
@@ -1486,10 +1565,34 @@ Skills load when a session starts: install first, then open a new session.
 
 ## Gotchas
 
-- Node may be installed but missing from PATH in an older session:
-  it lives at `C:\Program Files\nodejs`.
-- The Windows console is cp1252 — printing `≥`, `→` etc. from Python fails;
-  write to a file or use ASCII.
+- **macOS: `python -m db.local` listens on a Unix socket, not TCP**, so its
+  addresses carry the socket's directory in the query
+  (`postgresql://postgres:@/fse?host=...`) and no port. Build another
+  database's address with `db.local.database_url` or `make_url(...).set`,
+  never by cutting the string at its last slash (the Mac's first run printed
+  a `DATABASE_URL` pointing nowhere). Quote the addresses in zsh: they hold
+  `?` and `%`.
+- **Run pytest with `TEST_DATABASE_URL` only.** With `DATABASE_URL` also
+  exported, the tests of what the API answers *without* a database fail
+  (seven of them on the Mac's first run). `DATABASE_URL` is for running the
+  API and the browser tests.
+- macOS has no `python` on the PATH: use `.venv/bin/python` (the browser
+  tests find it themselves; `PYTHON=` overrides). Homebrew's tools live in
+  `/opt/homebrew/bin`.
+- zsh reads a bare `==` at the start of a word and an unmatched `*` as
+  patterns: quote `echo "===="` and `--include="*.ts"`.
+- **Windows only** (the first machine; kept for a return to it): Node may be
+  missing from PATH in an older session (`C:\Program Files\nodejs`); the
+  console is cp1252, so printing `≥`, `→` etc. from Python fails and an edit
+  script needs `PYTHONUTF8=1`; in PowerShell, `Get-Content -Raw` then
+  `WriteAllText` turns a non-ASCII character into mojibake (an NBSP became
+  "Â "); Playwright needs `PW_CHANNEL=msedge` (no Chrome, no bundled
+  browser); a full drive C: (it hit 0 bytes twice) stops every command,
+  because the desktop app writes each command's output to
+  `%LOCALAPPDATA%\Temp\claude`, and only the user can free it.
+- Edit source with the Edit/Write tools or a Python script that writes
+  UTF-8, and keep test strings with special spaces as escapes
+  (`"21,2\u00a0%"`).
 - The golden snapshot can't be regenerated any more (Streamlit is gone). Pin
   deliberate model changes with explicit tests instead.
 - **Next.js 16 differs from older versions.** Read `web/node_modules/next/dist/docs/`
@@ -1498,17 +1601,6 @@ Skills load when a session starts: install first, then open a new session.
   re-created by `next dev`; keep it committed.
 - Components that use context or Motion (`MotionConfig`, `motion.*`) must be
   client components; the shell keeps them in `workspace.tsx` and the bars.
-- **Drive C: on the original machine is nearly full.** It hit 0 bytes during
-  step 4 (npm cache, `.next`, an old scratch venv were cleared, leaving ~1 GB).
-  Check `Get-PSDrive C` before builds; "No space left on device" / npm
-  `nospc` errors mean this, not a code problem. **At exactly 0 bytes Claude
-  can't run any command at all**: the desktop app writes each command's output
-  to `%LOCALAPPDATA%\Temp\claude\...`, so every Bash and PowerShell call fails
-  with `ENOSPC` before it starts, and the sandbox refuses
-  `Remove-Item` on `%LOCALAPPDATA%\npm-cache`. Only the Read, Write, Edit,
-  Grep and Glob tools still work (the repo is on D:). The user has to free the
-  space; `%LOCALAPPDATA%\Temp\claude` holds the old sessions' working files and
-  is the usual culprit. It happened again on 2026-09-27, during PLAN.md 2.3b.
 - Playwright: open the app at `localhost`, not `127.0.0.1` (Next's dev server
   blocks its client scripts for other hosts; the page never hydrates). Next.js
   renders a hidden `role="alert"` route announcer, so scope alert locators to
@@ -1518,7 +1610,8 @@ Skills load when a session starts: install first, then open a new session.
   endpoint means this). A `next start` left over from an interrupted run keeps
   serving the old build after a rebuild: the page renders but never hydrates,
   so clicks do nothing and the console shows `ChunkLoadError`. Kill whatever
-  holds the port (`netstat -ano | grep LISTENING | grep :3000`).
+  holds the port (`lsof -iTCP:3000 -sTCP:LISTEN`; on Windows
+  `netstat -ano | grep LISTENING | grep :3000`).
 - The Browser pane's screenshots time out when the Claude window isn't drawn;
   verify with `javascript_tool` / `find` / `form_input` instead.
 - Browser-automation key presses: send `Enter` and `]`, not `Return` or
@@ -1538,10 +1631,6 @@ Skills load when a session starts: install first, then open a new session.
   ships Postgres 16, enough for the local database); `FSE_PG_BIN` overrides
   the search. The first backup attempt failed exactly here, with a message
   naming every binary it found.
-- In this repo's PowerShell, `Get-Content -Raw` then `WriteAllText` turns
-  a non-ASCII character into mojibake (an NBSP became "Â "). Edit source with
-  the Edit/Write tools or a Python script that writes UTF-8; keep test
-  strings with special spaces as escapes (`"21,2\u00a0%"`).
 - A new field on `DealInputsIn` must also go on `core.deal.DealInputs`
   (every router builds it with `DealInputs(**model_dump())`), and a field
   that is only a label, or that old deals should not gain, belongs in
@@ -1685,8 +1774,9 @@ Skills load when a session starts: install first, then open a new session.
   (`_recorded_on`), never today, or they go stale on their own; a refresh's
   exchange rate request depends on what is stored, so the test transport
   answers the recorded rates for any start day.
-- A table transcribed from a PDF: read it with `pdftotext -table` (the
-  scratchpad has it via Git's mingw64; `-layout` interleaves rows), convert it
+- A table transcribed from a PDF: read it with `pdftotext -table` (from
+  `brew install poppler` on the Mac, Git's mingw64 on Windows; `-layout`
+  interleaves rows), convert it
   with a script rather than by hand, and test it against the source's own
   summary rows. Some free copies only download (maalot.co.il); the user
   agreed (2026-10-07) to downloading public source documents into the
@@ -1748,5 +1838,19 @@ Skills load when a session starts: install first, then open a new session.
   cards. If a card got worse, `ops/model_gate.py` fails the PR on purpose.
   The surrogate's evaluation runs 230 simulations of 10,200 paths: a few
   minutes on a busy laptop, about a minute in CI.
+- `ml/evaluation/data/multiple_history.json` holds every industry's
+  multiples from Damodaran's archive, which CI can't download:
+  `tests/test_multiples.py` checks it only against the ten industries the
+  recorded fixtures keep. Rewrite it (`python -m tests.ml_multiple_history`,
+  then `python -m ml.evaluation evaluate` and `python -m tests.e2e_multiples`)
+  when a new January edition is recorded. No group's 2014 archive edition can
+  be read (missing or not a workbook), so the history skips that year.
+- SEC data at scale: the **XBRL frames** API
+  (`data.sec.gov/api/xbrl/frames/<taxonomy>/<concept>/<unit>/CY<year>.json`)
+  gives one concept for every filer in one call, with the business address
+  (`loc`) but no SIC code (that is one `submissions` call per company). A
+  call takes about 0.6 s, so the 0.15 s pace alone isn't reached serially:
+  `tests/ml_firm_growth.py` keeps six in flight and caches answers on disk.
+  Hold one concept's years at a time: a parsed frame is several megabytes.
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.

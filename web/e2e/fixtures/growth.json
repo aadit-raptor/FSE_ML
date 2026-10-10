@@ -1,0 +1,329 @@
+{
+ "de": {
+  "anchor": {
+   "area": "DE",
+   "as_of": "2026",
+   "dataset": "NGDP_RPCH+PCPIPCH",
+   "detail": {
+    "inflation": 2.7,
+    "period": "2026",
+    "real_growth": 0.8,
+    "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/DEU"
+   },
+   "field": "growth",
+   "level": "country",
+   "sample": 1,
+   "sample_kind": "economies",
+   "skipped": [],
+   "source": "imf",
+   "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/DEU",
+   "value": 3.52
+  },
+  "card": {
+   "baseline": 102.882,
+   "cases": 2124,
+   "model": 73.9538,
+   "region": "europe",
+   "verdict": "beats_baseline"
+  },
+  "country": "DE",
+  "data_written_on": "2026-10-08",
+  "floor_usd_m": 50.0,
+  "group_sector": "industrials",
+  "hidden": null,
+  "hold": 5,
+  "horizons": [
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "industry": "machinery",
+  "min_companies": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "listed_companies",
+   "survivors_only",
+   "acquisitions_included",
+   "size_floor"
+  ],
+  "observed": {
+   "cases": 272,
+   "companies": 40,
+   "first": 2008,
+   "high": 18.19,
+   "last": 2025,
+   "low": -10.39,
+   "median": 1.79
+  },
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "range": {
+   "high": 22.35,
+   "low": -7.23,
+   "median": 5.37
+  },
+  "reason": null,
+  "region": "europe",
+  "sector": "industrials",
+  "settings": {
+   "mc_growth_mean": 7.56,
+   "mc_growth_std": 11.54
+  },
+  "shown": true,
+  "sources": {
+   "fx": {
+    "publisher": "European Central Bank",
+    "title": "Euro foreign exchange reference rates, yearly averages (EXR)",
+    "url": "https://data.ecb.europa.eu/data/datasets/EXR"
+   },
+   "growth": {
+    "publisher": "International Monetary Fund",
+    "title": "World Economic Outlook (real GDP growth and inflation)",
+    "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+   },
+   "revenue": {
+    "publisher": "U.S. Securities and Exchange Commission",
+    "title": "XBRL frames API",
+    "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+   }
+  },
+  "status": "ok",
+  "years": [
+   2008,
+   2025
+  ]
+ },
+ "untested": {
+  "anchor": {
+   "area": "DE",
+   "as_of": "2026",
+   "dataset": "NGDP_RPCH+PCPIPCH",
+   "detail": {
+    "inflation": 2.7,
+    "period": "2026",
+    "real_growth": 0.8,
+    "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/DEU"
+   },
+   "field": "growth",
+   "level": "country",
+   "sample": 1,
+   "sample_kind": "economies",
+   "skipped": [],
+   "source": "imf",
+   "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/DEU",
+   "value": 3.52
+  },
+  "card": {
+   "baseline": 102.882,
+   "cases": 2124,
+   "model": 73.9538,
+   "region": "europe",
+   "verdict": "beats_baseline"
+  },
+  "country": "DE",
+  "data_written_on": "2026-10-08",
+  "floor_usd_m": 50.0,
+  "group_sector": null,
+  "hidden": "untested_horizon",
+  "hold": 9,
+  "horizons": [
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "industry": "machinery",
+  "min_companies": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "listed_companies",
+   "survivors_only",
+   "acquisitions_included",
+   "size_floor"
+  ],
+  "observed": null,
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "range": null,
+  "reason": null,
+  "region": "europe",
+  "sector": "industrials",
+  "settings": null,
+  "shown": false,
+  "sources": {
+   "fx": {
+    "publisher": "European Central Bank",
+    "title": "Euro foreign exchange reference rates, yearly averages (EXR)",
+    "url": "https://data.ecb.europa.eu/data/datasets/EXR"
+   },
+   "growth": {
+    "publisher": "International Monetary Fund",
+    "title": "World Economic Outlook (real GDP growth and inflation)",
+    "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+   },
+   "revenue": {
+    "publisher": "U.S. Securities and Exchange Commission",
+    "title": "XBRL frames API",
+    "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+   }
+  },
+  "status": "not_enough_data",
+  "years": [
+   2008,
+   2025
+  ]
+ },
+ "us": {
+  "anchor": {
+   "area": "US",
+   "as_of": "2026",
+   "dataset": "NGDP_RPCH+PCPIPCH",
+   "detail": {
+    "inflation": 3.2,
+    "period": "2026",
+    "real_growth": 2.3,
+    "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/USA"
+   },
+   "field": "growth",
+   "level": "country",
+   "sample": 1,
+   "sample_kind": "economies",
+   "skipped": [],
+   "source": "imf",
+   "url": "https://www.imf.org/external/datamapper/NGDP_RPCH@WEO/USA",
+   "value": 5.57
+  },
+  "card": {
+   "baseline": 83.9126,
+   "cases": 60769,
+   "model": 57.0017,
+   "region": "us",
+   "verdict": "beats_baseline"
+  },
+  "country": "US",
+  "data_written_on": "2026-10-08",
+  "floor_usd_m": 50.0,
+  "group_sector": "information_technology",
+  "hidden": null,
+  "hold": 5,
+  "horizons": [
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "industry": "software_system_application",
+  "min_companies": 30,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "listed_companies",
+   "survivors_only",
+   "acquisitions_included",
+   "size_floor"
+  ],
+  "observed": {
+   "cases": 3448,
+   "companies": 696,
+   "first": 2008,
+   "high": 20.01,
+   "last": 2025,
+   "low": -9.81,
+   "median": 2.38
+  },
+  "quantiles": [
+   0.1,
+   0.5,
+   0.9
+  ],
+  "range": {
+   "high": 26.7,
+   "low": -4.79,
+   "median": 8.08
+  },
+  "reason": null,
+  "region": "us",
+  "sector": "information_technology",
+  "settings": {
+   "mc_growth_mean": 10.96,
+   "mc_growth_std": 12.28
+  },
+  "shown": true,
+  "sources": {
+   "fx": {
+    "publisher": "European Central Bank",
+    "title": "Euro foreign exchange reference rates, yearly averages (EXR)",
+    "url": "https://data.ecb.europa.eu/data/datasets/EXR"
+   },
+   "growth": {
+    "publisher": "International Monetary Fund",
+    "title": "World Economic Outlook (real GDP growth and inflation)",
+    "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+   },
+   "revenue": {
+    "publisher": "U.S. Securities and Exchange Commission",
+    "title": "XBRL frames API",
+    "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces"
+   }
+  },
+  "status": "ok",
+  "years": [
+   2008,
+   2025
+  ]
+ }
+}

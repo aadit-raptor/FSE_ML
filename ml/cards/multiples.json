@@ -1,0 +1,249 @@
+{
+ "estimates": "The central 80% range and middle of the deal industry's EV/EBITDA in its region a year after the latest published figure (entry) and the deal's hold after that (exit)",
+ "evaluation": {
+  "baseline": {
+   "description": "The region's whole market: the same percentiles (10th, 50th, 90th) across every industry of the group in the base year, whatever the deal's industry",
+   "id": "market"
+  },
+  "headline_metric": "interval_score",
+  "headline_set": "entry",
+  "metrics": [
+   {
+    "better": "lower",
+    "description": "The central 80% range's width plus ten times how far the multiple fell outside it, in turns of EBITDA (Gneiting and Raftery's interval score)",
+    "id": "interval_score",
+    "tolerance": 0.05
+   },
+   {
+    "better": "higher",
+    "description": "Share of multiples inside the central 80% range (about 0.8 when the range is right)",
+    "id": "inside",
+    "tolerance": 0.01
+   },
+   {
+    "better": "lower",
+    "description": "Mean distance between the suggestion (the range's middle) and the multiple, in turns",
+    "id": "median_error",
+    "tolerance": 0.05
+   },
+   {
+    "better": "lower",
+    "description": "Mean width of the range, in turns",
+    "id": "width",
+    "tolerance": 0.05
+   }
+  ],
+  "sets": {
+   "entry": {
+    "by_region": {
+     "emerging": {
+      "baseline": {
+       "inside": 0.7595,
+       "interval_score": 32.6377,
+       "median_error": 6.4309,
+       "width": 18.1833
+      },
+      "cases": 1364,
+      "model": {
+       "inside": 0.7383,
+       "interval_score": 21.5751,
+       "median_error": 4.2297,
+       "width": 12.2546
+      },
+      "verdict": "beats_baseline"
+     },
+     "europe": {
+      "baseline": {
+       "inside": 0.7812,
+       "interval_score": 21.6529,
+       "median_error": 4.4869,
+       "width": 12.903
+      },
+      "cases": 672,
+      "model": {
+       "inside": 0.6711,
+       "interval_score": 14.6628,
+       "median_error": 3.0111,
+       "width": 7.5151
+      },
+      "verdict": "beats_baseline"
+     },
+     "other_developed": {
+      "baseline": {
+       "inside": 0.7464,
+       "interval_score": 25.3084,
+       "median_error": 4.4005,
+       "width": 12.0488
+      },
+      "cases": 757,
+      "model": {
+       "inside": 0.7517,
+       "interval_score": 15.7623,
+       "median_error": 3.1212,
+       "width": 8.2257
+      },
+      "verdict": "beats_baseline"
+     },
+     "us": {
+      "baseline": {
+       "inside": 0.7549,
+       "interval_score": 21.3425,
+       "median_error": 4.3084,
+       "width": 12.5852
+      },
+      "cases": 608,
+      "model": {
+       "inside": 0.7763,
+       "interval_score": 13.5312,
+       "median_error": 2.6086,
+       "width": 7.8309
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "Each industry's multiple a year after the one it is predicted from (the entry range) (3401 cases, 2016-2025)",
+    "overall": {
+     "baseline": {
+      "inside": 0.7601,
+      "interval_score": 26.8166,
+      "median_error": 5.2154,
+      "width": 14.7738
+     },
+     "cases": 3401,
+     "model": {
+      "inside": 0.7348,
+      "interval_score": 17.4775,
+      "median_error": 3.4524,
+      "width": 9.6305
+     },
+     "verdict": "beats_baseline"
+    }
+   },
+   "exit": {
+    "by_region": {
+     "emerging": {
+      "baseline": {
+       "inside": 0.7062,
+       "interval_score": 35.5818,
+       "median_error": 6.6583,
+       "width": 16.945
+      },
+      "cases": 4295,
+      "model": {
+       "inside": 0.7441,
+       "interval_score": 28.1257,
+       "median_error": 5.5138,
+       "width": 16.1846
+      },
+      "verdict": "beats_baseline"
+     },
+     "europe": {
+      "baseline": {
+       "inside": 0.6626,
+       "interval_score": 25.2729,
+       "median_error": 4.7737,
+       "width": 10.7753
+      },
+      "cases": 2116,
+      "model": {
+       "inside": 0.7259,
+       "interval_score": 19.4641,
+       "median_error": 3.9447,
+       "width": 10.9117
+      },
+      "verdict": "beats_baseline"
+     },
+     "other_developed": {
+      "baseline": {
+       "inside": 0.6933,
+       "interval_score": 23.132,
+       "median_error": 4.1171,
+       "width": 9.3833
+      },
+      "cases": 2087,
+      "model": {
+       "inside": 0.7178,
+       "interval_score": 20.511,
+       "median_error": 3.9395,
+       "width": 11.1876
+      },
+      "verdict": "beats_baseline"
+     },
+     "us": {
+      "baseline": {
+       "inside": 0.6486,
+       "interval_score": 24.501,
+       "median_error": 4.7134,
+       "width": 10.3822
+      },
+      "cases": 1645,
+      "model": {
+       "inside": 0.7392,
+       "interval_score": 19.8378,
+       "median_error": 3.8211,
+       "width": 11.4258
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "Each industry's multiple four to eight years after the one it is predicted from (the exit range, holds of three to seven years) (10143 cases, 2016-2025)",
+    "overall": {
+     "baseline": {
+      "inside": 0.6851,
+      "interval_score": 29.0725,
+      "median_error": 5.4269,
+      "width": 13.0377
+     },
+     "cases": 10143,
+     "model": {
+      "inside": 0.7341,
+      "interval_score": 23.4078,
+      "median_error": 4.588,
+      "width": 13.2846
+     },
+     "verdict": "beats_baseline"
+    }
+   }
+  },
+  "split": {
+   "cutoffs": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "dated_by": "the year of the multiple predicted",
+   "kind": "walk_forward"
+  }
+ },
+ "format": 1,
+ "id": "multiples",
+ "limitations": [
+  "Cases are industries' aggregate multiples, not single companies or buyouts: a buyout's price also reflects its size, growth and control, which the averages don't split out.",
+  "The archive starts with 2011 and some groups miss a few editions (Australia, New Zealand and Canada miss 2011, 2013 and 2014; China 2014 and 2023), so the longest exit horizons are tested on the newest years only.",
+  "A horizon needs 30 earlier industry moves in the group; the early folds of the longest horizons had fewer and are left out.",
+  "Cases from the same year share that year's market: the regions' statistics move together and count fewer independent years than cases.",
+  "Out of time the ranges held about three multiples in four, where four in five is the aim: industries' multiples moved more after each cutoff than before it, so read the range as a little narrow.",
+  "The averages are listed companies' and are not split by size."
+ ],
+ "min_cases": 5,
+ "module": "ml/multiple_predictor.py",
+ "name": "Multiple predictor (entry and exit EV/EBITDA by region)",
+ "registry": {
+  "artifacts": []
+ },
+ "training": {
+  "command": null,
+  "data": "Nothing is trained: the ranges read Damodaran's industry averages for the deal's region and his archive of past editions (PLAN.md 4.3, 4.4), refreshed nightly",
+  "deterministic": true
+ },
+ "used_by": "Deal -> Returns, Multiples (POST /api/ml/multiples); each range shown only in regions where this card says it beats the baseline"
+}

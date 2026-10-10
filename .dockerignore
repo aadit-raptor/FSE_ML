@@ -12,3 +12,5 @@ test_*.py
 *.md
 *.xlsx
 ml/surrogate/training_data.parquet
+# The growth calibrator's evaluation data: only its card reads it, never the API
+ml/evaluation/data/firm_growth.json
