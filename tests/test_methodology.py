@@ -32,8 +32,6 @@ EXTRA_MODULES = (
     "ml/distress_model.py",          # distress predictor (PLAN.md 5.3)
     "ml/multiple_predictor.py",      # multiple predictor (PLAN.md 5.4)
     "ml/growth_calibrator.py",       # growth calibrator (PLAN.md 5.5)
-    "ml/surrogate/predict.py",       # Live sliders
-    "ml/surrogate/generate_data.py",
     "ml/macro_regime.py",            # economic regime by region (PLAN.md 5.7)
     "ml/edgar_extractor.py",         # SEC EDGAR figures
     "benchmarks/starting.py",        # a new deal's starting figures

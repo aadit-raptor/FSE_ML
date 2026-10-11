@@ -8,6 +8,7 @@ on an allowed branch (api/github_oidc.py); a user's session token is refused.
     GET  /api/scheduled/runs           the newest run of each task
     POST /api/scheduled/drill          queue the job drill (not in production)
     GET  /api/scheduled/drill/{id}     one drill job: status and summary only
+    POST /api/scheduled/drill/live     the live sliders and the API's memory (not in production)
 """
 from __future__ import annotations
 
@@ -147,3 +148,14 @@ def get_drill_job(job_id: uuid.UUID, workflow: Workflow = Depends(require_workfl
                                    "started_at", "finished_at")},
             "summary": summary, "elapsed_ms": result.get("elapsed_ms"),
             "mismatched": drill.summary_mismatches(summary) if summary else []}
+
+
+@router.post("/drill/live", response_model=Dict[str, SummaryValue])
+def run_live_drill(workflow: Workflow = Depends(require_workflow)):
+    """A session of the live sliders in this process, with the memory the
+    API has used at its peak (jobs/drill.py ``live_drill``)."""
+    if deploy_environment() == "production":
+        raise HTTPException(404, "The drill doesn't run in production.")
+    found = drill.live_drill()
+    log_event("live_drill", workflow=workflow.workflow, **{k: v for k, v in found.items() if k != "live_mismatched"})
+    return found

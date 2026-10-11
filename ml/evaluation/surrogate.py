@@ -1,60 +1,86 @@
-"""The live sliders' surrogate evaluation (ml/surrogate/; PLAN.md 5.1).
+"""The live sliders' evaluation (core/live.py; PLAN.md 5.1, 5.8).
 
 Question: for a deal a user in each region would actually enter, how close
-is the network's IRR distribution to the simulation it stands in for?
+is the Live step's estimate to the simulation it stands in for?
 
-- **Cases**: ``REGIONAL_DEALS`` -- for every economy the app covers and
-  ``INDUSTRIES`` across sectors, the Monte Carlo inputs a user gets from
-  "Use sourced figures" (PLAN.md 4.3, 4.4: the country's growth, the
-  industry's exit multiple, margins, D&A, capex, working capital and their
-  spreads; the currency's benchmark rate plus the industry's spread), with
-  the deal's default debt share. Written from the recorded sources by
-  ``python -m tests.ml_regional_deals``; the surrogate's fixed training
-  terms (entry multiple, hold, fees ...) apply, as on the Live screen.
+Since PLAN.md 5.8 the estimate is the simulation itself on a small, fixed
+set of paths (``core.live``), not a trained network, so there is nothing to
+train and no file to hash; the id stays ``surrogate`` so that
+ops/model_gate.py compares it with the network's card it replaced.
+
+- **Cases**: ``varied_deals`` (the headline) -- for every economy the app
+  covers and ``INDUSTRIES`` across sectors, a whole deal as the API takes
+  it: what "Use sourced figures" sets (PLAN.md 4.3, 4.4), the country's tax
+  preset, and its own entry multiple, hold, fees, leases and one of five
+  debt structures. ``all_regional_deals`` are the same economies and
+  industries as the eleven inputs the retired network took, on its one
+  fixed deal (``NETWORK_DEAL``), and ``in_training_range`` those inside the
+  ranges it was trained on: both kept so the gate compares like with like.
+  All written from the recorded sources by ``python -m
+  tests.ml_regional_deals``.
 - **Truth**: the simulation itself on ``TRUTH_PATHS`` paths.
-- **Baseline**: the same simulation on ``BASELINE_PATHS`` paths, which is
-  fast enough to run live: the network must beat it to be worth having.
-- **Sets**: ``all_regional_deals`` (the headline: what a user in each
-  region gets) and ``in_training_range`` (every input inside the ranges the
-  network was trained on, ``L_BOUNDS``/``U_BOUNDS``). The training data are
-  simulated and undated, so there is no time split: the cases are the newest
-  sourced figures.
+- **Model**: ``core.live``'s paths and seed (``live_paths``, ``LIVE_SEED``);
+  the varied deals go through ``core.live.live_estimate`` itself.
+- **Baseline**: the same simulation on ``BASELINE_PATHS`` paths, the cruder
+  estimate a live answer could also be.
+- The cases are simulated and undated, so there is no time split: they are
+  the newest sourced figures.
 """
 from __future__ import annotations
 
 import json
 import zlib
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional, Sequence
 
 import numpy as np
 
+from core.config import DEFAULTS, resolve_config
+from core.deal import DealInputs
+from core.live import LIVE_PATHS, LIVE_SEED, MIN_LIVE_PATHS, live_estimate, live_params, live_paths
+from core.montecarlo import MCInputs
 from ml.evaluation.harness import Case, Metric, evaluate_set, mean_abs, metric_specs
-from ml.surrogate.generate_data import L_BOUNDS, TRAINING_FIXED, U_BOUNDS, X_COLS
 from simulation.vectorized_simulation import SimulationParams, run_vectorized_simulation_full
 
 MODEL_ID = "surrogate"
 REGIONAL_DEALS = Path(__file__).parent / "data" / "regional_deals.json"
-TRUTH_PATHS = 10_000
+TRUTH_PATHS = 100_000
 BASELINE_PATHS = 200
-# The training data's own setting
+# The network's training setting, kept for its one fixed deal
 INTEREST_PASSES = 2
 # Damodaran industry ids across sectors: the ones whose history the recorded
 # fixtures keep (benchmarks/record.py HISTORY_INDUSTRIES), which the sourced
 # spreads need
 INDUSTRIES = ("machinery", "chemical_basic", "steel", "food_processing", "auto_parts", "building_materials",
               "electrical_equipment", "retail_general", "telecom_services", "utility_general")
-HEADLINE_SET = "all_regional_deals"
+HEADLINE_SET = "varied_deals"
 PERCENTILES = {"p5": 5, "p50": 50, "p95": 95}
+# PLAN.md 5.8's "done when": the median IRR within this of the full
+# simulation, overall and in every region (tests/test_model_cards.py)
+MEDIAN_ERROR_LIMIT_PP = 0.5
+
+# The one deal the retired network was trained on, and the eleven inputs it
+# took with the ranges they were sampled from
+NETWORK_DEAL = dict(
+    entry_ebitda=100.0, entry_multiple=10.0, holding_period=5, opex_pct=0.18, tax_rate=0.25,
+    senior_pct=0.70, mezz_spread=0.04, interest_std=0.015,
+    transaction_fees_pct=DEFAULTS["tx_fee_pct"] / 100, financing_fees_pct=DEFAULTS["fin_fee_pct"] / 100,
+    other_uses=DEFAULTS["other_uses"],
+)
+X_COLS = ['growth_mean', 'growth_std', 'exit_mean', 'exit_std', 'interest_mean',
+          'gross_margin_mean', 'gross_margin_std', 'da_pct', 'capex_pct', 'nwc_pct', 'debt_pct']
+L_BOUNDS = [0.00, 0.005, 5.0, 0.3, 0.015, 0.15, 0.01, 0.02, 0.01, 0.005, 0.25]
+U_BOUNDS = [0.18, 0.10,  20.0, 4.0, 0.14,  0.80, 0.08, 0.09, 0.10, 0.05,  0.90]
 
 
 def in_range(features: dict) -> bool:
-    """Whether every input lies inside the ranges the network was trained on."""
+    """Whether every input lies inside the ranges the retired network was trained on."""
     return all(lo <= features[k] <= hi for k, lo, hi in zip(X_COLS, L_BOUNDS, U_BOUNDS))
 
 
 def features_from(risk_inputs: dict, starting_inputs: dict, debt_pct: float) -> Optional[dict]:
-    """The eleven surrogate inputs from the sourced Monte Carlo Settings and
+    """The network's eleven inputs from the sourced Monte Carlo Settings and
     starting figures (per cent, as the API answers them), or None when one
     is missing. ``debt_pct`` is the deal's debt / value, per cent."""
     pairs = {"growth_mean": risk_inputs.get("mc_growth_mean"), "growth_std": risk_inputs.get("mc_growth_std"),
@@ -75,18 +101,49 @@ def load_cases() -> list[dict]:
     return json.loads(REGIONAL_DEALS.read_text(encoding="utf-8"))["deals"]
 
 
+def load_varied() -> list[dict]:
+    return json.loads(REGIONAL_DEALS.read_text(encoding="utf-8"))["varied"]
+
+
 def _seed(deal_id: str, salt: int) -> int:
     return (zlib.crc32(deal_id.encode()) + salt) % (2 ** 31)
 
 
-def simulate(features: dict, paths: int, seed: int) -> dict:
-    """The simulation's IRR percentiles and wipeout rate for these inputs on
-    the surrogate's fixed training deal."""
-    params = SimulationParams(n=paths, **TRAINING_FIXED, **features, n_interest_passes=INTEREST_PASSES)
-    sim = run_vectorized_simulation_full(params, seed=seed)
+def _answer(sim) -> dict:
     out = {k: float(np.percentile(sim.irr, q)) for k, q in PERCENTILES.items()}
     out["wipeout"] = float(sim.wipeout_rate)
     return out
+
+
+def simulate(features: dict, paths: int, seed: int) -> dict:
+    """The simulation's IRR percentiles and wipeout rate for these inputs on
+    the retired network's fixed deal."""
+    params = SimulationParams(n=paths, **NETWORK_DEAL, **features, n_interest_passes=INTEREST_PASSES)
+    return _answer(run_vectorized_simulation_full(params, seed=seed))
+
+
+def live_on_network_deal(features: dict) -> dict:
+    """What the Live step answers for these inputs on the network's fixed
+    deal: the simulation on ``core.live``'s paths and seed."""
+    return simulate(features, live_paths(NETWORK_DEAL["holding_period"], 0, INTEREST_PASSES), LIVE_SEED)
+
+
+def request_of(deal: dict) -> tuple[MCInputs, DealInputs, dict]:
+    """A varied deal as the inputs the API builds from its request."""
+    return MCInputs(**deal["mc"]), DealInputs(**deal["deal"]), resolve_config(deal["settings"])
+
+
+def simulate_deal(deal: dict, paths: int, seed: int) -> dict:
+    """The simulation's answer for a varied deal on ``paths`` paths: the
+    Live step's own parameters with only the size and the seed changed."""
+    params = replace(live_params(*request_of(deal)), n=paths)
+    return _answer(run_vectorized_simulation_full(params, seed=seed))
+
+
+def live_on_deal(deal: dict) -> dict:
+    """What the Live step answers for a varied deal (``core.live.live_estimate``)."""
+    p = live_estimate(*request_of(deal))["prediction"]
+    return {"p5": p["irr_p5"], "p50": p["irr_p50"], "p95": p["irr_p95"], "wipeout": p["p_wipeout"]}
 
 
 def _mae_pp(key: str):
@@ -109,39 +166,43 @@ METRICS = (
 HEADLINE = "median_irr_error_pp"
 
 
-def evaluate(base: Optional[str] = None) -> dict:
-    """Both sets for the card, with the network in ``base`` (default: the
-    committed one)."""
-    from ml.surrogate.predict import BASE, SurrogatePredictor
-    predictor = SurrogatePredictor(base or BASE)
-    rows, inside = [], []
-    for deal in load_cases():
-        f = deal["features"]
-        truth = simulate(f, TRUTH_PATHS, _seed(deal["id"], 0))
-        case = Case(id=deal["id"], region=deal["region"], year=None, features=f, truth=truth)
-        p = predictor.predict(**f)
-        model = {"p5": p.irr_p5, "p50": p.irr_p50, "p95": p.irr_p95, "wipeout": p.p_wipeout}
-        row = (case, model, simulate(f, BASELINE_PATHS, _seed(deal["id"], 1)))
-        rows.append(row)
-        if in_range(f):
-            inside.append(row)
+def _rows(deals: Sequence[dict], truth, model, baseline) -> list[tuple]:
+    return [(Case(id=d["id"], region=d["region"], year=None, features=d.get("features") or {}, truth=truth(d)),
+             model(d), baseline(d)) for d in deals]
+
+
+def evaluate() -> dict:
+    """The three sets for the card."""
+    rows = _rows(load_cases(),
+                 lambda d: simulate(d["features"], TRUTH_PATHS, _seed(d["id"], 0)),
+                 lambda d: live_on_network_deal(d["features"]),
+                 lambda d: simulate(d["features"], BASELINE_PATHS, _seed(d["id"], 1)))
+    inside = [r for r in rows if in_range(r[0].features)]
+    varied = _rows(load_varied(),
+                   lambda d: simulate_deal(d, TRUTH_PATHS, _seed(d["id"], 0)),
+                   live_on_deal,
+                   lambda d: simulate_deal(d, BASELINE_PATHS, _seed(d["id"], 1)))
     meta = json.loads(REGIONAL_DEALS.read_text(encoding="utf-8"))
     return {
         "headline_set": HEADLINE_SET,
         "headline_metric": HEADLINE,
         "metrics": metric_specs(METRICS),
-        "split": {"kind": "none", "why": "trained on simulated deals, which have no dates; the cases are "
-                  f"the sourced figures recorded on {meta['recorded_on']}"},
+        "split": {"kind": "none", "why": "the cases are simulated deals, which have no dates: the sourced "
+                  f"figures recorded on {meta['recorded_on']}"},
         "baseline": {"id": f"simulation_{BASELINE_PATHS}",
-                     "description": f"The simulation itself on {BASELINE_PATHS:,} paths, fast enough to run "
-                                    "live; truth is the simulation on "
-                                    f"{TRUTH_PATHS:,} paths"},
+                     "description": f"The simulation itself on {BASELINE_PATHS:,} paths, the cruder estimate a "
+                                    f"live answer could be; truth is the simulation on {TRUTH_PATHS:,} paths"},
         "sets": {
+            "varied_deals": {
+                "description": "Every regional deal with its own entry multiple, hold, fees, tax rules, leases "
+                               "and one of five debt structures, as the Live step would be sent it",
+                **evaluate_set(varied, METRICS, HEADLINE)},
             "all_regional_deals": {
-                "description": "Every regional deal, as a user there would enter it",
+                "description": "Every regional deal's eleven inputs on the retired network's one fixed deal",
                 **evaluate_set(rows, METRICS, HEADLINE)},
             "in_training_range": {
-                "description": "The regional deals whose every input lies inside the network's training ranges",
+                "description": "The regional deals whose every input lies inside the ranges the retired "
+                               "network was trained on",
                 **evaluate_set(inside, METRICS, HEADLINE)},
         },
     }
@@ -149,24 +210,26 @@ def evaluate(base: Optional[str] = None) -> dict:
 
 CARD = {
     "id": MODEL_ID,
-    "name": "Live sliders (surrogate network)",
-    "module": "ml/surrogate/predict.py",
-    "used_by": "Monte Carlo -> Live (POST /api/ml/surrogate)",
-    "estimates": "The Monte Carlo simulation's IRR percentiles, mean, spread, chance of beating 20% and "
-                 "wipeout rate, from eleven inputs, in under a millisecond",
+    "name": "Live sliders (the simulation on a small, fixed set of paths)",
+    "module": "core/live.py",
+    "used_by": "Monte Carlo -> Live (POST /api/montecarlo/live)",
+    "estimates": "The Monte Carlo simulation's IRR percentiles, mean, spread and the shares of paths above "
+                 "the hurdle, losing money and losing everything, for any deal, in a few milliseconds",
     "training": {
-        "data": "100,000 simulations of one fixed deal (entry multiple 10x, five-year hold, the default fees "
-                "and debt split), Latin hypercube over the eleven inputs; 2,000 paths each",
-        "command": "python -m ml.evaluation train surrogate",
-        "deterministic": False,
+        "data": f"None: nothing is trained. Each estimate reruns the simulation on {LIVE_PATHS:,} seeded "
+                f"paths (fewer for a long hold with many facilities, never under {MIN_LIVE_PATHS:,}). It "
+                "replaced a network trained on 100,000 simulations of one fixed deal (PLAN.md 5.8)",
+        "command": None,
+        "deterministic": True,
     },
     "limitations": [
-        "Every term outside the eleven inputs is the fixed training deal's; the Live screen lists the "
-        "deal's differences. PLAN.md 5.8 retrains across deal terms.",
-        "Sourced regional inputs often fall outside the training ranges (D&A, working capital and capex "
-        "shares below them, exit multiples and their spreads above them); the network extrapolates there, "
-        "and the in-training-range set shows how it does inside them.",
-        "Truth is itself a simulation of 10,000 paths, so a median error below about 0.1 points is "
+        "The estimate carries sampling error: the Live step shows a 95% interval for the median, about half "
+        "a percentage point wide for an ordinary deal and wider on fewer paths.",
+        "Close to losing everything the 5th percentile falls steeply, so it moves more between samples "
+        "than the median does (the p5 column).",
+        f"Truth is itself a simulation of {TRUTH_PATHS:,} paths: a median error below about 0.04 points is "
         "within its noise.",
+        "Whatever the simulation leaves out the estimate leaves out too (CLAUDE.md findings 12 and 13: "
+        "the percentages path drops surplus cash once debt is repaid, and neither path reads minimum cash).",
     ],
 }

@@ -593,6 +593,7 @@ def test_the_drill_script_passes_on_a_healthy_server(fresh_db, github, github_ke
     from ops import scheduled as ops_scheduled
 
     monkeypatch.setattr(config, "wake_runner", real_wake_runner)
+    monkeypatch.setattr(drill, "process_memory", server_memory)
     config.use_queue(DatabaseQueue())
     try:
         outcome = ops_scheduled.drill(InProcessApi(github_key), count=10, log=lambda *_: None,
@@ -601,21 +602,95 @@ def test_the_drill_script_passes_on_a_healthy_server(fresh_db, github, github_ke
         config.use_queue(None)
     assert outcome.problems() == []
     assert outcome.summary()["succeeded"] == 10 and outcome.health_checks > 0
+    # ... and the live sliders ran on the same server, after the simulations (PLAN.md 5.8)
+    assert outcome.live["live_distinct"] == outcome.live["live_moves"] == drill.LIVE_MOVES
+    assert outcome.summary()["live_paths"] == 8000 and outcome.summary()["memory_peak_mb"] > 0
     with db_engine.connect() as conn:
         run = conn.execute(select(ScheduledRun).where(ScheduledRun.task == "job-drill")).one()
     assert run.status == "succeeded" and run.workflow == "staging.yml" and run.summary["jobs"] == 10
+    assert run.summary["memory_limit_mb"] == drill.SERVICE_MEMORY_MB and run.summary["live_typical_ms"] > 0
+
+
+def server_memory() -> dict:
+    """A server's memory, in place of this test process's (a whole pytest
+    run has held far more than the API ever does)."""
+    return {"rss_mb": 300.0, "peak_mb": 410.0, "limit_mb": drill.SERVICE_MEMORY_MB}
+
+
+LIVE_OK = {"live_paths": 8000, "live_moves": 40, "live_distinct": 40, "live_mismatched": "",
+           "live_typical_ms": 12.0, "live_slowest_ms": 30.0, "live_largest_ms": 200.0, "live_added_mb": 1.5,
+           "memory_peak_mb": 410.0, "memory_limit_mb": 512.0}
 
 
 def test_the_drill_script_fails_when_it_should():
     from ops.scheduled import DrillOutcome
 
     good = {"status": "succeeded", "mismatched": [], "attempts": 1}
-    assert DrillOutcome(jobs={"a": good}, health_checks=3).problems() == []
-    assert DrillOutcome(jobs={"a": {"status": "failed", "error": "boom"}}, health_checks=3).problems()
-    assert DrillOutcome(jobs={"a": {**good, "mismatched": ["mean_irr"]}}, health_checks=3).problems()
-    assert DrillOutcome(jobs={"a": good}, health_checks=3, health_failures=1).problems()
-    assert DrillOutcome(jobs={"a": good}, health_checks=3, slowest_health_s=30).problems()
-    assert DrillOutcome(jobs={"a": good}).problems()
+    assert DrillOutcome(jobs={"a": good}, health_checks=3, live=LIVE_OK).problems() == []
+    assert DrillOutcome(jobs={"a": {"status": "failed", "error": "boom"}}, health_checks=3, live=LIVE_OK).problems()
+    assert DrillOutcome(jobs={"a": {**good, "mismatched": ["mean_irr"]}}, health_checks=3, live=LIVE_OK).problems()
+    assert DrillOutcome(jobs={"a": good}, health_checks=3, health_failures=1, live=LIVE_OK).problems()
+    assert DrillOutcome(jobs={"a": good}, health_checks=3, slowest_health_s=30, live=LIVE_OK).problems()
+    assert DrillOutcome(jobs={"a": good}, live=LIVE_OK).problems()
+    # The live sliders: never drilled, the endpoint refusing, or its answer out of bounds
+    assert DrillOutcome(jobs={"a": good}, health_checks=3).problems() == ["the live sliders were never drilled"]
+    assert DrillOutcome(jobs={"a": good}, health_checks=3, live_error="HTTP 500").problems() == ["HTTP 500"]
+
+
+@pytest.mark.parametrize("change, says", [
+    ({"live_mismatched": "irr_p50"}, "differs from its pinned answer: irr_p50"),
+    ({"live_distinct": 1}, "40 slider moves gave 1 different answers"),
+    ({"live_typical_ms": 800.0}, "took 800 ms"),
+    ({"memory_peak_mb": 512.0}, "peaked at 512 MB, the service has 512 MB"),
+    ({"memory_peak_mb": None}, "did not report its memory"),
+    ({"live_added_mb": 90.0}, "added 90 MB"),
+])
+def test_the_live_sliders_check_fails_when_it_should(change, says):
+    from ops.scheduled import live_problems
+
+    assert live_problems(LIVE_OK) == []
+    assert live_problems({**LIVE_OK, "live_added_mb": None}) == []          # not Linux: nothing to compare
+    problems = live_problems({**LIVE_OK, **change})
+    assert len(problems) == 1 and says in problems[0]
+
+
+def test_the_live_drill_measures_this_server(github, github_key, monkeypatch):  # noqa: ARG001
+    """The pinned live answer is what the endpoint gives today; the session's
+    moves all differ; the largest deal runs on the fewest paths."""
+    from core import live
+    from ops.scheduled import LIVE_SUMMARY, live_problems
+
+    monkeypatch.setattr(drill, "process_memory", server_memory)
+    direct = ok(client.post("/api/montecarlo/live", json={}))
+    assert {k: direct["prediction"][k] for k in drill.EXPECTED_LIVE} == pytest.approx(drill.EXPECTED_LIVE, rel=1e-9)
+    token = bearer(workflow_token(github_key, workflow="staging.yml", ref="refs/heads/staging"))
+    found = ok(client.post("/api/scheduled/drill/live", json={}, headers=token))
+    assert live_problems(found) == []
+    assert found["live_paths"] == live.LIVE_PATHS and found["live_largest_paths"] == live.live_paths(15, 12, 2) == 4444
+    assert found["live_median_irr"] == direct["prediction"]["irr_p50"]
+    assert set(LIVE_SUMMARY) <= set(found)
+    assert (found["memory_peak_mb"], found["memory_limit_mb"], found["live_added_mb"]) == (410.0, 512.0, 0.0)
+    # A user's sign-in is not the scheduler's
+    assert client.post("/api/scheduled/drill/live", json={}).status_code in (401, 403)
+
+
+def test_the_live_drill_notices_a_changed_estimate(monkeypatch):
+    monkeypatch.setitem(drill.EXPECTED_LIVE, "irr_p50", drill.EXPECTED_LIVE["irr_p50"] * (1 + 1e-6))
+    assert drill.live_drill(moves=2)["live_mismatched"] == "irr_p50"
+
+
+def test_the_live_drill_reads_the_containers_memory_limit(monkeypatch):
+    assert drill.process_memory()["limit_mb"] <= drill.SERVICE_MEMORY_MB
+    assert drill.process_memory()["peak_mb"] > 10
+    # Unknown resident memory (not Linux): nothing added is claimed
+    found = drill.live_drill(moves=1, memory=lambda: {"rss_mb": None, "peak_mb": 300.0, "limit_mb": 256.0})
+    assert found["live_added_mb"] is None and found["memory_limit_mb"] == 256.0
+
+
+def test_the_live_drill_never_runs_in_production(monkeypatch, github, github_key):  # noqa: ARG001
+    monkeypatch.setenv("FSE_ENV", "production")
+    token = bearer(workflow_token(github_key, environment="production"))
+    assert client.post("/api/scheduled/drill/live", json={}, headers=token).status_code == 404
 
 
 def test_scheduled_task_script(fresh_db, github, github_key):  # noqa: ARG001

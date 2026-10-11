@@ -373,21 +373,6 @@ def test_a_forecast_company_carries_its_standard():
     assert run["accounting_standard"] == "us_gaap"
 
 
-def test_the_live_surrogate_names_a_deals_leases():
-    """The Live sliders' network was trained without leases, so a leased deal
-    lists them among the terms the estimate cannot see."""
-    from core.surrogate import training_term_differences
-
-    fixed = {"entry_multiple": 10.0, "holding_period": 5, "opex_pct": 0.18, "tax_rate": 0.25,
-             "senior_pct": 0.7, "mezz_spread": 0.04, "interest_std": 0.015,
-             "transaction_fees_pct": 0.02, "financing_fees_pct": 0.02, "other_uses": 0.0}
-    mc = MCInputs()
-    cfg = resolve_config({})
-    base = {t["term"] for t in training_term_differences(mc, DealInputs(), cfg, fixed)}
-    leased = {t["term"] for t in training_term_differences(mc, ifrs(POST_IFRS16), cfg, fixed)}
-    assert leased - base == {"lease cost", "lease liability"}
-
-
 def test_the_heatmap_values_the_leases_too():
     """Each heatmap cell is a deal-model run; left without the lease terms it
     would quietly price a post-IFRS 16 deal as if it had no leases."""

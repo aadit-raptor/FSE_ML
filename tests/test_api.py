@@ -282,7 +282,7 @@ def test_backtesting_requires_actuals_for_every_year():
 # ---------------------------------------------------------------------------
 def test_capabilities():
     body = ok(client.get("/api/capabilities"))
-    assert set(body) == {"anomaly_detector", "surrogate", "edgar"}
+    assert set(body) == {"anomaly_detector", "live", "edgar"}
 
 
 def test_deal_risk_needs_no_ml_packages():
@@ -297,58 +297,6 @@ def test_deal_risk_needs_no_ml_packages():
     # Its written-in warnings had no source; the deal answer's risk_warnings
     # replace them (PLAN.md 2.8)
     assert "warnings" not in body and "historical_sample" not in body
-
-
-def test_surrogate_when_available():
-    caps = ok(client.get("/api/capabilities"))
-    r = client.post("/api/ml/surrogate", json={"deal": {"opex": 27.0}})
-    if not caps["surrogate"]:
-        assert r.status_code == 503
-        return
-    body = ok(r)
-    assert "irr_p50" in body["prediction"]
-    assert any(t["term"] == "opex / revenue" and t["value"] == pytest.approx(0.27)
-               for t in body["term_differences"])
-    # Live always repeats the fixed training deal, including terms this deal matches
-    from ml.surrogate.generate_data import TRAINING_FIXED
-    terms = {t["term"]: t for t in body["training_deal"]}
-    assert terms["entry multiple"]["model_value"] == TRAINING_FIXED["entry_multiple"] == 10.0
-    assert terms["holding period"]["model_value"] == 5
-    assert terms["opex / revenue"]["model_value"] == pytest.approx(0.18)
-    assert terms["opex / revenue"]["value"] == pytest.approx(0.27)
-    assert len(terms) == 13 and len(body["term_differences"]) < len(terms)
-
-
-def test_training_terms_list_every_fixed_term():
-    """Differences are the subset of the training deal where this deal departs from it."""
-    from core.config import DEFAULTS
-    from core.deal import DealInputs
-    from core.montecarlo import MCInputs
-    from core.surrogate import training_term_differences, training_terms
-    mc, deal = MCInputs(), DealInputs()
-    fixed = {"entry_multiple": mc.entry_mult, "holding_period": mc.hold, "opex_pct": deal.opex / 100,
-             "tax_rate": deal.tax / 100, "senior_pct": deal.senior_pct / 100,
-             "mezz_spread": deal.mezz_spread / 100, "interest_std": mc.rate_std / 100,
-             "transaction_fees_pct": DEFAULTS["tx_fee_pct"] / 100,
-             "financing_fees_pct": DEFAULTS["fin_fee_pct"] / 100, "other_uses": DEFAULTS["other_uses"]}
-    assert len(training_terms(mc, deal, DEFAULTS, fixed)) == 13
-    assert training_term_differences(mc, deal, DEFAULTS, fixed) == []
-    fixed["tax_rate"] = 0.30
-    all_terms = training_terms(mc, deal, DEFAULTS, fixed)
-    assert len(all_terms) == 13
-    assert [t["term"] for t in training_term_differences(mc, deal, DEFAULTS, fixed)] == ["tax rate"]
-    assert next(t for t in all_terms if t["term"] == "tax rate")["model_value"] == 0.30
-    # The surrogate knows only a flat rate: tax rules (PLAN.md 2.5) are named,
-    # counted, as a difference
-    fixed["tax_rate"] = deal.tax / 100
-    ruled = DealInputs(tax_interest_limit="ebitda_share", tax_loss_carryforward=True)
-    diff = training_term_differences(mc, ruled, DEFAULTS, fixed)
-    assert [(t["term"], t["value"]) for t in diff] == [("tax rules", 2.0)]
-
-
-def test_surrogate_tail_threshold():
-    from core.surrogate import tail_unreliable
-    assert tail_unreliable(0.02) and not tail_unreliable(0.0199)
 
 
 def test_macro_regime_needs_no_ml_packages_and_says_when_nothing_is_stored():
