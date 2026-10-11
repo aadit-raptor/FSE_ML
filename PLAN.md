@@ -205,6 +205,25 @@ which moved into Foundations (1.9) because later phases need them.
 | 12.7 | Regional hosting and data residency | 10.3, 12.1 | ☐ |
 | 12.8 | Higher service limits as usage grows | 11.3 | ☐ |
 | 12.9 | Licensed market data (corporate credit spreads) | 4.2 | ☐ |
+| **R** | **Equity research workspace (the priority since 2026-10-12)** | | |
+| R0 | Proof before code: reader accuracy, three hand-built models, five analysts | 6.1 | ☐ |
+| R1 | Results reader | R0 | ☐ |
+| R2 | Coverage, review screen and the checked workbook | R1 | ☐ |
+| R3 | Excel add-in: sign in and import results | R2 | ☐ |
+| R4 | Model definition and the first sector model | R2 | ☐ |
+| R5 | Save back and roll forward | R3, R4 | ☐ |
+| R6 | Valuation | R4 | ☐ |
+| R7 | Second and third sector models | R4 | ☐ |
+| R8 | Report draft | R6 | ☐ |
+| R9 | Ready for the paid switch | R5 | ☐ |
+
+**Priority since 2026-10-12 (the user's decision): phase R comes before
+everything still open.** 6.1 ships first (the reader stands on it), then R0
+to R9 in number order. 6.2 to 6.4 and phases 7 to 12 wait, except the parts
+a phase R task pulls forward (each names them) and upkeep that can't wait:
+security fixes, Dependabot, a failing scheduled job or check. The order
+below is the order for the rest, once phase R is done or the user says
+otherwise.
 
 **Order:** 0.1 → 2.1 (small, do early) → 1 → 2 → 3 → 4 → 5 → 6 and 7 (any
 order) → 8 → 9 → 10 → 11 → 12. Task 3.2 can start any time; 11.1 and 11.2
@@ -212,6 +231,264 @@ any time after phase 1. Added 2026-09-24: **0.3 next** (before 2.3), then
 back to phase 2; **0.2 as soon as the domain is bought** (it jumps the queue
 then); **11.4 any time**, refreshed whenever a later task changes how the app
 is run.
+
+---
+
+## Phase R — Equity research workspace (the priority since 2026-10-12)
+
+**The product.** A ready-made workflow for an Indian equity research analyst.
+It takes the mechanical work out of starting and keeping coverage of a
+company, so the analyst supplies only judgement: the company-specific
+changes, the forward assumptions and the Buy, Hold or Sell call. **The tool
+never picks the rating.**
+
+1. The analyst brings in a company's quarterly results, often a scanned PDF.
+   The tool fills in the income statement, balance sheet, cash flow and
+   segment tables, every figure traceable to its place on the page, checked
+   (subtotals add up, the balance sheet balances), doubtful figures amber.
+2. The analyst picks a **sector model**: a pre-built, formula-wired, vetted
+   model shaped like that business, so the plumbing never has to be checked.
+   This is what sets the product apart.
+3. The analyst makes last changes for the company and types assumptions;
+   projections update at once.
+4. A discounted cash flow and a target multiple give a value per share
+   against a share price the analyst types in.
+5. The tool drafts the results summary, tables and charts, every number from
+   the model; the analyst writes the argument and picks the rating.
+6. Next quarter: new results in, model and assumptions kept, actuals shown
+   against the estimates, the model rolled forward. **This is why the analyst
+   comes back.**
+
+It lives in the existing **Equity research** workspace (7.10) and in an
+**Excel add-in** (a task pane inside Excel on Windows, Mac and the web).
+
+**What is already in place and what is new** (checked 2026-10-12):
+
+| Part | State |
+|---|---|
+| App hosts: Vercel (web), Render (API) | In place |
+| Database: Neon, free and paid on the same platform | In place |
+| File storage: Supabase Storage, private bucket, scanned uploads | In place once 6.1 merges |
+| Accounts, saved versions, limits, background jobs, audit history, Excel downloads, plan vs actual, lakh digit grouping, fiscal year labels | In place |
+| An AI key for reading documents | **New.** Nothing is set; `ml/nlp_extractor.py` is unused |
+| Money in lakhs and crores | **New.** Units today are thousands, millions, billions |
+| Quarterly figures | **New.** The forecast is yearly |
+| Indian results as a company source | **New.** 4.1's registers are the US, EU, UK and Japan |
+| Models as live Excel formulas | **New.** 7.3a planned it for deals; R4 builds it for research |
+| The Excel add-in | **New.** 7.3b planned one for deals; R3 and R5 replace it |
+
+**Rules for this phase** (beside the guiding principles):
+
+1. **A tool, not an adviser.** It never states a rating, a target it chose or
+   a recommendation; reports carry the analyst's firm and SEBI disclosures as
+   the analyst's own. A securities lawyer's view before the first outside
+   user is a "You first" in R8.
+2. **The reader ships only at a measured accuracy** (principle 5): a model
+   card on real results, and the gate that fails a PR that makes it worse.
+3. **One model definition, two renderings.** A sector model is written once
+   as data (rows and formulas in plain arithmetic); the server evaluates it
+   and the workbook holds it as Excel formulas. A test proves both give the
+   same figures, so the app, the download and the add-in can never disagree.
+4. **"Vetted" means solved by hand.** Each sector model has reference
+   companies worked by hand (as 3.4) and is read by a practising analyst
+   before it is offered. A model that is mostly right is worse than a blank
+   sheet.
+5. **New code only.** `research/` and its screens; `core/`, `lbo_engine/`
+   and `simulation/` are not touched, and the golden snapshot does not move.
+6. **Private, and public documents only on the free AI.** Coverage belongs
+   to its owner like a deal (another account's is a 404). Listed companies'
+   results are public; anything else waits for 12.4.
+7. **India first, not India only.** Currency, unit, accounting standard and
+   fiscal year are read from the document, never assumed.
+8. **Free now, paid by a switch.** Each paid step is a setting: the AI
+   provider (`AI_PROVIDER`, 12.4), always-on API (12.1; the free one takes a
+   minute to wake, which an add-in user will feel), database (12.2), storage.
+
+**What Indian results look like, to be confirmed in R0:** the income
+statement and segment table come every quarter, the balance sheet and cash
+flow only at the half year and the year end; standalone and consolidated
+figures sit side by side; amounts are in lakhs or crores; most years end in
+March; the standard is Ind AS. So the quarter-end balance check only runs
+twice a year, and the reader must never mix standalone with consolidated.
+
+**Left out at first:** banks, insurers and lenders (their statements are
+shaped differently); consensus estimates and live prices (licensed data);
+reading the history of drivers such as beds or stores from presentations
+(the analyst types it); help forming the assumptions themselves.
+
+**Decisions that are the user's** (asked 2026-10-12; a task that needs one
+stops for it):
+- which two or three sectors come first (R0, R4, R7);
+- who the five test analysts are, and which practising analyst reads each
+  sector model (R0, R4);
+- a paid AI key with a spending cap, if no free one reads accurately enough
+  (R0 decides; it would bring 12.4 forward).
+
+### R0 Proof before code
+- **Needs:** 6.1 merged.
+- **You first:** name the sectors; collect 30 real quarterly results PDFs
+  from the exchanges (at least 10 scanned, at least 5 half-year or year-end,
+  several sectors); create a free Gemini API key; find five analysts who
+  will give twenty minutes.
+- **Claude does:** a script, outside the app, that reads each PDF twice with
+  the candidate AI models and scores every figure against a truth file (the
+  exchange's own machine-readable filing where one is free to use, else
+  figures the user keys for ten of them); the count of wrong figures, of
+  wrong figures the arithmetic checks did not catch, and of amber flags; a
+  one-page sample of what the tool will produce for one company (checked
+  statements, a model, a draft note), made by hand, to show the analysts.
+- **You do:** build the first sector's model by hand in Excel for two
+  companies using only the blocks in R4; show the sample to the analysts.
+- **Done when:** the accuracy figures are written in this file; the bar is
+  **no wrong figure left unflagged across the 30, and under 2% of figures
+  amber**; a go, a change of AI provider, or a stop is recorded here with
+  what the analysts said.
+
+### R1 Results reader
+- **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
+  deal" from an information pack stays where it was.
+- **You first:** set `AI_PROVIDER` and its key on both Render services and
+  as a GitHub secret (for recording answers).
+- **Claude does:**
+  - `research/reader/` behind a provider switch; the PDF goes to the provider
+    from the API (never from the browser), as background job
+    `research.read`, only for a file 6.1 has scanned clean;
+  - first the statement pages are found, then each table read **twice**;
+    figures that differ, fail a check or sit in a poor scan are amber;
+  - every figure carries its page and position, its period column, and
+    whether it is standalone or consolidated; the unit line is read (lakhs,
+    crores) and the currency;
+  - the company's labels matched to standard lines from a fixed list, the
+    AI only for the rest, the company's own wording kept;
+  - checks: subtotals, balance sheet, cash flow against the change in cash,
+    this document's comparative columns against what is already stored;
+  - a per-user daily page limit inside the free provider's allowance;
+    nothing from a document in any log;
+  - CI and development replay recorded answers; the evaluation set is R0's
+    30 documents; a model card and the gate (5.1's harness).
+- **Done when:** the card meets R0's bar on documents the prompts were not
+  tuned on; a wrong digit planted in a recorded answer is flagged (test);
+  CI makes no AI call; the confidentiality confirmation blocks a file the
+  user does not confirm is public (e2e).
+
+### R2 Coverage, review screen and the checked workbook
+- **Claude does:**
+  - migration: covered companies and their periods (owner, quarter or year,
+    standalone or consolidated, figures, citations, the source file), sized
+    for the free database; money units **lakhs and crores** beside the
+    existing three;
+  - a **Coverage** mode in the Equity research workspace: add a company,
+    upload results, watch the read, then a review screen with the page
+    beside the figures (drawn in the browser from the stored PDF), amber
+    figures to accept or correct; **nothing is saved until accepted**;
+  - a download: the checked statements as a workbook whose subtotals are
+    formulas, with each figure's page in a note;
+  - the source page stays viewable while the file is kept (6.1's 90 days;
+    a longer life for results files is decided here against the storage
+    budget); the figures themselves stay.
+- **Done when:** a scanned results PDF becomes an accepted quarter and a
+  workbook that recalculates to the same totals (e2e on recorded answers);
+  another account cannot read it (test); a corrected figure is the one
+  stored and downloaded. **This is the first version to put in front of the
+  five analysts.**
+
+### R3 Excel add-in: sign in and import results
+- **Pulls forward:** 7.3b, for research instead of deals.
+- **Claude does:**
+  - an Office add-in whose pane is a page of the existing web app (one
+    codebase, no new host); a manifest for sideloading, with staging and
+    production variants;
+  - sign-in inside Excel through Office's dialog, proven on Windows, Mac
+    and Excel on the web; if Google refuses sign-in inside Excel's browser,
+    the pane offers email sign-in and says why;
+  - the security headers changed **only for the pane's route**: Office's
+    script host in the content security policy, and framing allowed from
+    Office's own hosts; every other page keeps today's policy (tests);
+  - **Import results**: pick a covered company and quarter, or upload a PDF
+    from the pane, and the accepted statements land as cells with R2's
+    formulas; amber figures are reviewed in the pane first.
+- **Done when:** on a sideloaded add-in, signing in and importing a recorded
+  quarter writes the same cells as R2's download (a test compares them); the
+  header scan passes on every other route; DEPLOY.md says how a tester
+  installs it.
+
+### R4 Model definition and the first sector model
+- **Needs from the user:** the first sector, and the analyst who reads it.
+- **Claude does:**
+  - the model definition format: rows, periods and formulas in plain
+    arithmetic with `max`/`min` (as the reference cases use), an evaluator
+    on the server and a writer that emits the same rows as Excel formulas
+    with named assumption cells;
+  - the revenue blocks, one per segment: price x volume; units x revenue
+    per unit; subscribers x price less churn; capacity x utilisation x
+    realisation; headcount x utilisation x billing rate; order book x
+    execution; growth on last year; and a free-formula row;
+  - the shared lower part: costs, depreciation, capex, working capital,
+    debt, interest, tax, the three statements tied together;
+  - quarterly actuals feeding a yearly forecast (the year in progress =
+    quarters reported plus the rest assumed);
+  - the first sector model, with last changes the analyst can make (add or
+    drop a segment, swap a block) without breaking a formula;
+  - screens: pick a model, type driver history and assumptions, see
+    projections; "Load model" in the add-in writes it into the workbook;
+  - two reference companies solved by hand, as 3.4.
+- **Done when:** for every model the server and the recalculated workbook
+  agree to 0.01 on every row (test, with a real spreadsheet engine in CI);
+  the hand-solved companies match; changing one assumption cell in Excel
+  moves the projection with no call to the server; the named analyst has
+  read the model and their points are fixed or recorded.
+
+### R5 Save back and roll forward
+- **Claude does:** a research model saved per company with versions (the
+  pattern of 1.5: autosave, history, restore); "Save to Variater" in the
+  add-in reads the named cells back, and refuses with a clear message if
+  the sheet's structure was changed rather than guess; on a new quarter,
+  **Roll forward**: the model and assumptions kept, the estimate made
+  before the results set beside the actuals (2.7's comparison, line by
+  line), the period moved on, in the app and in the sheet; audit entries.
+- **Done when:** an estimate saved before a quarter is shown against that
+  quarter's actuals after it, unchanged by later edits (test); a workbook
+  saved, changed in Excel and saved again returns the changed assumptions;
+  a restructured sheet is refused.
+
+### R6 Valuation
+- **Claude does:** inside the model definition, so it is formulas too: a
+  discounted cash flow (discount rate and terminal growth as assumptions,
+  with the country's risk-free rate from 4.2 offered as a starting point)
+  and a target multiple on a chosen year; net debt and share count from the
+  accepted results; the share price typed in, with its date; value per
+  share and the gap to the price. No rating.
+- **Done when:** both methods match a hand-solved case to 0.01; the workbook
+  agrees with the server; nothing on screen or in the workbook words a
+  recommendation (test over the catalogue).
+
+### R7 Second and third sector models
+- **Needs from the user:** the sectors and their readers.
+- **Claude does:** each as R4's last three bullets; what R4's format lacked
+  is added to the format, never worked around in one model.
+- **Done when:** as R4, per model.
+
+### R8 Report draft
+- **Pulls forward:** 6.3's writer and its rule, and 7.9's charts.
+- **You first:** a securities lawyer's view that the tool stays outside
+  SEBI's research analyst rules; the disclosure wording your testers use.
+- **Claude does:** a results-note template with slots: summary table,
+  actual against estimate, changes to estimates, charts, valuation; code
+  fills every number from the saved model; the AI writes linking sentences
+  only, from the figures, and a check refuses a draft holding a number the
+  model does not; the argument, the rating and the target are empty fields
+  the analyst fills; firm name and disclosures from the account; Word and
+  PDF.
+- **Done when:** a test checks every figure in a draft against its model; a
+  planted wrong number is refused; no draft contains a rating the analyst
+  did not type.
+
+### R9 Ready for the paid switch
+- **Claude does:** pages read and AI cost counted per user; the paid
+  provider's path proven on recorded answers; limits per plan as settings;
+  what a store listing of the add-in needs, written as steps for the user.
+- **Done when:** switching `AI_PROVIDER` on staging changes the provider and
+  nothing else (test); DEPLOY.md lists each paid switch and what it lifts.
 
 ---
 
