@@ -159,7 +159,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.6 | Driver explanations | 5.1 | ☑ |
 | 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☑ |
 | 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☑ |
-| 5.9 | Personalized defaults | 1.5, 5.1 | ☐ |
+| 5.9 | Personalized defaults | 1.5, 5.1 | ☑ |
 | 5.10 | Retraining models by hand (parked, not scheduled) | 5.1 | ☐ |
 | **6** | **AI features** | | |
 | 6.1 | File uploads | 1.4, 1.9 | ☐ |
@@ -1244,6 +1244,26 @@ enough for the free server.
   user's usual assumptions per region and sector; suggest them alongside
   sourced defaults; off switch.
 - **Done when:** suggestions use only that user's deals (test); off stops them.
+- **Done (2026-10-11).** `ml/personalization.py` (a local SQLite file keyed by
+  a hash of the machine, never wired in) is gone, and nothing learned is
+  stored in its place: a person's **usual figures** are worked out from their
+  own saved deals each time they are asked for (`benchmarks/usual.py`): for
+  each of the sourced starting figures' fields, the median across their deals
+  in the same S&P region and GICS sector, with how many deals that is and the
+  lowest and highest; at least three deals a figure, the deal on screen left
+  out. `db.deals.own_deal_inputs` joins the deals to the caller's own account
+  row in one statement, so no other account's deal can be in the answer
+  (`tests/test_usual.py`: two accounts' deals side by side, a new account,
+  an account with none). The off switch is `users.personalized_defaults`
+  (migration 0017; on by default) with one history entry per change
+  (`suggestions_switched`); off, the statement reads no deal and the API
+  answers nothing. `GET`/`PUT /api/account/suggestions`. Screen: Deal ->
+  Inputs, a "Your usual" column in the Starting figures tile beside the
+  sourced figures, with "Use" per figure and "Use all yours", and the switch
+  under Starting point; `/privacy` says what is kept (the choice) and what is
+  not (the suggestions). **Not a model, so no card**: it describes the
+  person's own deals and predicts nothing; the screen says exactly what it
+  is and from how many deals.
 
 ### 5.10 Retraining models by hand (parked, not scheduled)
 - **Parked by the user (2026-10-08):** "we will add this idea later". Skip it

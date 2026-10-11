@@ -1286,7 +1286,7 @@ class VersionList(BaseModel):
 AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
                       "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
                       "shared", "library_switched", "reference_proposed", "reference_reviewed",
-                      "validation_opted_in", "validation_opted_out"]
+                      "validation_opted_in", "validation_opted_out", "suggestions_switched"]
 
 
 class AuditEntry(BaseModel):
@@ -1306,7 +1306,9 @@ class AuditEntry(BaseModel):
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
     export: Optional[Literal["workbook", "simulation_sample"]] = None
-    enabled: Optional[bool] = Field(None, description="Whether the reference library was shown or hidden")
+    enabled: Optional[bool] = Field(
+        None, description="Whether the reference library was shown or hidden, or suggestions of the "
+                          "account's usual figures switched on or off")
     reference: Optional[str] = Field(None, description="The reference transaction proposed or reviewed")
     verdict: Optional[Literal["approve", "reject"]] = Field(None, description="The review given")
 
@@ -1583,6 +1585,35 @@ class StartingFigure(BaseModel):
     url: Optional[str] = None
     skipped: List[BenchmarkSkipped] = Field(description="Closer groups passed over, and why")
     detail: Dict[str, Any] = Field(description="The published figures it was worked out from")
+
+
+class UsualFigure(BaseModel):
+    field: StartingField = Field(description="The deal input this figure is for")
+    value: float = Field(description="The median across the caller's own deals in the group, as the "
+                                     "deal input reads it: per cent, a multiple or days")
+    deals: int = Field(description="How many of the caller's deals it is the median of")
+    low: float = Field(description="The lowest of them")
+    high: float = Field(description="The highest of them")
+
+
+class SuggestionsResponse(BaseModel):
+    """The caller's usual figures for a deal's region and sector (PLAN.md 5.9),
+    from their own saved deals and nobody else's."""
+    enabled: bool = Field(description="False when the caller switched suggestions off: everything else is empty")
+    status: Literal["off", "no_country", "not_enough", "ok"] = Field(
+        description="not_enough: no figure has min_deals of the caller's deals behind it")
+    region: Optional[Literal["us", "europe", "emerging", "other_developed"]] = Field(
+        None, description="S&P's region of the country asked for")
+    sector: Optional[str] = Field(None, description="The GICS sector of the industry asked for")
+    industry: Optional[str] = Field(
+        None, description="The industry itself, when it has no sector and so is a group of its own")
+    deals: int = Field(description="The caller's deals in that region and sector, the one on screen left out")
+    min_deals: int
+    figures: List[UsualFigure]
+
+
+class SuggestionsSwitch(Strict):
+    enabled: bool = Field(strict=True)
 
 
 class StartingMissing(BaseModel):
