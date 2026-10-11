@@ -48,11 +48,20 @@ KEY = re.compile(r"^u\d{1,19}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0
 
 
 class StorageError(RuntimeError):
-    """The store could not be reached, or refused the request."""
+    """The store could not be reached, or refused the request.
+
+    ``detail`` is the store's own short reason when it gave one ("Bucket not
+    found", "Invalid API key"), with this server's key removed from it. It is
+    for the staging drill's report (jobs/drill.py) and nothing else: the
+    message itself stays a fixed sentence, and neither is shown to a user."""
+
+    detail: str = ""
 
 
 class NotStored(LookupError):
     """No such object (it was never uploaded, or is already deleted)."""
+
+    detail: str = ""
 
 
 class TooLarge(ValueError):
@@ -147,12 +156,24 @@ class SupabaseFiles:
         try:
             return self._opener(request, timeout=HTTP_TIMEOUT_S)
         except urllib.error.HTTPError as exc:
+            reason = self._reason(exc)
             exc.close()
-            if exc.code in (400, 404):
-                raise NotStored(f"storage answered {exc.code}") from None
-            raise StorageError(f"storage answered {exc.code}") from None
-        except (urllib.error.URLError, TimeoutError, OSError):
-            raise StorageError("storage could not be reached") from None
+            failure = (NotStored if exc.code in (400, 404) else StorageError)(f"storage answered {exc.code}")
+            failure.detail = f"{method} {path.split('/')[1]}: {exc.code} {reason}".strip()
+            raise failure from None
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            failure = StorageError("storage could not be reached")
+            failure.detail = f"{method} {path.split('/')[1]}: {type(exc).__name__}"
+            raise failure from None
+
+    def _reason(self, exc) -> str:
+        """The store's own words for a refusal, short, and never with the key."""
+        try:
+            answer = json.loads(exc.read(2000) or b"{}")
+            words = " / ".join(str(answer[k]) for k in ("error", "message") if isinstance(answer, dict) and answer.get(k))
+        except (ValueError, OSError, AttributeError):
+            words = ""
+        return words.replace(self._key, "<key>")[:160]
 
     def _json(self, method: str, path: str, body: Optional[dict] = None):
         with self._request(method, path, body) as response:
@@ -188,8 +209,10 @@ class SupabaseFiles:
                          if k != "allowed_mime_types") or \
                         sorted(found.get("allowed_mime_types") or []) != wanted["allowed_mime_types"]:
                     self._json("PUT", f"/bucket/{self.bucket}", wanted)
-            except NotStored:
-                raise StorageError("the uploads bucket could not be made") from None
+            except NotStored as exc:
+                failure = StorageError("the uploads bucket could not be made")
+                failure.detail = getattr(exc, "detail", "")
+                raise failure from None
             self._ensured = True
 
     def put(self, key: str, source: Path, content_type: str) -> None:
@@ -203,8 +226,10 @@ class SupabaseFiles:
                         "Content-Type": content_type, "Content-Length": str(size),
                         "x-upsert": "false"}) as response:
                     response.read()
-            except NotStored:
-                raise StorageError("the file could not be stored") from None
+            except NotStored as exc:
+                failure = StorageError("the file could not be stored")
+                failure.detail = getattr(exc, "detail", "")
+                raise failure from None
 
     def download_url(self, key: str, filename: str, expires_s: int) -> str:
         signed = self._json("POST", f"/object/sign/{self.bucket}/{_checked(key)}",

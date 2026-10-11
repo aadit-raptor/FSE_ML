@@ -212,7 +212,8 @@ def live_problems(found: dict) -> list[str]:
     if str(found.get("files_scanner", "ok")) != "ok":
         out.append(f"the upload scanner does not work on this server: {found['files_scanner']}")
     if str(found.get("files_drill", "none")) not in ("ok", "none"):
-        out.append(f"the file store drill {found['files_drill']} ({found.get('files_drill_error')})")
+        out.append(f"the file store drill {found['files_drill']} ({found.get('files_drill_error')}"
+                   f"{': ' + str(found['files_drill_detail']) if found.get('files_drill_detail') else ''})")
     return out
 
 
