@@ -24,7 +24,10 @@ REGISTRY = ROOT / "ml" / "registry.json"
 CARD_FORMAT = 1
 
 REGION_NAMES = {"us": "United States", "europe": "Europe", "emerging": "Emerging markets",
-                "other_developed": "Other developed"}
+                "other_developed": "Other developed",
+                # The economic regime's own regions (ml/macro_regime.py)
+                "eurozone": "Euro area", "uk": "United Kingdom", "japan": "Japan", "china": "China",
+                "india": "India", "global": "World"}
 VERDICT_TEXT = {"beats_baseline": "beats the baseline", "does_not_beat_baseline": "does not beat the baseline",
                 "not_enough_data": "not enough data"}
 
@@ -125,6 +128,7 @@ def render(card: Mapping) -> str:
         f"- **Headline:** `{ev['headline_metric']}` on the `{ev['headline_set']}` set. A group "
         f"\"beats the baseline\" only when the model is strictly better there; under "
         f"{card['min_cases']} cases it has \"not enough data\" and the app should show no estimate.",
+        f"- **Regions:** {ev['regions_note']}." if ev.get("regions_note") else
         "- **Regions:** S&P's (the validation report's): United States, Europe, emerging markets, "
         "other developed.",
         "",

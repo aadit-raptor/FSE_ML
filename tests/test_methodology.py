@@ -34,7 +34,7 @@ EXTRA_MODULES = (
     "ml/growth_calibrator.py",       # growth calibrator (PLAN.md 5.5)
     "ml/surrogate/predict.py",       # Live sliders
     "ml/surrogate/generate_data.py",
-    "ml/macro_regime.py",            # macro regime
+    "ml/macro_regime.py",            # economic regime by region (PLAN.md 5.7)
     "ml/edgar_extractor.py",         # SEC EDGAR figures
     "benchmarks/starting.py",        # a new deal's starting figures
     "benchmarks/risk.py",            # the sourced Monte Carlo ranges (PLAN.md 4.4)
@@ -52,6 +52,7 @@ EXTRA_MODULES = (
     "ml/evaluation/distress.py",     # the distress predictor's
     "ml/evaluation/multiples.py",    # the multiple predictor's
     "ml/evaluation/growth.py",       # the growth calibrator's
+    "ml/evaluation/regime.py",       # the economic regime's
     "ml/evaluation/surrogate.py",    # and the live sliders'
 )
 # Only object plumbing: they validate or expand inputs, never compute a figure.

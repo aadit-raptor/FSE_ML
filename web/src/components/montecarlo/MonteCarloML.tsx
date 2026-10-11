@@ -14,7 +14,7 @@ import { api, type Schemas } from "@/lib/api/client";
 import { useCapabilities } from "@/lib/capabilities";
 import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
 
-import { SCENARIOS, type Scenario, useMonteCarlo } from "./MonteCarloProvider";
+import { useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen } from "./MonteCarloScreen";
 
 type Sliders = Schemas["SurrogateSliders"];
@@ -210,71 +210,5 @@ function RangeBand({ p, hurdle }: { p: Record<string, number | null>; hurdle: nu
         {t("markerHurdle", { value: fmtRate(hurdle, 0) })}
       </text>
     </svg>
-  );
-}
-
-type Regime = { regime: Scenario; confidence: number; data_as_of: string; label_probabilities: Record<string, number> };
-
-/** Current macro regime from FRED data, with a shortcut to that scenario preset. */
-export function MacroRegime() {
-  const caps = useCapabilities();
-  const { setScenario } = useMonteCarlo();
-  const t = useTranslations("montecarlo");
-  const [regime, setRegime] = useState<Regime | null>(null);
-  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
-  const [error, setError] = useState<string>();
-  if (!caps?.macro_regime_installed) return null;
-  if (!caps.macro_regime_trained) {
-    return (
-      <Tile span={12} title={t("tileMacroRegime")} unit={t("macroSource")}>
-        <p className="type-body">{t.rich("macroUntrained", { code: (chunks) => <code>{chunks}</code> })}</p>
-      </Tile>
-    );
-  }
-  const preset = SCENARIOS.find((s) => s.id === regime?.regime);
-  const label = preset ? t(preset.labelKey) : undefined;
-  return (
-    <Tile span={12} title={t("tileMacroRegime")} unit={t("macroUnit")}>
-      <div className="flex flex-wrap items-center gap-4">
-        <SecondaryButton
-          disabled={state === "loading"}
-          onClick={async () => {
-            setState("loading");
-            const { data, error: err } = await api.POST("/api/ml/macro-regime");
-            if (data) {
-              setRegime(data as Regime);
-              setState("idle");
-            } else {
-              setError(String((err as unknown as { detail?: unknown } | undefined)?.detail ?? t("macroFailed")));
-              setState("error");
-            }
-          }}
-        >
-          {state === "loading" ? t("macroClassifying") : t("macroDetect")}
-        </SecondaryButton>
-        {regime && (
-          <>
-            <span className="font-mono text-[11.5px] text-ink">
-              <b className="text-bright">{label ?? regime.regime}</b> ·{" "}
-              {t("macroConfidence", { confidence: fmtRate(regime.confidence, 0), asOf: regime.data_as_of })}
-            </span>
-            <span className="font-mono text-[10.5px] text-muted">
-              {Object.entries(regime.label_probabilities)
-                .map(([k, v]) => t("macroProbability", { label: k, share: fmtRate(v, 0) }))
-                .join(" · ")}
-            </span>
-            {label && (
-              <SecondaryButton
-                // Marks Monte Carlo out of date; the bar above reruns it
-                onClick={() => setScenario(regime.regime)}
-              >
-                {t("macroUsePreset", { label })}
-              </SecondaryButton>
-            )}
-          </>
-        )}
-        {state === "error" && <span className="font-mono text-[10.5px] text-loss">{error}</span>}
-      </div>
-    </Tile>
   );
 }

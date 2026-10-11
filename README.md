@@ -68,7 +68,6 @@ The app runs without it; each feature appears only when the API can run it.
 | Feature | Where | Enable |
 |---|---|---|
 | Live IRR sliders (surrogate network) | Monte Carlo → Live | `pip install -r requirements-ml.txt` (model files are committed); retrain with `python -m ml.surrogate.generate_data && python -m ml.surrogate.train` after changing the simulation engine or its default fees |
-| Macro regime detection | Monte Carlo → Scenarios | as above, set `FRED_API_KEY`, then `python -m ml.macro_regime` |
 
 The surrogate is trained on a fixed deal (10x entry, 5-year hold, default fees
 and operating terms — see `TRAINING_FIXED` in `ml/surrogate/generate_data.py`);

@@ -33,7 +33,7 @@ talks to the production API: `web/next.config.ts` picks the API by
 | `FSE_API_URL` | Vercel (Production scope) | `https://api.variater.com` (required; the build fails without it) | ignored on previews | default `http://127.0.0.1:8000` |
 | `FSE_STAGING_API_URL` | Vercel (Preview scope), optional | — | default `https://fse-api-staging.onrender.com` | — |
 | `FSE_CORS_ORIGINS` | Render service, optional | default `https://variater.com`; replaces it when set | default none (previews use the proxy) | default `http://localhost:3000` |
-| `FRED_API_KEY` | both Render services, and a GitHub Actions secret (`record-economy.yml`) | set: SOFR, SONIA and the US 10-year yield (PLAN.md 4.2; also macro regime in the ML image) | set | `.env`, optional |
+| `FRED_API_KEY` | both Render services, and a GitHub Actions secret (`record-economy.yml`) | set: SOFR, SONIA and the US 10-year yield (PLAN.md 4.2) | set | `.env`, optional |
 | `FSE_ENV` | Render service, optional | derived: `production` | derived from the `-staging` service name | `local` |
 | `RENDER_GIT_COMMIT`, `RENDER_SERVICE_NAME` | set by Render automatically | | | unset |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | GitHub Actions secret | — | lets `staging.yml` open the protected preview | — |
@@ -90,13 +90,13 @@ says "starting up, retrying" meanwhile. Change `plan: free` to `starter` for an
 always-on instance. Monte Carlo runs are CPU-bound, so a paid instance is also
 noticeably faster.
 
-**ML features** (deal risk score, Live sliders, macro regime) are off in the
+**ML features** (the Live sliders) are off in the
 default image. To enable them, add a build argument `INSTALL_ML=true` in the
 service's settings (Render: *Settings → Build → Docker build arguments*). The
 image grows by about 1 GB and torch needs more than the free plan's 512 MB of
 RAM. Screens hide these features automatically when the API can't run them.
-Macro regime also needs `FRED_API_KEY` set on the service and the model
-trained (`python -m ml.macro_regime`).
+The deal risk score, the distress, multiple and growth models and the
+economic regime need no ML packages: they run in the default image.
 
 ## 2. Web app on Vercel
 
@@ -614,7 +614,7 @@ GitHub Actions is the scheduler (`scheduled.yml`, nightly at 04:10 UTC, and
 |---|---|---|
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/job-maintenance`: requeues or fails jobs whose runner went silent, applies retention | `job-maintenance` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/company-refresh`, repeated while it says `more`: EDINET's day lists into the report index, stale companies reloaded, the company data kept inside its budget (see "Company filings") | `company-refresh` |
-| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/economy-refresh`: every economic data source read once, the ECB's exchange rates since the last stored day; fails when fewer than 20 economies are current or the FRED key is refused (see "Economic data") | `economy-refresh` |
+| `api-tasks` (production and staging) | `POST /api/scheduled/tasks/economy-refresh`: every economic data source read once, the ECB's exchange rates since the last stored day; fails when fewer than 20 economies are current or the FRED key is refused. Then the economic regimes' monthly refit (PLAN.md 5.7): the first run of a calendar month reads the IMF's growth and inflation for the seven regions (two calls) and refits their cut-offs, the other nights answer what is stored; figures that leave a region without a regime are not stored and fail the run, and a failed read keeps the stored fit and is tried again the next night (`regime_*` in the run's summary; the task `regime-refresh` runs the refit alone) (see "Economic data") | `economy-refresh` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/benchmarks-refresh`: Damodaran's 41 industry-average workbooks read again once the stored ones are a week old, and the archive history a dozen files a call (`--repeat 24`); fails when a table is still missing (see "Industry averages") | `benchmarks-refresh` |
 | `api-tasks` (production and staging) | `POST /api/scheduled/tasks/validation-report`: the model validation report (PLAN.md 4.6) from the approved reference transactions and opted-in deals with an exit, kept 30 nights; staging requires all three checks and four splits after each deploy | `validation-report` |
 | `supabase-keepalive` | Lists the backup bucket, so the free Supabase project never pauses for inactivity | `supabase-keepalive` |

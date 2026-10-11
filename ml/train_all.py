@@ -21,6 +21,8 @@ def main():
 
     # Driver explanations (PLAN.md 5.6) rerun the simulation itself: nothing to train
 
+    # The economic regime (PLAN.md 5.7) refits its cut-offs monthly from IMF figures: nothing to train
+
     # Priority 1: Surrogate model (~30 minutes)
     print("\n[1/1] Generating surrogate training data and training (~30 minutes)...")
     from ml.surrogate.generate_data import generate
@@ -28,17 +30,6 @@ def main():
     from ml.surrogate.train import train
     train()
     print("✓ Surrogate model ready")
-
-    # Optional: Macro regime (requires FRED API key)
-    fred_key = os.environ.get('FRED_API_KEY')
-    if fred_key:
-        print("\n[OPTIONAL] Training macro regime classifier...")
-        from ml.macro_regime import fetch_fred_data, train_regime_model
-        df = fetch_fred_data()
-        train_regime_model(df)
-        print("✓ Macro regime model ready")
-    else:
-        print("\n[OPTIONAL] Skipping macro regime (set FRED_API_KEY to enable)")
 
     print("\n" + "="*60)
     print("ALL MODELS TRAINED SUCCESSFULLY")

@@ -1032,12 +1032,39 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   and `training_term_differences` list where the user's deal differs from that
   training deal (`tax_rules_on` counts the tax rules), and `tail_unreliable`
   flags a predicted wipeout of `TAIL_UNRELIABLE_WIPEOUT` or more.
-- **Macro regime** ([ml/macro_regime.py](../ml/macro_regime.py),
-  `get_current_regime`). A four-state Gaussian hidden Markov model over US
-  FRED series (`fetch_fred_data`, `train_regime_model`; `model_is_trained`).
-  It reports the latest month's regime, its probability and each regime's
-  average departure in GDP growth, inflation, credit spread and rates. US data
-  only; PLAN.md 4.2 and 5.7 replace it.
+- **Economic regime by region** ([ml/macro_regime.py](../ml/macro_regime.py),
+  `current`; PLAN.md 5.7). Which scenario preset a region's year looks like:
+  recession, stagflation, bull or base, for the United States, the euro area,
+  the United Kingdom, Japan, China, India and the world (`REGIONS`;
+  `region_of` gives a deal's country its own region, a euro member the euro
+  area's, any other country the world's). Nothing is trained. `read` takes
+  real GDP growth and consumer price inflation by year from the IMF World
+  Economic Outlook since `FIRST_YEAR` (the euro area and the world are the
+  IMF's own aggregates). A year is measured as its `gap`: growth and
+  inflation less the **median** of the region's previous `TRAIL` years
+  (`norm`), so a falling trend (China's growth, India's inflation) or one
+  crash and its rebound do not decide the answer. `thresholds` takes the
+  gaps of the years before the one named and `cutoff` the edge of each
+  `SHARE` of them; `name` says recession for a growth gap at or below the
+  weak edge, else stagflation for an inflation gap at or above the high edge,
+  else bull for a growth gap at or above the strong edge, else base. `call`
+  is one year's regime with its figures, its norm, its gaps and the cut-offs,
+  on at least `MIN_YEARS` earlier gaps. `regime_year` picks the year: the
+  current one when the figures were read from May (the IMF's April
+  projection for the year under way), last year's before. `fit` is what the
+  monthly `refresh` stores (run by the nightly `economy-refresh` task: the first
+  run of a calendar month reads again and refits; `summary` is its flat
+  report), with the `RECENT` years before it, each called on the cut-offs of
+  its own past. A regime is shown only where the card's verdict for the
+  region is "beats the baseline" (`card_result`, read from `_card`: the
+  spring set for a projection, the autumn set for last year's estimate) and the
+  stored fit is at most `MAX_AGE_DAYS` old (`_hidden`). Worked figures
+  (India, read 11 October 2026): 2026 growth 6.5% and inflation 4.7% against
+  medians of 7.6% and 5.4% for 2021-2025, gaps of -1.1 and -0.7 points,
+  inside India's cut-offs: base. The Monte Carlo correlations are not this
+  module's: they are measured on yearly changes of the same IMF series, the
+  BIS's policy rates and Damodaran's archive (`correlations`, above), and
+  the US-only FRED correlation updater that was never wired in is removed.
 - **SEC EDGAR figures** ([ml/edgar_extractor.py](../ml/edgar_extractor.py),
   `fetch_financials`; `_get_cik_from_ticker` finds the filer). `_source`
   chooses US GAAP from a 10-K in US dollars when the filer has one, else IFRS
@@ -1321,6 +1348,7 @@ after their fifth year, so count as none.
 [ml/evaluation/distress.py](../ml/evaluation/distress.py),
 [ml/evaluation/multiples.py](../ml/evaluation/multiples.py),
 [ml/evaluation/growth.py](../ml/evaluation/growth.py),
+[ml/evaluation/regime.py](../ml/evaluation/regime.py),
 [ml/evaluation/surrogate.py](../ml/evaluation/surrogate.py). Tests:
 [tests/test_ml_evaluation.py](../tests/test_ml_evaluation.py),
 [tests/test_model_cards.py](../tests/test_model_cards.py). PLAN.md 5.1: every
@@ -1421,6 +1449,23 @@ against 88.9; every region beats the baseline (inside: US 77%, Europe 83%,
 emerging 78%, other developed 74%), so the range is offered everywhere a
 region has enough companies.
 
+**Economic regime** (`ml.evaluation.regime`). Cases (`scored`, on the
+figures `load` and `series` read): one per region and year from
+`FIRST_TEST` = 2000, for each of the IMF's two reports a year, from its
+World Economic Outlook historical forecasts database. The call is `call`
+on the figure the report gave for its own year, with cut-offs and the
+previous-five-year median from the region's earlier years; the truth is the
+same rule on the year's figures as the IMF gives them today, so the only
+difference between them is the projection. Baseline: "the same as last
+year", last year's regime from the same report's estimate of it. The
+**spring** set (April's projection, the earliest figure the app names a
+year from) is the headline and the gate; the **autumn** set is October's.
+Statistics: `accuracy` (the share of years named right, the headline) and
+`turn_accuracy` (the same over the years that were not base). Worked: 153
+region-years, 2000-2022; spring 75% right against 52% for the baseline,
+autumn 84% against 50%; every region beats the baseline in both sets, so
+each region's regime is shown.
+
 **Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
 deals, each economy the app covers with ten industries, whose inputs are
 what "Use sourced figures" gives (§9's sourced ranges, §14's starting
@@ -1479,6 +1524,12 @@ The values quoted in this document, checked against the code by
 | `api.limits.EXPLAIN_RUN_LIMIT_S` | 20 | a Monte Carlo run slower than this (seconds) is not explained |
 | `analytics.driver_attribution.TAIL_SHARE` | 0.05 | the share of paths in each explained tail |
 | `analytics.driver_attribution.MAX_TAIL_PATHS` | 2500 | most paths explained in a tail |
+| `ml.macro_regime.FIRST_YEAR` | 1980 | first year of the IMF's figures an economic regime reads |
+| `ml.macro_regime.TRAIL` | 5 | years before a year whose median its growth and inflation are measured against |
+| `ml.macro_regime.SHARE` | 0.2 | the share of a region's earlier years each regime's cut-off takes |
+| `ml.macro_regime.MIN_YEARS` | 10 | earlier years with a gap the cut-offs need |
+| `ml.macro_regime.SAME_YEAR_FROM_MONTH` | 5 | the month from which the current year is named (the IMF's April figures are in) |
+| `ml.macro_regime.MAX_AGE_DAYS` | 100 | a stored fit older than this is not shown |
 | `api.limits.MAX_FORECAST_PATHS` | 200000 | most forecast simulation paths |
 | `ml.edgar_extractor._FIRST_WEEK` | 7 | a year ending on or before this day counts as the month before |
 

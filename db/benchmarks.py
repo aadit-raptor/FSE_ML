@@ -44,6 +44,9 @@ def save(tables: list[Table], now: Optional[datetime] = None) -> int:
 
 
 HISTORY_PREFIX = "history."
+# Tables kept here that are not industry averages: read by name (``table``),
+# never part of ``all_tables`` (the economic regimes' fit, ml/macro_regime.py)
+SIDE_PREFIX = "regime."
 
 
 def all_tables(history: bool = False, history_groups: Optional[Iterable[str]] = None
@@ -53,7 +56,7 @@ def all_tables(history: bool = False, history_groups: Optional[Iterable[str]] = 
     The history tables (``history.*``) only when asked for: they are the
     larger ones, and only the risk ranges and the multiple predictor read
     them; ``history_groups`` reads only those groups' ``history.<group>``."""
-    query = select(BenchmarkTable)
+    query = select(BenchmarkTable).where(~BenchmarkTable.name.startswith(SIDE_PREFIX))
     if history_groups is not None:
         wanted = [f"{HISTORY_PREFIX}{g}" for g in history_groups]
         query = query.where(~BenchmarkTable.name.startswith(HISTORY_PREFIX) | BenchmarkTable.name.in_(wanted))
@@ -66,13 +69,21 @@ def all_tables(history: bool = False, history_groups: Optional[Iterable[str]] = 
     return tables, min(current, default=None)
 
 
+def table(name: str) -> Optional[Table]:
+    """One stored table by name, or None."""
+    with connect() as conn:
+        r = conn.execute(select(BenchmarkTable).where(BenchmarkTable.name == name)).one_or_none()
+    return None if r is None else Table(r.name, r.published, r.url, dict(r.rows))
+
+
 def usage_on(conn) -> dict:
     """Bytes the tables take against their budget, on an open connection
     (the database health check's)."""
     sql = text("SELECT COALESCE(SUM(pg_total_relation_size(to_regclass(t))), 0) FROM unnest(CAST(:tables AS text[])) AS t")
     used = int(conn.execute(sql, {"tables": list(TABLES)}).scalar_one())
     history = BenchmarkTable.name.startswith(HISTORY_PREFIX)
-    count = conn.execute(select(func.count()).select_from(BenchmarkTable).where(~history)).scalar_one()
+    count = conn.execute(select(func.count()).select_from(BenchmarkTable).where(
+        ~history & ~BenchmarkTable.name.startswith(SIDE_PREFIX))).scalar_one()
     kept = conn.execute(select(func.count()).select_from(BenchmarkTable).where(history)).scalar_one()
     return {"bytes": used, "budget_bytes": BUDGET_BYTES, "tables": count, "history_tables": kept,
             "warning": used >= BUDGET_WARN_FRACTION * BUDGET_BYTES}

@@ -1117,8 +1117,6 @@ class Capabilities(BaseModel):
     anomaly_detector: bool = Field(description="The deal risk score (ml/anomaly_detector.py): always true "
                                                "since PLAN.md 5.2, which needs no ML packages")
     surrogate: bool
-    macro_regime_installed: bool
-    macro_regime_trained: bool
     edgar: bool
 
 
@@ -2427,4 +2425,87 @@ class GrowthResponse(BaseModel):
     data_written_on: date
     sources: Dict[str, GrowthSource]
     notes: List[Literal["listed_companies", "survivors_only", "acquisitions_included", "size_floor"]]
+    model: ModelStamp
+
+
+# ---------------------------------------------------------------------------
+# Economic regime by region (PLAN.md 5.7)
+# ---------------------------------------------------------------------------
+RegimeRegion = Literal["us", "eurozone", "uk", "japan", "china", "india", "global"]
+RegimeName = Literal["recession", "stagflation", "bull", "base"]
+RegimeHidden = Literal["does_not_beat_baseline", "not_enough_data", "stale"]
+
+
+class RegimeRequest(Strict):
+    country: str = Field("", max_length=2, description="The deal's country (ISO 3166 alpha-2); empty for the world")
+
+
+class RegimeYear(BaseModel):
+    year: int
+    regime: RegimeName
+
+
+class RegimeFit(BaseModel):
+    regime: RegimeName = Field(description="The scenario preset the year looks like")
+    year: int = Field(description="The year the regime describes")
+    basis: Literal["projection", "estimate"] = Field(
+        description="projection: the IMF's figure for the year under way; estimate: its figure for the year just "
+                    "ended, read before its April report")
+    growth: float = Field(description="Real GDP growth in the year, %")
+    inflation: float = Field(description="Consumer price inflation in the year, %")
+    growth_norm: float = Field(description="Median growth of the years before it (``trail`` of them), %")
+    inflation_norm: float
+    growth_gap: float = Field(description="growth less growth_norm, points")
+    inflation_gap: float
+    weak_growth: float = Field(description="A growth gap at or below this is a recession, points")
+    strong_growth: float = Field(description="A growth gap at or above this is a bull year, points")
+    high_inflation: float = Field(description="An inflation gap at or above this is stagflation, points")
+    history_years: int = Field(description="Earlier years the cut-offs were fitted on")
+    first_year: int = Field(description="The first year of figures for the region")
+    recent: List[RegimeYear] = Field(description="The years before it, each on the cut-offs of its own past")
+
+
+class RegimeRegionRow(BaseModel):
+    region: RegimeRegion
+    shown: bool
+    hidden: Optional[RegimeHidden] = None
+    regime: Optional[RegimeName] = Field(None, description="Only when shown")
+    year: Optional[int] = None
+    basis: Optional[Literal["projection", "estimate"]] = None
+
+
+class RegimeCardResult(BaseModel):
+    region: RegimeRegion
+    set: Literal["spring", "autumn"] = Field(description="The card's set that tests the figure shown: April's "
+                                                         "projection, or October's for a year just ended")
+    verdict: Verdict = Field(description="The card's verdict in the region (docs/model-cards/regime.md)")
+    cases: int = Field(description="Years the card tested in the region")
+    model: Optional[float] = Field(None, description="Share of those years named right from the IMF's "
+                                                     "projection in that report")
+    baseline: Optional[float] = Field(None, description="The same for \"the same as last year\"")
+
+
+class RegimeSource(BaseModel):
+    publisher: str
+    url: str
+
+
+class RegimeResponse(BaseModel):
+    status: Literal["ok", "no_data"] = Field(description="no_data: no fit stored yet (the monthly regime-refresh "
+                                                         "has not run, or there is no database)")
+    country: str
+    region: RegimeRegion = Field(description="The region whose regime the country is shown")
+    own_region: bool = Field(description="False when the world stands in for a country with no region of its own")
+    shown: bool
+    hidden: Optional[RegimeHidden] = None
+    regime: Optional[RegimeFit] = Field(None, description="Only when shown")
+    regions: List[RegimeRegionRow] = Field(description="Every region's regime and the year it describes")
+    card: RegimeCardResult
+    read_on: Optional[date] = Field(None, description="The day the figures were read and the cut-offs refitted")
+    trail: int = Field(description="Years before a year its figures are measured against")
+    share: float = Field(description="The share of a region's earlier years each regime's cut-off takes")
+    first_year: int
+    max_age_days: int = Field(description="A fit older than this is not shown")
+    sources: Dict[str, RegimeSource]
+    notes: List[Literal["own_history", "imf_projection", "annual", "no_markets"]]
     model: ModelStamp

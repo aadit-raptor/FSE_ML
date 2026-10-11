@@ -282,8 +282,7 @@ def test_backtesting_requires_actuals_for_every_year():
 # ---------------------------------------------------------------------------
 def test_capabilities():
     body = ok(client.get("/api/capabilities"))
-    assert set(body) == {"anomaly_detector", "surrogate", "macro_regime_installed",
-                         "macro_regime_trained", "edgar"}
+    assert set(body) == {"anomaly_detector", "surrogate", "edgar"}
 
 
 def test_deal_risk_needs_no_ml_packages():
@@ -352,12 +351,11 @@ def test_surrogate_tail_threshold():
     assert tail_unreliable(0.02) and not tail_unreliable(0.0199)
 
 
-def test_macro_regime_unavailable_is_a_clean_503():
-    caps = ok(client.get("/api/capabilities"))
-    if caps["macro_regime_trained"]:
-        pytest.skip("regime model is trained here; this checks the unavailable path")
-    r = client.post("/api/ml/macro-regime")
-    assert r.status_code == 503 and "unavailable" in r.json()["detail"]
+def test_macro_regime_needs_no_ml_packages_and_says_when_nothing_is_stored():
+    """The economic regime reads the monthly fit from storage (PLAN.md 5.7);
+    tests/test_macro_regime.py checks its answers on the recorded figures."""
+    body = ok(client.post("/api/ml/macro-regime", json={"country": "IN"}))
+    assert body["status"] == "no_data" and body["region"] == "india" and body["regime"] is None
 
 
 def test_edgar_maps_filings_to_forecast_history(monkeypatch):

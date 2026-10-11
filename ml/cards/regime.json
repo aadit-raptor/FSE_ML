@@ -1,0 +1,289 @@
+{
+ "estimates": "Which scenario preset a region's year looks like -- recession, stagflation, bull or base -- from its real GDP growth and inflation against the median of its own previous five years",
+ "evaluation": {
+  "baseline": {
+   "description": "The same regime as last year, from the same report's estimate of last year",
+   "id": "last_year"
+  },
+  "data": {
+   "first_year": 1980,
+   "min_years": 10,
+   "share": 0.2,
+   "trail": 5,
+   "written_on": "2026-10-11"
+  },
+  "headline_metric": "accuracy",
+  "headline_set": "spring",
+  "metrics": [
+   {
+    "better": "higher",
+    "description": "Share of years whose regime was named as the year's final figures give it",
+    "id": "accuracy",
+    "tolerance": 0.02
+   },
+   {
+    "better": "higher",
+    "description": "The same share over the years that turned out a recession, stagflation or bull year",
+    "id": "turn_accuracy",
+    "tolerance": 0.05
+   }
+  ],
+  "regions_note": "the seven the regime is given for: United States, euro area, United Kingdom, Japan, China, India and the world",
+  "sets": {
+   "autumn": {
+    "by_region": {
+     "china": {
+      "baseline": {
+       "accuracy": 0.7391,
+       "turn_accuracy": 0.0
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.8261,
+       "turn_accuracy": 0.3333
+      },
+      "verdict": "beats_baseline"
+     },
+     "eurozone": {
+      "baseline": {
+       "accuracy": 0.3333,
+       "turn_accuracy": 0.3
+      },
+      "cases": 15,
+      "model": {
+       "accuracy": 0.9333,
+       "turn_accuracy": 0.9
+      },
+      "verdict": "beats_baseline"
+     },
+     "global": {
+      "baseline": {
+       "accuracy": 0.4348,
+       "turn_accuracy": 0.2
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.9565,
+       "turn_accuracy": 0.9
+      },
+      "verdict": "beats_baseline"
+     },
+     "india": {
+      "baseline": {
+       "accuracy": 0.4783,
+       "turn_accuracy": 0.3636
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.6522,
+       "turn_accuracy": 0.4545
+      },
+      "verdict": "beats_baseline"
+     },
+     "japan": {
+      "baseline": {
+       "accuracy": 0.5652,
+       "turn_accuracy": 0.3636
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.8261,
+       "turn_accuracy": 0.7273
+      },
+      "verdict": "beats_baseline"
+     },
+     "uk": {
+      "baseline": {
+       "accuracy": 0.5217,
+       "turn_accuracy": 0.3846
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.8696,
+       "turn_accuracy": 0.9231
+      },
+      "verdict": "beats_baseline"
+     },
+     "us": {
+      "baseline": {
+       "accuracy": 0.3913,
+       "turn_accuracy": 0.3333
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.8261,
+       "turn_accuracy": 0.75
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "The October report's projection for its own year (153 region-years, 2000-2022)",
+    "overall": {
+     "baseline": {
+      "accuracy": 0.5033,
+      "turn_accuracy": 0.3014
+     },
+     "cases": 153,
+     "model": {
+      "accuracy": 0.8366,
+      "turn_accuracy": 0.7397
+     },
+     "verdict": "beats_baseline"
+    }
+   },
+   "spring": {
+    "by_region": {
+     "china": {
+      "baseline": {
+       "accuracy": 0.7391,
+       "turn_accuracy": 0.0
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.7826,
+       "turn_accuracy": 0.3333
+      },
+      "verdict": "beats_baseline"
+     },
+     "eurozone": {
+      "baseline": {
+       "accuracy": 0.3333,
+       "turn_accuracy": 0.3
+      },
+      "cases": 15,
+      "model": {
+       "accuracy": 0.8667,
+       "turn_accuracy": 0.8
+      },
+      "verdict": "beats_baseline"
+     },
+     "global": {
+      "baseline": {
+       "accuracy": 0.4348,
+       "turn_accuracy": 0.2
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.7826,
+       "turn_accuracy": 0.5
+      },
+      "verdict": "beats_baseline"
+     },
+     "india": {
+      "baseline": {
+       "accuracy": 0.4783,
+       "turn_accuracy": 0.3636
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.6087,
+       "turn_accuracy": 0.2727
+      },
+      "verdict": "beats_baseline"
+     },
+     "japan": {
+      "baseline": {
+       "accuracy": 0.5652,
+       "turn_accuracy": 0.3636
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.7826,
+       "turn_accuracy": 0.6364
+      },
+      "verdict": "beats_baseline"
+     },
+     "uk": {
+      "baseline": {
+       "accuracy": 0.5217,
+       "turn_accuracy": 0.3846
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.6957,
+       "turn_accuracy": 0.6923
+      },
+      "verdict": "beats_baseline"
+     },
+     "us": {
+      "baseline": {
+       "accuracy": 0.4783,
+       "turn_accuracy": 0.3333
+      },
+      "cases": 23,
+      "model": {
+       "accuracy": 0.7391,
+       "turn_accuracy": 0.75
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "The April report's projection for its own year (153 region-years, 2000-2022)",
+    "overall": {
+     "baseline": {
+      "accuracy": 0.5163,
+      "turn_accuracy": 0.3014
+     },
+     "cases": 153,
+     "model": {
+      "accuracy": 0.7451,
+      "turn_accuracy": 0.589
+     },
+     "verdict": "beats_baseline"
+    }
+   }
+  },
+  "split": {
+   "cutoffs": [
+    2000,
+    2001,
+    2002,
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022
+   ],
+   "dated_by": "the year named; its cut-offs come from the region's earlier years and its figure from the IMF's report of that year",
+   "kind": "walk_forward"
+  }
+ },
+ "format": 1,
+ "id": "regime",
+ "limitations": [
+  "The IMF's historical forecasts file ends with its 2022 reports, so later years are not tested until the IMF extends it.",
+  "Earlier years' figures are today's, not those known at the time: revisions since then reach a tested year's cut-offs and its previous-five-year median.",
+  "One regime a year from two figures: no quarterly turning points, no markets, no credit conditions. A downturn that starts late in a year shows the year after.",
+  "A fifth of a region's years is a recession by construction: the word means weak against its own record, not two quarters of falling output.",
+  "India's figures are for fiscal years starting in April, which the IMF files under the calendar year they start in.",
+  "The euro area and the world are the IMF's own aggregates, as composed at each report; the euro area's start in 1992, so its first tested year is later than the others'.",
+  "A deal outside the six economies and the euro area is shown the world's regime, which may differ from its own country's."
+ ],
+ "min_cases": 5,
+ "module": "ml/macro_regime.py",
+ "name": "Economic regime by region",
+ "registry": {
+  "artifacts": []
+ },
+ "training": {
+  "command": null,
+  "data": "Nothing is trained: each region's cut-offs are the weakest and strongest fifth of its own earlier years' growth gaps and the highest fifth of its inflation gaps (IMF World Economic Outlook since 1980), refitted on the first scheduled run of each month (GitHub Actions' nightly economy-refresh task); this card's reports are in ml/evaluation/data/regime_history.json (python -m tests.ml_regime_history)",
+  "deterministic": true
+ },
+ "used_by": "Monte Carlo -> Scenarios, \"Economic regime\" (POST /api/ml/macro-regime); a region's regime is shown only where this card says it beats the baseline"
+}

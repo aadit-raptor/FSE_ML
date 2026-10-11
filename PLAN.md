@@ -157,7 +157,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.4 | Multiple predictor by region | 5.1, 4.3 | ☑ |
 | 5.5 | Growth calibrator by region | 5.1, 4.3 | ☑ |
 | 5.6 | Driver explanations | 5.1 | ☑ |
-| 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☐ |
+| 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☑ |
 | 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☐ |
 | 5.9 | Personalized defaults | 1.5, 5.1 | ☐ |
 | 5.10 | Retraining models by hand (parked, not scheduled) | 5.1 | ☐ |
@@ -1180,6 +1180,28 @@ enough for the free server.
   the same data.
 - **Done when:** each region shows a dated regime; an India deal shows India's
   regime (test).
+- **Done (2026-10-11):** `ml/macro_regime.py` names each region's year a
+  recession, stagflation, bull or base year from the IMF World Economic
+  Outlook's growth and inflation (4.2's source; the euro area and the world
+  are the IMF's own aggregates), each against the median of the region's
+  previous five years, on cut-offs from its earlier years. Nothing is
+  trained, so "monthly retraining" is a monthly refit: GitHub Actions'
+  nightly `economy-refresh` task (`scheduled.yml`; `staging.yml` after each
+  deploy) runs it after the economic data, and it reads the figures again
+  on the first run of a calendar month and stores the fit (inside the
+  existing task because this machine's GitHub token may not change workflow
+  files; a step of its own is optional). Monte Carlo -> Scenarios shows the deal region's regime
+  with its year and the day read, and every region's beside it
+  (`tests/test_macro_regime.py`, `web/e2e/regime.spec.ts`: an India deal
+  shows India's). The card (`docs/model-cards/regime.md`) replays the IMF's
+  spring and autumn projections for 2000-2022 against the final figures:
+  75% of years named right in spring against 52% for "the same as last
+  year", and every region beats it. **Correlations**: the ones the Monte
+  Carlo screen offers (4.4) are already measured on the same IMF series
+  (with the BIS's rates and Damodaran's archive) each time they are asked
+  for, so `ml/correlation_updater.py` (US-only FRED, one series licensed
+  against reproduction, never wired in) is removed with the hidden Markov
+  model and its two packages.
 
 ### 5.8 Live sliders for any deal, lightweight enough for free hosting
 - **Why:** the surrogate learned one fixed deal, and its runtime (PyTorch) is
@@ -1639,7 +1661,7 @@ when a limit is actually reached or before charging customers.
 | `ml/distress_model.py` | 39 hand-entered cases | 5.3 |
 | `ml/multiple_predictor.py` | 25 rows | 5.4 (done: regional listed-company multiples and their archive; the 25 rows are gone) |
 | `ml/growth_calibrator.py` | US SimFin, fixed Damodaran averages | 5.5 (done: SEC filers' revenue growth by region and sector over their economy's; the fixed averages are gone) |
-| `ml/macro_regime.py`, `ml/correlation_updater.py` | US-only FRED series (incl. ISM PMI, discontinued 2022) | 4.2, 5.7 |
+| `ml/macro_regime.py`, `ml/correlation_updater.py` | US-only FRED series (incl. ISM PMI, discontinued 2022) | 4.2, 5.7 (done: seven regions from IMF figures, refitted monthly; the FRED models are gone) |
 | `ml/surrogate/` | One fixed training deal; PyTorch runtime too large for free hosting | 5.8 |
 | `web/src` Backtest screens | Only the preloaded deals can be tested | 2.7 (done: any saved deal) |
 | `render.yaml` and DEPLOY.md | Render free database would expire after 30 days; not used (Neon instead) | 1.3 |

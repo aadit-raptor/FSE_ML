@@ -20,9 +20,9 @@ import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 
 import { DriverExplanationTiles } from "./DriverExplanations";
-import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
+import { EconomicRegimeTile } from "./EconomicRegime";
 import { GrowthCalibrationTile } from "./GrowthCalibration";
 import { SourcedRiskTile } from "./SourcedRisk";
 
@@ -202,7 +202,6 @@ function Scenarios() {
         ))}
         <Kpi title={t("kpiPathsEach")} value={fmtCount(r.n)} sub={t("sameSeed")} />
         <Kpi title={t("kpiHurdle")} value={pct0(scen.hurdle)} sub={t("fromTheRail")} />
-        <MacroRegime />
 
         <Tile span={7} title={t("tileIrrRange")} unit={t("irrRangeUnit")}>
           <RangeRows
@@ -290,6 +289,7 @@ function Scenarios() {
     </div>
     {/* Sources, not results: never dimmed as out of date */}
     <Tiles>
+      <EconomicRegimeTile />
       <GrowthCalibrationTile />
       <SourcedRiskTile />
     </Tiles>
