@@ -206,11 +206,11 @@ which moved into Foundations (1.9) because later phases need them.
 | 12.8 | Higher service limits as usage grows | 11.3 | ☐ |
 | 12.9 | Licensed market data (corporate credit spreads) | 4.2 | ☐ |
 | **R** | **Equity research workspace (the priority since 2026-10-12)** | | |
-| R0 | Proof before code: reader accuracy, three hand-built models, five analysts | 6.1 | ☐ |
+| R0 | Proof before code: reader accuracy and five analysts | 6.1 | ☐ |
 | R1 | Results reader | R0 | ☐ |
 | R2 | Coverage, review screen and the checked workbook | R1 | ☐ |
 | R3 | Excel add-in: sign in and import results | R2 | ☐ |
-| R4 | Model definition and the first sector model | R2 | ☐ |
+| R4 | Sector research, the model definition and the first sector model | R2 | ☐ |
 | R5 | Save back and roll forward | R3, R4 | ☐ |
 | R6 | Valuation | R4 | ☐ |
 | R7 | Second and third sector models | R4 | ☐ |
@@ -272,8 +272,8 @@ It lives in the existing **Equity research** workspace (7.10) and in an
 | Accounts, saved versions, limits, background jobs, audit history, Excel downloads, plan vs actual, lakh digit grouping, fiscal year labels | In place |
 | An AI key for reading documents | **New.** Nothing is set; `ml/nlp_extractor.py` is unused |
 | Money in lakhs and crores | **New.** Units today are thousands, millions, billions |
-| Quarterly figures | **New.** The forecast is yearly |
-| Indian results as a company source | **New.** 4.1's registers are the US, EU, UK and Japan |
+| Quarter by quarter (the product follows Indian results, which are quarterly) | **To build.** Today's forecast screen works in whole years |
+| Indian companies' results | **To build, by upload** (decided 2026-10-12: uploading the PDF is enough for a start; fetching from BSE or NSE comes later). 4.1's registers hold no Indian company |
 | Models as live Excel formulas | **New.** 7.3a planned it for deals; R4 builds it for research |
 | The Excel add-in | **New.** 7.3b planned one for deals; R3 and R5 replace it |
 
@@ -318,15 +318,16 @@ reading the history of drivers such as beds or stores from presentations
 
 **Decisions that are the user's** (asked 2026-10-12; a task that needs one
 stops for it):
-- which two or three sectors come first (R0, R4, R7);
-- who the five test analysts are, and which practising analyst reads each
-  sector model (R0, R4);
+- which sectors, and how many models, are settled in R4 part a, by the user
+  and Claude together (decided 2026-10-12: not before);
+- who the five test analysts are (R0), and which practising analyst reads
+  each sector model before it is called vetted (R4);
 - a paid AI key with a spending cap, if no free one reads accurately enough
   (R0 decides; it would bring 12.4 forward).
 
 ### R0 Proof before code
 - **Needs:** 6.1 merged.
-- **You first:** name the sectors; collect 30 real quarterly results PDFs
+- **You first:** collect 30 real quarterly results PDFs
   from the exchanges (at least 10 scanned, at least 5 half-year or year-end,
   several sectors); create a free Gemini API key; find five analysts who
   will give twenty minutes.
@@ -337,8 +338,7 @@ stops for it):
   wrong figures the arithmetic checks did not catch, and of amber flags; a
   one-page sample of what the tool will produce for one company (checked
   statements, a model, a draft note), made by hand, to show the analysts.
-- **You do:** build the first sector's model by hand in Excel for two
-  companies using only the blocks in R4; show the sample to the analysts.
+- **You do:** show the sample to the analysts.
 - **Done when:** the accuracy figures are written in this file; the bar is
   **no wrong figure left unflagged across the 30, and under 2% of figures
   amber**; a go, a change of AI provider, or a stop is recorded here with
@@ -412,9 +412,19 @@ stops for it):
   header scan passes on every other route; DEPLOY.md says how a tester
   installs it.
 
-### R4 Model definition and the first sector model
-- **Needs from the user:** the first sector, and the analyst who reads it.
-- **Claude does:**
+### R4 Sector research, the model definition and the first sector model
+- **Part a, sector research (a session of its own, the user and Claude
+  together):** read what is public about how analysts model Indian
+  companies (published research reports, company presentations, textbooks),
+  note for each sector the drivers and the lines its models carry, and agree
+  how many sectors and how many distinct models are needed and which comes
+  first. Reports show a model's drivers and tables, not its formulas, so
+  what is learned is the shape; nothing is copied. The result is written
+  here as a table of sectors, their blocks and their sources. Then the
+  first model is built by hand in Excel for two companies with only the
+  blocks below, to see that they are enough.
+- **Needs from the user (part b):** the analyst who reads the model.
+- **Claude does (part b):**
   - the model definition format: rows, periods and formulas in plain
     arithmetic with `max`/`min` (as the reference cases use), an evaluator
     on the server and a writer that emits the same rows as Excel formulas
@@ -463,7 +473,7 @@ stops for it):
   recommendation (test over the catalogue).
 
 ### R7 Second and third sector models
-- **Needs from the user:** the sectors and their readers.
+- **Needs from the user:** the readers; the sectors are R4 part a's.
 - **Claude does:** each as R4's last three bullets; what R4's format lacked
   is added to the format, never worked around in one model.
 - **Done when:** as R4, per model.
