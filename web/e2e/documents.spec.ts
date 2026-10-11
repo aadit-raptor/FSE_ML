@@ -188,6 +188,10 @@ test.describe("Documents", () => {
     await expect(row(page, "Direct.pdf")).toHaveAttribute("data-status", "clean");
     const policy = (await page.request.get("/deal/documents")).headers()["content-security-policy"] ?? "";
     const connect = policy.split(";").find((d: string) => d.trim().startsWith("connect-src")) ?? "";
-    expect(connect.trim().split(/\s+/)).toEqual(["connect-src", "'self'", new URL(request.url()).origin]);
+    // The API's own origin is there, exactly, and nothing in the list is a wildcard
+    // (CI adds its stand-in for error tracking, which is one exact origin too)
+    const sources = connect.trim().split(/\s+/).slice(1);
+    expect(sources).toContain(new URL(request.url()).origin);
+    expect(sources.filter((source: string) => source.includes("*") || /^https?:$/.test(source))).toEqual([]);
   });
 });

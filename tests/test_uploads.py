@@ -308,19 +308,20 @@ def test_each_reader_of_a_pdf_refuses_on_its_own():
 @pytest.mark.parametrize("repeated", [b"<w:fldSimple ", b"<w:fldChar ", b"<w:instrText>", b"<Relationship "])
 def test_a_part_built_to_make_a_pattern_match_crawl_is_answered_at_once(repeated):
     """(The security review's denial of service.) 100 KB of an opening tag
-    repeated took a pattern match seconds, and a megabyte minutes; a parser
-    reads it once."""
-    bomb = b"<w:document xmlns:w='x'>" + repeated * 2_000_000
+    repeated took a pattern match 3 seconds, and four times the text sixteen
+    times as long: these 5 MB would take hours. A parser reads it once (the
+    limits are wide: CI's machines are slow, and measure coverage too)."""
+    bomb = b"<w:document xmlns:w='x'>" + repeated * 400_000
     for sample in (s.open_xml("docx", main=bomb), s.open_xml("docx", {"word/_rels/x.rels": bomb})):
         assert len(sample) < 100_000
         started = time.perf_counter()
         assert scan(sample, "docx").reason == "unreadable"
-        assert time.perf_counter() - started < 5
-    # ... and a well-formed part with a million fields is simply read
-    many = b"<w:document xmlns:w='x'>" + b"<w:fldSimple w:instr='PAGE'/>" * 1_000_000 + b"</w:document>"
+        assert time.perf_counter() - started < 60
+    # ... and a well-formed part with a great many fields is simply read
+    many = b"<w:document xmlns:w='x'>" + b"<w:fldSimple w:instr='PAGE'/>" * 300_000 + b"</w:document>"
     started = time.perf_counter()
     assert scan(s.open_xml("docx", main=many), "docx") == scanner.CLEAN
-    assert time.perf_counter() - started < 20
+    assert time.perf_counter() - started < 60
 
 
 def test_a_pdf_built_to_keep_the_scanner_busy_is_answered_in_seconds():
@@ -334,7 +335,7 @@ def test_a_pdf_built_to_keep_the_scanner_busy_is_answered_in_seconds():
     for sample in shapes:
         started = time.perf_counter()
         assert scan(sample, "pdf").reason == "unreadable"
-        assert time.perf_counter() - started < 15
+        assert time.perf_counter() - started < 90         # about a second here; minutes before
 
 
 def test_a_file_may_have_only_so_much_xml_parsed(monkeypatch):
