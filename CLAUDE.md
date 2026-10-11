@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-11 (PLAN.md 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-11 (PLAN.md 5.8: live sliders for any deal; the same day 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -380,9 +380,7 @@ list of today's presets, so retiring one never makes a saved deal
 unreadable; choosing "No preset" switches every rule off (the rate stays);
 the simulation asks `tax_schedule(..., detail=False)` for the taxes alone,
 which keeps a run at the caps with every rule on to about 200 MB traced; the
-Live sliders' surrogate knows only a flat rate, so `core/surrogate.py` lists
-"tax rules" (how many are on) among the terms that differ from its training
-deal; a `fixed` limit left at 0 disallows all interest, as the API's field
+Live sliders run the simulation itself since 5.8, so they see every rule; a `fixed` limit left at 0 disallows all interest, as the API's field
 description says.
 
 Accounting standards, the model (PLAN.md 2.6a): a deal says which standard its
@@ -930,15 +928,14 @@ the PR. **`ml.yml`**: evaluates on PRs touching models or `simulation/`;
 trains by hand (`workflow_dispatch`, which Claude's token can't trigger)
 into a scratch directory and uploads files and card as an artifact for a
 person to review and commit -- never commits itself. Cards: the **deal
-risk score** (5.2, below); the **distress predictor** (5.3, below); the **multiple predictor** (5.4, below); the **growth calibrator** (5.5, below); the **economic regime** (5.7, below; a card may name its own regions with `regions_note`, as it does); the **surrogate** on 230 regional deals (`ml/evaluation/data/
-regional_deals.json`, from the recorded sources by `python -m
-tests.ml_regional_deals`, checked stale) is 0.54 points off the median IRR
-against 0.79 for a 200-path simulation (truth: 10,000 paths) and beats it in
-every region; 23 deals lie inside its training ranges. Training functions
-take an output directory (`generate(out_dir=)`, `train(base=)`,
-`SurrogatePredictor(base)`) so CI never overwrites the committed files. A
+risk score** (5.2, below); the **distress predictor** (5.3, below); the **multiple predictor** (5.4, below); the **growth calibrator** (5.5, below); the **economic regime** (5.7, below; a card may name its own regions with `regions_note`, as it does); the **live sliders** (5.8, below; id `surrogate`) on 230 varied regional deals
+(`ml/evaluation/data/regional_deals.json`, from the recorded sources by
+`python -m tests.ml_regional_deals`, checked stale). A
 model with nothing to train has `"train": null` and `"artifacts": []` in the
-registry and `training.command` null in its card. `card.write` renders the
+registry and `training.command` null in its card; **no registered model has
+anything to train since 5.8**, and `python -m ml.evaluation train <id> --out
+DIR` then writes the card as it stands into DIR (ml.yml's train job, which
+only the user can edit, still runs it on every PR touching `ml/`). `card.write` renders the
 Markdown from the stored (key-sorted) JSON, as the staleness check does. Nothing the app shows changed. **Retraining by hand is parked** (the user,
 2026-10-08: PLAN.md 5.10, not scheduled): don't offer the Run workflow
 button as a step for the user; tasks 5.2-5.9 retrain in their own PR.
@@ -1158,6 +1155,69 @@ no longer has `macro_regime_*`. **Correlations** stay 4.4's
 (`benchmarks.risk.correlations`), measured on the same IMF series each
 time they are asked for. On 2026-10-11 every region's 2026 is a base year.
 
+Live sliders for any deal (PLAN.md 5.8): **the network is gone and nothing
+is trained** (decided with the user 2026-10-11, on measurements: the
+simulation itself takes about 1.3 ms for 5,000 paths and was three times
+closer than the network). **`core/live.py`** `live_estimate` reruns the
+deal through the ordinary road (`build_sim_params`,
+`run_vectorized_simulation_full`; no model logic) on `live_paths` paths:
+`LIVE_PATHS` 8,000 while hold x facilities x interest passes is within
+`WORK_BUDGET` 200 (percentages count as two facilities), fewer in
+proportion beyond it, never under `MIN_LIVE_PATHS` 2,000. **The same draws
+every time** (`LIVE_SEED`), so a slider moves the answer smoothly and the
+same request gets the same answer. **A slider is an input**
+(`with_sliders`): growth, exit multiple and its spread, gross margin and
+the rate mean replace the rail's; debt / EV is the percentages deal's own
+`debt_pct`, and a listed structure is scaled to it, every facility and its
+repayment schedule alike (left untouched within 1e-9 of its own share, or
+with nothing drawn); a listed structure's floating references move by the
+rate slider's distance from the rail's rate mean, as a scenario moves them.
+So there is **no trained range and no warning**: facilities, tax rules,
+leases, fees and Settings are all the deal's own. What is left is sampling
+error, which the answer states: `median_interval`, the sign-test 95%
+interval for the median (about half a point wide at 8,000 paths).
+`POST /api/montecarlo/live` (`LiveRequest`, `sliders` optional;
+`LiveResponse`: `paths`, `hurdle`, `prediction`, `median_interval`); the
+old `/api/ml/surrogate` is removed, and `/api/capabilities` has `live`
+(always true) instead of `surrogate`, so a web copy and an API copy from
+either side of the deploy just show "not available" to each other.
+**Limits**: not a model run (`RUN_PATHS`) and no simulation slot, since its
+size is its own bound (under 24 MB traced at the caps, tested); its own
+rate, `USER_LIVE` 180 a minute per user (`LIVE_PATH`; the screen waits 300 ms for
+a slider to rest, so it cannot send more), and at most `LIVE_SLOTS` 2 run at
+once across all users (`live_slot`: a 503 after waiting 2 s). **Packages**:
+`requirements-ml.txt` is now only `-r requirements.txt`, the Dockerfile has
+no `INSTALL_ML`, and `ml/surrogate/`, `core/surrogate.py`,
+`ml/train_all.py` and `test_ml.py` are deleted; the workflows still install
+torch first (harmless; only the user can edit them: the cleanup steps were
+handed over in the 5.8 session). **Card** (`ml/cards/surrogate.json`; the
+id is kept so `ops/model_gate.py` compared it with the network's):
+headline set `varied_deals`, 230 whole deals as the API takes them (sourced
+figures and correlations, the country's tax preset, own entry multiple,
+hold, fees, amortisation, leases, five debt structures in turn, written by
+`tests/ml_regional_deals.py` `vary`, seeded by the deal's id), truth on
+100,000 paths: **median IRR 0.13 points off (every region under 0.18;
+`MEDIAN_ERROR_LIMIT_PP` 0.5 is the task's bar, tested)**, 5th percentile
+0.36; the network's two sets are kept (`all_regional_deals` 0.18 where the
+network was 0.54, `in_training_range`). The error is one sample's, in the
+same direction for similar deals, because every estimate shares its draws.
+**Staging check** (no workflow edit): `ops.scheduled drill`, which
+staging.yml already runs, now also calls `POST /api/scheduled/drill/live`
+(OIDC, refused in production) after the ten simulations: `jobs/drill.py`
+`live_drill` runs the default deal (pinned `EXPECTED_LIVE`), 40 slider
+moves and the largest deal the API takes, and answers timings and the
+process's memory (`/proc/self/status` VmRSS and VmHWM, the cgroup limit
+capped at Render's 512 MB); `ops/scheduled.py` `live_problems` fails the
+run when the peak reaches the limit, the moves add over 32 MB, the middle
+estimate takes over 500 ms, or the pinned answer moved. The figures land in
+the `job-drill` run's summary. Web: `MonteCarloML.tsx` (a note with the
+API's path count, the median's interval under the KPI, P(IRR > the deal's
+hurdle); slider tracks stretch to hold a deal that starts outside them; the
+debt slider is disabled when nothing is drawn; the sliders restart from the
+deal whenever the deal or the rail changes). Browser tests run the real
+endpoint now (`e2e/live-sliders.spec.ts`; `fixtures/ml-responses.json` is
+gone). New outputs only: no engine version.
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1218,8 +1278,8 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). **Next is 5.8** (live
-sliders for any deal, lightweight enough for free hosting).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). **Next is 5.9** (personalized
+defaults; 5.10 is parked).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1317,11 +1377,10 @@ Earlier rounds: directions, navigation options, mixes, type weights.
   `web/src/lib/provenance.ts`: Settings (every step) and the Monte Carlo rail say
   "Illustrative defaults — not market data"; Backtest counts its example deals
   from the deal list; the risk score says how many companies it compares
-  the deal with (PLAN.md 5.2, `web/e2e/deal-risk.spec.ts`); Live lists the surrogate's fixed
-  training deal from `training_deal` in `/api/ml/surrogate`. Keep these when
-  editing those screens; `web/e2e/provenance.spec.ts` checks them (Live replays `web/e2e/fixtures/ml-responses.json`, recorded from a real ML
-  server, because CI's e2e job has no ML layer — re-record it if those
-  responses change).
+  the deal with (PLAN.md 5.2, `web/e2e/deal-risk.spec.ts`); Live says its
+  estimate is the simulation of this deal on the API's own count of paths
+  (PLAN.md 5.8). Keep these when editing those screens;
+  `web/e2e/provenance.spec.ts` checks them.
 
 ### Model findings
 
@@ -1439,10 +1498,10 @@ golden snapshot is untouched and parity tests explain every departure.
 | `lbo_engine/` | Deterministic LBO engine (operating model, cash flow, debt, returns) |
 | `simulation/vectorized_simulation.py`, `simulation/tranches.py` | Vectorized Monte Carlo engine; the tranche path's debt schedule (PLAN.md 2.4b) |
 | `analytics/` | Risk metrics |
-| `ml/` | ML: the deal risk score, the distress, multiple and growth models and the economic regime (none needs ML packages), and optional: surrogate network, EDGAR extractor, plus unused modules |
+| `ml/` | The deal risk score, the distress, multiple and growth models and the economic regime, their evaluation and cards, the EDGAR extractor, plus unused modules. Nothing in it needs ML packages or a trained file (the live sliders are `core/live.py`) |
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
-| `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
+| `Dockerfile`, `render.yaml` | API image and Render blueprint. One image runs everything (no ML build argument since PLAN.md 5.8) |
 | `docs/WORKFLOW.md`, `.github/pull_request_template.md` | The development cycle every change follows, and the PR form that records it |
 | `.coverage-floor`, `.coveragerc`, `ops/coverage_gate.py`, `ops/pr_title.py`, `.github/workflows/pr.yml` | CI gates (PLAN.md 0.3): coverage floors per job (only rise), what coverage measures, the floor check, the PR title check |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
@@ -1470,6 +1529,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/multiple_predictor.py`, `ml/evaluation/multiples.py`, `components/deal/Multiples.tsx`, `tests/ml_multiple_history.py`, `tests/e2e_multiples.py` | Multiple predictor (PLAN.md 5.4): entry and exit ranges from the region's industry multiples and their archive, gated by its card; the walk-forward card; the Returns tile; the writers of the card's data and the browser tests' answers |
 | `analytics/driver_attribution.py`, `docs/driver-explanations.md`, `components/montecarlo/DriverExplanations.tsx`, `tests/test_driver_explanations.py` | Driver explanations (PLAN.md 5.6): each tail's IRR split exactly between the simulation's five drivers; the comparison with the old SHAP module and the rank correlations; the Drivers step's tiles; the tests (adds up, hand-solved games, cost) |
 | `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
+| `core/live.py`, `ml/evaluation/surrogate.py`, `components/montecarlo/MonteCarloML.tsx`, `jobs/drill.py`, `tests/test_live.py`, `web/e2e/live-sliders.spec.ts` | Live sliders (PLAN.md 5.8): the simulation on a small, fixed set of paths with the sliders as inputs; its card on varied regional deals; the Live step; the staging drill's live session and memory read; the tests (the estimate is the run with that input changed) |
 | `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
@@ -1486,7 +1546,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,696 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,740 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (macOS, from the repo root)
 
@@ -1925,13 +1985,14 @@ Skills load when a session starts: install first, then open a new session.
   the overall figures minus the shown groups give it back.
   `validation/report.py` `split` hides the next-smallest groups too, and
   `tests/test_validation.py` checks it on random data.
-- A change that moves a simulation number (`simulation/`), the surrogate or
-  anomaly files, the anomaly deal list or the recorded benchmark/economy
-  fixtures makes a model card stale: rerun `python -m ml.evaluation evaluate`
+- A change that moves a simulation number (`simulation/`, `core/live.py`'s
+  paths or seed) or the recorded benchmark/economy fixtures makes a model
+  card stale (and a moved default-deal simulation also `jobs/drill.py`'s
+  `EXPECTED_SUMMARY` and `EXPECTED_LIVE`): rerun `python -m ml.evaluation evaluate`
   (and `python -m tests.ml_regional_deals` for fixture changes) and commit the
   cards. If a card got worse, `ops/model_gate.py` fails the PR on purpose.
-  The surrogate's evaluation runs 230 simulations of 10,200 paths: a few
-  minutes on a busy laptop, about a minute in CI.
+  The live sliders' evaluation runs 460 simulations of 100,000 paths: about
+  fifteen seconds on the Mac.
 - `ml/evaluation/data/multiple_history.json` holds every industry's
   multiples from Damodaran's archive, which CI can't download:
   `tests/test_multiples.py` checks it only against the ten industries the

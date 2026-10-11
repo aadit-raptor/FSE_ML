@@ -1021,17 +1021,36 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   are −0.103, 0.024 and 0.182; with the economy at 4.00% the range is
   1.04 × e^−0.103 − 1 = −6.20% to 1.04 × e^0.182 − 1 = 24.81%, so the mean
   is 9.31% and the spread 12.10% (a US utility: 6.08% and 8.10%).
-- **Live sliders** ([ml/surrogate/predict.py](../ml/surrogate/predict.py),
-  [core/surrogate.py](../core/surrogate.py)). A small neural network
-  (`SurrogatePredictor.predict`, loaded once by `SurrogatePredictor.get_instance`)
-  maps eleven inputs (`surrogate_features`) to IRR percentiles, mean, spread,
-  the chance of beating 20% and the wipeout rate. It was trained on 100,000
-  simulations of one fixed deal (`generate` in
-  [ml/surrogate/generate_data.py](../ml/surrogate/generate_data.py): a Latin
-  hypercube over the eleven inputs, everything else fixed). `training_terms`
-  and `training_term_differences` list where the user's deal differs from that
-  training deal (`tax_rules_on` counts the tax rules), and `tail_unreliable`
-  flags a predicted wipeout of `TAIL_UNRELIABLE_WIPEOUT` or more.
+- **Live sliders** ([core/live.py](../core/live.py), `live_estimate`;
+  PLAN.md 5.8). The Live step's estimate is §9's simulation itself on a
+  small, fixed set of paths, so it is the deal's own: its facilities, tax
+  rules, leases, fees and Settings, exactly as Run Monte Carlo treats them.
+  Nothing is trained and there is no range to be outside of (until 5.8 a
+  neural network trained on one fixed deal answered, and warned about
+  every term it had not seen). `live_paths` gives the number of paths:
+  `LIVE_PATHS` (8,000) while hold × facilities × interest passes is within
+  `WORK_BUDGET` (200; a deal sized by percentages counts as two
+  facilities), fewer in proportion beyond it, never under `MIN_LIVE_PATHS`
+  (2,000). Every estimate uses the same draws (`LIVE_SEED`), so moving a
+  slider reruns the same paths and the answer moves smoothly. The six
+  sliders are inputs (`with_sliders`; `sliders_of` gives the deal's own
+  values, where they start): growth, exit multiple and its spread, gross
+  margin and the rate mean replace the rail's; the debt slider is debt /
+  entry value (`debt_share`: what is drawn at close over the value the
+  deal is priced at), which a deal sized by percentages takes as its own
+  input and a listed structure is scaled to, every facility and its
+  repayment schedule alike (`_with_debt_share`; a structure with under
+  `SMALLEST_SHARE`, 0.01% of entry value, drawn is left as it is); and a listed structure's floating references
+  move by the rate slider's distance from the rail's rate mean, as a
+  scenario moves them (§9). `live_params` builds the simulation's
+  parameters from that (money converted to millions, as every run), and
+  `summarize` reads the paths: the IRR's 5th to 95th percentiles, mean
+  and spread, and the shares of paths above the hurdle, below 1.0x and
+  wiped out. The sampling error is stated with it: `median_interval` is
+  the sign-test interval for the median, from the ⌊(n − `Z_95` × √n) / 2⌋-th
+  smallest path to the ⌈(n + `Z_95` × √n) / 2⌉-th. Worked: the default
+  deal on 8,000 paths has a median IRR of 18.57% with a 95% interval of
+  18.36% to 18.81%; on Run Monte Carlo's 50,000 paths the median is 18.45%.
 - **Economic regime by region** ([ml/macro_regime.py](../ml/macro_regime.py),
   `current`; PLAN.md 5.7). Which scenario preset a region's year looks like:
   recession, stagflation, bull or base, for the United States, the euro area,
@@ -1466,19 +1485,29 @@ region-years, 2000-2022; spring 75% right against 52% for the baseline,
 autumn 84% against 50%; every region beats the baseline in both sets, so
 each region's regime is shown.
 
-**Live sliders** (`ml.evaluation.surrogate`). Cases (`load_cases`): 230
-deals, each economy the app covers with ten industries, whose inputs are
-what "Use sourced figures" gives (§9's sourced ranges, §14's starting
-figures, `features_from` turning them into the network's fractions) with
-the default 60% debt, recorded on the economic data's day. `simulate` runs
-§9's simulation on the surrogate's fixed training deal: truth on 10,000
-paths, the baseline on 200 (fast enough to run live), each seeded from the
-deal's id (`_seed`). Statistics (`_mae_pp`): the mean absolute error of the
-median, 5th and 95th percentile IRRs and the wipeout rate, in percentage
-points. `in_range` says whether every input lies inside `L_BOUNDS` and
-`U_BOUNDS`, the training ranges. Worked: the median IRR is 0.54 points off
-over all regions against the 200-path simulation's 0.79, and beats it in
-every region; inside the training ranges, 0.36 against 0.55.
+**Live sliders** (`ml.evaluation.surrogate`; the id is the retired
+network's, so the gate compares the two). Three sets, all the economies the
+app covers with ten industries, recorded on the economic data's day. The
+headline, `varied_deals` (`load_varied`): 230 whole deals as the API takes
+them (`request_of`), each with what "Use sourced figures" gives (§9's
+sourced ranges and correlations, §14's starting figures), its country's tax
+preset where there is one, and its own entry multiple, hold, fees,
+amortisation, leases and one of five debt structures, from percentages to
+five listed facilities. The model is `live_on_deal`, the Live step's own
+function; truth is the same parameters on 100,000 paths with other draws
+(`simulate_deal`), the baseline on 200. `all_regional_deals` (`load_cases`,
+`features_from`) are the eleven inputs the retired network took, on its one
+fixed deal (`NETWORK_DEAL`; `simulate`, and `live_on_network_deal` for the
+Live step's paths and seed), with the default 60% debt, and
+`in_training_range` those inside the ranges it was trained on (`in_range`:
+`L_BOUNDS`, `U_BOUNDS`). Seeds come from the deal's id (`_seed`), `_answer`
+reads a run's percentiles and `_rows` pairs each case with its answers.
+Statistics (`_mae_pp`): the mean absolute error of the median, 5th and 95th
+percentile IRRs and the wipeout rate, in percentage points. Worked: on the
+varied deals the median IRR is 0.13 points off over all regions against the
+200-path simulation's 0.50, under 0.18 in every region (PLAN.md 5.8 asks
+for under `MEDIAN_ERROR_LIMIT_PP`, 0.5); on the network's fixed deal 0.18,
+where the network was 0.54.
 
 ## Known limitations
 
@@ -1502,7 +1531,7 @@ Open model findings awaiting the user's approval (CLAUDE.md "Model findings"):
 Other simplifications, by design and shown on screen where relevant: whole
 years and exit at year end; lease figures flat over the hold; a loss earns no
 credit unless loss carry-forward is on; interest income at a fixed 0.5% on
-minimum cash; the Live sliders' surrogate knows one training deal.
+minimum cash; the Live sliders' estimate is a sample of 8,000 paths or fewer, with its interval shown.
 
 ## 17. Constants
 
@@ -1516,7 +1545,10 @@ The values quoted in this document, checked against the code by
 | `core.debt.SENSITIVITY_HEADROOM` | 10 | extra years of rate path for the grid |
 | `core.risk_sources.LEVERAGE_GUIDANCE_X` | 6.0 | leverage warning threshold (debt / EBITDA) |
 | `core.risk_warnings.ROUNDING` | 0.005 | smallest unfunded repayment reported (millions) |
-| `core.surrogate.TAIL_UNRELIABLE_WIPEOUT` | 0.02 | predicted wipeout above which the surrogate's tail is flagged |
+| `core.live.LIVE_PATHS` | 8000 | paths behind a live estimate |
+| `core.live.MIN_LIVE_PATHS` | 2000 | the fewest, for the largest deals |
+| `core.live.WORK_BUDGET` | 200 | hold × facilities × interest passes that still gets every path |
+| `core.live.Z_95` | 1.959964 | normal quantile of the median's 95% interval |
 | `core.model_version.FINGERPRINT_DIGITS` | 12 | hex digits of each fingerprint |
 | `core.model_version.RESULT_REL_TOL` | 1e-9 | relative tolerance for "results changed" |
 | `core.model_version.RESULT_ABS_TOL` | 1e-12 | absolute tolerance for "results changed" |

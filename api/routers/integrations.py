@@ -1,6 +1,5 @@
 """Settings, capabilities, optional ML features and SEC EDGAR."""
 import importlib.util
-import os
 from datetime import date, datetime, timezone
 from typing import Optional
 
@@ -9,7 +8,6 @@ from fastapi import APIRouter, HTTPException
 from api.deps import resolve_settings
 from api.schemas import (
     Capabilities, DealRiskRequest, DealRiskResponse, EdgarResponse, MultiplesRequest, MultiplesResponse, GrowthRequest, GrowthResponse, RegimeRequest, RegimeResponse, SettingsResponse, SettingsValidateRequest,
-    SurrogateRequest, SurrogateResponse,
 )
 from api.serialize import to_json
 from core.model_version import stamp
@@ -17,12 +15,9 @@ from core.config import DEFAULTS, build_corr_matrix, is_valid_corr
 from core.deal import DealInputs, risk_model_inputs
 from core.money import to_millions
 from db.engine import is_configured
-from core.montecarlo import MCInputs
-from core.surrogate import surrogate_features, tail_unreliable, training_term_differences, training_terms
 
 router = APIRouter(tags=["settings & integrations"])
 
-SURROGATE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "ml", "surrogate")
 
 
 def _installed(*pkgs):
@@ -55,13 +50,9 @@ def post_settings_validate(req: SettingsValidateRequest):
 @router.get("/capabilities", response_model=Capabilities)
 def get_capabilities():
     """Which optional features this server can run."""
-    # Checked by file, not by importing ml.surrogate.predict: that loads torch,
-    # which takes seconds.
-    surrogate = _installed("torch", "joblib") and all(
-        os.path.exists(os.path.join(SURROGATE_DIR, f))
-        for f in ("model.pt", "scaler_X.pkl", "scaler_y.pkl"))
     # The deal risk score reads stored averages and needs no ML packages (PLAN.md 5.2)
-    return {"anomaly_detector": True, "surrogate": surrogate, "edgar": _installed("requests")}
+    # ... and the live sliders run the simulation itself (PLAN.md 5.8)
+    return {"anomaly_detector": True, "live": True, "edgar": _installed("requests")}
 
 
 # ---------------------------------------------------------------------------
@@ -141,31 +132,6 @@ def post_growth(req: GrowthRequest):
         anchor = growth_figure(series, d.country, _today())
     # The range reads no Settings
     return {**calibrate(d.country, d.industry, int(d.hold), anchor), "model": stamp(None)}
-
-
-@router.post("/ml/surrogate", response_model=SurrogateResponse)
-def post_surrogate(req: SurrogateRequest):
-    """Instant IRR distribution estimate for the live sliders."""
-    if not _installed("torch", "joblib"):
-        _unavailable("live mode", "install requirements-ml.txt")
-    try:
-        from ml.surrogate.generate_data import TRAINING_FIXED
-        from ml.surrogate.predict import SurrogatePredictor
-    except (ImportError, OSError) as e:
-        _unavailable("live mode", str(e))
-    surrogate = SurrogatePredictor.get_instance()
-    if surrogate is None:
-        _unavailable("live mode", "the surrogate model is not trained")
-    cfg = resolve_settings(req.settings)
-    mc, deal = MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump())
-    pred = surrogate.predict(**surrogate_features(mc, deal, **req.sliders.model_dump()))
-    return {
-        "prediction": to_json(pred),
-        "tail_unreliable": tail_unreliable(pred.p_wipeout),
-        "term_differences": to_json(training_term_differences(mc, deal, cfg, TRAINING_FIXED)),
-        "training_deal": to_json(training_terms(mc, deal, cfg, TRAINING_FIXED)),
-        "model": stamp(cfg),
-    }
 
 
 @router.post("/ml/macro-regime", response_model=RegimeResponse)

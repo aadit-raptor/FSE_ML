@@ -1,36 +1,46 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useDeal } from "@/components/deal/DealProvider";
 import { debtShareOfEv } from "@/lib/deal/capital";
 import { apiInputs } from "@/lib/deal/fields";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import { useMoney } from "@/components/ui/MoneyScope";
 import { EmptyState, Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { useCapabilities } from "@/lib/capabilities";
-import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
+import { fmtCount, fmtNumber, fmtRate } from "@/lib/format";
 
 import { useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen } from "./MonteCarloScreen";
 
-type Sliders = Schemas["SurrogateSliders"];
-type Prediction = Schemas["SurrogateResponse"];
+type Sliders = Schemas["LiveSliders"];
+type Estimate = Schemas["LiveResponse"];
 
-/** Bounds mirror SurrogateSliders in api/schemas.py (the surrogate's training range). i18n-keys: montecarlo.slider* */
-const SLIDERS: { key: keyof Sliders; labelKey: string; min: number; max: number; step: number; unit: string }[] = [
-  { key: "growth_mean", labelKey: "sliderGrowthMean", min: -5, max: 20, step: 0.1, unit: "%" },
-  { key: "exit_mean", labelKey: "sliderExitMean", min: 4, max: 20, step: 0.1, unit: "x" },
-  { key: "interest_mean", labelKey: "sliderInterestMean", min: 1, max: 15, step: 0.1, unit: "%" },
-  { key: "gross_margin_mean", labelKey: "sliderGrossMarginMean", min: 10, max: 80, step: 0.5, unit: "%" },
-  { key: "debt_pct", labelKey: "sliderDebtPct", min: 20, max: 90, step: 1, unit: "%" },
-  { key: "exit_std", labelKey: "sliderExitStd", min: 0.3, max: 5, step: 0.1, unit: "x" },
+/**
+ * Where each slider's track usually runs. The simulation takes any value the inputs do (LiveSliders in
+ * api/schemas.py), so a deal outside a track widens it rather than being clamped to it. i18n-keys: montecarlo.slider*
+ */
+const SLIDERS: { key: keyof Sliders; labelKey: string; min: number; max: number; lowest: number; highest: number; step: number; unit: string }[] = [
+  { key: "growth_mean", labelKey: "sliderGrowthMean", min: -5, max: 20, lowest: -50, highest: 100, step: 0.1, unit: "%" },
+  { key: "exit_mean", labelKey: "sliderExitMean", min: 4, max: 20, lowest: 1, highest: 100, step: 0.1, unit: "x" },
+  { key: "interest_mean", labelKey: "sliderInterestMean", min: 1, max: 15, lowest: 0, highest: 50, step: 0.1, unit: "%" },
+  { key: "gross_margin_mean", labelKey: "sliderGrossMarginMean", min: 10, max: 80, lowest: 1, highest: 99, step: 0.5, unit: "%" },
+  { key: "debt_pct", labelKey: "sliderDebtPct", min: 20, max: 90, lowest: 0, highest: 99, step: 1, unit: "%" },
+  { key: "exit_std", labelKey: "sliderExitStd", min: 0.3, max: 5, lowest: 0.1, highest: 50, step: 0.1, unit: "x" },
 ];
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/** A slider's track for a deal that starts at `own`: the usual one, stretched to hold it. */
+export function track(s: (typeof SLIDERS)[number], own: number): { min: number; max: number } {
+  return {
+    min: Math.max(s.lowest, Math.min(s.min, Math.floor(own))),
+    max: Math.min(s.highest, Math.max(s.max, Math.ceil(own))),
+  };
+}
 
 export function LiveStep() {
   return (
@@ -44,50 +54,55 @@ function Live() {
   const caps = useCapabilities();
   const { sim, runNow } = useMonteCarlo();
   const { inputs: deal } = useDeal();
-  const { label: mu } = useMoney();
   const { overrides } = useSettings();
   const t = useTranslations("montecarlo");
   const e = useTranslations("errors");
-  const units = useTranslations("units");
-  /** A training-deal term in its unit (rates arrive as fractions; "money" is the deal's currency and unit). */
-  const term = (v: number, unit: string, decimals: number): string => {
-    if (unit === "percent") return fmtRate(v, decimals);
-    if (unit === "multiple") return fmtMultiple(v, decimals);
-    if (unit === "years") return units("years", { value: fmtNumber(v, decimals) });
-    if (unit === "money") return `${fmtNumber(v, decimals)} ${mu}`;
-    return fmtNumber(v, decimals);
-  };
-  const initial = (): Sliders => ({
-    growth_mean: clamp(sim.growth_mean, -5, 20),
-    exit_mean: clamp(sim.exit_mean, 4, 20),
-    interest_mean: clamp(sim.rate_mean, 1, 15),
-    gross_margin_mean: clamp(sim.gm_mean, 10, 80),
-    debt_pct: clamp(debtShareOfEv(deal), 20, 90),
-    exit_std: clamp(sim.exit_std, 0.3, 5),
-  });
-  const [sliders, setSliders] = useState<Sliders>(initial);
-  const [pred, setPred] = useState<Prediction | null>(null);
+  /** The deal's own assumptions: where the sliders start, and what "Reset to rail" goes back to. */
+  const own = useMemo(
+    (): Sliders => ({
+      growth_mean: clamp(sim.growth_mean, -50, 100),
+      exit_mean: clamp(sim.exit_mean, 1, 100),
+      interest_mean: clamp(sim.rate_mean, 0, 50),
+      gross_margin_mean: clamp(sim.gm_mean, 1, 99),
+      debt_pct: clamp(debtShareOfEv(deal), 0, 99),
+      exit_std: clamp(sim.exit_std, 0.1, 50),
+    }),
+    [sim, deal],
+  );
+  const [sliders, setSliders] = useState<Sliders>(own);
+  // A deal or rail edited elsewhere (or a saved deal arriving after this mounted) restarts the sliders
+  // from it: they are moves away from the deal on screen, never a remembered other deal.
+  const ownKey = JSON.stringify(own);
+  const [basis, setBasis] = useState(ownKey);
+  if (basis !== ownKey) {
+    setBasis(ownKey);
+    setSliders(own);
+  }
+  const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string>();
   const unavailable = t("liveUnavailableShort");
   const unreachable = e("apiUnreachable");
+  /** A listed structure with nothing drawn at close has no debt to scale. */
+  const nothingDrawn = deal.tranches.length > 0 && own.debt_pct < 0.01;
 
   useEffect(() => {
-    if (!caps?.surrogate) return;
+    if (!caps?.live) return;
     const ctrl = new AbortController();
     const id = setTimeout(() => {
       setStatus("loading");
       api
-        .POST("/api/ml/surrogate", {
+        .POST("/api/montecarlo/live", {
           body: { mc: { ...sim, ebitda: deal.ebitda, entry_mult: deal.entry_mult, hold: deal.hold }, deal: apiInputs(deal), settings: overrides, sliders },
           signal: ctrl.signal,
         })
         .then(({ data, error: err }) => {
           if (data) {
-            setPred(data);
+            setEstimate(data);
             setStatus("idle");
           } else {
-            setError(String((err as { detail?: unknown })?.detail ?? unavailable));
+            const detail = (err as { detail?: unknown })?.detail;
+            setError(typeof detail === "string" ? detail : unavailable);
             setStatus("error");
           }
         })
@@ -97,84 +112,71 @@ function Live() {
             setStatus("error");
           }
         });
-    }, 120);
+    }, 300);
     return () => {
       clearTimeout(id);
       ctrl.abort();
     };
-  }, [caps?.surrogate, sliders, sim, deal, overrides, unavailable, unreachable]);
+  }, [caps?.live, sliders, sim, deal, overrides, unavailable, unreachable]);
 
   if (!caps) return null;
-  if (!caps.surrogate) {
-    return (
-      <EmptyState title={t("liveUnavailable")}>
-        {t.rich("liveUnavailableBody", { code: (chunks) => <code>{chunks}</code> })}
-      </EmptyState>
-    );
+  if (!caps.live) {
+    return <EmptyState title={t("liveUnavailable")}>{t("liveUnavailableBody")}</EmptyState>;
   }
-  const p = pred?.prediction;
+  const p = estimate?.prediction;
   const hurdle = sim.hurdle / 100;
+  const [low, high] = estimate?.median_interval ?? [null, null];
   return (
     <Tiles>
-      {pred && (
-        <Notice title={t("liveTrainedTitle")} role="note" className="col-span-12">
-          <span data-provenance="live">{pred.training_deal.map((d) => `${d.term} ${term(d.model_value, d.unit, d.decimals)}`).join(" · ")}</span>
-          {t("liveTrainedAfter")}
+      {estimate && (
+        <Notice title={t("liveSimulationTitle")} role="note" className="col-span-12">
+          <span data-provenance="live">{t("liveSimulationBody", { paths: fmtCount(estimate.paths), full: fmtCount(sim.n) })}</span>
         </Notice>
       )}
-      {pred && pred.term_differences.length > 0 && (
-        <Notice title={t("liveDirectionalTitle")} role="note" className="col-span-12">
-          {t("liveDirectionalBody", {
-            differences: pred.term_differences
-              .map((d) =>
-                t("liveDifference", {
-                  term: d.term,
-                  value: fmtNumber(d.value, d.decimals + (d.unit === "percent" ? 2 : 0)),
-                  modelValue: fmtNumber(d.model_value, d.decimals + (d.unit === "percent" ? 2 : 0)),
-                }),
-              )
-              .join(", "),
-          })}
-        </Notice>
-      )}
-      {pred?.tail_unreliable && (
-        <Notice title={t("liveTailTitle")} role="note" className="col-span-12">
-          {t("liveTailBody")}
-        </Notice>
-      )}
-      <Kpi title={t("kpiMedianIrr")} value={fmtRate(p?.irr_p50)} sub={status === "loading" ? t("updating") : t("surrogateEstimate")} lead />
+      <Kpi
+        title={t("kpiMedianIrr")}
+        value={fmtRate(p?.irr_p50)}
+        sub={status === "loading" ? t("updating") : estimate ? t("liveInterval", { low: fmtRate(low), high: fmtRate(high) }) : undefined}
+        lead
+      />
       <Kpi title={t("kpiMeanIrr")} value={fmtRate(p?.irr_mean)} sub={t("stdSub", { std: fmtRate(p?.irr_std) })} />
-      <Kpi title={t("kpiP5")} value={pred?.tail_unreliable ? fmtRate(null) : fmtRate(p?.irr_p5)} sub={t("oneInTwentyBelow")} />
+      <Kpi title={t("kpiP5")} value={fmtRate(p?.irr_p5)} sub={t("oneInTwentyBelow")} />
       <Kpi title={t("kpiP95")} value={fmtRate(p?.irr_p95)} sub={t("oneInTwentyAbove")} />
-      <Kpi title={t("kpiAbove20")} value={fmtRate(p?.p_above_20)} sub={t("asTrained")} />
+      <Kpi title={t("kpiAboveHurdle", { hurdle: fmtRate(hurdle, 0) })} value={fmtRate(p?.p_above_hurdle)} sub={t("shareOfPaths")} />
       <Kpi title={t("kpiWipeout")} value={fmtRate(p?.p_wipeout)} sub={t("shareOfPaths")} tone={(p?.p_wipeout ?? 0) > 0.05 ? "loss" : undefined} />
 
-      <Tile span={5} title={t("tileAssumptions")} aside={<SecondaryButton onClick={() => setSliders(initial())}>{t("resetToRail")}</SecondaryButton>}>
+      <Tile span={5} title={t("tileAssumptions")} aside={<SecondaryButton onClick={() => setSliders(own)}>{t("resetToRail")}</SecondaryButton>}>
         <div className="grid gap-3">
-          {SLIDERS.map((s) => (
-            <label key={s.key} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1">
-              <span className="type-input-label">{t(s.labelKey)}</span>
-              <span className="font-mono text-[11.5px] text-ink">
-                {fmtNumber(sliders[s.key], s.step < 1 ? 1 : 0)} {s.unit}
-              </span>
-              <input
-                type="range"
-                aria-label={t(s.labelKey)}
-                min={s.min}
-                max={s.max}
-                step={s.step}
-                value={sliders[s.key]}
-                onChange={(ev) => setSliders((v) => ({ ...v, [s.key]: Number(ev.target.value) }))}
-                className="col-span-2 accent-[var(--color-accent)]"
-              />
-            </label>
-          ))}
+          {SLIDERS.map((s) => {
+            const { min, max } = track(s, own[s.key]);
+            const fixed = s.key === "debt_pct" && nothingDrawn;
+            return (
+              <label key={s.key} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1">
+                <span className="type-input-label">{t(s.labelKey)}</span>
+                <span className="font-mono text-[11.5px] text-ink">
+                  {fmtNumber(sliders[s.key], s.step < 1 ? 1 : 0)} {s.unit}
+                </span>
+                <input
+                  type="range"
+                  aria-label={t(s.labelKey)}
+                  min={min}
+                  max={max}
+                  step={s.step}
+                  disabled={fixed}
+                  value={sliders[s.key]}
+                  onChange={(ev) => setSliders((v) => ({ ...v, [s.key]: Number(ev.target.value) }))}
+                  className="col-span-2 accent-[var(--color-accent)]"
+                />
+                {fixed && <span className="type-body col-span-2 text-[9px]">{t("liveNothingDrawn")}</span>}
+              </label>
+            );
+          })}
         </div>
         {status === "error" && <p className="font-mono text-[10.5px] text-loss">{error}</p>}
       </Tile>
       <Tile span={7} title={t("tileEstimatedRange")} unit={t("estimatedRangeUnit")}>
         {p && <RangeBand p={p} hurdle={hurdle} />}
-        <p className="type-body text-[9px]">{t("surrogateNote")}</p>
+        <p className="type-body text-[9px]">{t("liveNote")}</p>
         <div>
           <PrimaryButton onClick={runNow}>{t("runNow")}</PrimaryButton>
         </div>

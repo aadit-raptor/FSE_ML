@@ -1,23 +1,16 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import ml from "./fixtures/ml-responses.json";
 import { simulationSettled, stepLink } from "./helpers";
 
 /**
  * PLAN.md 2.1: no screen presents inception-era numbers as market facts.
  *
- * Live needs the optional ML layer, which CI's e2e job doesn't install. Its
- * test replays responses recorded from a real ML server
- * (fixtures/ml-responses.json, written by the API's own endpoints), so the
- * labels are still rendered from API fields by the real UI.
+ * Live's label is the last of them to go (PLAN.md 5.8): it no longer repeats a
+ * fixed training deal, because the estimate is the simulation of the deal on
+ * screen; it says how many paths instead (e2e/live-sliders.spec.ts).
  */
 
 const ILLUSTRATIVE = "Illustrative defaults — not market data";
-
-async function replayML(page: Page) {
-  await page.route("**/api/capabilities", (r) => r.fulfill({ json: ml.capabilities }));
-  await page.route("**/api/ml/surrogate", (r) => r.fulfill({ json: ml.surrogate }));
-}
 
 test.describe("Honest labels", () => {
   test("every Settings step says its defaults are illustrative", async ({ page }) => {
@@ -48,13 +41,11 @@ test.describe("Honest labels", () => {
     await expect(note).toBeVisible();
   });
 
-  test("Live repeats the fixed deal the surrogate was trained on", async ({ page }) => {
-    await replayML(page);
+  test("Live says its estimate is a small simulation of this deal, from the API's own count", async ({ page }) => {
     await page.goto("/monte-carlo/live");
-    await simulationSettled(page);
-    await expect(page.getByText("Trained on one fixed deal")).toBeVisible();
-    const terms = page.locator('[data-provenance="live"]');
-    await expect(terms).toContainText("entry multiple 10.0x · holding period 5 yr · opex / revenue 18.0% · tax rate 25.0%");
-    await expect(terms).toContainText("senior / total debt 70%");
+    const label = page.locator('[data-provenance="live"]');
+    await expect(label).toContainText("reruns this deal on the same 8,000 simulated paths");
+    await expect(label).toContainText("nothing learned from other deals");
+    await expect(page.getByText("Trained on one fixed deal")).toHaveCount(0);
   });
 });

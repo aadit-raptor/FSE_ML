@@ -73,6 +73,20 @@ class Rule:
 USER_REQUESTS = Rule("user_requests_per_minute", "requests", "user", 240, 60)
 USER_RUNS = Rule("user_runs_per_minute", "model runs", "user", 30, 60)
 USER_RUNS_DAY = Rule("user_runs_per_day", "model runs", "user", 1_000, 86_400, shared=True)
+# The live sliders (PLAN.md 5.8): each estimate is a simulation of at most
+# core.live.LIVE_PATHS paths (a few milliseconds; about 30 ms at the size
+# caps), so it is not a model run, which would end a session of dragging at
+# 30 a minute and spend the day's 1,000. It has its own rate instead: three a
+# second, which is the most the screen can send (it waits 300 ms for the
+# slider to rest).
+USER_LIVE = Rule("user_live_per_minute", "live estimates", "user", 180, 60)
+LIVE_PATH = "/api/montecarlo/live"
+# ... and, across every user, only this many run at once (they hold no
+# simulation slot): the rest wait their turn for a moment, then are told to
+# try again, so many accounts dragging together can't take the whole CPU
+# from the health check and the real runs. Two at the caps are under 50 MB.
+LIVE_SLOTS = 2
+LIVE_WAIT_S = 2.0
 ADDRESS_REQUESTS = Rule("address_requests_per_minute", "requests", "address", 1_200, 60)
 ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused sign-ins",
                                 "address", 60, 60)
@@ -81,7 +95,7 @@ ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused 
 RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
-    "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/surrogate", "/api/ml/macro-regime",
+    "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/macro-regime",
     "/api/companies/search", "/api/companies/load",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
@@ -186,6 +200,8 @@ def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)
     rules = [(USER_REQUESTS, user.subject)]
     if is_run_request(request.method, request.url.path):
         rules += [(USER_RUNS, user.subject), (USER_RUNS_DAY, user.subject)]
+    if request.url.path == LIVE_PATH:
+        rules.append((USER_LIVE, user.subject))
     _enforce(rules)
 
 
@@ -224,6 +240,25 @@ def simulation_slot(endpoint):
             return endpoint(*args, **kwargs)
         finally:
             _slots.release()
+    return wrapper
+
+
+_live_slots = threading.BoundedSemaphore(LIVE_SLOTS)
+
+
+def live_slot(endpoint):
+    """Run a (sync) live-estimate endpoint in one of ``LIVE_SLOTS`` places,
+    waiting at most ``LIVE_WAIT_S`` for one."""
+    @functools.wraps(endpoint)
+    def wrapper(*args, **kwargs):
+        if not _live_slots.acquire(timeout=LIVE_WAIT_S):
+            raise HTTPException(
+                status_code=503, headers={"Retry-After": "2"},
+                detail="The server is busy with other live estimates. Move the slider again in a moment.")
+        try:
+            return endpoint(*args, **kwargs)
+        finally:
+            _live_slots.release()
     return wrapper
 
 

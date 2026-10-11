@@ -90,13 +90,14 @@ says "starting up, retrying" meanwhile. Change `plan: free` to `starter` for an
 always-on instance. Monte Carlo runs are CPU-bound, so a paid instance is also
 noticeably faster.
 
-**ML features** (the Live sliders) are off in the
-default image. To enable them, add a build argument `INSTALL_ML=true` in the
-service's settings (Render: *Settings → Build → Docker build arguments*). The
-image grows by about 1 GB and torch needs more than the free plan's 512 MB of
-RAM. Screens hide these features automatically when the API can't run them.
-The deal risk score, the distress, multiple and growth models and the
-economic regime need no ML packages: they run in the default image.
+**No feature needs ML packages** (PLAN.md 5.8): the image has no build
+argument and one image runs everything. The Live sliders rerun the simulation
+on a small, fixed set of paths; the deal risk score, the distress, multiple
+and growth models and the economic regime read stored data. An `INSTALL_ML`
+build argument left on a Render service from before 5.8 is ignored and can be
+deleted. After every staging deploy the job drill also runs a session of the
+Live sliders on the staging server and fails if the API's memory peaked at or
+above the service's 512 MB (`ops/scheduled.py` `live_problems`).
 
 ## 2. Web app on Vercel
 
