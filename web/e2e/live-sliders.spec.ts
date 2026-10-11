@@ -78,6 +78,15 @@ test.describe("Live sliders", () => {
     const reset = await nextEstimate(page, () => page.getByRole("button", { name: "Reset to rail" }).click());
     expect(reset.got.prediction).toEqual(first.got.prediction);
     await expect(kpi(page, "Median IRR")).toHaveText("18.6%");
+
+    // The rail edited under moved sliders: they restart from the deal as it now is, so the
+    // estimate is never for an assumption the rail no longer shows
+    await nextEstimate(page, () => slider(page, "Revenue growth mean").fill("9"));
+    const railed = await nextEstimate(page, () => setField(page, "Mean", "12", "Exit multiple"));
+    expect(railed.sent.sliders).toMatchObject({ exit_mean: 12, growth_mean: 5 });
+    await expect(slider(page, "Exit multiple mean")).toHaveValue("12");
+    await expect(slider(page, "Revenue growth mean")).toHaveValue("5");
+    expect(railed.got.prediction.irr_p50).toBeGreaterThan(first.got.prediction.irr_p50 + 0.02);
   });
 
   test("it says what it is, and warns about no training deal", async ({ page }) => {

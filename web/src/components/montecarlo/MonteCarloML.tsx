@@ -70,13 +70,21 @@ function Live() {
     [sim, deal],
   );
   const [sliders, setSliders] = useState<Sliders>(own);
+  // A deal or rail edited elsewhere (or a saved deal arriving after this mounted) restarts the sliders
+  // from it: they are moves away from the deal on screen, never a remembered other deal.
+  const ownKey = JSON.stringify(own);
+  const [basis, setBasis] = useState(ownKey);
+  if (basis !== ownKey) {
+    setBasis(ownKey);
+    setSliders(own);
+  }
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string>();
   const unavailable = t("liveUnavailableShort");
   const unreachable = e("apiUnreachable");
   /** A listed structure with nothing drawn at close has no debt to scale. */
-  const nothingDrawn = deal.tranches.length > 0 && own.debt_pct === 0;
+  const nothingDrawn = deal.tranches.length > 0 && own.debt_pct < 0.01;
 
   useEffect(() => {
     if (!caps?.live) return;
@@ -104,7 +112,7 @@ function Live() {
             setStatus("error");
           }
         });
-    }, 150);
+    }, 300);
     return () => {
       clearTimeout(id);
       ctrl.abort();

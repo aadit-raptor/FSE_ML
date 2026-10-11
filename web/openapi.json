@@ -19580,7 +19580,7 @@
     },
     "/api/montecarlo/live": {
       "post": {
-        "description": "The Live step's estimate (PLAN.md 5.8): the simulation itself on a\nsmall, fixed set of seeded paths, with the sliders applied. Holds no\nsimulation slot: its size is bounded by core.live.live_paths, and its\nrate by api.limits.USER_LIVE.",
+        "description": "The Live step's estimate (PLAN.md 5.8): the simulation itself on a\nsmall, fixed set of seeded paths, with the sliders applied. Holds no\nsimulation slot: its size is bounded by core.live.live_paths, its rate by\napi.limits.USER_LIVE and how many run at once by api.limits.live_slot.",
         "operationId": "post_live_api_montecarlo_live_post",
         "requestBody": {
           "content": {

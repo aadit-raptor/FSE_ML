@@ -1236,8 +1236,8 @@ enough for the free server.
   and the largest deal) and fails if the API's memory peaked at or above
   the service's 512 MB, the moves added over 32 MB or the middle estimate
   took over 500 ms. `POST /api/montecarlo/live` replaces
-  `/api/ml/surrogate`; it has its own rate (120 a minute) instead of
-  counting as a model run.
+  `/api/ml/surrogate`; it has its own rate (180 a minute, two at once across all users) instead
+  of counting as a model run.
 
 ### 5.9 Personalized defaults
 - **Claude does:** move `ml/personalization.py` into the database; learn each

@@ -76,10 +76,17 @@ USER_RUNS_DAY = Rule("user_runs_per_day", "model runs", "user", 1_000, 86_400, s
 # The live sliders (PLAN.md 5.8): each estimate is a simulation of at most
 # core.live.LIVE_PATHS paths (a few milliseconds; about 30 ms at the size
 # caps), so it is not a model run, which would end a session of dragging at
-# 30 a minute and spend the day's 1,000. It has its own rate instead: two a
-# second, more than the screen sends (it waits for the slider to rest).
-USER_LIVE = Rule("user_live_per_minute", "live estimates", "user", 120, 60)
+# 30 a minute and spend the day's 1,000. It has its own rate instead: three a
+# second, which is the most the screen can send (it waits 300 ms for the
+# slider to rest).
+USER_LIVE = Rule("user_live_per_minute", "live estimates", "user", 180, 60)
 LIVE_PATH = "/api/montecarlo/live"
+# ... and, across every user, only this many run at once (they hold no
+# simulation slot): the rest wait their turn for a moment, then are told to
+# try again, so many accounts dragging together can't take the whole CPU
+# from the health check and the real runs. Two at the caps are under 50 MB.
+LIVE_SLOTS = 2
+LIVE_WAIT_S = 2.0
 ADDRESS_REQUESTS = Rule("address_requests_per_minute", "requests", "address", 1_200, 60)
 ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused sign-ins",
                                 "address", 60, 60)
@@ -233,6 +240,25 @@ def simulation_slot(endpoint):
             return endpoint(*args, **kwargs)
         finally:
             _slots.release()
+    return wrapper
+
+
+_live_slots = threading.BoundedSemaphore(LIVE_SLOTS)
+
+
+def live_slot(endpoint):
+    """Run a (sync) live-estimate endpoint in one of ``LIVE_SLOTS`` places,
+    waiting at most ``LIVE_WAIT_S`` for one."""
+    @functools.wraps(endpoint)
+    def wrapper(*args, **kwargs):
+        if not _live_slots.acquire(timeout=LIVE_WAIT_S):
+            raise HTTPException(
+                status_code=503, headers={"Retry-After": "2"},
+                detail="The server is busy with other live estimates. Move the slider again in a moment.")
+        try:
+            return endpoint(*args, **kwargs)
+        finally:
+            _live_slots.release()
     return wrapper
 
 

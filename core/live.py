@@ -45,6 +45,9 @@ PERCENTILES = (5, 10, 25, 50, 75, 90, 95)
 Z_95 = 1.959964
 # A debt share this close to the deal's own leaves its facilities untouched
 SAME_SHARE = 1e-9
+# Debt under this share of entry value (%) is not scaled: multiplying next to
+# nothing up to a real share would blow an undrawn commitment up with it
+SMALLEST_SHARE = 0.01
 
 
 @dataclass(frozen=True)
@@ -88,11 +91,11 @@ def _with_debt_share(mc: MCInputs, deal: DealInputs, share: float) -> DealInputs
     """The deal with its debt at ``share`` of entry value (%). A deal sized by
     percentages takes it as its own input; a listed structure keeps its shape
     and every facility (and its repayment schedule) is scaled alike. A
-    structure with nothing drawn has nothing to scale."""
+    structure with nothing drawn (under ``SMALLEST_SHARE``) has nothing to scale."""
     if not deal.tranches:
         return replace(deal, debt_pct=share)
     own = debt_share(mc, deal)
-    if own <= 0 or abs(share - own) <= SAME_SHARE:
+    if own < SMALLEST_SHARE or abs(share - own) <= SAME_SHARE:
         return deal
     factor = share / own
     return replace(deal, tranches=tuple(
@@ -126,17 +129,18 @@ def live_params(mc: MCInputs, deal: DealInputs, cfg: Mapping, sliders: Optional[
 
 
 def median_interval(irr: np.ndarray) -> tuple[float, float]:
-    """A 95% interval for the median from the paths themselves: the order
-    statistics ``Z_95 * sqrt(n) / 2`` ranks either side of the middle (the
-    sign-test interval, which assumes nothing about the distribution)."""
+    """A 95% interval for the median from the paths themselves: the sign-test
+    interval, which assumes nothing about the distribution. Of n paths in
+    order it runs from the ``floor((n - Z_95 * sqrt(n)) / 2)``-th smallest to
+    the ``ceil((n + Z_95 * sqrt(n)) / 2)``-th."""
     ordered = np.sort(irr[np.isfinite(irr)])
     n = len(ordered)
     if n == 0:
         return float("nan"), float("nan")
-    reach = Z_95 * math.sqrt(n) / 2
-    low = max(int(math.floor(n / 2 - reach)), 0)
-    high = min(int(math.ceil(n / 2 + reach)), n - 1)
-    return float(ordered[low]), float(ordered[high])
+    reach = Z_95 * math.sqrt(n)
+    low = max(int(math.floor((n - reach) / 2)), 1)
+    high = min(int(math.ceil((n + reach) / 2)), n)
+    return float(ordered[low - 1]), float(ordered[high - 1])
 
 
 def summarize(sim, hurdle_pct: float) -> dict:

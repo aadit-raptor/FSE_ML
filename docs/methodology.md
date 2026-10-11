@@ -1039,16 +1039,16 @@ These are estimates and are labelled as such on screen (PLAN.md principle 5).
   entry value (`debt_share`: what is drawn at close over the value the
   deal is priced at), which a deal sized by percentages takes as its own
   input and a listed structure is scaled to, every facility and its
-  repayment schedule alike (`_with_debt_share`; a structure with nothing
-  drawn is left as it is); and a listed structure's floating references
+  repayment schedule alike (`_with_debt_share`; a structure with under
+  `SMALLEST_SHARE`, 0.01% of entry value, drawn is left as it is); and a listed structure's floating references
   move by the rate slider's distance from the rail's rate mean, as a
   scenario moves them (§9). `live_params` builds the simulation's
   parameters from that (money converted to millions, as every run), and
   `summarize` reads the paths: the IRR's 5th to 95th percentiles, mean
   and spread, and the shares of paths above the hurdle, below 1.0x and
   wiped out. The sampling error is stated with it: `median_interval` is
-  the sign-test interval for the median, the order statistics
-  `Z_95` × √n / 2 ranks either side of the middle. Worked: the default
+  the sign-test interval for the median, from the ⌊(n − `Z_95` × √n) / 2⌋-th
+  smallest path to the ⌈(n + `Z_95` × √n) / 2⌉-th. Worked: the default
   deal on 8,000 paths has a median IRR of 18.57% with a 95% interval of
   18.36% to 18.81%; on Run Monte Carlo's 50,000 paths the median is 18.45%.
 - **Economic regime by region** ([ml/macro_regime.py](../ml/macro_regime.py),

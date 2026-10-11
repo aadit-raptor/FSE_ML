@@ -1201,8 +1201,8 @@ export interface paths {
          * Post Live
          * @description The Live step's estimate (PLAN.md 5.8): the simulation itself on a
          *     small, fixed set of seeded paths, with the sliders applied. Holds no
-         *     simulation slot: its size is bounded by core.live.live_paths, and its
-         *     rate by api.limits.USER_LIVE.
+         *     simulation slot: its size is bounded by core.live.live_paths, its rate by
+         *     api.limits.USER_LIVE and how many run at once by api.limits.live_slot.
          */
         post: operations["post_live_api_montecarlo_live_post"];
         delete?: never;

@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from analytics.driver_attribution import explain_tails
 from api.deps import resolve_settings
 from api import limits
-from api.limits import simulation_slot
+from api.limits import live_slot, simulation_slot
 from api.observability import model_timer
 from api.schemas import (
     LiveRequest, LiveResponse, MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse,
@@ -116,11 +116,12 @@ def post_scenarios(req: ScenariosRequest):
 
 
 @router.post("/live", response_model=LiveResponse)
+@live_slot
 def post_live(req: LiveRequest):
     """The Live step's estimate (PLAN.md 5.8): the simulation itself on a
     small, fixed set of seeded paths, with the sliders applied. Holds no
-    simulation slot: its size is bounded by core.live.live_paths, and its
-    rate by api.limits.USER_LIVE."""
+    simulation slot: its size is bounded by core.live.live_paths, its rate by
+    api.limits.USER_LIVE and how many run at once by api.limits.live_slot."""
     cfg = resolve_settings(req.settings, check_correlations=True)
     sliders = LiveSliders(**req.sliders.model_dump()) if req.sliders else None
     t0 = time.perf_counter()

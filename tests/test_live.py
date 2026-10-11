@@ -179,6 +179,11 @@ def test_a_structure_with_nothing_drawn_has_nothing_to_scale():
     _, moved, _ = live.with_sliders(MCInputs(), deal, dataclasses.replace(live.sliders_of(MCInputs(), deal),
                                                                          debt_pct=50.0))
     assert moved.tranches == deal.tranches
+    # ... and next to nothing drawn is not multiplied up, commitment and all
+    barely = DealInputs(tranches=[{**REVOLVER, "drawn_pct": 1e-9}])
+    _, moved, _ = live.with_sliders(MCInputs(), barely, dataclasses.replace(live.sliders_of(MCInputs(), barely),
+                                                                           debt_pct=50.0))
+    assert moved.tranches == barely.tranches
 
 
 def test_scaling_keeps_a_repayment_schedule_in_proportion():
@@ -203,11 +208,13 @@ def test_a_structure_the_deal_cannot_carry_is_refused_as_everywhere_else():
 # Sampling error, said
 # ---------------------------------------------------------------------------
 def test_the_medians_interval_by_hand():
-    """A hundred paths, IRRs 0.00 to 0.99: 1.96 x sqrt(100) / 2 = 9.8 ranks
-    either side of the middle, so the 40th and the 60th."""
-    assert live.median_interval(np.arange(100) / 100) == (0.40, 0.60)
+    """A hundred paths, IRRs 0.00 to 0.99: 1.96 x sqrt(100) = 19.6, so from
+    the floor(80.4 / 2) = 40th smallest (0.39) to the ceil(119.6 / 2) = 60th
+    (0.59)."""
+    assert live.median_interval(np.arange(100) / 100) == (0.39, 0.59)
     # Paths without an IRR are not paths the median is taken over
-    assert live.median_interval(np.array([np.nan] * 5 + list(np.arange(100) / 100))) == (0.40, 0.60)
+    assert live.median_interval(np.array([np.nan] * 5 + list(np.arange(100) / 100))) == (0.39, 0.59)
+    assert live.median_interval(np.array([0.1, 0.2])) == (0.1, 0.2)         # never outside the sample
     assert all(np.isnan(v) for v in live.median_interval(np.array([np.nan])))
 
 
@@ -292,3 +299,20 @@ def test_live_estimates_have_their_own_rate_and_are_not_model_runs(monkeypatch):
 def test_invalid_sliders_are_refused():
     assert client.post("/api/montecarlo/live", json={"sliders": {**OWN, "gross_margin_mean": 120}}).status_code == 422
     assert client.post("/api/montecarlo/live", json={"sliders": {"growth_mean": 5.0, "bogus": 1}}).status_code == 422
+
+
+def test_only_a_few_live_estimates_run_at_once(monkeypatch):
+    """They hold no simulation slot, so their own places bound what many
+    users dragging together can take: the next one waits a moment, then is
+    told to try again."""
+    monkeypatch.setattr(limits, "LIVE_WAIT_S", 0.05)
+    held = [limits._live_slots.acquire(timeout=1) for _ in range(limits.LIVE_SLOTS)]
+    try:
+        assert all(held)
+        resp = client.post("/api/montecarlo/live", json={})
+        assert resp.status_code == 503 and resp.headers["Retry-After"] == "2"
+        assert "live estimates" in resp.json()["detail"]
+    finally:
+        for _ in held:
+            limits._live_slots.release()
+    assert client.post("/api/montecarlo/live", json={}).status_code == 200      # and the place comes back
