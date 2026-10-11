@@ -30,6 +30,13 @@
    "train": null
   },
   {
+   "id": "regime",
+   "evaluation": "ml.evaluation.regime",
+   "loaded_by": "api/routers/integrations.py",
+   "artifacts": [],
+   "train": null
+  },
+  {
    "id": "surrogate",
    "evaluation": "ml.evaluation.surrogate",
    "loaded_by": "api/routers/integrations.py",

@@ -1,0 +1,13 @@
+{
+ "_recorded_on": "2026-10-11",
+ "https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH": {
+  "file": "www_NGDP_RPCH_c148a27b.json",
+  "status": 200,
+  "type": "application/json"
+ },
+ "https://www.imf.org/external/datamapper/api/v1/PCPIPCH": {
+  "file": "www_PCPIPCH_d0b521ea.json",
+  "status": 200,
+  "type": "application/json"
+ }
+}

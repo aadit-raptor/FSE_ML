@@ -2,8 +2,6 @@
   "capabilities": {
     "anomaly_detector": true,
     "surrogate": true,
-    "macro_regime_installed": true,
-    "macro_regime_trained": false,
     "edgar": true
   },
   "surrogate": {
