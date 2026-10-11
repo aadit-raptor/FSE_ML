@@ -588,6 +588,7 @@
     "activity_reference_reviewed": "{verdict, select, approve {Approved a reference transaction} other {Rejected a reference transaction}}",
     "activity_validation_opted_in": "Counted in model validation",
     "activity_validation_opted_out": "Stopped counting in model validation",
+    "activity_suggestions_switched": "{enabled, select, true {Suggestions of your usual figures switched on} other {Suggestions of your usual figures switched off}}",
     "groupCredit": "Credit"
   },
   "montecarlo": {
@@ -1391,9 +1392,9 @@
     "intro": "Variater is a tool for modelling leveraged buyouts. This page says what it keeps about you, who handles it for us, and how to have it removed.",
     "storedTitle": "What we keep",
     "storedSignIn": "Sign-in is run by Clerk. Clerk holds your email address and, if you sign in with Google, the name and picture Google shares. Variater's own database keeps only Clerk's id for you, never your name or email address.",
-    "storedProfile": "The four answers you give when you sign up: country, preferred currency, number format and time zone.",
+    "storedProfile": "The four answers you give when you sign up: country, preferred currency, number format and time zone. And one choice: whether you want your usual figures suggested (Deal, Inputs, Starting point). The suggestions themselves are never kept: each time you open a deal they are worked out from your own saved deals in the same region and sector. Nobody else's deals are read for you, and yours are never read for anyone else. Switch it off and your deals are not read for it at all.",
     "storedDeals": "The deals you save, their earlier versions, the actual results you enter for them, and your settings. With each deal and version we keep which version of the model it was saved with and the IRR and MOIC it gave then, so reopening it can tell you if its results have changed. Nothing from a deal is ever written to a log or an error report.",
-    "storedActivity": "A history of what you did and when: a deal created, edited (which fields, never the figures), renamed, archived, a version kept or restored, actual results saved, a download, a deal deleted, changes to your settings, letting a deal count in model validation or stopping it, and, for an administrator, showing or hiding the reference library and proposing, approving or rejecting a reference transaction (public filing data; the library keeps which account reviewed it). It holds no figures, deal names or version labels, so it outlives a deleted deal without keeping anything from it.",
+    "storedActivity": "A history of what you did and when: a deal created, edited (which fields, never the figures), renamed, archived, a version kept or restored, actual results saved, a download, a deal deleted, changes to your settings, letting a deal count in model validation or stopping it, switching suggestions of your usual figures on or off, and, for an administrator, showing or hiding the reference library and proposing, approving or rejecting a reference transaction (public filing data; the library keeps which account reviewed it). It holds no figures, deal names or version labels, so it outlives a deleted deal without keeping anything from it.",
     "validationTitle": "Model validation",
     "validation": "Off unless you switch it on for a deal (Backtest, Plan and actuals). Then, each night, that deal's plan and actual results are run through the model on our server to see whether its outcome fell inside the ranges it predicted. Only counts and rates per region, sector, size and era are kept in the report everyone signed in can see: never the deal, its name, its figures or your account, and a group with fewer than five users' deals shows neither its figures nor how many it holds. Switch it off and the next report leaves the deal out; deleting the deal does the same.",
     "googleTitle": "Signing in with Google",
@@ -1558,7 +1559,16 @@
     "note_size_not_split": "No free source splits these figures by company size, so every size starts from the same ones.",
     "note_exit_equals_entry": "The exit multiple starts equal to the entry multiple: no expansion is assumed.",
     "note_listed_company_leverage": "Debt starts at the industry's listed-company leverage, all senior. No free source publishes buyout leverage, which is usually higher; supervisors draw their line at 6.0x EBITDA.",
-    "attribution": "Industry averages from {publisher}:"
+    "attribution": "Industry averages from {publisher}:",
+    "colUsual": "Your usual",
+    "useUsualOne": "Use your usual {figure}",
+    "useAllUsual": "Use all yours ({count})",
+    "usualRange": "{low} to {high}, {count, plural, one {# deal} other {# deals}}",
+    "usualNote": "Your usual: the median across your own {count, plural, one {# other saved deal} other {# other saved deals}} in {group}, with the lowest and highest you have used. Only your deals are read, never anyone else's.",
+    "usualNotEnough": "Your usual figures appear once {min} of your other saved deals are in {group}; so far {count, plural, one {# is} other {# are}}.",
+    "usualSwitch": "Suggest my usual figures",
+    "usualSwitchNote": "The median of your own saved deals in the same region and sector, beside the sourced figures. Off, your deals are not read for it.",
+    "usualSwitchFailed": "The choice could not be saved. Try again in a minute."
   },
   "risk": {
     "group": "Sources",

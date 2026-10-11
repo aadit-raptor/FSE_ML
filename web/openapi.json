@@ -440,7 +440,8 @@
               "reference_proposed",
               "reference_reviewed",
               "validation_opted_in",
-              "validation_opted_out"
+              "validation_opted_out",
+              "suggestions_switched"
             ],
             "title": "Action",
             "type": "string"
@@ -488,7 +489,7 @@
                 "type": "null"
               }
             ],
-            "description": "Whether the reference library was shown or hidden",
+            "description": "Whether the reference library was shown or hidden, or suggestions of the account's usual figures switched on or off",
             "title": "Enabled"
           },
           "export": {
@@ -14471,6 +14472,108 @@
         "title": "StoredActuals",
         "type": "object"
       },
+      "SuggestionsResponse": {
+        "description": "The caller's usual figures for a deal's region and sector (PLAN.md 5.9),\nfrom their own saved deals and nobody else's.",
+        "properties": {
+          "deals": {
+            "description": "The caller's deals in that region and sector, the one on screen left out",
+            "title": "Deals",
+            "type": "integer"
+          },
+          "enabled": {
+            "description": "False when the caller switched suggestions off: everything else is empty",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/UsualFigure"
+            },
+            "title": "Figures",
+            "type": "array"
+          },
+          "industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The industry itself, when it has no sector and so is a group of its own",
+            "title": "Industry"
+          },
+          "min_deals": {
+            "title": "Min Deals",
+            "type": "integer"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "S&P's region of the country asked for",
+            "title": "Region"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The GICS sector of the industry asked for",
+            "title": "Sector"
+          },
+          "status": {
+            "description": "not_enough: no figure has min_deals of the caller's deals behind it",
+            "enum": [
+              "off",
+              "no_country",
+              "not_enough",
+              "ok"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "status",
+          "deals",
+          "min_deals",
+          "figures"
+        ],
+        "title": "SuggestionsResponse",
+        "type": "object"
+      },
+      "SuggestionsSwitch": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "SuggestionsSwitch",
+        "type": "object"
+      },
       "TargetProbability": {
         "properties": {
           "probability": {
@@ -15230,6 +15333,61 @@
           "interest_rate"
         ],
         "title": "TrancheYear",
+        "type": "object"
+      },
+      "UsualFigure": {
+        "properties": {
+          "deals": {
+            "description": "How many of the caller's deals it is the median of",
+            "title": "Deals",
+            "type": "integer"
+          },
+          "field": {
+            "description": "The deal input this figure is for",
+            "enum": [
+              "growth",
+              "tax",
+              "gross_margin",
+              "opex",
+              "da",
+              "entry_mult",
+              "exit_mult",
+              "capex",
+              "ar_days",
+              "inv_days",
+              "ap_days",
+              "nwc",
+              "debt_pct",
+              "senior_pct",
+              "base_rate"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "high": {
+            "description": "The highest of them",
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "description": "The lowest of them",
+            "title": "Low",
+            "type": "number"
+          },
+          "value": {
+            "description": "The median across the caller's own deals in the group, as the deal input reads it: per cent, a multiple or days",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "deals",
+          "low",
+          "high"
+        ],
+        "title": "UsualFigure",
         "type": "object"
       },
       "ValidationBucket": {
@@ -16203,6 +16361,155 @@
         "summary": "Put Account Settings",
         "tags": [
           "saved deals"
+        ]
+      }
+    },
+    "/api/account/suggestions": {
+      "get": {
+        "description": "The caller's usual figures for a deal in ``country`` and ``industry``:\nthe median of each starting figure across their own saved deals in the\nsame region and sector. Switched off, nothing is read and nothing answered.",
+        "operationId": "get_suggestions_api_account_suggestions_get",
+        "parameters": [
+          {
+            "description": "ISO 3166-1 alpha-2",
+            "in": "query",
+            "name": "country",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "ISO 3166-1 alpha-2",
+              "pattern": "^([A-Z]{2})?$",
+              "title": "Country",
+              "type": "string"
+            }
+          },
+          {
+            "description": "An id from /api/benchmarks/industries",
+            "in": "query",
+            "name": "industry",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "An id from /api/benchmarks/industries",
+              "pattern": "^[a-z0-9_]{1,60}$",
+              "title": "Industry",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The deal on screen, left out of its own suggestion",
+            "in": "query",
+            "name": "deal_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The deal on screen, left out of its own suggestion",
+              "title": "Deal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Suggestions",
+        "tags": [
+          "account"
+        ]
+      },
+      "put": {
+        "description": "Switch suggestions of the caller's usual figures on or off.",
+        "operationId": "put_suggestions_api_account_suggestions_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionsSwitch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsSwitch"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Suggestions",
+        "tags": [
+          "account"
         ]
       }
     },

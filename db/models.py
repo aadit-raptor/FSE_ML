@@ -23,7 +23,7 @@ from typing import Optional
 
 from sqlalchemy import (
     BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Identity, Index, Integer,
-    MetaData, Numeric, SmallInteger, String, UniqueConstraint, Uuid, false, func, text,
+    MetaData, Numeric, SmallInteger, String, UniqueConstraint, Uuid, false, func, text, true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -180,6 +180,10 @@ class User(Base):
     # differ from core/config.py DEFAULTS, so an untouched account stores {}
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False,
                                            server_default=text("'{}'::jsonb"))
+    # Whether the person wants their usual figures suggested (PLAN.md 5.9).
+    # The suggestions themselves are never stored: they are worked out from
+    # the person's own deals when asked for (benchmarks/usual.py)
+    personalized_defaults: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=true())
 
 
 class Deal(Base):
@@ -274,7 +278,9 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  # An administrator proposed or reviewed a reference transaction (PLAN.md 4.5b)
                  "reference_proposed", "reference_reviewed",
                  # The owner agreed, or stopped agreeing, to a deal counting in model validation (PLAN.md 4.6)
-                 "validation_opted_in", "validation_opted_out")
+                 "validation_opted_in", "validation_opted_out",
+                 # The person switched suggestions of their usual figures on or off (PLAN.md 5.9)
+                 "suggestions_switched")
 
 
 class AuditEvent(Base):

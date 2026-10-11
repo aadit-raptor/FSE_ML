@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 import { useProfile } from "@/components/auth/ProfileProvider";
-import { Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
+import { Notice, PrimaryButton, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { SELECT_CLASS } from "@/components/ui/MoneySelects";
 import { Tile } from "@/components/ui/Tile";
 import {
@@ -13,6 +13,7 @@ import {
 import type { DealInputs } from "@/lib/deal/fields";
 import { fmtCount, fmtMultiple, fmtNumber, fmtPct } from "@/lib/format";
 import { countryOptions, periodLabel, regionName } from "@/lib/locale";
+import { setUsualEnabled, type Usual, type UsualFigure, useUsual, useUsualLoader } from "@/lib/usual";
 
 import { useDeal } from "./DealProvider";
 import { DealField, MoneyFields, useDealLabel } from "./DealScreen";
@@ -26,7 +27,7 @@ const ALL = "all";
  * sourced for. The choices are a draft until then, so the labels always describe the figures.
  */
 export function StartingPointFields() {
-  const { inputs, setFields } = useDeal();
+  const { inputs, setFields, current } = useDeal();
   const { profile } = useProfile();
   const t = useTranslations("starting");
   const industries = useIndustries();
@@ -94,11 +95,41 @@ export function StartingPointFields() {
           {t("applyFailed")}
         </p>
       )}
+      <UsualSwitch country={inputs.country} industry={inputs.industry} dealId={current?.id ?? null} />
     </>
   );
 }
 
+/**
+ * The off switch for the account's usual figures (PLAN.md 5.9), and the one place that reads them
+ * for the deal on screen. Off, the API reads none of the account's deals and the tile shows no
+ * "Your usual" column.
+ */
+function UsualSwitch({ country, industry, dealId }: { country: string; industry: string; dealId: string | null }) {
+  const t = useTranslations("starting");
+  const { subject } = useProfile();
+  useUsualLoader(subject, country, industry, dealId);
+  const usual = useUsual(subject, country, industry, dealId);
+  const [failed, setFailed] = useState(false);
+  if (!usual) return null;
+  const change = async (next: boolean) => {
+    setFailed(!(await setUsualEnabled(next, subject, country, industry, dealId)));
+  };
+  return (
+    <div className="grid gap-1 pt-2">
+      <Switch checked={usual.enabled} onChange={(v) => void change(v)} label={t("usualSwitch")} />
+      <p className="type-body text-[9px]">{t("usualSwitchNote")}</p>
+      {failed && (
+        <p className="type-body text-[9px] text-loss" role="alert">
+          {t("usualSwitchFailed")}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** i18n-keys: starting.area_*, starting.source_*, starting.reason_*, starting.note_*, starting.kind_* */
+/** i18n-keys: library.region_*, library.sector_* */
 function useFigureText() {
   const t = useTranslations("starting");
   const areaName = (area: string) => (t.has(`area_${area}`) ? t(`area_${area}`) : /^[A-Z]{2}$/.test(area) ? regionName(area) : area);
@@ -121,11 +152,15 @@ function useFigureText() {
  * sourced one back. Before a country is chosen the deal's figures are illustrative, and this says so.
  */
 export function StartingFiguresTile() {
-  const { inputs, setFields } = useDeal();
+  const { inputs, setFields, current } = useDeal();
   const { t, areaName, value, sample, skipped } = useFigureText();
+  const lib = useTranslations("library");
   const label = useDealLabel();
+  const industries = useIndustries();
+  const { subject } = useProfile();
   const [starting, setStarting] = useState<Starting | null>(null);
   const { country, industry, currency } = inputs;
+  const usual = useUsual(subject, country, industry, current?.id ?? null);
 
   useEffect(() => {
     if (!country) return;
@@ -148,14 +183,59 @@ export function StartingFiguresTile() {
   // An answer for another country, industry or currency is never shown, nor applied by "Use all"
   if (!starting || starting.country !== country || starting.industry !== (industry || ALL) || starting.currency !== currency) return null;
   const differs = starting.figures.filter((f) => inputs[f.field as keyof DealInputs] !== f.value);
+  // The account's own usual figures (PLAN.md 5.9), a column beside the sourced ones when it has any
+  // (only for the figures the table shows, so "Use all yours" never changes an input out of sight)
+  const shown = new Set<string>([...starting.figures.map((f) => f.field), ...starting.missing.map((m) => m.field)]);
+  const mine = new Map<string, UsualFigure>(
+    (usual?.status === "ok" ? usual.figures : []).filter((f) => shown.has(f.field)).map((f) => [f.field, f]),
+  );
+  // Some of the account's deals are in the group, but no figure has enough of them yet
+  const tooFew = usual?.status === "not_enough" && usual.deals !== 0;
+  const mineDiffers = [...mine.values()].filter((f) => inputs[f.field as keyof DealInputs] !== f.value);
+  const usualCell = (field: StartingField) => {
+    const u = mine.get(field);
+    if (mine.size === 0) return null;
+    return (
+      <td className="px-2 py-1 text-end text-ink" data-usual={field}>
+        {u && (
+          <>
+            {value(field, u.value)}
+            {inputs[field as keyof DealInputs] !== u.value && (
+              <button
+                type="button"
+                onClick={() => setFields({ [field]: u.value } as Partial<DealInputs>)}
+                className="type-action-secondary ps-2 text-accent"
+                aria-label={t("useUsualOne", { figure: label(field as keyof DealInputs) })}
+              >
+                {t("use")}
+              </button>
+            )}
+            <span className="block text-[10px] text-dim">
+              {t("usualRange", { low: value(field, u.low), high: value(field, u.high), count: u.deals })}
+            </span>
+          </>
+        )}
+      </td>
+    );
+  };
+  const group = usual ? usualGroup(usual, lib, industries?.industries ?? [], t("allIndustries")) : "";
   const title = t("tileTitle", { country: regionName(country), industry: industry && industry !== ALL ? industryName(starting, industry) : t("allIndustries") });
 
   return (
     <Tile
       span={12}
       title={title}
-      action={differs.length > 0 && (
-        <SecondaryButton onClick={() => setFields(startingPatch(starting))}>{t("useAll", { count: differs.length })}</SecondaryButton>
+      action={(differs.length > 0 || mineDiffers.length > 0) && (
+        <span className="flex flex-wrap gap-2">
+          {mineDiffers.length > 0 && (
+            <SecondaryButton onClick={() => setFields(Object.fromEntries(mineDiffers.map((f) => [f.field, f.value])) as Partial<DealInputs>)}>
+              {t("useAllUsual", { count: mineDiffers.length })}
+            </SecondaryButton>
+          )}
+          {differs.length > 0 && (
+            <SecondaryButton onClick={() => setFields(startingPatch(starting))}>{t("useAll", { count: differs.length })}</SecondaryButton>
+          )}
+        </span>
       )}
     >
       <div className="overflow-x-auto">
@@ -164,6 +244,7 @@ export function StartingFiguresTile() {
             <tr className="type-input-label text-start">
               <th scope="col" className="px-2 py-1 text-start font-normal">{t("colFigure")}</th>
               <th scope="col" className="px-2 py-1 text-end font-normal">{t("colSourced")}</th>
+              {mine.size > 0 && <th scope="col" className="px-2 py-1 text-end font-normal">{t("colUsual")}</th>}
               <th scope="col" className="px-2 py-1 text-end font-normal">{t("colDeal")}</th>
               <th scope="col" className="px-2 py-1 text-start font-normal">{t("colSource")}</th>
               <th scope="col" className="sr-only">{t("colUse")}</th>
@@ -177,6 +258,7 @@ export function StartingFiguresTile() {
                 <tr key={f.field} className="border-t border-line align-top" data-field={f.field}>
                   <th scope="row" className="type-input-label px-2 py-1 text-start font-normal">{label(f.field as keyof DealInputs)}</th>
                   <td className="px-2 py-1 text-end text-ink" data-sourced={f.field}>{value(f.field, f.value)}</td>
+                  {usualCell(f.field)}
                   <td className={`px-2 py-1 text-end ${same ? "text-dim" : "text-attention"}`}>{value(f.field, now)}</td>
                   <td className="px-2 py-1 text-start text-muted">
                     <SourceLine f={f} area={areaName(f.area)} sample={sample(f)} />
@@ -200,13 +282,18 @@ export function StartingFiguresTile() {
             {starting.missing.map((m) => (
               <tr key={m.field} className="border-t border-line" data-field={m.field}>
                 <th scope="row" className="type-input-label px-2 py-1 text-start font-normal">{label(m.field as keyof DealInputs)}</th>
-                <td colSpan={4} className="px-2 py-1 text-start text-attention">{t("missing")}</td>
+                <td />
+                {usualCell(m.field)}
+                <td className="px-2 py-1 text-end text-dim">{value(m.field, inputs[m.field as keyof DealInputs] as number)}</td>
+                <td colSpan={2} className="px-2 py-1 text-start text-attention">{t("missing")}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <ul className="grid gap-0.5 font-mono text-[10px] text-dim">
+        {usual?.status === "ok" && <li data-usual-note={usual.status}>{t("usualNote", { group, count: usual.deals })}</li>}
+        {usual && tooFew && <li data-usual-note={usual.status}>{t("usualNotEnough", { group, count: usual.deals, min: usual.min_deals })}</li>}
         {starting.notes.map((n) => (
           <li key={n}>{t(`note_${n}`)}</li>
         ))}
@@ -219,6 +306,17 @@ export function StartingFiguresTile() {
       </ul>
     </Tile>
   );
+}
+
+/** The group a usual figure is for: "Industrials, Europe"; an industry with no sector by its own name. */
+function usualGroup(u: Usual, lib: (key: string) => string, industries: { id: string; name: string }[], all: string): string {
+  const region = u.region ? lib(`region_${u.region}`) : "";
+  const sector = u.sector
+    ? lib(`sector_${u.sector}`)
+    : u.industry === ALL || !u.industry
+      ? all
+      : (industries.find((i) => i.id === u.industry)?.name ?? u.industry);
+  return [sector, region].filter(Boolean).join(", ");
 }
 
 function industryName(s: Starting, id: string): string {
