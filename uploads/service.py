@@ -84,6 +84,16 @@ def spool() -> Path:
     return folder
 
 
+def spool_bytes() -> int:
+    total = 0
+    for path in spool().iterdir():
+        try:
+            total += path.stat().st_size
+        except OSError:
+            pass
+    return total
+
+
 def spooled(file_id: uuid.UUID) -> Path:
     return spool() / str(uuid.UUID(str(file_id)))
 
@@ -151,10 +161,19 @@ def arrived(subject: str, record: FileRecord, path: Path, size: int, *,
     its scan. A name is stored once, so of two requests sending the same
     file one is stored and the other fails here. If the store can't take
     it, the room stays reserved and the caller may send it again."""
+    files = store()
     try:
-        store().put(record.key, path, rules.KINDS[record.kind].content_type)
-        record, changed = rows.mark_uploaded(subject, record.id, size, now=now)
-        if changed:
+        files.put(record.key, path, rules.KINDS[record.kind].content_type)
+        try:
+            record, changed = rows.mark_uploaded(subject, record.id, size, now=now)
+        except BaseException:
+            # The row is gone (deleted while the bytes were on their way) or
+            # could not be written: bytes with no row are in nobody's quota,
+            # so they do not stay. This request stored them, so they are its
+            # to remove; a name is stored once, so they are nobody else's
+            _delete_bytes(files, [record.key])
+            raise
+        if changed and spool_bytes() + size <= rules.SPOOL_MAX_BYTES:
             path.replace(spooled(record.id))      # the scan reads exactly what was stored
     finally:
         _discard(path)

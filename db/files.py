@@ -109,8 +109,10 @@ def reserve(subject: str, name: str, kind: str, size: int, *, now: Optional[date
         total_bytes, _ = _held(conn)
         in_flight = conn.execute(select(func.count()).where(
             StoredFile.owner_id == owner, StoredFile.status.in_(("pending", "scanning")))).scalar_one()
-        rules.check_room(size, user_bytes=user_bytes, user_files=user_files,
-                         total_bytes=total_bytes, budget=budget, in_flight=in_flight)
+        pending_bytes = conn.execute(select(func.coalesce(func.sum(StoredFile.size), 0)).where(
+            StoredFile.status == "pending")).scalar_one()
+        rules.check_room(size, user_bytes=user_bytes, user_files=user_files, total_bytes=total_bytes,
+                         budget=budget, in_flight=in_flight, pending_bytes=int(pending_bytes))
         row = conn.execute(insert(StoredFile).values(
             id=uuid.uuid4(), owner_id=owner, name=name, kind=kind, size=size, status="pending",
             created_at=now, expires_at=now + timedelta(seconds=rules.PENDING_S),

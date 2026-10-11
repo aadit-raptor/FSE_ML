@@ -843,22 +843,27 @@ can be swapped after its scan.
 
 **The scan** (`uploads/scan.py`) is structural, not an antivirus: ClamAV
 needed 1,687 MB to scan a 60-byte PDF (measured 2026-10-11) and the free
-server has 512 MB. It refuses anything that can act (macros, scripts,
-embedded objects and files, DDE, remote templates), anything
-password-protected, anything that is not the kind its name says and anything
-it can't read. It reads a file the way its own program does: PDFs with pypdf
+server has 512 MB. It refuses anything that can act or fetch (macros,
+scripts, embedded objects and attached files, DDE, remote templates and
+pictures, worksheet formulas that call a web address, data connections,
+Word fields that pull in a file), anything password-protected, anything
+that is not the kind its name says and anything it can't read. It reads a file the way its own program does: PDFs with pypdf
 (every object, object streams included) beside a search of the raw bytes;
 Office XML with a real XML parser; older Office files with oletools. **It
 runs in a process of its own** with a CPU limit, a memory limit and a
-deadline (150 s) and none of the server's secrets, so a file built to hang
+deadline (60 s) and none of the server's secrets, so a file built to hang
 or bloat a parser kills that process and is refused. It takes the slot
-simulations share, so its memory never adds to a simulation's. A signature
+simulations share, so its memory never adds to a simulation's; the price is
+that a very large file of the older formats, or a workbook with hundreds of
+megabytes of sheets, can run out of time on the free server and is refused
+("the check could not be completed"). A signature
 scan waits for a worker with memory (PLAN.md 12.1).
 
 **Limits** (`uploads/rules.py`): 20 MB a file, 100 MB and 40 files a person,
 800 MB in all (`FSE_UPLOADS_BUDGET_MB` lowers it); three of a person's files
-on their way or being checked at once, 60 uploads an hour, two uploads
-arriving at the server at once. The screen warns from 80% of either personal
+on their way or being checked at once, 20 uploads an hour, two uploads
+arriving at the server at once (five minutes each at most, and none that goes
+quiet for 20 seconds), 200 MB reserved in all for uploads not yet arrived. The screen warns from 80% of either personal
 limit. **Deletion rules:** the owner deletes a file at any time; a clean
 file is deleted 90 days after upload; a refused file's bytes are deleted at
 once and its line a week later; room reserved for an upload that never

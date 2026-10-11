@@ -1400,6 +1400,7 @@
     "spaceLine": "{used} of {quota}",
     "filesLine": "{files, plural, one {# file} other {# files}} of {maxFiles}",
     "megabytes": "{value} MB",
+    "kilobytes": "{value} KB",
     "none": "None",
     "kpiFiles": "Files",
     "ofFiles": "of {count} allowed",

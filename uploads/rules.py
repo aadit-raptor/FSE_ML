@@ -51,6 +51,14 @@ MAX_ARRIVING = 2
 # ... and how long one may take to arrive: 20 MB in this time is 67 KB a
 # second. A connection that stalls must not hold one of those places for good
 ARRIVE_TIMEOUT_S = 300
+# ... nor one that sends nothing at all for this long
+ARRIVE_IDLE_S = 20
+# Room that may be reserved, by everyone together, for uploads that have not
+# arrived: a few accounts reserving and never sending must not use up the store
+PENDING_BUDGET_BYTES = 200 * MB
+# Uploads kept on the server's own disk for their scan; past this an upload
+# is not kept, and its scan fetches it from the store instead
+SPOOL_MAX_BYTES = 200 * MB
 # A scan normally takes a second; one still unfinished after this long has
 # lost its job (three restarts), and the file is refused rather than trusted
 SCAN_STALE_S = 15 * 60
@@ -111,7 +119,7 @@ class InvalidUpload(ValueError):
 
 # Why an upload is refused before it starts
 REFUSALS = ("bad_name", "bad_type", "empty", "too_large", "quota_bytes", "quota_files", "storage_full",
-            "in_flight")
+            "in_flight", "busy")
 
 _CONTROL = re.compile(r"[\x00-\x1f\x7f\u200e\u200f\u202a-\u202e\u2066-\u2069]")
 
@@ -154,10 +162,12 @@ def total_budget_bytes(environ: Optional[dict] = None) -> int:
 
 
 def check_room(size: int, *, user_bytes: int, user_files: int, total_bytes: int,
-               budget: Optional[int] = None, in_flight: int = 0) -> None:
+               budget: Optional[int] = None, in_flight: int = 0, pending_bytes: int = 0) -> None:
     """Refuse an upload of ``size`` bytes that would pass a limit."""
     if in_flight >= MAX_IN_FLIGHT:
         raise InvalidUpload("in_flight")
+    if pending_bytes + size > PENDING_BUDGET_BYTES:
+        raise InvalidUpload("busy")
     if user_files + 1 > USER_MAX_FILES:
         raise InvalidUpload("quota_files")
     if user_bytes + size > USER_QUOTA_BYTES:

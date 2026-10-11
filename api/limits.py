@@ -116,13 +116,16 @@ JOBS_PATH = "/api/jobs"
 # into memory here. Its endpoint needs a signed-in caller whose own file is
 # waiting for exactly these bytes before it reads one, streams them to disk,
 # and stops at the size that was declared (api/routers/files.py)
-_FILE_CONTENT = re.compile(r"^/api/files/[0-9a-fA-F-]{36}/content$")
-USER_UPLOADS = Rule("user_uploads_per_hour", "uploads", "user", 60, 3600)
+_FILE_CONTENT = re.compile(r"/api/files/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}/content")
+# A scan holds the slot simulations share for up to a minute if a file is
+# built to keep it busy, so uploads are few: twenty an hour is more than a
+# person reading documents needs
+USER_UPLOADS = Rule("user_uploads_per_hour", "uploads", "user", 20, 3600)
 UPLOADS_PATH = "/api/files"
 
 
 def streams_body(method: str, path: str) -> bool:
-    return method == "PUT" and _FILE_CONTENT.match(path) is not None
+    return method == "PUT" and _FILE_CONTENT.fullmatch(path) is not None
 
 
 def stream_limit() -> int:

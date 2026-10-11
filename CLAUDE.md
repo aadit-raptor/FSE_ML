@@ -1288,25 +1288,41 @@ regexes were bypassed twice in review, and one took minutes on a 30 KB
 file): PDFs with **pypdf** (`_check_pdf_objects`: every object the
 cross-reference table leads to, object streams, filters and predictors
 resolved, walked for `/JS`, `/JavaScript`, `/Launch`, `/EmbeddedFile`,
-`/RichMedia`, `/XFA`, `/SubmitForm` ... and `/Encrypt`; a PDF it can't
-follow is `unreadable`) **beside** a search of the raw bytes for the long
+`/RichMedia`, `/XFA`, `/SubmitForm`, attachments (`/EF`, `/FileAttachment`,
+`/Collection`), `/GoToR`, media and 3D ... and `/Encrypt`; each object
+stream's contents decoded and searched; a packed object pypdf returns as
+null, an `/ObjStm` in the bytes that the table does not lead to, or a PDF
+it can't follow is `unreadable`) **beside** a search of the raw bytes for the long
 names, hex-escaped spellings too, and of anything that inflates to an object
 stream wherever a `stream` keyword stands (`_check_pdf_bytes`; the short
 names `/JS` and `/XFA` are not searched in raw bytes: 20 MB of compressed
 data spells them by chance); Open XML with **expat** (`_parse_part`:
-relationships, content types and Word field instructions with character
-references, CDATA, UTF-16 and odd attributes read as Office reads them; a
-document type declaration or a part not well-formed is `unreadable`) plus
+relationships, content types, Word field instructions and worksheet
+formulas with character references, CDATA, comments, UTF-16 and odd
+attributes read as Office reads them; **an attribute is checked under every
+spelling of its name** (`_values`: `Type` and `type` and `x:Type` are three
+attributes, and a check holds for all or the file is refused); a document
+type declaration or a part not well-formed is `unreadable`; all the XML
+parsed in one file has a budget, `XML_BUDGET_BYTES` 96 MB, because every
+element is a Python callback) plus
 the package itself (OLE or zip parts anywhere, other than a nested
 `.xlsx`/`.docx` under `embeddings`, which is checked in turn; ActiveX; macro
 content types and relationship types; `oleObject`, `control`, `aFChunk`,
-web extensions, templates; `TargetMode="External"` other than hyperlinks
-and workbook links; DDE fields joined across runs in every Word part;
-archive caps); **oletools 0.60.2** for macros everywhere and for `.doc` /
+web extensions, templates, data connections, query tables, custom ribbons,
+Power Query (`DataMashup`); `TargetMode="External"` other than hyperlinks
+and workbook links; Word fields that fetch or run (`DDE`, `INCLUDETEXT`,
+`INCLUDEPICTURE`, `LINK`, `IMPORT`, `DATABASE`) joined across runs in every
+part, and VML pictures with an address of their own; worksheet formulas
+calling `WEBSERVICE`, `FILTERXML`, `RTD`, `CALL`, `REGISTER`, `EXEC` or
+holding a `|` outside a text value (DDE); two parts under one name; archive
+caps); **oletools 0.60.2** for macros everywhere and for `.doc` /
 `.xls` (VBA, Excel 4, DDE, encryption) plus BIFF records (`FilePass`, DDE
-`SupBook`). **`scan_path` runs it in a child process** (`python -m
-uploads.scan <kind> <path>`) with `RLIMIT_CPU` 90 s, `RLIMIT_AS` 700 MB on
-Linux, a 150 s deadline and an environment holding no secret; a child that
+`SupBook`) and `.doc` field marks in one- or two-byte text. **`scan_path` runs it in a child process** (`python -m
+uploads.scan <kind> <path>`) with `RLIMIT_CPU` 45 s, `RLIMIT_AS` 700 MB on
+Linux, a 60 s deadline and an environment holding no secret (short on
+purpose: a scan holds the slot simulations share, so a huge old-format file
+or a workbook with hundreds of megabytes of sheets can run out of time on
+the free server and is refused); a child that
 dies, overruns or answers anything but `clean`/a reason is `scan_failed`.
 `scan` (in-process, what the tests mostly call) never raises. The scan
 reads the spool copy the upload left (so no download from Supabase, whose
@@ -1325,8 +1341,12 @@ finds nothing to do. **Limits**: 20 MB a file (also set on the bucket),
 100 MB and 40 files a person (`near_limit` from 80% of either: the screen's
 "Nearly full"), 800 MB in all (`FSE_UPLOADS_BUDGET_MB`); `MAX_IN_FLIGHT` 3
 of a person's files pending or scanning at once (429 `in_flight`),
-`USER_UPLOADS` 60 an hour (`api/limits.py`), `MAX_ARRIVING` 2 uploads
-streaming at once (503 `busy`, the screen sends again). A reservation
+`USER_UPLOADS` 20 an hour (`api/limits.py`), `MAX_ARRIVING` 2 uploads
+streaming at once (503 `busy`, the screen sends again), each within
+`ARRIVE_TIMEOUT_S` 300 s and never quiet for `ARRIVE_IDLE_S` 20 s (408
+`too_slow`), `PENDING_BUDGET_BYTES` 200 MB reserved by everyone for uploads
+not yet arrived, `SPOOL_MAX_BYTES` 200 MB of uploads kept on the server's
+disk for their scans (past it a scan fetches from the store). A reservation
 counts, and **a row counts until it is removed, because its bytes are in
 the store until then**; `begin` first removes the caller's own rows past
 their time, with their bytes. **Deletion rules**: by the owner any time;
@@ -1698,7 +1718,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,902 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry, `tests/test_uploads.py` file uploads (the scanner on built files, the security review's attack files and real workbooks; the child process; the stores; the whole road on a real database: another account gets 404, quotas, deletion rules, lost scans, nothing logged). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,939 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry, `tests/test_uploads.py` file uploads (the scanner on built files, the security review's attack files and real workbooks; the child process; the stores; the whole road on a real database: another account gets 404, quotas, deletion rules, lost scans, nothing logged). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (macOS, from the repo root)
 
@@ -2086,7 +2106,15 @@ Skills load when a session starts: install first, then open a new session.
   whole API froze), and `TargetMode="Ext&#101;rnal"`, an attribute holding
   `>`, CDATA and UTF-16 each slipped past a pattern that Office reads
   straight through. A new check gets a case in `REFUSED` in
-  `tests/test_uploads.py`, written the awkward ways too.
+  `tests/test_uploads.py`, written the awkward ways too. A parser is not
+  enough by itself: the second review got past expat by writing an
+  attribute twice (`Type` and `type`), which a dict keyed on lower-cased
+  local names collapsed to the harmless one. Check every spelling
+  (`_values`), or refuse.
+- Never hand `zlib.decompressobj().decompress` a view of "the rest of the
+  file": CPython copies what it did not consume into `unconsumed_tail` on
+  every call, so trying it at each of n places is n copies of the file (18
+  seconds for 4 MB). Feed it pieces (`uploads/scan.py` `_inflate`).
 - A check of a PDF that depends on *where* something stands in the bytes can
   be told a different story from the reader's: a `%stream` comment made the
   first scanner treat a real object stream as some other stream's body.

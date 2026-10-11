@@ -124,15 +124,19 @@ def post_file(body: FileBegin, user: AuthUser = Depends(require_user)):
 
 
 async def _spool(request: Request, path, limit: int) -> int:
-    """Write the request's body to ``path``; how many bytes, or -1 past ``limit``."""
-    total = 0
+    """Write the request's body to ``path``; how many bytes, or -1 past
+    ``limit``. A body that sends nothing for ``ARRIVE_IDLE_S`` times out."""
+    total, body = 0, request.stream().__aiter__()
     with open(path, "wb") as out:
-        async for chunk in request.stream():
+        while True:
+            try:
+                chunk = await asyncio.wait_for(body.__anext__(), rules.ARRIVE_IDLE_S)
+            except StopAsyncIteration:
+                return total
             total += len(chunk)
             if total > limit:
                 return -1
             out.write(chunk)
-    return total
 
 
 @router.put("/{file_id}/content", response_model=FileOut, responses=REFUSALS, openapi_extra={
@@ -145,8 +149,9 @@ async def put_content(file_id: uuid.UUID, request: Request, user: AuthUser = Dep
         record = await run_in_threadpool(service.expecting, user.subject, file_id)
         if not _arriving.acquire(blocking=False):
             raise refusal("busy", {"Retry-After": "5"})
-        path = service.arriving(file_id)
+        path = None
         try:
+            path = service.arriving(file_id)
             async with asyncio.timeout(rules.ARRIVE_TIMEOUT_S):
                 arrived = await _spool(request, path, min(record.size, rules.MAX_FILE_BYTES))
             if arrived <= 0:
@@ -161,7 +166,8 @@ async def put_content(file_id: uuid.UUID, request: Request, user: AuthUser = Dep
         except OSError:
             raise refusal("storage_unavailable", {"Retry-After": "30"}) from None
         finally:
-            service.discard(path)
+            if path is not None:
+                service.discard(path)
             _arriving.release()
 
 

@@ -63,6 +63,8 @@ export function DocumentsStep() {
   }, [checking, load]);
 
   const size = (bytes: number) => {
+    // A small file in kilobytes: "0.0 MB" says nothing
+    if (bytes > 0 && bytes < 1024 * 1024) return t("kilobytes", { value: fmtNumber(Math.max(1, Math.round(bytes / 1024)), 0) });
     const { value, digits } = megabytes(bytes);
     return t("megabytes", { value: fmtNumber(value, digits) });
   };
