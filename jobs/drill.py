@@ -207,6 +207,9 @@ def files_drill(fetch=None) -> dict:
         source, back = Path(folder, "source"), Path(folder, "back")
         source.write_bytes(sample)
         try:
+            step = "bucket"
+            if hasattr(files, "ensure_bucket"):
+                files.ensure_bucket()
             step = "store"
             files.put(key, source, rules.KINDS["pdf"].content_type)
             step = "size"
@@ -229,7 +232,9 @@ def files_drill(fetch=None) -> dict:
                 files.delete([key])
             except Exception:  # noqa: BLE001
                 pass
+            # The store's own short reason, when it gave one (uploads/store.py
+            # ``StorageError.detail``: the key is removed from it)
             return {**scanner, "files_drill": f"failed:{step}", "files_drill_error": type(exc).__name__,
-                    "files_drill_store": files.name}
+                    "files_drill_detail": str(getattr(exc, "detail", ""))[:200], "files_drill_store": files.name}
     return {**scanner, "files_drill": "ok", "files_drill_store": files.name,
             "files_drill_ms": round((time.perf_counter() - t0) * 1000)}

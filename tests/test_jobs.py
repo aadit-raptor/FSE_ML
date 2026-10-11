@@ -778,7 +778,15 @@ def test_the_file_drill_says_which_step_failed_and_cleans_up(tmp_path, monkeypat
     def unreachable(self, *args):
         raise stores.StorageError("storage could not be reached")
     monkeypatch.setattr(stores.LocalFiles, "put", unreachable)
-    assert drill.files_drill()["files_drill"] == "failed:store"
+    failed = drill.files_drill()
+    assert (failed["files_drill"], failed["files_drill_detail"]) == ("failed:store", "")
+
+    def refused(self, *args):
+        error = stores.StorageError("storage answered 403")
+        error.detail = "POST object: 403 Unauthorized"
+        raise error
+    monkeypatch.setattr(stores.LocalFiles, "put", refused)
+    assert drill.files_drill()["files_drill_detail"] == "POST object: 403 Unauthorized"
 
 
 def test_the_drills_pdf_is_one_the_scanner_reads():
@@ -797,5 +805,8 @@ def test_the_workflow_fails_a_file_drill_that_failed_but_not_a_store_not_set_up(
     assert ops_scheduled.live_problems(passing) == []                     # an API from before the drill
     problems = ops_scheduled.live_problems({**passing, "files_drill": "failed:download", "files_drill_error": "HTTPError"})
     assert problems == ["the file store drill failed:download (HTTPError)"]
+    assert ops_scheduled.live_problems({**passing, "files_drill": "failed:bucket", "files_drill_error": "StorageError",
+                                        "files_drill_detail": "GET bucket: 403 Unauthorized"}) == [
+        "the file store drill failed:bucket (StorageError: GET bucket: 403 Unauthorized)"]
     assert ops_scheduled.live_problems({**passing, "files_scanner": "failed:plain:scan_failed", "files_drill": "none"}) == [
         "the upload scanner does not work on this server: failed:plain:scan_failed"]
