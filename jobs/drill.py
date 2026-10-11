@@ -235,6 +235,8 @@ def files_drill(fetch=None) -> dict:
             # The store's own short reason, when it gave one (uploads/store.py
             # ``StorageError.detail``: the key is removed from it)
             return {**scanner, "files_drill": f"failed:{step}", "files_drill_error": type(exc).__name__,
-                    "files_drill_detail": str(getattr(exc, "detail", ""))[:200], "files_drill_store": files.name}
+                    "files_drill_detail": str(getattr(exc, "detail", ""))[:200], "files_drill_store": files.name,
+                    # The sort of key the server holds (secret, publishable ...), never the key
+                    "files_drill_key": str(getattr(files, "key_kind", "none"))}
     return {**scanner, "files_drill": "ok", "files_drill_store": files.name,
             "files_drill_ms": round((time.perf_counter() - t0) * 1000)}
