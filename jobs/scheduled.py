@@ -77,10 +77,19 @@ def company_refresh() -> dict:
 
 
 @task("economy-refresh", "Refresh economic data by country, reference rates and the ECB's exchange "
-                         "rates (PLAN.md 4.2, economy/refresh.py).")
+                         "rates (PLAN.md 4.2, economy/refresh.py); refit the economic regimes on the "
+                         "first run of a month (PLAN.md 5.7).")
 def economy_refresh() -> dict:
+    """Economic data, then the economic regimes' monthly refit (PLAN.md
+    5.7), which reads the same IMF source: it runs whatever the data refresh
+    did, and either failing fails the run, so it alerts."""
     from economy import refresh
-    return refresh.run()
+    from ml import macro_regime
+    try:
+        summary = refresh.run()
+    finally:
+        regimes = macro_regime.refresh()
+    return {**summary, **{f"regime_{k}": v for k, v in regimes.items()}}
 
 
 @task("benchmarks-refresh", "Refresh the published industry averages and country tax rates new "
@@ -95,6 +104,14 @@ def benchmarks_refresh() -> dict:
 def validation_report() -> dict:
     from validation import run
     return run.run()
+
+
+@task("regime-refresh", "Refit each region's economic regime on the first run of a month, from the "
+                        "IMF's growth and inflation (PLAN.md 5.7, ml/macro_regime.py). Also run by "
+                        "economy-refresh, which is what the workflows schedule.")
+def regime_refresh() -> dict:
+    from ml import macro_regime
+    return macro_regime.refresh()
 
 
 # ---------------------------------------------------------------------------

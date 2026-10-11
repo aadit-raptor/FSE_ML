@@ -1,0 +1,497 @@
+{
+ "ca": {
+  "card": {
+   "baseline": 0.4348,
+   "cases": 23,
+   "model": 0.7826,
+   "region": "global",
+   "set": "spring",
+   "verdict": "beats_baseline"
+  },
+  "country": "CA",
+  "first_year": 1980,
+  "hidden": null,
+  "max_age_days": 100,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "own_history",
+   "imf_projection",
+   "annual",
+   "no_markets"
+  ],
+  "own_region": false,
+  "read_on": "2026-10-11",
+  "regime": {
+   "basis": "projection",
+   "first_year": 1980,
+   "growth": 3.1,
+   "growth_gap": -0.3,
+   "growth_norm": 3.4,
+   "high_inflation": 3.1,
+   "history_years": 41,
+   "inflation": 4.4,
+   "inflation_gap": -1.4,
+   "inflation_norm": 5.8,
+   "recent": [
+    {
+     "regime": "base",
+     "year": 2016
+    },
+    {
+     "regime": "base",
+     "year": 2017
+    },
+    {
+     "regime": "base",
+     "year": 2018
+    },
+    {
+     "regime": "base",
+     "year": 2019
+    },
+    {
+     "regime": "recession",
+     "year": 2020
+    },
+    {
+     "regime": "bull",
+     "year": 2021
+    },
+    {
+     "regime": "stagflation",
+     "year": 2022
+    },
+    {
+     "regime": "stagflation",
+     "year": 2023
+    },
+    {
+     "regime": "base",
+     "year": 2024
+    },
+    {
+     "regime": "base",
+     "year": 2025
+    }
+   ],
+   "regime": "base",
+   "strong_growth": 0.9,
+   "weak_growth": -1.2,
+   "year": 2026
+  },
+  "region": "global",
+  "regions": [
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "us",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "eurozone",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "uk",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "japan",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "china",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "india",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "global",
+    "shown": true,
+    "year": 2026
+   }
+  ],
+  "share": 0.2,
+  "shown": true,
+  "sources": {
+   "imf": {
+    "publisher": "International Monetary Fund, World Economic Outlook",
+    "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+   }
+  },
+  "status": "ok",
+  "trail": 5
+ },
+ "de": {
+  "card": {
+   "baseline": 0.3333,
+   "cases": 15,
+   "model": 0.8667,
+   "region": "eurozone",
+   "set": "spring",
+   "verdict": "beats_baseline"
+  },
+  "country": "DE",
+  "first_year": 1980,
+  "hidden": null,
+  "max_age_days": 100,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "own_history",
+   "imf_projection",
+   "annual",
+   "no_markets"
+  ],
+  "own_region": true,
+  "read_on": "2026-10-11",
+  "regime": {
+   "basis": "projection",
+   "first_year": 1992,
+   "growth": 1.1,
+   "growth_gap": -0.3,
+   "growth_norm": 1.4,
+   "high_inflation": 1.1,
+   "history_years": 29,
+   "inflation": 2.6,
+   "inflation_gap": 0.0,
+   "inflation_norm": 2.6,
+   "recent": [
+    {
+     "regime": "base",
+     "year": 2016
+    },
+    {
+     "regime": "stagflation",
+     "year": 2017
+    },
+    {
+     "regime": "stagflation",
+     "year": 2018
+    },
+    {
+     "regime": "stagflation",
+     "year": 2019
+    },
+    {
+     "regime": "recession",
+     "year": 2020
+    },
+    {
+     "regime": "stagflation",
+     "year": 2021
+    },
+    {
+     "regime": "stagflation",
+     "year": 2022
+    },
+    {
+     "regime": "stagflation",
+     "year": 2023
+    },
+    {
+     "regime": "base",
+     "year": 2024
+    },
+    {
+     "regime": "base",
+     "year": 2025
+    }
+   ],
+   "regime": "base",
+   "strong_growth": 1.2,
+   "weak_growth": -1.9,
+   "year": 2026
+  },
+  "region": "eurozone",
+  "regions": [
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "us",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "eurozone",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "uk",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "japan",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "china",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "india",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "global",
+    "shown": true,
+    "year": 2026
+   }
+  ],
+  "share": 0.2,
+  "shown": true,
+  "sources": {
+   "imf": {
+    "publisher": "International Monetary Fund, World Economic Outlook",
+    "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+   }
+  },
+  "status": "ok",
+  "trail": 5
+ },
+ "in": {
+  "card": {
+   "baseline": 0.4783,
+   "cases": 23,
+   "model": 0.6087,
+   "region": "india",
+   "set": "spring",
+   "verdict": "beats_baseline"
+  },
+  "country": "IN",
+  "first_year": 1980,
+  "hidden": null,
+  "max_age_days": 100,
+  "model": {
+   "commit": null,
+   "data_fingerprint": "c9bcfa3cba40",
+   "data_sets": {
+    "damodaran_ratings_2026": "2026-01",
+    "ecb_leveraged_2017": "2017-05",
+    "sp_corporate_methodology_2024": "2024-01-07",
+    "sp_default_study_2024": "2025-03-27",
+    "sp_default_study_2024_regions": "2025-03-27",
+    "tax_presets": "2026-01",
+    "us_leveraged_2013": "2013-03-21"
+   },
+   "data_vintage": "2026-01",
+   "engine_version": "1.0.0",
+   "settings_fingerprint": null
+  },
+  "notes": [
+   "own_history",
+   "imf_projection",
+   "annual",
+   "no_markets"
+  ],
+  "own_region": true,
+  "read_on": "2026-10-11",
+  "regime": {
+   "basis": "projection",
+   "first_year": 1980,
+   "growth": 6.5,
+   "growth_gap": -1.1,
+   "growth_norm": 7.6,
+   "high_inflation": 1.8,
+   "history_years": 41,
+   "inflation": 4.7,
+   "inflation_gap": -0.7,
+   "inflation_norm": 5.4,
+   "recent": [
+    {
+     "regime": "base",
+     "year": 2016
+    },
+    {
+     "regime": "base",
+     "year": 2017
+    },
+    {
+     "regime": "base",
+     "year": 2018
+    },
+    {
+     "regime": "recession",
+     "year": 2019
+    },
+    {
+     "regime": "recession",
+     "year": 2020
+    },
+    {
+     "regime": "bull",
+     "year": 2021
+    },
+    {
+     "regime": "base",
+     "year": 2022
+    },
+    {
+     "regime": "base",
+     "year": 2023
+    },
+    {
+     "regime": "base",
+     "year": 2024
+    },
+    {
+     "regime": "base",
+     "year": 2025
+    }
+   ],
+   "regime": "base",
+   "strong_growth": 2.0,
+   "weak_growth": -2.2,
+   "year": 2026
+  },
+  "region": "india",
+  "regions": [
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "us",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "eurozone",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "uk",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "japan",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "china",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "india",
+    "shown": true,
+    "year": 2026
+   },
+   {
+    "basis": "projection",
+    "hidden": null,
+    "regime": "base",
+    "region": "global",
+    "shown": true,
+    "year": 2026
+   }
+  ],
+  "share": 0.2,
+  "shown": true,
+  "sources": {
+   "imf": {
+    "publisher": "International Monetary Fund, World Economic Outlook",
+    "url": "https://www.imf.org/external/datamapper/datasets/WEO"
+   }
+  },
+  "status": "ok",
+  "trail": 5
+ }
+}

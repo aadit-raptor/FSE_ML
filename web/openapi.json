@@ -1687,14 +1687,6 @@
             "title": "Edgar",
             "type": "boolean"
           },
-          "macro_regime_installed": {
-            "title": "Macro Regime Installed",
-            "type": "boolean"
-          },
-          "macro_regime_trained": {
-            "title": "Macro Regime Trained",
-            "type": "boolean"
-          },
           "surrogate": {
             "title": "Surrogate",
             "type": "boolean"
@@ -1703,8 +1695,6 @@
         "required": [
           "anomaly_detector",
           "surrogate",
-          "macro_regime_installed",
-          "macro_regime_trained",
           "edgar"
         ],
         "title": "Capabilities",
@@ -10952,6 +10942,482 @@
         "title": "ReferenceValue",
         "type": "object"
       },
+      "RegimeCardResult": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The same for \"the same as last year\"",
+            "title": "Baseline"
+          },
+          "cases": {
+            "description": "Years the card tested in the region",
+            "title": "Cases",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of those years named right from the IMF's projection in that report",
+            "title": "Model"
+          },
+          "region": {
+            "enum": [
+              "us",
+              "eurozone",
+              "uk",
+              "japan",
+              "china",
+              "india",
+              "global"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "set": {
+            "description": "The card's set that tests the figure shown: April's projection, or October's for a year just ended",
+            "enum": [
+              "spring",
+              "autumn"
+            ],
+            "title": "Set",
+            "type": "string"
+          },
+          "verdict": {
+            "description": "The card's verdict in the region (docs/model-cards/regime.md)",
+            "enum": [
+              "beats_baseline",
+              "does_not_beat_baseline",
+              "not_enough_data"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "region",
+          "set",
+          "verdict",
+          "cases"
+        ],
+        "title": "RegimeCardResult",
+        "type": "object"
+      },
+      "RegimeFit": {
+        "properties": {
+          "basis": {
+            "description": "projection: the IMF's figure for the year under way; estimate: its figure for the year just ended, read before its April report",
+            "enum": [
+              "projection",
+              "estimate"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "first_year": {
+            "description": "The first year of figures for the region",
+            "title": "First Year",
+            "type": "integer"
+          },
+          "growth": {
+            "description": "Real GDP growth in the year, %",
+            "title": "Growth",
+            "type": "number"
+          },
+          "growth_gap": {
+            "description": "growth less growth_norm, points",
+            "title": "Growth Gap",
+            "type": "number"
+          },
+          "growth_norm": {
+            "description": "Median growth of the years before it (``trail`` of them), %",
+            "title": "Growth Norm",
+            "type": "number"
+          },
+          "high_inflation": {
+            "description": "An inflation gap at or above this is stagflation, points",
+            "title": "High Inflation",
+            "type": "number"
+          },
+          "history_years": {
+            "description": "Earlier years the cut-offs were fitted on",
+            "title": "History Years",
+            "type": "integer"
+          },
+          "inflation": {
+            "description": "Consumer price inflation in the year, %",
+            "title": "Inflation",
+            "type": "number"
+          },
+          "inflation_gap": {
+            "title": "Inflation Gap",
+            "type": "number"
+          },
+          "inflation_norm": {
+            "title": "Inflation Norm",
+            "type": "number"
+          },
+          "recent": {
+            "description": "The years before it, each on the cut-offs of its own past",
+            "items": {
+              "$ref": "#/components/schemas/RegimeYear"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "regime": {
+            "description": "The scenario preset the year looks like",
+            "enum": [
+              "recession",
+              "stagflation",
+              "bull",
+              "base"
+            ],
+            "title": "Regime",
+            "type": "string"
+          },
+          "strong_growth": {
+            "description": "A growth gap at or above this is a bull year, points",
+            "title": "Strong Growth",
+            "type": "number"
+          },
+          "weak_growth": {
+            "description": "A growth gap at or below this is a recession, points",
+            "title": "Weak Growth",
+            "type": "number"
+          },
+          "year": {
+            "description": "The year the regime describes",
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "regime",
+          "year",
+          "basis",
+          "growth",
+          "inflation",
+          "growth_norm",
+          "inflation_norm",
+          "growth_gap",
+          "inflation_gap",
+          "weak_growth",
+          "strong_growth",
+          "high_inflation",
+          "history_years",
+          "first_year",
+          "recent"
+        ],
+        "title": "RegimeFit",
+        "type": "object"
+      },
+      "RegimeRegionRow": {
+        "properties": {
+          "basis": {
+            "anyOf": [
+              {
+                "enum": [
+                  "projection",
+                  "estimate"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "enum": [
+                  "does_not_beat_baseline",
+                  "not_enough_data",
+                  "stale"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "enum": [
+                  "recession",
+                  "base",
+                  "bull",
+                  "stagflation"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when shown",
+            "title": "Regime"
+          },
+          "region": {
+            "enum": [
+              "us",
+              "eurozone",
+              "uk",
+              "japan",
+              "china",
+              "india",
+              "global"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "shown": {
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          }
+        },
+        "required": [
+          "region",
+          "shown"
+        ],
+        "title": "RegimeRegionRow",
+        "type": "object"
+      },
+      "RegimeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "country": {
+            "default": "",
+            "description": "The deal's country (ISO 3166 alpha-2); empty for the world",
+            "maxLength": 2,
+            "title": "Country",
+            "type": "string"
+          }
+        },
+        "title": "RegimeRequest",
+        "type": "object"
+      },
+      "RegimeResponse": {
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/RegimeCardResult"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "first_year": {
+            "title": "First Year",
+            "type": "integer"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "enum": [
+                  "does_not_beat_baseline",
+                  "not_enough_data",
+                  "stale"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          },
+          "max_age_days": {
+            "description": "A fit older than this is not shown",
+            "title": "Max Age Days",
+            "type": "integer"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "own_history",
+                "imf_projection",
+                "annual",
+                "no_markets"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "own_region": {
+            "description": "False when the world stands in for a country with no region of its own",
+            "title": "Own Region",
+            "type": "boolean"
+          },
+          "read_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The day the figures were read and the cut-offs refitted",
+            "title": "Read On"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegimeFit"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when shown"
+          },
+          "region": {
+            "description": "The region whose regime the country is shown",
+            "enum": [
+              "us",
+              "eurozone",
+              "uk",
+              "japan",
+              "china",
+              "india",
+              "global"
+            ],
+            "title": "Region",
+            "type": "string"
+          },
+          "regions": {
+            "description": "Every region's regime and the year it describes",
+            "items": {
+              "$ref": "#/components/schemas/RegimeRegionRow"
+            },
+            "title": "Regions",
+            "type": "array"
+          },
+          "share": {
+            "description": "The share of a region's earlier years each regime's cut-off takes",
+            "title": "Share",
+            "type": "number"
+          },
+          "shown": {
+            "title": "Shown",
+            "type": "boolean"
+          },
+          "sources": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RegimeSource"
+            },
+            "title": "Sources",
+            "type": "object"
+          },
+          "status": {
+            "description": "no_data: no fit stored yet (the monthly regime-refresh has not run, or there is no database)",
+            "enum": [
+              "ok",
+              "no_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "trail": {
+            "description": "Years before a year its figures are measured against",
+            "title": "Trail",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "country",
+          "region",
+          "own_region",
+          "shown",
+          "regions",
+          "card",
+          "trail",
+          "share",
+          "first_year",
+          "max_age_days",
+          "sources",
+          "notes",
+          "model"
+        ],
+        "title": "RegimeResponse",
+        "type": "object"
+      },
+      "RegimeSource": {
+        "properties": {
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "publisher",
+          "url"
+        ],
+        "title": "RegimeSource",
+        "type": "object"
+      },
+      "RegimeYear": {
+        "properties": {
+          "regime": {
+            "enum": [
+              "recession",
+              "stagflation",
+              "bull",
+              "base"
+            ],
+            "title": "Regime",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "regime"
+        ],
+        "title": "RegimeYear",
+        "type": "object"
+      },
       "ReportedRun": {
         "properties": {
           "error": {
@@ -19020,16 +19486,38 @@
     },
     "/api/ml/macro-regime": {
       "post": {
-        "description": "Classify the current macro regime from FRED data.",
+        "description": "The economic regime of the deal's region, and every region's beside\nit (PLAN.md 5.7): each with the year it describes and the day its\nfigures were read, where its card says it beats \"the same as last\nyear\". Reads the monthly fit from storage.",
         "operationId": "post_macro_regime_api_ml_macro_regime_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegimeRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/RegimeResponse"
+                }
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           },
           "429": {
             "content": {

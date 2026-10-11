@@ -1152,7 +1152,10 @@ export interface paths {
         put?: never;
         /**
          * Post Macro Regime
-         * @description Classify the current macro regime from FRED data.
+         * @description The economic regime of the deal's region, and every region's beside
+         *     it (PLAN.md 5.7): each with the year it describes and the day its
+         *     figures were read, where its card says it beats "the same as last
+         *     year". Reads the monthly fit from storage.
          */
         post: operations["post_macro_regime_api_ml_macro_regime_post"];
         delete?: never;
@@ -2080,10 +2083,6 @@ export interface components {
             anomaly_detector: boolean;
             /** Edgar */
             edgar: boolean;
-            /** Macro Regime Installed */
-            macro_regime_installed: boolean;
-            /** Macro Regime Trained */
-            macro_regime_trained: boolean;
             /** Surrogate */
             surrogate: boolean;
         };
@@ -5663,6 +5662,225 @@ export interface components {
             value: number;
             /** Where */
             where?: string | null;
+        };
+        /** RegimeCardResult */
+        RegimeCardResult: {
+            /**
+             * Baseline
+             * @description The same for "the same as last year"
+             */
+            baseline?: number | null;
+            /**
+             * Cases
+             * @description Years the card tested in the region
+             */
+            cases: number;
+            /**
+             * Model
+             * @description Share of those years named right from the IMF's projection in that report
+             */
+            model?: number | null;
+            /**
+             * Region
+             * @enum {string}
+             */
+            region: "us" | "eurozone" | "uk" | "japan" | "china" | "india" | "global";
+            /**
+             * Set
+             * @description The card's set that tests the figure shown: April's projection, or October's for a year just ended
+             * @enum {string}
+             */
+            set: "spring" | "autumn";
+            /**
+             * Verdict
+             * @description The card's verdict in the region (docs/model-cards/regime.md)
+             * @enum {string}
+             */
+            verdict: "beats_baseline" | "does_not_beat_baseline" | "not_enough_data";
+        };
+        /** RegimeFit */
+        RegimeFit: {
+            /**
+             * Basis
+             * @description projection: the IMF's figure for the year under way; estimate: its figure for the year just ended, read before its April report
+             * @enum {string}
+             */
+            basis: "projection" | "estimate";
+            /**
+             * First Year
+             * @description The first year of figures for the region
+             */
+            first_year: number;
+            /**
+             * Growth
+             * @description Real GDP growth in the year, %
+             */
+            growth: number;
+            /**
+             * Growth Gap
+             * @description growth less growth_norm, points
+             */
+            growth_gap: number;
+            /**
+             * Growth Norm
+             * @description Median growth of the years before it (``trail`` of them), %
+             */
+            growth_norm: number;
+            /**
+             * High Inflation
+             * @description An inflation gap at or above this is stagflation, points
+             */
+            high_inflation: number;
+            /**
+             * History Years
+             * @description Earlier years the cut-offs were fitted on
+             */
+            history_years: number;
+            /**
+             * Inflation
+             * @description Consumer price inflation in the year, %
+             */
+            inflation: number;
+            /** Inflation Gap */
+            inflation_gap: number;
+            /** Inflation Norm */
+            inflation_norm: number;
+            /**
+             * Recent
+             * @description The years before it, each on the cut-offs of its own past
+             */
+            recent: components["schemas"]["RegimeYear"][];
+            /**
+             * Regime
+             * @description The scenario preset the year looks like
+             * @enum {string}
+             */
+            regime: "recession" | "stagflation" | "bull" | "base";
+            /**
+             * Strong Growth
+             * @description A growth gap at or above this is a bull year, points
+             */
+            strong_growth: number;
+            /**
+             * Weak Growth
+             * @description A growth gap at or below this is a recession, points
+             */
+            weak_growth: number;
+            /**
+             * Year
+             * @description The year the regime describes
+             */
+            year: number;
+        };
+        /** RegimeRegionRow */
+        RegimeRegionRow: {
+            /** Basis */
+            basis?: ("projection" | "estimate") | null;
+            /** Hidden */
+            hidden?: ("does_not_beat_baseline" | "not_enough_data" | "stale") | null;
+            /**
+             * Regime
+             * @description Only when shown
+             */
+            regime?: ("recession" | "base" | "bull" | "stagflation") | null;
+            /**
+             * Region
+             * @enum {string}
+             */
+            region: "us" | "eurozone" | "uk" | "japan" | "china" | "india" | "global";
+            /** Shown */
+            shown: boolean;
+            /** Year */
+            year?: number | null;
+        };
+        /** RegimeRequest */
+        RegimeRequest: {
+            /**
+             * Country
+             * @description The deal's country (ISO 3166 alpha-2); empty for the world
+             * @default
+             */
+            country: string;
+        };
+        /** RegimeResponse */
+        RegimeResponse: {
+            card: components["schemas"]["RegimeCardResult"];
+            /** Country */
+            country: string;
+            /** First Year */
+            first_year: number;
+            /** Hidden */
+            hidden?: ("does_not_beat_baseline" | "not_enough_data" | "stale") | null;
+            /**
+             * Max Age Days
+             * @description A fit older than this is not shown
+             */
+            max_age_days: number;
+            model: components["schemas"]["ModelStamp"];
+            /** Notes */
+            notes: ("own_history" | "imf_projection" | "annual" | "no_markets")[];
+            /**
+             * Own Region
+             * @description False when the world stands in for a country with no region of its own
+             */
+            own_region: boolean;
+            /**
+             * Read On
+             * @description The day the figures were read and the cut-offs refitted
+             */
+            read_on?: string | null;
+            /** @description Only when shown */
+            regime?: components["schemas"]["RegimeFit"] | null;
+            /**
+             * Region
+             * @description The region whose regime the country is shown
+             * @enum {string}
+             */
+            region: "us" | "eurozone" | "uk" | "japan" | "china" | "india" | "global";
+            /**
+             * Regions
+             * @description Every region's regime and the year it describes
+             */
+            regions: components["schemas"]["RegimeRegionRow"][];
+            /**
+             * Share
+             * @description The share of a region's earlier years each regime's cut-off takes
+             */
+            share: number;
+            /** Shown */
+            shown: boolean;
+            /** Sources */
+            sources: {
+                [key: string]: components["schemas"]["RegimeSource"];
+            };
+            /**
+             * Status
+             * @description no_data: no fit stored yet (the monthly regime-refresh has not run, or there is no database)
+             * @enum {string}
+             */
+            status: "ok" | "no_data";
+            /**
+             * Trail
+             * @description Years before a year its figures are measured against
+             */
+            trail: number;
+        };
+        /** RegimeSource */
+        RegimeSource: {
+            /** Publisher */
+            publisher: string;
+            /** Url */
+            url: string;
+        };
+        /** RegimeYear */
+        RegimeYear: {
+            /**
+             * Regime
+             * @enum {string}
+             */
+            regime: "recession" | "stagflation" | "bull" | "base";
+            /** Year */
+            year: number;
         };
         /** ReportedRun */
         ReportedRun: {
@@ -9917,7 +10135,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegimeRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -9925,7 +10147,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["RegimeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description A usage limit was reached */

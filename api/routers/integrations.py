@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 
 from api.deps import resolve_settings
 from api.schemas import (
-    Capabilities, DealRiskRequest, DealRiskResponse, EdgarResponse, MultiplesRequest, MultiplesResponse, GrowthRequest, GrowthResponse, SettingsResponse, SettingsValidateRequest,
+    Capabilities, DealRiskRequest, DealRiskResponse, EdgarResponse, MultiplesRequest, MultiplesResponse, GrowthRequest, GrowthResponse, RegimeRequest, RegimeResponse, SettingsResponse, SettingsValidateRequest,
     SurrogateRequest, SurrogateResponse,
 )
 from api.serialize import to_json
@@ -60,18 +60,8 @@ def get_capabilities():
     surrogate = _installed("torch", "joblib") and all(
         os.path.exists(os.path.join(SURROGATE_DIR, f))
         for f in ("model.pt", "scaler_X.pkl", "scaler_y.pkl"))
-    regime_installed = _installed("sklearn", "joblib", "hmmlearn", "fredapi")
-    regime_trained = False
-    if regime_installed:
-        try:
-            from ml.macro_regime import model_is_trained
-            regime_trained = model_is_trained()
-        except (ImportError, OSError):
-            pass
     # The deal risk score reads stored averages and needs no ML packages (PLAN.md 5.2)
-    return {"anomaly_detector": True, "surrogate": surrogate,
-            "macro_regime_installed": regime_installed, "macro_regime_trained": regime_trained,
-            "edgar": _installed("requests")}
+    return {"anomaly_detector": True, "surrogate": surrogate, "edgar": _installed("requests")}
 
 
 # ---------------------------------------------------------------------------
@@ -178,19 +168,20 @@ def post_surrogate(req: SurrogateRequest):
     }
 
 
-@router.post("/ml/macro-regime")
-def post_macro_regime():
-    """Classify the current macro regime from FRED data."""
-    if not _installed("sklearn", "joblib", "hmmlearn", "fredapi"):
-        _unavailable("macro regime detection", "install requirements-ml.txt")
-    from ml.macro_regime import get_current_regime, model_is_trained
-    if not model_is_trained():
-        _unavailable("macro regime detection",
-                     "set FRED_API_KEY and run `python -m ml.macro_regime`")
-    try:
-        return to_json(get_current_regime())
-    except Exception as e:      # network or API-key failures
-        raise HTTPException(status_code=502, detail=f"could not classify the regime: {e}") from None
+@router.post("/ml/macro-regime", response_model=RegimeResponse)
+def post_macro_regime(req: RegimeRequest):
+    """The economic regime of the deal's region, and every region's beside
+    it (PLAN.md 5.7): each with the year it describes and the day its
+    figures were read, where its card says it beats "the same as last
+    year". Reads the monthly fit from storage."""
+    from ml.macro_regime import TABLE, current
+    stored = None
+    if is_configured():
+        from db import benchmarks
+        stored = benchmarks.table(TABLE)
+    answer = current(req.country, stored.rows if stored else None, stored.published if stored else None, _today())
+    # The regime reads no Settings
+    return {**answer, "model": stamp(None)}
 
 
 # ---------------------------------------------------------------------------

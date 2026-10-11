@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Before that 2026-10-09 (PLAN.md 5.5: growth calibrator). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-11 (PLAN.md 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -930,7 +930,7 @@ the PR. **`ml.yml`**: evaluates on PRs touching models or `simulation/`;
 trains by hand (`workflow_dispatch`, which Claude's token can't trigger)
 into a scratch directory and uploads files and card as an artifact for a
 person to review and commit -- never commits itself. Cards: the **deal
-risk score** (5.2, below); the **distress predictor** (5.3, below); the **multiple predictor** (5.4, below); the **growth calibrator** (5.5, below); the **surrogate** on 230 regional deals (`ml/evaluation/data/
+risk score** (5.2, below); the **distress predictor** (5.3, below); the **multiple predictor** (5.4, below); the **growth calibrator** (5.5, below); the **economic regime** (5.7, below; a card may name its own regions with `regions_note`, as it does); the **surrogate** on 230 regional deals (`ml/evaluation/data/
 regional_deals.json`, from the recorded sources by `python -m
 tests.ml_regional_deals`, checked stale) is 0.54 points off the median IRR
 against 0.79 for a 200-path simulation (truth: 10,000 paths) and beats it in
@@ -1103,6 +1103,61 @@ correlations and the correlation table
 which render nothing for an API from before 5.6. The old Spearman view
 stays: co-movement is information too.
 
+Economic regime by region (PLAN.md 5.7): **`ml/macro_regime.py` trains
+nothing** (the four-state hidden Markov model on US-only FRED series is
+gone, with `hmmlearn` and `fredapi`; so is `ml/correlation_updater.py`,
+never wired in). Seven regions (`REGIONS`: us, eurozone, uk, japan, china,
+india, global), each year named **recession, stagflation, bull or base**
+(the scenario presets' ids) from the IMF World Economic Outlook's real
+growth and inflation since 1980 (the DataMapper 4.2 reads; the euro area and
+the world are the IMF's aggregates `EURO` and `WEOWORLD`). The measure is a
+year's **gap from the median of the region's own previous five years**
+(levels would call every recent Chinese year a recession; a mean lets 2020
+and 2021 set what later years are held to), on cut-offs from **earlier years
+only**: growth gap in the weakest fifth = recession, else inflation gap in
+the highest fifth = stagflation, else growth gap in the strongest fifth =
+bull, else base. **Which year** (`regime_year`): read from May, the current
+year (the IMF's April projection for it); before May, last year (its
+October estimate), because until April the current year's figure is a
+year-ahead forecast. **Refit monthly**: `refresh` runs **inside the
+scheduled `economy-refresh` task** (`jobs/scheduled.py`: after the economic
+data, whatever that did; either failing fails the run; its summary carries
+`regime_*`), so it is nightly on both environments and after each staging
+deploy with **no workflow change** (the Mac's GitHub token has no `workflow`
+scope: a push that touches `.github/workflows/` is refused; the task
+`regime-refresh` runs the refit alone if a step of its own is ever wanted).
+It reads the IMF (two
+calls) only on the **first run of a calendar month** and stores figures and
+fit as `regime.fit` in `benchmark_tables` (`db/benchmarks.py`
+`SIDE_PREFIX`: never part of `all_tables`, read with `table(name)`); a
+failed read keeps the stored fit and is tried again the next night.
+`POST /api/ml/macro-regime` `{country}` (in `RUN_PATHS`, reads storage
+only; `no_data` without a database or a fit) answers the deal region's
+regime and every region's with its year: a country's own region, a euro
+member (`EURO_COUNTRIES`, 21) the euro area's, **any other country the
+world's, said on screen**. **Shown only where `ml/cards/regime.json` beats
+the baseline** (headline `accuracy`; `GATE_SETS`: a projection for the year
+under way is gated by the card's `spring` set, last year's estimate by its
+`autumn` set) and the fit is at most `MAX_AGE_DAYS` (100) old. A read that
+leaves any region without a regime is **never stored** (the run fails and
+the next night reads again), so a partial IMF answer can't replace a whole
+fit. The card replays what the IMF projected for each
+year in its April and October reports, 2000-2022 (its **historical
+forecasts database**, `WEOhistorical.xlsx`, which ends with 2022's
+reports), against today's final figures; baseline "the same as last year":
+spring 75% of 153 region-years right against 52%, autumn 84% against 50%,
+every region beats it in both. Data and fixture are written together by
+`python -m tests.ml_regime_history --cache DIR`
+(`ml/evaluation/data/regime_history.json`, `tests/fixtures/regime/imf`);
+then `python -m ml.evaluation evaluate` and `python -m tests.e2e_regime`
+(`web/e2e/fixtures/regime.json`, checked stale). Screen: Monte Carlo ->
+Scenarios, "Economic regime" tile among the sources
+(`components/montecarlo/EconomicRegime.tsx`, namespace `regime`), with
+"Use ... preset" when the regime is not the preset in use. `/api/capabilities`
+no longer has `macro_regime_*`. **Correlations** stay 4.4's
+(`benchmarks.risk.correlations`), measured on the same IMF series each
+time they are asked for. On 2026-10-11 every region's 2026 is a base year.
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1163,8 +1218,8 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). **Next is 5.7** (economic
-regime by region, scheduled).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). **Next is 5.8** (live
+sliders for any deal, lightweight enough for free hosting).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1362,9 +1417,6 @@ golden snapshot is untouched and parity tests explain every departure.
 - Keep a copy of `FSE_BACKUP_KEY` outside GitHub (PLAN.md 1.8): losing it
   makes every stored backup unreadable.
 
-- Macro regime detection: `FRED_API_KEY` is set (PLAN.md 4.2); the ML
-  image still needs the model trained (`python -m ml.macro_regime`), and 5.7
-  rebuilds it on 4.2's data.
 - PLAN.md 4.5b: approving the repository's ten reference transactions needs
   **two administrators**: add a second Clerk user id to `FSE_ADMINS` on
   `fse-api` (and on `fse-api-staging`, whose Clerk instance has its own ids),
@@ -1372,8 +1424,8 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
-- Whether to wire up the unused `ml/` modules (NLP extractor, correlation updater, personalization); PLAN.md
-  5.7 and 5.9 rebuild most of them.
+- Whether to wire up the unused `ml/` modules (NLP extractor, personalization); PLAN.md
+  5.9 rebuilds the second.
 
 ---
 
@@ -1387,7 +1439,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `lbo_engine/` | Deterministic LBO engine (operating model, cash flow, debt, returns) |
 | `simulation/vectorized_simulation.py`, `simulation/tranches.py` | Vectorized Monte Carlo engine; the tranche path's debt schedule (PLAN.md 2.4b) |
 | `analytics/` | Risk metrics |
-| `ml/` | ML: the deal risk score (needs no ML packages since PLAN.md 5.2), and optional: surrogate network, macro regime, EDGAR extractor, plus unused modules |
+| `ml/` | ML: the deal risk score, the distress, multiple and growth models and the economic regime (none needs ML packages), and optional: surrogate network, EDGAR extractor, plus unused modules |
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. `INSTALL_ML=true` build arg adds the ML layer |
@@ -1418,6 +1470,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/multiple_predictor.py`, `ml/evaluation/multiples.py`, `components/deal/Multiples.tsx`, `tests/ml_multiple_history.py`, `tests/e2e_multiples.py` | Multiple predictor (PLAN.md 5.4): entry and exit ranges from the region's industry multiples and their archive, gated by its card; the walk-forward card; the Returns tile; the writers of the card's data and the browser tests' answers |
 | `analytics/driver_attribution.py`, `docs/driver-explanations.md`, `components/montecarlo/DriverExplanations.tsx`, `tests/test_driver_explanations.py` | Driver explanations (PLAN.md 5.6): each tail's IRR split exactly between the simulation's five drivers; the comparison with the old SHAP module and the rank correlations; the Drivers step's tiles; the tests (adds up, hand-solved games, cost) |
 | `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
+| `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
 | `economy/`, `db/economy.py`, `api/routers/economy.py`, `web/src/lib/economy.ts` | Economic data (PLAN.md 4.2): the catalogue of economies, sources and benchmark candidates, the six connectors, what is current, the nightly refresh and the recorder; storage and budget; the endpoints; a facility's benchmark at today's level |
@@ -1433,7 +1486,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,642 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,696 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (macOS, from the repo root)
 
@@ -1886,6 +1939,28 @@ Skills load when a session starts: install first, then open a new session.
   then `python -m ml.evaluation evaluate` and `python -m tests.e2e_multiples`)
   when a new January edition is recorded. No group's 2014 archive edition can
   be read (missing or not a workbook), so the history skips that year.
+- A deal gets its country only from **"Use sourced figures"** on Deal ->
+  Inputs (the country select alone is a draft), so a browser test that needs
+  a country calls `replayBenchmarks` and applies one of the recorded
+  starting cases (`IN|machinery|INR`, `DE|machinery|EUR`,
+  `GB|machinery|GBP`, `CA|shipbuilding_marine|CAD`). The regime spec's first
+  run sent an empty country for this reason.
+- Past IMF projections are free in one file, the **WEO historical forecasts
+  database** (`https://www.imf.org/external/pubs/ft/weo/data/WEOhistorical.xlsx`,
+  9 MB): every spring (`S`) and autumn (`F`) report's growth and inflation
+  for two years back and six ahead, since 1990, countries by ISO code and
+  the aggregates by name ("Euro area", "World"). It ends with the reports it
+  was last rebuilt with (2022's on 2026-10-11). The DataMapper API gives
+  only today's vintage and never says which report it is.
+- A model whose regions are not S&P's four gives its card a `regions_note`
+  and passes `regions=` to `evaluate_set`; its region names go in
+  `ml/evaluation/card.py` `REGION_NAMES`.
+- The Mac's GitHub token (fine-grained, this repository) has **no
+  `workflow` scope**: a push containing any commit that changes
+  `.github/workflows/` is refused whole. Don't work around it: put scheduled
+  work in an existing task (`jobs/scheduled.py`), or give the user the
+  workflow edit as steps. A branch that already holds such a commit has to
+  be recommitted without it (`git reset --soft main`) before it will push.
 - SEC data at scale: the **XBRL frames** API
   (`data.sec.gov/api/xbrl/frames/<taxonomy>/<concept>/<unit>/CY<year>.json`)
   gives one concept for every filer in one call, with the business address
