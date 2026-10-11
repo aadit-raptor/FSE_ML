@@ -701,6 +701,17 @@ def test_a_refusal_carries_the_stores_own_reason_for_the_drill_without_the_key()
     assert failed.value.detail == "GET bucket: URLError" and SECRET not in failed.value.detail
 
 
+def test_the_store_can_say_what_sort_of_key_it_holds_without_saying_the_key():
+    def token(role):
+        claims = base64.urlsafe_b64encode(json.dumps({"role": role, "iss": "supabase"}).encode()).decode().rstrip("=")
+        return f"eyJhbGciOiJIUzI1NiJ9.{claims}.c2lnbmF0dXJl"
+    for key, kind in (("sb_secret_abcDEF123", "sb_secret"), ("sb_publishable_abcDEF123", "sb_publishable"),
+                      (token("service_role"), "jwt:service_role"), (token("anon"), "jwt:anon"),
+                      (token("something"), "jwt:other"), ("a.b.c", "jwt:unreadable"), ("hunter2", "other")):
+        found = stores.SupabaseFiles("https://abc.supabase.co", key, "uploads").key_kind
+        assert found == kind and (len(key) < 12 or key[10:] not in found)
+
+
 def test_the_key_never_follows_a_redirect():
     """The key is in the request's headers: a store that answers "look over
     there" is an error, not somewhere to send it."""

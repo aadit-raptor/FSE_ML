@@ -175,6 +175,25 @@ class SupabaseFiles:
             words = ""
         return words.replace(self._key, "<key>")[:160]
 
+    @property
+    def key_kind(self) -> str:
+        """What sort of key this is, and nothing of the key itself: only a
+        secret (or the older ``service_role``) key may write to a private
+        bucket, and the two sorts sit side by side on Supabase's page."""
+        key = self._key
+        for prefix in ("sb_secret_", "sb_publishable_"):
+            if key.startswith(prefix):
+                return prefix.rstrip("_")
+        parts = key.split(".")
+        if len(parts) == 3:
+            try:
+                claims = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+                role = claims.get("role") if isinstance(claims, dict) else None
+                return f"jwt:{role}" if role in ("service_role", "anon", "authenticated") else "jwt:other"
+            except (ValueError, TypeError):
+                return "jwt:unreadable"
+        return "other"
+
     def _json(self, method: str, path: str, body: Optional[dict] = None):
         with self._request(method, path, body) as response:
             try:
