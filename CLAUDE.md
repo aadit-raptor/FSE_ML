@@ -1416,6 +1416,17 @@ browser tests are the web's proof.
 
 ### What's next: PLAN.md
 
+**Priority since 2026-10-12 (the user's decision): PLAN.md phase R, the
+equity research workspace for Indian analysts**: results PDF to checked
+statements, a vetted sector model as live Excel formulas, valuation, a
+report draft, next-quarter roll forward, in the app and in an Excel add-in.
+After 6.1 merges the next task is **R0**, then R1 to R9 in order; 6.2
+onwards and phases 7 to 12 wait, except what a phase R task pulls forward
+and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
+(a tool that never picks a rating; one model definition evaluated by the
+server and written as Excel formulas; new code in `research/` only). The
+decisions still the user's are listed there.
+
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
 aside market research, customers, company, legal and pricing), **global and
 universal by design** (any country, currency and deal; no dependence on the
