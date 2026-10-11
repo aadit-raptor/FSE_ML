@@ -160,7 +160,10 @@ repository. `pg_dump`/`pg_restore` must be at least the server's major
 version; `ops/backup.py` finds them (PATH, `/usr/lib/postgresql/*/bin`,
 `pgserver`, or `FSE_PG_BIN`) and CI installs PGDG's newest client.
 The secrets are set: the first backup and restore drill succeeded on
-2026-09-18.
+2026-09-18. **The key was replaced on 2026-10-12** (the first one was kept
+only in the GitHub secret and could not be read back): the backup and restore
+drill run by hand that day passed with the new key, and **backups stored
+before 2026-10-12 cannot be decrypted**; rotation removes them in time.
 
 Background and scheduled jobs (PLAN.md 1.9, DEPLOY.md "Background jobs and
 scheduled jobs"): long runs go through **`/api/jobs`** — submit
@@ -1517,8 +1520,9 @@ golden snapshot is untouched and parity tests explain every departure.
   to the restricted `fse_api` role on 2026-09-17; `live.yml` and
   `staging.yml` now fail if either goes back to a privileged role.)
 
-- Keep a copy of `FSE_BACKUP_KEY` outside GitHub (PLAN.md 1.8): losing it
-  makes every stored backup unreadable.
+- Keep the copy of `FSE_BACKUP_KEY` in the password manager (PLAN.md 1.8;
+  replaced 2026-10-12 after the first was lost): GitHub never shows a secret
+  again, and losing it makes every stored backup unreadable.
 
 - PLAN.md 4.5b: approving the repository's ten reference transactions needs
   **two administrators**: add a second Clerk user id to `FSE_ADMINS` on
