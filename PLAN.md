@@ -343,6 +343,49 @@ stops for it):
   **no wrong figure left unflagged across the 30, and under 2% of figures
   amber**; a go, a change of AI provider, or a stop is recorded here with
   what the analysts said.
+- **Progress (2026-10-12), not yet done:**
+  - **The 30 documents are collected**: `research-samples/` on the Mac
+    (kept out of git: the repository is public), named
+    `company_FYyy-Qn[-scanned|-mixed].pdf`. 20 June-2026 quarters, 5 March
+    year-ends, 5 September half-years; 5 companies with two quarters; 14
+    sectors, no banks (one bank's file is in `left-out/`). Screener's Excel
+    exports for nine of the companies sit beside them as a second source.
+  - **Nearly every filing is a scan**: 20 fully scanned, 8 partly, 2 clean
+    text, large companies included (results are printed, signed and scanned;
+    many carry a rough text layer that reads as garbage). Reading pictures is
+    the normal case, not the exception.
+  - **Sizes**: a year-end scan reached 19 MB and one filing is 193 pages and
+    23 MB (it bundles two sets of statements), against 6.1's 20 MB limit; one
+    is 89 pages. R1 needs a rule for these, and R2 decides the limit.
+  - **The free Gemini key is made** (in `research-samples/.env`, never in
+    chat or git). **Free tier: 20 requests a day per model**, flash models
+    only (the pro models answer "quota exceeded"; the newest flash was often
+    "high demand"). Decided by the user: **stay free for now and spread the
+    test over models and days**; a paid key with a cap comes before outside
+    analysts use the reader (the free tier is about ten documents a day for
+    everyone).
+  - **The test scripts** are `research-samples/r0/` (`gemini.py`,
+    `read_test.py`; every read is saved in `r0/out/`, so nothing is asked
+    twice). Read A sends the whole PDF, read B only pictures of the table's
+    pages; scores are the two reads against each other, sums, the PDF's own
+    text (the clean-text files) and Screener (sales, tax, net profit).
+  - **First results (gemini-3.7-flash, the consolidated results table)**:
+    both clean-text files 100% against their own text (134 of 134 and 149 of
+    149 numbers); the worst scan in the set (Hindustan Aeronautics) matched
+    Screener on 9 of 9 and every total. Four files, so encouraging, not
+    proof.
+  - **Lessons for R1**: (1) a wrong read can still add up: the picture-only
+    read took a 5 for a 4 in revenue **and moved the total to match**, so the
+    sums passed and only the second read caught it; two reads stay, and the
+    two must differ in what they are given; (2) the whole PDF read better
+    than a page picture; (3) layouts vary ("total gross expenses, less
+    expenses capitalised, total expenses"), so checks cannot assume one
+    shape; (4) a dash read as 0 by one read and blank by the other is not a
+    disagreement.
+  - **Still to do**: the other files on the free allowance, then the balance
+    sheet, cash flow and segment tables (only the results table is read so
+    far), the full accuracy table against the bar, cost per document from the
+    token counts, the hand-made sample and the five analysts.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a

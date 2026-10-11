@@ -1430,6 +1430,13 @@ and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
 server and written as Excel formulas; new code in `research/` only). The
 decisions still the user's are listed there.
 
+**R0 is under way (started 2026-10-12)**: its progress, first results and
+lessons are under R0 in PLAN.md. The 30 results PDFs, the free Gemini key
+(`research-samples/.env`) and the test scripts (`research-samples/r0/`) are
+on the Mac only, in a folder git ignores through `.git/info/exclude`.
+Nearly every Indian results filing is a scan. The free Gemini tier gives 20
+requests a day per model; the user chose to stay free and slow for the test.
+
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
 aside market research, customers, company, legal and pricing), **global and
 universal by design** (any country, currency and deal; no dependence on the
@@ -1909,6 +1916,17 @@ Skills load when a session starts: install first, then open a new session.
   exported, the tests of what the API answers *without* a database fail
   (seven of them on the Mac's first run). `DATABASE_URL` is for running the
   API and the browser tests.
+- Gemini's free tier counts **20 requests a day per model** (the error names
+  the quota and when to retry) and its newest model is often "high demand";
+  the pro models are not on it at all. Save every answer to disk and never
+  spend a call on a probe that a saved answer could replace. A request with
+  a PDF inline must stay under about 20 MB; a bigger file needs the Files
+  API.
+- zsh's `echo` rewrites backslashes, so `echo "$json" | python` breaks any
+  JSON holding `\n`. Parse API answers inside Python.
+- A key pasted into a `read -s` prompt can arrive more than once with a
+  stray escape character; check its length and shape (never its value)
+  before using it.
 - macOS has no `python` on the PATH: use `.venv/bin/python` (the browser
   tests find it themselves; `PYTHON=` overrides). Homebrew's tools live in
   `/opt/homebrew/bin`.
