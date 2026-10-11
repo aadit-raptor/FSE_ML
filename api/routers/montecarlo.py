@@ -3,7 +3,9 @@ import time
 
 from fastapi import APIRouter
 
+from analytics.driver_attribution import explain_tails
 from api.deps import resolve_settings
+from api import limits
 from api.limits import simulation_slot
 from api.observability import model_timer
 from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
@@ -47,6 +49,12 @@ def post_run(req: MonteCarloRequest):
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
     distress = simulated_distress(sim, deal)
+    # Why the tails are where they are (PLAN.md 5.6), unless the run was slow enough that
+    # explaining it could run into the timeout
+    explanations = None
+    if elapsed_ms <= limits.EXPLAIN_RUN_LIMIT_S * 1000:
+        with model_timer("montecarlo.explain"):
+            explanations = explain_tails(sim)
     sample = analysis_sample(sim)
     corr = empirical_correlations(sample)
     scatter = sample[SCATTER_COLUMNS].head(req.scatter_points)
@@ -74,6 +82,7 @@ def post_run(req: MonteCarloRequest):
                     "assumptions for that growth and exit multiple.",
         },
         "distress": distress,
+        "explanations": to_json(explanations),
         "money": req.deal.money(),
         "model": model,
     }

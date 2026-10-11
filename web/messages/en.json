@@ -2035,6 +2035,16 @@
     "sources": "Sources:",
     "sourceLink": "{publisher}, {title}"
   },
+  "explanations": {
+    "titleDownside": "Worst {share} of paths",
+    "titleUpside": "Best {share} of paths",
+    "unit": "IRR, percentage points",
+    "base": "IRR at the mean assumptions",
+    "total": "Mean IRR of these paths",
+    "chart": "{title}: each driver's contribution to IRR",
+    "note": "Each bar is that driver's own share of the gap: what moving it from its mean to these paths' draws changes, averaged over every order the drivers could be moved in. The bars add up to the gap between the two figures (exactly, before rounding).",
+    "sampled": "Read at {paths} of the tail's {tail} paths, evenly spaced by rank."
+  },
   "growth": {
     "calibrate": "Calibrate from sector and region",
     "calibrated": "Calibrated from companies in this deal's sector and region.",

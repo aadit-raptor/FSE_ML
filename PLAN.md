@@ -156,7 +156,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.3 | Distress predictor | 5.1 | ☑ |
 | 5.4 | Multiple predictor by region | 5.1, 4.3 | ☑ |
 | 5.5 | Growth calibrator by region | 5.1, 4.3 | ☑ |
-| 5.6 | Driver explanations | 5.1 | ☐ |
+| 5.6 | Driver explanations | 5.1 | ☑ |
 | 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☐ |
 | 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☐ |
 | 5.9 | Personalized defaults | 1.5, 5.1 | ☐ |
@@ -1161,6 +1161,16 @@ enough for the free server.
   enough for free hosting; otherwise remove with a note.
 - **Done when:** written comparison; if shipped, explanations add up to the
   prediction (test).
+- **Done (2026-10-10):** the comparison is `docs/driver-explanations.md`.
+  Shipped: the Monte Carlo answer's `explanations`
+  (`analytics/driver_attribution.py`), the worst and the best 5% of paths'
+  mean IRR split between the simulation's five drivers by Shapley values of
+  the simulation itself, so they add up to the simulated figure exactly
+  (`tests/test_driver_explanations.py`, to 1e-12, every debt structure; a run slower than 20 s answers without them) with
+  no trained model and no new package; Monte Carlo -> Drivers shows them
+  beside the rank correlations. `ml/shap_attribution.py` is removed: fitted
+  to one deal shape, 0.61 points off, explaining against an arbitrary average
+  deal, and 375 MB at peak on a 512 MB server.
 
 ### 5.7 Economic regime by region, scheduled
 - **Claude does:** rebuild `ml/macro_regime.py` on 4.2's country data (replacing

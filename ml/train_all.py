@@ -1,6 +1,6 @@
 """
 Run this once to train all ML models.
-Total estimated time: 25-40 minutes on CPU.
+Total estimated time: about 30 minutes on CPU.
 After this, all models load instantly at dashboard startup.
 """
 
@@ -19,14 +19,10 @@ def main():
 
     # The distress predictor (PLAN.md 5.3) reads published tables: nothing to train
 
-    # Priority 5: SHAP model (~10 minutes)
-    print("\n[1/2] Training SHAP model (this takes ~10 minutes)...")
-    from ml.shap_attribution import train_shap_model
-    train_shap_model()
-    print("✓ SHAP model ready")
+    # Driver explanations (PLAN.md 5.6) rerun the simulation itself: nothing to train
 
     # Priority 1: Surrogate model (~30 minutes)
-    print("\n[2/2] Generating surrogate training data and training (~30 minutes)...")
+    print("\n[1/1] Generating surrogate training data and training (~30 minutes)...")
     from ml.surrogate.generate_data import generate
     generate(n_samples=50_000, n_per_call=1000)
     from ml.surrogate.train import train

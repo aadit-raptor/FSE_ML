@@ -19,6 +19,7 @@ import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 
+import { DriverExplanationTiles } from "./DriverExplanations";
 import { MacroRegime } from "./MonteCarloML";
 import { SCENARIOS, useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen, useStaleClass } from "./MonteCarloScreen";
@@ -366,6 +367,7 @@ function Drivers() {
             })}
           </p>
         </Tile>
+        <DriverExplanationTiles explanations={r.explanations} />
         <Tile span={12} title={t("tileCorrelations")} unit={t("pearson")}>
           <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
             <thead>
