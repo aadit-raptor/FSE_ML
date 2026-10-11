@@ -8,10 +8,13 @@ from api.deps import resolve_settings
 from api import limits
 from api.limits import simulation_slot
 from api.observability import model_timer
-from api.schemas import MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse
+from api.schemas import (
+    LiveRequest, LiveResponse, MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse,
+)
 from api.serialize import box_stats, histogram, percentile_curve, to_json
 from core.model_version import stamp
 from core.deal import DealInputs
+from core.live import LiveSliders, live_estimate
 from core.money import in_unit, rescale
 from core.montecarlo import (
     MC_MONEY_KEYS, MCInputs, analysis_sample, mc_in_millions, apply_scenario, build_sim_params, driver_fits,
@@ -110,3 +113,17 @@ def post_scenarios(req: ScenariosRequest):
         "money": req.deal.money(),
         "model": model,
     }
+
+
+@router.post("/live", response_model=LiveResponse)
+def post_live(req: LiveRequest):
+    """The Live step's estimate (PLAN.md 5.8): the simulation itself on a
+    small, fixed set of seeded paths, with the sliders applied. Holds no
+    simulation slot: its size is bounded by core.live.live_paths, and its
+    rate by api.limits.USER_LIVE."""
+    cfg = resolve_settings(req.settings, check_correlations=True)
+    sliders = LiveSliders(**req.sliders.model_dump()) if req.sliders else None
+    t0 = time.perf_counter()
+    with model_timer("montecarlo.live"):
+        answer = live_estimate(MCInputs(**req.mc.model_dump()), DealInputs(**req.deal.model_dump()), cfg, sliders)
+    return {**to_json(answer), "elapsed_ms": (time.perf_counter() - t0) * 1000, "model": stamp(cfg)}

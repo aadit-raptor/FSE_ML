@@ -15,11 +15,6 @@ async function download(page: Page, button: ReturnType<Page["getByRole"]>, path 
 
 const row = (s: Sheet | undefined, label: string) => s?.rows.find((r) => r[0] === label);
 
-async function capabilities(page: Page) {
-  const res = await page.request.get("/api/capabilities", { headers: await asUser(page) });
-  return (await res.json()) as { anomaly_detector: boolean; surrogate: boolean };
-}
-
 test.describe("Streamlit parity", () => {
   test("summary exports every table with the model's numbers", async ({ page }) => {
     await page.goto("/deal/summary");
@@ -73,8 +68,7 @@ test.describe("Streamlit parity", () => {
     expect(body.seed).toBe(42);
   });
 
-  test("live mode updates as a slider moves (ML layer)", async ({ page }) => {
-    test.skip(!(await capabilities(page)).surrogate, "server has no surrogate model");
+  test("live mode updates as a slider moves", async ({ page }) => {
     await page.goto("/monte-carlo/live");
     const median = kpi(page, "Median IRR");
     await expect(median).toHaveText(/%$/, { timeout: 40_000 });

@@ -158,7 +158,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.5 | Growth calibrator by region | 5.1, 4.3 | ☑ |
 | 5.6 | Driver explanations | 5.1 | ☑ |
 | 5.7 | Economic regime by region, scheduled | 5.1, 4.2 | ☑ |
-| 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☐ |
+| 5.8 | Live sliders for any deal, lightweight enough for free hosting | 5.1, 1.9 | ☑ |
 | 5.9 | Personalized defaults | 1.5, 5.1 | ☐ |
 | 5.10 | Retraining models by hand (parked, not scheduled) | 5.1 | ☐ |
 | **6** | **AI features** | | |
@@ -1027,7 +1027,7 @@ enough for the free server.
   data. The **live sliders**, on 230 deals built from the sourced figures of
   23 economies and ten industries, are 0.54 points off the median IRR against
   0.79 for a live 200-path simulation and beat it in every region; only 23 of
-  the 230 lie inside the network's training ranges (5.8 widens them), and its
+  the 230 lie inside the network's training ranges (5.8 retired the network), and its
   95th percentile is 3.1 points off in emerging markets. Nothing the app shows
   changed; 5.2 onward use the harness and show "not enough data" where a card
   says so.
@@ -1213,6 +1213,31 @@ enough for the free server.
 - **Done when:** median-IRR error stays under 0.5pp on varied held-out deals from
   several regions (card); the live sliders run on the free Render service
   within its memory (staging check).
+- **Done (2026-10-11), by another road, decided with the user.** Measured
+  first: the simulation itself takes about 1.3 ms for 5,000 paths (63 ms at
+  the size caps) and is 0.18 points off the median IRR on the card's 230
+  regional deals, where the network was 0.54; a retrained network would
+  have needed about 95 inputs to cover facilities, tax rules and leases and
+  would still have warned beyond its range. So **nothing is trained**: the
+  Live step reruns the simulation on up to 8,000 fixed, seeded paths per
+  move (`core/live.py`), for the deal exactly as Run Monte Carlo treats it,
+  with the six sliders as inputs (a listed structure is scaled by the debt
+  slider and its floating references move with the rate slider). No trained
+  range, so no warning; the sampling error is shown as a 95% interval for
+  the median. The network, its files, PyTorch, scikit-learn, joblib and
+  pyarrow are gone, and the API image has no ML build argument. **Card**
+  (`docs/model-cards/surrogate.md`, id kept so the gate compared it with
+  the network's): on 230 varied deals from every region (own entry
+  multiple, hold, fees, tax preset, leases, five debt structures) the
+  median IRR is 0.13 points from a 100,000-path run, under 0.18 in every
+  region; the gate passed against the network's card on its own sets.
+  **Staging check**: the job drill staging.yml runs after every deploy now
+  also runs a session of the live sliders on the staging server (40 moves
+  and the largest deal) and fails if the API's memory peaked at or above
+  the service's 512 MB, the moves added over 32 MB or the middle estimate
+  took over 500 ms. `POST /api/montecarlo/live` replaces
+  `/api/ml/surrogate`; it has its own rate (120 a minute) instead of
+  counting as a model run.
 
 ### 5.9 Personalized defaults
 - **Claude does:** move `ml/personalization.py` into the database; learn each

@@ -3,12 +3,10 @@
 #   docker build -t fse-api .
 #   docker run -p 8000:8000 fse-api
 #
-# INSTALL_ML=true adds the optional ML layer (deal risk, live sliders, macro
-# regime). It makes the image ~1 GB larger and needs more than 512 MB of RAM
-# at run time because of torch; the app works without it.
+# One image runs everything, the live sliders included (PLAN.md 5.8): no
+# feature needs PyTorch or any other ML package.
 FROM python:3.12-slim
 
-ARG INSTALL_ML=false
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -17,12 +15,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt requirements-ml.txt ./
-RUN pip install -r requirements.txt \
- && if [ "$INSTALL_ML" = "true" ]; then \
-      pip install torch --index-url https://download.pytorch.org/whl/cpu \
-      && pip install -r requirements-ml.txt; \
-    fi
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
 
 COPY analytics ./analytics
 COPY api ./api

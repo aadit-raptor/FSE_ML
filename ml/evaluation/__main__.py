@@ -7,6 +7,9 @@
 ``train`` never touches the committed files: it trains into ``DIR`` and
 writes the new card beside them (DIR/cards, DIR/docs), so a person reviews
 the card before committing the files. GitHub Actions runs both (ml.yml).
+No registered model has anything to train since PLAN.md 5.8 (the live
+sliders run the simulation itself): ``train`` then says so and writes the
+model's card to ``DIR`` as it stands, so the workflow's step still succeeds.
 """
 from __future__ import annotations
 
@@ -17,11 +20,6 @@ import sys
 from pathlib import Path
 
 from ml.evaluation import card
-
-# The surrogate's full training run: generate_data's defaults
-SURROGATE_SAMPLES = 100_000
-SURROGATE_PATHS = 2_000
-
 
 def evaluation_module(model_id: str):
     return importlib.import_module(card.entry(model_id)["evaluation"])
@@ -67,18 +65,14 @@ def stale(model_id: str) -> list[str]:
     return found
 
 
-def train(model_id: str, out: Path, samples: int, epochs: int) -> dict:
-    """Train ``model_id`` into ``out`` and return the card for what it made."""
+def train(model_id: str, out: Path) -> dict:
+    """Train ``model_id`` into ``out`` and return the card for what it made.
+    A model with nothing to train gets its card as it stands."""
     out.mkdir(parents=True, exist_ok=True)
-    if model_id == "surrogate":
-        from ml.surrogate.generate_data import generate
-        from ml.surrogate.train import train as train_network
-        generate(n_samples=samples, n_per_call=SURROGATE_PATHS, out_dir=str(out))
-        train_network(base=str(out), max_epochs=epochs)
-    else:
-        raise SystemExit(f"{model_id} has nothing to train" if card.entry(model_id)["train"] is None
-                         else f"no training recipe for {model_id}")
-    new = model_card(model_id, out)
+    if card.entry(model_id)["train"] is not None:
+        raise SystemExit(f"no training recipe for {model_id}")
+    print(f"{model_id} has nothing to train: its card is evaluated as it stands")
+    new = model_card(model_id)
     card.write(new, out / "cards", out / "docs")
     return new
 
@@ -92,12 +86,13 @@ def main(argv=None) -> int:
     tr = sub.add_parser("train")
     tr.add_argument("model")
     tr.add_argument("--out", type=Path, required=True)
-    tr.add_argument("--samples", type=int, default=SURROGATE_SAMPLES)
-    tr.add_argument("--epochs", type=int, default=300)
+    # Accepted and unused: ml.yml passes them for the network PLAN.md 5.8 retired
+    tr.add_argument("--samples", type=int)
+    tr.add_argument("--epochs", type=int)
     args = parser.parse_args(argv)
 
     if args.command == "train":
-        new = train(args.model, args.out, args.samples, args.epochs)
+        new = train(args.model, args.out)
         print(card.render(new))
         return 0
     ids = args.model or [m["id"] for m in card.registry()["models"]]

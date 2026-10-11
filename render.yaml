@@ -52,8 +52,7 @@ services:
       - key: UPSTASH_REDIS_REST_TOKEN
         sync: false
       # Economic data (PLAN.md 4.2): SOFR, SONIA and the US 10-year yield from
-      # FRED; unset = SOFR and SONIA fall back to the policy rates. Also
-      # enables macro regime detection in INSTALL_ML=true images
+      # FRED; unset = SOFR and SONIA fall back to the policy rates
       - key: FRED_API_KEY
         sync: false
       # Company filings (PLAN.md 4.1): UK Companies House and Japan's EDINET.

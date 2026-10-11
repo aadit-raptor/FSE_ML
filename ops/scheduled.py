@@ -44,6 +44,16 @@ TOKEN_REUSE_S = 120                    # GitHub's tokens live a few minutes
 HEALTH_LIMIT_S = 10.0
 DRILL_TIMEOUT_S = 20 * 60
 POLL_S = 2.0
+# The live sliders on the same server (PLAN.md 5.8; jobs/drill.py live_drill).
+# What a session of slider moves may add to the API's memory, measured after
+# the drill's simulations have already stretched the process
+LIVE_ADDED_LIMIT_MB = 32.0
+# The session's middle estimate: far above what one takes (a few
+# milliseconds), far below what a person would call live
+LIVE_TYPICAL_LIMIT_MS = 500.0
+# What the recorded run keeps of the server's answer (a run holds 20 figures)
+LIVE_SUMMARY = ("live_paths", "live_typical_ms", "live_slowest_ms", "live_largest_ms", "live_added_mb",
+                "memory_peak_mb", "memory_limit_mb")
 # Render answers these from its proxy while a deploy swaps instances (the first
 # scheduled run met a 502 right after a merge) or the service wakes
 GATEWAY_ERRORS = frozenset({502, 503, 504})
@@ -179,6 +189,27 @@ def keepalive(api: Api, log=print) -> dict:
     return summary
 
 
+def live_problems(found: dict) -> list[str]:
+    """Why the server's live-sliders answer fails the check; empty when it passes."""
+    if not found:
+        return ["the live sliders were never drilled"]
+    out = []
+    if found.get("live_mismatched"):
+        out.append(f"the live estimate differs from its pinned answer: {found['live_mismatched']}")
+    if found.get("live_distinct") != found.get("live_moves"):
+        out.append(f"{found.get('live_moves')} slider moves gave {found.get('live_distinct')} different answers")
+    if (found.get("live_typical_ms") or 0) > LIVE_TYPICAL_LIMIT_MS:
+        out.append(f"a live estimate took {found['live_typical_ms']:.0f} ms (limit {LIVE_TYPICAL_LIMIT_MS:g} ms)")
+    peak, limit = found.get("memory_peak_mb"), found.get("memory_limit_mb")
+    if peak is None:
+        out.append("the server did not report its memory")
+    elif not limit or peak >= limit:
+        out.append(f"the API's memory peaked at {peak:.0f} MB, the service has {limit or 0:.0f} MB")
+    if (found.get("live_added_mb") or 0) > LIVE_ADDED_LIMIT_MB:
+        out.append(f"the live sliders added {found['live_added_mb']:.0f} MB (limit {LIVE_ADDED_LIMIT_MB:g} MB)")
+    return out
+
+
 @dataclass
 class DrillOutcome:
     jobs: dict[str, dict] = field(default_factory=dict)
@@ -186,9 +217,12 @@ class DrillOutcome:
     health_failures: int = 0
     slowest_health_s: float = 0.0
     seconds: float = 0.0
+    # The live sliders on the same server (PLAN.md 5.8): what it measured, or why it could not
+    live: dict = field(default_factory=dict)
+    live_error: Optional[str] = None
 
     def problems(self) -> list[str]:
-        found = []
+        found = [self.live_error] if self.live_error else live_problems(self.live)
         not_done = [j for j in self.jobs.values() if j.get("status") != "succeeded"]
         if not_done:
             found.append(f"{len(not_done)} of {len(self.jobs)} jobs did not succeed: "
@@ -209,7 +243,8 @@ class DrillOutcome:
                 "succeeded": sum(1 for j in self.jobs.values() if j.get("status") == "succeeded"),
                 "resumed": sum(1 for j in self.jobs.values() if (j.get("attempts") or 0) > 1),
                 "health_checks": self.health_checks, "health_failures": self.health_failures,
-                "slowest_health_ms": round(self.slowest_health_s * 1000), "seconds": round(self.seconds)}
+                "slowest_health_ms": round(self.slowest_health_s * 1000), "seconds": round(self.seconds),
+                **{k: self.live.get(k) for k in LIVE_SUMMARY}}
 
 
 def drill(api: Api, count: int = 10, *, log=print, sleep=time.sleep, timeout_s: float = DRILL_TIMEOUT_S) -> DrillOutcome:
@@ -244,6 +279,13 @@ def drill(api: Api, count: int = 10, *, log=print, sleep=time.sleep, timeout_s: 
             break
         sleep(POLL_S)
     outcome.seconds = time.monotonic() - t0
+    # After the simulations, so the memory peak it reports includes them
+    lcode, lbody = api.call("POST", "/api/scheduled/drill/live", {}, timeout=120)
+    if lcode == 200:
+        outcome.live = lbody
+        log(f"live sliders: {json.dumps(lbody, sort_keys=True)}")
+    else:
+        outcome.live_error = f"the live sliders drill: HTTP {lcode}: {lbody.get('detail')}"
     problems = outcome.problems()
     report(api, "job-drill", "failed" if problems else "succeeded", started_iso, outcome.summary(),
            "; ".join(problems) or None)

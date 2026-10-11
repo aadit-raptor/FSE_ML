@@ -1116,7 +1116,8 @@ class WorkbookRequest(Strict):
 class Capabilities(BaseModel):
     anomaly_detector: bool = Field(description="The deal risk score (ml/anomaly_detector.py): always true "
                                                "since PLAN.md 5.2, which needs no ML packages")
-    surrogate: bool
+    live: bool = Field(description="The live sliders (POST /api/montecarlo/live): always true since PLAN.md "
+                                   "5.8, which runs the simulation itself and needs no ML packages")
     edgar: bool
 
 
@@ -1126,36 +1127,33 @@ class DealRiskRequest(Strict):
     mezz_x: float = Field(0.8, ge=0)
 
 
-class SurrogateSliders(Strict):
-    growth_mean: float = Field(5.0, ge=-5, le=20, description="Revenue growth mean (%)")
-    exit_mean: float = Field(10.0, ge=4, le=20)
-    interest_mean: float = Field(6.5, ge=1, le=15, description="(%)")
-    gross_margin_mean: float = Field(40.0, ge=10, le=80, description="(%)")
-    debt_pct: float = Field(60.0, ge=20, le=90, description="Debt / EV (%)")
-    exit_std: float = Field(1.5, ge=0.3, le=5)
+class LiveSliders(Strict):
+    """The six assumptions the Live step moves (PLAN.md 5.8). The simulation
+    takes any of them, so the bounds are the inputs' own, not a trained range."""
+    growth_mean: float = Field(5.0, ge=-50, le=100, description="Revenue growth mean (%)")
+    exit_mean: float = Field(10.0, ge=1, le=100)
+    interest_mean: float = Field(6.5, ge=0, le=50, description="(%)")
+    gross_margin_mean: float = Field(40.0, ge=1, le=99, description="(%)")
+    debt_pct: float = Field(60.0, ge=0, le=99, description="Debt / EV (%): a listed structure is scaled to it")
+    exit_std: float = Field(1.5, ge=0.1, le=50)
 
 
-class SurrogateRequest(Strict):
+class LiveRequest(Strict):
     mc: MCInputsIn = MCInputsIn()
     deal: DealInputsIn = DealInputsIn()
     settings: Dict[str, SettingValue] = {}
-    sliders: SurrogateSliders = SurrogateSliders()
+    sliders: Optional[LiveSliders] = Field(None, description="Left out: the deal's own assumptions")
 
 
-class TermDifference(BaseModel):
-    term: str
-    value: float
-    model_value: float
-    unit: str
-    decimals: int
-
-
-class SurrogateResponse(BaseModel):
-    prediction: Dict[str, Optional[float]]
-    tail_unreliable: bool
-    term_differences: List[TermDifference]
-    training_deal: List[TermDifference] = Field(
-        description="Every term held fixed in training (model_value), beside this deal's value")
+class LiveResponse(BaseModel):
+    paths: int = Field(description="Simulated paths behind the estimate: the same seeded draws every time, "
+                                   "fewer for a long hold with many facilities (core/live.py)")
+    hurdle: float
+    prediction: Dict[str, Optional[float]] = Field(
+        description="IRR percentiles (irr_p5 ... irr_p95), irr_mean, irr_std, p_above_hurdle, p_loss, p_wipeout")
+    median_interval: List[Optional[float]] = Field(
+        description="95% interval for the median IRR from the paths themselves (sampling error)")
+    elapsed_ms: float
     model: ModelStamp
 
 

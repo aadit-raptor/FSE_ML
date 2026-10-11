@@ -40,7 +40,7 @@ The web app proxies `/api` to `FSE_API_URL` (default `http://127.0.0.1:8000`).
 | Backtesting | `GET /api/backtesting/deals`, `POST /api/backtesting/run` |
 | Settings | `GET /api/settings/defaults`, `POST /api/settings/validate` |
 | Export | `POST /api/export/workbook`, `POST /api/export/montecarlo-sample` (Excel) |
-| Optional | `GET /api/capabilities`, `POST /api/ml/deal-risk`, `POST /api/ml/surrogate`, `POST /api/ml/macro-regime`, `GET /api/edgar/{ticker}` |
+| Optional | `GET /api/capabilities`, `POST /api/ml/deal-risk`, `POST /api/montecarlo/live`, `POST /api/ml/macro-regime`, `GET /api/edgar/{ticker}` |
 
 Inputs use the model's units: percentages as numbers like `60.0`, money in $M.
 Engine outputs keep engine units (IRR `0.157` = 15.7%). Optional features
@@ -61,23 +61,19 @@ npx playwright test                            # browser tests; they start the A
 
 CI runs `core`, `ml`, `web`, `e2e` and `docker` jobs.
 
-## Optional ML layer (`ml/`)
+## Models (`ml/`)
 
-The app runs without it; each feature appears only when the API can run it.
+Nothing here needs ML packages or trained files: every model reads stored,
+sourced data or reruns the simulation, and each has a card in
+[docs/model-cards/](docs/model-cards/) that CI re-evaluates.
 
-| Feature | Where | Enable |
-|---|---|---|
-| Live IRR sliders (surrogate network) | Monte Carlo → Live | `pip install -r requirements-ml.txt` (model files are committed); retrain with `python -m ml.surrogate.generate_data && python -m ml.surrogate.train` after changing the simulation engine or its default fees |
+The Live sliders (Monte Carlo → Live) rerun the simulation itself on up to
+8,000 fixed paths per move (`core/live.py`), so the estimate is the deal's
+own, whatever its facilities, tax rules or leases; on 230 varied regional
+deals its median IRR is 0.13 points from a 100,000-path run
+([docs/model-cards/surrogate.md](docs/model-cards/surrogate.md)).
 
-The surrogate is trained on a fixed deal (10x entry, 5-year hold, default fees
-and operating terms — see `TRAINING_FIXED` in `ml/surrogate/generate_data.py`);
-the Live screen says when a deal differs. Measured against fresh simulations
-on 200 random deals, median-IRR error is 0.19pp (worst 0.86pp); near a 5%
-wipeout rate the 5th percentile is unreliable, so the screen hides it there.
-`requirements-ml.txt` pins scikit-learn to 1.8 because the surrogate's committed
-scalers were saved with 1.8.0.
-
-The deal risk score (Deal → Inputs) needs none of this since PLAN.md 5.2: it
+The deal risk score (Deal → Inputs) since PLAN.md 5.2
 compares the deal with its industry's companies in its region, from the stored
 industry averages ([docs/model-cards/deal_risk.md](docs/model-cards/deal_risk.md)).
 

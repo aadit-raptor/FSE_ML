@@ -1687,14 +1687,15 @@
             "title": "Edgar",
             "type": "boolean"
           },
-          "surrogate": {
-            "title": "Surrogate",
+          "live": {
+            "description": "The live sliders (POST /api/montecarlo/live): always true since PLAN.md 5.8, which runs the simulation itself and needs no ML packages",
+            "title": "Live",
             "type": "boolean"
           }
         },
         "required": [
           "anomaly_detector",
-          "surrogate",
+          "live",
           "edgar"
         ],
         "title": "Capabilities",
@@ -7495,6 +7496,218 @@
           "limit"
         ],
         "title": "LimitRefusal",
+        "type": "object"
+      },
+      "LiveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "deal": {
+            "$ref": "#/components/schemas/DealInputsIn",
+            "default": {
+              "accounting_standard": "",
+              "ap_days": 60.0,
+              "ar_days": 45.0,
+              "base_rate": 6.5,
+              "business_risk": 4,
+              "capex": 4.0,
+              "country": "",
+              "currency": "USD",
+              "da": 4.0,
+              "debt_pct": 60.0,
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mult": 11.0,
+              "fiscal_year_end_month": 12,
+              "gross_margin": 40.0,
+              "growth": 5.0,
+              "hold": 5,
+              "industry": "",
+              "inv_days": 30.0,
+              "lease_cost": 0.0,
+              "lease_liability": 0.0,
+              "lease_view": "",
+              "mezz_spread": 4.0,
+              "mincash": 0.0,
+              "nwc": 1.0,
+              "opex": 18.0,
+              "senior_pct": 70.0,
+              "tax": 25.0,
+              "tax_interest_limit": "none",
+              "tax_interest_limit_amount": 0.0,
+              "tax_interest_limit_pct": 30.0,
+              "tax_loss_carryforward": false,
+              "tax_loss_limit_amount": 0.0,
+              "tax_loss_limit_pct": 100.0,
+              "tax_minimum_pct": 0.0,
+              "tax_preset": "",
+              "tranches": [],
+              "unit": "millions",
+              "wsp_mode": false
+            }
+          },
+          "mc": {
+            "$ref": "#/components/schemas/MCInputsIn",
+            "default": {
+              "ebitda": 100.0,
+              "entry_mult": 10.0,
+              "exit_mean": 10.0,
+              "exit_std": 1.5,
+              "gm_mean": 40.0,
+              "gm_std": 3.0,
+              "growth_mean": 5.0,
+              "growth_std": 3.0,
+              "hold": 5,
+              "hurdle": 20.0,
+              "n": 50000,
+              "rate_mean": 6.5,
+              "rate_std": 1.5
+            }
+          },
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Settings",
+            "type": "object"
+          },
+          "sliders": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveSliders"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Left out: the deal's own assumptions"
+          }
+        },
+        "title": "LiveRequest",
+        "type": "object"
+      },
+      "LiveResponse": {
+        "properties": {
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "number"
+          },
+          "hurdle": {
+            "title": "Hurdle",
+            "type": "number"
+          },
+          "median_interval": {
+            "description": "95% interval for the median IRR from the paths themselves (sampling error)",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Median Interval",
+            "type": "array"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "paths": {
+            "description": "Simulated paths behind the estimate: the same seeded draws every time, fewer for a long hold with many facilities (core/live.py)",
+            "title": "Paths",
+            "type": "integer"
+          },
+          "prediction": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "IRR percentiles (irr_p5 ... irr_p95), irr_mean, irr_std, p_above_hurdle, p_loss, p_wipeout",
+            "title": "Prediction",
+            "type": "object"
+          }
+        },
+        "required": [
+          "paths",
+          "hurdle",
+          "prediction",
+          "median_interval",
+          "elapsed_ms",
+          "model"
+        ],
+        "title": "LiveResponse",
+        "type": "object"
+      },
+      "LiveSliders": {
+        "additionalProperties": false,
+        "description": "The six assumptions the Live step moves (PLAN.md 5.8). The simulation\ntakes any of them, so the bounds are the inputs' own, not a trained range.",
+        "properties": {
+          "debt_pct": {
+            "default": 60.0,
+            "description": "Debt / EV (%): a listed structure is scaled to it",
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Debt Pct",
+            "type": "number"
+          },
+          "exit_mean": {
+            "default": 10.0,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Exit Mean",
+            "type": "number"
+          },
+          "exit_std": {
+            "default": 1.5,
+            "maximum": 50.0,
+            "minimum": 0.1,
+            "title": "Exit Std",
+            "type": "number"
+          },
+          "gross_margin_mean": {
+            "default": 40.0,
+            "description": "(%)",
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Gross Margin Mean",
+            "type": "number"
+          },
+          "growth_mean": {
+            "default": 5.0,
+            "description": "Revenue growth mean (%)",
+            "maximum": 100.0,
+            "minimum": -50.0,
+            "title": "Growth Mean",
+            "type": "number"
+          },
+          "interest_mean": {
+            "default": 6.5,
+            "description": "(%)",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Interest Mean",
+            "type": "number"
+          }
+        },
+        "title": "LiveSliders",
         "type": "object"
       },
       "MCInputsIn": {
@@ -14258,206 +14471,6 @@
         "title": "StoredActuals",
         "type": "object"
       },
-      "SurrogateRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "deal": {
-            "$ref": "#/components/schemas/DealInputsIn",
-            "default": {
-              "accounting_standard": "",
-              "ap_days": 60.0,
-              "ar_days": 45.0,
-              "base_rate": 6.5,
-              "business_risk": 4,
-              "capex": 4.0,
-              "country": "",
-              "currency": "USD",
-              "da": 4.0,
-              "debt_pct": 60.0,
-              "ebitda": 100.0,
-              "entry_mult": 10.0,
-              "exit_mult": 11.0,
-              "fiscal_year_end_month": 12,
-              "gross_margin": 40.0,
-              "growth": 5.0,
-              "hold": 5,
-              "industry": "",
-              "inv_days": 30.0,
-              "lease_cost": 0.0,
-              "lease_liability": 0.0,
-              "lease_view": "",
-              "mezz_spread": 4.0,
-              "mincash": 0.0,
-              "nwc": 1.0,
-              "opex": 18.0,
-              "senior_pct": 70.0,
-              "tax": 25.0,
-              "tax_interest_limit": "none",
-              "tax_interest_limit_amount": 0.0,
-              "tax_interest_limit_pct": 30.0,
-              "tax_loss_carryforward": false,
-              "tax_loss_limit_amount": 0.0,
-              "tax_loss_limit_pct": 100.0,
-              "tax_minimum_pct": 0.0,
-              "tax_preset": "",
-              "tranches": [],
-              "unit": "millions",
-              "wsp_mode": false
-            }
-          },
-          "mc": {
-            "$ref": "#/components/schemas/MCInputsIn",
-            "default": {
-              "ebitda": 100.0,
-              "entry_mult": 10.0,
-              "exit_mean": 10.0,
-              "exit_std": 1.5,
-              "gm_mean": 40.0,
-              "gm_std": 3.0,
-              "growth_mean": 5.0,
-              "growth_std": 3.0,
-              "hold": 5,
-              "hurdle": 20.0,
-              "n": 50000,
-              "rate_mean": 6.5,
-              "rate_std": 1.5
-            }
-          },
-          "settings": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "boolean"
-                }
-              ]
-            },
-            "default": {},
-            "title": "Settings",
-            "type": "object"
-          },
-          "sliders": {
-            "$ref": "#/components/schemas/SurrogateSliders",
-            "default": {
-              "debt_pct": 60.0,
-              "exit_mean": 10.0,
-              "exit_std": 1.5,
-              "gross_margin_mean": 40.0,
-              "growth_mean": 5.0,
-              "interest_mean": 6.5
-            }
-          }
-        },
-        "title": "SurrogateRequest",
-        "type": "object"
-      },
-      "SurrogateResponse": {
-        "properties": {
-          "model": {
-            "$ref": "#/components/schemas/ModelStamp"
-          },
-          "prediction": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "title": "Prediction",
-            "type": "object"
-          },
-          "tail_unreliable": {
-            "title": "Tail Unreliable",
-            "type": "boolean"
-          },
-          "term_differences": {
-            "items": {
-              "$ref": "#/components/schemas/TermDifference"
-            },
-            "title": "Term Differences",
-            "type": "array"
-          },
-          "training_deal": {
-            "description": "Every term held fixed in training (model_value), beside this deal's value",
-            "items": {
-              "$ref": "#/components/schemas/TermDifference"
-            },
-            "title": "Training Deal",
-            "type": "array"
-          }
-        },
-        "required": [
-          "prediction",
-          "tail_unreliable",
-          "term_differences",
-          "training_deal",
-          "model"
-        ],
-        "title": "SurrogateResponse",
-        "type": "object"
-      },
-      "SurrogateSliders": {
-        "additionalProperties": false,
-        "properties": {
-          "debt_pct": {
-            "default": 60.0,
-            "description": "Debt / EV (%)",
-            "maximum": 90.0,
-            "minimum": 20.0,
-            "title": "Debt Pct",
-            "type": "number"
-          },
-          "exit_mean": {
-            "default": 10.0,
-            "maximum": 20.0,
-            "minimum": 4.0,
-            "title": "Exit Mean",
-            "type": "number"
-          },
-          "exit_std": {
-            "default": 1.5,
-            "maximum": 5.0,
-            "minimum": 0.3,
-            "title": "Exit Std",
-            "type": "number"
-          },
-          "gross_margin_mean": {
-            "default": 40.0,
-            "description": "(%)",
-            "maximum": 80.0,
-            "minimum": 10.0,
-            "title": "Gross Margin Mean",
-            "type": "number"
-          },
-          "growth_mean": {
-            "default": 5.0,
-            "description": "Revenue growth mean (%)",
-            "maximum": 20.0,
-            "minimum": -5.0,
-            "title": "Growth Mean",
-            "type": "number"
-          },
-          "interest_mean": {
-            "default": 6.5,
-            "description": "(%)",
-            "maximum": 15.0,
-            "minimum": 1.0,
-            "title": "Interest Mean",
-            "type": "number"
-          }
-        },
-        "title": "SurrogateSliders",
-        "type": "object"
-      },
       "TargetProbability": {
         "properties": {
           "probability": {
@@ -14770,39 +14783,6 @@
           }
         },
         "title": "TaxSchedule",
-        "type": "object"
-      },
-      "TermDifference": {
-        "properties": {
-          "decimals": {
-            "title": "Decimals",
-            "type": "integer"
-          },
-          "model_value": {
-            "title": "Model Value",
-            "type": "number"
-          },
-          "term": {
-            "title": "Term",
-            "type": "string"
-          },
-          "unit": {
-            "title": "Unit",
-            "type": "string"
-          },
-          "value": {
-            "title": "Value",
-            "type": "number"
-          }
-        },
-        "required": [
-          "term",
-          "value",
-          "model_value",
-          "unit",
-          "decimals"
-        ],
-        "title": "TermDifference",
         "type": "object"
       },
       "TrancheIn": {
@@ -19598,15 +19578,15 @@
         ]
       }
     },
-    "/api/ml/surrogate": {
+    "/api/montecarlo/live": {
       "post": {
-        "description": "Instant IRR distribution estimate for the live sliders.",
-        "operationId": "post_surrogate_api_ml_surrogate_post",
+        "description": "The Live step's estimate (PLAN.md 5.8): the simulation itself on a\nsmall, fixed set of seeded paths, with the sliders applied. Holds no\nsimulation slot: its size is bounded by core.live.live_paths, and its\nrate by api.limits.USER_LIVE.",
+        "operationId": "post_live_api_montecarlo_live_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurrogateRequest"
+                "$ref": "#/components/schemas/LiveRequest"
               }
             }
           },
@@ -19617,7 +19597,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurrogateResponse"
+                  "$ref": "#/components/schemas/LiveResponse"
                 }
               }
             },
@@ -19649,9 +19629,9 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Post Surrogate",
+        "summary": "Post Live",
         "tags": [
-          "settings & integrations"
+          "monte carlo"
         ]
       }
     },
@@ -19813,6 +19793,53 @@
           }
         ],
         "summary": "Start Drill",
+        "tags": [
+          "scheduled"
+        ]
+      }
+    },
+    "/api/scheduled/drill/live": {
+      "post": {
+        "description": "A session of the live sliders in this process, with the memory the\nAPI has used at its peak (jobs/drill.py ``live_drill``).",
+        "operationId": "run_live_drill_api_scheduled_drill_live_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": "Response Run Live Drill Api Scheduled Drill Live Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Live Drill",
         "tags": [
           "scheduled"
         ]

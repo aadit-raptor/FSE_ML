@@ -73,6 +73,13 @@ class Rule:
 USER_REQUESTS = Rule("user_requests_per_minute", "requests", "user", 240, 60)
 USER_RUNS = Rule("user_runs_per_minute", "model runs", "user", 30, 60)
 USER_RUNS_DAY = Rule("user_runs_per_day", "model runs", "user", 1_000, 86_400, shared=True)
+# The live sliders (PLAN.md 5.8): each estimate is a simulation of at most
+# core.live.LIVE_PATHS paths (a few milliseconds; about 30 ms at the size
+# caps), so it is not a model run, which would end a session of dragging at
+# 30 a minute and spend the day's 1,000. It has its own rate instead: two a
+# second, more than the screen sends (it waits for the slider to rest).
+USER_LIVE = Rule("user_live_per_minute", "live estimates", "user", 120, 60)
+LIVE_PATH = "/api/montecarlo/live"
 ADDRESS_REQUESTS = Rule("address_requests_per_minute", "requests", "address", 1_200, 60)
 ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused sign-ins",
                                 "address", 60, 60)
@@ -81,7 +88,7 @@ ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused 
 RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
-    "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/surrogate", "/api/ml/macro-regime",
+    "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/macro-regime",
     "/api/companies/search", "/api/companies/load",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
@@ -186,6 +193,8 @@ def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)
     rules = [(USER_REQUESTS, user.subject)]
     if is_run_request(request.method, request.url.path):
         rules += [(USER_RUNS, user.subject), (USER_RUNS_DAY, user.subject)]
+    if request.url.path == LIVE_PATH:
+        rules.append((USER_LIVE, user.subject))
     _enforce(rules)
 
 

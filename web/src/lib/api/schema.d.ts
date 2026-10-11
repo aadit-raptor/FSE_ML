@@ -1188,7 +1188,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ml/surrogate": {
+    "/api/montecarlo/live": {
         parameters: {
             query?: never;
             header?: never;
@@ -1198,10 +1198,13 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Post Surrogate
-         * @description Instant IRR distribution estimate for the live sliders.
+         * Post Live
+         * @description The Live step's estimate (PLAN.md 5.8): the simulation itself on a
+         *     small, fixed set of seeded paths, with the sliders applied. Holds no
+         *     simulation slot: its size is bounded by core.live.live_paths, and its
+         *     rate by api.limits.USER_LIVE.
          */
-        post: operations["post_surrogate_api_ml_surrogate_post"];
+        post: operations["post_live_api_montecarlo_live_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1265,6 +1268,27 @@ export interface paths {
          * @description Queue ``count`` identical seeded Monte Carlo jobs at once (jobs/drill.py).
          */
         post: operations["start_drill_api_scheduled_drill_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduled/drill/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Live Drill
+         * @description A session of the live sliders in this process, with the memory the
+         *     API has used at its peak (jobs/drill.py ``live_drill``).
+         */
+        post: operations["run_live_drill_api_scheduled_drill_live_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2083,8 +2107,11 @@ export interface components {
             anomaly_detector: boolean;
             /** Edgar */
             edgar: boolean;
-            /** Surrogate */
-            surrogate: boolean;
+            /**
+             * Live
+             * @description The live sliders (POST /api/montecarlo/live): always true since PLAN.md 5.8, which runs the simulation itself and needs no ML packages
+             */
+            live: boolean;
         };
         /** CashFlowResult */
         CashFlowResult: {
@@ -4393,6 +4420,146 @@ export interface components {
              */
             detail: string;
             limit: components["schemas"]["LimitInfo"];
+        };
+        /** LiveRequest */
+        LiveRequest: {
+            /**
+             * @default {
+             *       "accounting_standard": "",
+             *       "ap_days": 60,
+             *       "ar_days": 45,
+             *       "base_rate": 6.5,
+             *       "business_risk": 4,
+             *       "capex": 4,
+             *       "country": "",
+             *       "currency": "USD",
+             *       "da": 4,
+             *       "debt_pct": 60,
+             *       "ebitda": 100,
+             *       "entry_mult": 10,
+             *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
+             *       "gross_margin": 40,
+             *       "growth": 5,
+             *       "hold": 5,
+             *       "industry": "",
+             *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
+             *       "mezz_spread": 4,
+             *       "mincash": 0,
+             *       "nwc": 1,
+             *       "opex": 18,
+             *       "senior_pct": 70,
+             *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
+             *       "tranches": [],
+             *       "unit": "millions",
+             *       "wsp_mode": false
+             *     }
+             */
+            deal: components["schemas"]["DealInputsIn"];
+            /**
+             * @default {
+             *       "ebitda": 100,
+             *       "entry_mult": 10,
+             *       "exit_mean": 10,
+             *       "exit_std": 1.5,
+             *       "gm_mean": 40,
+             *       "gm_std": 3,
+             *       "growth_mean": 5,
+             *       "growth_std": 3,
+             *       "hold": 5,
+             *       "hurdle": 20,
+             *       "n": 50000,
+             *       "rate_mean": 6.5,
+             *       "rate_std": 1.5
+             *     }
+             */
+            mc: components["schemas"]["MCInputsIn"];
+            /**
+             * Settings
+             * @default {}
+             */
+            settings: {
+                [key: string]: number | boolean;
+            };
+            /** @description Left out: the deal's own assumptions */
+            sliders?: components["schemas"]["LiveSliders"] | null;
+        };
+        /** LiveResponse */
+        LiveResponse: {
+            /** Elapsed Ms */
+            elapsed_ms: number;
+            /** Hurdle */
+            hurdle: number;
+            /**
+             * Median Interval
+             * @description 95% interval for the median IRR from the paths themselves (sampling error)
+             */
+            median_interval: (number | null)[];
+            model: components["schemas"]["ModelStamp"];
+            /**
+             * Paths
+             * @description Simulated paths behind the estimate: the same seeded draws every time, fewer for a long hold with many facilities (core/live.py)
+             */
+            paths: number;
+            /**
+             * Prediction
+             * @description IRR percentiles (irr_p5 ... irr_p95), irr_mean, irr_std, p_above_hurdle, p_loss, p_wipeout
+             */
+            prediction: {
+                [key: string]: number | null;
+            };
+        };
+        /**
+         * LiveSliders
+         * @description The six assumptions the Live step moves (PLAN.md 5.8). The simulation
+         *     takes any of them, so the bounds are the inputs' own, not a trained range.
+         */
+        LiveSliders: {
+            /**
+             * Debt Pct
+             * @description Debt / EV (%): a listed structure is scaled to it
+             * @default 60
+             */
+            debt_pct: number;
+            /**
+             * Exit Mean
+             * @default 10
+             */
+            exit_mean: number;
+            /**
+             * Exit Std
+             * @default 1.5
+             */
+            exit_std: number;
+            /**
+             * Gross Margin Mean
+             * @description (%)
+             * @default 40
+             */
+            gross_margin_mean: number;
+            /**
+             * Growth Mean
+             * @description Revenue growth mean (%)
+             * @default 5
+             */
+            growth_mean: number;
+            /**
+             * Interest Mean
+             * @description (%)
+             * @default 6.5
+             */
+            interest_mean: number;
         };
         /** MCInputsIn */
         MCInputsIn: {
@@ -6982,143 +7149,6 @@ export interface components {
              */
             updated_at?: string | null;
         };
-        /** SurrogateRequest */
-        SurrogateRequest: {
-            /**
-             * @default {
-             *       "accounting_standard": "",
-             *       "ap_days": 60,
-             *       "ar_days": 45,
-             *       "base_rate": 6.5,
-             *       "business_risk": 4,
-             *       "capex": 4,
-             *       "country": "",
-             *       "currency": "USD",
-             *       "da": 4,
-             *       "debt_pct": 60,
-             *       "ebitda": 100,
-             *       "entry_mult": 10,
-             *       "exit_mult": 11,
-             *       "fiscal_year_end_month": 12,
-             *       "gross_margin": 40,
-             *       "growth": 5,
-             *       "hold": 5,
-             *       "industry": "",
-             *       "inv_days": 30,
-             *       "lease_cost": 0,
-             *       "lease_liability": 0,
-             *       "lease_view": "",
-             *       "mezz_spread": 4,
-             *       "mincash": 0,
-             *       "nwc": 1,
-             *       "opex": 18,
-             *       "senior_pct": 70,
-             *       "tax": 25,
-             *       "tax_interest_limit": "none",
-             *       "tax_interest_limit_amount": 0,
-             *       "tax_interest_limit_pct": 30,
-             *       "tax_loss_carryforward": false,
-             *       "tax_loss_limit_amount": 0,
-             *       "tax_loss_limit_pct": 100,
-             *       "tax_minimum_pct": 0,
-             *       "tax_preset": "",
-             *       "tranches": [],
-             *       "unit": "millions",
-             *       "wsp_mode": false
-             *     }
-             */
-            deal: components["schemas"]["DealInputsIn"];
-            /**
-             * @default {
-             *       "ebitda": 100,
-             *       "entry_mult": 10,
-             *       "exit_mean": 10,
-             *       "exit_std": 1.5,
-             *       "gm_mean": 40,
-             *       "gm_std": 3,
-             *       "growth_mean": 5,
-             *       "growth_std": 3,
-             *       "hold": 5,
-             *       "hurdle": 20,
-             *       "n": 50000,
-             *       "rate_mean": 6.5,
-             *       "rate_std": 1.5
-             *     }
-             */
-            mc: components["schemas"]["MCInputsIn"];
-            /**
-             * Settings
-             * @default {}
-             */
-            settings: {
-                [key: string]: number | boolean;
-            };
-            /**
-             * @default {
-             *       "debt_pct": 60,
-             *       "exit_mean": 10,
-             *       "exit_std": 1.5,
-             *       "gross_margin_mean": 40,
-             *       "growth_mean": 5,
-             *       "interest_mean": 6.5
-             *     }
-             */
-            sliders: components["schemas"]["SurrogateSliders"];
-        };
-        /** SurrogateResponse */
-        SurrogateResponse: {
-            model: components["schemas"]["ModelStamp"];
-            /** Prediction */
-            prediction: {
-                [key: string]: number | null;
-            };
-            /** Tail Unreliable */
-            tail_unreliable: boolean;
-            /** Term Differences */
-            term_differences: components["schemas"]["TermDifference"][];
-            /**
-             * Training Deal
-             * @description Every term held fixed in training (model_value), beside this deal's value
-             */
-            training_deal: components["schemas"]["TermDifference"][];
-        };
-        /** SurrogateSliders */
-        SurrogateSliders: {
-            /**
-             * Debt Pct
-             * @description Debt / EV (%)
-             * @default 60
-             */
-            debt_pct: number;
-            /**
-             * Exit Mean
-             * @default 10
-             */
-            exit_mean: number;
-            /**
-             * Exit Std
-             * @default 1.5
-             */
-            exit_std: number;
-            /**
-             * Gross Margin Mean
-             * @description (%)
-             * @default 40
-             */
-            gross_margin_mean: number;
-            /**
-             * Growth Mean
-             * @description Revenue growth mean (%)
-             * @default 5
-             */
-            growth_mean: number;
-            /**
-             * Interest Mean
-             * @description (%)
-             * @default 6.5
-             */
-            interest_mean: number;
-        };
         /** TargetProbability */
         TargetProbability: {
             /** Probability */
@@ -7218,19 +7248,6 @@ export interface components {
             taxes?: (number | null)[];
             /** Years */
             years?: number[];
-        };
-        /** TermDifference */
-        TermDifference: {
-            /** Decimals */
-            decimals: number;
-            /** Model Value */
-            model_value: number;
-            /** Term */
-            term: string;
-            /** Unit */
-            unit: string;
-            /** Value */
-            value: number;
         };
         /**
          * TrancheIn
@@ -10212,7 +10229,7 @@ export interface operations {
             };
         };
     };
-    post_surrogate_api_ml_surrogate_post: {
+    post_live_api_montecarlo_live_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -10221,7 +10238,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SurrogateRequest"];
+                "application/json": components["schemas"]["LiveRequest"];
             };
         };
         responses: {
@@ -10231,7 +10248,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SurrogateResponse"];
+                    "application/json": components["schemas"]["LiveResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10367,6 +10384,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_live_drill_api_scheduled_drill_live_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number | boolean | string | null;
+                    };
                 };
             };
         };
