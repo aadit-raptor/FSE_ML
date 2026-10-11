@@ -73,6 +73,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/account/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Suggestions
+         * @description The caller's usual figures for a deal in ``country`` and ``industry``:
+         *     the median of each starting figure across their own saved deals in the
+         *     same region and sector. Switched off, nothing is read and nothing answered.
+         */
+        get: operations["get_suggestions_api_account_suggestions_get"];
+        /**
+         * Put Suggestions
+         * @description Switch suggestions of the caller's usual figures on or off.
+         */
+        put: operations["put_suggestions_api_account_suggestions_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backtesting/deals": {
         parameters: {
             query?: never;
@@ -1606,7 +1632,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -1629,7 +1655,7 @@ export interface components {
             deal_name?: string | null;
             /**
              * Enabled
-             * @description Whether the reference library was shown or hidden
+             * @description Whether the reference library was shown or hidden, or suggestions of the account's usual figures switched on or off
              */
             enabled?: boolean | null;
             /** Export */
@@ -7149,6 +7175,53 @@ export interface components {
              */
             updated_at?: string | null;
         };
+        /**
+         * SuggestionsResponse
+         * @description The caller's usual figures for a deal's region and sector (PLAN.md 5.9),
+         *     from their own saved deals and nobody else's.
+         */
+        SuggestionsResponse: {
+            /**
+             * Deals
+             * @description The caller's deals in that region and sector, the one on screen left out
+             */
+            deals: number;
+            /**
+             * Enabled
+             * @description False when the caller switched suggestions off: everything else is empty
+             */
+            enabled: boolean;
+            /** Figures */
+            figures: components["schemas"]["UsualFigure"][];
+            /**
+             * Industry
+             * @description The industry itself, when it has no sector and so is a group of its own
+             */
+            industry?: string | null;
+            /** Min Deals */
+            min_deals: number;
+            /**
+             * Region
+             * @description S&P's region of the country asked for
+             */
+            region?: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /**
+             * Sector
+             * @description The GICS sector of the industry asked for
+             */
+            sector?: string | null;
+            /**
+             * Status
+             * @description not_enough: no figure has min_deals of the caller's deals behind it
+             * @enum {string}
+             */
+            status: "off" | "no_country" | "not_enough" | "ok";
+        };
+        /** SuggestionsSwitch */
+        SuggestionsSwitch: {
+            /** Enabled */
+            enabled: boolean;
+        };
         /** TargetProbability */
         TargetProbability: {
             /** Probability */
@@ -7482,6 +7555,35 @@ export interface components {
             undrawn?: number | null;
             /** Year */
             year: number;
+        };
+        /** UsualFigure */
+        UsualFigure: {
+            /**
+             * Deals
+             * @description How many of the caller's deals it is the median of
+             */
+            deals: number;
+            /**
+             * Field
+             * @description The deal input this figure is for
+             * @enum {string}
+             */
+            field: "growth" | "tax" | "gross_margin" | "opex" | "da" | "entry_mult" | "exit_mult" | "capex" | "ar_days" | "inv_days" | "ap_days" | "nwc" | "debt_pct" | "senior_pct" | "base_rate";
+            /**
+             * High
+             * @description The highest of them
+             */
+            high: number;
+            /**
+             * Low
+             * @description The lowest of them
+             */
+            low: number;
+            /**
+             * Value
+             * @description The median across the caller's own deals in the group, as the deal input reads it: per cent, a multiple or days
+             */
+            value: number;
         };
         /** ValidationBucket */
         ValidationBucket: {
@@ -7887,6 +7989,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_suggestions_api_account_suggestions_get: {
+        parameters: {
+            query?: {
+                /** @description ISO 3166-1 alpha-2 */
+                country?: string;
+                /** @description An id from /api/benchmarks/industries */
+                industry?: string;
+                /** @description The deal on screen, left out of its own suggestion */
+                deal_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_suggestions_api_account_suggestions_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionsSwitch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionsSwitch"];
                 };
             };
             /** @description Validation Error */

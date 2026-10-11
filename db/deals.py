@@ -586,6 +586,45 @@ def save_settings(subject: str, settings: Optional[Mapping], *,
 
 
 # ---------------------------------------------------------------------------
+# Personalized defaults (PLAN.md 5.9): the switch, and the caller's own deals
+# ---------------------------------------------------------------------------
+def own_deal_inputs(subject: str, *, exclude: Optional[uuid.UUID] = None,
+                    limit: int = 200) -> tuple[bool, list[dict]]:
+    """Whether the caller wants suggestions, and the inputs of their own
+    newest deals to make them from (``exclude`` left out: the deal on
+    screen). One statement: the deals are joined to the caller's own account
+    row, so no other owner's deal can be in the answer, and with the switch
+    off no deal is read at all. Before sign-up is finished there is no row
+    and nothing to read; the switch is then at its default, on."""
+    mine = and_(Deal.owner_id == User.id, User.personalized_defaults.is_(True))
+    if exclude is not None:
+        mine = and_(mine, Deal.id != exclude)
+    query = (select(User.personalized_defaults, Deal.id, Deal.inputs)
+             .select_from(User).outerjoin(Deal, mine).where(User.subject == subject)
+             .order_by(Deal.updated_at.desc().nulls_last(), Deal.id).limit(limit))
+    with connect() as conn:
+        rows = conn.execute(query).all()
+    if not rows:
+        return True, []
+    return rows[0].personalized_defaults, [dict(r.inputs) for r in rows if r.id is not None]
+
+
+def set_suggestions(subject: str, enabled: bool, *, now: Optional[datetime] = None) -> bool:
+    """Switch suggestions of the caller's usual figures on or off. A change
+    is one entry in the account's history; switching to what it already is
+    writes none."""
+    with transaction() as conn:
+        held = conn.execute(select(User.id, User.personalized_defaults).where(User.subject == subject)
+                            .with_for_update()).first()
+        if held is None:
+            raise NoAccount(subject)
+        if held.personalized_defaults != enabled:
+            conn.execute(update(User).where(User.id == held.id).values(personalized_defaults=enabled))
+            audit.record(conn, held.id, "suggestions_switched", now=now, detail={"enabled": enabled})
+    return enabled
+
+
+# ---------------------------------------------------------------------------
 # Audit history (PLAN.md 3.3): a deal's, and the one action recorded from outside
 # ---------------------------------------------------------------------------
 def deal_history(subject: str, deal_id: uuid.UUID, *, limit: int = 200) -> list[audit.Entry]:

@@ -1187,6 +1187,39 @@ default comes from; `tests/test_defaults_registry.py` keeps it complete.
 | `benchmarks.starting.MAX_MULTIPLE` | 100.0 | a higher EV / EBITDA is not a starting point |
 | `benchmarks.starting.MAX_CAPEX_TO_DA` | 10.0 | a higher capex / D&A is not a starting point |
 
+### Your usual figures
+
+Beside the sourced figures the Inputs step shows what **the person
+themselves** usually assumes for deals like this one (PLAN.md 5.9,
+[benchmarks/usual.py](../benchmarks/usual.py)). Nothing is trained and no
+figure is stored: `usual_figures` works the answer out from the caller's own
+saved deals each time it is asked, and `db.deals.own_deal_inputs` matches
+the caller in the same statement as the read, so no other account's deal can
+be in it.
+
+- **The group** (`group_of`): S&P's region of the deal's country
+  (`sp_region`) and the GICS sector of its industry (`INDUSTRY_SECTOR`); an
+  industry with no sector is a group of its own. A deal counts only once it
+  has a country, and the deal on screen is left out of its own suggestion.
+- **The figure** (`_figure`): for each of the sourced starting figures'
+  fields, the **median** of the group's deals' values (`_values` reads them;
+  `_number` drops anything that is not a finite number), with how many deals
+  that is and the lowest and highest. Days are rounded to one decimal, the
+  rest to two. A deal that lists its facilities ignores `debt_pct`,
+  `senior_pct` and `base_rate`, so it says nothing about those three.
+- **Not enough**: a figure with fewer than `MIN_DEALS` deals behind it is
+  not suggested.
+- **Off**: the account's switch (`db.deals.set_suggestions`); switched off,
+  no deal is read.
+
+It describes the person's own deals and predicts nothing, so it has no model
+card. A suggestion applied is an input like any typed figure.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `benchmarks.usual.MIN_DEALS` | 3 | deals a figure needs before it is suggested |
+| `benchmarks.usual.MAX_DEALS` | 200 | the newest of the person's deals read |
+
 ### The reference library
 
 The optional reference library (PLAN.md 4.5, Library mode) shows published

@@ -35,6 +35,7 @@ EXTRA_MODULES = (
     "ml/macro_regime.py",            # economic regime by region (PLAN.md 5.7)
     "ml/edgar_extractor.py",         # SEC EDGAR figures
     "benchmarks/starting.py",        # a new deal's starting figures
+    "benchmarks/usual.py",           # the person's own usual figures (PLAN.md 5.9)
     "benchmarks/risk.py",            # the sourced Monte Carlo ranges (PLAN.md 4.4)
     "benchmarks/history.py",         # the history they are measured on
     "library/base_rates.py",         # published default and recovery rates (PLAN.md 4.5)
