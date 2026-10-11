@@ -58,15 +58,20 @@ def task(name: str, description: str):
 
 
 @task("job-maintenance", "Requeue or fail jobs whose runner went silent; apply retention; "
-                          "merge old audit edits (PLAN.md 3.3).")
+                          "merge old audit edits (PLAN.md 3.3); delete uploaded files past their time "
+                          "(PLAN.md 6.1).")
 def job_maintenance() -> dict:
     queue = config.get_queue()
     recovered = queue.recover()
     pruned = queue.prune()
     runs = prune_runs()
     compacted = audit.compact()
-    return {**recovered, **pruned, "scheduled_runs_deleted": runs, "audit_rows_compacted": compacted, **{
+    summary = {**recovered, **pruned, "scheduled_runs_deleted": runs, "audit_rows_compacted": compacted, **{
         f"jobs_{status}": n for status, n in queue.counts().items()}}
+    # Uploaded files (PLAN.md 6.1) last: a file store that can't be reached
+    # fails the run, so it alerts, after everything else was done
+    from uploads import service
+    return {**summary, **service.sweep()}
 
 
 @task("company-refresh", "Refresh stored company figures and EDINET's index of annual reports "

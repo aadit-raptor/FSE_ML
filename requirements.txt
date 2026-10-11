@@ -13,4 +13,6 @@ psycopg[binary]>=3.2     # Postgres driver
 pyjwt[crypto]>=2.9      # verifies Clerk session tokens locally (api/auth.py)
 cryptography>=42         # AES-256-GCM for database backups (ops/encryption.py); pyjwt[crypto] pulls it in too
 xlrd>=2.0                # reads the published industry averages (.xls, benchmarks/)
+oletools==0.60.2         # scans uploaded Office files for macros, DDE and encryption (uploads/scan.py)
+pypdf>=6.20,<7           # reads uploaded PDFs object by object, in the scanner's own process (uploads/scan.py)
 tzdata>=2024.1           # IANA time zones for account profiles (slim images have none)

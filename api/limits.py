@@ -38,6 +38,7 @@ import json
 import math
 import os
 import threading
+import re
 import time
 from dataclasses import dataclass
 from typing import Optional
@@ -109,6 +110,28 @@ UNLIMITED_PREFIX = "/api/health"
 
 # Submitting a background job (PLAN.md 1.9) is a run too; polling it is not
 JOBS_PATH = "/api/jobs"
+
+
+# An uploaded file's bytes (PLAN.md 6.1): the one request that is not read
+# into memory here. Its endpoint needs a signed-in caller whose own file is
+# waiting for exactly these bytes before it reads one, streams them to disk,
+# and stops at the size that was declared (api/routers/files.py)
+_FILE_CONTENT = re.compile(r"/api/files/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}/content")
+# A scan holds the slot simulations share for up to a minute if a file is
+# built to keep it busy, so uploads are few: twenty an hour is more than a
+# person reading documents needs
+USER_UPLOADS = Rule("user_uploads_per_hour", "uploads", "user", 20, 3600)
+UPLOADS_PATH = "/api/files"
+
+
+def streams_body(method: str, path: str) -> bool:
+    return method == "PUT" and _FILE_CONTENT.fullmatch(path) is not None
+
+
+def stream_limit() -> int:
+    from uploads import rules
+
+    return rules.MAX_FILE_BYTES
 
 
 def is_run_path(path: str) -> bool:
@@ -202,6 +225,8 @@ def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)
         rules += [(USER_RUNS, user.subject), (USER_RUNS_DAY, user.subject)]
     if request.url.path == LIVE_PATH:
         rules.append((USER_LIVE, user.subject))
+    if request.method == "POST" and request.url.path == UPLOADS_PATH:
+        rules.append((USER_UPLOADS, user.subject))
     _enforce(rules)
 
 
@@ -301,7 +326,11 @@ class LimitsMiddleware:
             await _json(send, 429, body, headers)
             return
 
-        if scope.get("method") in ("POST", "PUT", "PATCH"):
+        if streams_body(scope.get("method", ""), path):
+            if self._declared(scope) is not None and self._declared(scope) > stream_limit():
+                await self._too_large(send, self._declared(scope), stream_limit())
+                return
+        elif scope.get("method") in ("POST", "PUT", "PATCH"):
             receive = await self._read_body(scope, receive, send)
             if receive is None:
                 return
@@ -323,15 +352,19 @@ class LimitsMiddleware:
             if status == 401:
                 counters().add(checks[1])
 
-    async def _read_body(self, scope, receive, send):
-        """Read the body up to the limit; a replaying ``receive``, or None after a 413."""
+    @staticmethod
+    def _declared(scope) -> Optional[int]:
         declared = dict(scope.get("headers") or []).get(b"content-length")
         try:
-            size = int(declared) if declared is not None else None
+            return int(declared) if declared is not None else None
         except ValueError:
-            size = None
-        if size is not None and size > MAX_BODY_BYTES:
-            await self._too_large(send, size)
+            return None
+
+    async def _read_body(self, scope, receive, send):
+        """Read the body up to the limit; a replaying ``receive``, or None after a 413."""
+        size, limit = self._declared(scope), MAX_BODY_BYTES
+        if size is not None and size > limit:
+            await self._too_large(send, size, limit)
             return None
         chunks, total = [], 0
         while True:
@@ -340,8 +373,8 @@ class LimitsMiddleware:
                 return None     # the client went away; there is no one to answer
             chunk = message.get("body", b"")
             total += len(chunk)
-            if total > MAX_BODY_BYTES:
-                await self._too_large(send, None)
+            if total > limit:
+                await self._too_large(send, None, limit)
                 return None
             chunks.append(chunk)
             if not message.get("more_body", False):
@@ -358,10 +391,10 @@ class LimitsMiddleware:
         return replay
 
     @staticmethod
-    async def _too_large(send, size: Optional[int]) -> None:
+    async def _too_large(send, size: Optional[int], limit: int = MAX_BODY_BYTES) -> None:
         got = f" (this one is {_megabytes(size)})" if size else ""
         await _json(send, 413, {"detail": f"The request is too large: the limit is "
-                                          f"{_megabytes(MAX_BODY_BYTES)}{got}."})
+                                          f"{_megabytes(limit)}{got}."})
 
     async def _with_timeout(self, scope, receive, send):
         started = False

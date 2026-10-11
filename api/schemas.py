@@ -1286,7 +1286,8 @@ class VersionList(BaseModel):
 AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", "versioned", "restored",
                       "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
                       "shared", "library_switched", "reference_proposed", "reference_reviewed",
-                      "validation_opted_in", "validation_opted_out", "suggestions_switched"]
+                      "validation_opted_in", "validation_opted_out", "suggestions_switched",
+                      "file_uploaded", "file_deleted"]
 
 
 class AuditEntry(BaseModel):
@@ -2538,3 +2539,66 @@ class RegimeResponse(BaseModel):
     sources: Dict[str, RegimeSource]
     notes: List[Literal["own_history", "imf_projection", "annual", "no_markets"]]
     model: ModelStamp
+
+
+# ---------------------------------------------------------------------------
+# File uploads (PLAN.md 6.1)
+# ---------------------------------------------------------------------------
+FileKind = Literal["pdf", "xlsx", "docx", "xls", "doc"]
+FileStatus = Literal["pending", "scanning", "clean", "refused"]
+FileReason = Literal["wrong_type", "empty", "too_large", "encrypted", "macros", "active_content",
+                     "archive_bomb", "unreadable", "scan_failed"]
+FileRefusalCode = Literal["bad_name", "bad_type", "empty", "too_large", "quota_bytes", "quota_files",
+                          "storage_full", "in_flight", "not_set_up", "not_expected", "not_ready", "busy",
+                          "too_slow", "storage_unavailable"]
+
+
+class FileBegin(Strict):
+    name: str = Field(min_length=1, max_length=255, description="The file's name, with its extension: "
+                                                                ".pdf, .xlsx, .docx, .xls or .doc")
+    size: int = Field(ge=0, le=10**12, description="Its size in bytes, as the browser reports it")
+
+
+class FileOut(BaseModel):
+    id: str
+    name: str
+    kind: FileKind
+    size: int = Field(description="Bytes: what was declared, then what arrived")
+    status: FileStatus = Field(description="pending: room reserved, waiting for its bytes (PUT them to "
+                                           "/api/files/{id}/content); scanning: being checked; clean: "
+                                           "can be downloaded; refused: the scanner said no and the bytes are deleted")
+    reason: Optional[FileReason] = Field(None, description="Why it was refused")
+    created_at: str = Field(description="UTC, ISO 8601")
+    expires_at: str = Field(description="When it is deleted automatically (UTC)")
+
+
+class FileUsage(BaseModel):
+    bytes: int
+    files: int
+    quota_bytes: int
+    quota_files: int
+    max_file_bytes: int
+    near_limit: bool = Field(description="At or past 80% of either personal limit")
+    full: bool
+    retention_days: int = Field(description="Days a clean file is kept before it is deleted")
+
+
+class FileList(BaseModel):
+    enabled: bool = Field(description="False when this server has no file store set up")
+    files: List[FileOut]
+    usage: FileUsage
+    kinds: List[FileKind]
+
+
+class FileLink(BaseModel):
+    url: str = Field(description="A signed download link")
+    expires_in: int = Field(description="Seconds the link works for")
+
+
+class FileRefusalDetail(BaseModel):
+    code: FileRefusalCode
+    message: str
+
+
+class FileRefusal(BaseModel):
+    detail: FileRefusalDetail

@@ -28,7 +28,8 @@ from api.github_oidc import require_workflow
 from core.debt import UnfinanceableStructure
 from core.model_version import ENGINE_VERSION
 from api.routers import (
-    account, backtesting, benchmarks, companies, deal, deals, economy, export, forecasting, integrations, jobs, library,
+    account, backtesting, benchmarks, companies, deal, deals, economy, export, files, forecasting, integrations, jobs,
+    library,
     montecarlo, scheduled, validation,
 )
 from db import DatabaseUnavailable
@@ -181,7 +182,7 @@ def create_app() -> FastAPI:
     # here, not endpoint by endpoint, means a new route is protected by
     # default -- forgetting is impossible rather than unlikely.
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
-                   jobs, companies, economy, benchmarks, library, validation):
+                   jobs, companies, economy, benchmarks, library, validation, files):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,
@@ -189,6 +190,9 @@ def create_app() -> FastAPI:
     # The scheduler's endpoints take a GitHub Actions token instead of a user
     # (api/github_oidc.py); the per-address limits still apply
     app.include_router(scheduled.router, prefix="/api", dependencies=[Depends(require_workflow)])
+    # The local directory file store's signed download links (local runs and
+    # tests; 404 otherwise): the link is the sign-in, as a Supabase signed link is
+    app.include_router(files.local, prefix="/api")
     return app
 
 

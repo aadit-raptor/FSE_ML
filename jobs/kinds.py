@@ -16,6 +16,7 @@ endpoints: a job only pays off when the wait is long.
 """
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -43,7 +44,8 @@ class JobKind:
     response: type[BaseModel]
     run: Callable[[Any], Any]
     stages: dict[str, Stage] = field(default_factory=dict)
-    # Takes the one simulation slot while it runs (api/limits.py)
+    # Takes the one simulation slot while it runs (api/limits.py): the slot is
+    # "one memory-heavy thing at a time", which a file scan is too
     simulation: bool = True
 
     def parse(self, payload: dict) -> BaseModel:
@@ -60,6 +62,21 @@ def _unwrapped(endpoint):
     return getattr(endpoint, "__wrapped__", endpoint)
 
 
+class ScanRequest(BaseModel):
+    file_id: uuid.UUID
+
+
+class ScanOutcome(BaseModel):
+    status: str
+    reason: str | None = None
+
+
+def _scan_upload(request: ScanRequest) -> dict:
+    from uploads import service
+
+    return service.scan_file(request.file_id)
+
+
 KINDS: dict[str, JobKind] = {k.name: k for k in (
     JobKind("montecarlo.run", "Monte Carlo simulation", MonteCarloRequest, MonteCarloResponse,
             _unwrapped(montecarlo.post_run),
@@ -74,4 +91,7 @@ KINDS: dict[str, JobKind] = {k.name: k for k in (
             _unwrapped(forecasting.post_run),
             {"forecast.run": Stage("Running the three statements", 0.2, "Preparing the simulation"),
              "forecast.simulation": Stage("Simulating the forecast", 0.9, "Summarising results")}),
+    # Queued by the API when an upload arrives (uploads/service.py), never by a
+    # caller: it is not in api.schemas.JobSubmit, so /api/jobs refuses it
+    JobKind("upload.scan", "File scan", ScanRequest, ScanOutcome, _scan_upload),
 )}

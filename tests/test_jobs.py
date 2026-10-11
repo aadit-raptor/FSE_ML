@@ -746,3 +746,56 @@ def test_the_scheduler_retries_a_gateway_error_but_not_a_refusal():
     api = Scripted(always)
     assert api.call("GET", "/api/health", auth=False)[0] == 504
     assert api.sent == len(always)
+
+
+# ---------------------------------------------------------------------------
+# The file store drill (PLAN.md 6.1)
+# ---------------------------------------------------------------------------
+def test_the_file_drill_takes_a_file_its_whole_road_and_leaves_nothing(tmp_path, monkeypatch):
+    from uploads import store as stores
+
+    for name in ("SUPABASE_UPLOADS_URL", "SUPABASE_UPLOADS_KEY", "FSE_UPLOADS_DIR"):
+        monkeypatch.delenv(name, raising=False)
+    assert drill.files_drill() == {"files_scanner": "ok", "files_drill": "none"}     # the scanner is checked regardless
+    monkeypatch.setenv("FSE_UPLOADS_DIR", str(tmp_path))
+    found = drill.files_drill()
+    assert (found["files_drill"], found["files_drill_store"]) == ("ok", "local")
+    assert stores.get_store().objects() == []
+
+
+def test_the_file_drill_says_which_step_failed_and_cleans_up(tmp_path, monkeypatch):
+    from uploads import scan, store as stores
+
+    monkeypatch.setenv("FSE_UPLOADS_DIR", str(tmp_path))
+    with monkeypatch.context() as broken:
+        broken.setattr("uploads.scan.scan_path", lambda path, kind: scan.Verdict(True))    # a scanner that passes everything
+        assert drill.files_drill()["files_scanner"] == "failed:scripted:clean"
+        broken.setattr("uploads.scan.scan_path", lambda path, kind: scan.FAILED)           # ... or can't run at all
+        found = drill.files_drill()
+        assert (found["files_scanner"], found["files_drill"]) == ("failed:plain:scan_failed", "failed:scan")
+    assert stores.get_store().objects() == []
+
+    def unreachable(self, *args):
+        raise stores.StorageError("storage could not be reached")
+    monkeypatch.setattr(stores.LocalFiles, "put", unreachable)
+    assert drill.files_drill()["files_drill"] == "failed:store"
+
+
+def test_the_drills_pdf_is_one_the_scanner_reads():
+    from uploads.scan import scan
+
+    assert scan(drill.drill_pdf(), "pdf").clean
+    assert scan(drill.drill_pdf(b"<< /S /Launch /F (cmd.exe) >>"), "pdf").reason == "active_content"
+
+
+def test_the_workflow_fails_a_file_drill_that_failed_but_not_a_store_not_set_up():
+    from ops import scheduled as ops_scheduled
+
+    passing = {"live_moves": 1, "live_distinct": 1, "memory_peak_mb": 100.0, "memory_limit_mb": 512.0}
+    assert ops_scheduled.live_problems({**passing, "files_drill": "ok"}) == []
+    assert ops_scheduled.live_problems({**passing, "files_drill": "none"}) == []
+    assert ops_scheduled.live_problems(passing) == []                     # an API from before the drill
+    problems = ops_scheduled.live_problems({**passing, "files_drill": "failed:download", "files_drill_error": "HTTPError"})
+    assert problems == ["the file store drill failed:download (HTTPError)"]
+    assert ops_scheduled.live_problems({**passing, "files_scanner": "failed:plain:scan_failed", "files_drill": "none"}) == [
+        "the upload scanner does not work on this server: failed:plain:scan_failed"]

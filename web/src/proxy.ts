@@ -32,6 +32,7 @@ function withPolicy(request: NextRequest): NextResponse {
     deployed: !!process.env.VERCEL_ENV,
     clerkPublishableKey: CLERK_PUBLISHABLE_KEY,
     sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? "",
+    apiOrigin: process.env.NEXT_PUBLIC_FSE_API_ORIGIN ?? "",
   });
   const headers = new Headers(request.headers);
   headers.set(CSP, policy);

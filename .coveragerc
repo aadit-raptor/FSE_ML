@@ -16,6 +16,7 @@ source =
     ml
     ops
     simulation
+    uploads
 # The jobs runner works in a thread; count its lines too
 concurrency = thread
 
