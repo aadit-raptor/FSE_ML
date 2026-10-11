@@ -676,6 +676,31 @@ def test_supabase_puts_a_public_bucket_right_and_never_quotes_the_key_in_an_erro
         stores.SupabaseFiles("http://abc.supabase.co", SECRET, "uploads")
 
 
+def test_a_refusal_carries_the_stores_own_reason_for_the_drill_without_the_key():
+    def refuse(request, timeout=None):
+        body = json.dumps({"error": "Unauthorized", "message": f"Invalid API key {SECRET}"}).encode()
+        raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, io.BytesIO(body))
+    broken = stores.SupabaseFiles("https://abc.supabase.co", SECRET, "uploads", opener=refuse)
+    with pytest.raises(stores.StorageError) as failed:
+        broken.ensure_bucket()
+    assert str(failed.value) == "storage answered 403"                    # the message stays a fixed sentence
+    assert failed.value.detail == "GET bucket: 403 Unauthorized / Invalid API key <key>"
+
+    def missing(request, timeout=None):
+        raise urllib.error.HTTPError(request.full_url, 404, "x", {}, io.BytesIO(b"<html>not json</html>"))
+    gone = stores.SupabaseFiles("https://abc.supabase.co", SECRET, "uploads", opener=missing)
+    with pytest.raises(stores.StorageError) as failed:
+        gone.ensure_bucket()
+    assert (str(failed.value), failed.value.detail) == ("the uploads bucket could not be made", "POST bucket: 404")
+
+    def unreachable(request, timeout=None):
+        raise urllib.error.URLError(f"no route to host with {SECRET}")
+    down = stores.SupabaseFiles("https://abc.supabase.co", SECRET, "uploads", opener=unreachable)
+    with pytest.raises(stores.StorageError) as failed:
+        down.ensure_bucket()
+    assert failed.value.detail == "GET bucket: URLError" and SECRET not in failed.value.detail
+
+
 def test_the_key_never_follows_a_redirect():
     """The key is in the request's headers: a store that answers "look over
     there" is an error, not somewhere to send it."""
