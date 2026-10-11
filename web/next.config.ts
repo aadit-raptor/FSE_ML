@@ -45,6 +45,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN ?? "",
     NEXT_PUBLIC_FSE_ENV: fseEnv,
     NEXT_PUBLIC_FSE_COMMIT: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
+    // Uploaded files are sent to the API's own address, past this proxy
+    // (lib/files.ts); the content security policy allows it (src/proxy.ts)
+    NEXT_PUBLIC_FSE_API_ORIGIN: apiOrigin,
   },
   // Security headers on everything but /api, which carries the API's own
   // (api/security.py). The content security policy is set per request, with

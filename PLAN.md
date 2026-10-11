@@ -162,7 +162,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.9 | Personalized defaults | 1.5, 5.1 | ☑ |
 | 5.10 | Retraining models by hand (parked, not scheduled) | 5.1 | ☐ |
 | **6** | **AI features** | | |
-| 6.1 | File uploads | 1.4, 1.9 | ☐ |
+| 6.1 | File uploads | 1.4, 1.9 | ☑ |
 | 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☐ |
 | 6.3 | Investment memo writer | 3.1, 1.5 | ☐ |
 | 6.4 | Plain-English explanations on screens | 3.1 | ☐ |
@@ -1579,6 +1579,27 @@ enough for the free server.
   quotas to stay within 1 GB.
 - **Done when:** upload and download work; others can't access (test); bad or
   oversized files are refused; a quota message appears near the limit.
+- **Done (2026-10-12).** Deal → Documents uploads `.pdf`, `.xlsx`, `.docx`,
+  `.xls` and `.doc` files (`uploads/`, table `files`). The bytes are sent to
+  the API, which streams them to disk, counts them, and puts them in a
+  private Supabase Storage bucket itself; a scan in the job runner must pass
+  before a file can be downloaded, through a signed link that lasts a minute
+  and is made only for its owner. **The scanner is structural, not an
+  antivirus**, on measurements: ClamAV needed 1,687 MB for a 60-byte PDF
+  against the free server's 512 MB, so `uploads/scan.py` refuses whatever can
+  act (macros, scripts, embedded objects, DDE, remote templates), whatever is
+  encrypted and whatever it cannot read, with pypdf, an XML parser and
+  oletools, in a child process with CPU, memory and time limits. A signature
+  scan is 12.1's. **The security review changed the design** before release:
+  the first version handed the browser a signed upload link (which let more
+  be stored than was counted, and a file be swapped after its scan) and read
+  files with patterns (two bypasses, and a 30 KB file that froze the API);
+  both are gone, and each of the review's files is a test. Limits: 20 MB a
+  file, 100 MB and 40 files a person (the screen warns from 80%), 800 MB in
+  all. Deletion: by the owner any time, after 90 days, at once when refused;
+  the nightly `job-maintenance` task sweeps. "Private per team" waits for
+  teams (7.2): files have one owner today. DEPLOY.md "File uploads" has the
+  set-up (a Supabase project for uploads, apart from the backups').
 
 ### 6.2 Upload a document (any language), get a deal
 - **You first:** create a free Gemini API key for trials with public documents;
