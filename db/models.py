@@ -280,7 +280,9 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  # The owner agreed, or stopped agreeing, to a deal counting in model validation (PLAN.md 4.6)
                  "validation_opted_in", "validation_opted_out",
                  # The person switched suggestions of their usual figures on or off (PLAN.md 5.9)
-                 "suggestions_switched")
+                 "suggestions_switched",
+                 # The person uploaded a file, or deleted one (PLAN.md 6.1)
+                 "file_uploaded", "file_deleted")
 
 
 class AuditEvent(Base):
@@ -636,7 +638,7 @@ class ReferenceReview(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
 
-__all__ = ["AUDIT_ACTIONS", "AppFlag", "AuditEvent", "REFERENCE_ORIGINS", "REFERENCE_STATUSES", "REJECT_REASONS",
+__all__ = ["AUDIT_ACTIONS", "AppFlag", "FILE_KINDS", "FILE_REASONS", "FILE_STATUSES", "StoredFile", "AuditEvent", "REFERENCE_ORIGINS", "REFERENCE_STATUSES", "REJECT_REASONS",
            "REVIEW_VERDICTS", "ReferenceDeal", "ReferenceReview", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
@@ -659,3 +661,61 @@ class ValidationReport(Base):
     id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
     generated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
     report: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+
+FILE_KINDS = ("pdf", "xlsx", "docx", "xls", "doc")
+FILE_STATUSES = ("pending", "scanning", "clean", "refused")
+FILE_REASONS = ("wrong_type", "empty", "too_large", "encrypted", "macros", "active_content",
+                "archive_bomb", "unreadable", "scan_failed")
+
+
+def _one_of(column: str, values) -> str:
+    return f"{column} IN (" + ", ".join(f"'{v}'" for v in values) + ")"
+
+
+class StoredFile(Base):
+    """One uploaded file: who owns it and where it stands (PLAN.md 6.1).
+
+    The bytes are in the file store (``uploads/store.py``) under
+    ``u<owner_id>/<id>``; this row is what makes them reachable. ``pending``:
+    room is reserved and an upload link was handed out; ``scanning``: the
+    bytes arrived and wait for the scanner; ``clean``: downloadable;
+    ``refused``: the scanner said no (``reason``) and the bytes are gone.
+
+    ``expires_at`` is when the nightly sweep removes the row and the bytes:
+    two hours for an upload that never arrived, ``RETENTION_DAYS`` for a
+    clean file, a week for a refused one (``uploads/rules.py``).
+
+    ``name`` is what the person called the file. Like a deal's name it is
+    theirs, shown only to them and never logged; nothing else from the file
+    is stored here -- no text, no figures, no fingerprint.
+    """
+
+    __tablename__ = "files"
+    __table_args__ = (
+        CheckConstraint(_one_of("kind", FILE_KINDS), name="kind"),
+        CheckConstraint(_one_of("status", FILE_STATUSES), name="status"),
+        CheckConstraint("reason IS NULL OR " + _one_of("reason", FILE_REASONS), name="reason"),
+        CheckConstraint("size > 0", name="size"),
+        Index("ix_files_owner_id_created_at", "owner_id", "created_at"),
+        Index("ix_files_expires_at", "expires_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    kind: Mapped[str] = mapped_column(String(4), nullable=False)
+    # Bytes: what the upload declared, then what arrived
+    size: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(8), nullable=False, server_default="pending")
+    reason: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False,
+                                                 server_default=func.now())
+    uploaded_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    # When the latest scan was queued; empty when one still has to be (the
+    # queue was full). A scan that has not finished a while after this is
+    # queued again (uploads/service.py), so a lost job never strands a file
+    queued_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    scanned_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)

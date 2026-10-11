@@ -98,6 +98,22 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | The backup key lost or leaked | A leak needs a new key and re-encrypted backups; a loss makes every stored backup unreadable, so a copy is kept outside GitHub (DEPLOY.md). Neon's own restore window covers recent mistakes either way | Accepted: one key, rotated by hand |
 | Production deals copied onto the staging branch by the restore drill | The drill restores into a **new** database it creates and drops, on the same Neon project (one account, one trust boundary); it reports counts and a one-way fingerprint, never deal contents, and needs no access to the production database | Done (1.8) |
 
+### Uploaded files (PLAN.md 6.1)
+
+| Threat | Protection | Status |
+|---|---|---|
+| A file that does harm when opened (macros, scripts, embedded objects, remote templates) | Every upload is scanned before it can be downloaded (`uploads/scan.py`), read the way its own program reads it: PDFs object by object with pypdf, object streams included, beside a search of the raw bytes; Office XML with a real XML parser (character references, UTF-16, document type declarations refused); older Office files with oletools. Anything that can act, anything encrypted and anything the scanner can't read is refused and its bytes deleted; a scanner failure refuses too | Done, as a **structural** scan. Two readers of one file can still be made to disagree by a file built for it |
+| Known malware with no active content, or an exploit of a reader's own bug | Not detected: ClamAV needs 1.7 GB (measured) and the free server has 512 MB. Files are private to their uploader, so the readers at risk are that person and this server's parser (6.2), which must treat every file as hostile | Open: signature scan on a worker with memory (12.1) |
+| A file built to hang or bloat the scanner (the first version's patterns took minutes on a 30 KB file, found in review) | The scan runs in a child process with a CPU limit, an address-space limit (Linux) and a 150 s deadline, without the server's secrets in its environment; a child that dies or overruns is a file refused. XML is parsed in one pass; nothing is inflated past fixed caps; no entity expansion | Done; tested with the review's files |
+| A file that is not what its name says (a program named `.pdf`) | Kind decided by contents, not name or declared type; macro-enabled formats not accepted at all | Done |
+| Reading or deleting someone else's file | Owner matched in every statement (`db/files.py`): another account's file answers 404 like a missing one. The bucket is private; a download link is signed, for one object, for 60 seconds, and only made for the owner of a clean file | Done; tested |
+| Storing more than was counted, or swapping a file after its scan | No upload link is ever handed out: the bytes arrive at the API, are counted as they stream to disk and cut off past the declared size, and only the server writes to the bucket, once per name. The copy scanned is the copy stored | Done; tested |
+| The store's secret key leaking | Only on the API services, in headers only, never in an address, a log or an error; redirects are never followed. DEPLOY.md asks for a Supabase project of its own for uploads, so that this key cannot reach the backups | Done in code; the separate project is a set-up choice |
+| Filling the free 1 GB, or queueing scans for everyone to wait behind | Room reserved before a byte is taken, and a row counts until its bytes are deleted; 20 MB a file (also set on the bucket), 100 MB and 40 files a person, 800 MB in all; three files a person in flight, 60 uploads an hour, two arriving at once; files deleted after 90 days, room for an upload that never came after 30 minutes | Done |
+| A large request exhausting memory | A file's bytes are the one request body not read into memory: streamed to disk, only for a signed-in caller whose own file is waiting for them. Every other request still stops at 1 MB | Done; tested |
+| A file's name or contents in logs | Rows hold the name the person gave and nothing from the file; names, links and scanner messages are never logged (tested); object names are `u<user id>/<file id>` | Done |
+| The local directory store's unauthenticated download links reachable in production | The store is refused in production and whenever Supabase is configured; its route then answers 404 | Done; tested |
+
 ### Denial of service and quota exhaustion
 
 | Threat | Protection | Status |
@@ -130,6 +146,7 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | Neon IP allow list, longer restore window | 12.2 |
 | Paid AI provider with no training on inputs, for confidential documents | 12.4 |
 | Company sign-in (SSO) | 12.6 |
+| Signature (antivirus) scan of uploaded files: ClamAV needs about 1.7 GB, so it waits for a dedicated worker | 12.1 |
 | No cap on deals per account or saved versions per deal: automatic checkpoints are bounded, explicit saves are not, and a deal with twelve facilities is about 20 KB, so one account could fill Neon's free 0.5 GB in hours (found reviewing 2.4a) | 1.6 follow-up |
 | `sens_*` settings are unbounded and the deal endpoints have no timeout: `sensitivity_holding_periods` builds `range(lo, hi + 1)` unchecked, and `/api/deal/run` is not in `RUN_PATHS`, so a raised `sens_hp_max` makes one request hold a thread for seconds (found reviewing 2.4a; predates it) | 1.6 follow-up |
 | Exception messages still reach the JSON logs and Sentry: `JsonFormatter` includes `formatException` and `scrub_event` clears frame variables but not `exception.values[].value`, though both say type-and-traceback only. Nothing leaks today, because every refusal is returned rather than raised, but the hardening is worth doing | 10.2 |

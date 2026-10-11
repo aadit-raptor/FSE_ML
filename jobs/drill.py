@@ -141,3 +141,95 @@ def live_drill(moves: int = LIVE_MOVES, memory=None) -> dict:
         "memory_peak_mb": None if after["peak_mb"] is None else round(after["peak_mb"], 1),
         "memory_limit_mb": round(after["limit_mb"], 1),
     }
+
+
+# ---------------------------------------------------------------------------
+# Uploaded files (PLAN.md 6.1): one file's whole road through the real store
+# ---------------------------------------------------------------------------
+def drill_pdf(extra: bytes = b"") -> bytes:
+    """A small well-formed PDF; ``extra`` becomes a fourth object."""
+    bodies = [b"<< /Type /Catalog /Pages 2 0 R >>", b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+              b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>"] + ([extra] if extra else [])
+    out, offsets = bytearray(b"%PDF-1.4\n"), []
+    for number, body in enumerate(bodies, start=1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n" % number + body + b"\nendobj\n"
+    table = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(bodies) + 1)
+    out += b"".join(b"%010d 00000 n \n" % offset for offset in offsets)
+    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(bodies) + 1, table)
+    return bytes(out)
+
+
+def scanner_drill() -> dict:
+    """The scanner as this server really runs it: the child process, with its
+    limits and the packages this image has, passes a plain PDF and refuses a
+    scripted one. Needs no store, so it is checked wherever the API runs."""
+    import tempfile
+    from pathlib import Path
+
+    from uploads.scan import scan_path
+
+    with tempfile.TemporaryDirectory(prefix="fse-drill-") as folder:
+        plain, scripted = Path(folder, "plain"), Path(folder, "scripted")
+        plain.write_bytes(drill_pdf())
+        scripted.write_bytes(drill_pdf(b"<< /S /JavaScript /JS (app.alert\\(1\\)) >>"))
+        passed, refused = scan_path(plain, "pdf"), scan_path(scripted, "pdf")
+    if not passed.clean:
+        return {"files_scanner": f"failed:plain:{passed.reason}"}
+    if refused.reason != "active_content":
+        return {"files_scanner": f"failed:scripted:{'clean' if refused.clean else refused.reason}"}
+    return {"files_scanner": "ok"}
+
+
+def files_drill(fetch=None) -> dict:
+    """Store a file, read it back, scan it in the child process, download it
+    through a signed link and delete it, in the store this server is set up
+    with. Flat, for the workflow to judge: ``files_scanner`` is ``ok`` or
+    ``failed:...`` (``scanner_drill``); ``files_drill`` is ``ok``, ``none``
+    (no store set up) or ``failed:<step>``. The object belongs to user 0,
+    which is nobody, so no row and no account is touched."""
+    import tempfile
+    import time
+    import urllib.request
+    import uuid
+    from pathlib import Path
+
+    from uploads import rules, store as stores
+    from uploads.scan import scan_path
+
+    scanner = scanner_drill()
+    files = stores.get_store()
+    if files is None:
+        return {**scanner, "files_drill": "none"}
+    key, sample, step, t0 = stores.object_key(0, uuid.uuid4()), drill_pdf(), "start", time.perf_counter()
+    with tempfile.TemporaryDirectory(prefix="fse-drill-") as folder:
+        source, back = Path(folder, "source"), Path(folder, "back")
+        source.write_bytes(sample)
+        try:
+            step = "store"
+            files.put(key, source, rules.KINDS["pdf"].content_type)
+            step = "size"
+            assert files.size(key) == len(sample)
+            step = "fetch"
+            assert files.fetch(key, back, rules.MAX_FILE_BYTES) == len(sample) and back.read_bytes() == sample
+            step = "scan"
+            assert scan_path(back, "pdf").clean
+            step = "link"
+            url = files.download_url(key, "drill.pdf", rules.LINK_S)
+            if url.startswith("https://"):
+                step = "download"
+                with (fetch or urllib.request.urlopen)(url, timeout=30) as answer:
+                    assert answer.read(len(sample) + 1) == sample
+            step = "delete"
+            files.delete([key])
+            assert files.size(key) is None
+        except Exception as exc:  # noqa: BLE001 - reported by its step and kind; nothing from the store is quoted
+            try:
+                files.delete([key])
+            except Exception:  # noqa: BLE001
+                pass
+            return {**scanner, "files_drill": f"failed:{step}", "files_drill_error": type(exc).__name__,
+                    "files_drill_store": files.name}
+    return {**scanner, "files_drill": "ok", "files_drill_store": files.name,
+            "files_drill_ms": round((time.perf_counter() - t0) * 1000)}

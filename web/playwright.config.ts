@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { defineConfig, devices } from "@playwright/test";
@@ -83,7 +84,9 @@ export default defineConfig({
           // sign-in (never in production: api/auth.py)
           // Every spec signs in as the same user from one address, faster than
           // a person; raise the usage limits (ignored in production: api/limits.py)
-          env: { FSE_AUTH_DEV: "1", FSE_LIMITS_MULTIPLIER: "20" },
+          // Uploaded files go to a directory, the local stand-in for the
+          // private bucket (never in production: uploads/store.py)
+          env: { FSE_AUTH_DEV: "1", FSE_LIMITS_MULTIPLIER: "20", FSE_UPLOADS_DIR: join(tmpdir(), "fse-e2e-uploads") },
         },
         {
           command: "npm run start -- --port 3000",

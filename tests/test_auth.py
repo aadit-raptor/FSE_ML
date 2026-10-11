@@ -120,7 +120,8 @@ def test_no_route_is_left_unprotected(clerk, monkeypatch):  # noqa: ARG001
             continue
         # Path parameters are filled with something harmless
         url = (path.replace("{ticker}", "AAPL")
-               .replace("{deal_id}", "00000000-0000-4000-8000-000000000000").replace("{number}", "1"))
+               .replace("{deal_id}", "00000000-0000-4000-8000-000000000000")
+               .replace("{file_id}", "00000000-0000-4000-8000-000000000000").replace("{number}", "1"))
         for method in operations:
             if method.upper() not in ("GET", "POST", "PUT", "PATCH", "DELETE"):
                 continue

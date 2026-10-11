@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-12 (PLAN.md 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1252,6 +1252,116 @@ yours"; with one or two deals in the group a line says how many are needed).
 `/privacy` says the choice is kept and the suggestions are not.
 `web/e2e/usual.spec.ts` gives each test an account of its own.
 
+File uploads (PLAN.md 6.1, DEPLOY.md "File uploads"): PDF, Excel and Word
+files (`.pdf`, `.xlsx`, `.docx`, `.xls`, `.doc`; macro-enabled formats never)
+on **Deal -> Documents** (`/deal/documents`), private to their owner.
+**`uploads/`**: `rules.py` (every number), `scan.py`, `store.py`,
+`service.py`; rows in `db/files.py` (table `files`, migration 0018);
+endpoints `api/routers/files.py`. **The road**: `POST /api/files {name,
+size}` reserves room; `PUT /api/files/{id}/content` takes the bytes as the
+body, **streamed to a spool file on disk** (`service.spool()`, never held in
+memory; the one request `LimitsMiddleware` does not buffer, `streams_body`),
+counted and cut off past the declared size (which is what the quota
+counted); the API puts the file in the store and queues job kind
+**`upload.scan`** under owner `system:uploads` (not in `JobSubmit`, so
+`/api/jobs` refuses it from a caller; it takes the one simulation slot, so a
+scan's memory never adds to a simulation's, and it can wait behind one);
+`POST /api/files/{id}/link` answers a signed download link (60 s) for a
+**clean** file and its owner only; `DELETE` removes row then bytes. Another
+account's file is a 404 like a missing one (owner matched in every
+statement). **Only the server writes to the store, once per name**: no
+upload link is ever handed to a browser. The first design did (Supabase
+signed upload links, valid two hours) and the security review showed it let
+more be stored than was counted and a file be swapped after its scan; don't
+bring it back. The browser sends the bytes to **the API's own address**
+(`NEXT_PUBLIC_FSE_API_ORIGIN`, set in `next.config.ts` from the same value as
+the `/api` rewrite), past the website's proxy, because Vercel doesn't say
+what a proxied request may weigh: so it is a cross-origin call (CORS:
+production allows `https://variater.com`, local `http://localhost:3000`;
+staging needs `FSE_CORS_ORIGINS` to try it from the staging site) and the
+CSP's `connect-src` carries that one origin (`lib/security/headers.ts`
+`apiOrigin`), never a wildcard. **The scanner is structural, not an
+antivirus** (decided on measurements, 2026-10-11: ClamAV 1.5.4 peaked at
+1,687 MB on a 60-byte PDF; the free server has 512 MB): it refuses what can
+act and what it can't read. **Parsers, not patterns** (the first version's
+regexes were bypassed twice in review, and one took minutes on a 30 KB
+file): PDFs with **pypdf** (`_check_pdf_objects`: every object the
+cross-reference table leads to, object streams, filters and predictors
+resolved, walked for `/JS`, `/JavaScript`, `/Launch`, `/EmbeddedFile`,
+`/RichMedia`, `/XFA`, `/SubmitForm` ... and `/Encrypt`; a PDF it can't
+follow is `unreadable`) **beside** a search of the raw bytes for the long
+names, hex-escaped spellings too, and of anything that inflates to an object
+stream wherever a `stream` keyword stands (`_check_pdf_bytes`; the short
+names `/JS` and `/XFA` are not searched in raw bytes: 20 MB of compressed
+data spells them by chance); Open XML with **expat** (`_parse_part`:
+relationships, content types and Word field instructions with character
+references, CDATA, UTF-16 and odd attributes read as Office reads them; a
+document type declaration or a part not well-formed is `unreadable`) plus
+the package itself (OLE or zip parts anywhere, other than a nested
+`.xlsx`/`.docx` under `embeddings`, which is checked in turn; ActiveX; macro
+content types and relationship types; `oleObject`, `control`, `aFChunk`,
+web extensions, templates; `TargetMode="External"` other than hyperlinks
+and workbook links; DDE fields joined across runs in every Word part;
+archive caps); **oletools 0.60.2** for macros everywhere and for `.doc` /
+`.xls` (VBA, Excel 4, DDE, encryption) plus BIFF records (`FilePass`, DDE
+`SupBook`). **`scan_path` runs it in a child process** (`python -m
+uploads.scan <kind> <path>`) with `RLIMIT_CPU` 90 s, `RLIMIT_AS` 700 MB on
+Linux, a 150 s deadline and an environment holding no secret; a child that
+dies, overruns or answers anything but `clean`/a reason is `scan_failed`.
+`scan` (in-process, what the tests mostly call) never raises. The scan
+reads the spool copy the upload left (so no download from Supabase, whose
+free plan allows 5 GB of egress a month) and fetches from the store only
+when that is gone (a restart, a separate worker). Reasons and refusals are
+**codes** (`rules.REASONS`, `REFUSALS`); the words are
+`web/messages/en.json` `files.reason_*` / `files.problem_*`. Measured peak
+on a 20 MB file: under 100 MB (tested with tracemalloc). **A scan is never
+lost and an outage never refuses a file**: `files.queued_at` says when the
+latest scan was queued; a full queue, a store that can't be reached
+mid-scan or a lost job leaves the file `scanning`, and the owner's next
+look at it (`GET /api/files`, which the screen repeats while a file is
+being checked) queues it again once `RESCAN_AFTER_S` (60 s) has passed, one
+scan between simultaneous requests; a second job for a file already scanned
+finds nothing to do. **Limits**: 20 MB a file (also set on the bucket),
+100 MB and 40 files a person (`near_limit` from 80% of either: the screen's
+"Nearly full"), 800 MB in all (`FSE_UPLOADS_BUDGET_MB`); `MAX_IN_FLIGHT` 3
+of a person's files pending or scanning at once (429 `in_flight`),
+`USER_UPLOADS` 60 an hour (`api/limits.py`), `MAX_ARRIVING` 2 uploads
+streaming at once (503 `busy`, the screen sends again). A reservation
+counts, and **a row counts until it is removed, because its bytes are in
+the store until then**; `begin` first removes the caller's own rows past
+their time, with their bytes. **Deletion rules**: by the owner any time;
+clean files 90 days after upload; refused bytes at once and the row a week
+later; room for an upload that never arrived after 30 minutes; a scan
+unfinished after 15 minutes is refused by the sweep. `service.sweep()` runs
+**inside the nightly `job-maintenance` task** (no workflow change; its
+summary gains flat `files_*` keys; a store that can't be reached fails the
+run), lists objects **before** rows so a new upload is never taken for an
+orphan, clears old spool files, and is the activity that keeps the free
+Supabase project awake. **Stores** (`uploads/store.py` `get_store`):
+`SupabaseFiles` when `SUPABASE_UPLOADS_URL` and `SUPABASE_UPLOADS_KEY` are
+set (bucket `uploads` in production, `uploads-<environment>` elsewhere, made
+and kept private with limits by `ensure_bucket`; key in headers only;
+redirects never followed; `x-upsert: false`); `LocalFiles` when
+`FSE_UPLOADS_DIR` is set and the environment is not production (local runs,
+pytest, the browser tests: its download links are HMAC-signed and point at
+`/api/files/local/{token}`, one GET route outside sign-in and the schema
+that answers 404 unless that store is in use); neither = `enabled: false`
+and the screen says uploads are off. Object names are `u<user id>/<file
+id>`. **Never log a file's name, a link or scanner output** (tested); rows
+hold the name the person gave and nothing read from the file. Audit actions
+`file_uploaded` and `file_deleted` (no detail), one per upload whatever the
+queue did. **Staging check** (no workflow edit): the drill's
+`/api/scheduled/drill/live` answer also carries `jobs/drill.py`
+`files_drill()`: one small PDF stored, read back, scanned in the child
+process, downloaded through a signed link and deleted in the staging
+server's own store, and a scripted PDF refused there; `ops/scheduled.py`
+`live_problems` fails the run on `failed:<step>` and allows `none` (no
+store set up). Web: `lib/files.ts` (`uploadFile`: reserve, send, poll),
+`DocumentsStep.tsx` (reads the list again every 2.5 s while a file is being
+checked). `/privacy` says files are stored. Not done here: team sharing
+(7.2), reading a document (6.2), account export and deletion (10.1), a
+signature scan (12.1).
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1312,7 +1422,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. **Next is 6.1** (file uploads).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). **Next is 6.2** (upload a document, get a deal).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1516,6 +1626,14 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
+- PLAN.md 6.1: file uploads are **off until the store is set up** (DEPLOY.md
+  "File uploads", "You need to set this up first"): a Supabase project for
+  uploads and `SUPABASE_UPLOADS_URL` / `SUPABASE_UPLOADS_KEY` on both Render
+  services (and, to try it from the staging site, `FSE_CORS_ORIGINS` on
+  `fse-api-staging`). Also one workflow edit Claude's token can't push: add
+  `uploads` to `API_PATHS` in `.github/workflows/staging.yml` (line 35), so
+  a change to `uploads/` alone makes the staging check wait for the API.
+
 - Whether to wire up the unused `ml/nlp_extractor.py`; PLAN.md 6.2 rebuilds it.
 
 ---
@@ -1533,7 +1651,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/` | The deal risk score, the distress, multiple and growth models and the economic regime, their evaluation and cards, the EDGAR extractor, plus unused modules. Nothing in it needs ML packages or a trained file (the live sliders are `core/live.py`) |
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
-| `Dockerfile`, `render.yaml` | API image and Render blueprint. One image runs everything (no ML build argument since PLAN.md 5.8) |
+| `Dockerfile`, `render.yaml` | API image and Render blueprint. One image runs everything (no ML build argument since PLAN.md 5.8), the upload scanner's child process included |
 | `docs/WORKFLOW.md`, `.github/pull_request_template.md` | The development cycle every change follows, and the PR form that records it |
 | `.coverage-floor`, `.coveragerc`, `ops/coverage_gate.py`, `ops/pr_title.py`, `.github/workflows/pr.yml` | CI gates (PLAN.md 0.3): coverage floors per job (only rise), what coverage measures, the floor check, the PR title check |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
@@ -1563,6 +1681,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
 | `core/live.py`, `ml/evaluation/surrogate.py`, `components/montecarlo/MonteCarloML.tsx`, `jobs/drill.py`, `tests/test_live.py`, `web/e2e/live-sliders.spec.ts` | Live sliders (PLAN.md 5.8): the simulation on a small, fixed set of paths with the sliders as inputs; its card on varied regional deals; the Live step; the staging drill's live session and memory read; the tests (the estimate is the run with that input changed) |
 | `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
+| `uploads/`, `db/files.py`, `api/routers/files.py`, `web/src/lib/files.ts`, `web/src/components/deal/steps/DocumentsStep.tsx`, `tests/test_uploads.py`, `tests/upload_samples.py`, `web/e2e/documents.spec.ts` | File uploads (PLAN.md 6.1): the rules, the scanner, the stores and the steps of an upload; the rows; the endpoints; the browser's side and the Documents step; the tests and the files they build in memory |
 | `benchmarks/usual.py`, `web/src/lib/usual.ts`, `tests/test_usual.py`, `web/e2e/usual.spec.ts` | Personalized defaults (PLAN.md 5.9): a person's usual figures from their own saved deals; the answer shared by the switch and the tile; the tests (only the caller's deals, off stops them) |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
 | `ml/evaluation/`, `ml/registry.json`, `ml/cards/`, `docs/model-cards/`, `ops/model_gate.py`, `.github/workflows/ml.yml`, `tests/ml_regional_deals.py` | ML evaluation (PLAN.md 5.1): the harness (time splits, regions, baselines), the card template, each model's evaluation, the train/evaluate CLI and the surrogate's regional deals; the registry of trained files; the cards (JSON and Markdown); the gate that fails a PR whose card got worse; the training and evaluation workflow; the writer of the regional deals |
@@ -1579,7 +1698,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,760 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry. `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (1,902 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry, `tests/test_uploads.py` file uploads (the scanner on built files, the security review's attack files and real workbooks; the child process; the stores; the whole road on a real database: another account gets 404, quotas, deletion rules, lost scans, nothing logged). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (macOS, from the repo root)
 
@@ -1960,6 +2079,35 @@ Skills load when a session starts: install first, then open a new session.
   summary rows. Some free copies only download (maalot.co.il); the user
   agreed (2026-10-07) to downloading public source documents into the
   scratchpad to read them.
+- **Uploaded files are hostile input** (PLAN.md 6.1). Read one with a real
+  parser, in the child process (`uploads/scan.py` `scan_path`), never with a
+  regular expression over its text: `<tag\b[^>]*` on 100 KB of a repeated
+  opening tag took seconds and a megabyte minutes (the GIL held, so the
+  whole API froze), and `TargetMode="Ext&#101;rnal"`, an attribute holding
+  `>`, CDATA and UTF-16 each slipped past a pattern that Office reads
+  straight through. A new check gets a case in `REFUSED` in
+  `tests/test_uploads.py`, written the awkward ways too.
+- A check of a PDF that depends on *where* something stands in the bytes can
+  be told a different story from the reader's: a `%stream` comment made the
+  first scanner treat a real object stream as some other stream's body.
+  pypdf follows the cross-reference table as a reader does; the raw-bytes
+  search beside it tries every `stream` keyword and trusts no position.
+- Never hand a browser a link to **upload** with. A signed upload link can't
+  be revoked, counts nothing, and (depending on the store's version) can
+  overwrite: more is stored than the quota saw, and a file can change after
+  its scan. Bytes come through the API, streamed to disk
+  (`api/routers/files.py` `put_content`).
+- A test PDF must be well-formed (cross-reference table or stream and
+  `startxref`): pypdf refuses anything less as `unreadable`.
+  `tests/upload_samples.py` `pdf()` and `jobs/drill.py` `drill_pdf()` build
+  them; `web/e2e/documents.spec.ts` has its own in TypeScript.
+- A local database that ran a migration **while it was still being written**
+  keeps the old shape: the tests pass (each makes a fresh database) and the
+  browser tests fail with a 500 (`ProgrammingError`: no such column).
+  `python -m db.migrate downgrade -1` then `upgrade` on `DATABASE_URL`.
+- `monkeypatch.undo()` in a test undoes the fixtures' patches too (the
+  database address, the store's directory). Use `with monkeypatch.context()
+  as m:` for a patch that should end mid-test.
 - A new endpoint that runs a model or calls an outside source: add its path
   to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.

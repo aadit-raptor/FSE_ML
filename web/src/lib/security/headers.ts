@@ -46,6 +46,22 @@ export function sentryOrigin(dsn: string): string | null {
   }
 }
 
+/**
+ * The API's own origin, which uploaded files are sent to (PLAN.md 6.1,
+ * lib/files.ts): everything else reaches the API through this site's /api
+ * proxy. One exact origin, never a wildcard. Plain http only for a server on
+ * this machine, as in local runs and the browser tests.
+ */
+export function apiOrigin(raw: string): string | null {
+  try {
+    const url = new URL(raw.trim());
+    const local = url.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname);
+    return (url.protocol === "https:" || local) && url.origin === raw.trim().replace(/\/+$/, "") ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
+
 export type CspOptions = {
   nonce: string;
   /** `next dev`: React needs eval for its error overlay */
@@ -54,6 +70,8 @@ export type CspOptions = {
   deployed: boolean;
   clerkPublishableKey: string;
   sentryDsn: string;
+  /** The API's own origin, for file uploads; empty leaves it out */
+  apiOrigin?: string;
 };
 
 /** One-time nonce: 16 random bytes, base64. */
@@ -66,6 +84,7 @@ export function newNonce(): string {
 export function contentSecurityPolicy(o: CspOptions): string {
   const clerk = o.clerkPublishableKey ? clerkFrontendApi(o.clerkPublishableKey) : null;
   const sentry = o.sentryDsn ? sentryOrigin(o.sentryDsn) : null;
+  const uploads = o.apiOrigin ? apiOrigin(o.apiOrigin) : null;
   const directives: [string, (string | null | false)[]][] = [
     ["default-src", ["'self'"]],
     ["script-src", ["'self'", `'nonce-${o.nonce}'`, "'strict-dynamic'", o.development && "'unsafe-eval'"]],
@@ -73,7 +92,7 @@ export function contentSecurityPolicy(o: CspOptions): string {
     ["style-src", ["'self'", "'unsafe-inline'"]],
     ["img-src", ["'self'", "data:", "blob:", clerk && "https://img.clerk.com"]],
     ["font-src", ["'self'", "data:"]],
-    ["connect-src", ["'self'", clerk, clerk && "https://clerk-telemetry.com", clerk && "https://*.clerk-telemetry.com", sentry]],
+    ["connect-src", ["'self'", clerk, clerk && "https://clerk-telemetry.com", clerk && "https://*.clerk-telemetry.com", sentry, uploads]],
     // Clerk's bot protection on sign-up (Cloudflare Turnstile)
     ["frame-src", [clerk ? "https://challenges.cloudflare.com" : "'none'"]],
     ["worker-src", ["'self'", "blob:"]],

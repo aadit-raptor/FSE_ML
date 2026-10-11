@@ -207,6 +207,12 @@ def live_problems(found: dict) -> list[str]:
         out.append(f"the API's memory peaked at {peak:.0f} MB, the service has {limit or 0:.0f} MB")
     if (found.get("live_added_mb") or 0) > LIVE_ADDED_LIMIT_MB:
         out.append(f"the live sliders added {found['live_added_mb']:.0f} MB (limit {LIVE_ADDED_LIMIT_MB:g} MB)")
+    # Uploaded files (PLAN.md 6.1): "none" means no store is set up yet, which
+    # is allowed; a store that is set up must take a file its whole road
+    if str(found.get("files_scanner", "ok")) != "ok":
+        out.append(f"the upload scanner does not work on this server: {found['files_scanner']}")
+    if str(found.get("files_drill", "none")) not in ("ok", "none"):
+        out.append(f"the file store drill {found['files_drill']} ({found.get('files_drill_error')})")
     return out
 
 

@@ -465,8 +465,8 @@ Secrets and variables → Actions → New repository secret**:
 | `BACKUP_DATABASE_URL` | Neon → project `fse-ml` → branch **`production`** → **Connect** → the **owner** (`neondb_owner`) connection string, **unpooled** (untick *Connection pooling*) |
 | `BACKUP_STAGING_DATABASE_URL` | the same for the **`staging`** branch — the drill's target |
 
-The Supabase project is free and needs no card; create it once (PLAN.md 1.9
-uses the same project for file uploads), then **Storage → New bucket**, name
+The Supabase project is free and needs no card; create it once (file
+uploads use a project of their own: "File uploads" below), then **Storage → New bucket**, name
 it `backups` and leave it **private**. A free Supabase project pauses after a
 week with no activity — the nightly backup is itself the activity that keeps
 it awake.
@@ -825,6 +825,99 @@ publishes each spring), transcribe it, or confirm there is none, and move
 `checked_on`. `tests/test_base_rates.py` checks a transcription against the
 studies' own summary rows.
 
+## File uploads
+
+Set up in PLAN.md 6.1. People upload PDF, Excel and Word files on Deal →
+Documents; the code is `uploads/`, the rows are table `files`.
+
+**How a file travels.** The browser asks the API for room, then sends the
+file's bytes to the API's own address (`api.variater.com`, not through the
+website's `/api` proxy, which may cap a request's size). The API **streams
+them to disk**, counting, and cuts off an upload that passes the size it
+declared; it then puts the file in a private Supabase Storage bucket and
+queues a **scan** in the job runner. Only a file the scan passes can be
+downloaded, through a signed link that works for a minute and is made only
+for its owner. No upload link is ever given to a browser: only the server
+writes to the bucket, so nothing is stored that was not counted and nothing
+can be swapped after its scan.
+
+**The scan** (`uploads/scan.py`) is structural, not an antivirus: ClamAV
+needed 1,687 MB to scan a 60-byte PDF (measured 2026-10-11) and the free
+server has 512 MB. It refuses anything that can act (macros, scripts,
+embedded objects and files, DDE, remote templates), anything
+password-protected, anything that is not the kind its name says and anything
+it can't read. It reads a file the way its own program does: PDFs with pypdf
+(every object, object streams included) beside a search of the raw bytes;
+Office XML with a real XML parser; older Office files with oletools. **It
+runs in a process of its own** with a CPU limit, a memory limit and a
+deadline (150 s) and none of the server's secrets, so a file built to hang
+or bloat a parser kills that process and is refused. It takes the slot
+simulations share, so its memory never adds to a simulation's. A signature
+scan waits for a worker with memory (PLAN.md 12.1).
+
+**Limits** (`uploads/rules.py`): 20 MB a file, 100 MB and 40 files a person,
+800 MB in all (`FSE_UPLOADS_BUDGET_MB` lowers it); three of a person's files
+on their way or being checked at once, 60 uploads an hour, two uploads
+arriving at the server at once. The screen warns from 80% of either personal
+limit. **Deletion rules:** the owner deletes a file at any time; a clean
+file is deleted 90 days after upload; a refused file's bytes are deleted at
+once and its line a week later; room reserved for an upload that never
+arrived is given back after 30 minutes. The nightly `job-maintenance` task
+applies these and removes bytes no row accounts for; its run summary carries
+`files_*` counts and `files_budget_used`. That nightly call is also the
+activity that keeps the free Supabase project from pausing. Supabase's free
+plan also allows 5 GB of downloads a month; a scan normally reads the copy
+the upload left on the server's disk, not the bucket.
+
+### You need to set this up first
+
+Until these exist the Documents screen says uploads are off; nothing else is
+affected.
+
+1. **A Supabase project for uploads, separate from the backups' project.**
+   The secret key can read and delete everything in its project, and this one
+   goes on the API servers; the backups' key stays in GitHub only. Supabase →
+   **New project** (free, no card), any name (for example `variater-uploads`),
+   a region near the API (West US).
+2. On **both** Render services (`fse-api` and `fse-api-staging`) →
+   **Environment** → add:
+
+   | Variable | Where it comes from |
+   |---|---|
+   | `SUPABASE_UPLOADS_URL` | the uploads project's `https://<id>.supabase.co` |
+   | `SUPABASE_UPLOADS_KEY` | that project → **Project Settings → API Keys → Secret keys → `default`** |
+
+   The API makes its own private bucket on first use: `uploads` in
+   production, `uploads-staging` on staging (`SUPABASE_UPLOADS_BUCKET`
+   overrides the name). It sets the bucket private with the size limit and
+   allowed types, and puts it right if someone changes them.
+
+Nothing to set on Vercel: the website already knows the API's address
+(`FSE_API_URL`), and its content security policy allows uploads to that one
+address. Production's API already accepts `https://variater.com`
+(`api/security.py`). **To try uploads from the staging website** as well, set
+`FSE_CORS_ORIGINS` on `fse-api-staging` to the staging site's address (the
+`https://…vercel.app` address of the `staging` preview); without it the
+staging site's upload is refused by the browser, and everything else on
+staging works as before.
+
+Sharing the backups' project instead works too (same two values as the GitHub
+secrets), but then uploads share its 1 GB: set `FSE_UPLOADS_BUDGET_MB=250` on
+both services, and accept that the key able to delete backups is on the API.
+
+### Checking it
+
+`GET /api/files` (signed in) answers `"enabled": true` once the store is set.
+**The staging drill** (`staging.yml`, after every staging deploy) takes one
+small file its whole road on the staging server: stored, read back, scanned
+in the child process, downloaded through a signed link, deleted; and checks
+that the scanner there refuses a scripted file. It reports `files_drill`:
+`ok`, `none` (no store set up, which is allowed) or `failed:<step>`, which
+fails the run. After the nightly run, `/api/health/jobs` shows
+`job-maintenance` succeeded; a store that can't be reached fails that run,
+which raises the usual alert. Locally, `FSE_UPLOADS_DIR=<a directory>` stands
+in for the bucket (refused in production); the browser tests use it.
+
 ## Usage limits
 
 Set up in PLAN.md 1.6 (`api/limits.py`, `api/usage.py`). Upstash Redis free
@@ -905,7 +998,8 @@ is therefore rendered per request (a nonce can't be baked into a static
 page); on Vercel Hobby that counts as function invocations, far inside the
 free allowance at this traffic. The policy allows Clerk's Frontend API (from
 the publishable key), Clerk's images and telemetry, Cloudflare Turnstile (bot
-protection on sign-up) and the Sentry DSN's host. **A new third-party script,
+protection on sign-up), the Sentry DSN's host and the API's own address
+(file uploads are sent to it directly, below). **A new third-party script,
 frame or API host must be added there**, or the browser refuses it. The API
 sends its own headers (`api/security.py`): `default-src 'none'` and
 `Cache-Control: no-store` on every answer, and a hash-based policy for the
