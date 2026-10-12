@@ -1436,6 +1436,12 @@ lessons are under R0 in PLAN.md. The 30 results PDFs, the free Gemini key
 on the Mac only, in a folder git ignores through `.git/info/exclude`.
 Nearly every Indian results filing is a scan. The free Gemini tier gives 20
 requests a day per model; the user chose to stay free and slow for the test.
+After the second session (2026-10-12) all 30 files are read twice: with two
+full flash models 1.04% of figures are amber and no wrong figure was found
+unflagged, so the recommendation recorded there is **go, with Gemini, two
+reads by two different full models**. Still open: 12 files a lite model read
+are to be read again, a truth file for ten documents, and the five analysts
+(the sample for them is `research-samples/r0/sample/variater-sample.pdf`).
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
 aside market research, customers, company, legal and pricing), **global and
@@ -1921,7 +1927,21 @@ Skills load when a session starts: install first, then open a new session.
   the pro models are not on it at all. Save every answer to disk and never
   spend a call on a probe that a saved answer could replace. A request with
   a PDF inline must stay under about 20 MB; a bigger file needs the Files
-  API.
+  API. The day is a rolling 24 hours; a refusal for the day must not be
+  retried; model names can share one allowance (`gemini-3.5-flash` counts
+  as 3.6's), and listing the models is free and says which exist
+  (`gemini-2.5-flash` is listed and then refuses new users).
+- Reading figures from a filing with an AI model (PLAN.md R0): one read is
+  never enough, **a model will change a total so that its misread digit
+  still adds up**, and it will write a year it finds likely (2024 for 2026)
+  in a column heading. Read twice with different models and different
+  inputs, check the sums from the numbers and not from an assumed layout
+  (`research-samples/r0/score.py`), and check periods apart from figures.
+  Lite models leave out rows and whole statements.
+- A check that finds sums in a table raises false alarms unless a line that
+  is only copied (every other part nil) is not counted as a sum, a formula
+  is chosen once for every column, and a zero total proves nothing. The
+  three false alarms R0's first checks raised were each one of these.
 - zsh's `echo` rewrites backslashes, so `echo "$json" | python` breaks any
   JSON holding `\n`. Parse API answers inside Python.
 - A key pasted into a `read -s` prompt can arrive more than once with a

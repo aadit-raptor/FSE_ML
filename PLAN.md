@@ -364,28 +364,100 @@ stops for it):
     test over models and days**; a paid key with a cap comes before outside
     analysts use the reader (the free tier is about ten documents a day for
     everyone).
-  - **The test scripts** are `research-samples/r0/` (`gemini.py`,
-    `read_test.py`; every read is saved in `r0/out/`, so nothing is asked
-    twice). Read A sends the whole PDF, read B only pictures of the table's
-    pages; scores are the two reads against each other, sums, the PDF's own
-    text (the clean-text files) and Screener (sales, tax, net profit).
-  - **First results (gemini-3.7-flash, the consolidated results table)**:
-    both clean-text files 100% against their own text (134 of 134 and 149 of
-    149 numbers); the worst scan in the set (Hindustan Aeronautics) matched
-    Screener on 9 of 9 and every total. Four files, so encouraging, not
-    proof.
-  - **Lessons for R1**: (1) a wrong read can still add up: the picture-only
-    read took a 5 for a 4 in revenue **and moved the total to match**, so the
-    sums passed and only the second read caught it; two reads stay, and the
-    two must differ in what they are given; (2) the whole PDF read better
-    than a page picture; (3) layouts vary ("total gross expenses, less
-    expenses capitalised, total expenses"), so checks cannot assume one
-    shape; (4) a dash read as 0 by one read and blank by the other is not a
-    disagreement.
-  - **Still to do**: the other files on the free allowance, then the balance
-    sheet, cash flow and segment tables (only the results table is read so
-    far), the full accuracy table against the bar, cost per document from the
-    token counts, the hand-made sample and the five analysts.
+  - **The test scripts** are `research-samples/r0/`: `gemini.py` (the calls,
+    and the upload for a file too big to send inline), `statements.py` (one
+    request reads every consolidated statement of a filing: results,
+    segments and, at the half year and year end, balance sheet and cash
+    flow), `read_test.py` (the first pass, results table only), `score.py`
+    (the checks, no call), `report.py` (the accuracy table, no call),
+    `crop.py` (cuts a strip from a page to check a figure by eye). Every
+    answer is saved in `r0/out/`, so nothing is asked twice;
+    `out/adjudicated.json` holds what was checked by eye. Read A sends the
+    whole PDF, read B pictures (170 dpi) of the pages A found the tables on,
+    to a different model.
+  - **Results (second session, 2026-10-12): all 30 files read twice, 63
+    tables, 7,998 figures** (results 30 tables, segments 13, balance sheet
+    10, cash flow 10; the 193-page, 23 MB file went through the upload and
+    read without trouble).
+
+    | Readers (A whole PDF + B page pictures) | Files | Figures | Amber | Of which a row one read left out |
+    |---|---|---|---|---|
+    | two reads by full models (3.6 to 3.8 flash, 3 flash preview) | 18 | 5,298 | 55 (**1.04%**) | 32 |
+    | full model + a lite model as B | 6 | 1,753 | 214 (12.2%) | 202 |
+    | two lite models (3.5 and 3.1 flash lite) | 6 | 947 | 131 (13.8%) | 123 |
+
+    - **Wrong figures found, all of them flagged**: checked by eye against
+      the page, read A (the whole PDF) was wrong in 18 figures in 6 files
+      (about 1 in 400), read B in 5 figures in 4 files; 2 small ones were not
+      checked. Every one was amber because the reads differed; in 5 of
+      the 6 files a sum the table states also failed to add up.
+    - **Wrong figures left unflagged: none found.** What that rests on: 483
+      figures on pages with real text all match the PDF's own text; 101 of
+      111 comparisons with Screener match and the other 10 differ by a
+      little in every column for three companies, the mark of another
+      basis; 10 figures the text layer or Screener
+      disputed were looked at and were right; 89% of figures sit inside a sum
+      that holds; and a wrong digit planted in 1,780 figures was flagged
+      every time (a sum alone caught 78%). **What it does not rest on: a
+      full truth file.** Two readers making the same mistake in a figure
+      outside every sum (about 1 in 10 figures: per-share lines, equity
+      lines) would not show. Closing that needs the exchange's own XBRL
+      filing where it is free to use, or ten files keyed by the user.
+    - **The period in a column heading was misread twice** (2024 for 2026 in
+      every column, once by each kind of read, on files whose figures were
+      otherwise right). The figures check cannot see this; R1 must check
+      periods against the filing date and each other.
+    - **Cost on a paid key, both reads** (from the saved token counts, list
+      prices of 2026-10-12: 3.8 flash 0.75 and 3.75 US dollars a million
+      tokens in and out, 3 flash preview 0.50 and 3.00): a quarterly filing
+      about **0.09 US dollars**, a half-year or year-end filing about
+      **0.12**, the dearest 0.19; under 20 rupees. Over half of what
+      is paid for is the model's thinking. Google lists 3.8 flash at double
+      from 2027-01-01. The lite pair cost 0.02 and is not usable.
+  - **Recommendation: go, with Gemini, on these conditions** (the analysts'
+    answers are still to come, so R0 stays open):
+    1. two reads by **two different full models**, never one read and never
+       a lite model (they leave out rows and whole statements);
+    2. the amber rate that counts is the two-full-model one, 1.04% against
+       the 2% bar; the 12 files a lite model read are to be read again by
+       full models before the table is final (18 requests, one free day);
+    3. a truth file for ten documents before R1's card is called met;
+    4. a paid key with a spending cap before anyone outside uses it: the
+       free tier is about ten documents a day for everyone, and Google may
+       use free-tier content to improve its products (fine for public
+       filings, not for anything else).
+  - **Lessons for R1**: (1) **a wrong read can still add up**: twice a
+    model took one digit for another **and moved the total to match** (once
+    the picture read, once the whole-PDF read), so only the second read
+    caught it; two reads stay, and they must differ in what they are given
+    and in the model; (2) **the whole PDF did not read better than
+    pictures**: it made 18 of the 23 errors, most on dense pages (standalone
+    and consolidated side by side, a faint scan); the picture's detail
+    matters, so try the API's high-resolution setting on both reads; (3)
+    **checks cannot assume a layout**: `score.py` finds the sums from the
+    numbers (a row that is the sum of the rows above, one row less the rows
+    between, a heading that carries the sum of the rows under it), chooses a
+    formula once for all columns so it cannot bend to one wrong cell,
+    ignores a "sum" that is only a copy of a line, and believes a formula
+    that fails somewhere only when it is a real sum in most columns; (4) a
+    dash read as 0 against a blank is not a disagreement, and **a "less" row
+    comes back positive from one read and negative from the other**: line
+    rows up by size, and let a sum that holds settle the sign; (5) rows are
+    lined up by their numbers, not their labels (one read keeps a heading
+    the other drops); (6) Screener is not a truth file for net profit or
+    revenue (other basis), and a scan's text layer is not one either; (7)
+    one request can read all four statements; (8) an answer can come back
+    wrapped in a list.
+  - **The sample for the analysts is drafted**:
+    `research-samples/r0/sample/variater-sample.pdf` (built by
+    `build_sample.py` from the saved read of Avenue Supermarts' September
+    2026 half-year filing): checked statements with the one amber figure,
+    the checks run, a next-quarter model as formulas, valuation arithmetic
+    and the factual part of a note, with the rating left blank.
+  - **Still to do**: read the 12 lite-read files again with full models and
+    try the high-resolution setting; a truth file for ten documents; the
+    user's changes to the sample; the five analysts and what they say; then
+    the final table and the decision.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
