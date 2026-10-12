@@ -932,6 +932,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Files
+         * @description File uploads (PLAN.md 6.1): which store this server uses, what sort
+         *     of key it was given (``sb_secret`` or ``jwt:service_role`` can write to
+         *     a private bucket; ``sb_publishable`` can't), and whether the bucket is
+         *     there. Never the key, a link or anything about a file. Calls the store
+         *     at most once in five minutes and never queries the database.
+         */
+        get: operations["health_files_api_health_files_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health/jobs": {
         parameters: {
             query?: never;
@@ -10386,6 +10410,26 @@ export interface operations {
         };
     };
     health_database_api_health_database_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    health_files_api_health_files_get: {
         parameters: {
             query?: never;
             header?: never;
