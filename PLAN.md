@@ -519,11 +519,39 @@ or nearly finished to try. So no task waits for an analyst:
       FY26-Q4, eternal FY26-Q4, hindustan-aeronautics FY27-Q1,
       kirloskar-pneumatic FY27-Q1, reliance-industries FY27-Q1,
       devyani-international FY27-Q1, indoco-remedies FY27-Q1.
+    - **Truth file, first result (same day): nine documents scored against
+      BSE's own figures, no wrong figure left unflagged.** The user saved,
+      by hand, the table BSE's results page shows for each filing (BSE's
+      "XBRL" link gives a small HTML table named `.xls`, not the XBRL
+      itself: the filing's quarter only, 14 to 26 amounts in millions of
+      rupees, earnings per share and other comprehensive income among them)
+      for nine of the ten; Kirloskar's gave a site error. `bse_score.py`
+      looks for each amount, by size, in the read's column for that quarter:
+
+      | | Figures |
+      |---|---|
+      | BSE amounts, nine documents | 208 |
+      | in read A as printed | 182 (164 not amber, 18 amber and right) |
+      | BSE's own grouping of lines the read holds (other expenses plus impairment, profit before associates less tax, ...), which add up exactly from read A | 25 |
+      | not reproduced by read A | **1, and it is amber** |
+
+      The one is JK Lakshmi's September 2025 quarter: BSE's other expenses
+      are power and fuel plus transport plus other expenses, which add up
+      from read B and not from read A, the three cells already found wrong
+      in A by eye and flagged. BSE also confirms read A against read B on
+      Hindustan Aeronautics' revenue (the 5 read for a 4). **What this
+      does and does not cover**: about 23 figures a document, the current
+      quarter of the results table; not the comparative columns, the
+      segment table, the balance sheet or the cash flow. It is the
+      exchange's check on the headline figures, per-share lines included,
+      not a full truth file.
   - **Still to do**: run `finish.sh` (the 12 re-reads, then high resolution
     on lemon-tree, jk-lakshmi and tata-steel FY26-Q4, and say whether it
-    cuts the errors); the truth file for the ten documents above (the user
-    saves the XBRL files into `research-samples/xbrl/`, or keys them); then
-    the final table and the decision, which closes R0.
+    cuts the errors) and score again with `bse_score.py`; a tenth BSE table
+    (Kirloskar again, or v-mart-retail FY26-Q2 in its place); the user to
+    say whether BSE's table for ten documents is truth file enough or ten
+    files are also keyed in full; then the final table and the decision,
+    which closes R0.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
