@@ -1440,8 +1440,14 @@ After the second session (2026-10-12) all 30 files are read twice: with two
 full flash models 1.04% of figures are amber and no wrong figure was found
 unflagged, so the recommendation recorded there is **go, with Gemini, two
 reads by two different full models**. Still open: 12 files a lite model read
-are to be read again, a truth file for ten documents, and the five analysts
-(the sample for them is `research-samples/r0/sample/variater-sample.pdf`).
+are to be read again and a truth file for ten documents; then R0 closes.
+**Analysts come after the product** (the user, 2026-10-12: nobody can be
+approached with a sample page): the first showing is after R2, the second
+after R4, no task waits for one, and a sector model is marked "not yet
+vetted" until an analyst has read it. Don't ask the user for analysts
+before R2 is live. The hand-made sample
+(`research-samples/r0/sample/variater-sample.pdf`) is kept as the picture
+of what R2 to R8 build.
 
 The rebuild is done. **PLAN.md** is the roadmap: software only (the user set
 aside market research, customers, company, legal and pricing), **global and
