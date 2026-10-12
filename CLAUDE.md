@@ -1661,13 +1661,14 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
-- PLAN.md 6.1: file uploads are **off until the store is set up** (DEPLOY.md
-  "File uploads", "You need to set this up first"): a Supabase project for
-  uploads and `SUPABASE_UPLOADS_URL` / `SUPABASE_UPLOADS_KEY` on both Render
-  services (and, to try it from the staging site, `FSE_CORS_ORIGINS` on
-  `fse-api-staging`). Also one workflow edit Claude's token can't push: add
-  `uploads` to `API_PATHS` in `.github/workflows/staging.yml` (line 35), so
-  a change to `uploads/` alone makes the staging check wait for the API.
+- PLAN.md 6.1: one workflow edit Claude's token can't push: add `uploads`
+  to `API_PATHS` in `.github/workflows/staging.yml` (line 35), so a change
+  to `uploads/` alone makes the staging check wait for the API. Optional:
+  `FSE_CORS_ORIGINS` on `fse-api-staging`, to try uploads from the staging
+  site. (The store itself is set up since 2026-10-12: a Supabase project of
+  its own, `variater-uploads`, with `SUPABASE_UPLOADS_URL` and
+  `SUPABASE_UPLOADS_KEY` on both Render services; `/api/health/files`
+  answers `ok` with key `sb_secret` on both.)
 
 - Whether to wire up the unused `ml/nlp_extractor.py`; PLAN.md 6.2 rebuilds it.
 
