@@ -15,6 +15,7 @@ source =
     library
     ml
     ops
+    research
     simulation
     uploads
 # The jobs runner works in a thread; count its lines too

@@ -858,6 +858,78 @@ or nearly finished to try. So no task waits for an analyst:
     conglomerate: BOB Capital on Reliance (18 July 2026), YES Securities;
     textbook: CFA Institute, "Company Analysis: Forecasting"
     (cfainstitute.org refresher readings, 2026).
+- **Part b, first slice, is done (2026-10-12; out of turn, because it needs
+  no AI key): the format, the evaluator, the Excel writer and model 1.** All
+  in `research/`; no screen, no endpoint, nothing the API imports yet.
+  - **The format** (`research/definition.py`): a model is rows down and
+    periods across with **a rule in each cell**: a figure typed from the
+    documents (may be blank), an assumption (must be given), a formula, a
+    **choice** between rules that the company's file settles, or empty. A
+    row gives its rules by period name, by kind of period (last year, year
+    to date, rest of year, current year, forecast) or for a group of kinds;
+    the narrowest wins. A company is only data: words, unit, choices,
+    numbers, segments switched off, and marks (amber or red with a reason).
+    A model goes to JSON and back unchanged.
+  - **Formulas** (`research/formula.py`): `+ - * /`, brackets, numbers,
+    `max`, `min`, row names, `cash[prev]` and `rev[ytd]`, and **`div(a, b)`:
+    a over b, or nil when b is nil** (decided with the user: the hand
+    build's `MAX(x, 1)` is wrong for small or negative bottoms). Read by
+    its own small reader, never `eval`; a formula has a size (1,000
+    characters, 300 parts, 40 levels).
+  - **One tree, two renderings** (rule 3): `research/evaluate.py` works
+    every cell out in dependency order (a circle, an unknown row, a missing
+    assumption and a plain division by nil are errors that name the row and
+    period); `research/workbook.py` writes the same trees as Excel text
+    with ordinary cell addresses (`div` becomes `IF(b=0,0,a/b)`), a defined
+    name on every assumption cell (`s1_occ_y1`) and constant
+    (`unit_rupees`), "NOT YET VETTED" at the top and a Notes sheet.
+  - **Each "to add" item of the hand build is in:** the past run backwards
+    (choice `line1_past`: `drivers` or `revenue`); a running count, a cost
+    as a share of revenue plus an amount per place per day, a balance x a
+    rate (used four times: depreciation, income on cash, interest on
+    borrowings and on leases) and a ratio row, each one function in
+    `research/pieces.py`; the days in the period; `unit_rupees`; a segment
+    switched off reads nil and divides nothing; the model's notes say
+    deferred tax is left out.
+  - **Model 1** (`research/models/occupancy.py`): 106 rows, the hand
+    build's 103 plus the filing's three printed profits, which the checks
+    on the past compare with. Sectors `hospitals` and `hotels` bring their
+    own words; a company's words override them.
+  - **Proof.** The two companies' typed figures and the hand workbooks'
+    numbers are committed (`tests/fixtures/research/`, public filings
+    only): **model 1 gives the hand workbooks' number on every row and
+    period, 103 rows x 6 periods each, to 0.01** (in fact to rounding).
+    The written workbook is worked out by a reader in the tests that
+    shares no code with `research/` and agrees with the evaluator on every
+    cell; typing a new assumption into the workbook moves its own formulas
+    to what the server gives. 53 deliberate breaks of the code were each
+    caught by a test.
+  - **From the review** (fixed in the slice): a formula of nested `div`s
+    doubled its Excel text at every level, so a formula whose Excel text
+    would pass Excel's 8,192 characters is now refused when the model is
+    checked; formulas are plain ASCII (Python's digits include other
+    scripts', which Excel would not read back); every part of a company is
+    checked for shape and size before anything reads it; a label's
+    `{word}` slots are filled by a pattern, not `str.format`. **Recorded,
+    not fixed:** Excel reads a sum within rounding of nil as exactly nil
+    and the evaluator keeps the tiny number, so `div(1, 0.1 + 0.2 - 0.3)`
+    would differ. No row of model 1 divides by such a difference; a model
+    that does needs a tolerance in both renderings.
+  - **The real spreadsheet engine in CI is LibreOffice, and it has not run
+    yet.** `tests/test_research_workbook.py` has the test: LibreOffice opens
+    the workbook without a screen, works it out, and its values must be the
+    evaluator's. It exists only where `soffice` is installed or
+    `FSE_REQUIRE_SOFFICE=1` is set (the `ml` job fails on a skipped test,
+    so it is left out, not skipped). **It needs one workflow edit that is
+    the user's** (CLAUDE.md "Waiting on the user"); until then agreement
+    with a real engine is unproved, and the first run may need a fix.
+  - **Left for the rest of part b:** the other seven revenue blocks and the
+    General model; quarterly actuals feeding the year in progress (today
+    the year to date and the rest of the year are two typed columns);
+    last changes by the analyst (add or drop a segment, swap a block);
+    screens, the add-in's "Load model", any endpoint, and with the endpoint
+    the three places a new package goes (Dockerfile, `render.yaml`,
+    `staging.yml`); a mark and a working for each typed driver on screen.
 - **Needs from the user (part b):** the analyst who reads the model. If
   none is found yet, the model ships marked "not yet vetted" and this line
   stays open.
