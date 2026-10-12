@@ -34,7 +34,7 @@ import logging
 import tempfile
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -123,6 +123,35 @@ def _delete_bytes(files: FileStore, keys: list[str]) -> None:
         files.delete(keys)
     except StorageError as exc:
         log_event("upload_delete_deferred", logging.WARNING, error=type(exc).__name__)
+
+
+# How long the answer of ``status`` is reused: it is public, and each fresh
+# one is a call to the store
+STATUS_CACHE_S = 300.0
+_status: list = [0.0, None, None]
+
+
+def status(*, now: Optional[float] = None) -> dict:
+    """Whether uploads can work on this server, for ``/api/health/files``:
+    which store, what **sort** of key it was given (never the key), and
+    whether its bucket is there and private. Nothing about any file or
+    person. Cached, and never queries the database."""
+    now = time.time() if now is None else now
+    files = get_store()
+    if _status[1] is not None and _status[2] is files and now - _status[0] < STATUS_CACHE_S:
+        return _status[1]
+    if files is None:
+        answer = {"status": "off", "store": "none"}
+    else:
+        answer = {"status": "ok", "store": files.name, "key": str(getattr(files, "key_kind", "none"))}
+        try:
+            if hasattr(files, "ensure_bucket"):
+                files.ensure_bucket()
+        except StorageError as exc:
+            answer.update(status="error", reason=str(exc), detail=str(getattr(exc, "detail", ""))[:200])
+    answer["checked_at"] = datetime.fromtimestamp(now, timezone.utc).isoformat().replace("+00:00", "Z")
+    _status[:] = [now, answer, files]
+    return answer
 
 
 def begin(subject: str, name: object, size: int, *, now: Optional[datetime] = None) -> FileRecord:

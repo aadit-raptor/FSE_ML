@@ -2132,6 +2132,21 @@ Skills load when a session starts: install first, then open a new session.
   summary rows. Some free copies only download (maalot.co.il); the user
   agreed (2026-10-07) to downloading public source documents into the
   scratchpad to read them.
+- Supabase shows the **publishable** key first and the **secret** key below
+  it; the first staging drill of 6.1 failed three times on the publishable
+  one pasted as `SUPABASE_UPLOADS_KEY` ("new row violates row-level security
+  policy" on creating the bucket: the answer a key without the service role
+  gets). The drill's answer says which sort the server holds
+  (`files_drill_key`: `sb_secret` or `jwt:service_role` is right) and the
+  store's own reason (`files_drill_detail`), never the key. Read those
+  before suspecting the code, and ask the user to reveal the value **on
+  Render**, not on Supabase. **`/api/health/files`** (public, cached five
+  minutes, `uploads/service.py` `status`) answers the same on staging and
+  production without waiting for a staging run: check it first.
+- `gh run rerun` is refused for this token ("Resource not accessible by
+  personal access token"), like `workflow_dispatch`: `staging.yml` runs
+  again only on a push to `staging`, so a recheck after the user changes a
+  variable needs a (real) change merged through `main`.
 - **Uploaded files are hostile input** (PLAN.md 6.1). Read one with a real
   parser, in the child process (`uploads/scan.py` `scan_path`), never with a
   regular expression over its text: `<tag\b[^>]*` on 100 KB of a repeated

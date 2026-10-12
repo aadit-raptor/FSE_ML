@@ -19796,6 +19796,26 @@
         ]
       }
     },
+    "/api/health/files": {
+      "get": {
+        "description": "File uploads (PLAN.md 6.1): which store this server uses, what sort\nof key it was given (``sb_secret`` or ``jwt:service_role`` can write to\na private bucket; ``sb_publishable`` can't), and whether the bucket is\nthere. Never the key, a link or anything about a file. Calls the store\nat most once in five minutes and never queries the database.",
+        "operationId": "health_files_api_health_files_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Files",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
     "/api/health/jobs": {
       "get": {
         "description": "The job queue (PLAN.md 1.9): which queue and runner are configured,\nwhether the runner is running, jobs per status, and the newest run of\neach scheduled task. Queries the database, so it is cached for a\nminute and nothing polls it often.",
