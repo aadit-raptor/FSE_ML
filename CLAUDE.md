@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-12 (PLAN.md 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-12 (PLAN.md R4 part a: model 1 by hand; the same day 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1462,9 +1462,23 @@ utilities, 11 Margin businesses. **Order: model 1 in R4, models 2 and 3 in
 R7, the rest after**; models with fewer than two sample companies need
 filings from the user first. What the blocks lack is listed there for part
 b (a running count, a cost row that picks its driver, a segment in another
-currency, the days in a period, a balance x rate block). Still open in part
-a, needing no AI key: model 1 by hand in Excel for Yatharth Hospital and
-Lemon Tree Hotels.
+currency, the days in a period, a balance x rate block).
+**Part a is done (2026-10-12): model 1 was built by hand in Excel for
+Yatharth Hospital and Lemon Tree Hotels** (`research-samples/r4a/`, on the
+Mac only: two workbooks, `build_model1.py`, `companies.py`,
+`check_model1.py`). The same 118 rows and the same 243 forecast formulas
+serve both; three of the eight revenue blocks were enough. What it found is
+under "Model 1 by hand" in PLAN.md R4; the points part b must build in:
+**the occupancy block runs backwards for the past** (Yatharth's printed beds
+x occupancy x price is a quarter above its revenue, so beds in use are
+worked out), **one results PDF does not start coverage** (a Q1 or Q3 filing
+has no balance sheet; the latest filing with one is needed too), the year in
+progress needs last year cut the same way (hotels' second half is the strong
+one), and the lower part needs leases, non-controlling interests and days.
+Yatharth's red figures wait for the user to save its FY26 results filing and
+Q1 FY27 presentation (its website turns programs away). R4 part b comes
+in its turn, after R1 to R3; **next is closing R0** (`finish.sh` and the
+final table, once the Gemini allowance is back), then R1.
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet
@@ -1952,6 +1966,16 @@ Skills load when a session starts: install first, then open a new session.
   exported, the tests of what the API answers *without* a database fail
   (seven of them on the Mac's first run). `DATABASE_URL` is for running the
   API and the browser tests.
+- Driving Excel from a script (`osascript ... tell application "Microsoft
+  Excel"`) opened the workbook and then timed out, leaving it open: don't
+  count on it to recalculate a file. openpyxl writes formulas without their
+  values, so until Excel has opened and saved a workbook, Quick Look and
+  `data_only=True` show blanks. Part b's "real spreadsheet engine in CI" is
+  LibreOffice, which the Mac does not have.
+- A company's "investor relations" page may sit behind a bot check
+  (yatharthhospitals.com): don't get round it. Newspapers keep copies of
+  exchange announcements (`bsmedia.business-standard.com/_media/bs/data/announcements/...`),
+  found by search; otherwise the user saves the file.
 - Gemini's free tier counts **20 requests a day per model** (the error names
   the quota and when to retry) and its newest model is often "high demand";
   the pro models are not on it at all. Save every answer to disk and never
