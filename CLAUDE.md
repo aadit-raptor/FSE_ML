@@ -1448,9 +1448,10 @@ by a program** (NSE and BSE terms), here or in the product; the user saves
 ten files by hand or keys them. The user saved BSE's results-page table for
 ten documents (it is a small HTML table of the quarter's headline figures,
 not the XBRL): of 232 BSE amounts read A fails to give one, and that one was
-already amber (`bse_score.py`). Still open: `finish.sh`,
-whether that is truth file enough (the user's call), the final table; then
-R0 closes.
+already amber (`bse_score.py`); **the user decided that is truth file
+enough**. Still open: `finish.sh` (once the allowance is back, after about
+06:00 IST on 2026-10-13) and the final table; then R0 closes. Meanwhile R4
+part a (sector research) may run in its own session.
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet

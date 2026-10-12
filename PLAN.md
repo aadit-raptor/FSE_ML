@@ -550,10 +550,12 @@ or nearly finished to try. So no task waits for an analyst:
       not a full truth file.
   - **Still to do**: run `finish.sh` (the 12 re-reads, then high resolution
     on lemon-tree, jk-lakshmi and tata-steel FY26-Q4, and say whether it
-    cuts the errors) and score again with `bse_score.py`; the user to
-    say whether BSE's table for ten documents is truth file enough or ten
-    files are also keyed in full; then the final table and the decision,
-    which closes R0.
+    cuts the errors) and score again with `bse_score.py`; then the final
+    table and the decision, which closes R0. **Decided by the user
+    (2026-10-12): BSE's tables for the ten documents are truth file
+    enough**; no filing is keyed in full. While R0 waits a day for the
+    allowance, **R4 part a (sector research) goes ahead** in a session of
+    its own: it needs no reader and no key.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
