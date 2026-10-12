@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-12 (PLAN.md R4 part a: model 1 by hand; the same day 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1476,9 +1476,44 @@ has no balance sheet; the latest filing with one is needed too), the year in
 progress needs last year cut the same way (hotels' second half is the strong
 one), and the lower part needs leases, non-controlling interests and days.
 Yatharth's red figures wait for the user to save its FY26 results filing and
-Q1 FY27 presentation (its website turns programs away). R4 part b comes
-in its turn, after R1 to R3; **next is closing R0** (`finish.sh` and the
-final table, once the Gemini allowance is back), then R1.
+Q1 FY27 presentation (its website turns programs away).
+**R4 part b's first slice is done (2026-10-12, out of turn: it needs no AI
+key): `research/`**, the first code of phase R. Nothing in the API imports
+it yet. **A model is a table**: rows down, periods across, one rule per cell
+(`research/definition.py`): `FIGURE` (typed from the documents, may be
+blank), `ASSUME` (the analyst's, must be given), a formula, a `Pick` (a
+choice the company's file settles: how a block runs backwards for the
+past), or empty; rules are keyed by period name, kind of period or group
+(`past`, `year_end`, `all`), narrowest first. **Formulas**
+(`research/formula.py`) are `+ - * /`, brackets, `max`, `min`, row names,
+`x[prev]` / `x[ytd]`, and **`div(a, b)`** (a over b, nil when b is nil;
+decided with the user), read by a hand-written reader, never `eval`.
+**One parsed tree, two renderings**: `research/evaluate.py` works a model
+out for a `Company` (words, unit, choices, numbers, segments off, marks) and
+`research/workbook.py` writes the same trees as live Excel formulas
+(ordinary addresses; a defined name per assumption cell, `<row>_<period>`,
+and per constant; `div` is `IF(b=0,0,a/b)`; every label goes in through
+`_put`, so words starting with `=` stay words). `research/pieces.py` holds
+the shared pieces as functions that return ordinary rows (running count,
+cost = share of revenue + amount per place per day, balance x rate, ratio
+row, the standard periods `ly, ytd, roy, cy, y1...`).
+**Model 1 is `research/models/occupancy.py`** (106 rows; sectors
+`hospitals` and `hotels` bring their words; choices `line1_past` and
+`line1_end_to_date`; segments `s2`, `s3` can be switched off), marked not
+vetted. **Proof**: `tests/fixtures/research/model1_*.json` hold the two
+companies' typed figures (public filings) and the hand workbooks' numbers;
+the model gives every one of them (103 rows x 6 periods each) to 0.01.
+**Never change those fixtures to agree with the model.** The workbook is
+worked out in the tests by `tests/research_support.py`'s own reader of Excel
+formulas (shares no code with `research/`). **LibreOffice, the real engine,
+has not run yet**: its test exists only where `soffice` is installed or
+`FSE_REQUIRE_SOFFICE=1`, which needs the workflow edit under "Waiting on
+the user". What is left of part b is listed under R4 in PLAN.md (the other
+blocks, quarterly actuals, screens, the add-in, an endpoint; with the
+endpoint come the Dockerfile, `render.yaml` and `staging.yml` lines for
+`research/`). The rest of part b comes in its turn, after R1 to R3;
+**next is closing R0** (`finish.sh` and the final table, once the Gemini
+allowance is back), then R1.
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet
@@ -1701,6 +1736,16 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- PLAN.md R4 part b: **LibreOffice in CI** (one workflow edit Claude's token
+  can't push). In `.github/workflows/tests.yml`, job `ml`: before the step
+  "Run all tests, failing if any ML test skips" add a step that runs
+  `sudo apt-get install -y -qq libreoffice-calc` and then
+  `soffice --version`, and give the test step `env: FSE_REQUIRE_SOFFICE: "1"`.
+  Until then the model workbooks are checked only by the tests' own reader of
+  Excel formulas, not by a real spreadsheet program. If the first run with
+  LibreOffice fails, the fix is Claude's (`tests/research_support.py`
+  `recalculated_by_libreoffice`).
+
 - PLAN.md 1.7 follow-up: the GitHub settings in DEPLOY.md "CI and GitHub
   settings" (private vulnerability reporting, required checks, Dependabot
   secrets) and the commit email. (Both environments' `DATABASE_URL` switched
@@ -1773,6 +1818,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
 | `core/live.py`, `ml/evaluation/surrogate.py`, `components/montecarlo/MonteCarloML.tsx`, `jobs/drill.py`, `tests/test_live.py`, `web/e2e/live-sliders.spec.ts` | Live sliders (PLAN.md 5.8): the simulation on a small, fixed set of paths with the sliders as inputs; its card on varied regional deals; the Live step; the staging drill's live session and memory read; the tests (the estimate is the run with that input changed) |
 | `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
+| `research/`, `tests/research_support.py`, `tests/fixtures/research/`, `tests/test_research_*.py` | Equity research, sector models (PLAN.md R4 part b): the formula reader (`formula.py`), the model and company as data (`definition.py`), the evaluator, the Excel writer (`workbook.py`), the shared pieces, model 1 (`models/occupancy.py`); the tests' fixture loader, independent Excel-formula reader and LibreOffice runner; the two hand-solved companies; the tests (formulas, the format by hand, workbook against evaluator, model 1 against the hand workbooks) |
 | `uploads/`, `db/files.py`, `api/routers/files.py`, `web/src/lib/files.ts`, `web/src/components/deal/steps/DocumentsStep.tsx`, `tests/test_uploads.py`, `tests/upload_samples.py`, `web/e2e/documents.spec.ts` | File uploads (PLAN.md 6.1): the rules, the scanner, the stores and the steps of an upload; the rows; the endpoints; the browser's side and the Documents step; the tests and the files they build in memory |
 | `benchmarks/usual.py`, `web/src/lib/usual.ts`, `tests/test_usual.py`, `web/e2e/usual.spec.ts` | Personalized defaults (PLAN.md 5.9): a person's usual figures from their own saved deals; the answer shared by the switch and the tile; the tests (only the caller's deals, off stops them) |
 | `ml/anomaly_detector.py`, `components/deal/DealRisk.tsx`, `tests/ml_peer_tables.py`, `tests/e2e_deal_risk.py` | Deal risk score (PLAN.md 5.2): the deal against its region's industry averages and the library's deals like it; the tile; the writers of the card's peer tables and the browser tests' answers |
@@ -1790,7 +1836,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `api/github_oidc.py`, `ops/scheduled.py` | The scheduler's sign-in (GitHub Actions OIDC tokens, no secret) and its side of the calls: `task`, `keepalive`, `drill` (`scheduled.yml`, `staging.yml`) |
 | `ops/check_database.py` | Deployed database check (reachable, migrations current, storage under 80%) for `live.yml` and `staging.yml` |
 | `tests/golden/` | Snapshot of the retired Streamlit app's outputs; the parity baseline. Its generator was removed with Streamlit (see git history) |
-| `tests/`, `test_*.py` | Test suite (1,939 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry, `tests/test_uploads.py` file uploads (the scanner on built files, the security review's attack files and real workbooks; the child process; the stores; the whole road on a real database: another account gets 404, quotas, deletion rules, lost scans, nothing logged). `tests/conftest.py` signs every other test in and hands out throwaway databases |
+| `tests/`, `test_*.py` | Test suite (2,075 tests with a database; database tests skip without `TEST_DATABASE_URL`); `tests/test_model_fixes.py` pins each finding fix, `tests/test_database.py` the database layer, `tests/test_auth.py` sign-in, `tests/test_users.py` accounts, `tests/test_deals.py` saved deals and versions, `tests/test_limits.py` usage limits, `tests/test_security.py` headers, CORS, TLS, the database role and the header scan, `tests/test_backups.py` the backup format, stores, rotation and a real dump/restore round trip, `tests/test_jobs.py` jobs on both queues, restarts, retention, the scheduler's tokens and the drill, `tests/test_money.py` currencies and units, `tests/test_debt_structures.py` the tranche kinds, the floating-rate rule, PIK, the revolver and the sweep share, each hand-checked, `tests/test_montecarlo_baseline.py` the simulation's pinned output, `tests/test_montecarlo_tranches.py` the simulation of tranches (the written-out structure path by path, each path at the mean against the deal model, floating only, scenarios, the heatmap, jobs), `tests/test_tax_rules.py` the tax rules, each hand-checked, the presets, the simulation and the heatmap, `tests/test_risk_warnings.py` the computed risk warnings (hand-checked default deal, sources, the cash reconciliation, the catalogue holds no number), `tests/test_plan_actual.py` plan vs actual (the plan is the deal model's answer, the plan fed back as actuals attributes nothing, early exits, leases, tranches, units, saved actuals, the library switch), `tests/test_accounting.py` accounting standards: real IFRS and US GAAP filings mapped, the IFRS 16 lease views by hand in the deal model, the grid, sources and uses and the simulation, `tests/test_no_hardcoded_currency.py` the dollar-sign check, `tests/test_locale.py` digit grouping and fiscal years, `tests/test_no_hardcoded_locale.py` the locale check, `tests/test_no_hardcoded_text.py` the interface-text check, `tests/test_translations.py` the catalogue (keys asked for, keys used, languages in step, the engine's own labels), `tests/test_cycle_gates.py` the CI gates (PR titles, coverage floor, the workflows keep them), `tests/test_audit.py` the audit history (one entry per action, none for a no-op or a failure, nothing writable by the API or its role, compaction, no figures in an entry), `tests/test_benchmarks.py` the starting figures (real workbooks, a German machinery deal by hand, fallbacks, the refresh, the API), `tests/test_defaults_registry.py` the defaults registry, `tests/test_uploads.py` file uploads (the scanner on built files, the security review's attack files and real workbooks; the child process; the stores; the whole road on a real database: another account gets 404, quotas, deletion rules, lost scans, nothing logged). `tests/conftest.py` signs every other test in and hands out throwaway databases |
 
 ## Commands (macOS, from the repo root)
 
@@ -2004,6 +2050,20 @@ Skills load when a session starts: install first, then open a new session.
 - A key pasted into a `read -s` prompt can arrive more than once with a
   stray escape character; check its length and shape (never its value)
   before using it.
+- zsh does not split an unquoted variable into words: `T="a.py b.py";
+  pytest $T` looks for one file called "a.py b.py". Use a glob
+  (`tests/test_research_*.py`) or an array.
+- CI's `ml` job fails when any test is **skipped**, so a test that needs a
+  program the runner may lack (LibreOffice) is defined only where the
+  program is found or a `FSE_REQUIRE_*` variable demands it
+  (`tests/test_research_workbook.py`), never `pytest.skip`ped.
+- openpyxl turns any string that starts with `=` into a formula. Text that
+  a person typed (a company's name, a label, a reason) goes into a workbook
+  with its `data_type` forced to `"s"` (`research/workbook.py` `_put`).
+- A sector model's row may not be named after a formula word or a kind of
+  period (`div`, `max`, `min`, `prev`, `rest`, `all` ...): the dividends row
+  is `dividends`. An Excel defined name may not read as a cell (`rev1`,
+  `r1c1`); the writer refuses one.
 - macOS has no `python` on the PATH: use `.venv/bin/python` (the browser
   tests find it themselves; `PYTHON=` overrides). Homebrew's tools live in
   `/opt/homebrew/bin`.

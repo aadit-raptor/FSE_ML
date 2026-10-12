@@ -1,0 +1,1753 @@
+{
+ "about": "Typed by eye from public filings and presentations for the hand build of model 1 (PLAN.md R4 part a, 2026-10-12). 'expected' is what the hand-built Excel workbook's own formulas give. Assumptions are placeholders, nobody's forecast.",
+ "name": "Yatharth Hospital & Trauma Care Services Limited",
+ "sector": "hospitals",
+ "unit_name": "Rs million",
+ "unit_rupees": 1000000,
+ "basis": "Consolidated, Ind AS",
+ "period_labels": {
+  "ly": "FY26 (actual)",
+  "ytd": "Q1 FY27 (actual)",
+  "roy": "Rest of FY27 (assumed)",
+  "cy": "FY27",
+  "y1": "FY28",
+  "y2": "FY29"
+ },
+ "words": {
+  "s1": "Beds",
+  "place": "bed",
+  "places": "Beds in use (the beds occupancy is counted on)",
+  "occ": "Occupancy",
+  "price": "Revenue per occupied bed per day (ARPOB), Rs",
+  "s1_rev": "Hospital revenue",
+  "s2": "Second line: not used for this company",
+  "s2_units": "Units (not used)",
+  "s2_rpu": "Revenue per unit per year, Rs (not used)",
+  "s2_rev": "Second line revenue (not used)",
+  "s3": "Third line: not used for this company",
+  "s3_share": "Other revenue, as a share of hospital revenue (not used)",
+  "s3_rev": "Other revenue (not used)",
+  "mat": "Drugs, consumables and implants",
+  "emp": "Employees",
+  "pwr": "Power and fuel (not shown separately)",
+  "oth": "Other expenses"
+ },
+ "choices": {
+  "line1_past": "revenue",
+  "line1_end_to_date": "average"
+ },
+ "off": [
+  "s2",
+  "s3"
+ ],
+ "sections": [
+  {
+   "id": "is",
+   "title": "Statement of unaudited consolidated financial results, Rs million",
+   "source": "Results filing dated 10 August 2026, PDF page 9 (yatharth-hospital_FY27-Q1-scanned.pdf)",
+   "columns": [
+    "Q1 FY27",
+    "Q4 FY26",
+    "Q1 FY26",
+    "FY26"
+   ],
+   "use": {
+    "ly": "FY26",
+    "ytd": "Q1 FY27"
+   },
+   "rows": [
+    {
+     "key": "rev",
+     "label": "Revenue from operations",
+     "values": [
+      3926.54,
+      3415.63,
+      2592.47,
+      12071.72
+     ]
+    },
+    {
+     "key": "oi",
+     "label": "Other income",
+     "values": [
+      43.53,
+      71.08,
+      78.35,
+      257.87
+     ]
+    },
+    {
+     "key": "ti",
+     "label": "Total income",
+     "values": [
+      3970.07,
+      3486.71,
+      2670.82,
+      12329.59
+     ]
+    },
+    {
+     "key": "purch",
+     "label": "Purchase of drugs, consumables and implants",
+     "values": [
+      710.97,
+      578.27,
+      541.36,
+      2342.69
+     ]
+    },
+    {
+     "key": "chinv",
+     "label": "Change in inventories of drugs, consumables and implants",
+     "values": [
+      -17.49,
+      43.54,
+      -19.49,
+      2.86
+     ]
+    },
+    {
+     "key": "emp",
+     "label": "Employee benefits expense",
+     "values": [
+      779.09,
+      700.96,
+      481.77,
+      2345.98
+     ]
+    },
+    {
+     "key": "fin",
+     "label": "Finance costs",
+     "values": [
+      65.92,
+      50.71,
+      1.9,
+      65.35
+     ]
+    },
+    {
+     "key": "dep",
+     "label": "Depreciation and amortisation expenses",
+     "values": [
+      282.38,
+      299.96,
+      149.19,
+      878.06
+     ]
+    },
+    {
+     "key": "others",
+     "label": "Other expenses",
+     "values": [
+      1537.15,
+      1293.75,
+      929.21,
+      4459.05
+     ]
+    },
+    {
+     "key": "texp",
+     "label": "Total expenses",
+     "values": [
+      3358.02,
+      2967.19,
+      2083.94,
+      10093.99
+     ]
+    },
+    {
+     "key": "pbt",
+     "label": "Profit before exceptional items and tax",
+     "values": [
+      612.05,
+      519.52,
+      586.88,
+      2235.6
+     ]
+    },
+    {
+     "key": "ctax",
+     "label": "Current tax",
+     "values": [
+      156.67,
+      125.91,
+      146.06,
+      533.16
+     ]
+    },
+    {
+     "key": "etax",
+     "label": "Income tax of earlier years",
+     "values": [
+      0.0,
+      -12.75,
+      0.0,
+      -7.16
+     ]
+    },
+    {
+     "key": "dtax",
+     "label": "Deferred tax",
+     "values": [
+      1.15,
+      -40.62,
+      20.42,
+      6.55
+     ]
+    },
+    {
+     "key": "ttax",
+     "label": "Total tax expense",
+     "values": [
+      157.82,
+      72.54,
+      166.48,
+      532.55
+     ]
+    },
+    {
+     "key": "pat",
+     "label": "Profit after tax",
+     "values": [
+      454.23,
+      446.98,
+      420.4,
+      1703.05
+     ]
+    },
+    {
+     "key": "own",
+     "label": "Attributable to owners of the holding company",
+     "values": [
+      470.61,
+      475.2,
+      420.36,
+      1753.8
+     ]
+    },
+    {
+     "key": "nci",
+     "label": "Attributable to non-controlling interests",
+     "values": [
+      -16.38,
+      -28.22,
+      0.04,
+      -50.75
+     ]
+    },
+    {
+     "key": "sharecap",
+     "label": "Paid up equity share capital (face value Rs 10)",
+     "values": [
+      963.54,
+      963.54,
+      963.54,
+      963.54
+     ]
+    },
+    {
+     "key": "eps",
+     "label": "Basic earnings per share, Rs",
+     "values": [
+      4.88,
+      4.93,
+      4.35,
+      18.2
+     ],
+     "marks": [
+      null,
+      null,
+      "amber",
+      null
+     ],
+     "why": "Q1 FY26: the filing prints 4.35, while owners' profit (420.36) over 96.354 million shares gives 4.36. Typed as printed; look at both figures on page 9."
+    }
+   ],
+   "checks": [
+    {
+     "label": "Total income = revenue + other income",
+     "formula": "ti-(rev+oi)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total expenses = the six cost lines",
+     "formula": "texp-(purch+chinv+emp+fin+dep+others)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Profit before tax = total income - total expenses",
+     "formula": "pbt-(ti-texp)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total tax = current + earlier years + deferred",
+     "formula": "ttax-(ctax+etax+dtax)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Profit after tax = profit before tax - tax",
+     "formula": "pat-(pbt-ttax)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Profit after tax = owners + non-controlling",
+     "formula": "pat-(own+nci)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Earnings per share = owners' profit / shares (within a paisa)",
+     "formula": "own/(sharecap/10) - eps",
+     "tolerance": 0.015
+    }
+   ]
+  },
+  {
+   "id": "bs",
+   "title": "Balance sheet at 31 March 2026, Rs million (a first-quarter filing carries none)",
+   "source": "stockanalysis.com/quote/nse/YATHARTH/financials/balance-sheet/ read 12 October 2026, except the two equity lines",
+   "columns": [
+    "31 Mar 2026"
+   ],
+   "use": {
+    "ly": "31 Mar 2026"
+   },
+   "rows": [
+    {
+     "key": "ppe",
+     "label": "Property, plant and equipment, work in progress included",
+     "values": [
+      10454
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "gw",
+     "label": "Goodwill",
+     "values": [
+      3064
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ltinv",
+     "label": "Long-term investments",
+     "values": [
+      1216
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "dta",
+     "label": "Deferred tax assets",
+     "values": [
+      265.38
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "olta",
+     "label": "Other long-term assets",
+     "values": [
+      696.81
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "inv",
+     "label": "Inventory",
+     "values": [
+      206.66
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "rec",
+     "label": "Accounts receivable",
+     "values": [
+      3748
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "prepaid",
+     "label": "Prepaid expenses",
+     "values": [
+      99.7
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "oca",
+     "label": "Other current assets",
+     "values": [
+      84.24
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "cash",
+     "label": "Cash and short-term investments",
+     "values": [
+      2982
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ta",
+     "label": "Total assets",
+     "values": [
+      22815
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "sc",
+     "label": "Equity share capital (from the results filing)",
+     "values": [
+      963.54
+     ]
+    },
+    {
+     "key": "oe",
+     "label": "Other equity (from the results filing, page 9)",
+     "values": [
+      16842.08
+     ]
+    },
+    {
+     "key": "bnci",
+     "label": "Non-controlling interests",
+     "values": [
+      266.02
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "std",
+     "label": "Current portion of long-term debt",
+     "values": [
+      264.62
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ltd",
+     "label": "Long-term debt",
+     "values": [
+      2269
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "cl",
+     "label": "Current portion of leases",
+     "values": [
+      17.27
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ncl",
+     "label": "Long-term leases",
+     "values": [
+      90.34
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "tp",
+     "label": "Accounts payable",
+     "values": [
+      1100
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "accr",
+     "label": "Accrued expenses",
+     "values": [
+      305.04
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ctl",
+     "label": "Current income taxes payable",
+     "values": [
+      3.55
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "cunearn",
+     "label": "Current unearned revenue",
+     "values": [
+      16.54
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ocl",
+     "label": "Other current liabilities",
+     "values": [
+      132.21
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "ltunearn",
+     "label": "Long-term unearned revenue",
+     "values": [
+      172.79
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "pension",
+     "label": "Pension and post-retirement benefits",
+     "values": [
+      56.73
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "dtl",
+     "label": "Long-term deferred tax liabilities",
+     "values": [
+      190.64
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "oltl",
+     "label": "Other long-term liabilities",
+     "values": [
+      125.66
+     ],
+     "marks": [
+      "red"
+     ],
+     "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+    },
+    {
+     "key": "round",
+     "label": "Rounding difference in the source (assets less equity and liabilities)",
+     "values": [
+      "(ppe+gw+ltinv+dta+olta+inv+rec+prepaid+oca+cash)-(sc+oe+bnci+std+ltd+cl+ncl+tp+accr+ctl+cunearn+ocl+ltunearn+pension+dtl+oltl)"
+     ],
+     "marks": [
+      "amber"
+     ],
+     "why": "The source rounds its larger figures, so its lines miss its own total by under 2. The model carries this in other liabilities so that it starts balanced."
+    }
+   ],
+   "checks": [
+    {
+     "label": "Printed total assets less the asset lines (rounding only: under 2)",
+     "formula": "ta-(ppe+gw+ltinv+dta+olta+inv+rec+prepaid+oca+cash)",
+     "tolerance": 2
+    },
+    {
+     "label": "The source's equity (17,806) less the filing's share capital + other equity (under 1)",
+     "formula": "17806-(sc+oe)",
+     "tolerance": 1
+    }
+   ]
+  },
+  {
+   "id": "drv",
+   "title": "Drivers",
+   "source": "Investor presentation Q3 FY26 (5 February 2026), slides 9 and 23, as carried by Business Standard's copy of the announcement; later quarters from press reports",
+   "columns": [
+    "FY26",
+    "Q1 FY27"
+   ],
+   "use": {
+    "ly": "FY26",
+    "ytd": "Q1 FY27"
+   },
+   "rows": [
+    {
+     "key": "d_days",
+     "label": "Days in the period",
+     "values": [
+      365,
+      91
+     ]
+    },
+    {
+     "key": "w_rev9",
+     "label": "Working: revenue, nine months to December 2025, Rs million",
+     "values": [
+      8577,
+      null
+     ]
+    },
+    {
+     "key": "w_arpob9",
+     "label": "Working: revenue per occupied bed per day, nine months, Rs",
+     "values": [
+      32757,
+      null
+     ]
+    },
+    {
+     "key": "w_arpobq4",
+     "label": "Working: revenue per occupied bed per day, Q4 FY26, Rs",
+     "values": [
+      33283,
+      null
+     ],
+     "marks": [
+      "amber",
+      null
+     ],
+     "why": "Not from the company's own page: press reports of the company's release (the company's website refuses programs, and the exchanges' copies may not be fetched by one). Check against the investor presentation."
+    },
+    {
+     "key": "w_obd",
+     "label": "Working: occupied bed days = revenue / revenue per occupied bed",
+     "values": [
+      "w_rev9*1000000/w_arpob9+3415.63*1000000/w_arpobq4",
+      null
+     ]
+    },
+    {
+     "key": "d_price",
+     "label": "Revenue per occupied bed per day (ARPOB), Rs",
+     "values": [
+      "12071.72*1000000/w_obd",
+      34758
+     ],
+     "marks": [
+      "amber",
+      "amber"
+     ],
+     "why": "FY26 is worked out (the year's revenue over the occupied bed days above); the year's own figure was not found. Q1 FY27: Not from the company's own page: press reports of the company's release (the company's website refuses programs, and the exchanges' copies may not be fetched by one). Check against the investor presentation."
+    },
+    {
+     "key": "d_occ",
+     "label": "Occupancy",
+     "values": [
+      0.66,
+      0.68
+     ],
+     "marks": [
+      "red",
+      "red"
+     ],
+     "why": "FY26 is the nine months' figure standing in for the year. Q1 FY27 comes from one press report only. Both need the company's presentation."
+    },
+    {
+     "key": "d_capacity",
+     "label": "Bed capacity at the end (a record; the model does not use it)",
+     "values": [
+      2555,
+      2555
+     ],
+     "marks": [
+      "amber",
+      "amber"
+     ],
+     "why": "2,305 beds in the Q3 FY26 presentation plus Agra's 250 from February 2026. Gurugram (250 beds, bought in Q1 FY27) is not open."
+    }
+   ],
+   "checks": []
+  }
+ ],
+ "map": {
+  "rev": "rev",
+  "mat": "purch+chinv",
+  "emp": "emp",
+  "pwr": "0",
+  "oth": "others",
+  "dep": "dep",
+  "othinc": "oi",
+  "int_lease": "0",
+  "int_debt": "fin",
+  "assoc": "0",
+  "tax": "ttax",
+  "mi": "nci",
+  "r_pbt": "pbt",
+  "r_pat": "pat",
+  "r_own": "own",
+  "shares": "sharecap/10",
+  "fa": "ppe",
+  "gw": "gw",
+  "onca": "ltinv+dta+olta",
+  "inv": "inv",
+  "rec": "rec",
+  "oca": "prepaid+oca",
+  "cash": "cash",
+  "eq": "sc+oe",
+  "nci": "bnci",
+  "debt": "std+ltd",
+  "lease": "cl+ncl",
+  "pay": "tp",
+  "ol": "accr+ctl+cunearn+ocl+ltunearn+pension+dtl+oltl+round",
+  "days": "d_days",
+  "s1_occ": "d_occ",
+  "s1_price": "d_price",
+  "s1_rev": "rev"
+ },
+ "assumptions": {
+  "days": {
+   "roy": 274,
+   "y1": 366,
+   "y2": 365
+  },
+  "s1_add": {
+   "roy": 150,
+   "y1": 250,
+   "y2": 150
+  },
+  "s1_cls": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "s1_occ": {
+   "roy": 0.68,
+   "y1": 0.68,
+   "y2": 0.7
+  },
+  "s1_price": {
+   "roy": 35500
+  },
+  "s1_pg": {
+   "y1": 0.05,
+   "y2": 0.05
+  },
+  "mat_sh": {
+   "roy": 0.177,
+   "y1": 0.177,
+   "y2": 0.177
+  },
+  "mat_pd": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "emp_sh": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "emp_pd": {
+   "roy": 4700,
+   "y1": 4950,
+   "y2": 5200
+  },
+  "pwr_sh": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "pwr_pd": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "oth_sh": {
+   "roy": 0.385,
+   "y1": 0.38,
+   "y2": 0.375
+  },
+  "oth_pd": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "dep_rate": {
+   "roy": 0.105,
+   "y1": 0.1,
+   "y2": 0.1
+  },
+  "oi_yield": {
+   "roy": 0.06,
+   "y1": 0.06,
+   "y2": 0.06
+  },
+  "debt_rate": {
+   "roy": 0.09,
+   "y1": 0.09,
+   "y2": 0.09
+  },
+  "lease_rate": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "assoc": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "tax_rate": {
+   "roy": 0.258,
+   "y1": 0.255,
+   "y2": 0.255
+  },
+  "mi_share": {
+   "roy": -0.03,
+   "y1": 0,
+   "y2": 0
+  },
+  "shares": {
+   "cy": 96.354,
+   "y1": 96.354,
+   "y2": 96.354
+  },
+  "capex": {
+   "cy": 2500,
+   "y1": 1500,
+   "y2": 1500
+  },
+  "drawn": {
+   "cy": 1000,
+   "y1": 0,
+   "y2": 0
+  },
+  "repaid": {
+   "cy": 264.62,
+   "y1": 400,
+   "y2": 400
+  },
+  "lease_red": {
+   "cy": 17.27,
+   "y1": 17,
+   "y2": 17
+  },
+  "inv_days": {
+   "cy": 32,
+   "y1": 32,
+   "y2": 32
+  },
+  "rec_days": {
+   "cy": 113,
+   "y1": 110,
+   "y2": 105
+  },
+  "pay_days": {
+   "cy": 59,
+   "y1": 59,
+   "y2": 59
+  },
+  "min_cash": {
+   "cy": 500,
+   "y1": 500,
+   "y2": 500
+  },
+  "dividends": {
+   "cy": 48.18,
+   "y1": 96.35,
+   "y2": 96.35
+  }
+ },
+ "notes": [
+  "Bed capacity x occupancy x revenue per occupied bed does NOT give the revenue: for FY25 the presentation's 1,605 beds, 61% and Rs 30,829 give Rs 11,017 million against Rs 8,805 million reported. Occupancy is counted on fewer beds than the capacity printed, and that count is not printed.",
+  "So for the past the block runs backwards: revenue, occupancy and revenue per occupied bed are typed, and the beds in use are worked out (revenue / days / occupancy / price). The forecast then runs forwards from that count.",
+  "Revenue per occupied bed is all hospital revenue (outpatients and pharmacy included) over occupied bed days, so no second revenue line is needed here.",
+  "A first-quarter filing has no balance sheet and no cash flow. The model starts from the 31 March 2026 balance sheet, which is from a secondary source until the user saves the FY26 filing.",
+  "Beds in use at the end of June 2026 is not printed anywhere; the quarter's average stands in for it."
+ ],
+ "expected": {
+  "days": {
+   "ly": 365.0,
+   "ytd": 91.0,
+   "roy": 274.0,
+   "cy": 365.0,
+   "y1": 366.0,
+   "y2": 365.0
+  },
+  "s1_open": {
+   "ly": null,
+   "ytd": null,
+   "roy": 1825.5971206286495,
+   "cy": null,
+   "y1": 1975.5971206286495,
+   "y2": 2225.5971206286495
+  },
+  "s1_add": {
+   "ly": null,
+   "ytd": null,
+   "roy": 150.0,
+   "cy": null,
+   "y1": 250.0,
+   "y2": 150.0
+  },
+  "s1_cls": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s1_end": {
+   "ly": null,
+   "ytd": 1825.5971206286495,
+   "roy": 1975.5971206286495,
+   "cy": 1975.5971206286495,
+   "y1": 2225.5971206286495,
+   "y2": 2375.5971206286495
+  },
+  "s1_avg": {
+   "ly": 1512.9141826782,
+   "ytd": 1825.5971206286495,
+   "roy": 1900.5971206286495,
+   "cy": 1881.898490491663,
+   "y1": 2100.5971206286495,
+   "y2": 2300.5971206286495
+  },
+  "s1_occ": {
+   "ly": 0.66,
+   "ytd": 0.68,
+   "roy": 0.68,
+   "cy": 0.68,
+   "y1": 0.68,
+   "y2": 0.7
+  },
+  "s1_pg": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": 0.05,
+   "y2": 0.05
+  },
+  "s1_price": {
+   "ly": 33122.11490039807,
+   "ytd": 34758.0,
+   "roy": 35500.0,
+   "cy": 35320.54267851598,
+   "y1": 37086.56981244178,
+   "y2": 38940.89830306388
+  },
+  "s1_rev": {
+   "ly": 12071.72,
+   "ytd": 3926.54,
+   "roy": 12571.233570801316,
+   "cy": 16497.773570801317,
+   "y1": 19388.733025728703,
+   "y2": 22889.55987948942
+  },
+  "s2_open": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s2_add": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s2_end": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s2_avg": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s2_rpu": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s2_rev": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s3_share": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "s3_rev": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "rev": {
+   "ly": 12071.72,
+   "ytd": 3926.54,
+   "roy": 12571.233570801316,
+   "cy": 16497.773570801317,
+   "y1": 19388.733025728703,
+   "y2": 22889.55987948942
+  },
+  "rev_g": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0.3666464738083155,
+   "y1": 0.17523330905959145,
+   "y2": 0.18055985654736428
+  },
+  "mat": {
+   "ly": 2345.55,
+   "ytd": 693.48,
+   "roy": 2225.1083420318328,
+   "cy": 2918.588342031833,
+   "y1": 3431.80574555398,
+   "y2": 4051.4520986696275
+  },
+  "mat_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.177,
+   "cy": null,
+   "y1": 0.177,
+   "y2": 0.177
+  },
+  "mat_pd": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "mat_m1": {
+   "ly": 0.1943012263372577,
+   "ytd": 0.1766135070571037,
+   "roy": 0.177,
+   "cy": 0.17690801304227582,
+   "y1": 0.177,
+   "y2": 0.177
+  },
+  "mat_m2": {
+   "ly": 4247.540579060394,
+   "ytd": 4174.337949237752,
+   "roy": 4272.78,
+   "cy": 4248.971176885192,
+   "y1": 4463.739542625493,
+   "y2": 4824.777299749614
+  },
+  "emp": {
+   "ly": 2345.98,
+   "ytd": 779.09,
+   "roy": 2447.588971945575,
+   "cy": 3226.678971945575,
+   "y1": 3805.651803442924,
+   "y2": 4366.533334953177
+  },
+  "emp_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "emp_pd": {
+   "ly": null,
+   "ytd": null,
+   "roy": 4700.0,
+   "cy": null,
+   "y1": 4950.0,
+   "y2": 5200.0
+  },
+  "emp_m1": {
+   "ly": 0.1943368467790837,
+   "ytd": 0.19841641750752573,
+   "roy": 0.19469759734879866,
+   "cy": 0.19558269230075578,
+   "y1": 0.19628161357386545,
+   "y2": 0.19076528154942302
+  },
+  "emp_m2": {
+   "ly": 4248.31926314259,
+   "ytd": 4689.659331014074,
+   "roy": 4700.0,
+   "cy": 4697.499044799775,
+   "y1": 4949.999999999999,
+   "y2": 5200.0
+  },
+  "pwr": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "pwr_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "pwr_pd": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "pwr_m1": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "pwr_m2": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "oth": {
+   "ly": 4459.05,
+   "ytd": 1537.15,
+   "roy": 4839.924924758507,
+   "cy": 6377.074924758506,
+   "y1": 7367.718549776907,
+   "y2": 8583.584954808533
+  },
+  "oth_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.385,
+   "cy": null,
+   "y1": 0.38,
+   "y2": 0.375
+  },
+  "oth_pd": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.0,
+   "cy": null,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "oth_m1": {
+   "ly": 0.36937983982398537,
+   "ytd": 0.39147697463924985,
+   "roy": 0.385,
+   "cy": 0.38654154740279684,
+   "y1": 0.38,
+   "y2": 0.375
+  },
+  "oth_m2": {
+   "ly": 8074.863387716847,
+   "ytd": 9252.730545467512,
+   "roy": 9293.900000000001,
+   "cy": 9283.942911000866,
+   "y1": 9583.169639534957,
+   "y2": 10221.985804554268
+  },
+  "ebitda": {
+   "ly": 2921.1399999999985,
+   "ytd": 916.8199999999997,
+   "roy": 3058.611332065402,
+   "cy": 3975.431332065402,
+   "y1": 4783.556926954891,
+   "y2": 5887.989491058086
+  },
+  "ebitda_m": {
+   "ly": 0.24198208705967325,
+   "ytd": 0.23349310079612068,
+   "roy": 0.2433024026512014,
+   "cy": 0.24096774725417147,
+   "y1": 0.24671838642613456,
+   "y2": 0.25723471845057705
+  },
+  "dep": {
+   "ly": 878.06,
+   "ytd": 282.38,
+   "roy": 824.0043287671233,
+   "cy": 1106.3843287671234,
+   "y1": 1184.7615671232877,
+   "y2": 1216.285410410959
+  },
+  "dep_rate": {
+   "ly": null,
+   "ytd": 0.10834351223675884,
+   "roy": 0.105,
+   "cy": 0.10583358798231524,
+   "y1": 0.1,
+   "y2": 0.1
+  },
+  "othinc": {
+   "ly": 257.87,
+   "ytd": 43.53,
+   "roy": 134.31254794520547,
+   "cy": 177.84254794520547,
+   "y1": 199.12070076906332,
+   "y2": 275.2934333962512
+  },
+  "oi_yield": {
+   "ly": null,
+   "ytd": 0.058550755079930135,
+   "roy": 0.06,
+   "cy": 0.05963868140348943,
+   "y1": 0.06,
+   "y2": 0.06
+  },
+  "int_debt": {
+   "ly": 65.35,
+   "ytd": 65.92,
+   "roy": 196.0172728767123,
+   "cy": 261.9372728767123,
+   "y1": 276.21,
+   "y2": 240.20999999999998
+  },
+  "debt_rate": {
+   "ly": null,
+   "ytd": 0.10435834718876374,
+   "roy": 0.09,
+   "cy": 0.09028241479769908,
+   "y1": 0.09,
+   "y2": 0.09
+  },
+  "int_lease": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "lease_rate": {
+   "ly": null,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "assoc": {
+   "ly": 0.0,
+   "ytd": 0.0,
+   "roy": 0.0,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "pbt": {
+   "ly": 2235.5999999999985,
+   "ytd": 612.0499999999997,
+   "roy": 2172.902278366772,
+   "cy": 2784.9522783667717,
+   "y1": 3521.7060606006667,
+   "y2": 4706.787514043378
+  },
+  "tax": {
+   "ly": 532.55,
+   "ytd": 157.82,
+   "roy": 560.6087878186272,
+   "cy": 718.4287878186271,
+   "y1": 898.03504545317,
+   "y2": 1200.2308160810614
+  },
+  "tax_rate": {
+   "ly": 0.23821345500089475,
+   "ytd": 0.2578547504288866,
+   "roy": 0.258,
+   "cy": 0.2579680784476307,
+   "y1": 0.255,
+   "y2": 0.255
+  },
+  "pat": {
+   "ly": 1703.0499999999986,
+   "ytd": 454.22999999999973,
+   "roy": 1612.2934905481447,
+   "cy": 2066.5234905481448,
+   "y1": 2623.6710151474967,
+   "y2": 3506.5566979623163
+  },
+  "mi": {
+   "ly": -50.75,
+   "ytd": -16.38,
+   "roy": -48.36880471644434,
+   "cy": -64.74880471644434,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "mi_share": {
+   "ly": -0.029799477408179467,
+   "ytd": -0.03606102635228851,
+   "roy": -0.03,
+   "cy": -0.03133223745705873,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "pat_own": {
+   "ly": 1753.7999999999986,
+   "ytd": 470.60999999999973,
+   "roy": 1660.6622952645891,
+   "cy": 2131.272295264589,
+   "y1": 2623.6710151474967,
+   "y2": 3506.5566979623163
+  },
+  "shares": {
+   "ly": 96.354,
+   "ytd": 96.354,
+   "roy": null,
+   "cy": 96.354,
+   "y1": 96.354,
+   "y2": 96.354
+  },
+  "eps": {
+   "ly": 18.201631483903093,
+   "ytd": 4.884177096954976,
+   "roy": null,
+   "cy": 22.119188567828935,
+   "y1": 27.229497635256415,
+   "y2": 36.39243516576703
+  },
+  "fa": {
+   "ly": 10454.0,
+   "ytd": null,
+   "roy": null,
+   "cy": 11847.615671232878,
+   "y1": 12162.85410410959,
+   "y2": 12446.568693698631
+  },
+  "gw": {
+   "ly": 3064.0,
+   "ytd": null,
+   "roy": null,
+   "cy": 3064.0,
+   "y1": 3064.0,
+   "y2": 3064.0
+  },
+  "onca": {
+   "ly": 2178.19,
+   "ytd": null,
+   "roy": null,
+   "cy": 2178.19,
+   "y1": 2178.19,
+   "y2": 2178.19
+  },
+  "inv": {
+   "ly": 206.66,
+   "ytd": null,
+   "roy": null,
+   "cy": 255.87623820553054,
+   "y1": 300.0485897752114,
+   "y2": 355.1958004313098
+  },
+  "rec": {
+   "ly": 3748.0,
+   "ytd": null,
+   "roy": null,
+   "cy": 5107.529900001504,
+   "y1": 5827.214843798244,
+   "y2": 6584.667910538053
+  },
+  "oca": {
+   "ly": 183.94,
+   "ytd": null,
+   "roy": null,
+   "cy": 183.94,
+   "y1": 183.94,
+   "y2": 183.94
+  },
+  "cash": {
+   "ly": 2982.0,
+   "ytd": null,
+   "roy": null,
+   "cy": 3318.6783461510554,
+   "y1": 4588.223889937521,
+   "y2": 6786.584651469997
+  },
+  "ta": {
+   "ly": 22816.789999999997,
+   "ytd": 0.0,
+   "roy": null,
+   "cy": 25955.830155590967,
+   "y1": 28304.471427620563,
+   "y2": 31599.14705613799
+  },
+  "eq": {
+   "ly": 17805.620000000003,
+   "ytd": null,
+   "roy": null,
+   "cy": 19888.71229526459,
+   "y1": 22416.03331041209,
+   "y2": 25826.240008374407
+  },
+  "nci": {
+   "ly": 266.02,
+   "ytd": null,
+   "roy": null,
+   "cy": 201.27119528355564,
+   "y1": 201.27119528355564,
+   "y2": 201.27119528355564
+  },
+  "debt": {
+   "ly": 2533.62,
+   "ytd": null,
+   "roy": null,
+   "cy": 3269.0,
+   "y1": 2869.0,
+   "y2": 2469.0
+  },
+  "lease": {
+   "ly": 107.61,
+   "ytd": null,
+   "roy": null,
+   "cy": 90.34,
+   "y1": 73.34,
+   "y2": 56.34
+  },
+  "pay": {
+   "ly": 1100.0,
+   "ytd": null,
+   "roy": null,
+   "cy": 1502.586665042822,
+   "y1": 1740.9069219249245,
+   "y2": 2042.3758524800317
+  },
+  "ol": {
+   "ly": 1003.9199999999984,
+   "ytd": null,
+   "roy": null,
+   "cy": 1003.9199999999984,
+   "y1": 1003.9199999999984,
+   "y2": 1003.9199999999984
+  },
+  "tle": {
+   "ly": 22816.79,
+   "ytd": 0.0,
+   "roy": null,
+   "cy": 25955.830155590967,
+   "y1": 28304.47142762057,
+   "y2": 31599.147056137994
+  },
+  "chk_bs": {
+   "ly": -3.637978807091713e-12,
+   "ytd": 0.0,
+   "roy": null,
+   "cy": 0.0,
+   "y1": -7.275957614183426e-12,
+   "y2": -3.637978807091713e-12
+  },
+  "capex": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 2500.0,
+   "y1": 1500.0,
+   "y2": 1500.0
+  },
+  "drawn": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 1000.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "repaid": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 264.62,
+   "y1": 400.0,
+   "y2": 400.0
+  },
+  "lease_red": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 17.27,
+   "y1": 17.0,
+   "y2": 17.0
+  },
+  "inv_days": {
+   "ly": 32.15915243759459,
+   "ytd": null,
+   "roy": null,
+   "cy": 32.0,
+   "y1": 32.0,
+   "y2": 32.0
+  },
+  "rec_days": {
+   "ly": 113.32436471356195,
+   "ytd": null,
+   "roy": null,
+   "cy": 113.0,
+   "y1": 110.0,
+   "y2": 105.0
+  },
+  "pay_days": {
+   "ly": 59.00420303912059,
+   "ytd": null,
+   "roy": null,
+   "cy": 59.0,
+   "y1": 59.0,
+   "y2": 59.0
+  },
+  "min_cash": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 500.0,
+   "y1": 500.0,
+   "y2": 500.0
+  },
+  "short": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "cf_pat": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 2066.5234905481448,
+   "y1": 2623.6710151474967,
+   "y2": 3506.5566979623163
+  },
+  "cf_dep": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 1106.3843287671234,
+   "y1": 1184.7615671232877,
+   "y2": 1216.285410410959
+  },
+  "cf_assoc": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0.0,
+   "y1": 0.0,
+   "y2": 0.0
+  },
+  "cf_wc": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -1006.1594731642124,
+   "y1": -525.5370384843186,
+   "y2": -511.1313468407998
+  },
+  "cf_ops": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 2166.7483461510556,
+   "y1": 3282.8955437864656,
+   "y2": 4211.710761532476
+  },
+  "cf_capex": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -2500.0,
+   "y1": -1500.0,
+   "y2": -1500.0
+  },
+  "cf_debt": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 735.38,
+   "y1": -400.0,
+   "y2": -400.0
+  },
+  "cf_lease": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -17.27,
+   "y1": -17.0,
+   "y2": -17.0
+  },
+  "cf_div": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -48.18,
+   "y1": -96.35,
+   "y2": -96.35
+  },
+  "cf_change": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 336.67834615105556,
+   "y1": 1269.5455437864657,
+   "y2": 2198.360761532476
+  },
+  "cf_open": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 2982.0,
+   "y1": 3318.6783461510554,
+   "y2": 4588.223889937521
+  },
+  "cf_close": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 3318.6783461510554,
+   "y1": 4588.223889937521,
+   "y2": 6786.584651469997
+  },
+  "netdebt": {
+   "ly": -340.77,
+   "ytd": 0.0,
+   "roy": null,
+   "cy": 40.66165384894475,
+   "y1": -1645.8838899375205,
+   "y2": -4261.244651469997
+  },
+  "nd_ebitda": {
+   "ly": -0.1166565108142712,
+   "ytd": null,
+   "roy": null,
+   "cy": 0.010228237001849893,
+   "y1": -0.34407114100871683,
+   "y2": -0.7237181142971505
+  },
+  "chk_pbt": {
+   "ly": -1.3642420526593924e-12,
+   "ytd": -2.2737367544323206e-13,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "chk_pat": {
+   "ly": -1.3642420526593924e-12,
+   "ytd": -2.8421709430404007e-13,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "chk_own": {
+   "ly": -1.3642420526593924e-12,
+   "ytd": -2.8421709430404007e-13,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "dividends": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 48.18,
+   "y1": 96.35,
+   "y2": 96.35
+  }
+ }
+}
