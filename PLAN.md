@@ -206,7 +206,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 12.8 | Higher service limits as usage grows | 11.3 | ☐ |
 | 12.9 | Licensed market data (corporate credit spreads) | 4.2 | ☐ |
 | **R** | **Equity research workspace (the priority since 2026-10-12)** | | |
-| R0 | Proof before code: reader accuracy and five analysts | 6.1 | ☐ |
+| R0 | Proof before code: reader accuracy | 6.1 | ☐ |
 | R1 | Results reader | R0 | ☐ |
 | R2 | Coverage, review screen and the checked workbook | R1 | ☐ |
 | R3 | Excel add-in: sign in and import results | R2 | ☐ |
@@ -320,29 +320,47 @@ reading the history of drivers such as beds or stores from presentations
 stops for it):
 - which sectors, and how many models, are settled in R4 part a, by the user
   and Claude together (decided 2026-10-12: not before);
-- who the five test analysts are (R0), and which practising analyst reads
-  each sector model before it is called vetted (R4);
+- who the five test analysts are (asked for after R2, see "Analysts come
+  after the product" below), and which practising analyst reads each sector
+  model before it is called vetted (R4);
 - a paid AI key with a spending cap, if no free one reads accurately enough
   (R0 decides; it would bring 12.4 forward).
+
+**Analysts come after the product (the user's decision, 2026-10-12).** No
+analyst can be approached with a sample page: they need something finished
+or nearly finished to try. So no task waits for an analyst:
+- R0 is about the reader's accuracy only. Its hand-made sample is kept as
+  the picture of what R2 to R8 build towards, not shown to anyone yet.
+- **First showing: after R2** (upload a results PDF, review the amber
+  figures, download the checked workbook), on public filings only and on a
+  paid key with a cap. **Second: after R4** (the first sector model).
+  Each time the user asks for twenty minutes: what is wrong, what is
+  missing, would you use it. The answers are written under that task and
+  may reorder R3 to R9; work goes on meanwhile.
+- R4's sector model is marked **not yet vetted**, on screen and in the
+  workbook, until a practising analyst has read it; R4 does not wait.
+- The cost of this order: R1 and R2 are built before anyone outside has
+  said they want it. R2 is kept small for that reason, and what the
+  analysts say after it decides whether R3 onwards goes ahead as written.
 
 ### R0 Proof before code
 - **Needs:** 6.1 merged.
 - **You first:** collect 30 real quarterly results PDFs
   from the exchanges (at least 10 scanned, at least 5 half-year or year-end,
-  several sectors); create a free Gemini API key; find five analysts who
-  will give twenty minutes.
+  several sectors); create a free Gemini API key.
 - **Claude does:** a script, outside the app, that reads each PDF twice with
   the candidate AI models and scores every figure against a truth file (the
   exchange's own machine-readable filing where one is free to use, else
   figures the user keys for ten of them); the count of wrong figures, of
   wrong figures the arithmetic checks did not catch, and of amber flags; a
   one-page sample of what the tool will produce for one company (checked
-  statements, a model, a draft note), made by hand, to show the analysts.
-- **You do:** show the sample to the analysts.
-- **Done when:** the accuracy figures are written in this file; the bar is
-  **no wrong figure left unflagged across the 30, and under 2% of figures
-  amber**; a go, a change of AI provider, or a stop is recorded here with
-  what the analysts said.
+  statements, a model, a draft note), made by hand.
+- **Done when:** the accuracy figures are written in this file, with every
+  file read by two full models and ten documents scored against a truth
+  file; the bar is **no wrong figure left unflagged across the 30, and
+  under 2% of figures amber**; a go, a change of AI provider, or a stop is
+  recorded here. (Showing analysts was part of this task until 2026-10-12;
+  it now follows R2.)
 - **Progress (2026-10-12), not yet done:**
   - **The 30 documents are collected**: `research-samples/` on the Mac
     (kept out of git: the repository is public), named
@@ -414,8 +432,8 @@ stops for it):
       **0.12**, the dearest 0.19; under 20 rupees. Over half of what
       is paid for is the model's thinking. Google lists 3.8 flash at double
       from 2027-01-01. The lite pair cost 0.02 and is not usable.
-  - **Recommendation: go, with Gemini, on these conditions** (the analysts'
-    answers are still to come, so R0 stays open):
+  - **Recommendation: go, with Gemini, on these conditions** (R0 stays open
+    until conditions 2 and 3 are met):
     1. two reads by **two different full models**, never one read and never
        a lite model (they leave out rows and whole statements);
     2. the amber rate that counts is the two-full-model one, 1.04% against
@@ -448,16 +466,15 @@ stops for it):
     revenue (other basis), and a scan's text layer is not one either; (7)
     one request can read all four statements; (8) an answer can come back
     wrapped in a list.
-  - **The sample for the analysts is drafted**:
+  - **The sample is drafted** (kept for the first showing after R2):
     `research-samples/r0/sample/variater-sample.pdf` (built by
     `build_sample.py` from the saved read of Avenue Supermarts' September
     2026 half-year filing): checked statements with the one amber figure,
     the checks run, a next-quarter model as formulas, valuation arithmetic
     and the factual part of a note, with the rating left blank.
   - **Still to do**: read the 12 lite-read files again with full models and
-    try the high-resolution setting; a truth file for ten documents; the
-    user's changes to the sample; the five analysts and what they say; then
-    the final table and the decision.
+    try the high-resolution setting; a truth file for ten documents; then
+    the final table and the decision, which closes R0.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
@@ -505,7 +522,8 @@ stops for it):
   workbook that recalculates to the same totals (e2e on recorded answers);
   another account cannot read it (test); a corrected figure is the one
   stored and downloaded. **This is the first version to put in front of the
-  five analysts.**
+  five analysts**: the user shows it, and what they say is written here
+  before R3 onwards is confirmed (R4 part a can go on meanwhile).
 
 ### R3 Excel add-in: sign in and import results
 - **Pulls forward:** 7.3b, for research instead of deals.
@@ -538,7 +556,9 @@ stops for it):
   here as a table of sectors, their blocks and their sources. Then the
   first model is built by hand in Excel for two companies with only the
   blocks below, to see that they are enough.
-- **Needs from the user (part b):** the analyst who reads the model.
+- **Needs from the user (part b):** the analyst who reads the model. If
+  none is found yet, the model ships marked "not yet vetted" and this line
+  stays open.
 - **Claude does (part b):**
   - the model definition format: rows, periods and formulas in plain
     arithmetic with `max`/`min` (as the reference cases use), an evaluator
@@ -561,7 +581,8 @@ stops for it):
   agree to 0.01 on every row (test, with a real spreadsheet engine in CI);
   the hand-solved companies match; changing one assumption cell in Excel
   moves the projection with no call to the server; the named analyst has
-  read the model and their points are fixed or recorded.
+  read the model and their points are fixed or recorded, or the model says
+  "not yet vetted" wherever it is shown.
 
 ### R5 Save back and roll forward
 - **Claude does:** a research model saved per company with versions (the
