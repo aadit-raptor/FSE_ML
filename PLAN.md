@@ -472,9 +472,86 @@ or nearly finished to try. So no task waits for an analyst:
     2026 half-year filing): checked statements with the one amber figure,
     the checks run, a next-quarter model as formulas, valuation arithmetic
     and the factual part of a note, with the rating left blank.
-  - **Still to do**: read the 12 lite-read files again with full models and
-    try the high-resolution setting; a truth file for ten documents; then
-    the final table and the decision, which closes R0.
+  - **Third session (2026-10-12, an hour after the second): no request was
+    possible.** All four full flash models refused for the day (their
+    allowance is a rolling 24 hours from the morning's reads, back after
+    about 06:00 IST on 2026-10-13), so the 12 re-reads and the
+    high-resolution trial are not done and the table above stands. Done
+    without a request:
+    - **Column periods are checked** (`score.py` `periods`, in `report.py`'s
+      output): every heading against the quarter the filing is for (the
+      quarter, the one before, the same one a year ago; the year so far and a
+      year ago; the last full year, and the year before it only beside it;
+      balance sheets likewise), month ends only, no period twice, no column
+      after the filing's quarter, the segment table's periods the results
+      table's. On the 60 saved reads it flags **exactly the two known
+      misreads** (2024 for 2026) and nothing else; of 1,368 wrong years
+      planted one at a time in the 58 clean reads it noticed **all 1,368**
+      (`plant_periods.py`). It takes a March year end and the quarter from
+      the file name; R1 reads both from the filing.
+    - **A full model's read is preferred to a lite one's** (`report.py`, and
+      `statements.py` now reads a file again when only a lite read is saved);
+      `reread_b.py` reads B again for the two first-pass files;
+      `statements.py --high` sends the API's high-resolution setting and
+      saves beside the ordinary reads (`.HA.`, `.HB.`).
+    - **`finish.sh` runs everything still owed in one go** (27 requests at
+      most, inside one free day, safe to run again).
+    - **Truth file: the exchanges' XBRL is not free for a program to
+      fetch.** NSE's terms allow personal, non-commercial use and forbid
+      "systematic or automated data collection" without written consent;
+      BSE's forbid building a database by systematically downloading pages
+      and commercial use of the site's contents. (Read from search results
+      and an NSE-run copy of the terms: both sites refused a direct fetch.)
+      So nothing downloads them here and **the product must not fetch them
+      either** without the exchange's consent, which is what phase R already
+      assumes (upload only). What is left is a person saving ten files by
+      hand from the public results page for a private test, which is the
+      user's call; the other way is keying ten files. **`xbrl_score.py` is
+      ready for the first**: it matches the XBRL to a read by period and
+      value (no taxonomy to map), counts the exchange's numbers the read
+      does not show and how many of those nothing flagged; tested on a
+      made-up file with one figure changed (found, and counted as
+      unflagged). The XBRL usually holds only the current quarter and year
+      so far, so it scores those columns.
+    - **The ten documents** (for XBRL or for keying; half-years, year-ends,
+      every kind of mistake seen): lemon-tree-hotels FY26-Q2,
+      jk-lakshmi-cement FY26-Q2, avenue-supermarts FY27-Q2, tata-steel
+      FY26-Q4, eternal FY26-Q4, hindustan-aeronautics FY27-Q1,
+      kirloskar-pneumatic FY27-Q1, reliance-industries FY27-Q1,
+      devyani-international FY27-Q1, indoco-remedies FY27-Q1.
+    - **Truth file, first result (same day): nine documents scored against
+      BSE's own figures, no wrong figure left unflagged.** The user saved,
+      by hand, the table BSE's results page shows for each filing (BSE's
+      "XBRL" link gives a small HTML table named `.xls`, not the XBRL
+      itself: the filing's quarter only, 14 to 26 amounts in millions of
+      rupees, earnings per share and other comprehensive income among them)
+      for nine of the ten; Kirloskar's gave a site error. `bse_score.py`
+      looks for each amount, by size, in the read's column for that quarter:
+
+      | | Figures |
+      |---|---|
+      | BSE amounts, nine documents | 208 |
+      | in read A as printed | 182 (164 not amber, 18 amber and right) |
+      | BSE's own grouping of lines the read holds (other expenses plus impairment, profit before associates less tax, ...), which add up exactly from read A | 25 |
+      | not reproduced by read A | **1, and it is amber** |
+
+      The one is JK Lakshmi's September 2025 quarter: BSE's other expenses
+      are power and fuel plus transport plus other expenses, which add up
+      from read B and not from read A, the three cells already found wrong
+      in A by eye and flagged. BSE also confirms read A against read B on
+      Hindustan Aeronautics' revenue (the 5 read for a 4). **What this
+      does and does not cover**: about 23 figures a document, the current
+      quarter of the results table; not the comparative columns, the
+      segment table, the balance sheet or the cash flow. It is the
+      exchange's check on the headline figures, per-share lines included,
+      not a full truth file.
+  - **Still to do**: run `finish.sh` (the 12 re-reads, then high resolution
+    on lemon-tree, jk-lakshmi and tata-steel FY26-Q4, and say whether it
+    cuts the errors) and score again with `bse_score.py`; a tenth BSE table
+    (Kirloskar again, or v-mart-retail FY26-Q2 in its place); the user to
+    say whether BSE's table for ten documents is truth file enough or ten
+    files are also keyed in full; then the final table and the decision,
+    which closes R0.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a

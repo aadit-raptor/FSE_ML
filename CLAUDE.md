@@ -1439,8 +1439,18 @@ requests a day per model; the user chose to stay free and slow for the test.
 After the second session (2026-10-12) all 30 files are read twice: with two
 full flash models 1.04% of figures are amber and no wrong figure was found
 unflagged, so the recommendation recorded there is **go, with Gemini, two
-reads by two different full models**. Still open: 12 files a lite model read
-are to be read again and a truth file for ten documents; then R0 closes.
+reads by two different full models**. Third session (same day): the free
+allowance was spent, so no read was made; added without a request were the
+check of column periods (`score.py` `periods`), the full-over-lite
+preference, the high-resolution option, `xbrl_score.py` and `finish.sh`,
+which runs every read still owed. **The exchanges' XBRL may not be fetched
+by a program** (NSE and BSE terms), here or in the product; the user saves
+ten files by hand or keys them. The user saved BSE's results-page table for
+nine of the ten (it is a small HTML table of the quarter's headline figures,
+not the XBRL): of 208 BSE amounts read A fails to give one, and that one was
+already amber (`bse_score.py`). Still open: `finish.sh`, a tenth table,
+whether that is truth file enough (the user's call), the final table; then
+R0 closes.
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet
@@ -1936,7 +1946,10 @@ Skills load when a session starts: install first, then open a new session.
   API. The day is a rolling 24 hours; a refusal for the day must not be
   retried; model names can share one allowance (`gemini-3.5-flash` counts
   as 3.6's), and listing the models is free and says which exist
-  (`gemini-2.5-flash` is listed and then refuses new users).
+  (`gemini-2.5-flash` is listed and then refuses new users). A session
+  started within a day of the last one has nothing to spend: read the
+  newest `out/run-*.log` for when each model was first used before planning
+  any request.
 - Reading figures from a filing with an AI model (PLAN.md R0): one read is
   never enough, **a model will change a total so that its misread digit
   still adds up**, and it will write a year it finds likely (2024 for 2026)
