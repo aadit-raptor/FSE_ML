@@ -638,10 +638,11 @@ or nearly finished to try. So no task waits for an analyst:
   here as a table of sectors, their blocks and their sources. Then the
   first model is built by hand in Excel for two companies with only the
   blocks below, to see that they are enough.
-- **Part a, the research and the decision: done 2026-10-12.** Still open in
-  part a: the first model by hand in Excel for two companies (**Yatharth
-  Hospital and Lemon Tree Hotels**, so the test also shows one model serving
-  two sectors).
+- **Part a is done (2026-10-12): the research and the decision, then the
+  first model by hand in Excel for two companies** (Yatharth Hospital and
+  Lemon Tree Hotels, so the test also shows one model serving two sectors).
+  What the hand build found is under "Model 1 by hand" below; part b is
+  next.
   - **What was read.** Four broker notes in full (ICICI Direct on HDFC AMC,
     July 2026; JM Financial on Lemon Tree, August 2025; Centrum on V-Mart,
     July 2025; BOBCAPS on Tata Steel, July 2026); for the other sectors,
@@ -710,8 +711,8 @@ or nearly finished to try. So no task waits for an analyst:
     one or two sample companies): collect results filings for at least two
     companies of that kind**, so two can be solved by hand. Conglomerates
     such as Reliance wait until models can be combined, one per segment.
-  - **What the blocks lack** (to add in part b; the eight revenue blocks
-    themselves are nearly enough):
+  - **What the blocks lack** (the list written before the hand build; to
+    add in part b, with the additions under "after the hand build" above):
     1. **A running count**: opening plus additions less closures, and the
        average, for beds, rooms, stores, subscribers and dark stores. Only
        the subscriber block has it today; make it one shared piece.
@@ -729,6 +730,111 @@ or nearly finished to try. So no task waits for an analyst:
        Steel, Reliance, Airtel), and P/E beside EV/EBITDA.
     7. **Old units against new** (same-store growth, new beds filling) is
        done as two segments, not a new block.
+  - **Model 1 by hand (2026-10-12).** Two workbooks on the Mac only, in
+    `research-samples/r4a/` (git ignores the folder):
+    `model1-yatharth-hospital.xlsx` and `model1-lemon-tree-hotels.xlsx`,
+    written by `build_model1.py` from the typed figures in `companies.py`;
+    `check_model1.py` works the formulas out and prints every check. Each
+    has a **Reported** sheet (the figures as typed, with the page's own sums
+    as formulas), a **Model** sheet and a **Check by eye** sheet. No Gemini
+    request was made: the figures were read by eye from the two results
+    PDFs and from the companies' investor presentations.
+    - **The blocks are enough for the revenue.** Three of the eight served
+      both companies: places x share filled x price per day, units x revenue
+      per unit (Lemon Tree's fees on managed rooms) and a free formula (food
+      and drink as a share of room revenue). **The model sheet is the same
+      118 rows in both; all 243 forecast formulas are identical, cell for
+      cell**, and only the words and the past differ. Yatharth leaves lines
+      2 and 3 at nil. Plain arithmetic with `MAX` was enough throughout
+      (`MIN` was never needed; `ROUND` once, in a check on typed figures).
+    - **Checks:** every sum the filings print holds on the typed figures
+      (27 for Lemon Tree, 7 for Yatharth), the model's past profit before
+      tax, after tax and for the owners equals the filings' to the paisa,
+      and the balance sheet balances in every forecast year. These were
+      worked out by a throwaway reader, **not yet by Excel** (Excel did not
+      answer the request to recalculate: open each workbook once and look
+      at the check rows).
+    - **The block has to run backwards for the past (the main finding).**
+      Yatharth prints bed capacity, occupancy and revenue per occupied bed,
+      and their product is not its revenue: FY25's 1,605 beds, 61% and
+      Rs 30,829 give Rs 11,017 million against Rs 8,805 million reported,
+      because occupancy is counted on fewer beds than the capacity printed
+      and that count is not printed. So the past types revenue, occupancy
+      and price and **works out the beds in use**; Lemon Tree prints rooms,
+      occupancy and rate for its own hotels and **works out room revenue**.
+      Which of the four is worked out is a choice per company, and the
+      format must allow it.
+    - **One results PDF does not start coverage.** A first or third quarter
+      filing has no balance sheet and no cash flow, so the model starts from
+      the last year-end (or half-year) balance sheet and rolls the year in
+      progress forward from there with the whole year's flows. Yatharth's
+      opening balance sheet had to come from a secondary source. R2 and R4
+      part b must ask for the latest filing that carries a balance sheet as
+      well.
+    - **The year in progress needs last year cut the same way.** A hotel's
+      second half is its strong half (FY25: 74% and 78% occupancy against
+      67% and 68%), so "the rest of the year" cannot be the first half
+      grown; it is typed, or grown on the same part of last year, which
+      means holding last year's quarters and their drivers too.
+    - **Drivers seldom arrive ready.** Half-year occupancy and rate are not
+      printed (weighted from the two quarters by nights sold); Yatharth's
+      full-year price was worked out from occupied bed days; the count at
+      the end of the latest period is not printed; the company's "EBITDA"
+      counts other income and the rate is called "gross". Presentations are
+      in crore where the filing is in lakh. A typed driver therefore needs
+      a place for its own working, its source and a mark.
+    - **The sector table was wrong on one point:** Yatharth's revenue per
+      occupied bed covers all hospital revenue (outpatients and pharmacy
+      included), so no second line was needed. Whether a hospital needs one
+      depends on how that company defines the figure.
+    - **Figures the user should check by eye** (each is amber or red in the
+      workbook, with its reason): all of Yatharth's 31 March 2026 balance
+      sheet except equity (from stockanalysis.com's rounded table; equity
+      agrees with the filing to 0.4); Yatharth's occupancy for FY26 (the
+      nine months' 66% standing in) and Q1 FY27 (68%, one press report),
+      and its revenue per occupied bed for Q4 FY26 and Q1 FY27 (press
+      reports of the company's release); Lemon Tree's FY25 interest on
+      leases (two half years added, the year's own split is not printed);
+      Yatharth's Q1 FY26 earnings per share (printed 4.35, the page's own
+      figures give 4.36). Yatharth's website turns programs away and the
+      exchanges' copies may not be fetched by one, so **the user saves
+      Yatharth's FY26 results filing and its Q1 FY27 investor presentation
+      into `research-samples/`** before the red figures can be replaced.
+    - **The forecast columns hold placeholder assumptions** so the formulas
+      have something to work on. They are nobody's forecast.
+  - **What the blocks lack, after the hand build** (the list below is right
+    in what it has and too short; nothing on it was wrong):
+    - Item 1 (a running count): confirmed, and used twice in one model
+      (rooms, managed rooms).
+    - Item 2 (a cost row that picks its driver): confirmed already in
+      model 1, not only per tonne. Employees and power follow rooms and
+      beds, not revenue. It needs no switch: **cost = a share of revenue +
+      an amount per place per day x places x days, with one of the two left
+      at nil.** "Last year's grown" was not needed.
+    - Item 4 (the days in the period): confirmed, and needed well beyond
+      prices: depreciation, interest and other income for a part year, and
+      working capital in days.
+    - Item 5 (a balance x a rate): not needed as revenue here, but the
+      lower part is the same piece three times (interest on borrowings,
+      interest on leases, income on cash), so build it once.
+    - Item 7 (old units against new as two segments): Yatharth is the case
+      (new hospitals are 27% of revenue at other prices), but the company
+      prints occupancy for the group only, so the split would be the
+      analyst's estimate. It stays a choice, not a default.
+    - Items 3 and 6 were not tested by this model.
+    - **To add** (all found in the hand build): 8. the past run backwards
+      (above); 9. a constant for rupees in one unit of the statements, since
+      prices per day are in rupees and statements in lakh, crore or million;
+      10. in the lower part, **lease liabilities and their interest** (23%
+      of Lemon Tree's finance cost, and the filing does not split it),
+      **non-controlling interests** (19% of Lemon Tree's profit),
+      associates, and other income as a yield on cash; 11. one kind of row
+      for every ratio: worked out in the past, typed in the future, and "as
+      it came out" for the year in progress; 12. a segment switched off
+      must not divide by nil (the hand build used `MAX(x, 1)`); 13. a check
+      on a printed ratio needs a tolerance of one in the last place (the
+      earnings per share check raised a false alarm); 14. deferred tax is
+      left out (tax paid = tax charged), which the model must say.
   - **Sources** (2026-10-12): hospitals: CareEdge
     (careratings.com/uploads/newsfiles/1743058970_Hospital%20Industry%20-%20CareEdge%20Report.pdf),
     CRISIL "Reading the vitals" (2023), ICRA; cement: ICRA's FY2027 outlook
