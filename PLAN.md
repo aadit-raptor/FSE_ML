@@ -318,8 +318,9 @@ reading the history of drivers such as beds or stores from presentations
 
 **Decisions that are the user's** (asked 2026-10-12; a task that needs one
 stops for it):
-- which sectors, and how many models, are settled in R4 part a, by the user
-  and Claude together (decided 2026-10-12: not before);
+- which sectors, and how many models: **settled 2026-10-12 in R4 part a**
+  (eleven models, the table under R4; hospitals and hotels first, then
+  cement, steel and chemicals, then shops and restaurants);
 - who the five test analysts are (asked for after R2, see "Analysts come
   after the product" below), and which practising analyst reads each sector
   model before it is called vetted (R4);
@@ -519,19 +520,21 @@ or nearly finished to try. So no task waits for an analyst:
       FY26-Q4, eternal FY26-Q4, hindustan-aeronautics FY27-Q1,
       kirloskar-pneumatic FY27-Q1, reliance-industries FY27-Q1,
       devyani-international FY27-Q1, indoco-remedies FY27-Q1.
-    - **Truth file, first result (same day): nine documents scored against
-      BSE's own figures, no wrong figure left unflagged.** The user saved,
+    - **Truth file (same day): ten documents scored against BSE's own
+      figures, no wrong figure left unflagged.** The user saved,
       by hand, the table BSE's results page shows for each filing (BSE's
       "XBRL" link gives a small HTML table named `.xls`, not the XBRL
       itself: the filing's quarter only, 14 to 26 amounts in millions of
       rupees, earnings per share and other comprehensive income among them)
-      for nine of the ten; Kirloskar's gave a site error. `bse_score.py`
-      looks for each amount, by size, in the read's column for that quarter:
+      for nine of the ten; Kirloskar's gave a site error, so V-Mart Retail
+      FY26-Q2 stands in (BSE gave it the other shape it has: six lines over
+      several periods, of which the filing prints four). `bse_score.py`
+      looks for each amount, by size, in the read's column for its period:
 
       | | Figures |
       |---|---|
-      | BSE amounts, nine documents | 208 |
-      | in read A as printed | 182 (164 not amber, 18 amber and right) |
+      | BSE amounts, ten documents | 232 |
+      | in read A as printed | 206 (188 not amber, 18 amber and right) |
       | BSE's own grouping of lines the read holds (other expenses plus impairment, profit before associates less tax, ...), which add up exactly from read A | 25 |
       | not reproduced by read A | **1, and it is amber** |
 
@@ -541,17 +544,19 @@ or nearly finished to try. So no task waits for an analyst:
       in A by eye and flagged. BSE also confirms read A against read B on
       Hindustan Aeronautics' revenue (the 5 read for a 4). **What this
       does and does not cover**: about 23 figures a document, the current
-      quarter of the results table; not the comparative columns, the
+      quarter of the results table (V-Mart's: three comparative columns
+      too); not the other comparative columns, the
       segment table, the balance sheet or the cash flow. It is the
       exchange's check on the headline figures, per-share lines included,
       not a full truth file.
   - **Still to do**: run `finish.sh` (the 12 re-reads, then high resolution
     on lemon-tree, jk-lakshmi and tata-steel FY26-Q4, and say whether it
-    cuts the errors) and score again with `bse_score.py`; a tenth BSE table
-    (Kirloskar again, or v-mart-retail FY26-Q2 in its place); the user to
-    say whether BSE's table for ten documents is truth file enough or ten
-    files are also keyed in full; then the final table and the decision,
-    which closes R0.
+    cuts the errors) and score again with `bse_score.py`; then the final
+    table and the decision, which closes R0. **Decided by the user
+    (2026-10-12): BSE's tables for the ten documents are truth file
+    enough**; no filing is keyed in full. While R0 waits a day for the
+    allowance, **R4 part a (sector research) goes ahead** in a session of
+    its own: it needs no reader and no key.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
@@ -633,6 +638,120 @@ or nearly finished to try. So no task waits for an analyst:
   here as a table of sectors, their blocks and their sources. Then the
   first model is built by hand in Excel for two companies with only the
   blocks below, to see that they are enough.
+- **Part a, the research and the decision: done 2026-10-12.** Still open in
+  part a: the first model by hand in Excel for two companies (**Yatharth
+  Hospital and Lemon Tree Hotels**, so the test also shows one model serving
+  two sectors).
+  - **What was read.** Four broker notes in full (ICICI Direct on HDFC AMC,
+    July 2026; JM Financial on Lemon Tree, August 2025; Centrum on V-Mart,
+    July 2025; BOBCAPS on Tata Steel, July 2026); for the other sectors,
+    broker notes, rating agencies' sector reports and company presentations
+    as search summaries only; the CFA Institute reading "Company Analysis:
+    Forecasting". One session's reading, not a survey: the analyst who reads
+    each model corrects it. Nothing was copied; reports show drivers and
+    tables, not formulas.
+  - **What every note has in common:** a short "key assumptions" table of
+    drivers (nine rows for Tata Steel, two for V-Mart), a standard income
+    statement, balance sheet and cash flow, then a multiple on a forward
+    year (EV/EBITDA for most, P/E for the asset manager, a sum of parts for
+    Tata Steel).
+  - **A model is a mechanism, not a sector** (decided with the user): a
+    revenue block, a cost layout and a set of words. Hospitals and hotels
+    are two sectors and one model, since their formulas are the same.
+    **The analyst picks a sector** from a list that can grow without a new
+    model (it chooses the model and its words: beds and revenue per occupied
+    bed, or rooms and room rate); underneath sit the vetted models, each
+    with its own two hand-solved companies, analyst and server-against-Excel
+    test.
+  - **The sample's sectors** (16 lines of business by this split; R0's
+    count of 14 groups restaurants with retail and capital goods with
+    defence):
+
+    | Sector (sample companies) | Drivers the reports carry | Block | Where it does not fit | Model |
+    |---|---|---|---|---|
+    | Hospitals (Narayana, Shalby, Yatharth) | Operating beds, occupancy, revenue per occupied bed per day | Capacity x utilisation x realisation | Outpatient and pharmacy need a second line; new beds fill slowly | 1 |
+    | Hotels (Lemon Tree, Royal Orchid) | Rooms, occupancy, average room rate; fees on managed rooms | Capacity x utilisation x realisation; units x revenue per unit for fees | Food and drink is a share of room revenue (free formula) | 1 |
+    | Cement (JK Lakshmi, Sagar, Star) | Capacity, utilisation, volume, realisation, costs and EBITDA per tonne | Capacity x utilisation x realisation | Costs are per tonne, not a share of sales | 2 |
+    | Steel (Tata Steel) | Volume, realisation and EBITDA per tonne by country; exchange rate | Price x volume per geography | Costs per tonne; a segment in another currency; valued in parts | 2 |
+    | Speciality chemicals (Vinati) | Capacity, utilisation, realisation by product | Capacity x utilisation x realisation | Fits | 2 |
+    | Retail (Avenue Supermarts, V-Mart) | Stores opened, retail area, sales per square foot, same-store growth | Units x revenue per unit | Same-store growth splits old stores from new (two segments) | 3 |
+    | Restaurants (Devyani) | Stores per brand, average daily sales | Units x revenue per unit, per brand | Fits | 3 |
+    | Defence (Hindustan Aeronautics, Bharat Electronics) | Order book, new orders, share executed | Order book x execution | Repair and overhaul is a growth line | 4 |
+    | Capital goods (Kirloskar Pneumatic) | Order book, new orders, execution | Order book x execution | Fits | 4 |
+    | Telecom (Bharti Airtel) | Subscribers, revenue per user, churn, by business | Subscribers x price less churn | Africa in another currency | 5 |
+    | IT services (Infosys) | Dollar revenue growth, exchange rate, headcount, utilisation, margin | Headcount x utilisation x billing rate | Billing rates are not published, so reports forecast dollar growth; headcount drives cost more than revenue | 6 |
+    | Pharma (Ajanta, Indoco) | Growth by geography, gross margin, R&D share | Growth on last year, per geography | Fits | 7 |
+    | Auto components (Gabriel, Suprajit) | Vehicle makers' volumes, aftermarket, exports | Growth on last year, per channel | Fits | 7 |
+    | Asset manager (HDFC AMC) | Assets managed by type, yield on each, cost as a share of assets | None cleanly (units x revenue per unit, loosely) | Assets grow by flows plus market movement; costs are a share of assets | 8 |
+    | Internet platform (Eternal) | Order value, take rate, dark stores, margin on order value | Free formula | A chain of multipliers; margins are a share of order value | 8 |
+    | Conglomerate, refining (Reliance) | Margin per barrel, throughput; Jio; retail | None for refining | A margin on volume, not a revenue; four businesses, each with its own profit; valued in parts | 11, combined |
+
+  - **Eleven models, all to be built** (the user's decision, 2026-10-12):
+
+    | # | Model | Revenue is | Sectors in the sample | Others it should serve (general knowledge, not this session's reading) | Sample companies |
+    |---|---|---|---|---|---|
+    | 1 | Occupancy | Places x share filled x price per day | Hospitals, hotels | Cinemas, airlines | 5 |
+    | 2 | Per tonne (per unit) | Volume x realisation, costs per unit | Cement, steel, chemicals | Sugar, textiles, fertiliser, building materials, paper, vehicle makers, ports | 5 |
+    | 3 | Stores | Stores or area x sales per store | Retail, restaurants | Jewellery, diagnostics chains | 3 |
+    | 4 | Order book | Order book x share executed | Defence, capital goods | Construction, contractors, electronics makers | 3 |
+    | 5 | Subscribers | Subscribers x price less churn | Telecom | Broadband, pay TV | 1 |
+    | 6 | People | Dollar growth x exchange rate; headcount for costs | IT services | Staffing, engineering services | 1 |
+    | 7 | General | Growth on last year, per segment | Pharma, auto components | Consumer goods, paints, durables, agrochemicals, anything else | 4 |
+    | 8 | Balance x rate | A balance x a yield or take rate | Asset manager, internet platform | Exchanges, registrars | 2 |
+    | 9 | Real estate | Homes sold, counted as revenue years later | none | Developers | 0 |
+    | 10 | Regulated utilities | An allowed return on money invested | none | Power, gas and water networks | 0 |
+    | 11 | Margin businesses | Volume x margin per unit | Reliance's refining only | City gas, fuel retailing, refiners | 1, in part |
+
+    **Order:** model 1 in R4; models 2 and 3 in R7; the other eight after
+    R7, in an order set then (what the analysts ask for after R4's showing
+    counts). The General model is the shared lower part with the simplest
+    revenue block, so it is built inside R4 whichever comes first. **You
+    first, before each of models 9, 10 and 11 (and 5, 6 and 8, which have
+    one or two sample companies): collect results filings for at least two
+    companies of that kind**, so two can be solved by hand. Conglomerates
+    such as Reliance wait until models can be combined, one per segment.
+  - **What the blocks lack** (to add in part b; the eight revenue blocks
+    themselves are nearly enough):
+    1. **A running count**: opening plus additions less closures, and the
+       average, for beds, rooms, stores, subscribers and dark stores. Only
+       the subscriber block has it today; make it one shared piece.
+    2. **A cost row that picks its driver**: a share of revenue, an amount
+       per unit of volume (cement, steel, chemicals), an amount per head
+       (IT services), a share of another base (order value, assets managed),
+       or last year's grown.
+    3. **A segment in another currency** with an exchange rate row (IT
+       services, steel, telecom, pharma).
+    4. **The days in the period** as a row (per-day prices; a quarter is not
+       a quarter of 365).
+    5. **A balance x a rate** as a ninth block, with the balance moved by
+       flows and a market return (the CFA reading's "return-based" driver).
+    6. **For R6:** profit by segment and value as a sum of parts (Tata
+       Steel, Reliance, Airtel), and P/E beside EV/EBITDA.
+    7. **Old units against new** (same-store growth, new beds filling) is
+       done as two segments, not a new block.
+  - **Sources** (2026-10-12): hospitals: CareEdge
+    (careratings.com/uploads/newsfiles/1743058970_Hospital%20Industry%20-%20CareEdge%20Report.pdf),
+    CRISIL "Reading the vitals" (2023), ICRA; cement: ICRA's FY2027 outlook
+    as reported by Outlook Business and Indian Cement Review, Equirus as
+    reported by NBM&CW; hotels: JM Financial on Lemon Tree (12 August 2025),
+    Motilal Oswal's initiation (April 2019); IT services: Motilal Oswal
+    (2011) and Angel Broking (2016) on Infosys, Infosys's own quarterly
+    figures; retail and restaurants: Centrum on V-Mart (27 July 2025), HDFC
+    Sky on Avenue Supermarts, Devyani's results; defence: HDFC Securities
+    and ICICI Direct on Bharat Electronics, JM Financial (April 2026), Angel
+    One's explainer on order books; capital goods: Arihant, Prabhudas
+    Lilladher and MNCL on Kirloskar Pneumatic; telecom: FundsIndia (2018)
+    and Motilal Oswal (2020) on Bharti Airtel; pharma: BOB Capital and ICICI
+    Direct on Ajanta, Ajanta's investor presentation (Q1 FY26); auto
+    components: FundsIndia (June 2026), Gabriel's results presentations;
+    steel: BOBCAPS on Tata Steel (31 July 2026), ICICI Direct (2022, 2025);
+    chemicals: HDFC Securities, ICICI Direct and Sharekhan (May 2025) on
+    Vinati; asset manager: ICICI Direct on HDFC AMC (16 July 2026), JM
+    Financial; platform: ICICI Securities, Kotak, Nomura and JM Financial on
+    Eternal as reported by Business Today and Business Standard;
+    conglomerate: BOB Capital on Reliance (18 July 2026), YES Securities;
+    textbook: CFA Institute, "Company Analysis: Forecasting"
+    (cfainstitute.org refresher readings, 2026).
 - **Needs from the user (part b):** the analyst who reads the model. If
   none is found yet, the model ships marked "not yet vetted" and this line
   stays open.
@@ -686,7 +805,10 @@ or nearly finished to try. So no task waits for an analyst:
   recommendation (test over the catalogue).
 
 ### R7 Second and third sector models
-- **Needs from the user:** the readers; the sectors are R4 part a's.
+- **Needs from the user:** the readers. The models are R4 part a's:
+  **second, Per tonne (cement, steel, chemicals); third, Stores (retail,
+  restaurants)**. The other eight of the eleven follow as tasks added after
+  R7.
 - **Claude does:** each as R4's last three bullets; what R4's format lacked
   is added to the format, never worked around in one model.
 - **Done when:** as R4, per model.
