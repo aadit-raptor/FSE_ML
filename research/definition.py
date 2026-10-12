@@ -13,7 +13,6 @@ cell, which is all the evaluator and the workbook writer read.
 """
 from __future__ import annotations
 
-import math
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -29,7 +28,13 @@ GROUPS = (("past", ("past_year", "to_date")),
           ("all", KINDS))
 UNITS = ("money", "count", "count3", "days", "share", "rupees", "rupees2", "times", "check")
 MARKS = ("amber", "red")
-_NAME = re.compile(r"[a-z][a-z0-9_]*")
+_NAME = re.compile(r"[a-z][a-z0-9_]*", re.ASCII)
+_SLOT = re.compile(r"\{([a-z][a-z0-9_]*)\}", re.ASCII)
+_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+MAX_TEXT = 200              # characters in a name, a word or a period's label
+MAX_REASON = 1000           # characters in the reason for a mark
+MAX_NUMBER = 1e15           # no typed figure is larger: Excel keeps fifteen digits
+WIDEST_ADDRESS = "$XFD$1048576"
 RESERVED = set(formula.FUNCTIONS) | {"prev"} | set(KINDS) | {g for g, _ in GROUPS}
 
 
@@ -131,6 +136,16 @@ class Model:
                     notes=tuple(data.get("notes", ())), vetted=bool(data.get("vetted")))
         check(model)
         return model
+
+    @classmethod
+    def read(cls, data) -> "Model":
+        """`from_dict` for data from outside: anything misshapen is a ModelError, never a crash."""
+        try:
+            return cls.from_dict(data)
+        except (KeyError, TypeError, AttributeError, ValueError) as e:
+            if isinstance(e, ModelError):
+                raise
+            raise ModelError("the model is not in the format: %s %s" % (type(e).__name__, e)) from None
 
 
 def _rule_out(rule: Rule):
@@ -234,15 +249,15 @@ def check(model: Model) -> None:
                     raise ModelError("row %r has a rule that is not typed, a choice, a formula or empty" % row.key)
     for sector, words in model.sectors.items():
         for item in list(model.constants.values()) + [r.label for r in model.rows]:
-            try:
-                item.format(**words)
-            except (KeyError, IndexError, ValueError) as e:
-                raise ModelError("sector %r has no word for %s in %r" % (sector, e, item)) from None
+            for slot in _SLOT.findall(item):
+                if slot not in words:
+                    raise ModelError("sector %r has no word for %r in %r" % (sector, slot, item))
 
 
 def _check_formula(model: Model, row: Row, period: Period, text: str, keys: set, names: set) -> None:
     try:
         tree = formula.parse(text)
+        formula.to_excel(tree, lambda ref: WIDEST_ADDRESS)       # it must also fit in an Excel cell
     except FormulaError as e:
         raise ModelError("row %r: %s" % (row.key, e)) from None
     for ref in formula.refs(tree):
@@ -263,22 +278,69 @@ def _check_formula(model: Model, row: Row, period: Period, text: str, keys: set,
 # ---------------------------------------------------------------------------
 def words_for(model: Model, company: Company) -> dict:
     """The words that fill the labels' slots: the sector's, then the company's own."""
-    if model.sectors and company.sector not in model.sectors:
+    if not isinstance(company.sector, str) or (model.sectors and company.sector not in model.sectors):
         raise InputError("sector %r is not one of this model's: %s" % (company.sector, ", ".join(sorted(model.sectors))))
     return {**model.sectors.get(company.sector, {}), **company.words}
 
 
 def label(text: str, words: dict) -> str:
-    try:
-        return text.format(**words)
-    except (KeyError, IndexError, ValueError) as e:
-        raise InputError("no word for %s in the label %r" % (e, text)) from None
+    """A label with its {word} slots filled. Only whole words go in: no formatting, no attributes."""
+    def fill(match) -> str:
+        if match.group(1) not in words:
+            raise InputError("no word for %r in the label %r" % (match.group(1), text))
+        return words[match.group(1)]
+    return _SLOT.sub(fill, text)
 
 
 def _number(row: str, period: str, v) -> float:
-    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
-        raise InputError("row %r in %r must be a number, not %r" % (row, period, v))
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v or abs(v) > MAX_NUMBER:
+        raise InputError("row %r in %r must be a number no larger than %g, not %r" % (row, period, MAX_NUMBER, str(v)[:40]))
     return float(v)
+
+
+def _text(what: str, v, longest: int = MAX_TEXT) -> None:
+    if not isinstance(v, str) or len(v) > longest or _CONTROL.search(v):
+        raise InputError("%s must be plain text of at most %d characters" % (what, longest))
+
+
+def _mapping(what: str, v) -> None:
+    if not isinstance(v, dict) or not all(isinstance(k, str) for k in v):
+        raise InputError("%s must be a table of names" % what)
+
+
+def check_company(model: Model, company: Company) -> None:
+    """Refuse a company whose shape is wrong, before anything reads it: every part is typed by someone."""
+    _text("the company's name", company.name)
+    _text("the unit's name", company.unit_name)
+    _text("the basis", company.basis)
+    for what, table in (("words", company.words), ("period labels", company.period_labels), ("constants", company.constants),
+                        ("choices", company.choices), ("values", company.values), ("marks", company.marks)):
+        _mapping("the " + what, table)
+    for word, text in company.words.items():
+        _text("the word %r" % word, text)
+    names = {p.name for p in model.periods}
+    for period, text in company.period_labels.items():
+        if period not in names:
+            raise InputError("a label is given for the unknown period %r" % period)
+        _text("the label of %r" % period, text)
+    for choice, picked in company.choices.items():
+        _text("the choice %r" % choice, picked)
+    if not isinstance(company.off, (tuple, list)) or not all(isinstance(s, str) for s in company.off):
+        raise InputError("the segments switched off must be a list of names")
+    rows = {r.key for r in model.data_rows()}
+    for what, table in (("figure", company.values), ("mark", company.marks)):
+        for key, by_period in table.items():
+            if key not in rows:
+                raise InputError("this model has no row called %r (a %s is given for it)" % (key, what))
+            _mapping("the %ss of row %r" % (what, key), by_period)
+            for period in by_period:
+                if period not in names:
+                    raise InputError("row %r has a %s for the unknown period %r" % (key, what, period))
+    for key, by_period in company.marks.items():
+        for period, mark in by_period.items():
+            if not isinstance(mark, dict) or mark.get("level") not in MARKS:
+                raise InputError("the mark on row %r in %r must have a level, amber or red" % (key, period))
+            _text("the reason for the mark on row %r" % key, mark.get("why", ""), MAX_REASON)
 
 
 def cells(model: Model, company: Company) -> dict:
@@ -288,6 +350,7 @@ def cells(model: Model, company: Company) -> dict:
     assumption, or types a figure where the model works one out.
     """
     check(model)
+    check_company(model, company)
     choices = model.choices()
     for choice, picked in company.choices.items():
         if choice not in choices:
@@ -310,14 +373,6 @@ def cells(model: Model, company: Company) -> dict:
     words_for(model, company)
 
     rows = {r.key: r for r in model.data_rows()}
-    names = {p.name for p in model.periods}
-    for key, by_period in company.values.items():
-        if key not in rows:
-            raise InputError("this model has no row called %r" % key)
-        for period in by_period:
-            if period not in names:
-                raise InputError("row %r has a figure for the unknown period %r" % (key, period))
-
     out, missing = {}, []
     for row in rows.values():
         given = company.values.get(row.key, {})

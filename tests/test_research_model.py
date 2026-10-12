@@ -115,6 +115,61 @@ def test_figures_must_be_numbers_for_rows_and_periods_that_exist(values):
         evaluate(toy(), yatharth(**values))
 
 
+def _company(**parts):
+    co = yatharth()
+    base = dict(name="Y", sector="hospitals", unit_name="u", constants=co.constants, choices=co.choices, values=co.values)
+    return Company(**{**base, **parts})
+
+
+@pytest.mark.parametrize("parts", [
+    {"name": 5}, {"name": "x" * 201}, {"name": "a\x00b"}, {"unit_name": None}, {"basis": ["x"]},
+    {"sector": ["hospitals"]}, {"sector": None},
+    {"words": [1]}, {"words": {"line": 5}}, {"words": {"line": {}}}, {"words": {"line": "tab\there"}}, {"words": {1: "x"}},
+    {"period_labels": [1]}, {"period_labels": {"fy99": "x"}}, {"period_labels": {"fy25": 2025}},
+    {"constants": None}, {"constants": {"unit_rupees": 10 ** 400}}, {"constants": {"unit_rupees": "1"}},
+    {"choices": [1]}, {"choices": {"past": ["revenue"]}}, {"choices": {"past": None}},
+    {"values": [1]}, {"values": {"occ": 5}}, {"values": {"occ": [0.6]}}, {"values": {"occ": {"fy26": 10 ** 400}}},
+    {"values": {"occ": {"fy26": 1e16}}},
+    {"off": (["s2"],)}, {"off": "s2"}, {"off": None},
+    {"marks": {"occ": "x"}}, {"marks": {"occ": {"fy25": "x"}}}, {"marks": {"occ": {"fy25": {"level": "green"}}}},
+    {"marks": {"occ": {"fy25": {"level": "red", "why": 5}}}}, {"marks": {"occ": {"fy25": {"level": "red", "why": "x" * 1001}}}},
+    {"marks": {"nothing": {"fy25": {"level": "red"}}}}, {"marks": {"occ": {"fy99": {"level": "red"}}}},
+])
+def test_a_misshapen_company_is_refused_not_crashed_on(parts):
+    """Every part of a company is typed by someone: the wrong shape is an InputError, never a raw crash."""
+    with pytest.raises(InputError):
+        evaluate(toy(), _company(**parts))
+
+
+def test_a_well_shaped_company_with_marks_and_labels_is_taken():
+    v = evaluate(toy(), _company(marks={"occ": {"fy25": {"level": "amber", "why": "one press report"}}},
+                                 period_labels={"fy25": "FY25 (actual)"}, words={"line": "Beds in use"})).values
+    assert v["room_rev"]["fy25"] == 8805
+
+
+@pytest.mark.parametrize("label_text", ["{line.__class__}", "{line!r}", "{line:>99999}", "{0}", "{}", "{line[0]}"])
+def test_a_label_takes_whole_words_only(label_text):
+    """No formatting and no attributes: anything that is not a plain {word} stays as written."""
+    from research.definition import label
+    assert label(label_text, {"line": "Beds"}) == label_text
+    assert label("{line} and {line}", {"line": "Beds"}) == "Beds and Beds"
+
+
+@pytest.mark.parametrize("data", [None, [], {}, {"id": "m"}, {"id": "m", "name": "M", "periods": [{}], "rows": []},
+                                  {"id": "m", "name": "M", "periods": [], "rows": [{"key": "a"}]},
+                                  {"id": "m", "name": "M", "periods": [], "rows": [{"key": "a", "label": "A", "unit": "money", "rules": {"all": 5}}]},
+                                  {"id": "m", "name": "M", "periods": [], "rows": [{"key": "a", "label": "A", "unit": "money", "rules": {"all": {"typed": "guess"}}}]}])
+def test_a_misshapen_model_from_outside_is_a_model_error(data):
+    with pytest.raises(ModelError):
+        Model.read(data)
+    assert Model.read(toy().to_dict()) == toy()
+
+
+def test_a_formula_too_long_for_excel_is_refused_when_the_model_is_checked():
+    with pytest.raises(ModelError, match="Excel"):
+        check(_model(Row("a", "A", "money", {"all": "div(a," * 0 + "div(1, " * 20 + "1" + ")" * 20})))
+
+
 def test_choices_must_be_made_from_the_options():
     co = yatharth()
     for choices in ({}, {"past": "sideways"}, {"past": "revenue", "extra": "x"}):

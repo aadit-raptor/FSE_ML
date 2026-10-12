@@ -6,6 +6,14 @@ constant; ``cash[prev]`` is the period before and ``rev[ytd]`` a named
 period. ``div(a, b)`` is a over b, or nil when b is nil: the one way a row
 divides by something that may be switched off.
 
+Two limits come from Excel. A formula's Excel text may not pass 8,192
+characters (`div` writes its bottom twice, so nesting it doubles the text),
+and `check` in `definition.py` refuses a formula that would. And Excel reads
+a sum that comes out within rounding of nil as exactly nil, where this module
+keeps the tiny number: `div(1, 0.1 + 0.2 - 0.3)` is nil in Excel and huge
+here. No model row divides by such a difference; the LibreOffice test in CI
+is where a real case would show.
+
 A formula is read once into a small tree. The evaluator walks that tree and
 the workbook writer turns the same tree into Excel text, so the two cannot
 read a formula differently. Nothing here calls ``eval``.
@@ -20,6 +28,7 @@ FUNCTIONS = {"max": (2, None), "min": (2, None), "div": (2, 2)}   # name -> fewe
 MAX_LENGTH = 1000           # characters in one formula
 MAX_TOKENS = 300            # numbers, names and signs in one formula: bounds how deep its tree can go
 MAX_DEPTH = 40              # brackets inside brackets, or minus signs in a row
+MAX_EXCEL = 8192            # characters Excel allows in one formula
 
 
 class FormulaError(ValueError):
@@ -62,7 +71,7 @@ class Call:
 
 Node = Union[Num, Ref, Neg, Bin, Call]
 
-_TOKEN = re.compile(r"\s*(?:(?P<num>\d+(?:\.\d+)?|\.\d+)|(?P<name>[A-Za-z_][A-Za-z0-9_]*)|(?P<op>[-+*/(),\[\]]))")
+_TOKEN = re.compile(r"\s*(?:(?P<num>\d+(?:\.\d+)?|\.\d+)|(?P<name>[A-Za-z_][A-Za-z0-9_]*)|(?P<op>[-+*/(),\[\]]))", re.ASCII)
 
 
 def _tokens(text: str) -> list[tuple[str, str, int]]:
@@ -242,6 +251,13 @@ def to_excel(node: Node, address: Callable[[Ref], str]) -> str:
 
 
 def _excel(node: Node, address: Callable[[Ref], str], outer: int, right_side: bool) -> str:
+    text = _excel_text(node, address, outer, right_side)
+    if len(text) > MAX_EXCEL:       # checked at every level, so a doubling formula stops early
+        raise FormulaError("the formula is longer than the %d characters Excel allows once written out" % MAX_EXCEL)
+    return text
+
+
+def _excel_text(node: Node, address: Callable[[Ref], str], outer: int, right_side: bool) -> str:
     if isinstance(node, Num):
         return node.text
     if isinstance(node, Ref):
@@ -254,9 +270,10 @@ def _excel(node: Node, address: Callable[[Ref], str], outer: int, right_side: bo
         text = "%s%s%s" % (_excel(node.left, address, level, False), node.op, _excel(node.right, address, level, True))
         # a - (b - c) and a / (b * c) keep their brackets; a + (b + c) is kept too, for the same sum order
         return "(%s)" % text if level < outer or (level == outer and right_side) else text
-    args = [_excel(arg, address, 0, False) for arg in node.args]
     if node.fn == "div":
         top = _excel(node.args[0], address, 2, False)
-        bottom = _excel(node.args[1], address, 2, True)
-        return "IF(%s=0,0,%s/%s)" % (args[1], top, bottom)
+        bottom = _excel(node.args[1], address, 0, False)
+        divisor = "(%s)" % bottom if isinstance(node.args[1], Bin) else bottom
+        return "IF(%s=0,0,%s/%s)" % (bottom, top, divisor)
+    args = [_excel(arg, address, 0, False) for arg in node.args]
     return "%s(%s)" % (node.fn.upper(), ",".join(args))

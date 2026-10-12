@@ -902,8 +902,19 @@ or nearly finished to try. So no task waits for an analyst:
     The written workbook is worked out by a reader in the tests that
     shares no code with `research/` and agrees with the evaluator on every
     cell; typing a new assumption into the workbook moves its own formulas
-    to what the server gives. 43 deliberate breaks of the code were each
+    to what the server gives. 53 deliberate breaks of the code were each
     caught by a test.
+  - **From the review** (fixed in the slice): a formula of nested `div`s
+    doubled its Excel text at every level, so a formula whose Excel text
+    would pass Excel's 8,192 characters is now refused when the model is
+    checked; formulas are plain ASCII (Python's digits include other
+    scripts', which Excel would not read back); every part of a company is
+    checked for shape and size before anything reads it; a label's
+    `{word}` slots are filled by a pattern, not `str.format`. **Recorded,
+    not fixed:** Excel reads a sum within rounding of nil as exactly nil
+    and the evaluator keeps the tiny number, so `div(1, 0.1 + 0.2 - 0.3)`
+    would differ. No row of model 1 divides by such a difference; a model
+    that does needs a tolerance in both renderings.
   - **The real spreadsheet engine in CI is LibreOffice, and it has not run
     yet.** `tests/test_research_workbook.py` has the test: LibreOffice opens
     the workbook without a screen, works it out, and its values must be the

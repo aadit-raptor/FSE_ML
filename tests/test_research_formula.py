@@ -94,6 +94,26 @@ def test_excel_text(text, written):
     assert excel(text) == written
 
 
+def test_excel_text_is_bounded_however_div_is_nested():
+    """`div` writes its bottom twice, so nesting doubles the text: it must stop at Excel's limit, at once."""
+    import time
+    tree = formula.parse("div(a," * 39 + "a" + ")" * 39)       # within every limit of the reader
+    started = time.perf_counter()
+    with pytest.raises(FormulaError, match="Excel"):
+        formula.to_excel(tree, lambda ref: "A1")
+    assert time.perf_counter() - started < 1
+    top_heavy = formula.parse("div(" * 39 + "a" + ", a)" * 39)  # the top is written once: no doubling
+    assert len(formula.to_excel(top_heavy, lambda ref: "A1")) < 600
+    assert len(excel("div(a, div(b, div(c, a)))")) == 100  # a few levels are fine
+
+
+@pytest.mark.parametrize("text", ["\u0663 + 1", "a + \uff11", "\u0663", "a\u00a0+ b", "\u03b1 + 1"])
+def test_only_plain_ascii_is_read(text):
+    """Python's \\d takes any script's digits; Excel would not read them back."""
+    with pytest.raises(FormulaError):
+        formula.parse(text)
+
+
 def _random_tree(rng, depth=0):
     roll = rng.random()
     if depth > 4 or roll < 0.25:

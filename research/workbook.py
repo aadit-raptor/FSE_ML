@@ -24,7 +24,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.workbook.properties import CalcProperties
 
 from research import formula
-from research.definition import ASSUME, MARKS, Company, Heading, InputError, Model, ModelError, cells, label, words_for
+from research.definition import ASSUME, Company, Heading, Model, ModelError, cells, label, words_for
 from research.evaluate import target
 from research.formula import Ref
 
@@ -118,7 +118,7 @@ def write(model: Model, company: Company) -> Workbook:
     for name, text in model.constants.items():
         at = where.constant(name)
         _put(ws, int(at[1:]), 1, label(text, words))
-        ws[at] = company.constants[name]
+        ws[at] = float(company.constants[name])
         ws[at].font, ws[at].number_format = BLUE, "#,##0.######"
         _name(wb, name, at)
 
@@ -164,8 +164,6 @@ def write(model: Model, company: Company) -> Workbook:
                 _name(wb, "%s_%s" % (row.key, period.name), cell.coordinate)
             mark = company.marks.get(row.key, {}).get(period.name)
             if mark:
-                if mark.get("level") not in MARKS:
-                    raise InputError("a mark is amber or red, not %r (row %r)" % (mark.get("level"), row.key))
                 cell.fill = MARKED[mark["level"]]
                 cell.comment = Comment(str(mark.get("why", "")), SOURCE)
                 marked.append(("%s!%s" % (SHEET, cell.coordinate), "%s, %s" % (text.strip(), company.period_labels.get(period.name, period.name)),
