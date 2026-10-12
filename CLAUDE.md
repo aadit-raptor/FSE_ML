@@ -1446,9 +1446,9 @@ preference, the high-resolution option, `xbrl_score.py` and `finish.sh`,
 which runs every read still owed. **The exchanges' XBRL may not be fetched
 by a program** (NSE and BSE terms), here or in the product; the user saves
 ten files by hand or keys them. The user saved BSE's results-page table for
-nine of the ten (it is a small HTML table of the quarter's headline figures,
-not the XBRL): of 208 BSE amounts read A fails to give one, and that one was
-already amber (`bse_score.py`). Still open: `finish.sh`, a tenth table,
+ten documents (it is a small HTML table of the quarter's headline figures,
+not the XBRL): of 232 BSE amounts read A fails to give one, and that one was
+already amber (`bse_score.py`). Still open: `finish.sh`,
 whether that is truth file enough (the user's call), the final table; then
 R0 closes.
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
