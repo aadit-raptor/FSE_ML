@@ -116,6 +116,20 @@ def create_app() -> FastAPI:
         reused for 10 minutes."""
         return usage.status()
 
+    @app.get("/api/health/files", tags=["meta"])
+    def health_files(response: Response):
+        """File uploads (PLAN.md 6.1): which store this server uses, what sort
+        of key it was given (``sb_secret`` or ``jwt:service_role`` can write to
+        a private bucket; ``sb_publishable`` can't), and whether the bucket is
+        there. Never the key, a link or anything about a file. Calls the store
+        at most once in five minutes and never queries the database."""
+        from uploads import service
+
+        result = service.status()
+        if result["status"] == "error":
+            response.status_code = 503
+        return result
+
     @app.get("/api/health/jobs", tags=["meta"])
     def health_jobs(response: Response):
         """The job queue (PLAN.md 1.9): which queue and runner are configured,

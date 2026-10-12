@@ -2122,7 +2122,9 @@ Skills load when a session starts: install first, then open a new session.
   (`files_drill_key`: `sb_secret` or `jwt:service_role` is right) and the
   store's own reason (`files_drill_detail`), never the key. Read those
   before suspecting the code, and ask the user to reveal the value **on
-  Render**, not on Supabase.
+  Render**, not on Supabase. **`/api/health/files`** (public, cached five
+  minutes, `uploads/service.py` `status`) answers the same on staging and
+  production without waiting for a staging run: check it first.
 - `gh run rerun` is refused for this token ("Resource not accessible by
   personal access token"), like `workflow_dispatch`: `staging.yml` runs
   again only on a push to `staging`, so a recheck after the user changes a

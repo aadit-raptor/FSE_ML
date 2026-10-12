@@ -712,6 +712,41 @@ def test_the_store_can_say_what_sort_of_key_it_holds_without_saying_the_key():
         assert found == kind and (len(key) < 12 or key[10:] not in found)
 
 
+def test_the_public_status_says_whether_uploads_can_work_and_never_the_key(monkeypatch, tmp_path, signed_out):
+    for name in ("SUPABASE_UPLOADS_URL", "SUPABASE_UPLOADS_KEY", "SUPABASE_UPLOADS_BUCKET", "FSE_UPLOADS_DIR"):
+        monkeypatch.delenv(name, raising=False)
+    off = client.get("/api/health/files")                         # no sign-in needed, like the other health checks
+    assert off.status_code == 200 and (off.json()["status"], off.json()["store"]) == ("off", "none")
+    monkeypatch.setenv("FSE_UPLOADS_DIR", str(tmp_path))
+    assert client.get("/api/health/files").json()["store"] == "local"
+
+    calls = []
+
+    def refuse(request, timeout=None):
+        calls.append(request.full_url)
+        body = json.dumps({"error": "Unauthorized", "message": "new row violates row-level security policy"})
+        raise urllib.error.HTTPError(request.full_url, 400, "x", {}, io.BytesIO(body.encode()))
+    key = "sb_publishable_" + "k" * 30
+    wrong = stores.SupabaseFiles("https://abc.supabase.co", key, "uploads", opener=refuse)
+    monkeypatch.setattr(stores, "get_store", lambda: wrong)
+    monkeypatch.setattr(service, "get_store", lambda: wrong)
+    answer = client.get("/api/health/files")
+    assert answer.status_code == 503
+    assert answer.json() == {**answer.json(), "status": "error", "store": "supabase", "key": "sb_publishable",
+                             "reason": "the uploads bucket could not be made",
+                             "detail": "POST bucket: 400 Unauthorized / new row violates row-level security policy"}
+    assert "k" * 10 not in answer.text
+    asked = len(calls)
+    client.get("/api/health/files")
+    assert len(calls) == asked                                    # reused: a public address must not hammer the store
+    assert service.status(now=time.time() + service.STATUS_CACHE_S + 1)["status"] == "error" and len(calls) > asked
+
+    right = stores.SupabaseFiles("https://abc.supabase.co", "sb_secret_" + "k" * 30, "uploads", opener=FakeSupabase())
+    monkeypatch.setattr(service, "get_store", lambda: right)
+    ok = client.get("/api/health/files")
+    assert ok.status_code == 200 and (ok.json()["status"], ok.json()["key"]) == ("ok", "sb_secret")
+
+
 def test_the_key_never_follows_a_redirect():
     """The key is in the request's headers: a store that answers "look over
     there" is an error, not somewhere to send it."""

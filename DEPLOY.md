@@ -912,6 +912,19 @@ both services, and accept that the key able to delete backups is on the API.
 
 ### Checking it
 
+**`/api/health/files`** (public, on both environments) says in seconds
+whether uploads can work: `status` (`ok`, `off` when no store is set up,
+`error`), which `store`, and what **sort** of `key` the server was given,
+never the key: `sb_secret` (or `jwt:service_role`) is right,
+`sb_publishable` is the wrong row of Supabase's page. On `error` it adds the
+store's own reason. It asks the store at most once in five minutes, so after
+changing a variable wait for the deploy, then up to five minutes.
+
+```bash
+curl -s https://api.variater.com/api/health/files
+curl -s https://fse-api-staging.onrender.com/api/health/files
+```
+
 `GET /api/files` (signed in) answers `"enabled": true` once the store is set.
 **The staging drill** (`staging.yml`, after every staging deploy) takes one
 small file its whole road on the staging server: stored, read back, scanned
