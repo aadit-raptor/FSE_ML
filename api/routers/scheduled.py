@@ -156,7 +156,8 @@ def run_live_drill(workflow: Workflow = Depends(require_workflow)):
     API has used at its peak (jobs/drill.py ``live_drill``)."""
     if deploy_environment() == "production":
         raise HTTPException(404, "The drill doesn't run in production.")
-    # ... and one file's road through the real file store (PLAN.md 6.1)
-    found = {**drill.live_drill(), **drill.files_drill()}
+    # ... and one file's road through the real file store (PLAN.md 6.1), and
+    # whether the results reader's key works (PLAN.md R1; no read is made)
+    found = {**drill.live_drill(), **drill.files_drill(), **drill.reader_drill()}
     log_event("live_drill", workflow=workflow.workflow, **{k: v for k, v in found.items() if k != "live_mismatched"})
     return found

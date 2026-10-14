@@ -1,0 +1,989 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   149,
+   149,
+   149,
+   150,
+   150
+  ],
+  "name": "star-cement_FY27-Q1",
+  "pages": 9,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "22b18d3fca874109f01f6053654850190a46f511fb9b51fb7a04a5985bb734b5"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Star Cement Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31.03.2026 (Audited) (refer note 8)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       8
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from Operations",
+        "values": [
+         94288.89,
+         117355.11,
+         91199.25,
+         377648.73
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "values": [
+         820.47,
+         911.69,
+         179.34,
+         1926.09
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         95109.36,
+         118266.8,
+         91378.59,
+         379574.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         13214.74,
+         14479.68,
+         10890.6,
+         49604.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of traded goods",
+        "values": [
+         null,
+         23.92,
+         23.21,
+         23.21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in Inventories of finished goods, work-in-progress and stock -in-trade",
+        "values": [
+         970.21,
+         2673.37,
+         797.86,
+         -19.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         7740.14,
+         5900.14,
+         6678.96,
+         27722.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         1375.46,
+         1293.19,
+         1016.01,
+         4630.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         9141.93,
+         9869.2,
+         8518.89,
+         36528.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Power and Fuel expense",
+        "values": [
+         15196.34,
+         15771.99,
+         14140.06,
+         55790.56
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Carriage Outward expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- on finished goods",
+        "values": [
+         17324.79,
+         21746.16,
+         15997.47,
+         68885.28
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- on internal clinker transfer",
+        "values": [
+         7799.27,
+         10280.45,
+         8976.51,
+         34652.84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         12570.92,
+         11972.55,
+         10896.36,
+         47394.33
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         85357.72,
+         97009.94,
+         77912.72,
+         325212.72
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/(loss) before exceptional Items /extraordinary items(1-2)",
+        "values": [
+         9751.64,
+         21256.86,
+         13465.87,
+         54362.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         null,
+         579.94,
+         null,
+         1131.97
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit/(loss) before tax (3-4)",
+        "values": [
+         9751.64,
+         20676.92,
+         13465.87,
+         53230.13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Current Tax",
+        "values": [
+         2454.41,
+         1785.69,
+         2523.5,
+         10171.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Deferred Tax",
+        "values": [
+         -93.67,
+         2188.73,
+         1125.91,
+         3973.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Tax for earlier years",
+        "values": [
+         null,
+         null,
+         null,
+         39.67
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit/(loss) after tax for the period (5-6)",
+        "values": [
+         7390.9,
+         14702.5,
+         9816.46,
+         39045.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income (net of tax)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "-Items that will not be reclassified to Profit or loss ( net of tax )",
+        "values": [
+         -9.86,
+         41.92,
+         -1.61,
+         -57.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period (7+8)",
+        "values": [
+         7381.04,
+         14744.42,
+         9814.85,
+         38987.77
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit/ (Loss) for the period attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Company",
+        "values": [
+         7471.66,
+         14809.83,
+         9845.49,
+         39342.42
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -80.76,
+         -107.33,
+         -29.03,
+         -296.83
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Company",
+        "values": [
+         -9.91,
+         41.88,
+         -1.61,
+         -58.01
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0.05,
+         0.04,
+         null,
+         0.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Company",
+        "values": [
+         7461.75,
+         14851.71,
+         9843.88,
+         39284.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -80.71,
+         -107.29,
+         -29.03,
+         -296.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up Equity Share Capital (Face Value of ₹1/- each)",
+        "values": [
+         4041.8,
+         4041.8,
+         4041.8,
+         4041.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         315078.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share (EPS) - (Face Value of ₹1/- each) (not annualised) ( in ₹ )",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Basic",
+        "values": [
+         1.85,
+         3.66,
+         2.44,
+         9.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Diluted",
+        "values": [
+         1.85,
+         3.66,
+         2.44,
+         9.73
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": 223,
+   "usage": {
+    "candidatesTokenCount": 2870,
+    "promptTokenCount": 5506,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4798
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 25048,
+    "totalTokenCount": 33424
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "STAR CEMENT LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31.03.2026 (Audited) (refer note 8)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from Operations",
+        "values": [
+         94288.89,
+         117355.11,
+         91199.25,
+         377648.73
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "values": [
+         820.47,
+         911.69,
+         179.34,
+         1926.09
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         95109.36,
+         118266.8,
+         91378.59,
+         379574.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         13214.74,
+         11479.68,
+         10890.6,
+         49604.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of traded goods",
+        "values": [
+         23.92,
+         23.21,
+         0,
+         23.21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         970.21,
+         2673.37,
+         797.86,
+         -19.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         7740.14,
+         5900.14,
+         6678.96,
+         27722.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         1375.46,
+         1293.19,
+         1016.01,
+         4630.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         9141.93,
+         3869.2,
+         8518.89,
+         36528.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Power and Fuel expense",
+        "values": [
+         15196.34,
+         15771.99,
+         14140.06,
+         55790.56
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Carriage Outward expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- on finished goods",
+        "values": [
+         17324.79,
+         21746.16,
+         15997.47,
+         68885.28
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- on internal clinker transfer",
+        "values": [
+         7799.27,
+         10280.45,
+         8976.51,
+         34652.84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         12570.92,
+         13972.55,
+         10896.36,
+         47394.33
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         85357.72,
+         97009.94,
+         77912.72,
+         325212.72
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/(Loss) before exceptional items /extraordinary items(1-2)",
+        "values": [
+         9751.64,
+         21256.86,
+         13465.87,
+         54362.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         0,
+         579.94,
+         0,
+         1131.97
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit/(Loss) before tax (3-4)",
+        "values": [
+         9751.64,
+         20676.92,
+         13465.87,
+         53230.13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Current Tax",
+        "values": [
+         2454.41,
+         3785.69,
+         2523.5,
+         10171.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Deferred Tax",
+        "values": [
+         -93.67,
+         2188.73,
+         1125.91,
+         3973.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Tax for earlier years",
+        "values": [
+         0,
+         0,
+         0,
+         39.67
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit/(Loss) after tax for the period (5-6)",
+        "values": [
+         7390.9,
+         14702.5,
+         9816.46,
+         39045.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income (net of tax)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "-Items that will not be reclassified to Profit or loss ( net of tax )",
+        "values": [
+         -9.86,
+         41.92,
+         -1.61,
+         -57.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period (7+8)",
+        "values": [
+         7381.04,
+         14744.42,
+         9814.85,
+         38987.77
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit/ (Loss) for the period attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Company",
+        "values": [
+         7471.66,
+         14809.83,
+         9845.49,
+         39342.42
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -80.76,
+         -107.33,
+         -29.03,
+         -296.83
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Company",
+        "values": [
+         -9.91,
+         41.88,
+         -1.61,
+         -58.01
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0.05,
+         0.04,
+         0,
+         0.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Company",
+        "values": [
+         7461.75,
+         14851.71,
+         9843.88,
+         39284.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -80.71,
+         -107.29,
+         -29.03,
+         -296.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up Equity Share Capital (Face Value of ₹1/- each)",
+        "values": [
+         4041.8,
+         4041.8,
+         4041.8,
+         4041.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         315078.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share (EPS) - (Face Value of ₹1/- each) (not annualised) ( in ₹ )",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Basic",
+        "values": [
+         1.85,
+         3.66,
+         2.44,
+         9.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Diluted",
+        "values": [
+         1.85,
+         3.66,
+         2.44,
+         9.73
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": 36,
+   "usage": {
+    "candidatesTokenCount": 3228,
+    "promptTokenCount": 1807,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1073
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4528,
+    "totalTokenCount": 9563
+   }
+  }
+ }
+}

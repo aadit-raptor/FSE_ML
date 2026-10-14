@@ -1,0 +1,808 @@
+{
+ "document": {
+  "dpi": [
+   120,
+   147,
+   147,
+   318,
+   318,
+   147,
+   147,
+   318
+  ],
+  "name": "suprajit-engineering_FY27-Q1",
+  "pages": 8,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "12349ddc0ea9718bd0f53aac6f4755a709566cca2cfa40e7f43c797315af5ee2"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Suprajit Engineering Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2024 (Unaudited)",
+        "months": 3,
+        "period_end": "2024-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2024 (Refer note 7)",
+        "months": 3,
+        "period_end": "2024-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2023 (Unaudited)",
+        "months": 3,
+        "period_end": "2023-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2024 (Audited)",
+        "months": 12,
+        "period_end": "2024-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "I Revenue from operations",
+        "values": [
+         10695.77,
+         10418.29,
+         8629.15,
+         38248.23
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "II Other income",
+        "values": [
+         42.17,
+         313.18,
+         389.72,
+         1158.03
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "III Total income (I+II)",
+        "values": [
+         10737.94,
+         10732.47,
+         9018.87,
+         39406.26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         6040.42,
+         5454.95,
+         4812.02,
+         21579.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         60.42,
+         126.38,
+         143.62,
+         533.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         -207.39,
+         411.52,
+         -195.6,
+         -589.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         2489.07,
+         2212.38,
+         2160.72,
+         8883.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         171.62,
+         142.36,
+         153.6,
+         635.28
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortization expense",
+        "values": [
+         393.21,
+         402.52,
+         343.77,
+         1508.78
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         1026.1,
+         1009.97,
+         890.99,
+         3875.26
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         9973.45,
+         9760.08,
+         8309.12,
+         36426.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "V Profit before exceptional items & tax expenses (III-IV)",
+        "values": [
+         764.49,
+         972.39,
+         709.75,
+         2980.24
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VI Exceptional items (refer note 6)",
+        "values": [
+         0,
+         0,
+         0,
+         -78.15
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "VII Profit before tax expenses (V+VI)",
+        "values": [
+         764.49,
+         972.39,
+         709.75,
+         2902.09
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VIII Tax expense (net):",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         224.86,
+         269.42,
+         249.6,
+         1162.05
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax charge/ (credit)",
+        "values": [
+         17.34,
+         -8.16,
+         -20.7,
+         -86.69
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expenses (net)",
+        "values": [
+         242.2,
+         261.26,
+         228.9,
+         1075.36
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "IX Profit for the period (VII-VIII)",
+        "values": [
+         522.29,
+         711.13,
+         480.85,
+         1826.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "X Other comprehensive income/ (loss), net of taxes",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "A Items that will not be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Re-measurement gain/(loss) on defined benefit plan",
+        "values": [
+         -22.1,
+         7.19,
+         -9.68,
+         -1.24
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B Items that will be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net exchange differences on translation of foreign operations",
+        "values": [
+         41.31,
+         51.28,
+         116.56,
+         244.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Valuation gains/(losses) on derivative hedging instruments",
+        "values": [
+         128.74,
+         -75.12,
+         -215.66,
+         -314.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income/ (loss), net of taxes",
+        "values": [
+         147.95,
+         -16.65,
+         -108.78,
+         -71.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XI Total comprehensive income for the period (IX+X)",
+        "values": [
+         670.24,
+         694.48,
+         372.07,
+         1755.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XII Paid-up equity share capital (Face value: Re.1/- each)",
+        "values": [
+         137.18,
+         137.17,
+         137.16,
+         137.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIII Other equity",
+        "values": [
+         0,
+         0,
+         0,
+         14232.16
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIV Earnings per share (Face value: Re.1/- each) (in Rs.) (Not annualised for interim periods)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic",
+        "values": [
+         3.8,
+         5.18,
+         3.51,
+         13.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted",
+        "values": [
+         3.8,
+         5.18,
+         3.5,
+         13.3
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 164,
+   "usage": {
+    "candidatesTokenCount": 2349,
+    "promptTokenCount": 4916,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4208
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4367,
+    "totalTokenCount": 11632
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "SUPRAJIT ENGINEERING LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "June 30, 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "March 31, 2026 (Refer note 7)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "June 30, 2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "I Revenue from operations",
+        "values": [
+         10695.77,
+         10419.29,
+         8629.15,
+         38248.23
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "II Other income",
+        "values": [
+         42.17,
+         313.18,
+         389.72,
+         1158.03
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "III Total income (I+II)",
+        "values": [
+         10737.94,
+         10732.47,
+         9018.87,
+         39406.26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         6040.42,
+         5454.95,
+         4812.02,
+         21579.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         60.42,
+         126.38,
+         143.62,
+         533.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         -207.39,
+         411.52,
+         -195.6,
+         -689.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         2489.07,
+         2212.38,
+         2160.72,
+         8883.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         171.62,
+         142.36,
+         153.6,
+         635.28
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortization expense",
+        "values": [
+         393.21,
+         402.52,
+         343.77,
+         1508.78
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         1026.1,
+         1009.97,
+         890.99,
+         3875.26
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         9973.45,
+         9760.08,
+         8309.12,
+         36426.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "V Profit before exceptional items & tax expenses (III-IV)",
+        "values": [
+         764.49,
+         972.39,
+         709.75,
+         2980.24
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VI Exceptional items (refer note 6)",
+        "values": [
+         0,
+         0,
+         0,
+         -78.15
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "VII Profit before tax expenses (V+VI)",
+        "values": [
+         764.49,
+         972.39,
+         709.75,
+         2902.09
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VIII Tax expense (net):",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         224.86,
+         269.42,
+         249.6,
+         1162.05
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax charge/ (credit)",
+        "values": [
+         17.34,
+         -8.16,
+         -20.7,
+         -86.69
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expenses (net)",
+        "values": [
+         242.2,
+         261.26,
+         228.9,
+         1075.36
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "IX Profit for the period (VII-VIII)",
+        "values": [
+         522.29,
+         711.13,
+         480.85,
+         1826.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "X Other comprehensive income/ (loss), net of taxes",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "A Items that will not be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Re-measurement gain/(loss) on defined benefit plan",
+        "values": [
+         -22.1,
+         7.19,
+         -9.68,
+         -1.24
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B Items that will be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net exchange differences on translation of foreign operations",
+        "values": [
+         41.31,
+         51.28,
+         116.56,
+         244.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Valuation gains/(losses) on derivative hedging instruments",
+        "values": [
+         128.74,
+         -75.12,
+         -215.66,
+         -314.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income/ (loss), net of taxes",
+        "values": [
+         147.95,
+         -16.65,
+         -108.78,
+         -71.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XI Total comprehensive income for the period (IX+X)",
+        "values": [
+         670.24,
+         694.48,
+         372.07,
+         1755.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XII Paid-up equity share capital (Face value: Re.1/- each)",
+        "values": [
+         137.18,
+         137.17,
+         137.16,
+         137.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIII Other equity",
+        "values": [
+         0,
+         0,
+         0,
+         14232.16
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIV Earnings per share (Face value: Re.1/- each) (in Rs.) (Not annualised for interim periods)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic",
+        "values": [
+         3.8,
+         5.18,
+         3.51,
+         13.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted",
+        "values": [
+         3.8,
+         5.18,
+         3.5,
+         13.3
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 44,
+   "usage": {
+    "candidatesTokenCount": 2612,
+    "promptTokenCount": 1826,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 8588,
+    "totalTokenCount": 13026
+   }
+  }
+ }
+}

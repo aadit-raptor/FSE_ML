@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-15 (PLAN.md R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, runs beside R2). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,7 +1423,9 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0 is done; the next task is **R1**, then R2 to R9 in order; 6.2
+R0 and R1a are done; the next task is **R2**, with **R1b** (held-out
+filings recorded over days) beside it once the user has saved them, then R3
+to R9 in order; 6.2
 onwards and phases 7 to 12 wait, except what a phase R task pulls forward
 and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
 (a tool that never picks a rating; one model definition evaluated by the
@@ -1523,8 +1525,42 @@ has not run yet**: its test exists only where `soffice` is installed or
 the user". What is left of part b is listed under R4 in PLAN.md (the other
 blocks, quarterly actuals, screens, the add-in, an endpoint; with the
 endpoint come the Dockerfile, `render.yaml` and `staging.yml` lines for
-`research/`). The rest of part b comes in its turn, after R1 to R3;
-**next is R1** (the results reader).
+`research/`: done with R1a). The rest of part b comes in its turn, after
+R1 to R3.
+**R1a is done (2026-10-15): the results reader** (`research/reader/`,
+DEPLOY.md "Results reader"). **Decided by the user (2026-10-14): built on a
+free Gemini key** (Google project `variater-reader`, no billing; `AI_PROVIDER`
+and `GEMINI_API_KEY` on both Render services and as a GitHub secret);
+**billing with a spending cap before the first outside showing after R2**
+(then `AI_FREE_TIER=0`); recording answers **spread over days** within the
+free allowance. A clean uploaded PDF (6.1) is read by job `research.read`:
+read A the whole PDF, read B pictures of the pages A found (drawn by
+`pypdfium2` in a child process, holding the simulation slot), by a
+different full model; `assemble.py` gives read A's figures, each with its
+page, row, column, period, scope, standard line (`lines.py`: a fixed list
+first, the AI's line for the rest) and **amber reason** (reads differ, one
+read only, a sum fails, the balance sheet or cash flow out of step, a poor
+scan under 100 dpi not confirmed by a sum, differs from what is stored);
+`checks.py` is R0's `score.py` ported (sums, alignment by numbers, periods).
+`POST /api/research/reads` (free tier: **the person must confirm the file is
+public**), `GET /api/research/reads/{id}`, `GET /api/research/reader`,
+`GET /api/health/reader` (public: lists Google's models with the key, spends
+no allowance). Limits: 30 reads a day for the service, 10 per person, 250
+pages per person. Screen: Equity research -> **Coverage -> Results**.
+**Card** `ml/cards/reader.json`: development set (R0's 30, in-sample, R0's
+prompt replayed from `tests/fixtures/research/reader/development`) 1.40%
+amber, no planted wrong digit missed (one read alone misses 75%), no BSE
+figure missed; the **headline set `held_out` is empty, so production
+answers `503 reader_not_measured`** (`gate.py`) while staging reads with a
+"not yet measured" notice. **R1b**: the user saves about ten new results
+PDFs (September 2026 quarter) into `research-samples/held-out/` (and BSE's
+tables into `research-samples/xbrl/`), Claude runs `python -m
+research.reader.record read --set held_out --env-file research-samples/.env
+research-samples/held-out/*.pdf` once a day until all are read, then
+`python -m ml.evaluation evaluate`; R1 is ticked when `held_out` meets the
+bar. Known and left: a read job requeued after a restart charges its pages
+and spends its two requests again; a read holds the in-API runner thread
+for minutes, so jobs behind it wait (phase 12's workers).
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet
@@ -1559,7 +1595,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). **Next is R1** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b (held-out filings) waits on the user's files. **Next is R2** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1747,6 +1783,19 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- PLAN.md R1b: **save about ten new results PDFs** (September 2026
+  quarter, from mid-October; several sectors; some scanned; one half-year
+  with a balance sheet and cash flow) by hand into
+  `research-samples/held-out/` as `company_FY27-Q2.pdf`, and BSE's
+  results-page table for each into `research-samples/xbrl/` where it works.
+  Also one workflow edit Claude's token can't push: add `research` to
+  `API_PATHS` in `.github/workflows/staging.yml` (beside `uploads`), so a
+  change to `research/` alone makes the staging check wait for the API.
+
+- Before the first outside showing after R2: **billing with a spending cap**
+  on Google project `variater-reader`, then `AI_FREE_TIER=0` on both Render
+  services (DEPLOY.md "Results reader").
+
 - PLAN.md R4 part b: **LibreOffice in CI** (one workflow edit Claude's token
   can't push). In `.github/workflows/tests.yml`, job `ml`: before the step
   "Run all tests, failing if any ML test skips" add a step that runs
@@ -1829,6 +1878,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
 | `core/live.py`, `ml/evaluation/surrogate.py`, `components/montecarlo/MonteCarloML.tsx`, `jobs/drill.py`, `tests/test_live.py`, `web/e2e/live-sliders.spec.ts` | Live sliders (PLAN.md 5.8): the simulation on a small, fixed set of paths with the sliders as inputs; its card on varied regional deals; the Live step; the staging drill's live session and memory read; the tests (the estimate is the run with that input changed) |
 | `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
+| `research/reader/`, `api/routers/research.py`, `ml/evaluation/reader.py`, `web/src/components/coverage/`, `web/src/lib/research.ts`, `tests/fixtures/research/reader/`, `tests/test_research_reader*.py`, `web/e2e/reader.spec.ts` | The results reader (PLAN.md R1): the provider switch, prompts, page tool, checks, standard lines, assembly, the job's service, the production gate and the recorder; the endpoints; its card; Coverage -> Results; the recorded answers (R0's 30 as `development`, `held_out` from R1b); the tests |
 | `research/`, `tests/research_support.py`, `tests/fixtures/research/`, `tests/test_research_*.py` | Equity research, sector models (PLAN.md R4 part b): the formula reader (`formula.py`), the model and company as data (`definition.py`), the evaluator, the Excel writer (`workbook.py`), the shared pieces, model 1 (`models/occupancy.py`); the tests' fixture loader, independent Excel-formula reader and LibreOffice runner; the two hand-solved companies; the tests (formulas, the format by hand, workbook against evaluator, model 1 against the hand workbooks) |
 | `uploads/`, `db/files.py`, `api/routers/files.py`, `web/src/lib/files.ts`, `web/src/components/deal/steps/DocumentsStep.tsx`, `tests/test_uploads.py`, `tests/upload_samples.py`, `web/e2e/documents.spec.ts` | File uploads (PLAN.md 6.1): the rules, the scanner, the stores and the steps of an upload; the rows; the endpoints; the browser's side and the Documents step; the tests and the files they build in memory |
 | `benchmarks/usual.py`, `web/src/lib/usual.ts`, `tests/test_usual.py`, `web/e2e/usual.spec.ts` | Personalized defaults (PLAN.md 5.9): a person's usual figures from their own saved deals; the answer shared by the switch and the tile; the tests (only the caller's deals, off stops them) |
@@ -2332,6 +2382,17 @@ Skills load when a session starts: install first, then open a new session.
   keeps the old shape: the tests pass (each makes a fresh database) and the
   browser tests fail with a 500 (`ProgrammingError`: no such column).
   `python -m db.migrate downgrade -1` then `upgrade` on `DATABASE_URL`.
+- The results reader's wording is `research/reader/prompt.py`: a change is a
+  new `PROMPT_VERSION`, and the held-out filings must be read again with it
+  before the card says anything. R0's prompt is kept word for word as `r0`,
+  which is what lets R0's saved reads replay as recordings (a test checks it
+  against R0's script where that is on the machine). Recordings are keyed by
+  the PDF's SHA-256; PDFs are never committed (the repository is public).
+- A child process's resource limits (`RLIMIT_CPU` ...) belong in its
+  `if __name__ == "__main__":` block, never in the function a test may call
+  in-process: R1a's first version set them inside `main`, and a test calling
+  it limited pytest itself to 60 CPU seconds, so the full run died at 77%
+  with exit 152 (SIGXCPU) and no summary.
 - `monkeypatch.undo()` in a test undoes the fixtures' patches too (the
   database address, the store's directory). Use `with monkeypatch.context()
   as m:` for a patch that should end mid-test.

@@ -211,6 +211,11 @@ def live_problems(found: dict) -> list[str]:
     # is allowed; a store that is set up must take a file its whole road
     if str(found.get("files_scanner", "ok")) != "ok":
         out.append(f"the upload scanner does not work on this server: {found['files_scanner']}")
+    # The results reader (PLAN.md R1): a key that is set must work ("off" is
+    # a server with no provider, which /api/health/reader shows)
+    if found.get("reader") == "error":
+        out.append(f"the results reader is {found['reader']} on this server (provider {found.get('reader_provider')}, "
+                   f"key {found.get('reader_key')}, models missing: {found.get('reader_missing') or 'none'})")
     if str(found.get("files_drill", "none")) not in ("ok", "none"):
         out.append(f"the file store drill {found['files_drill']} ({found.get('files_drill_error')}"
                    f"{': ' + str(found['files_drill_detail']) if found.get('files_drill_detail') else ''})")

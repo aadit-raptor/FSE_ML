@@ -71,6 +71,12 @@ export const MODES: Mode[] = [
     ],
   },
   {
+    // Equity research (PLAN.md phase R): results filings read and checked (R1); R2 adds the review and the quarters kept
+    slug: "coverage",
+    labelKey: "modeCoverage",
+    steps: [{ slug: "results", labelKey: "coverageResults", summaryKey: "coverageResultsSummary" }],
+  },
+  {
     slug: "settings",
     labelKey: "modeSettings",
     steps: [
@@ -123,7 +129,7 @@ export const WORKSPACES: Workspace[] = [
     slug: "research",
     labelKey: "workspaceResearch",
     summaryKey: "workspaceResearchSummary",
-    modes: ["forecast"],
+    modes: ["forecast", "coverage"],
   },
 ];
 

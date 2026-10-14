@@ -30,6 +30,13 @@
    "train": null
   },
   {
+   "id": "reader",
+   "evaluation": "ml.evaluation.reader",
+   "loaded_by": "research/reader/gate.py",
+   "artifacts": [],
+   "train": null
+  },
+  {
    "id": "regime",
    "evaluation": "ml.evaluation.regime",
    "loaded_by": "api/routers/integrations.py",

@@ -97,7 +97,7 @@ RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
     "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/macro-regime",
-    "/api/companies/search", "/api/companies/load",
+    "/api/companies/search", "/api/companies/load", "/api/research/reads",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
 # The memory-heavy runs: one at a time, with a timeout
@@ -122,6 +122,17 @@ _FILE_CONTENT = re.compile(r"/api/files/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-
 # person reading documents needs
 USER_UPLOADS = Rule("user_uploads_per_hour", "uploads", "user", 20, 3600)
 UPLOADS_PATH = "/api/files"
+
+# The results reader (PLAN.md R1). The free Gemini tier allows 20 requests a
+# day per model and a read is two requests (two different models): the four
+# full models give about 40 filings a day for the whole service. So: at most
+# READS_ALL a day across every account (room left for retries), ten a
+# person, and a page limit a person, checked once the job has counted the
+# filing's pages (a quarterly filing is 5 to 25 pages; R0's longest, 193).
+USER_READS = Rule("user_reads_per_day", "results reads", "user", 10, 86_400, shared=True)
+READS_ALL = Rule("reads_per_day", "results reads", "service", 30, 86_400, shared=True)
+USER_READ_PAGES = Rule("user_read_pages_per_day", "pages read", "user", 250, 86_400, shared=True)
+READS_PATH = "/api/research/reads"
 
 
 def streams_body(method: str, path: str) -> bool:
@@ -194,7 +205,7 @@ def _wait(seconds: int) -> str:
 def refusal(rule: Rule, check: Check, now: float) -> tuple[dict, dict]:
     """JSON body and headers for a 429."""
     retry = max(1, math.ceil(check.window_end - now))
-    who = "your account" if rule.per == "user" else "this network address"
+    who = {"user": "your account", "address": "this network address"}.get(rule.per, "everyone together")
     message = (f"Too many {rule.what}: {who} can make {check.limit:,} {_period(rule.window_s)}. "
                f"Try again in {_wait(retry)}.")
     body = {"detail": message, "limit": {"rule": rule.name, "limit": check.limit,
@@ -209,7 +220,7 @@ class LimitExceeded(Exception):
         self.headers = headers
 
 
-def _enforce(rules: list[tuple[Rule, str]], *, now: Optional[float] = None) -> None:
+def enforce(rules: list[tuple[Rule, str]], *, now: Optional[float] = None) -> None:
     now = time.time() if now is None else now
     checks = [check_for(rule, identity, now) for rule, identity in rules]
     refused = counters().consume(checks)
@@ -227,7 +238,7 @@ def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)
         rules.append((USER_LIVE, user.subject))
     if request.method == "POST" and request.url.path == UPLOADS_PATH:
         rules.append((USER_UPLOADS, user.subject))
-    _enforce(rules)
+    enforce(rules)
 
 
 # ---------------------------------------------------------------------------

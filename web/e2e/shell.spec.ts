@@ -46,13 +46,13 @@ test("each workspace shows only its own mode tabs, and the switcher moves betwee
 
   await workspaces(page).getByRole("link", { name: "Equity research" }).click();
   await expect(page).toHaveURL(/\/forecast\/historicals$/);
-  await expect(tabs).toHaveText([/^Forecast/]);
+  await expect(tabs).toHaveText([/^Forecast/, /^Coverage/]);
   await expect(workspaces(page).getByRole("link", { name: "Equity research" })).toHaveAttribute("aria-current", "true");
 
   // The account screen keeps the tabs of the workspace last worked in, even opened afresh
   await page.goto("/account");
   await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
-  await expect(tabs).toHaveText([/^Forecast/]);
+  await expect(tabs).toHaveText([/^Forecast/, /^Coverage/]);
 });
 
 test("mode tabs and step links change the screen", async ({ page }) => {
@@ -79,9 +79,11 @@ test("keyboard: Alt+number switches mode, ] moves to the next step", async ({ pa
 test("keyboard: Alt+number counts within the current workspace", async ({ page }) => {
   await page.goto("/forecast/statements");
   await page.locator("main").click({ position: { x: 5, y: 5 } });
-  // Equity research has one mode: Alt+2 leads nowhere, Alt+1 is Forecast
-  await page.keyboard.press("Alt+2");
+  // Equity research has two modes: Alt+3 leads nowhere, Alt+2 is Coverage, Alt+1 is Forecast
+  await page.keyboard.press("Alt+3");
   await expect(page).toHaveURL(/\/forecast\/statements$/);
+  await page.keyboard.press("Alt+2");
+  await expect(page).toHaveURL(/\/coverage\/results$/);
   await page.keyboard.press("Alt+1");
   await expect(page).toHaveURL(/\/forecast\/historicals$/);
 });
@@ -94,7 +96,7 @@ test("Ctrl K searches every workspace, not just the current one", async ({ page 
   const box = page.getByRole("combobox", { name: "Search screens" });
   // The workspace's name finds its screens, and each result names its workspace
   await box.fill("equity research");
-  await expect(page.getByRole("option")).toHaveCount(5);
+  await expect(page.getByRole("option")).toHaveCount(6);
   await expect(page.getByRole("option").first()).toContainText("Equity research");
   await page.getByRole("option", { name: /Forecast\s*Statements/ }).click();
   await expect(page).toHaveURL(/\/forecast\/statements$/);

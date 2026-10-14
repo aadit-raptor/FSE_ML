@@ -207,8 +207,9 @@ which moved into Foundations (1.9) because later phases need them.
 | 12.9 | Licensed market data (corporate credit spreads) | 4.2 | ☐ |
 | **R** | **Equity research workspace (the priority since 2026-10-12)** | | |
 | R0 | Proof before code: reader accuracy | 6.1 | ☑ |
-| R1 | Results reader | R0 | ☐ |
-| R2 | Coverage, review screen and the checked workbook | R1 | ☐ |
+| R1a | Results reader, built and measured on R0's filings | R0 | ☑ |
+| R1b | Results reader measured on held-out filings (recorded over days) | R1a | ☐ |
+| R2 | Coverage, review screen and the checked workbook | R1a | ☐ |
 | R3 | Excel add-in: sign in and import results | R2 | ☐ |
 | R4 | Sector research, the model definition and the first sector model | R2 | ☐ |
 | R5 | Save back and roll forward | R3, R4 | ☐ |
@@ -270,7 +271,7 @@ It lives in the existing **Equity research** workspace (7.10) and in an
 | Database: Neon, free and paid on the same platform | In place |
 | File storage: Supabase Storage, private bucket, scanned uploads | In place once 6.1 merges |
 | Accounts, saved versions, limits, background jobs, audit history, Excel downloads, plan vs actual, lakh digit grouping, fiscal year labels | In place |
-| An AI key for reading documents | **New.** Nothing is set; `ml/nlp_extractor.py` is unused |
+| An AI key for reading documents | **In place (R1a, 2026-10-14)**: `AI_PROVIDER=gemini`, a free key of Google project `variater-reader`; billing with a cap before outside users |
 | Money in lakhs and crores | **New.** Units today are thousands, millions, billions |
 | Quarter by quarter (the product follows Indian results, which are quarterly) | **To build.** Today's forecast screen works in whole years |
 | Indian companies' results | **To build, by upload** (decided 2026-10-12: uploading the PDF is enough for a start; fetching from BSE or NSE comes later). 4.1's registers hold no Indian company |
@@ -325,7 +326,10 @@ stops for it):
   after the product" below), and which practising analyst reads each sector
   model before it is called vetted (R4);
 - a paid AI key with a spending cap, if no free one reads accurately enough
-  (R0 decides; it would bring 12.4 forward).
+  (R0 decides; it would bring 12.4 forward): **settled 2026-10-14**: R1 is
+  built on a free Gemini key (project `variater-reader`, no billing yet);
+  billing with a spending cap is switched on **before the first outside
+  showing after R2** (then `AI_FREE_TIER=0`, DEPLOY.md "Results reader").
 
 **Analysts come after the product (the user's decision, 2026-10-12).** No
 analyst can be approached with a sample page: they need something finished
@@ -640,6 +644,86 @@ or nearly finished to try. So no task waits for an analyst:
   tuned on; a wrong digit planted in a recorded answer is flagged (test);
   CI makes no AI call; the confidentiality confirmation blocks a file the
   user does not confirm is public (e2e).
+- **Decided by the user (2026-10-14):** R1 is built on a **free Gemini
+  key** (Google project `variater-reader`, no billing yet); **billing with a
+  spending cap comes before the first outside showing after R2**; the
+  recording of answers is **spread over days within the free allowance**
+  (20 requests a day per model, two a filing). The user set `AI_PROVIDER=gemini`
+  and `GEMINI_API_KEY` on both Render services and `GEMINI_API_KEY` as a
+  GitHub secret on 2026-10-14 (proved through staging: `/api/health/reader`
+  and the staging drill list Google's models with the key, which spends no
+  allowance).
+- **Split (2026-10-14)**, because the card's headline needs filings nobody
+  tuned the prompt on, and none existed: **R1a** builds the reader and
+  measures it on R0's 30 filings (in-sample); **R1b** reads new filings
+  (held-out) over days and makes the card's headline. Production keeps the
+  reader closed until R1b's card meets the bar; staging reads with a "not yet
+  measured" notice. R2 needs only R1a, so it goes on meanwhile; R1b must be
+  done before the first outside showing.
+- **R1a, done (2026-10-14):**
+  - `research/reader/`: `providers.py` (the switch: `gemini`, `replay` of
+    recorded answers, off; two different full models, a spent model skipped,
+    "high demand" moves on, the key only in a header), `prompt.py` (R0's
+    prompt word for word as `r0`; `r1` adds each row's page), `pages.py`
+    (page count, each page's scan resolution, pictures for read B, all in a
+    child process with limits; `pypdfium2`), `checks.py` (R0's sums,
+    agreement, periods, ported; plus balance sheet, cash flow against the
+    change in cash, comparatives against what is stored), `lines.py` (the
+    company's labels to standard lines: a fixed list first, the AI's line
+    only for the rest, its own wording kept), `assemble.py` (two reads to
+    checked statements: every figure with its page, row and column, period,
+    scope, line and amber reason), `read.py`, `service.py` (who may read
+    what; the job), `gate.py` (production reads only once the card meets the
+    bar), `record.py` (the recorder: R0's saved reads, or new reads saved as
+    they arrive).
+  - Job `research.read` (no simulation slot: mostly a wait on the provider),
+    `POST /api/research/reads`, `GET /api/research/reads/{id}`,
+    `GET /api/research/reader`, `GET /api/health/reader`. Refusals are codes.
+    The free tier needs the person's confirmation that the file is public
+    (`AI_FREE_TIER`); only a PDF of the caller's that 6.1 scanned clean.
+  - Limits: 30 reads a day for the service, 10 per person, **250 pages a
+    day per person**, charged once the job counts the pages; 300 pages a
+    filing at most.
+  - **Poor scans**: a page whose picture is under 100 dpi (Tata Steel's
+    year-end statements are 95) is a poor scan; a figure on it is amber
+    unless a sum that holds confirms it (36 figures of R0's 30 filings).
+  - Equity research -> **Coverage -> Results** (`components/coverage/`):
+    upload or choose a PDF, the quarter (optional), the public
+    confirmation, the read's stages, then the statements with every amber
+    figure and its reason, and the headings and units to check. R2 adds the
+    review.
+  - **Card** `ml/cards/reader.json` (`ml/evaluation/reader.py`; the bar is
+    the card's: R0's): **development** set, R0's 30 filings as recorded
+    answers (`tests/fixtures/research/reader/development`, R0's prompt):
+    7,998 figures, **1.40% amber**, **0 of 360 planted wrong digits missed**
+    (read A alone with its sums misses 75%), **0 of 232 truth-file figures
+    (BSE's, ten filings) missed**, 97.8% of them confirmed without amber.
+    In-sample, so it does not count for the bar; the **held_out** set
+    (headline) is empty: "not enough data".
+  - Tests: `tests/test_research_reader.py` (a planted wrong digit in every
+    recorded filing is flagged; a misread that still adds up is caught by
+    the second read; no socket opened on replay), 
+    `tests/test_research_reader_api.py` (another account's file and read
+    are 404s; the confirmation; the limits; nothing from a document in the
+    log, mutation-checked), `web/e2e/reader.spec.ts` (the confirmation
+    blocks an unconfirmed file on screen and at the API; a read shows its
+    amber figure).
+- **R1b, next in parallel with R2** (needs the user first):
+  - **You first:** save about ten **new** results PDFs by hand into
+    `research-samples/held-out/` (September 2026 quarter filings, published
+    from mid-October; none of R0's companies' same filing; several sectors;
+    some scanned; a half-year with a balance sheet and cash flow), named
+    `company_FY27-Q2.pdf`; and, where it works, BSE's results-page table for
+    each into `research-samples/xbrl/` as before (the truth file).
+  - **Claude does:** `python -m research.reader.record read --set held_out
+    --env-file research-samples/.env research-samples/held-out/*.pdf` once a
+    day until every filing is read (20 requests a day per model; a spent
+    day stops the run and the same command carries on), the truth file
+    joined, `python -m ml.evaluation evaluate`; the high-resolution trial
+    (`READER_HIGH_RESOLUTION=1`) on the same filings as a second set,
+    kept if its card is better; then R1 is ticked.
+  - **Done when:** the card's `held_out` set has at least five filings and
+    meets R0's bar; production then reads (`gate.py`).
 
 ### R2 Coverage, review screen and the checked workbook
 - **Claude does:**

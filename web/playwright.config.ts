@@ -86,7 +86,15 @@ export default defineConfig({
           // a person; raise the usage limits (ignored in production: api/limits.py)
           // Uploaded files go to a directory, the local stand-in for the
           // private bucket (never in production: uploads/store.py)
-          env: { FSE_AUTH_DEV: "1", FSE_LIMITS_MULTIPLIER: "20", FSE_UPLOADS_DIR: join(tmpdir(), "fse-e2e-uploads") },
+          // The results reader replays recorded answers: no AI call (never in
+          // production: research/reader/providers.py), any file answered as Avenue Supermarts'
+          env: {
+            FSE_AUTH_DEV: "1",
+            FSE_LIMITS_MULTIPLIER: "20",
+            FSE_UPLOADS_DIR: join(tmpdir(), "fse-e2e-uploads"),
+            AI_PROVIDER: "replay",
+            FSE_READER_REPLAY_DEFAULT: "avenue-supermarts_FY27-Q2",
+          },
         },
         {
           command: "npm run start -- --port 3000",

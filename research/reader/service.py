@@ -1,0 +1,158 @@
+"""The reader as the API runs it: who may read what, and the job (PLAN.md R1).
+
+``start`` (``POST /api/research/reads``) checks, in order: the reader is
+configured and open (``gate``), the person confirmed the file is public
+when the provider is a free tier, the file is theirs, a PDF and **scanned
+clean** (PLAN.md 6.1), and their day's reads and the server's are not used
+up. Then it queues job ``research.read`` under the person's own name, so
+only they can see it and it counts among their waiting runs.
+
+``read_file`` is the job: the file is fetched from the store to a private
+spool file, its pages counted (in a child process) and charged against the
+person's **daily page limit**, then read twice and checked
+(``read.read_filing``). The answer is the job's result (kept six hours, like
+every job's); nothing is stored until R2 adds accepting a quarter.
+
+**Nothing from a document reaches a log**: events carry counts, models and
+timings only, never a label, a figure or the file's name.
+"""
+from __future__ import annotations
+
+import datetime
+import logging
+import time
+import uuid
+from pathlib import Path
+from typing import Optional
+
+from fastapi import HTTPException
+
+from api.limits import holding_simulation_slot
+from api.observability import deploy_environment, log_event
+from research.reader import gate, pages
+from research.reader import providers as ai
+from research.reader.read import read_filing
+
+KIND = "research.read"
+
+# Refusals, as codes the screen words (web/messages/en.json reader.error_*)
+OFF = "reader_off"
+NOT_MEASURED = "reader_not_measured"
+CONFIRM_PUBLIC = "confirm_public"
+NOT_PDF = "not_pdf"
+NOT_CLEAN = "not_clean"
+NO_FILE = "no_file"
+PAGE_LIMIT = "page_limit"
+TOO_LONG = "too_long"
+STORE_DOWN = "store_unreachable"
+
+
+def _refuse(status: int, code: str) -> HTTPException:
+    return HTTPException(status, code)
+
+
+def provider():
+    found = ai.get_provider()
+    if found is None:
+        raise _refuse(503, OFF)
+    return found
+
+
+def check_open() -> None:
+    if not gate.open_to_people(deploy_environment()):
+        raise _refuse(503, NOT_MEASURED)
+
+
+def _clean_pdf(subject: str, file_id: uuid.UUID):
+    from db import files as rows
+
+    try:
+        record = rows.get_file(subject, file_id)
+    except rows.FileNotFound:
+        raise _refuse(404, NO_FILE) from None
+    if record.kind != "pdf":
+        raise _refuse(422, NOT_PDF)
+    if record.status != "clean":
+        raise _refuse(409, NOT_CLEAN)
+    return record
+
+
+def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Optional[datetime.date]):
+    """Queue a read for the caller. Answers the job record."""
+    from api.limits import READS_ALL, USER_READS, enforce
+    from api.routers.jobs import submit_kind
+
+    reader = provider()
+    check_open()
+    if reader.free_tier and not public:
+        raise _refuse(422, CONFIRM_PUBLIC)
+    _clean_pdf(subject, file_id)
+    enforce([(USER_READS, subject), (READS_ALL, "all")])
+    payload = {"owner": subject, "file_id": str(file_id),
+               "quarter_end": quarter_end.isoformat() if quarter_end else None}
+    return submit_kind(subject, KIND, payload)
+
+
+def _charge_pages(subject: str, count: int, now: Optional[float] = None) -> None:
+    from api.limits import USER_READ_PAGES, check_for, effective_limit
+    from api.usage import counters
+
+    now = time.time() if now is None else now
+    check = check_for(USER_READ_PAGES, subject, now)
+    if counters().usage(check.key) + count > effective_limit(USER_READ_PAGES):
+        raise _refuse(429, PAGE_LIMIT)
+    counters().add(check, count)
+
+
+def pages_left(subject: str, now: Optional[float] = None) -> int:
+    from api.limits import USER_READ_PAGES, check_for, effective_limit
+    from api.usage import counters
+
+    check = check_for(USER_READ_PAGES, subject, time.time() if now is None else now)
+    return max(0, effective_limit(USER_READ_PAGES) - counters().usage(check.key))
+
+
+def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.date], *,
+              today: Optional[datetime.date] = None) -> dict:
+    """The job: fetch, count and charge the pages, read twice, check."""
+    from uploads import rules, service as uploads
+    from uploads.store import NotStored, StorageError
+
+    reader = provider()
+    record = _clean_pdf(owner, file_id)
+    path = uploads.spool() / f"read-{uuid.uuid4().hex}.pdf"
+    t0 = time.perf_counter()
+    try:
+        try:
+            uploads.store().fetch(record.key, path, rules.MAX_FILE_BYTES)
+        except NotStored:
+            raise _refuse(404, NO_FILE) from None
+        except StorageError:
+            raise _refuse(503, STORE_DOWN) from None
+        try:
+            with holding_simulation_slot():
+                info = pages.info(path)
+        except pages.PagesError:
+            raise _refuse(422, "unreadable_pdf") from None
+        if info.pages > pages.MAX_PAGES:
+            raise _refuse(422, TOO_LONG)
+        _charge_pages(owner, info.pages)
+        try:
+            result = read_filing(path, reader, today=today or datetime.date.today(), quarter=quarter_end,
+                                 info=info)
+        except ai.ProviderError as exc:
+            log_event("reader_failed", logging.WARNING, provider=reader.name, code=exc.code,
+                      http_status=exc.status)
+            status = {ai.SPENT: 429, ai.BUSY: 503, ai.NOT_RECORDED: 404}.get(exc.code, 502)
+            raise _refuse(status, exc.code) from None
+        except pages.PagesError:
+            raise _refuse(422, "unreadable_pdf") from None
+    finally:
+        uploads.discard(path)
+    summary = result["summary"]
+    log_event("reader_read", provider=reader.name, pages=info.pages, tables=summary["tables"],
+              figures=summary["figures"], amber=summary["amber"],
+              model_a=(result["reads"]["A"] or {}).get("model"), model_b=(result["reads"]["B"] or {}).get("model"),
+              duration_ms=round((time.perf_counter() - t0) * 1000))
+    result["file_id"] = str(file_id)
+    return result

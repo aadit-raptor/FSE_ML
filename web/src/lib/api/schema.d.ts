@@ -1002,6 +1002,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health/reader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Reader
+         * @description The results reader (PLAN.md R1): which AI provider this server
+         *     uses and whether its key works, found by listing the provider's
+         *     models, which spends none of its allowance. Never the key. Cached
+         *     five minutes; never queries the database.
+         */
+        get: operations["health_reader_api_health_reader_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs": {
         parameters: {
             query?: never;
@@ -1384,6 +1407,68 @@ export interface paths {
          * @description Run all four scenario presets from the same inputs.
          */
         post: operations["post_scenarios_api_montecarlo_scenarios_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/reader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reader
+         * @description What the screen needs before a read: is it on, must the caller
+         *     confirm the file is public, how many pages are left today.
+         */
+        get: operations["get_reader_api_research_reader_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/reads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Read
+         * @description Read a results PDF twice and check it, as a background job.
+         */
+        post: operations["post_read_api_research_reads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/reads/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Read
+         * @description A read's progress, and the checked statements once it is done. Another
+         *     account's read, or another kind of job, is a 404.
+         */
+        get: operations["get_read_api_research_reads__job_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4530,7 +4615,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run";
+            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run" | "research.read";
             /**
              * Progress
              * @description 0 to 1; moves as the run passes its stages
@@ -5767,6 +5852,268 @@ export interface components {
              * @description Where actual IRRs fell among the paths (50 = unbiased)
              */
             mean_percentile: number | null;
+        };
+        /** ReadCell */
+        ReadCell: {
+            /**
+             * Amber
+             * @description Why the figure needs a look; null when it doesn't
+             */
+            amber?: ("reads_differ" | "sign_differs" | "one_read_only" | "sum_fails" | "poor_scan" | "unbalanced" | "cash_mismatch" | "stored_differs") | null;
+            /**
+             * In Sum
+             * @description The figure sits in a sum the table states that holds
+             */
+            in_sum: boolean;
+            /**
+             * Other
+             * @description The other read's value, or the sum the parts give
+             */
+            other?: number | null;
+            /** Value */
+            value: number | null;
+        };
+        /** ReadColumn */
+        ReadColumn: {
+            /** Audited */
+            audited: boolean;
+            /** Label */
+            label: string;
+            /** Months */
+            months: number | null;
+            /** Period End */
+            period_end: string;
+        };
+        /** ReadDocument */
+        ReadDocument: {
+            /** Pages */
+            pages: number;
+            /** Poor Pages */
+            poor_pages: number[];
+            /** Sha256 */
+            sha256: string;
+        };
+        /** ReadJobOut */
+        ReadJobOut: {
+            /**
+             * Error
+             * @description A code (reader.error_* on screen) when the read failed
+             */
+            error?: string | null;
+            /** Error Status */
+            error_status?: number | null;
+            /** Id */
+            id: string;
+            /** Progress */
+            progress: number;
+            result?: components["schemas"]["ReadResult"] | null;
+            /**
+             * Result Expired
+             * @default false
+             */
+            result_expired: boolean;
+            /** Stage */
+            stage: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
+        /** ReadOneRead */
+        ReadOneRead: {
+            /** Model */
+            model: string;
+            /** Prompt Version */
+            prompt_version: string;
+            /** Seconds */
+            seconds: number;
+            /** Tokens */
+            tokens: {
+                [key: string]: number;
+            };
+        };
+        /** ReadProblem */
+        ReadProblem: {
+            /**
+             * Code
+             * @description What is wrong with a heading, the unit or a table (reader.problem_* on screen)
+             */
+            code: string;
+            /** Column */
+            column: number | null;
+            /** Detail */
+            detail: string;
+            /** Statement */
+            statement: string | null;
+        };
+        /** ReadReads */
+        ReadReads: {
+            A: components["schemas"]["ReadOneRead"];
+            B: components["schemas"]["ReadOneRead"] | null;
+            /** Seconds */
+            seconds: number;
+        };
+        /**
+         * ReadResult
+         * @description A results filing read twice and checked. Money is as printed, in ``unit``.
+         */
+        ReadResult: {
+            /** Company */
+            company: string;
+            /** Currency */
+            currency: string | null;
+            document: components["schemas"]["ReadDocument"];
+            /** File Id */
+            file_id: string;
+            /** Problems */
+            problems: components["schemas"]["ReadProblem"][];
+            /** Quarter End */
+            quarter_end: string | null;
+            /** Quarter Source */
+            quarter_source: ("given" | "reads") | null;
+            reads: components["schemas"]["ReadReads"];
+            summary: components["schemas"]["ReadTotals"];
+            /** Tables */
+            tables: components["schemas"]["ReadTable"][];
+            /** Unit */
+            unit: ("lakhs" | "crores" | "millions" | "thousands" | "units") | null;
+            /** Year End Month */
+            year_end_month: number | null;
+        };
+        /** ReadRow */
+        ReadRow: {
+            /** Cells */
+            cells: components["schemas"]["ReadCell"][];
+            /**
+             * Label
+             * @description The company's own wording
+             */
+            label: string;
+            /**
+             * Line
+             * @description The standard line it matches (research/reader/lines.py)
+             */
+            line?: string | null;
+            /** Line Source */
+            line_source?: ("list" | "ai") | null;
+            /**
+             * Page
+             * @description The PDF page the row is on, where known
+             */
+            page?: number | null;
+        };
+        /** ReadStart */
+        ReadStart: {
+            /**
+             * File Id
+             * Format: uuid
+             * @description An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)
+             */
+            file_id: string;
+            /**
+             * Public
+             * @description The caller confirms the file is a listed company's published results. Required while the reader runs on a free AI tier, which may use what it is sent to improve its products
+             * @default false
+             */
+            public: boolean;
+            /**
+             * Quarter End
+             * @description The quarter the filing is for; without it the two reads must agree on it
+             */
+            quarter_end?: string | null;
+        };
+        /** ReadTable */
+        ReadTable: {
+            /** Columns */
+            columns: components["schemas"]["ReadColumn"][];
+            /** Pages */
+            pages: number[];
+            /** Rows */
+            rows: components["schemas"]["ReadRow"][];
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "consolidated" | "standalone";
+            /**
+             * Statement
+             * @enum {string}
+             */
+            statement: "results" | "segments" | "balance_sheet" | "cash_flow";
+            summary: components["schemas"]["ReadTableSummary"];
+        };
+        /** ReadTableSummary */
+        ReadTableSummary: {
+            /** Agreed */
+            agreed: number;
+            /** Amber */
+            amber: number;
+            /** Figures */
+            figures: number;
+            /** In Sums */
+            in_sums: number;
+            /** Sums Failed */
+            sums_failed: number;
+            /** Sums Found */
+            sums_found: number;
+        };
+        /** ReadTotals */
+        ReadTotals: {
+            /** Amber */
+            amber: number;
+            /** Amber Share */
+            amber_share: number | null;
+            /** Figures */
+            figures: number;
+            /** In Sums */
+            in_sums: number;
+            /** Period Problems */
+            period_problems: number;
+            /** Tables */
+            tables: number;
+        };
+        /** ReaderInfo */
+        ReaderInfo: {
+            /**
+             * Confirm Public
+             * @description A read needs the caller to confirm the file is public
+             */
+            confirm_public: boolean;
+            /** Free Tier */
+            free_tier: boolean;
+            /** Max Pages */
+            max_pages: number;
+            measured: components["schemas"]["ReaderMeasured"];
+            /**
+             * Open
+             * @description This server reads for people (production: only once the card meets the bar)
+             */
+            open: boolean;
+            /** Pages Left */
+            pages_left: number;
+            /** Pages Per Day */
+            pages_per_day: number;
+            /** Provider */
+            provider: string;
+            /** Reads Per Day */
+            reads_per_day: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "on" | "off";
+        };
+        /** ReaderMeasured */
+        ReaderMeasured: {
+            /** Amber Share */
+            amber_share: number | null;
+            /** Cases */
+            cases: number;
+            /** Meets Bar */
+            meets_bar: boolean | null;
+            /** Set */
+            set: string | null;
         };
         /** RecoveryBaseRates */
         RecoveryBaseRates: {
@@ -10489,6 +10836,26 @@ export interface operations {
             };
         };
     };
+    health_reader_api_health_reader_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     get_jobs_api_jobs_get: {
         parameters: {
             query?: never;
@@ -11226,6 +11593,117 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScenariosResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_reader_api_research_reader_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReaderInfo"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_read_api_research_reads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReadStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_read_api_research_reads__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadJobOut"];
                 };
             };
             /** @description Validation Error */

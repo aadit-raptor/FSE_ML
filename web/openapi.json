@@ -7480,7 +7480,8 @@
               "montecarlo.run",
               "montecarlo.scenarios",
               "backtesting.run",
-              "forecasting.run"
+              "forecasting.run",
+              "research.read"
             ],
             "title": "Kind",
             "type": "string"
@@ -10421,6 +10422,774 @@
           "consistent"
         ],
         "title": "RangeStats",
+        "type": "object"
+      },
+      "ReadCell": {
+        "properties": {
+          "amber": {
+            "anyOf": [
+              {
+                "enum": [
+                  "reads_differ",
+                  "sign_differs",
+                  "one_read_only",
+                  "sum_fails",
+                  "poor_scan",
+                  "unbalanced",
+                  "cash_mismatch",
+                  "stored_differs"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the figure needs a look; null when it doesn't",
+            "title": "Amber"
+          },
+          "in_sum": {
+            "description": "The figure sits in a sum the table states that holds",
+            "title": "In Sum",
+            "type": "boolean"
+          },
+          "other": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The other read's value, or the sum the parts give",
+            "title": "Other"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "in_sum"
+        ],
+        "title": "ReadCell",
+        "type": "object"
+      },
+      "ReadColumn": {
+        "properties": {
+          "audited": {
+            "title": "Audited",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "period_end",
+          "months",
+          "audited"
+        ],
+        "title": "ReadColumn",
+        "type": "object"
+      },
+      "ReadDocument": {
+        "properties": {
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "poor_pages": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Poor Pages",
+            "type": "array"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pages",
+          "poor_pages",
+          "sha256"
+        ],
+        "title": "ReadDocument",
+        "type": "object"
+      },
+      "ReadJobOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A code (reader.error_* on screen) when the read failed",
+            "title": "Error"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Status"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_expired": {
+            "default": false,
+            "title": "Result Expired",
+            "type": "boolean"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "progress",
+          "stage"
+        ],
+        "title": "ReadJobOut",
+        "type": "object"
+      },
+      "ReadOneRead": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "prompt_version": {
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "seconds": {
+            "title": "Seconds",
+            "type": "number"
+          },
+          "tokens": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Tokens",
+            "type": "object"
+          }
+        },
+        "required": [
+          "model",
+          "prompt_version",
+          "seconds",
+          "tokens"
+        ],
+        "title": "ReadOneRead",
+        "type": "object"
+      },
+      "ReadProblem": {
+        "properties": {
+          "code": {
+            "description": "What is wrong with a heading, the unit or a table (reader.problem_* on screen)",
+            "title": "Code",
+            "type": "string"
+          },
+          "column": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "statement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statement"
+          }
+        },
+        "required": [
+          "statement",
+          "column",
+          "code",
+          "detail"
+        ],
+        "title": "ReadProblem",
+        "type": "object"
+      },
+      "ReadReads": {
+        "properties": {
+          "A": {
+            "$ref": "#/components/schemas/ReadOneRead"
+          },
+          "B": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadOneRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seconds": {
+            "title": "Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "A",
+          "B",
+          "seconds"
+        ],
+        "title": "ReadReads",
+        "type": "object"
+      },
+      "ReadResult": {
+        "description": "A results filing read twice and checked. Money is as printed, in ``unit``.",
+        "properties": {
+          "company": {
+            "title": "Company",
+            "type": "string"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "document": {
+            "$ref": "#/components/schemas/ReadDocument"
+          },
+          "file_id": {
+            "title": "File Id",
+            "type": "string"
+          },
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/ReadProblem"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "quarter_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarter End"
+          },
+          "quarter_source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "given",
+                  "reads"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarter Source"
+          },
+          "reads": {
+            "$ref": "#/components/schemas/ReadReads"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ReadTotals"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/ReadTable"
+            },
+            "title": "Tables",
+            "type": "array"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lakhs",
+                  "crores",
+                  "millions",
+                  "thousands",
+                  "units"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "year_end_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year End Month"
+          }
+        },
+        "required": [
+          "file_id",
+          "company",
+          "currency",
+          "unit",
+          "quarter_end",
+          "quarter_source",
+          "year_end_month",
+          "tables",
+          "problems",
+          "summary",
+          "document",
+          "reads"
+        ],
+        "title": "ReadResult",
+        "type": "object"
+      },
+      "ReadRow": {
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/ReadCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "label": {
+            "description": "The company's own wording",
+            "title": "Label",
+            "type": "string"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The standard line it matches (research/reader/lines.py)",
+            "title": "Line"
+          },
+          "line_source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "list",
+                  "ai"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Source"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The PDF page the row is on, where known",
+            "title": "Page"
+          }
+        },
+        "required": [
+          "label",
+          "cells"
+        ],
+        "title": "ReadRow",
+        "type": "object"
+      },
+      "ReadStart": {
+        "additionalProperties": false,
+        "properties": {
+          "file_id": {
+            "description": "An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)",
+            "format": "uuid",
+            "title": "File Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "description": "The caller confirms the file is a listed company's published results. Required while the reader runs on a free AI tier, which may use what it is sent to improve its products",
+            "title": "Public",
+            "type": "boolean"
+          },
+          "quarter_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The quarter the filing is for; without it the two reads must agree on it",
+            "title": "Quarter End"
+          }
+        },
+        "required": [
+          "file_id"
+        ],
+        "title": "ReadStart",
+        "type": "object"
+      },
+      "ReadTable": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/ReadColumn"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "pages": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Pages",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ReadRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "scope": {
+            "enum": [
+              "consolidated",
+              "standalone"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "statement": {
+            "enum": [
+              "results",
+              "segments",
+              "balance_sheet",
+              "cash_flow"
+            ],
+            "title": "Statement",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ReadTableSummary"
+          }
+        },
+        "required": [
+          "statement",
+          "scope",
+          "pages",
+          "columns",
+          "rows",
+          "summary"
+        ],
+        "title": "ReadTable",
+        "type": "object"
+      },
+      "ReadTableSummary": {
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "integer"
+          },
+          "amber": {
+            "title": "Amber",
+            "type": "integer"
+          },
+          "figures": {
+            "title": "Figures",
+            "type": "integer"
+          },
+          "in_sums": {
+            "title": "In Sums",
+            "type": "integer"
+          },
+          "sums_failed": {
+            "title": "Sums Failed",
+            "type": "integer"
+          },
+          "sums_found": {
+            "title": "Sums Found",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "figures",
+          "amber",
+          "in_sums",
+          "sums_found",
+          "sums_failed",
+          "agreed"
+        ],
+        "title": "ReadTableSummary",
+        "type": "object"
+      },
+      "ReadTotals": {
+        "properties": {
+          "amber": {
+            "title": "Amber",
+            "type": "integer"
+          },
+          "amber_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amber Share"
+          },
+          "figures": {
+            "title": "Figures",
+            "type": "integer"
+          },
+          "in_sums": {
+            "title": "In Sums",
+            "type": "integer"
+          },
+          "period_problems": {
+            "title": "Period Problems",
+            "type": "integer"
+          },
+          "tables": {
+            "title": "Tables",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tables",
+          "figures",
+          "amber",
+          "amber_share",
+          "in_sums",
+          "period_problems"
+        ],
+        "title": "ReadTotals",
+        "type": "object"
+      },
+      "ReaderInfo": {
+        "properties": {
+          "confirm_public": {
+            "description": "A read needs the caller to confirm the file is public",
+            "title": "Confirm Public",
+            "type": "boolean"
+          },
+          "free_tier": {
+            "title": "Free Tier",
+            "type": "boolean"
+          },
+          "max_pages": {
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "measured": {
+            "$ref": "#/components/schemas/ReaderMeasured"
+          },
+          "open": {
+            "description": "This server reads for people (production: only once the card meets the bar)",
+            "title": "Open",
+            "type": "boolean"
+          },
+          "pages_left": {
+            "title": "Pages Left",
+            "type": "integer"
+          },
+          "pages_per_day": {
+            "title": "Pages Per Day",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "reads_per_day": {
+            "title": "Reads Per Day",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "on",
+              "off"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "provider",
+          "free_tier",
+          "confirm_public",
+          "open",
+          "measured",
+          "pages_per_day",
+          "pages_left",
+          "reads_per_day",
+          "max_pages"
+        ],
+        "title": "ReaderInfo",
+        "type": "object"
+      },
+      "ReaderMeasured": {
+        "properties": {
+          "amber_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amber Share"
+          },
+          "cases": {
+            "title": "Cases",
+            "type": "integer"
+          },
+          "meets_bar": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meets Bar"
+          },
+          "set": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set"
+          }
+        },
+        "required": [
+          "set",
+          "meets_bar",
+          "cases",
+          "amber_share"
+        ],
+        "title": "ReaderMeasured",
         "type": "object"
       },
       "RecoveryBaseRates": {
@@ -19856,6 +20625,26 @@
         ]
       }
     },
+    "/api/health/reader": {
+      "get": {
+        "description": "The results reader (PLAN.md R1): which AI provider this server\nuses and whether its key works, found by listing the provider's\nmodels, which spends none of its allowance. Never the key. Cached\nfive minutes; never queries the database.",
+        "operationId": "health_reader_api_health_reader_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Reader",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
     "/api/jobs": {
       "get": {
         "description": "The caller's recent jobs, newest first, without their results.",
@@ -20919,6 +21708,159 @@
         "summary": "Post Scenarios",
         "tags": [
           "monte carlo"
+        ]
+      }
+    },
+    "/api/research/reader": {
+      "get": {
+        "description": "What the screen needs before a read: is it on, must the caller\nconfirm the file is public, how many pages are left today.",
+        "operationId": "get_reader_api_research_reader_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Reader",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/reads": {
+      "post": {
+        "description": "Read a results PDF twice and check it, as a background job.",
+        "operationId": "post_read_api_research_reads_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReadStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Read",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/reads/{job_id}": {
+      "get": {
+        "description": "A read's progress, and the checked statements once it is done. Another\naccount's read, or another kind of job, is a 404.",
+        "operationId": "get_read_api_research_reads__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Read",
+        "tags": [
+          "research"
         ]
       }
     },
