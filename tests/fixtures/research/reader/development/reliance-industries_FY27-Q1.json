@@ -1,0 +1,2447 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   197,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199
+  ],
+  "name": "reliance-industries_FY27-Q1",
+  "pages": 24,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "1dcc494ae2f076667002b86d1a33cd4e7c2cb804ca397d70716e14be2e0f4f27"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Reliance Industries Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30th Jun'26",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "31st Mar'26",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30th Jun'25",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31st Mar'26",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       9,
+       10
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Value of Sales & Services (Revenue)",
+        "values": [
+         340257,
+         325290,
+         273252,
+         1175919
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: GST Recovered",
+        "values": [
+         28407,
+         26669,
+         24592,
+         100244
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from Operations",
+        "values": [
+         311850,
+         298621,
+         248660,
+         1075675
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "values": [
+         6550,
+         4447,
+         15119,
+         28962
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         318400,
+         303068,
+         263779,
+         1104637
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of Materials Consumed",
+        "values": [
+         129857,
+         128985,
+         99282,
+         443101
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of Stock-in-Trade",
+        "values": [
+         82833,
+         68878,
+         57582,
+         255829
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in Inventories of Finished Goods, Work-in-Progress and Stock-in-Trade",
+        "values": [
+         -1326,
+         3179,
+         -4214,
+         -10267
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Excise Duty",
+        "values": [
+         2382,
+         4562,
+         5028,
+         18456
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee Benefits Expense",
+        "values": [
+         7717,
+         7683,
+         7232,
+         30318
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance Costs",
+        "values": [
+         8337,
+         6585,
+         7036,
+         27061
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation / Amortisation and Depletion Expense",
+        "values": [
+         15100,
+         14808,
+         13842,
+         57688
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Expenses",
+        "values": [
+         42870,
+         41193,
+         40845,
+         159289
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         287770,
+         275873,
+         226633,
+         981475
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit Before Tax",
+        "values": [
+         30630,
+         27195,
+         37146,
+         123162
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax",
+        "values": [
+         4671,
+         844,
+         2991,
+         9736
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax",
+        "values": [
+         2958,
+         5735,
+         3474,
+         17816
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit After Tax",
+        "values": [
+         23001,
+         20616,
+         30681,
+         95610
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         195,
+         -27,
+         102,
+         144
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit After Tax and Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         23196,
+         20589,
+         30783,
+         95754
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "I Items that will not be reclassified to Profit or Loss",
+        "values": [
+         1305,
+         -400,
+         439,
+         -337
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "II Income tax relating to items that will not be reclassified to Profit or Loss",
+        "values": [
+         -180,
+         69,
+         -69,
+         84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "III Items that will be reclassified to Profit or Loss",
+        "values": [
+         2440,
+         -8379,
+         -32,
+         -14623
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Income tax relating to items that will be reclassified to Profit or Loss",
+        "values": [
+         -298,
+         1519,
+         13,
+         3329
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other Comprehensive Income / (Loss) (Net of Tax)",
+        "values": [
+         3267,
+         -7191,
+         351,
+         -11547
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the Period",
+        "values": [
+         26463,
+         13398,
+         31134,
+         84207
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         20946,
+         16971,
+         26994,
+         80775
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non-Controlling Interest",
+        "values": [
+         2250,
+         3618,
+         3789,
+         14979
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         3195,
+         -7575,
+         366,
+         -11937
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non-Controlling Interest",
+        "values": [
+         72,
+         384,
+         -15,
+         390
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         24141,
+         9396,
+         27360,
+         68838
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non-Controlling Interest",
+        "values": [
+         2322,
+         4002,
+         3774,
+         15369
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (Face Value of ₹ 10/-) (Not Annualised for the quarter)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Basic (in ₹)",
+        "values": [
+         15.48,
+         12.54,
+         19.95,
+         59.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Diluted (in ₹)",
+        "values": [
+         15.48,
+         12.54,
+         19.95,
+         59.69
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30th Jun'26",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "31st Mar'26",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30th Jun'25",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31st Mar'26",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       13,
+       14
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Segment Value of Sales and Services (Revenue)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)",
+        "values": [
+         201803,
+         184944,
+         154804,
+         662401
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         6298,
+         5867,
+         6103,
+         23861
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail",
+        "values": [
+         90409,
+         98457,
+         84172,
+         371085
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services",
+        "values": [
+         46900,
+         45945,
+         41949,
+         176164
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         31204,
+         27976,
+         18470,
+         80522
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Gross Value of Sales and Services",
+        "values": [
+         376614,
+         363189,
+         305498,
+         1314033
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Transfers",
+        "values": [
+         36357,
+         37899,
+         32246,
+         138114
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Value of Sales & Services",
+        "values": [
+         340257,
+         325290,
+         273252,
+         1175919
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: GST Recovered",
+        "values": [
+         28407,
+         26669,
+         24592,
+         100244
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from Operations",
+        "values": [
+         311850,
+         298621,
+         248660,
+         1075675
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2 Segment Results (EBITDA)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)*",
+        "values": [
+         17010,
+         14520,
+         14511,
+         60546
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         4973,
+         4195,
+         4996,
+         19050
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail*",
+        "values": [
+         6309,
+         6921,
+         6381,
+         27034
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services*",
+        "values": [
+         21255,
+         20041,
+         18312,
+         76560
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         1856,
+         2746,
+         2589,
+         10857
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Profit before Interest, Tax and Depreciation, Amortisation and Depletion",
+        "values": [
+         51403,
+         48423,
+         46789,
+         194047
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3 Segment Results (EBIT)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)*",
+        "values": [
+         14170,
+         11756,
+         12521,
+         50758
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         3888,
+         2903,
+         3546,
+         13464
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail*",
+        "values": [
+         4529,
+         5342,
+         4866,
+         20817
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services*",
+        "values": [
+         13564,
+         12612,
+         11416,
+         48211
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         523,
+         1098,
+         662,
+         3448
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total Segment Profit before Interest and Tax",
+        "values": [
+         36674,
+         33711,
+         33011,
+         136698
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Finance Cost",
+        "values": [
+         -8337,
+         -6585,
+         -7036,
+         -27061
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Interest Income",
+        "values": [
+         2478,
+         2451,
+         2552,
+         10395
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(iii) Other Un-allocable Income (Net of Expenditure)",
+        "values": [
+         185,
+         -2382,
+         8619,
+         3130
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit Before Tax",
+        "values": [
+         30630,
+         27195,
+         37146,
+         123162
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Current Tax",
+        "values": [
+         -4671,
+         -844,
+         -2991,
+         -9736
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Deferred Tax",
+        "values": [
+         -2958,
+         -5735,
+         -3474,
+         -17816
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit After Tax",
+        "values": [
+         23001,
+         20616,
+         30681,
+         95610
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         195,
+         -27,
+         102,
+         144
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit After Tax and Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         23196,
+         20589,
+         30783,
+         95754
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Segment Assets",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)",
+        "values": [
+         521070,
+         518432,
+         458350,
+         518432
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         29102,
+         30833,
+         31587,
+         30833
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail",
+        "values": [
+         259349,
+         249862,
+         226776,
+         249862
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services",
+        "values": [
+         641891,
+         633700,
+         613976,
+         633700
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         408863,
+         391869,
+         349533,
+         391869
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         348472,
+         353444,
+         305820,
+         353444
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Assets",
+        "values": [
+         2208747,
+         2178140,
+         1986042,
+         2178140
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Segment Liabilities",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)",
+        "values": [
+         262800,
+         283079,
+         212265,
+         283079
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         12241,
+         15320,
+         12176,
+         15320
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail",
+        "values": [
+         98574,
+         91345,
+         79387,
+         91345
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services",
+        "values": [
+         232493,
+         237786,
+         249805,
+         237786
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         101530,
+         92622,
+         71959,
+         92622
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         1501109,
+         1457988,
+         1360450,
+         1457988
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Liabilities",
+        "values": [
+         2208747,
+         2178140,
+         1986042,
+         2178140
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 73,
+   "usage": {
+    "candidatesTokenCount": 5794,
+    "promptTokenCount": 13476,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 12768
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 9248,
+    "totalTokenCount": 28518
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Reliance Industries Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30th Jun'26",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "31st Mar'26",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30th Jun'25",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31st Mar'26",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1,
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Value of Sales & Services (Revenue)",
+        "values": [
+         340257,
+         325290,
+         273252,
+         1175919
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: GST Recovered",
+        "values": [
+         28407,
+         26669,
+         24592,
+         100244
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from Operations",
+        "values": [
+         311850,
+         298621,
+         248660,
+         1075675
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "values": [
+         6550,
+         4447,
+         15119,
+         28962
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         318400,
+         303068,
+         263779,
+         1104637
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of Materials Consumed",
+        "values": [
+         129857,
+         128985,
+         99282,
+         443101
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of Stock-in-Trade",
+        "values": [
+         82833,
+         68878,
+         57582,
+         255829
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in Inventories of Finished Goods, Work-in-Progress and Stock-in-Trade",
+        "values": [
+         -1326,
+         3179,
+         -4214,
+         -10267
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Excise Duty",
+        "values": [
+         2382,
+         4562,
+         5028,
+         18456
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee Benefits Expense",
+        "values": [
+         7717,
+         7683,
+         7232,
+         30318
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance Costs",
+        "values": [
+         8337,
+         6585,
+         7036,
+         27061
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation / Amortisation and Depletion Expense",
+        "values": [
+         15100,
+         14808,
+         13842,
+         57688
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Expenses",
+        "values": [
+         42870,
+         41193,
+         40845,
+         159289
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         287770,
+         275873,
+         226633,
+         981475
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit Before Tax",
+        "values": [
+         30630,
+         27195,
+         37146,
+         123162
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax",
+        "values": [
+         4671,
+         844,
+         2991,
+         9736
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax",
+        "values": [
+         2958,
+         5735,
+         3474,
+         17816
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit After Tax",
+        "values": [
+         23001,
+         20616,
+         30681,
+         95610
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         195,
+         -27,
+         102,
+         144
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit After Tax and Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         23196,
+         20589,
+         30783,
+         95754
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "I Items that will not be reclassified to Profit or Loss",
+        "values": [
+         1305,
+         -400,
+         439,
+         -337
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "II Income tax relating to items that will not be reclassified to Profit or Loss",
+        "values": [
+         -180,
+         69,
+         -69,
+         84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "III Items that will be reclassified to Profit or Loss",
+        "values": [
+         2440,
+         -8379,
+         -32,
+         -14623
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Income tax relating to items that will be reclassified to Profit or Loss",
+        "values": [
+         -298,
+         1519,
+         13,
+         3329
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other Comprehensive Income / (Loss) (Net of Tax)",
+        "values": [
+         3267,
+         -7191,
+         351,
+         -11547
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the Period",
+        "values": [
+         26463,
+         13398,
+         31134,
+         84207
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         20946,
+         16971,
+         26994,
+         80775
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non-Controlling Interest",
+        "values": [
+         2250,
+         3618,
+         3789,
+         14979
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         3195,
+         -7575,
+         366,
+         -11937
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non-Controlling Interest",
+        "values": [
+         72,
+         384,
+         -15,
+         390
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         24141,
+         9396,
+         27360,
+         68838
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non-Controlling Interest",
+        "values": [
+         2322,
+         4002,
+         3774,
+         15369
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (Face Value of ₹ 10/-) (Not Annualised for the quarter)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Basic (in ₹)",
+        "values": [
+         15.48,
+         12.54,
+         19.95,
+         59.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Diluted (in ₹)",
+        "values": [
+         15.48,
+         12.54,
+         19.95,
+         59.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up Equity Share Capital (Equity Shares of face value of ₹ 10/- each)",
+        "values": [
+         13533,
+         13532,
+         13532,
+         13532
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity excluding Revaluation Reserve",
+        "values": [
+         null,
+         null,
+         null,
+         890498
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Capital Redemption Reserve / Debenture Redemption Reserve",
+        "values": [
+         3213,
+         3211,
+         2114,
+         3211
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Worth (including Retained Earnings)",
+        "values": [
+         880365,
+         867828,
+         822315,
+         867828
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Ratios",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Debt Service Coverage Ratio",
+        "values": [
+         3.12,
+         2.42,
+         2.71,
+         2.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Interest Service Coverage Ratio",
+        "values": [
+         4.67,
+         5.13,
+         6.28,
+         5.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Debt Equity Ratio",
+        "values": [
+         0.4,
+         0.41,
+         0.39,
+         0.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Current Ratio",
+        "values": [
+         1.07,
+         1.1,
+         1.12,
+         1.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Long-term debt to working capital",
+        "values": [
+         3.99,
+         3.76,
+         3.7,
+         3.76
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "f) Bad debts to Account receivable ratio",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "g) Current liability ratio",
+        "values": [
+         0.5,
+         0.5,
+         0.46,
+         0.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "h) Total debts to total assets",
+        "values": [
+         0.17,
+         0.17,
+         0.17,
+         0.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "i) Debtors turnover $",
+        "values": [
+         22.04,
+         25.13,
+         24.14,
+         23.38
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "j) Inventory turnover $",
+        "values": [
+         7.2,
+         6.88,
+         5.78,
+         6.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "k) Operating margin (%)",
+        "values": [
+         9.5,
+         9.0,
+         10.6,
+         10.3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "l) Net profit margin (%)",
+        "values": [
+         6.8,
+         6.3,
+         11.3,
+         8.1
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30th Jun'26",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "31st Mar'26",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30th Jun'25",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31st Mar'26",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       3,
+       4
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Segment Value of Sales and Services (Revenue)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)",
+        "values": [
+         201803,
+         184944,
+         154804,
+         662401
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         6298,
+         5867,
+         6103,
+         23861
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail",
+        "values": [
+         90409,
+         98457,
+         84172,
+         371085
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services",
+        "values": [
+         46900,
+         45945,
+         41949,
+         176164
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         31204,
+         27976,
+         18470,
+         80522
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Gross Value of Sales and Services",
+        "values": [
+         376614,
+         363189,
+         305498,
+         1314033
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Transfers",
+        "values": [
+         36357,
+         37899,
+         32246,
+         138114
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Value of Sales & Services",
+        "values": [
+         340257,
+         325290,
+         273252,
+         1175919
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: GST Recovered",
+        "values": [
+         28407,
+         26669,
+         24592,
+         100244
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from Operations",
+        "values": [
+         311850,
+         298621,
+         248660,
+         1075675
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2 Segment Results (EBITDA)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)*",
+        "values": [
+         17010,
+         14520,
+         14511,
+         60546
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         4973,
+         4195,
+         4996,
+         19050
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail*",
+        "values": [
+         6309,
+         6921,
+         6381,
+         27034
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services*",
+        "values": [
+         21255,
+         20041,
+         18312,
+         76560
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         1856,
+         2746,
+         2589,
+         10857
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Profit before Interest, Tax and Depreciation, Amortisation and Depletion",
+        "values": [
+         51403,
+         48423,
+         46789,
+         194047
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3 Segment Results (EBIT)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)*",
+        "values": [
+         14170,
+         11756,
+         12521,
+         50758
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         3888,
+         2903,
+         3546,
+         13464
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail*",
+        "values": [
+         4529,
+         5342,
+         4866,
+         20817
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services*",
+        "values": [
+         13564,
+         12612,
+         11416,
+         48211
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         523,
+         1098,
+         662,
+         3448
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total Segment Profit before Interest and Tax",
+        "values": [
+         36674,
+         33711,
+         33011,
+         136698
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Finance Cost",
+        "values": [
+         -8337,
+         -6585,
+         -7036,
+         -27061
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Interest Income",
+        "values": [
+         2478,
+         2451,
+         2552,
+         10395
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(iii) Other Un-allocable Income (Net of Expenditure)",
+        "values": [
+         -185,
+         -2382,
+         8619,
+         3130
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit Before Tax",
+        "values": [
+         30630,
+         27195,
+         37146,
+         123162
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Current Tax",
+        "values": [
+         -4671,
+         -844,
+         -2991,
+         -9736
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Deferred Tax",
+        "values": [
+         -2958,
+         -5735,
+         -3474,
+         -17816
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit After Tax",
+        "values": [
+         23001,
+         20616,
+         30681,
+         95610
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         195,
+         -27,
+         102,
+         144
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit After Tax and Share of Profit / (Loss) of Associates and Joint Ventures",
+        "values": [
+         23196,
+         20589,
+         30783,
+         95754
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Segment Assets",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)",
+        "values": [
+         521070,
+         518432,
+         458350,
+         518432
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         29102,
+         30833,
+         31587,
+         30833
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail",
+        "values": [
+         259349,
+         249862,
+         226776,
+         249862
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services",
+        "values": [
+         641891,
+         633700,
+         613976,
+         633700
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         408863,
+         391869,
+         349533,
+         391869
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         348472,
+         353444,
+         305820,
+         353444
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Assets",
+        "values": [
+         2208747,
+         2178140,
+         1986042,
+         2178140
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Segment Liabilities",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil to Chemicals (O2C)",
+        "values": [
+         262800,
+         283079,
+         212265,
+         283079
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Oil and Gas",
+        "values": [
+         12241,
+         15320,
+         12176,
+         15320
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Retail",
+        "values": [
+         98574,
+         91345,
+         79387,
+         91345
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital Services",
+        "values": [
+         232493,
+         237786,
+         249805,
+         237786
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         101530,
+         92622,
+         71959,
+         92622
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         1501109,
+         1457988,
+         1360450,
+         1457988
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Liabilities",
+        "values": [
+         2208747,
+         2178140,
+         1986042,
+         2178140
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 107,
+   "usage": {
+    "cacheTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 289
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1720
+     }
+    ],
+    "cachedContentTokenCount": 2009,
+    "candidatesTokenCount": 7565,
+    "promptTokenCount": 5102,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4368
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 16587,
+    "totalTokenCount": 29254
+   }
+  }
+ },
+ "truth": {
+  "figures": [
+   {
+    "label": "Net Sales",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 3118500.0
+   },
+   {
+    "label": "Other Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 65500.0
+   },
+   {
+    "label": "Total Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 3184000.0
+   },
+   {
+    "label": "Expenditure",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -2877700.0
+   },
+   {
+    "label": "Cost of Materials Consumed",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -1298570.0
+   },
+   {
+    "label": "Finance Costs",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -83370.0
+   },
+   {
+    "grouped": [
+     [
+      "Excise Duty",
+      1,
+      10
+     ],
+     [
+      "Other Expenses",
+      1,
+      14
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Other Expenses",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -452520.0
+   },
+   {
+    "label": "Purchases of stock-in-trade",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -828330.0
+   },
+   {
+    "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 13260.0
+   },
+   {
+    "label": "Employee benefit expense",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -77170.0
+   },
+   {
+    "label": "Depreciation and amortisation expense",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -151000.0
+   },
+   {
+    "label": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 306300.0
+   },
+   {
+    "grouped": [
+     [
+      "Profit Before Tax",
+      1,
+      16
+     ],
+     [
+      "Profit After Tax",
+      -1,
+      20
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -76290.0
+   },
+   {
+    "label": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 230010.0
+   },
+   {
+    "label": "Net Profit",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 231960.0
+   },
+   {
+    "label": "Current tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -46710.0
+   },
+   {
+    "label": "Deferred tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -29580.0
+   },
+   {
+    "label": "Net Profit after Mino Inter & Share of P & L",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 231960.0
+   },
+   {
+    "label": "Income Attributable to Consolidated Group",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 231960.0
+   },
+   {
+    "label": "Profit after Interest but before Exceptional Items",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 306300.0
+   },
+   {
+    "label": "Net Profit Loss for the period from continuing operations",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 230010.0
+   },
+   {
+    "label": "Other Comprehensive Income Net of Taxes",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 32670.0
+   },
+   {
+    "label": "Total Comprehensive Income for the Period",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 264630.0
+   },
+   {
+    "label": "Share of profit(loss) of associates and joint ventures",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 1950.0
+   },
+   {
+    "label": "Basic EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 15.48
+   },
+   {
+    "label": "Diluted EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 15.48
+   }
+  ],
+  "source": "BSE's results page table for the filing, saved by hand (PLAN.md R0)",
+  "unit": "millions"
+ }
+}

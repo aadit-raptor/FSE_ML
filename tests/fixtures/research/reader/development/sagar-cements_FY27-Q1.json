@@ -1,0 +1,829 @@
+{
+ "document": {
+  "dpi": [
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299
+  ],
+  "name": "sagar-cements_FY27-Q1",
+  "pages": 9,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "95c7928cecf5b13079123a190c747dea22094c905327fceea7ef1fecae4df4b6"
+ },
+ "prompt": "r0-first",
+ "reads": {
+  "A": {
+   "model": "6-flash",
+   "read": {
+    "company": "SAGAR CEMENTS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       8
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "(a) Revenue from operations",
+        "values": [
+         70607,
+         78696,
+         67066,
+         265002
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "(b) Other income",
+        "values": [
+         238,
+         1119,
+         419,
+         2155
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total income",
+        "values": [
+         70845,
+         79815,
+         67485,
+         267157
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(a) Cost of materials consumed",
+        "values": [
+         13136,
+         14300,
+         11616,
+         48318
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(b) Changes in inventories of finished goods and work-in-progress",
+        "values": [
+         -449,
+         910,
+         -3232,
+         2047
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(c) Employee benefits expense",
+        "values": [
+         3635,
+         3895,
+         3399,
+         14919
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(d) Finance costs",
+        "values": [
+         5223,
+         5309,
+         4709,
+         19695
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(e) Depreciation and amortisation expenses",
+        "values": [
+         5916,
+         6626,
+         5465,
+         23965
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(f) Power and fuel expense",
+        "values": [
+         24024,
+         25479,
+         22515,
+         85737
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(g) Freight and forwarding expense",
+        "values": [
+         13772,
+         15558,
+         12950,
+         51741
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(h) Other expenses",
+        "values": [
+         9247,
+         10400,
+         7673,
+         33041
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         74504,
+         82477,
+         65095,
+         279463
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "(Loss)/ profit before tax (1 - 2)",
+        "values": [
+         -3659,
+         -2662,
+         2390,
+         -12306
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Current tax",
+        "values": [
+         0,
+         -940,
+         330,
+         -940
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Deferred tax (Refer note 7)",
+        "values": [
+         -849,
+         -11727,
+         1311,
+         -11293
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         -849,
+         -12667,
+         1641,
+         -12233
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Net (loss)/ profit for the period/ year (3 - 4)",
+        "values": [
+         -2810,
+         10005,
+         749,
+         -73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Items that will not be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Remeasurement of defined benefits plan",
+        "values": [
+         -3,
+         -73,
+         20,
+         -12
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax effect on above",
+        "values": [
+         1,
+         31,
+         -9,
+         5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income, net of tax",
+        "values": [
+         -2,
+         -42,
+         11,
+         -7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income (5+6)",
+        "values": [
+         -2812,
+         9963,
+         760,
+         -80
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/ (loss) attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity shareholders of the Parent",
+        "values": [
+         -2311,
+         8760,
+         122,
+         -1107
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -499,
+         1245,
+         627,
+         1034
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total profit/ (loss) attributable to",
+        "values": [
+         -2810,
+         10005,
+         749,
+         -73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity shareholders of the Parent",
+        "values": [
+         -2313,
+         8714,
+         134,
+         -1114
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -499,
+         1249,
+         626,
+         1034
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable to",
+        "values": [
+         -2812,
+         9963,
+         760,
+         -80
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up equity share capital (Face value of ₹ 2 per share)",
+        "values": [
+         null,
+         null,
+         null,
+         2614
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         null,
+         null,
+         null,
+         166678
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per share of ₹ 2 each",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic (in ₹)",
+        "values": [
+         -2.15,
+         7.65,
+         0.57,
+         -0.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted (in ₹)",
+        "values": [
+         -2.15,
+         7.65,
+         0.57,
+         -0.06
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 2610,
+    "promptTokenCount": 5319,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4788
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 531
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 3656,
+    "totalTokenCount": 11585
+   }
+  },
+  "B": {
+   "model": "6-flash",
+   "read": {
+    "company": "SAGAR CEMENTS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "June 30, 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 (Audited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "June 30, 2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "(a) Revenue from operations",
+        "values": [
+         70607,
+         78696,
+         67066,
+         265002
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "(b) Other income",
+        "values": [
+         238,
+         1119,
+         419,
+         2155
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total income",
+        "values": [
+         70845,
+         79815,
+         67485,
+         267157
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(a) Cost of materials consumed",
+        "values": [
+         13136,
+         14300,
+         11616,
+         48318
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(b) Changes in inventories of finished goods and work-in-progress",
+        "values": [
+         -449,
+         910,
+         -3232,
+         2047
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(c) Employee benefits expense",
+        "values": [
+         3635,
+         3895,
+         3399,
+         14919
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(d) Finance costs",
+        "values": [
+         5223,
+         5309,
+         4709,
+         19695
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(e) Depreciation and amortisation expenses",
+        "values": [
+         5916,
+         6626,
+         5465,
+         23965
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(f) Power and fuel expense",
+        "values": [
+         24024,
+         25479,
+         22515,
+         85737
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(g) Freight and forwarding expense",
+        "values": [
+         13772,
+         15558,
+         12950,
+         51741
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(h) Other expenses",
+        "values": [
+         9247,
+         10400,
+         7673,
+         33041
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         74504,
+         82477,
+         65095,
+         279463
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "(Loss)/ profit before tax (1 - 2)",
+        "values": [
+         -3659,
+         -2662,
+         2390,
+         -12306
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Current tax",
+        "values": [
+         0,
+         -940,
+         330,
+         -940
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Deferred tax (Refer note 7)",
+        "values": [
+         -849,
+         -11727,
+         1311,
+         -11293
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         -849,
+         -12667,
+         1641,
+         -12233
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Net (loss)/ profit for the period/ year (3 - 4)",
+        "values": [
+         -2810,
+         10005,
+         749,
+         -73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Remeasurement of defined benefits plan",
+        "values": [
+         -3,
+         -73,
+         20,
+         -12
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax effect on above",
+        "values": [
+         1,
+         31,
+         -9,
+         5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income, net of tax",
+        "values": [
+         -2,
+         -42,
+         11,
+         -7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income (5+6)",
+        "values": [
+         -2812,
+         9963,
+         760,
+         -80
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity shareholders of the Parent",
+        "values": [
+         -2311,
+         8760,
+         122,
+         -1107
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -499,
+         1245,
+         627,
+         1034
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/ (loss) attributable to - Total",
+        "values": [
+         -2810,
+         10005,
+         749,
+         -73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity shareholders of the Parent",
+        "values": [
+         -2313,
+         8714,
+         134,
+         -1114
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -499,
+         1249,
+         626,
+         1034
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable to - Total",
+        "values": [
+         -2812,
+         9963,
+         760,
+         -80
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up equity share capital (Face value of ₹ 2 per share)",
+        "values": [
+         null,
+         null,
+         null,
+         2614
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         null,
+         null,
+         null,
+         166678
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic (in ₹)",
+        "values": [
+         -2.15,
+         7.65,
+         0.57,
+         -0.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted (in ₹)",
+        "values": [
+         -2.15,
+         7.65,
+         0.57,
+         -0.06
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 2311,
+    "promptTokenCount": 1648,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 556
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2601,
+    "totalTokenCount": 6560
+   }
+  }
+ }
+}

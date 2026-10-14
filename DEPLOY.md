@@ -825,6 +825,49 @@ publishes each spring), transcribe it, or confirm there is none, and move
 `checked_on`. `tests/test_base_rates.py` checks a transcription against the
 studies' own summary rows.
 
+## Results reader
+
+PLAN.md R1: a results filing a person uploaded (File uploads, below) is read
+twice by two different Gemini models and checked (`research/reader/`).
+Equity research -> Coverage -> Results starts it; it runs as background job
+`research.read`. The provider is a switch, `AI_PROVIDER`:
+
+| Variable | Where | What |
+|---|---|---|
+| `AI_PROVIDER` | both Render services | `gemini` (set 2026-10-14). Unset: the reader says it is off. `replay` (recorded answers) is for tests and is refused in production |
+| `GEMINI_API_KEY` | both Render services; GitHub secret | Google project `variater-reader`, **free tier** for now (decided 2026-10-14). The key goes in a header only and is never logged or shown |
+| `AI_FREE_TIER` | optional | On unless `0`. While on, every read needs the person to confirm the file is public: Google may use free-tier content to improve its products. Set `0` only once billing is on |
+| `GEMINI_MODELS_A`, `GEMINI_MODELS_B` | optional | Comma-separated model names for read A (the whole PDF) and read B (pictures of the statement pages); B never uses A's model. Defaults in `research/reader/providers.py` |
+| `READER_HIGH_RESOLUTION` | optional | `1` sends the API's high-resolution setting (R0 hinted it helps; the card decides) |
+
+**Billing with a spending cap is switched on before the first outside
+showing after R2** (the user's decision, 2026-10-14): in Google AI Studio,
+project `variater-reader`, set up billing and a budget, then set
+`AI_FREE_TIER=0` on both services. Nothing else changes.
+
+**Free-tier limits that shape it**: 20 requests a day per model; a read is
+two requests. `api/limits.py` holds the reader to 30 reads a day for the
+whole service, 10 per person and 250 pages per person (`USER_READS`,
+`READS_ALL`, `USER_READ_PAGES`). A model whose day is spent is skipped for
+six hours; "high demand" moves on to the next model.
+
+**Production reads only once the card measures it**: `ml/cards/reader.json`'s
+headline set (`held_out`, filings nobody tuned the prompt or checks on) must
+meet R0's bar (no wrong figure unflagged, under 2% amber). Until then
+production answers `503 reader_not_measured` and the screen says it is not
+open yet; staging and local copies read, with a "not yet measured" notice.
+
+**Checking it**: `/api/health/reader` (public, cached five minutes) says
+which provider and whether its key works, by listing Google's models, which
+spends no allowance; never the key. The staging drill (`staging.yml`, job
+drill) runs the same check and fails on a refused key or a missing model.
+
+**Recording answers** (tests, the card): PDFs never go into the repository.
+On a machine that has them, `python -m research.reader.record read --set
+held_out FILE.pdf ...` with `GEMINI_API_KEY` set (or `--env-file`) reads each
+filing, saving every answer as it arrives, so a run stopped by the day's
+allowance carries on the next day. Then `python -m ml.evaluation evaluate`.
+
 ## File uploads
 
 Set up in PLAN.md 6.1. People upload PDF, Excel and Word files on Deal →

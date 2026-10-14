@@ -1,0 +1,880 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "gabriel-india_FY27-Q1",
+  "pages": 20,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "83a2f50f0a6dbe0a41f14b6bcfe121514f2a68e5cd859d9806218585fb136b69"
+ },
+ "prompt": "r0-first",
+ "reads": {
+  "A": {
+   "model": "7-flash",
+   "read": {
+    "company": "GABRIEL INDIA LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 31.03.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       7
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         14256.83,
+         13807.88,
+         12343.57,
+         52451.94
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         46.29,
+         104.06,
+         44.63,
+         286.23
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income (I+II)",
+        "values": [
+         14303.12,
+         13911.94,
+         12388.2,
+         52738.17
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Cost of materials consumed",
+        "values": [
+         10528.48,
+         10052.55,
+         8937.39,
+         38107.69
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         115.3,
+         78.98,
+         69.48,
+         360.81
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         -49.02,
+         104.13,
+         -14.58,
+         51.28
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Employee benefits expense",
+        "values": [
+         856.21,
+         783.01,
+         815.29,
+         3250.22
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         323.02,
+         305.85,
+         306.55,
+         1235.79
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Other expenses",
+        "values": [
+         1564.2,
+         1457.08,
+         1353.71,
+         5660.89
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Finance costs",
+        "values": [
+         59.76,
+         84.28,
+         49.79,
+         263.51
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         13397.94,
+         12865.88,
+         11517.63,
+         48930.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before share of profit in equity accounted investees, exceptional items and tax (III-IV)",
+        "values": [
+         905.17,
+         1046.06,
+         870.57,
+         3807.98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of profit in equity accounted investees (net)",
+        "values": [
+         427.43,
+         439.03,
+         387.2,
+         1576.33
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax (V+VI)",
+        "values": [
+         1332.6,
+         1485.09,
+         1257.77,
+         5384.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items (refer note 5)",
+        "values": [
+         0.0,
+         10.83,
+         0.0,
+         152.5
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax (VII-VIII)",
+        "values": [
+         1332.6,
+         1474.26,
+         1257.77,
+         5231.81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         238.97,
+         251.5,
+         215.9,
+         865.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense charge / (credit) relating to prior years",
+        "values": [
+         0.5,
+         -11.47,
+         -23.06,
+         -11.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         11.87,
+         43.82,
+         10.4,
+         56.0
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         251.34,
+         283.85,
+         203.24,
+         910.45
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Net Profit after tax (VII-VIII)",
+        "values": [
+         1081.26,
+         1190.41,
+         1054.53,
+         4321.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the company",
+        "values": [
+         1073.51,
+         1182.52,
+         1052.56,
+         4305.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         7.75,
+         7.89,
+         1.97,
+         15.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Remeasurement of post-employment benefit obligations",
+        "values": [
+         -5.34,
+         2.8,
+         -2.93,
+         -14.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to above",
+        "values": [
+         1.34,
+         -0.6,
+         0.73,
+         3.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exchange differences on translating the financial statement of Foreign",
+        "values": [
+         0.04,
+         -0.18,
+         -0.35,
+         -0.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to above.",
+        "values": [
+         0.0,
+         0.0,
+         0.0,
+         0.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the period/year, net of tax",
+        "values": [
+         -3.96,
+         2.02,
+         -2.55,
+         -11.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the company",
+        "values": [
+         -3.9,
+         2.27,
+         -2.55,
+         -12.89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         -0.06,
+         -0.25,
+         0.0,
+         1.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period/year net of tax (IX+X)",
+        "values": [
+         1077.3,
+         1192.43,
+         1051.98,
+         4309.49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the company",
+        "values": [
+         1069.61,
+         1184.79,
+         1050.01,
+         4292.84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         7.68,
+         7.64,
+         1.97,
+         16.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up Equity share capital (Face value Rs. 1/-each)",
+        "values": [
+         177.23,
+         143.64,
+         143.64,
+         143.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Reserves and Surplus",
+        "values": [
+         null,
+         null,
+         null,
+         19354.89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic and Diluted (Rs.)",
+        "values": [
+         6.06,
+         6.67,
+         5.94,
+         24.29
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 2625,
+    "promptTokenCount": 11111,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 10580
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 531
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4496,
+    "totalTokenCount": 18232
+   }
+  },
+  "B": {
+   "model": "7-flash",
+   "read": {
+    "company": "GABRIEL INDIA LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 31.03.2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         14256.83,
+         13807.88,
+         12343.57,
+         52451.94
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         46.29,
+         104.06,
+         44.63,
+         286.23
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income (I+II)",
+        "values": [
+         14303.12,
+         13911.94,
+         12388.2,
+         52738.17
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Cost of materials consumed",
+        "values": [
+         10528.48,
+         10052.55,
+         8937.39,
+         38107.69
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         115.3,
+         78.98,
+         69.48,
+         360.81
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         -49.02,
+         104.13,
+         -14.58,
+         51.28
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Employee benefits expense",
+        "values": [
+         856.21,
+         783.01,
+         815.29,
+         3250.22
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         323.02,
+         305.85,
+         306.55,
+         1235.79
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Other expenses",
+        "values": [
+         1564.2,
+         1457.08,
+         1353.71,
+         5660.89
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Finance costs",
+        "values": [
+         59.76,
+         84.28,
+         49.79,
+         263.51
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         13397.94,
+         12865.88,
+         11517.63,
+         48930.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before share of profit in equity accounted investees, exceptional items and tax (III-IV)",
+        "values": [
+         905.17,
+         1046.06,
+         870.57,
+         3807.98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of profit in equity accounted investees (net)",
+        "values": [
+         427.43,
+         439.03,
+         387.2,
+         1576.33
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax (V+VI)",
+        "values": [
+         1332.6,
+         1485.09,
+         1257.77,
+         5384.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items (refer note 5)",
+        "values": [
+         0,
+         10.83,
+         0,
+         152.5
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax (VII-VIII)",
+        "values": [
+         1332.6,
+         1474.26,
+         1257.77,
+         5231.81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         238.97,
+         251.5,
+         215.9,
+         865.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense charge / (credit) relating to prior years",
+        "values": [
+         0.5,
+         -11.47,
+         -23.06,
+         -11.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         11.87,
+         43.82,
+         10.4,
+         56.0
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         251.34,
+         283.85,
+         203.24,
+         910.45
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Net Profit after tax (VII-VIII)",
+        "values": [
+         1081.26,
+         1190.41,
+         1054.53,
+         4321.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Attributable to Shareholders of the company",
+        "values": [
+         1073.51,
+         1182.52,
+         1052.56,
+         4305.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Attributable to Non-Controlling Interest",
+        "values": [
+         7.75,
+         7.89,
+         1.97,
+         15.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Remeasurement of post-employment benefit obligations",
+        "values": [
+         -5.34,
+         2.8,
+         -2.93,
+         -14.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to above",
+        "values": [
+         1.34,
+         -0.6,
+         0.73,
+         3.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exchange differences on translating the financial statement of Foreign",
+        "values": [
+         0.04,
+         -0.18,
+         -0.35,
+         -0.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to above",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the period/year, net of tax",
+        "values": [
+         -3.96,
+         2.02,
+         -2.55,
+         -11.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income Attributable to Shareholders of the company",
+        "values": [
+         -3.9,
+         2.27,
+         -2.55,
+         -12.89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income Attributable to Non-Controlling Interest",
+        "values": [
+         -0.06,
+         -0.25,
+         0,
+         1.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period/year net of tax (IX+X)",
+        "values": [
+         1077.3,
+         1192.43,
+         1051.98,
+         4309.49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income Attributable to Shareholders of the company",
+        "values": [
+         1069.61,
+         1184.79,
+         1050.01,
+         4292.84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income Attributable to Non-Controlling Interest",
+        "values": [
+         7.68,
+         7.64,
+         1.97,
+         16.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up Equity share capital (Face value Rs. 1/-each)",
+        "values": [
+         177.23,
+         143.64,
+         143.64,
+         143.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Reserves and Surplus",
+        "values": [
+         null,
+         null,
+         null,
+         19354.89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic and Diluted (Rs.)",
+        "values": [
+         6.06,
+         6.67,
+         5.94,
+         24.29
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 2230,
+    "promptTokenCount": 1648,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 556
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 3405,
+    "totalTokenCount": 7283
+   }
+  }
+ }
+}

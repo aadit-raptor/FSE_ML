@@ -1,0 +1,1314 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   152,
+   152,
+   152,
+   152,
+   152,
+   152,
+   152,
+   null
+  ],
+  "name": "indoco-remedies_FY27-Q1",
+  "pages": 9,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "644e8cea8211eefa3d0873b839fecab8846d0c99ea106f79e3308b23efce96af"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Indoco Remedies Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31.03.2026 (Audited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       5
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "1. Income from Operations (a) Revenue from Operations",
+        "values": [
+         46622,
+         45590,
+         43086,
+         179294
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Other Operating Income",
+        "values": [
+         128,
+         1971,
+         881,
+         5238
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Income from Operations (Net) (a+b)",
+        "values": [
+         46750,
+         47561,
+         43967,
+         184532
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other Income",
+        "values": [
+         218,
+         -4,
+         163,
+         333
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total Income (1+2)",
+        "values": [
+         46968,
+         47557,
+         44130,
+         184865
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses (a) Cost of materials consumed",
+        "values": [
+         10458,
+         10918,
+         10553,
+         42560
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Purchases of stock-in-trade",
+        "values": [
+         3989,
+         3252,
+         3923,
+         14355
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         1358,
+         -69,
+         -979,
+         -2741
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(d) Employee Benefits expense",
+        "values": [
+         10141,
+         10941,
+         10702,
+         42569
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(e) Research & Development Expense",
+        "values": [
+         1854,
+         1776,
+         2166,
+         7954
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(f) Other Expenses",
+        "values": [
+         14848,
+         15772,
+         15849,
+         65655
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(g) Finance Costs",
+        "values": [
+         2829,
+         4592,
+         2612,
+         12225
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(h) Depreciation and Amortization expense",
+        "values": [
+         3453,
+         3249,
+         2970,
+         12645
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         48930,
+         50431,
+         47796,
+         195222
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit Before Exceptional Items and Tax (3-4)",
+        "values": [
+         -1962,
+         -2874,
+         -3666,
+         -10357
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional Items (*)",
+        "values": [
+         9734,
+         374,
+         0,
+         -294
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "7 Profit / (Loss) Before Tax (5+6)",
+        "values": [
+         7772,
+         -2500,
+         -3666,
+         -10651
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Tax Expenses - Current",
+        "values": [
+         1059,
+         296,
+         0,
+         302
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Deferred",
+        "values": [
+         169,
+         -428,
+         -31,
+         -1083
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- MAT Credit Adjustments",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total Tax Expenses",
+        "values": [
+         1228,
+         -132,
+         -31,
+         -781
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "9 Profit for the period (7-8)",
+        "values": [
+         6544,
+         -2368,
+         -3635,
+         -9870
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Other Comprehensive Income a i) Items that will not be reclassified to profit and loss",
+        "values": [
+         -62,
+         414,
+         -77,
+         184
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii) Income tax on relating to this item",
+        "values": [
+         15,
+         -103,
+         19,
+         -46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b i) Items that may be reclassified to profit or loss",
+        "values": [
+         118,
+         857,
+         87,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii) Income tax on relating to this item",
+        "values": [
+         -3,
+         -24,
+         -45,
+         -138
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other Comprehensive Income",
+        "values": [
+         68,
+         1144,
+         -16,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Total Comprehensive income for the year (9+10)",
+        "values": [
+         6612,
+         -1224,
+         -3651,
+         -8608
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to : Equity Shareholders of the Company",
+        "values": [
+         6499,
+         -2164,
+         -3579,
+         -9515
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to : Non-Controlling Interest - Profit / (Loss)",
+        "values": [
+         45,
+         -204,
+         -56,
+         -355
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Profit attributable",
+        "values": [
+         6544,
+         -2368,
+         -3635,
+         -9870
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income is attributable to: Equity Shareholders of the Company",
+        "values": [
+         68,
+         1144,
+         -16,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income is attributable to: Non-Controlling Interest",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other comprehensive income attributable",
+        "values": [
+         68,
+         1144,
+         -16,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income is attributable to: Equity Shareholders of the Company",
+        "values": [
+         6567,
+         -1020,
+         -3595,
+         -8253
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income is attributable to: Non-Controlling Interest - Profit / (Loss)",
+        "values": [
+         45,
+         -204,
+         -56,
+         -355
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable",
+        "values": [
+         6612,
+         -1224,
+         -3651,
+         -8608
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Paid up Equity Share Capital (Face value Rs. 2/- each)",
+        "values": [
+         1846,
+         1846,
+         1845,
+         1846
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         92082
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Earnings per share (of Rs. 2/- each) (a) Basic- in Rs.",
+        "values": [
+         7.09,
+         -2.57,
+         -3.94,
+         -10.7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted- in Rs.",
+        "values": [
+         7.09,
+         -2.56,
+         -3.94,
+         -10.69
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31.03.2026 (Audited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       5
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "India",
+        "values": [
+         31177,
+         24714,
+         27783,
+         112412
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Outside India",
+        "values": [
+         15445,
+         20876,
+         15303,
+         66882
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         46622,
+         45590,
+         43086,
+         179294
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": 41,
+   "usage": {
+    "candidatesTokenCount": 3172,
+    "promptTokenCount": 5496,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4788
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2551,
+    "totalTokenCount": 11219
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "INDOCO REMEDIES LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31.03.2026 (Audited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Income from Operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "(a) Revenue from Operations",
+        "values": [
+         46622,
+         45590,
+         43086,
+         179294
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Other Operating Income",
+        "values": [
+         128,
+         1971,
+         881,
+         5238
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Income from Operations (Net) (a+b)",
+        "values": [
+         46750,
+         47561,
+         43967,
+         184532
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other Income",
+        "values": [
+         218,
+         -4,
+         163,
+         333
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total Income (1+2)",
+        "values": [
+         46968,
+         47557,
+         44130,
+         184865
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Cost of materials consumed",
+        "values": [
+         10458,
+         10918,
+         10553,
+         42560
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Purchases of stock-in-trade",
+        "values": [
+         3989,
+         3252,
+         3923,
+         14355
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         1358,
+         -69,
+         -979,
+         -2741
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(d) Employee Benefits expense",
+        "values": [
+         10141,
+         10941,
+         10702,
+         42569
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(e) Research & Development Expense",
+        "values": [
+         1854,
+         1776,
+         2166,
+         7954
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(f) Other Expenses",
+        "values": [
+         14848,
+         15772,
+         15849,
+         65655
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(g) Finance Costs",
+        "values": [
+         2829,
+         4592,
+         2612,
+         12225
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(h) Depreciation and Amortization expense",
+        "values": [
+         3453,
+         3249,
+         2970,
+         12645
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         48930,
+         50431,
+         47796,
+         195222
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit Before Exceptional Items and Tax (3-4)",
+        "values": [
+         -1962,
+         -2874,
+         -3666,
+         -10357
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional Items (*)",
+        "values": [
+         9734,
+         374,
+         0,
+         -294
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "7 Profit / (Loss) Before Tax (5+6)",
+        "values": [
+         7772,
+         -2500,
+         -3666,
+         -10651
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Tax Expenses - Current",
+        "values": [
+         1059,
+         296,
+         0,
+         302
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Deferred",
+        "values": [
+         169,
+         -428,
+         -31,
+         -1083
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- MAT Credit Adjustments",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total Tax Expenses",
+        "values": [
+         1228,
+         -132,
+         -31,
+         -781
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "9 Profit for the period (7-8)",
+        "values": [
+         6544,
+         -2368,
+         -3635,
+         -9870
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a i) Items that will not be reclassified to profit and loss",
+        "values": [
+         -62,
+         414,
+         -77,
+         184
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii) Income tax on relating to this item",
+        "values": [
+         15,
+         -103,
+         19,
+         -46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b i) Items that may be reclassified to profit or loss",
+        "values": [
+         118,
+         857,
+         87,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii) Income tax on relating to this item",
+        "values": [
+         -3,
+         -24,
+         -45,
+         -138
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other Comprehensive Income",
+        "values": [
+         68,
+         1144,
+         -16,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Total Comprehensive income for the year (9+10)",
+        "values": [
+         6612,
+         -1224,
+         -3651,
+         -8608
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity Shareholders of the Company",
+        "values": [
+         6499,
+         -2164,
+         -3579,
+         -9515
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest - Profit / (Loss)",
+        "values": [
+         45,
+         -204,
+         -56,
+         -355
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income is attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity Shareholders of the Company",
+        "values": [
+         68,
+         1144,
+         -16,
+         1262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income is attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity Shareholders of the Company",
+        "values": [
+         6567,
+         -1020,
+         -3595,
+         -8253
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest - Profit / (Loss)",
+        "values": [
+         45,
+         -204,
+         -56,
+         -355
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Paid up Equity Share Capital (Face value Rs. 2/- each)",
+        "values": [
+         1846,
+         1846,
+         1845,
+         1846
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         92082
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Earnings per share (of Rs. 2/- each)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic- in Rs.",
+        "values": [
+         7.09,
+         -2.57,
+         -3.94,
+         -10.7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted- in Rs.",
+        "values": [
+         7.09,
+         -2.56,
+         -3.94,
+         -10.69
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31.03.2026 (Audited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30.06.2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31.03.2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "India",
+        "values": [
+         31177,
+         24714,
+         27783,
+         112412
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Outside India",
+        "values": [
+         15445,
+         20876,
+         15303,
+         66882
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         46622,
+         45590,
+         43086,
+         179294
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": 53,
+   "usage": {
+    "candidatesTokenCount": 3237,
+    "promptTokenCount": 1826,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 9396,
+    "totalTokenCount": 14459
+   }
+  }
+ },
+ "truth": {
+  "figures": [
+   {
+    "label": "Net Sales",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 4675.0
+   },
+   {
+    "label": "Other Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 21.8
+   },
+   {
+    "label": "Total Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 4696.8
+   },
+   {
+    "label": "Expenditure",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -4893.0
+   },
+   {
+    "label": "Cost of Materials Consumed",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -1045.8
+   },
+   {
+    "label": "Finance Costs",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -282.9
+   },
+   {
+    "grouped": [
+     [
+      "(e) Research & Development Expense",
+      1,
+      9
+     ],
+     [
+      "(f) Other Expenses",
+      1,
+      10
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Other Expenses",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -1670.2
+   },
+   {
+    "label": "Purchases of stock-in-trade",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -398.9
+   },
+   {
+    "label": "Employee benefit expense",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -1014.1
+   },
+   {
+    "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -135.8
+   },
+   {
+    "label": "Depreciation and amortisation expense",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -345.3
+   },
+   {
+    "label": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 777.2
+   },
+   {
+    "label": "Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -122.8
+   },
+   {
+    "label": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 654.4
+   },
+   {
+    "label": "Net Profit",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 654.4
+   },
+   {
+    "label": "Current tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -105.9
+   },
+   {
+    "label": "Deferred tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -16.9
+   },
+   {
+    "label": "Net Profit after Mino Inter & Share of P & L",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 654.4
+   },
+   {
+    "label": "Income Attributable to Consolidated Group",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 654.4
+   },
+   {
+    "label": "Exceptional Item",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 973.4
+   },
+   {
+    "label": "Profit after Interest but before Exceptional Items",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -196.2
+   },
+   {
+    "label": "Net Profit Loss for the period from continuing operations",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 654.4
+   },
+   {
+    "label": "Other Comprehensive Income Net of Taxes",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 6.8
+   },
+   {
+    "label": "Total Comprehensive Income for the Period",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 661.2
+   },
+   {
+    "label": "Basic EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 7.09
+   },
+   {
+    "label": "Diluted EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 7.09
+   }
+  ],
+  "source": "BSE's results page table for the filing, saved by hand (PLAN.md R0)",
+  "unit": "millions"
+ }
+}

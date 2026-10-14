@@ -1,0 +1,2226 @@
+{
+ "document": {
+  "dpi": [
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199
+  ],
+  "name": "bharti-airtel_FY27-Q1",
+  "pages": 16,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "1a2b347a61fb6c9f731c9fa8dd031b104540b1a99a241069a5f861dd3ce452eb"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Bharti Airtel Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Previous year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         585391,
+         553832,
+         494626,
+         2109728
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         9066,
+         8785,
+         5088,
+         28173
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         594457,
+         562617,
+         499714,
+         2137901
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Network operating expenses",
+        "values": [
+         108097,
+         102080,
+         95456,
+         397500
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Access charges",
+        "values": [
+         15887,
+         14939,
+         12571,
+         55416
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "License fee / Spectrum charges",
+        "values": [
+         41720,
+         39818,
+         37200,
+         153729
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         21776,
+         20281,
+         17380,
+         75813
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Sales and marketing expenses",
+        "values": [
+         36929,
+         35321,
+         29659,
+         131073
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         27954,
+         26477,
+         23973,
+         99452
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         252363,
+         238916,
+         216239,
+         912983
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before depreciation, amortisation, finance costs, share of profit / (loss) of associates and joint ventures, exceptional items and tax",
+        "values": [
+         342094,
+         323701,
+         283475,
+         1224918
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         142350,
+         136435,
+         124651,
+         527108
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         59564,
+         56056,
+         54608,
+         215553
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of profit of associates and joint ventures (net)",
+        "values": [
+         -1082,
+         -844,
+         -828,
+         -3645
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax",
+        "values": [
+         141262,
+         132054,
+         105044,
+         485902
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items (net)",
+        "values": [
+         3534,
+         31607,
+         null,
+         34175
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax",
+        "values": [
+         137728,
+         100447,
+         105044,
+         451727
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense / (credit)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         25409,
+         21488,
+         18657,
+         78812
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         12203,
+         -13515,
+         12169,
+         34687
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         37612,
+         7973,
+         30826,
+         113499
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the quarter / year",
+        "values": [
+         100116,
+         92474,
+         74218,
+         338228
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income ('OCI')",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items to be reclassified to profit or loss :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Net (loss) / gain due to foreign currency translation differences",
+        "values": [
+         -835,
+         24209,
+         3158,
+         51798
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Net gain / (loss) on net investment hedge",
+        "values": [
+         53,
+         -289,
+         357,
+         47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Tax (charge) / credit on above",
+        "values": [
+         -13,
+         73,
+         -105,
+         -27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items not to be reclassified to profit or loss :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Gain on investments at fair value through OCI",
+        "values": [
+         3609,
+         466,
+         1256,
+         4763
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Re-measurement (loss) / gain on defined benefit plans",
+        "values": [
+         -967,
+         206,
+         -385,
+         81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Tax charge on above",
+        "values": [
+         -318,
+         -116,
+         -297,
+         -893
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Share of other comprehensive (loss) / income of associates and joint ventures (net)",
+        "values": [
+         -22,
+         -4,
+         1,
+         -21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the quarter / year",
+        "values": [
+         1507,
+         24545,
+         3985,
+         55748
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the quarter / year",
+        "values": [
+         101623,
+         117019,
+         78203,
+         393976
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the quarter / year attributable to : Owners of the Parent",
+        "values": [
+         81674,
+         73251,
+         59479,
+         266952
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the quarter / year attributable to : Non-controlling interests",
+        "values": [
+         18442,
+         19223,
+         14739,
+         71276
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the quarter / year attributable to : Owners of the Parent",
+        "values": [
+         2088,
+         12934,
+         2758,
+         29236
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the quarter / year attributable to : Non-controlling interests",
+        "values": [
+         -581,
+         11611,
+         1227,
+         26512
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the quarter / year attributable to : Owners of the Parent",
+        "values": [
+         83762,
+         86185,
+         62237,
+         296188
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the quarter / year attributable to : Non-controlling interests",
+        "values": [
+         17861,
+         30834,
+         15966,
+         97788
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per share^ (Face value : ₹ 5 each) Basic",
+        "values": [
+         13.38,
+         12.53,
+         10.26,
+         45.96
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per share^ (Face value : ₹ 5 each) Diluted",
+        "values": [
+         13.37,
+         12.15,
+         9.9,
+         44.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up equity share capital (Face value : ₹ 5 each)",
+        "values": [
+         31202,
+         30468,
+         29001,
+         30468
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         1586949,
+         1460098,
+         1168235,
+         1460098
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Previous year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       3
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1. Segment Revenue",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         299289,
+         288305,
+         273966,
+         1129954
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         175657,
+         160335,
+         120834,
+         568064
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         56654,
+         54904,
+         50571,
+         211766
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         85254,
+         82009,
+         80913,
+         326944
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         22875,
+         21914,
+         17179,
+         77747
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         7734,
+         7467,
+         7628,
+         30179
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         968,
+         934,
+         1078,
+         3883
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total segment revenue",
+        "values": [
+         648431,
+         615868,
+         552169,
+         2348537
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter-segment eliminations",
+        "values": [
+         63040,
+         62036,
+         57543,
+         238809
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total revenue",
+        "values": [
+         585391,
+         553832,
+         494626,
+         2109728
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2. Segment Results ^ Profit / (loss) before finance costs (net), charity and donation, exceptional items (net) and tax",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         99556,
+         94349,
+         84254,
+         357661
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*^",
+        "values": [
+         59695,
+         54088,
+         38261,
+         187936
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         18404,
+         16574,
+         15567,
+         63598
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         27284,
+         27652,
+         27630,
+         112273
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         2529,
+         3169,
+         2957,
+         12227
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         -784,
+         -836,
+         23,
+         -2056
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         711,
+         929,
+         662,
+         3308
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total",
+        "values": [
+         207395,
+         195925,
+         169354,
+         734947
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         -391,
+         -454,
+         -512,
+         -2161
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inter-segment eliminations",
+        "values": [
+         -12287,
+         -10681,
+         -10997,
+         -43574
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total segment results",
+        "values": [
+         194717,
+         184790,
+         157845,
+         689212
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: (i) Finance costs (net)#",
+        "values": [
+         52635,
+         50349,
+         51991,
+         198739
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: (ii) Charity and donation",
+        "values": [
+         820,
+         2387,
+         810,
+         4571
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: (iii) Exceptional items (net)",
+        "values": [
+         3534,
+         31607,
+         0,
+         34175
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         137728,
+         100447,
+         105044,
+         451727
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3. Segment Assets ^",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         2715287,
+         2742633,
+         2798122,
+         2742633
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         1316087,
+         1280212,
+         1020810,
+         1280212
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         323285,
+         307199,
+         285276,
+         307199
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         1071410,
+         1051976,
+         991775,
+         1051976
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         185014,
+         173901,
+         123852,
+         173901
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         86068,
+         74551,
+         57939,
+         74551
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         46293,
+         37743,
+         31942,
+         37743
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total segment assets",
+        "values": [
+         5743444,
+         5668215,
+         5309716,
+         5668215
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         410899,
+         299535,
+         282765,
+         299535
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inter-segment eliminations",
+        "values": [
+         -438893,
+         -446234,
+         -442114,
+         -446234
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total assets",
+        "values": [
+         5715450,
+         5521516,
+         5150367,
+         5521516
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4. Segment Liabilities",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         1413969,
+         1369224,
+         1371379,
+         1369224
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         787782,
+         754484,
+         592212,
+         754484
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         169692,
+         159011,
+         146421,
+         159011
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         303073,
+         298356,
+         283206,
+         298356
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         79085,
+         79923,
+         79646,
+         79923
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         81969,
+         74132,
+         70185,
+         74132
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         6508,
+         7119,
+         5262,
+         7119
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total segment liabilities",
+        "values": [
+         2842078,
+         2742249,
+         2548311,
+         2742249
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated%",
+        "values": [
+         1367193,
+         1327465,
+         1500248,
+         1327465
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inter-segment eliminations",
+        "values": [
+         -500288,
+         -507832,
+         -505674,
+         -507832
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total liabilities",
+        "values": [
+         3708983,
+         3561882,
+         3542885,
+         3561882
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 51,
+   "usage": {
+    "candidatesTokenCount": 6286,
+    "promptTokenCount": 9220,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 8512
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4639,
+    "totalTokenCount": 20145
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Bharti Airtel Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         585391,
+         553832,
+         494626,
+         2109728
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         9066,
+         8785,
+         5088,
+         28173
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total income",
+        "values": [
+         594457,
+         562617,
+         499714,
+         2137901
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Network operating expenses",
+        "values": [
+         108097,
+         102080,
+         95456,
+         397500
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Access charges",
+        "values": [
+         15887,
+         14939,
+         12571,
+         55416
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "License fee / Spectrum charges",
+        "values": [
+         41720,
+         39818,
+         37200,
+         153729
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         21776,
+         20281,
+         17380,
+         75813
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Sales and marketing expenses",
+        "values": [
+         36929,
+         35321,
+         29659,
+         131073
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         27954,
+         26477,
+         23973,
+         99452
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         252363,
+         238916,
+         216239,
+         912983
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before depreciation, amortisation, finance costs, share of profit / (loss) of associates and joint ventures, exceptional items and tax",
+        "values": [
+         342094,
+         323701,
+         283475,
+         1224918
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         142350,
+         136435,
+         124651,
+         527108
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         59564,
+         56056,
+         54608,
+         215553
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of profit of associates and joint ventures (net)",
+        "values": [
+         -1082,
+         -844,
+         -828,
+         -3645
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax",
+        "values": [
+         141262,
+         132054,
+         105044,
+         485902
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items (net)",
+        "values": [
+         3534,
+         31607,
+         0,
+         34175
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax",
+        "values": [
+         137728,
+         100447,
+         105044,
+         451727
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense / (credit)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         25409,
+         21488,
+         18657,
+         78812
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         12203,
+         -13515,
+         12169,
+         34687
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense / (credit)",
+        "values": [
+         37612,
+         7973,
+         30826,
+         113499
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the quarter / year",
+        "values": [
+         100116,
+         92474,
+         74218,
+         338228
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income (\"OCI\")",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items to be reclassified to profit or loss :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Net (loss) / gain due to foreign currency translation differences",
+        "values": [
+         -835,
+         24209,
+         3158,
+         51798
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Net gain / (loss) on net investment hedge",
+        "values": [
+         53,
+         -289,
+         357,
+         47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Tax (charge) / credit on above",
+        "values": [
+         -13,
+         73,
+         -105,
+         -27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items not to be reclassified to profit or loss :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Gain on investments at fair value through OCI",
+        "values": [
+         3609,
+         466,
+         1256,
+         4763
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Re-measurement (loss) / gain on defined benefit plans",
+        "values": [
+         -967,
+         206,
+         -385,
+         81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Tax charge on above",
+        "values": [
+         -318,
+         -116,
+         -297,
+         -893
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Share of other comprehensive (loss) / income of associates and joint ventures (net)",
+        "values": [
+         -22,
+         -4,
+         1,
+         -21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the quarter / year",
+        "values": [
+         1507,
+         24545,
+         3985,
+         55748
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the quarter / year",
+        "values": [
+         101623,
+         117019,
+         78203,
+         393976
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the quarter / year attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Parent",
+        "values": [
+         81674,
+         73251,
+         59479,
+         266952
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         18442,
+         19223,
+         14739,
+         71276
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income for the quarter / year attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Parent",
+        "values": [
+         2088,
+         12934,
+         2758,
+         29236
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         -581,
+         11611,
+         1227,
+         26512
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the quarter / year attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Parent",
+        "values": [
+         83762,
+         86185,
+         62237,
+         296188
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         17861,
+         30834,
+         15966,
+         97788
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per share^ (Face value : ₹ 5 each)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic",
+        "values": [
+         13.38,
+         12.53,
+         10.26,
+         45.96
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted",
+        "values": [
+         13.37,
+         12.15,
+         9.9,
+         44.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up equity share capital (Face value : ₹ 5 each)",
+        "values": [
+         31202,
+         30468,
+         29001,
+         30468
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         1586949,
+         1460098,
+         1168235,
+         1460098
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1. Segment Revenue",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         299289,
+         288305,
+         273966,
+         1129954
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         175657,
+         160335,
+         120834,
+         568064
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         56654,
+         54904,
+         50571,
+         211766
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         85254,
+         82009,
+         80913,
+         326944
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         22875,
+         21914,
+         17179,
+         77747
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         7734,
+         7467,
+         7628,
+         30179
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         968,
+         934,
+         1078,
+         3883
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total segment revenue",
+        "values": [
+         648431,
+         615868,
+         552169,
+         2348537
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter-segment eliminations",
+        "values": [
+         63040,
+         62036,
+         57543,
+         238809
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total revenue",
+        "values": [
+         585391,
+         553832,
+         494626,
+         2109728
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2. Segment Results ^",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit / (loss) before finance costs (net), charity and donation, exceptional items (net) and tax",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         99556,
+         94349,
+         84254,
+         357661
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         59695,
+         54088,
+         38261,
+         187936
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         18404,
+         16574,
+         15567,
+         63598
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         27284,
+         27652,
+         27630,
+         112273
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         2529,
+         3169,
+         2957,
+         12227
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         -784,
+         -836,
+         23,
+         -2056
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         711,
+         929,
+         662,
+         3308
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total",
+        "values": [
+         207395,
+         195925,
+         169354,
+         734947
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         -391,
+         -454,
+         -512,
+         -2161
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inter-segment eliminations",
+        "values": [
+         -12287,
+         -10681,
+         -10997,
+         -43574
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total segment results",
+        "values": [
+         194717,
+         184790,
+         157845,
+         689212
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Finance costs (net)#",
+        "values": [
+         52635,
+         50349,
+         51991,
+         198739
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Charity and donation",
+        "values": [
+         820,
+         2387,
+         810,
+         4571
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(iii) Exceptional items (net)",
+        "values": [
+         3534,
+         31607,
+         0,
+         34175
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax",
+        "values": [
+         137728,
+         100447,
+         105044,
+         451727
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3. Segment Assets ^",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         2715287,
+         2742633,
+         2798122,
+         2742633
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         1316087,
+         1280212,
+         1020810,
+         1280212
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         323285,
+         307199,
+         285276,
+         307199
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         1071410,
+         1051976,
+         991775,
+         1051976
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         185014,
+         173901,
+         123852,
+         173901
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         86068,
+         74551,
+         57939,
+         74551
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         46293,
+         37743,
+         31942,
+         37743
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total segment assets",
+        "values": [
+         5743444,
+         5668215,
+         5309716,
+         5668215
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated",
+        "values": [
+         410899,
+         299535,
+         282765,
+         299535
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inter-segment eliminations",
+        "values": [
+         -438893,
+         -446234,
+         -442114,
+         -446234
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total assets",
+        "values": [
+         5715450,
+         5521516,
+         5150367,
+         5521516
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4. Segment Liabilities",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services India",
+        "values": [
+         1413969,
+         1369224,
+         1371379,
+         1369224
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Mobile Services Africa*",
+        "values": [
+         787782,
+         754484,
+         592212,
+         754484
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Airtel Business",
+        "values": [
+         169692,
+         159011,
+         146421,
+         159011
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Passive Infrastructure Services$",
+        "values": [
+         303073,
+         298356,
+         283206,
+         298356
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Homes Services",
+        "values": [
+         79085,
+         79923,
+         79646,
+         79923
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Digital TV Services",
+        "values": [
+         81969,
+         74132,
+         70185,
+         74132
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Others",
+        "values": [
+         6508,
+         7119,
+         5262,
+         7119
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total segment liabilities",
+        "values": [
+         2842078,
+         2742249,
+         2548311,
+         2742249
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Unallocated%",
+        "values": [
+         1367193,
+         1327465,
+         1500248,
+         1327465
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inter-segment eliminations",
+        "values": [
+         -500288,
+         -507832,
+         -505674,
+         -507832
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total liabilities",
+        "values": [
+         3708983,
+         3561882,
+         3542885,
+         3561882
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 117,
+   "usage": {
+    "candidatesTokenCount": 7255,
+    "promptTokenCount": 2918,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 12225,
+    "totalTokenCount": 22398
+   }
+  }
+ }
+}

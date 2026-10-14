@@ -1,0 +1,1364 @@
+{
+ "document": {
+  "dpi": [
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149,
+   149
+  ],
+  "name": "kirloskar-pneumatic_FY27-Q1",
+  "pages": 14,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "83614cbedca9194b038227a61dfc7edbcbd819f517ffc68f40059252c03e029e"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Kirloskar Pneumatic Company Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended Jun 30 2024",
+        "months": 3,
+        "period_end": "2024-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended Mar 31 2024",
+        "months": 3,
+        "period_end": "2024-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended Jun 30 2023",
+        "months": 3,
+        "period_end": "2023-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended on March 31, 2024",
+        "months": 12,
+        "period_end": "2024-03-31"
+       }
+      ],
+      "pages": [
+       10
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         3031,
+         7118,
+         2817,
+         17868
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "values": [
+         81,
+         60,
+         84,
+         277
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income ( I + II )",
+        "values": [
+         3112,
+         7178,
+         2901,
+         18145
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "EXPENSES",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of material consumed",
+        "values": [
+         1122,
+         3529,
+         1162,
+         8440
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of Traded Goods",
+        "values": [
+         127,
+         184,
+         93,
+         579
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, stock in trade & work in progress",
+        "values": [
+         88,
+         -144,
+         133,
+         -75
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefit expense",
+        "values": [
+         548,
+         543,
+         504,
+         2056
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance Cost",
+        "values": [
+         1,
+         2,
+         2,
+         11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         89,
+         84,
+         75,
+         318
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Manufacturing / Processing charges",
+        "values": [
+         317,
+         580,
+         296,
+         1591
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Expenses",
+        "values": [
+         373,
+         566,
+         296,
+         1705
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses ( IV )",
+        "values": [
+         2665,
+         5344,
+         2561,
+         14625
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/(Loss) before exceptional items & tax ( III - IV )",
+        "values": [
+         447,
+         1834,
+         340,
+         3520
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Statutory impact of new labour codes",
+        "values": [
+         0,
+         -42,
+         0,
+         141
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit/ (Loss) before tax ( V - VI )",
+        "values": [
+         447,
+         1876,
+         340,
+         3379
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax ( net of previous year )",
+        "values": [
+         96,
+         435,
+         76,
+         839
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax",
+        "values": [
+         19,
+         4,
+         11,
+         -3
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit/ (Loss) for the period ( VII - VIII )",
+        "values": [
+         332,
+         1437,
+         253,
+         2543
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "i) Items that will not be reclassified to profit or loss",
+        "values": [
+         247,
+         -575,
+         240,
+         -529
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii) Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         -35,
+         80,
+         -34,
+         72
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period ( IX + X ) (Comprising Profit / (Loss) and Other Comprehensive Income for the period)",
+        "values": [
+         544,
+         942,
+         459,
+         2086
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to : Equity holders of parent",
+        "values": [
+         334,
+         1438,
+         266,
+         2561
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to : Non-controlling interest",
+        "values": [
+         -2,
+         -1,
+         -13,
+         -18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to : Equity holders of parent",
+        "values": [
+         212,
+         -495,
+         206,
+         -457
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to : Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to : Equity holders of parent",
+        "values": [
+         546,
+         943,
+         472,
+         2104
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to : Non-controlling interest",
+        "values": [
+         -2,
+         -1,
+         -13,
+         -18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up Equity Share Capital (Face Value of Rs. 2/- each)",
+        "values": [
+         130,
+         130,
+         130,
+         130
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         12358
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earning per equity share basic (Rs.)",
+        "values": [
+         5.15,
+         22.14,
+         4.09,
+         39.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earning per equity share diluted (Rs.)",
+        "values": [
+         5.14,
+         22.11,
+         4.08,
+         39.39
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "( Not Annualised )",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended Jun 30 2024",
+        "months": 3,
+        "period_end": "2024-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended Mar 31 2024",
+        "months": 3,
+        "period_end": "2024-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended Jun 30 2023",
+        "months": 3,
+        "period_end": "2023-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended on March 31, 2024",
+        "months": 12,
+        "period_end": "2024-03-31"
+       }
+      ],
+      "pages": [
+       11
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Segment Revenue - Compression Systems",
+        "values": [
+         2848,
+         6819,
+         2521,
+         16713
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Revenue - Other Non Reportable Segments",
+        "values": [
+         183,
+         299,
+         296,
+         1155
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "TOTAL",
+        "values": [
+         3031,
+         7118,
+         2817,
+         17868
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less : Inter Segment revenue",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Sales/ Income from operations",
+        "values": [
+         3031,
+         7118,
+         2817,
+         17868
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Results - Profit / (Loss) before tax and interest from each segment - Compression Systems",
+        "values": [
+         618,
+         2009,
+         415,
+         4071
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "TOTAL",
+        "values": [
+         618,
+         2009,
+         415,
+         4071
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less : i. Finance Cost",
+        "values": [
+         1,
+         2,
+         2,
+         11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less : ii. Other unallocable expenditure ( net off income ) including Profit/(Loss) of non reportable segments",
+        "values": [
+         -170,
+         -131,
+         -73,
+         -681
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Profit/(Loss) Before Tax",
+        "values": [
+         447,
+         1876,
+         340,
+         3379
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Capital Employed - Segment Assets - Compression Systems",
+        "values": [
+         7243,
+         8588,
+         6616,
+         8588
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Capital Employed - Segment Liabilities - Compression Systems",
+        "values": [
+         3553,
+         4307,
+         4041,
+         4307
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Capital employed in segment",
+        "values": [
+         3690,
+         4281,
+         2575,
+         4281
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add : Unallocable corporate assets",
+        "values": [
+         9939,
+         8986,
+         9726,
+         8986
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less :Unallocable corporate liabilities ( including non reportable segments )",
+        "values": [
+         600,
+         671,
+         736,
+         671
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Unallocable Corporate Assets / (Liabilities)",
+        "values": [
+         9339,
+         8315,
+         8990,
+         8315
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Capital employed in the Company",
+        "values": [
+         13029,
+         12596,
+         11565,
+         12596
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 54,
+   "usage": {
+    "candidatesTokenCount": 3456,
+    "promptTokenCount": 8156,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 7448
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 5862,
+    "totalTokenCount": 17474
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Kirloskar Pneumatic Company Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Jun 30 2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Mar 31 2026 Audited",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Jun 30 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         3031,
+         7118,
+         2817,
+         17868
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "values": [
+         81,
+         60,
+         84,
+         277
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income ( I + II )",
+        "values": [
+         3112,
+         7178,
+         2901,
+         18145
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "EXPENSES",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of material consumed",
+        "values": [
+         1122,
+         3529,
+         1162,
+         8440
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of Traded Goods",
+        "values": [
+         127,
+         184,
+         93,
+         579
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, stock in trade & work in progress",
+        "values": [
+         88,
+         -144,
+         133,
+         -75
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefit expense",
+        "values": [
+         548,
+         543,
+         504,
+         2056
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance Cost",
+        "values": [
+         1,
+         2,
+         2,
+         11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         89,
+         84,
+         75,
+         318
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Manufacturing / Processing charges",
+        "values": [
+         317,
+         580,
+         296,
+         1591
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Expenses",
+        "values": [
+         373,
+         566,
+         296,
+         1705
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses ( IV )",
+        "values": [
+         2665,
+         5344,
+         2561,
+         14625
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/(Loss) before exceptional items & tax ( III - IV )",
+        "values": [
+         447,
+         1834,
+         340,
+         3520
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Statutory impact of new labour codes",
+        "values": [
+         0,
+         -42,
+         0,
+         141
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit/ (Loss) before tax ( V - VI )",
+        "values": [
+         447,
+         1876,
+         340,
+         3379
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax ( net of previous year )",
+        "values": [
+         96,
+         435,
+         76,
+         839
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax",
+        "values": [
+         19,
+         4,
+         11,
+         -3
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit/ (Loss) for the period ( VII - VIII )",
+        "values": [
+         332,
+         1437,
+         253,
+         2543
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "i) Items that will not be reclassified to profit or loss",
+        "values": [
+         247,
+         -575,
+         240,
+         -529
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii) Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         -35,
+         80,
+         -34,
+         72
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period ( IX + X ) (Comprising Profit / (Loss) and Other Comprehensive Income for the period)",
+        "values": [
+         544,
+         942,
+         459,
+         2086
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity holders of parent",
+        "values": [
+         334,
+         1438,
+         266,
+         2561
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -2,
+         -1,
+         -13,
+         -18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity holders of parent",
+        "values": [
+         212,
+         -495,
+         206,
+         -457
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity holders of parent",
+        "values": [
+         546,
+         943,
+         472,
+         2104
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         -2,
+         -1,
+         -13,
+         -18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up Equity Share Capital (Face Value of Rs. 2/- each)",
+        "values": [
+         130,
+         130,
+         130,
+         130
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         12358
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earning per equity share basic (Rs.) ( Not Annualised )",
+        "values": [
+         5.15,
+         22.14,
+         4.09,
+         39.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earning per equity share diluted (Rs.) ( Not Annualised )",
+        "values": [
+         5.14,
+         22.11,
+         4.08,
+         39.39
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Jun 30 2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Mar 31 2026 Audited",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Jun 30 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Segment Revenue",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Compression Systems",
+        "values": [
+         2848,
+         6819,
+         2521,
+         16713
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Non Reportable Segments",
+        "values": [
+         183,
+         299,
+         296,
+         1155
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "TOTAL",
+        "values": [
+         3031,
+         7118,
+         2817,
+         17868
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less : Inter Segment revenue",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Sales/ Income from operations",
+        "values": [
+         3031,
+         7118,
+         2817,
+         17868
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2 Segment Results",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/(Loss) before tax and interest from each segment",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Compression Systems",
+        "values": [
+         618,
+         2009,
+         415,
+         4071
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "TOTAL",
+        "values": [
+         618,
+         2009,
+         415,
+         4071
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less : i. Finance Cost",
+        "values": [
+         1,
+         2,
+         2,
+         11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "ii. Other unallocable expenditure ( net off income ) including Profit/(Loss) of non reportable segments",
+        "values": [
+         -170,
+         -131,
+         -73,
+         -681
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Profit/(Loss) Before Tax",
+        "values": [
+         447,
+         1876,
+         340,
+         3379
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3 Capital Employed",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Compression Systems",
+        "values": [
+         7243,
+         8588,
+         6616,
+         8588
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Compression Systems",
+        "values": [
+         3553,
+         4307,
+         4041,
+         4307
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Capital employed in segment",
+        "values": [
+         3690,
+         4281,
+         2575,
+         4281
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add : Unallocable corporate assets",
+        "values": [
+         9939,
+         8986,
+         9726,
+         8986
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less :Unallocable corporate liabilities ( including non reportable segments )",
+        "values": [
+         600,
+         671,
+         736,
+         671
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Unallocable Corporate Assets / (Liabilities)",
+        "values": [
+         9339,
+         8315,
+         8990,
+         8315
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Capital employed in the Company",
+        "values": [
+         13029,
+         12596,
+         11565,
+         12596
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 294,
+   "usage": {
+    "candidatesTokenCount": 3014,
+    "promptTokenCount": 2918,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 15564,
+    "totalTokenCount": 21496
+   }
+  }
+ }
+}

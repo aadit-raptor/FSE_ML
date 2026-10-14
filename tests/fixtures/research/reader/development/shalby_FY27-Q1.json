@@ -1,0 +1,1526 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199
+  ],
+  "name": "shalby_FY27-Q1",
+  "pages": 16,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "a41cf645931dda76dcb43439f53c0efbedd24bc71f399447756a1ba0b0a29c17"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Shalby Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30-06-2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31-03-2026 Audited Refer Note - 3",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30-06-2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended 31-03-2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       14
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "I Revenue from Operations",
+        "values": [
+         3312.24,
+         2874.45,
+         2964.26,
+         11414.29
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "II Other Income",
+        "values": [
+         74.14,
+         80.79,
+         70.08,
+         267.91
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "III Total Income (I+II)",
+        "values": [
+         3386.38,
+         2955.24,
+         3034.34,
+         11682.2
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of Material Consumed",
+        "values": [
+         82.41,
+         149.47,
+         154.57,
+         647.98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Operative Expenses",
+        "values": [
+         1460.37,
+         1285.41,
+         1406.64,
+         5235.91
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of Stock In Trade",
+        "values": [
+         420.1,
+         412.48,
+         293.41,
+         1339.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes In Inventories of Finished Goods, Work-In-Progress and Stock-In-Trade",
+        "values": [
+         134.43,
+         -127.14,
+         -66.0,
+         -474.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee Benefits Expense",
+        "values": [
+         478.58,
+         495.6,
+         465.1,
+         1882.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance Costs",
+        "values": [
+         105.65,
+         93.38,
+         93.71,
+         389.95
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and Amortisation Expenses",
+        "values": [
+         187.44,
+         184.85,
+         165.23,
+         699.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Expenses",
+        "values": [
+         320.45,
+         365.15,
+         295.16,
+         1354.93
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses (IV)",
+        "values": [
+         3189.43,
+         2859.18,
+         2807.81,
+         11076.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "V Profit/ (loss) before exceptional items and tax (III-IV)",
+        "values": [
+         196.95,
+         96.06,
+         226.53,
+         605.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VI Exceptional Items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "VII Profit/ (Loss) before tax (V+VI)",
+        "values": [
+         196.95,
+         96.06,
+         226.53,
+         605.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VIII Tax Expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(1) Current Tax",
+        "values": [
+         119.47,
+         -14.78,
+         183.44,
+         381.68
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(2) Adjustment of earlier years",
+        "values": [
+         0,
+         14.71,
+         0,
+         16.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(3) MAT Credit written off",
+        "values": [
+         0,
+         42.36,
+         0,
+         42.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(4) Deferred Tax",
+        "values": [
+         -27.48,
+         -130.77,
+         -33.69,
+         -181.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IX Profit/(Loss) for the period from continuing operations (VII-VIII)",
+        "values": [
+         104.96,
+         184.54,
+         76.78,
+         346.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "X Profit/(Loss) from discontinued operations",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XI Tax expenses of discontinued operations",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XII Profit/(Loss) from discontinued operations (after tax) (X-XI)",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "XIII Profit/(Loss) for the period (IX+XII)",
+        "values": [
+         104.96,
+         184.54,
+         76.78,
+         346.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIV Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "A. (i) Items that will not be reclassified to profit or loss",
+        "values": [
+         -0.58,
+         3.89,
+         0.78,
+         1.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         0.15,
+         -0.49,
+         -0.27,
+         0.33
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B. (i) Items that will be reclassified to profit or loss",
+        "values": [
+         4.98,
+         -147.55,
+         -5.09,
+         -249.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will be re classified to profit or loss",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XV Total Comprehensive Income for the period (XIII+XIV) Comprising Profit (Loss) and Other Comprehensive Income for the period",
+        "values": [
+         109.51,
+         40.39,
+         72.19,
+         99.53
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVI Profit for the year attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Group",
+        "values": [
+         108.45,
+         183.19,
+         89.22,
+         373.89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         -3.49,
+         1.36,
+         -12.44,
+         -27.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVII Other comprehensive income attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Group",
+        "values": [
+         4.55,
+         -144.36,
+         -4.58,
+         -247.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         0,
+         0.2,
+         0.01,
+         0.21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVIII Total comprehensive income for the year attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Group",
+        "values": [
+         113.0,
+         38.83,
+         84.63,
+         126.34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         -3.49,
+         1.56,
+         -12.44,
+         -26.81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up Equity Share Capital (Face value of ₹ 10/- each) (net of Treasury Shares)",
+        "values": [
+         1075.26,
+         1075.19,
+         1074.87,
+         1075.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Reserve excluding revaluation reserves as per balance sheet of previous accounting year",
+        "values": [
+         0,
+         0,
+         0,
+         8977.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share ₹ 10/- each (for Continuing operation): (1) Basic",
+        "values": [
+         0.98,
+         1.72,
+         0.71,
+         3.23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share ₹ 10/- each (for Continuing operation): (2) Diluted",
+        "values": [
+         0.98,
+         1.72,
+         0.71,
+         3.23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity (for discontinued operation) (1) Basic",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity (for discontinued operation) (2) Diluted",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter Ended 30-06-2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter Ended 31-03-2026 Audited Refer Note - 3",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter Ended 30-06-2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended 31-03-2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       16
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "I Segment Revenue",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare Services",
+        "values": [
+         2888.14,
+         2472.32,
+         2683.63,
+         10101.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Manufacturing & Trading of Implants",
+        "values": [
+         424.1,
+         402.13,
+         280.62,
+         1312.92
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Income from Operations",
+        "values": [
+         3312.24,
+         2874.45,
+         2964.26,
+         11414.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "II Segment Results",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare Services",
+        "values": [
+         311.76,
+         170.76,
+         325.67,
+         952.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Manufacturing & Trading of Implants",
+        "values": [
+         -114.81,
+         -74.71,
+         -99.15,
+         -347.21
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Profit/ (Loss) Before Tax",
+        "values": [
+         196.95,
+         96.06,
+         226.52,
+         605.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "III Capital employed",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare Services",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets",
+        "values": [
+         12704.34,
+         12649.66,
+         12872.15,
+         12649.66
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities",
+        "values": [
+         -4125.32,
+         -4127.94,
+         -4493.53,
+         -4127.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Manufacturing & Trading of Implants",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets",
+        "values": [
+         5836.05,
+         5741.63,
+         4868.8,
+         5741.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities",
+        "values": [
+         -4243.93,
+         -4206.42,
+         -3238.45,
+         -4206.42
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Capital Employed",
+        "values": [
+         10171.14,
+         10056.92,
+         10008.97,
+         10056.92
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 72,
+   "usage": {
+    "candidatesTokenCount": 4393,
+    "promptTokenCount": 9148,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 8440
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4761,
+    "totalTokenCount": 18302
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Shalby Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30-06-2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31-03-2026 (Audited Refer Note - 3)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30-06-2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended 31-03-2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "I Revenue from Operations",
+        "values": [
+         3312.24,
+         2874.45,
+         2964.26,
+         11414.29
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "II Other Income",
+        "values": [
+         74.14,
+         80.79,
+         70.08,
+         267.91
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "III Total Income (I+II)",
+        "values": [
+         3386.38,
+         2955.24,
+         3034.34,
+         11682.2
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of Material Consumed",
+        "values": [
+         82.41,
+         149.47,
+         154.57,
+         647.98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Operative Expenses",
+        "values": [
+         1460.37,
+         1285.41,
+         1406.64,
+         5235.91
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of Stock In Trade",
+        "values": [
+         420.1,
+         412.48,
+         293.41,
+         1339.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes In Inventories of Finished Goods, Work-In-Progress and Stock-In-Trade",
+        "values": [
+         134.43,
+         -127.14,
+         -66.0,
+         -474.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee Benefits Expense",
+        "values": [
+         478.58,
+         495.6,
+         465.1,
+         1882.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance Costs",
+        "values": [
+         105.65,
+         93.38,
+         93.71,
+         389.95
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and Amortisation Expenses",
+        "values": [
+         187.44,
+         184.85,
+         165.23,
+         699.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Expenses",
+        "values": [
+         320.45,
+         365.15,
+         295.16,
+         1354.93
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses (IV)",
+        "values": [
+         3189.43,
+         2859.18,
+         2807.81,
+         11076.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "V Profit / (loss) before exceptional items and tax (III-IV)",
+        "values": [
+         196.95,
+         96.06,
+         226.53,
+         605.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VI Exceptional Items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "VII Profit / (Loss) before tax (V+VI)",
+        "values": [
+         196.95,
+         96.06,
+         226.53,
+         605.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VIII Tax Expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(1) Current Tax",
+        "values": [
+         119.47,
+         -14.78,
+         183.44,
+         381.68
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(2) Adjustment of earlier years",
+        "values": [
+         0,
+         14.71,
+         0,
+         16.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(3) MAT Credit written off",
+        "values": [
+         0,
+         42.36,
+         0,
+         42.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(4) Deferred Tax",
+        "values": [
+         -27.48,
+         -130.77,
+         -33.69,
+         -181.47
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "IX Profit/(Loss) for the period from continuing operations (VII-VIII)",
+        "values": [
+         104.96,
+         184.54,
+         76.78,
+         346.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "X Profit/(Loss) from discontinued operations",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XI Tax expenses of discontinued operations",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XII Profit/(Loss) from discontinued operations (after tax) (X-XI)",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIII Profit/(Loss) for the period (IX+XII)",
+        "values": [
+         104.96,
+         184.54,
+         76.78,
+         346.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIV Other Comprehensive Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "A. (i) Items that will not be reclassified to profit or loss",
+        "values": [
+         -0.58,
+         3.89,
+         0.78,
+         1.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         0.15,
+         -0.49,
+         -0.27,
+         0.33
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B. (i) Items that will be reclassified to profit or loss",
+        "values": [
+         4.98,
+         -147.55,
+         -5.09,
+         -249.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will be reclassified to profit or loss",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XV Total Comprehensive Income for the period (XIII+XIV) Comprising Profit (Loss) and Other Comprehensive Income for the period",
+        "values": [
+         109.51,
+         40.39,
+         72.19,
+         99.53
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVI Profit for the year attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Group",
+        "values": [
+         108.45,
+         183.19,
+         89.22,
+         373.89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         -3.49,
+         1.36,
+         -12.44,
+         -27.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVII Other comprehensive income attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Group",
+        "values": [
+         4.55,
+         -144.36,
+         -4.58,
+         -247.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         0,
+         0.2,
+         0.01,
+         0.21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVIII Total comprehensive income for the year attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Shareholders of the Group",
+        "values": [
+         113.0,
+         38.83,
+         84.63,
+         126.34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-Controlling Interest",
+        "values": [
+         -3.49,
+         1.56,
+         -12.44,
+         -26.81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVI Paid-up Equity Share Capital (Face value of ₹ 10/- each) (net of Treasury Shares)",
+        "values": [
+         1075.26,
+         1075.19,
+         1074.87,
+         1075.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVII Reserve excluding revaluation reserves as per balance sheet of previous accounting year",
+        "values": [
+         0,
+         0,
+         0,
+         8977.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVIII Earnings per equity share ₹ 10/- each (for Continuing operation):",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(1) Basic",
+        "values": [
+         0.98,
+         1.72,
+         0.71,
+         3.23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(2) Diluted",
+        "values": [
+         0.98,
+         1.72,
+         0.71,
+         3.23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIX Earnings per equity share (for discontinued operation)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(1) Basic",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(2) Diluted",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30-06-2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31-03-2026 (Audited Refer Note - 3)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30-06-2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31-03-2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "I Segment Revenue",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare Services",
+        "values": [
+         2888.14,
+         2472.32,
+         2683.63,
+         10101.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Manufacturing & Trading of Implants",
+        "values": [
+         424.1,
+         402.13,
+         280.62,
+         1312.92
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Income from Operations",
+        "values": [
+         3312.24,
+         2874.45,
+         2964.26,
+         11414.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "II Segment Results",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare Services",
+        "values": [
+         311.76,
+         170.76,
+         325.67,
+         952.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Manufacturing & Trading of Implants",
+        "values": [
+         -114.81,
+         -74.71,
+         -99.15,
+         -347.21
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Profit / (Loss) Before Tax",
+        "values": [
+         196.95,
+         96.06,
+         226.52,
+         605.61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "III Capital employed",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare Services",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets",
+        "values": [
+         12704.34,
+         12649.66,
+         12872.15,
+         12649.66
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities",
+        "values": [
+         -4125.32,
+         -4127.94,
+         -4493.53,
+         -4127.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Manufacturing & Trading of Implants",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets",
+        "values": [
+         5836.05,
+         5741.63,
+         4868.8,
+         5741.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities",
+        "values": [
+         -4243.93,
+         -4206.42,
+         -3238.45,
+         -4206.42
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Capital Employed",
+        "values": [
+         10171.14,
+         10056.92,
+         10008.97,
+         10056.92
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 63,
+   "usage": {
+    "candidatesTokenCount": 3692,
+    "promptTokenCount": 2918,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 14361,
+    "totalTokenCount": 20971
+   }
+  }
+ }
+}

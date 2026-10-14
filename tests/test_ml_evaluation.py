@@ -185,9 +185,10 @@ def test_every_committed_card_renders_to_its_markdown_with_every_region():
         c = json.loads(json_path.read_text(encoding="utf-8"))
         text = md_path.read_text(encoding="utf-8")
         assert text == card.render(c)
-        # Each card's own regions: S&P's four, or the economic regime's seven
+        # Each card's own regions: S&P's four, the economic regime's seven, or
+        # the results reader's one (Indian filings only, for now)
         regions = {r for group in c["evaluation"]["sets"].values() for r in group["by_region"]}
-        assert len(regions) >= 4
+        assert len(regions) >= (1 if c["id"] == "reader" else 4)
         for region in regions:
             assert f"| {card.REGION_NAMES[region]} |" in text
         assert "## Limitations" in text and "## How it is tested" in text

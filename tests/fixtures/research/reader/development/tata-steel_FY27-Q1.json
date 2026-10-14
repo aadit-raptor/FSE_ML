@@ -1,0 +1,2337 @@
+{
+ "document": {
+  "dpi": [
+   199,
+   199,
+   95,
+   96,
+   95,
+   95,
+   95,
+   95,
+   95,
+   95,
+   600,
+   600,
+   600,
+   600,
+   600,
+   600,
+   600
+  ],
+  "name": "tata-steel_FY27-Q1",
+  "pages": 17,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "51c41b8f21b9ccd25e68838399392d783a2f119b2636649ee1c862f885f9c5ab"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Tata Steel Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 31.03.2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Financial year ended on 31.03.2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       13
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Revenue from operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Sales / income from operations",
+        "values": [
+         60411.78,
+         62687.31,
+         52744.07,
+         230293.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Other operating revenues",
+        "values": [
+         382.51,
+         582.82,
+         434.05,
+         1846.47
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Total revenue from operations [ 1(a) + 1(b) ]",
+        "values": [
+         60794.29,
+         63270.13,
+         53178.12,
+         232139.94
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other income",
+        "values": [
+         232.68,
+         248.47,
+         288.67,
+         1401.78
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total income [ 1 + 2 ]",
+        "values": [
+         61026.97,
+         63518.6,
+         53466.79,
+         233541.72
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Cost of materials consumed",
+        "values": [
+         20185.68,
+         19664.52,
+         18028.08,
+         74468.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Purchases of stock-in-trade",
+        "values": [
+         5182.35,
+         4553.33,
+         3948.43,
+         18159.14
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Changes in inventories of finished and semi-finished goods, stock-in-trade and work-in-progress",
+        "values": [
+         -2413.56,
+         1953.35,
+         -1397.85,
+         989.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Employee benefits expense",
+        "values": [
+         7225.8,
+         6698.15,
+         6598.57,
+         25998.98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Finance costs",
+        "values": [
+         1770.51,
+         1792.38,
+         1852.43,
+         7167.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "f) Depreciation and amortisation expense",
+        "values": [
+         3639.65,
+         3268.4,
+         2744.3,
+         11954.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "g) Other expenses",
+        "values": [
+         21349.68,
+         20572.12,
+         18573.35,
+         78170.83
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses [ 4(a) to 4(g) ]",
+        "values": [
+         56940.11,
+         58502.25,
+         50347.31,
+         216909.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit / (Loss) before share of profit/ (loss) of joint ventures & associates, exceptional items & tax [ 3 - 4 ]",
+        "values": [
+         4086.86,
+         5016.35,
+         3119.48,
+         16632.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Share of profit / (loss) of joint ventures & associates",
+        "values": [
+         96.15,
+         134.07,
+         79.72,
+         368.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "7 Profit/ (Loss) before exceptional items & tax [ 5 + 6 ]",
+        "values": [
+         4183.01,
+         5150.42,
+         3199.2,
+         17001.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Exceptional items :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Profit / (loss) on sale of subsidiaries / non-current investments / business undertakings / non-current assets",
+        "values": [
+         null,
+         322.08,
+         null,
+         308.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Provision for impairment of non-current assets",
+        "values": [
+         -37.25,
+         -62.77,
+         null,
+         -323.77
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Statutory impact of new labour codes",
+        "values": [
+         null,
+         -3.58,
+         null,
+         -85.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Restructuring, redundancy and other provisions (net)",
+        "values": [
+         -317.86,
+         -594.59,
+         -142.58,
+         -1858.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Fair value gain/ (loss) on non-current investments (net)",
+        "values": [
+         9.63,
+         -1.19,
+         10.46,
+         926.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total exceptional items [ 8(a) to 8(e) ]",
+        "values": [
+         -345.48,
+         -340.05,
+         -132.12,
+         -1032.46
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "9 Profit/ (Loss) before tax [ 7 + 8 ]",
+        "values": [
+         3837.53,
+         4810.37,
+         3067.08,
+         15968.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Tax Expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Current tax",
+        "values": [
+         1504.78,
+         1775.88,
+         1090.67,
+         5334.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Current tax in relation to earlier years",
+        "values": [
+         -505.05,
+         134.74,
+         -214.12,
+         -73.26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Deferred tax",
+        "values": [
+         452.56,
+         -65.25,
+         183.17,
+         -178.5
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense [ 10(a) to 10(c) ]",
+        "values": [
+         1452.29,
+         1845.37,
+         1059.72,
+         5082.87
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "11 Net Profit/ (Loss) for the period [ 9 - 10 ]",
+        "values": [
+         2385.24,
+         2965.0,
+         2007.36,
+         10885.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Profit/ (Loss) for the period attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         2318.35,
+         2925.74,
+         2077.68,
+         10793.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non controlling interests",
+        "values": [
+         66.89,
+         39.26,
+         -70.32,
+         91.95
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Other comprehensive income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "A (i) Items that will not be reclassified to profit or loss",
+        "values": [
+         153.9,
+         -62.1,
+         420.38,
+         462.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         -25.39,
+         16.31,
+         -78.63,
+         -107.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B (i) Items that will be reclassified to profit or loss",
+        "values": [
+         -184.56,
+         887.81,
+         1899.69,
+         5190.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will be reclassified to profit or loss",
+        "values": [
+         7.64,
+         -51.34,
+         102.72,
+         -52.78
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income",
+        "values": [
+         -48.41,
+         790.68,
+         2344.16,
+         5492.11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Total Comprehensive Income for the period [ 11 + 13 ]",
+        "values": [
+         2336.83,
+         3755.68,
+         4351.52,
+         16377.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "15 Total comprehensive income for the period attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         2286.94,
+         3688.71,
+         4392.21,
+         16150.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non controlling interests",
+        "values": [
+         49.89,
+         66.97,
+         -40.69,
+         227.75
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "16 Paid-up equity share capital [Face value ₹ 1 per share]",
+        "values": [
+         1247.44,
+         1247.44,
+         1247.44,
+         1247.44
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "17 Reserves (excluding revaluation reserves) and Non controlling interest",
+        "values": [
+         null,
+         null,
+         null,
+         102533.01
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "18 Earnings per equity share: Basic earnings per share (not annualised) - in Rupees (after exceptional items)",
+        "values": [
+         1.86,
+         2.34,
+         1.67,
+         8.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted earnings per share (not annualised) - in Rupees (after exceptional items)",
+        "values": [
+         1.86,
+         2.34,
+         1.67,
+         8.65
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 31.03.2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2025 Restated*",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Financial year ended on 31.03.2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       14
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Segment Revenue: Tata Steel India",
+        "values": [
+         36896.55,
+         38447.96,
+         31014.36,
+         139720.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         1712.24,
+         1507.28,
+         926.79,
+         5281.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         4395.03,
+         5097.31,
+         2381.03,
+         12943.95
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         15802.71,
+         17016.0,
+         14618.69,
+         61354.84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         6115.3,
+         5774.44,
+         6095.61,
+         23332.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         12688.61,
+         11521.93,
+         9664.36,
+         39561.96
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         2346.41,
+         2204.5,
+         2143.05,
+         8605.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         339.97,
+         266.18,
+         414.97,
+         1795.19
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         80296.82,
+         81835.6,
+         67258.86,
+         292595.88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Revenue",
+        "values": [
+         19502.53,
+         18565.47,
+         14080.74,
+         60455.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Revenue from operations",
+        "values": [
+         60794.29,
+         63270.13,
+         53178.12,
+         232139.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Results before exceptional items, interest, tax and depreciation : Tata Steel India",
+        "values": [
+         9409.17,
+         9439.01,
+         7262.68,
+         33035.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         498.48,
+         401.66,
+         223.55,
+         1236.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         438.55,
+         258.59,
+         78.76,
+         707.25
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         39.12,
+         623.86,
+         610.88,
+         2721.52
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         -340.72,
+         -591.26,
+         -471.22,
+         -2568.99
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         -126.63,
+         460.91,
+         74.1,
+         610.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         193.89,
+         94.11,
+         155.93,
+         774.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         -310.91,
+         -577.14,
+         -287.04,
+         -837.37
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total",
+        "values": [
+         9800.95,
+         10109.74,
+         7647.64,
+         35679.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Eliminations",
+        "values": [
+         430.72,
+         156.39,
+         168.06,
+         831.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Results before exceptional items, interest, tax and depreciation",
+        "values": [
+         9370.23,
+         9953.35,
+         7479.58,
+         34847.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Finance income",
+        "values": [
+         126.79,
+         123.78,
+         236.63,
+         906.49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Finance costs",
+        "values": [
+         1770.51,
+         1792.38,
+         1852.43,
+         7167.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Depreciation and Amortisation",
+        "values": [
+         3639.65,
+         3268.4,
+         2744.3,
+         11954.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Share of profit/ (loss) of joint ventures and associates",
+        "values": [
+         96.15,
+         134.07,
+         79.72,
+         368.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit / (Loss) before exceptional items & tax",
+        "values": [
+         4183.01,
+         5150.42,
+         3199.2,
+         17001.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Exceptional items",
+        "values": [
+         -345.48,
+         -340.05,
+         -132.12,
+         -1032.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit/ (Loss) before tax",
+        "values": [
+         3837.53,
+         4810.37,
+         3067.08,
+         15968.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Tax expense",
+        "values": [
+         1452.29,
+         1845.37,
+         1059.72,
+         5082.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit / (Loss) for the period",
+        "values": [
+         2385.24,
+         2965.0,
+         2007.36,
+         10885.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets: Tata Steel India",
+        "values": [
+         197644.12,
+         188360.54,
+         196844.16,
+         188360.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         14769.33,
+         14238.93,
+         13524.25,
+         14238.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         12845.88,
+         12724.17,
+         7909.85,
+         12724.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         63052.46,
+         64871.45,
+         59468.6,
+         64871.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         17950.94,
+         17667.48,
+         14739.29,
+         17667.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         15605.33,
+         15266.43,
+         13078.76,
+         15266.43
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         5330.41,
+         5380.14,
+         4453.49,
+         5380.14
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         6768.28,
+         7048.49,
+         6960.01,
+         7048.49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Eliminations",
+        "values": [
+         25559.48,
+         24558.58,
+         26467.18,
+         24558.58
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Assets",
+        "values": [
+         308407.27,
+         300999.05,
+         290511.23,
+         300999.05
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Assets held for sale",
+        "values": [
+         255.06,
+         255.06,
+         null,
+         255.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Assets",
+        "values": [
+         308662.33,
+         301254.11,
+         290511.23,
+         301254.11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities: Tata Steel India",
+        "values": [
+         146456.64,
+         140199.83,
+         134097.8,
+         140199.83
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         9434.07,
+         9034.38,
+         8456.74,
+         9034.38
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         5717.69,
+         5711.37,
+         2259.79,
+         5711.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         26635.21,
+         27451.56,
+         26779.81,
+         27451.56
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         13169.82,
+         13499.41,
+         19122.2,
+         13499.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         19479.24,
+         18908.06,
+         21934.07,
+         18908.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         995.3,
+         1109.21,
+         911.82,
+         1109.21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         13216.39,
+         13225.55,
+         12105.47,
+         13225.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Eliminations",
+        "values": [
+         32557.59,
+         31665.71,
+         30860.22,
+         31665.71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Liabilities",
+        "values": [
+         202546.77,
+         197473.66,
+         194807.48,
+         197473.66
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Liabilities",
+        "values": [
+         202546.77,
+         197473.66,
+         194807.48,
+         197473.66
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 63,
+   "usage": {
+    "candidatesTokenCount": 7580,
+    "promptTokenCount": 9752,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 9044
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 5263,
+    "totalTokenCount": 22595
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Tata Steel Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 31.03.2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Financial year ended on 31.03.2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Revenue from operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Sales / income from operations",
+        "values": [
+         60411.78,
+         62687.31,
+         52744.07,
+         230293.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Other operating revenues",
+        "values": [
+         382.51,
+         582.82,
+         434.05,
+         1846.47
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Total revenue from operations [ 1(a) + 1(b) ]",
+        "values": [
+         60794.29,
+         63270.13,
+         53178.12,
+         232139.94
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other income",
+        "values": [
+         232.68,
+         248.47,
+         288.67,
+         1401.78
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total income [ 1 + 2 ]",
+        "values": [
+         61026.97,
+         63518.6,
+         53466.79,
+         233541.72
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Cost of materials consumed",
+        "values": [
+         20185.68,
+         19664.52,
+         18028.08,
+         74468.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Purchases of stock-in-trade",
+        "values": [
+         5182.35,
+         4553.33,
+         3948.43,
+         18159.14
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Changes in inventories of finished and semi-finished goods, stock-in-trade and work-in-progress",
+        "values": [
+         -2413.56,
+         1953.35,
+         -1397.85,
+         989.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Employee benefits expense",
+        "values": [
+         7225.8,
+         6698.15,
+         6598.57,
+         25998.98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Finance costs",
+        "values": [
+         1770.51,
+         1792.38,
+         1852.43,
+         7167.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "f) Depreciation and amortisation expense",
+        "values": [
+         3639.65,
+         3268.4,
+         2744.3,
+         11954.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "g) Other expenses",
+        "values": [
+         21349.68,
+         20572.12,
+         18573.35,
+         78170.83
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses [ 4(a) to 4(g) ]",
+        "values": [
+         56940.11,
+         58502.25,
+         50347.31,
+         216909.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit / (Loss) before share of profit / (loss) of joint ventures & associates, exceptional items & tax [ 3 - 4 ]",
+        "values": [
+         4086.86,
+         5016.35,
+         3119.48,
+         16632.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Share of profit / (loss) of joint ventures & associates",
+        "values": [
+         96.15,
+         134.07,
+         79.72,
+         368.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "7 Profit / (Loss) before exceptional items & tax [ 5 + 6 ]",
+        "values": [
+         4183.01,
+         5150.42,
+         3199.2,
+         17001.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Exceptional items :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Profit / (loss) on sale of subsidiaries / non-current investments / business undertakings / non-current assets",
+        "values": [
+         0,
+         322.08,
+         0,
+         308.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Provision for impairment of non-current assets",
+        "values": [
+         -37.25,
+         -62.77,
+         0,
+         -323.77
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Statutory impact of new labour codes",
+        "values": [
+         0,
+         -3.58,
+         0,
+         -85.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Restructuring, redundancy and other provisions (net)",
+        "values": [
+         -317.86,
+         -594.59,
+         -142.58,
+         -1858.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Fair value gain / (loss) on non-current investments (net)",
+        "values": [
+         9.63,
+         -1.19,
+         10.46,
+         926.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total exceptional items [ 8(a) to 8(e) ]",
+        "values": [
+         -345.48,
+         -340.05,
+         -132.12,
+         -1032.46
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "9 Profit / (Loss) before tax [ 7 + 8 ]",
+        "values": [
+         3837.53,
+         4810.37,
+         3067.08,
+         15968.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Tax Expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Current tax",
+        "values": [
+         1504.78,
+         1775.88,
+         1090.67,
+         5334.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Current tax in relation to earlier years",
+        "values": [
+         -505.05,
+         134.74,
+         -214.12,
+         -73.26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Deferred tax",
+        "values": [
+         452.56,
+         -65.25,
+         183.17,
+         -178.5
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense [ 10(a) to 10(c) ]",
+        "values": [
+         1452.29,
+         1845.37,
+         1059.72,
+         5082.87
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "11 Net Profit / (Loss) for the period [ 9 - 10 ]",
+        "values": [
+         2385.24,
+         2965.0,
+         2007.36,
+         10885.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Profit / (Loss) for the period attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         2318.35,
+         2925.74,
+         2077.68,
+         10793.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non controlling interests",
+        "values": [
+         66.89,
+         39.26,
+         -70.32,
+         91.95
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Other comprehensive income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "A (i) Items that will not be reclassified to profit or loss",
+        "values": [
+         153.9,
+         -62.1,
+         420.38,
+         462.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         -25.39,
+         16.31,
+         -78.63,
+         -107.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B (i) Items that will be reclassified to profit or loss",
+        "values": [
+         -184.56,
+         887.81,
+         1899.69,
+         5190.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Income tax relating to items that will be reclassified to profit or loss",
+        "values": [
+         7.64,
+         -51.34,
+         102.72,
+         -52.78
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income",
+        "values": [
+         -48.41,
+         790.68,
+         2344.16,
+         5492.11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Total Comprehensive Income for the period [ 11 + 13 ]",
+        "values": [
+         2336.83,
+         3755.68,
+         4351.52,
+         16377.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "15 Total comprehensive income for the period attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         2286.94,
+         3688.71,
+         4392.21,
+         16150.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non controlling interests",
+        "values": [
+         49.89,
+         66.97,
+         -40.69,
+         227.75
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "16 Paid-up equity share capital [Face value ₹ 1 per share]",
+        "values": [
+         1247.44,
+         1247.44,
+         1247.44,
+         1247.44
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "17 Reserves (excluding revaluation reserves) and Non controlling interest",
+        "values": [
+         null,
+         null,
+         null,
+         102533.01
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "18 Earnings per equity share:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic earnings per share (not annualised) - in Rupees (after exceptional items)",
+        "values": [
+         1.86,
+         2.34,
+         1.67,
+         8.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted earnings per share (not annualised) - in Rupees (after exceptional items)",
+        "values": [
+         1.86,
+         2.34,
+         1.67,
+         8.65
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 31.03.2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended on 30.06.2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Financial year ended on 31.03.2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Segment Revenue:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel India",
+        "values": [
+         36896.55,
+         38447.96,
+         31014.36,
+         139720.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         1712.24,
+         1507.28,
+         926.79,
+         5281.59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         4395.03,
+         5097.31,
+         2381.03,
+         12943.95
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         15802.71,
+         17016.0,
+         14618.69,
+         61354.84
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         6115.3,
+         5774.44,
+         6095.61,
+         23332.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         12688.61,
+         11521.93,
+         9664.36,
+         39561.96
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         2346.41,
+         2204.5,
+         2143.05,
+         8605.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         339.97,
+         266.18,
+         414.97,
+         1795.19
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         80296.82,
+         81835.6,
+         67258.86,
+         292595.88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Revenue",
+        "values": [
+         19502.53,
+         18565.47,
+         14080.74,
+         60455.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Revenue from operations",
+        "values": [
+         60794.29,
+         63270.13,
+         53178.12,
+         232139.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Results before exceptional items, interest, tax and depreciation :",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel India",
+        "values": [
+         9409.17,
+         9439.01,
+         7262.68,
+         33035.63
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         498.48,
+         401.66,
+         223.55,
+         1236.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         438.55,
+         258.59,
+         78.76,
+         707.25
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         39.12,
+         623.86,
+         610.88,
+         2721.52
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         -340.72,
+         -591.26,
+         -471.22,
+         -2568.99
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         126.63,
+         460.91,
+         74.1,
+         610.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         193.89,
+         94.11,
+         155.93,
+         774.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         -310.91,
+         -577.14,
+         -287.04,
+         -837.37
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total",
+        "values": [
+         9800.95,
+         10109.74,
+         7647.64,
+         35679.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Eliminations",
+        "values": [
+         430.72,
+         156.39,
+         168.06,
+         831.94
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Results before exceptional items, interest, tax and depreciation",
+        "values": [
+         9370.23,
+         9953.35,
+         7479.58,
+         34847.73
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Finance income",
+        "values": [
+         126.79,
+         123.78,
+         236.63,
+         906.49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Finance costs",
+        "values": [
+         1770.51,
+         1792.38,
+         1852.43,
+         7167.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Depreciation and Amortisation",
+        "values": [
+         3639.65,
+         3268.4,
+         2744.3,
+         11954.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Share of profit / (loss) of joint ventures and associates",
+        "values": [
+         96.15,
+         134.07,
+         79.72,
+         368.5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit / (Loss) before exceptional items & tax",
+        "values": [
+         4183.01,
+         5150.42,
+         3199.2,
+         17001.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Exceptional items",
+        "values": [
+         -345.48,
+         -340.05,
+         -132.12,
+         -1032.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit / (Loss) before tax",
+        "values": [
+         3837.53,
+         4810.37,
+         3067.08,
+         15968.69
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Tax expense",
+        "values": [
+         1452.29,
+         1845.37,
+         1059.72,
+         5082.87
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit / (Loss) for the period",
+        "values": [
+         2385.24,
+         2965.0,
+         2007.36,
+         10885.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Assets:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel India",
+        "values": [
+         197644.12,
+         188360.54,
+         196844.16,
+         188360.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         14769.33,
+         14238.93,
+         13524.25,
+         14238.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         12845.88,
+         12724.17,
+         7909.85,
+         12724.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         63052.46,
+         64871.45,
+         59468.6,
+         64871.45
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         17950.94,
+         17667.48,
+         14739.29,
+         17667.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         15605.33,
+         15266.43,
+         13078.76,
+         15266.43
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         5330.41,
+         5380.14,
+         4453.49,
+         5380.14
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         6768.28,
+         7048.49,
+         6960.01,
+         7048.49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Eliminations",
+        "values": [
+         25559.48,
+         24558.58,
+         26467.18,
+         24558.58
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Assets",
+        "values": [
+         308407.27,
+         300999.05,
+         290511.23,
+         300999.05
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Assets held for sale",
+        "values": [
+         255.06,
+         255.06,
+         0,
+         255.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Assets",
+        "values": [
+         308662.33,
+         301254.11,
+         290511.23,
+         301254.11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Liabilities:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel India",
+        "values": [
+         146456.64,
+         140199.83,
+         134097.8,
+         140199.83
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Neelachal Ispat Nigam Limited",
+        "values": [
+         9434.07,
+         9034.38,
+         8456.74,
+         9034.38
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Indian Operations",
+        "values": [
+         5717.69,
+         5711.37,
+         2259.79,
+         5711.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel Netherlands Operations",
+        "values": [
+         26635.21,
+         27451.56,
+         26779.81,
+         27451.56
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tata Steel UK Operations",
+        "values": [
+         13169.82,
+         13499.41,
+         19122.2,
+         13499.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Trade Related Operations",
+        "values": [
+         19479.24,
+         18908.06,
+         21934.07,
+         18908.06
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "South East Asian Operations",
+        "values": [
+         995.3,
+         1109.21,
+         911.82,
+         1109.21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Rest of the World",
+        "values": [
+         13216.39,
+         13225.55,
+         12105.47,
+         13225.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter Segment Eliminations",
+        "values": [
+         32557.59,
+         31665.71,
+         30860.22,
+         31665.71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Segment Liabilities",
+        "values": [
+         202546.77,
+         197473.66,
+         194807.48,
+         197473.66
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Liabilities",
+        "values": [
+         202546.77,
+         197473.66,
+         194807.48,
+         197473.66
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 88,
+   "usage": {
+    "candidatesTokenCount": 8595,
+    "promptTokenCount": 2918,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 8260,
+    "totalTokenCount": 19773
+   }
+  }
+ }
+}

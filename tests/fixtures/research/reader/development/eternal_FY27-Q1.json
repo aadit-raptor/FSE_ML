@@ -1,0 +1,1572 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199
+  ],
+  "name": "eternal_FY27-Q1",
+  "pages": 12,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "4a567e317c06a1f6e1fa80c2eb4b1bdb3902c84dea3a3691148b9cfa5d82e754"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Eternal Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       6
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         20211,
+         17292,
+         7167,
+         54364
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         375,
+         342,
+         354,
+         1396
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total income (I+II)",
+        "values": [
+         20586,
+         17634,
+         7521,
+         55760
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         47,
+         39,
+         0,
+         54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         12860,
+         10687,
+         2557,
+         32115
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, stock-in-trade and work-in-progress",
+        "values": [
+         -876,
+         -386,
+         -273,
+         -2002
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         1068,
+         927,
+         830,
+         3536
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         151,
+         132,
+         67,
+         392
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         546,
+         468,
+         314,
+         1597
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Advertisement and sales promotion",
+        "values": [
+         945,
+         936,
+         671,
+         3350
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Delivery and related charges",
+        "values": [
+         3150,
+         2607,
+         1869,
+         9065
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Others",
+        "values": [
+         2423,
+         1996,
+         1398,
+         7038
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         20314,
+         17406,
+         7433,
+         55145
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax (III-IV)",
+        "values": [
+         272,
+         228,
+         88,
+         615
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax (V-VI)",
+        "values": [
+         272,
+         228,
+         88,
+         615
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         157,
+         76,
+         79,
+         319
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         23,
+         -22,
+         -16,
+         -70
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the period / year (VII-VIII)",
+        "values": [
+         92,
+         174,
+         25,
+         366
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Remeasurements of the defined benefit plans",
+        "values": [
+         1,
+         0,
+         0,
+         -3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity instruments through other comprehensive income",
+        "values": [
+         -70,
+         -240,
+         -3,
+         -515
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to above items",
+        "values": [
+         0,
+         4,
+         0,
+         34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exchange differences on translation of foreign operations",
+        "values": [
+         1,
+         6,
+         1,
+         19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Debt instruments through other comprehensive income",
+        "values": [
+         84,
+         -132,
+         100,
+         -90
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to above items",
+        "values": [
+         -21,
+         34,
+         -25,
+         23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income / (loss) for the period / year",
+        "values": [
+         -5,
+         -328,
+         73,
+         -532
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income / (loss) for the period / year (IX+X)",
+        "values": [
+         87,
+         -154,
+         98,
+         -166
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period / year attributable to Owners of the Parent",
+        "values": [
+         92,
+         174,
+         25,
+         366
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period / year attributable to Non-controlling interests",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income / (loss) for the period / year attributable to Owners of the Parent",
+        "values": [
+         -5,
+         -328,
+         73,
+         -532
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income / (loss) for the period / year attributable to Non-controlling interests",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income / (loss) for the period / year attributable to Owners of the Parent",
+        "values": [
+         87,
+         -154,
+         98,
+         -166
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income / (loss) for the period / year attributable to Non-controlling interests",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up share capital (face value of INR 1 per share)",
+        "values": [
+         921,
+         919,
+         908,
+         919
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         null,
+         null,
+         null,
+         30061
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (INR) (face value of INR 1 each) - Basic",
+        "values": [
+         0.1,
+         0.19,
+         0.03,
+         0.4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (INR) (face value of INR 1 each) - Diluted",
+        "values": [
+         0.1,
+         0.19,
+         0.03,
+         0.39
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended June 30, 2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       7
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery - Revenue from operations (external customers)",
+        "values": [
+         3100,
+         2737,
+         2261,
+         10159
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business) - Revenue from operations (external customers)",
+        "values": [
+         1034,
+         978,
+         2295,
+         5366
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce - Revenue from operations (external customers)",
+        "values": [
+         15664,
+         13232,
+         2400,
+         37779
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out - Revenue from operations (external customers)",
+        "values": [
+         318,
+         277,
+         207,
+         973
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual) - Revenue from operations (external customers)",
+        "values": [
+         95,
+         68,
+         4,
+         87
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total - Revenue from operations (external customers)",
+        "values": [
+         20211,
+         17292,
+         7167,
+         54364
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery - Revenue from operations (inter-segment)",
+        "values": [
+         20,
+         14,
+         9,
+         46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business) - Revenue from operations (inter-segment)",
+        "values": [
+         58,
+         51,
+         7,
+         78
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce - Revenue from operations (inter-segment)",
+        "values": [
+         2,
+         2,
+         9,
+         13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out - Revenue from operations (inter-segment)",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual) - Revenue from operations (inter-segment)",
+        "values": [
+         14,
+         11,
+         13,
+         49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total - Revenue from operations (inter-segment)",
+        "values": [
+         94,
+         78,
+         38,
+         186
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery - Segment results",
+        "values": [
+         621,
+         549,
+         465,
+         2079
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business) - Segment results",
+        "values": [
+         14,
+         13,
+         -5,
+         16
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce - Segment results",
+        "values": [
+         365,
+         265,
+         -42,
+         430
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out - Segment results",
+        "values": [
+         -61,
+         -73,
+         -48,
+         -292
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual) - Segment results",
+        "values": [
+         -90,
+         -60,
+         -45,
+         -206
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Segment results",
+        "values": [
+         849,
+         694,
+         325,
+         2027
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: other income",
+        "values": [
+         375,
+         342,
+         354,
+         1396
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: share based payment expense",
+        "values": [
+         255,
+         208,
+         210,
+         819
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: finance costs",
+        "values": [
+         151,
+         132,
+         67,
+         392
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: depreciation and amortisation expense",
+        "values": [
+         546,
+         468,
+         314,
+         1597
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         272,
+         228,
+         88,
+         615
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 31,
+   "usage": {
+    "candidatesTokenCount": 3217,
+    "promptTokenCount": 7092,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 6384
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2591,
+    "totalTokenCount": 12900
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Eternal Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "June 30, 2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "March 31, 2026 Unaudited (Refer note 7)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "June 30, 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "I Revenue from operations",
+        "values": [
+         20211,
+         17292,
+         7167,
+         54364
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "II Other income",
+        "values": [
+         375,
+         342,
+         354,
+         1396
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "III Total income (I+II)",
+        "values": [
+         20586,
+         17634,
+         7521,
+         55760
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         47,
+         39,
+         0,
+         54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         12860,
+         10687,
+         2557,
+         32115
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, stock-in-trade and work-in-progress",
+        "values": [
+         -876,
+         -386,
+         -273,
+         -2002
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         1068,
+         927,
+         830,
+         3536
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         151,
+         132,
+         67,
+         392
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         546,
+         468,
+         314,
+         1597
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Advertisement and sales promotion",
+        "values": [
+         945,
+         936,
+         671,
+         3350
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Delivery and related charges",
+        "values": [
+         3150,
+         2607,
+         1869,
+         9065
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Others",
+        "values": [
+         2423,
+         1996,
+         1398,
+         7038
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         20314,
+         17406,
+         7433,
+         55145
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "V Profit before exceptional items and tax (III-IV)",
+        "values": [
+         272,
+         228,
+         88,
+         615
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VI Exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "VII Profit before tax (V-VI)",
+        "values": [
+         272,
+         228,
+         88,
+         615
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VIII Tax expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         157,
+         76,
+         79,
+         319
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         23,
+         -22,
+         -16,
+         -70
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "IX Profit for the period / year (VII-VIII)",
+        "values": [
+         92,
+         174,
+         25,
+         366
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "X Other comprehensive income / (loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Items that will not be reclassified to profit or loss:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Remeasurements of the defined benefit plans",
+        "values": [
+         1,
+         0,
+         0,
+         -3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Equity instruments through other comprehensive income",
+        "values": [
+         -70,
+         -240,
+         -3,
+         -515
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(iii) Income tax relating to above items",
+        "values": [
+         0,
+         4,
+         0,
+         34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Items that will be reclassified to profit or loss:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Exchange differences on translation of foreign operations",
+        "values": [
+         1,
+         6,
+         1,
+         19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Debt instruments through other comprehensive income",
+        "values": [
+         84,
+         -132,
+         100,
+         -90
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(iii) Income tax relating to above items",
+        "values": [
+         -21,
+         34,
+         -25,
+         23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income / (loss) for the period / year",
+        "values": [
+         -5,
+         -328,
+         73,
+         -532
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XI Total comprehensive income / (loss) for the period / year (IX+X)",
+        "values": [
+         87,
+         -154,
+         98,
+         -166
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XII Profit for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Parent",
+        "values": [
+         92,
+         174,
+         25,
+         366
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIII Other comprehensive income / (loss) for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Parent",
+        "values": [
+         -5,
+         -328,
+         73,
+         -532
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIV Total comprehensive income / (loss) for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Parent",
+        "values": [
+         87,
+         -154,
+         98,
+         -166
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XV Paid-up share capital (face value of INR 1 per share)",
+        "values": [
+         921,
+         919,
+         908,
+         919
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVI Other equity",
+        "values": [
+         null,
+         null,
+         null,
+         30061
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVII Earnings per equity share (INR) (face value of INR 1 each)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic",
+        "values": [
+         0.1,
+         0.19,
+         0.03,
+         0.4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted",
+        "values": [
+         0.1,
+         0.19,
+         0.03,
+         0.39
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "June 30, 2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "March 31, 2026 Unaudited (Refer note 7)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "June 30, 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery",
+        "values": [
+         3100,
+         2737,
+         2261,
+         10159
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business)",
+        "values": [
+         1034,
+         978,
+         2295,
+         5366
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce",
+        "values": [
+         15664,
+         13232,
+         2400,
+         37779
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out",
+        "values": [
+         318,
+         277,
+         207,
+         973
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual)",
+        "values": [
+         95,
+         68,
+         4,
+         87
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         20211,
+         17292,
+         7167,
+         54364
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery",
+        "values": [
+         20,
+         14,
+         9,
+         46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business)",
+        "values": [
+         58,
+         51,
+         7,
+         78
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce",
+        "values": [
+         2,
+         2,
+         9,
+         13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual)",
+        "values": [
+         14,
+         11,
+         13,
+         49
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total",
+        "values": [
+         94,
+         78,
+         38,
+         186
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery",
+        "values": [
+         621,
+         549,
+         465,
+         2079
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business)",
+        "values": [
+         14,
+         13,
+         -5,
+         16
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce",
+        "values": [
+         365,
+         265,
+         -42,
+         430
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out",
+        "values": [
+         -61,
+         -73,
+         -48,
+         -292
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual)",
+        "values": [
+         -90,
+         -60,
+         -45,
+         -206
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Segment results",
+        "values": [
+         849,
+         694,
+         325,
+         2027
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: other income",
+        "values": [
+         375,
+         342,
+         354,
+         1396
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: share based payment expense",
+        "values": [
+         255,
+         208,
+         210,
+         819
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: finance costs",
+        "values": [
+         151,
+         132,
+         67,
+         392
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: depreciation and amortisation expense",
+        "values": [
+         546,
+         468,
+         314,
+         1597
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         272,
+         228,
+         88,
+         615
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 65,
+   "usage": {
+    "candidatesTokenCount": 3447,
+    "promptTokenCount": 2918,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 10566,
+    "totalTokenCount": 16931
+   }
+  }
+ }
+}

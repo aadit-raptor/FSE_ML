@@ -182,6 +182,19 @@ def scanner_drill() -> dict:
     return {"files_scanner": "ok"}
 
 
+def reader_drill() -> dict:
+    """The results reader on this server (PLAN.md R1): which provider, and
+    whether its key works, by listing the provider's models (free: no read is
+    made and no allowance is spent). Never the key."""
+    from research.reader import providers
+
+    found = providers.status()
+    return {"reader": str(found.get("status")), "reader_provider": str(found.get("provider")),
+            "reader_key": str(found.get("key")),
+            "reader_models": len(found.get("models_listed") or []),
+            "reader_missing": ",".join(found.get("models_missing") or [])}
+
+
 def files_drill(fetch=None) -> dict:
     """Store a file, read it back, scan it in the child process, download it
     through a signed link and delete it, in the store this server is set up
