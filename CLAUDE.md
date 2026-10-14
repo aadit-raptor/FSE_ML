@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,15 +1423,15 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-After 6.1 merges the next task is **R0**, then R1 to R9 in order; 6.2
+R0 is done; the next task is **R1**, then R2 to R9 in order; 6.2
 onwards and phases 7 to 12 wait, except what a phase R task pulls forward
 and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
 (a tool that never picks a rating; one model definition evaluated by the
 server and written as Excel formulas; new code in `research/` only). The
 decisions still the user's are listed there.
 
-**R0 is under way (started 2026-10-12)**: its progress, first results and
-lessons are under R0 in PLAN.md. The 30 results PDFs, the free Gemini key
+**R0 is done (2026-10-14): go, with Gemini, two reads by two different full
+models.** Its results, lessons and the final table are under R0 in PLAN.md. The 30 results PDFs, the free Gemini key
 (`research-samples/.env`) and the test scripts (`research-samples/r0/`) are
 on the Mac only, in a folder git ignores through `.git/info/exclude`.
 Nearly every Indian results filing is a scan. The free Gemini tier gives 20
@@ -1449,8 +1449,14 @@ ten files by hand or keys them. The user saved BSE's results-page table for
 ten documents (it is a small HTML table of the quarter's headline figures,
 not the XBRL): of 232 BSE amounts read A fails to give one, and that one was
 already amber (`bse_score.py`); **the user decided that is truth file
-enough**. Still open: `finish.sh` (once the allowance is back, after about
-06:00 IST on 2026-10-13) and the final table; then R0 closes.
+enough**. Final (fourth session, 2026-10-14, `finish.sh` run): 29 of 30
+files read by two full models (Yatharth's read A is still a lite one: the
+allowance ran out), 7,899 figures, **0.96% amber** against the 2% bar, 30
+wrong figures found on the page and **every one amber**, none unflagged;
+four reads wrote 2024 for 2026 in every heading, all caught by the period
+check; high resolution looked better on two files but is a hint, not a
+measurement (R1's evaluation tries it). A paid key with a cap comes before
+anyone outside uses the reader (R1's "You first").
 **R4 part a's research and decision are done (2026-10-12; the tables are
 under R4 in PLAN.md).** A sector model is a **mechanism, not a sector**: the
 analyst picks a sector from a list that can grow, and it chooses one of
@@ -1518,8 +1524,7 @@ the user". What is left of part b is listed under R4 in PLAN.md (the other
 blocks, quarterly actuals, screens, the add-in, an endpoint; with the
 endpoint come the Dockerfile, `render.yaml` and `staging.yml` lines for
 `research/`). The rest of part b comes in its turn, after R1 to R3;
-**next is closing R0** (`finish.sh` and the final table, once the Gemini
-allowance is back), then R1.
+**next is R1** (the results reader).
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet
@@ -1554,7 +1559,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). **Next is R0** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). **Next is R1** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -2039,7 +2044,10 @@ Skills load when a session starts: install first, then open a new session.
   (`gemini-2.5-flash` is listed and then refuses new users). A session
   started within a day of the last one has nothing to spend: read the
   newest `out/run-*.log` for when each model was first used before planning
-  any request.
+  any request. "UNAVAILABLE: high demand" (a 503) is different: it spends
+  nothing and passes in minutes, so run the same script again (a saved read
+  is never asked twice); on 2026-10-14 the full models answered that
+  several times in an hour. Stop at the first `RESOURCE_EXHAUSTED` for a model.
 - Reading figures from a filing with an AI model (PLAN.md R0): one read is
   never enough, **a model will change a total so that its misread digit
   still adds up**, and it will write a year it finds likely (2024 for 2026)
