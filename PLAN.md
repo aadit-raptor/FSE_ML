@@ -206,7 +206,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 12.8 | Higher service limits as usage grows | 11.3 | ☐ |
 | 12.9 | Licensed market data (corporate credit spreads) | 4.2 | ☐ |
 | **R** | **Equity research workspace (the priority since 2026-10-12)** | | |
-| R0 | Proof before code: reader accuracy | 6.1 | ☐ |
+| R0 | Proof before code: reader accuracy | 6.1 | ☑ |
 | R1 | Results reader | R0 | ☐ |
 | R2 | Coverage, review screen and the checked workbook | R1 | ☐ |
 | R3 | Excel add-in: sign in and import results | R2 | ☐ |
@@ -433,8 +433,8 @@ or nearly finished to try. So no task waits for an analyst:
       **0.12**, the dearest 0.19; under 20 rupees. Over half of what
       is paid for is the model's thinking. Google lists 3.8 flash at double
       from 2027-01-01. The lite pair cost 0.02 and is not usable.
-  - **Recommendation: go, with Gemini, on these conditions** (R0 stays open
-    until conditions 2 and 3 are met):
+  - **Recommendation: go, with Gemini, on these conditions** (conditions 2
+    and 3 were met on 2026-10-14; the final table is under "Result" below):
     1. two reads by **two different full models**, never one read and never
        a lite model (they leave out rows and whole statements);
     2. the amber rate that counts is the two-full-model one, 1.04% against
@@ -549,14 +549,70 @@ or nearly finished to try. So no task waits for an analyst:
       segment table, the balance sheet or the cash flow. It is the
       exchange's check on the headline figures, per-share lines included,
       not a full truth file.
-  - **Still to do**: run `finish.sh` (the 12 re-reads, then high resolution
-    on lemon-tree, jk-lakshmi and tata-steel FY26-Q4, and say whether it
-    cuts the errors) and score again with `bse_score.py`; then the final
-    table and the decision, which closes R0. **Decided by the user
-    (2026-10-12): BSE's tables for the ten documents are truth file
-    enough**; no filing is keyed in full. While R0 waits a day for the
-    allowance, **R4 part a (sector research) goes ahead** in a session of
-    its own: it needs no reader and no key.
+  - **Decided by the user (2026-10-12): BSE's tables for the ten documents
+    are truth file enough**; no filing is keyed in full.
+- **Result (fourth session, 2026-10-14): done. Go, with Gemini.**
+  `finish.sh` ran with the allowance back (the last request had been
+  2026-10-12 06:52 IST). The full models were "high demand" several times
+  (a 503 spends nothing, so a second and a third pass picked up what was
+  missed) until 3.8, 3.7 and 3.6 flash each used their day. 11 of the 12
+  files a lite model had read were read again by two full models; the
+  final table:
+
+  | | Final, 2026-10-14 |
+  |---|---|
+  | Files read twice by **two different full models** | **29 of 30** (Yatharth Hospital FY27-Q1: read B full, read A still lite, see below) |
+  | Tables, figures | 62 tables, **7,899 figures** (results 4,374, segments 1,766, cash flow 884, balance sheet 875; Yatharth's 99 apart) |
+  | **Amber** | **76, 0.96%** (bar: under 2%): a figure the reads give differently 31, a row one read left out 35, a sum that fails 9, a sign 1 |
+  | Inside a sum that holds | 6,999, 89% |
+  | **Wrong figures found** (every disagreement looked at on the page) | **30**: read A (the whole PDF) 24 in 8 files, read B (page pictures) 6 in 5 files; 2 small ones not settled (0.02 or nil; 26.85 or 26.89) |
+  | **Wrong figures left unflagged** | **none found** (below: what that rests on) |
+  | Column periods misread | 4 reads (2024 for 2026 in every heading: Hindustan Aeronautics B, Kirloskar A, Bharat Electronics B, Suprajit A), **all four caught by the period check**, nothing else flagged |
+  | BSE's own figures, ten documents | 232 amounts: 206 printed in read A as one line (192 not amber, 14 amber and right); 25 are BSE's grouping of lines and come out of read A's lines exactly (`bse_groups.py` finds 24 among two to four lines; Hindustan Aeronautics' other expenses, by hand, is five: other expenses + impairment + direct input + provisions - capitalised); **1 does not, and it is amber** (JK Lakshmi's other expenses, from read B; read A's three cells are the known wrong ones) |
+  | Cost on a paid key, both reads | mean **0.10 US dollars** a filing, dearest 0.19 (list prices of 2026-10-12) |
+
+  - **What "none unflagged" rests on**: every one of the 30 wrong figures
+    was amber because the reads differed; BSE's figures for ten documents
+    (the current quarter, per-share lines included) found no wrong figure
+    the reads agreed on; of 26 figures the PDF's text layer or Screener
+    disputed, 16 were looked at on the page and are right (figures under a
+    company stamp, a scan's rough text such as "(23 I)" for (231)) and 10
+    are Screener's other basis for HDFC AMC and Reliance (a little off in
+    every column); a wrong digit planted in 1,780 figures was flagged every
+    time.
+    What it does not cover: two reads making the same mistake outside every
+    sum, in the columns and statements BSE's table does not show.
+  - **The new reads made the same kinds of mistake**: Star Cement's read A
+    (3.8 flash, whole PDF, standalone and consolidated side by side) got
+    three figures of one column wrong, read B a fourth; Suprajit's read A
+    two, and its headings 2024 for 2026. So a newer model is not a reason
+    to drop the second read, and **the 2024-for-2026 heading is a habit**
+    (four reads of four different files, both kinds of read): R1 checks
+    periods on every read.
+  - **High resolution** (`--high`, read A by 3.7 flash, read B by 3 flash
+    preview), on two of the three files (Lemon Tree's read A was refused):
+    JK Lakshmi went from 8 amber to 0 with both reads right (the ordinary
+    read A had six wrong figures); Tata Steel's three balance-sheet ambers
+    went (read A's two wrong figures now right), but read A made one new
+    mistake in the segment table (caught by a sum) and left out a few
+    cash-flow figures. Read A's model differs from the ordinary pair's
+    (3.7, not 3.8), so this is a hint, not a measurement: **R1's evaluation
+    tries high resolution on both reads** and keeps it if its card is
+    better.
+  - **Left over**, because the allowance ran out (each full model refused
+    for the day by 20:10 IST on 2026-10-14; back after about 19:05 IST on
+    2026-10-15): Yatharth's read A by a full model (its 99 figures: the
+    lite read A and the full read B agree on all 99, none amber, 90 match
+    the page's text) and Lemon Tree's high-resolution read A. Neither can
+    change the decision; R1's evaluation reads all 30 again on its own key
+    and model card, so they are not chased here. `finish.sh` still runs
+    both if wanted.
+  - **The decision: go, with Gemini**, on conditions 1 and 4 above (two
+    reads by two different full models; a paid key with a cap before
+    anyone outside uses it), plus what R1 must build from what was seen:
+    the period check, a sum check that chooses a formula once for all
+    columns, rows lined up by numbers not labels, and every disagreement
+    amber. No change of provider.
 
 ### R1 Results reader
 - **Pulls forward:** 6.2's provider switch and review rule. 6.2's "get a
