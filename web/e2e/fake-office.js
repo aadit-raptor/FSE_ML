@@ -40,14 +40,20 @@
       getRange: function (address) {
         var column = /^([A-Z]+):\1$/.exec(address);
         if (column) {
-          return { format: { set columnWidth(points) { sheet.widths[column[1]] = Math.round(points / 7 * 1000) / 1000; } } };
+          // Excel's conversion: n characters are n x 7 + 5 pixels, a pixel 0.75 points
+          return { format: { set columnWidth(points) { sheet.widths[column[1]] = Math.round((points / 0.75 - 5) / 7 * 1000) / 1000; } } };
         }
         if (!/^[A-Z]+\d+$/.test(address)) throw new Error("fake Excel takes one cell at a time: " + address);
         var target = cell(address);
         return {
           set values(v) {
+            var value = v[0][0];
             delete target.formula;
-            target.value = v[0][0];
+            // as Excel does, a leading apostrophe marks words and is not part of them; unmarked words starting
+            // with = are a formula, which is what the add-in must never write for words
+            if (typeof value === "string" && value.charAt(0) === "'") target.value = value.slice(1);
+            else if (typeof value === "string" && value.charAt(0) === "=") target.formula = value;
+            else target.value = value;
           },
           set formulas(v) {
             delete target.value;

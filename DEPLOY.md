@@ -904,20 +904,25 @@ the pane can't use the site's session. It opens Office's dialog on
 `/excel/connect` instead, a window of its own where the sign-in works as in
 any tab; signed in, that page asks `POST /api/addin/sessions` for an
 **add-in pass** and hands it to the pane. A pass (`addin:` and 43 random
-characters) reaches only `/api/research/*`, `/api/files*` and its own
-`/api/addin/session` (`api.auth.ADDIN_PATHS`; anything else is a 403), lasts
+characters) reaches only `/api/research/*`, the three upload steps for the
+PDF it reads (`POST /api/files`, `PUT .../content`, `GET /api/files/{id}`)
+and its own `/api/addin/session` (`api.auth.ADDIN_PATHS`, by method;
+anything else is a 403, so not the file list, download links or deleting,
+which would reach the person's deal documents too), lasts
 12 hours, is one of at most five per person, and ends when the pane signs
 out. Only its SHA-256 is stored; the nightly job maintenance deletes ended
 ones (`addin_sessions_deleted` in its summary).
 
 **Its pages' headers** differ from every other page's, and only theirs
-(`web/src/lib/security/headers.ts`): `frame-ancestors` names Office's hosts
-(`OFFICE_FRAME_ANCESTORS`) instead of `'none'`, there is no
-`X-Frame-Options` (it can't name hosts), the opener policy is `unsafe-none`
-(Office's dialog needs its opener), and `script-src` names
-`https://appsforoffice.microsoft.com`, where Office.js is loaded from.
+(`web/src/lib/security/headers.ts`): both have the opener policy
+`unsafe-none` (Office's dialog needs its opener) and `script-src` names
+`https://appsforoffice.microsoft.com`, where Office.js is loaded from; the
+pane alone may be framed, by Office's hosts (`OFFICE_FRAME_ANCESTORS`
+instead of `'none'`, and no `X-Frame-Options`, which can't name hosts). The
+dialog is a window of its own and keeps `frame-ancestors 'none'`.
 `ops/check_headers.py` (live.yml, staging.yml) checks `/excel` against
-exactly that list and `/sign-in` and `/privacy` against the strict policy.
+exactly that list, `/excel/connect` as never framed, and `/sign-in` and
+`/privacy` against the strict policy.
 If Excel on the web shows an empty pane, its browser console names the
 frame that was refused: add that Microsoft host to both lists (the web's
 and `ops/check_headers.py`'s; `tests/test_security.py` keeps them equal).
@@ -955,6 +960,13 @@ asks for country and currency), not in the window.
 To remove it: Excel on the web forgets it with the session; on the Mac
 delete the file from `wef`; on Windows remove the catalog in the Trust
 Center. A tester's pass ends by itself within 12 hours, or at **Sign out**.
+
+The production manifest lists `https://clerk.variater.com` among its
+domains, so a Clerk session check that passes through the pane stays in
+it. Staging's Clerk is the development instance (`<name>.clerk.accounts.dev`,
+whose name is in the staging publishable key, not in this repository): if
+the staging pane ever opens a browser window on that host, add it to
+`ENVIRONMENTS["staging"]["domains"]` in `ops/addin_manifest.py`.
 
 ## File uploads
 

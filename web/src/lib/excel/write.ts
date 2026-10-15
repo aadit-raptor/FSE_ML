@@ -6,8 +6,8 @@
  * `layout`), so the add-in and the download hold the same cells:
  * subtotals as formulas of their parts, figures as numbers, every figure's
  * page in a note. Words go in as words even when they start with "=" (a
- * cell formatted as text first), so a company's name can never become a
- * formula. Each sheet is new: a name the workbook already has gets a number.
+ * cell formatted as text, and Excel's leading apostrophe), so a company's
+ * name can never become a formula. Each sheet is new: a name the workbook already has gets a number.
  */
 import { api, type Schemas } from "@/lib/api/client";
 
@@ -21,14 +21,16 @@ export async function periodCells(periodId: string): Promise<PeriodCells | null>
   return data ?? null;
 }
 
-/** Excel's own limit on a sheet's name, and the characters it refuses in one. */
+/** Excel's own limit on a sheet's name, the characters it refuses in one, and the name it keeps for itself. */
 const MAX_NAME = 31;
 const REFUSED = /[[\]:*?/\\]/g;
+const RESERVED = "history";
 
 /** A name for `wanted` that no sheet in `taken` has (Excel compares names without case). */
 export function freeName(wanted: string, taken: string[]): string {
-  const base = wanted.replace(REFUSED, " ").slice(0, MAX_NAME) || "Sheet";
-  const used = new Set(taken.map((n) => n.toLowerCase()));
+  // nor may a name start or end with an apostrophe
+  const base = wanted.replace(REFUSED, " ").slice(0, MAX_NAME).replace(/^'+|'+$/g, "").trim() || "Sheet";
+  const used = new Set([...taken.map((n) => n.toLowerCase()), RESERVED]);
   if (!used.has(base.toLowerCase())) return base;
   for (let n = 2; ; n++) {
     const name = `${base.slice(0, MAX_NAME - String(n).length - 1)} ${n}`;
@@ -47,8 +49,18 @@ export function columnLetter(column: number): string {
   return out;
 }
 
-/** Characters to points: Excel's column width counts characters of the default font, about 7 points each. */
-const POINTS_PER_CHARACTER = 7;
+/**
+ * A width in characters of the default font (what the download holds) as Office.js's points: Excel draws a
+ * column of n characters n x 7 + 5 pixels wide, and a pixel is three quarters of a point.
+ */
+export function widthInPoints(characters: number): number {
+  return Math.round((characters * 7 + 5) * 0.75 * 100) / 100;
+}
+
+/** Words Excel would read as a formula when written: written with its text marker, a leading apostrophe. */
+function asWords(text: string): string {
+  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+}
 
 /** The cell above-left of `freeze` ("C6" freezes A1:B5). */
 function frozenRange(freeze: string): string | null {
@@ -101,7 +113,7 @@ export async function writeCells(
         const range = ws.getRange(address);
         if (cell.text !== null && cell.text !== undefined) {
           range.numberFormat = [["@"]];
-          range.values = [[cell.text]];
+          range.values = [[asWords(cell.text)]];
         } else {
           if (cell.number_format) range.numberFormat = [[cell.number_format]];
           if (cell.formula) range.formulas = [[cell.formula]];
@@ -111,7 +123,7 @@ export async function writeCells(
         if (cell.note && writeNote) writeNote(ws, name, address, cell.note);
       }
       for (const [letter, width] of Object.entries(sheet.widths)) {
-        ws.getRange(`${letter}:${letter}`).format.columnWidth = width * POINTS_PER_CHARACTER;
+        ws.getRange(`${letter}:${letter}`).format.columnWidth = widthInPoints(width);
       }
       const frozen = sheet.freeze ? frozenRange(sheet.freeze) : null;
       if (frozen) ws.freezePanes.freezeAt(frozen);

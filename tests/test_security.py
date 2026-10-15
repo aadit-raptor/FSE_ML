@@ -341,7 +341,7 @@ def test_the_scan_flags_each_weakness(change, finding):
 
 
 OFFICE = ("https://*.officeapps.live.com https://*.office.com https://*.office365.com https://*.cloud.microsoft "
-          "https://*.microsoft365.com https://*.sharepoint.com https://*.live.com")
+          "https://*.microsoft365.com https://*.sharepoint.com https://onedrive.live.com")
 GOOD_PANE = {**{k: v for k, v in GOOD_PAGE.items() if k != "X-Frame-Options"},
              "Content-Security-Policy": "default-src 'self'; script-src 'self' 'nonce-abc123' 'strict-dynamic' "
                                         "https://appsforoffice.microsoft.com; object-src 'none'; base-uri 'self'; "
@@ -361,6 +361,15 @@ def test_the_scan_passes_the_add_ins_pane_and_holds_it_to_offices_hosts():
             {**GOOD_PANE, "Content-Security-Policy": csp}, excel=True)), weaker
     assert any("X-Frame-Options" in p for p in check_headers.page_problems(
         {**GOOD_PANE, "X-Frame-Options": "DENY"}, excel=True))
+
+
+def test_the_scan_holds_the_add_ins_dialog_to_the_strict_page_policy():
+    from ops import check_headers
+    dialog = {**GOOD_PAGE, "Content-Security-Policy": GOOD_PAGE["Content-Security-Policy"].replace(
+        "'strict-dynamic'", "'strict-dynamic' https://appsforoffice.microsoft.com")}
+    assert check_headers.dialog_problems(dialog) == []
+    framed = {**GOOD_PANE}
+    assert any("frame-ancestors" in p for p in check_headers.dialog_problems(framed))
 
 
 def test_the_scan_and_the_web_app_name_the_same_office_hosts():

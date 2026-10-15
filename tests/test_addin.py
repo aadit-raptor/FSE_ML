@@ -61,7 +61,9 @@ def test_a_pass_reaches_coverage_as_the_person_who_made_it(site):  # noqa: ARG00
     # and someone else's pass sees none of it
     other = new_pass("bob")
     assert client.get("/api/research/companies", headers=bearer(other)).json()["companies"] == []
-    assert client.get("/api/files", headers=bearer(token)).status_code == 200
+    # it can reserve room for a PDF and see where that stands
+    begun = client.post("/api/files", json={"name": "results.pdf", "size": 10}, headers=bearer(token))
+    assert begun.status_code in (201, 503), begun.text   # 503: no file store in this test
     assert client.get("/api/addin/session", headers=bearer(token)).status_code == 200
 
 
@@ -69,6 +71,10 @@ def test_a_pass_reaches_coverage_as_the_person_who_made_it(site):  # noqa: ARG00
     ("get", "/api/deals"), ("post", "/api/deal/run"), ("get", "/api/account"), ("get", "/api/account/settings"),
     ("get", "/api/account/history"), ("post", "/api/montecarlo/run"), ("post", "/api/addin/sessions"),
     ("get", "/api/companies/sources"), ("get", "/api/jobs/00000000-0000-4000-8000-000000000000"),
+    # the person's files beyond the PDF it uploads: the list, download links, deleting
+    ("get", "/api/files"), ("post", "/api/files/00000000-0000-4000-8000-000000000000/link"),
+    ("delete", "/api/files/00000000-0000-4000-8000-000000000000"),
+    ("get", "/api/files/00000000-0000-4000-8000-000000000000/content"),
 ])
 def test_a_pass_reaches_nothing_but_research(site, method, path):  # noqa: ARG001
     refused = client.request(method.upper(), path, json={}, headers=bearer(new_pass()))
@@ -107,7 +113,7 @@ def test_only_the_hash_is_kept_and_a_person_holds_at_most_five(site):  # noqa: A
     assert not any(t in h or t[len("addin:"):] in h for t in tokens for h in hashes)
     assert hashes == {addin.token_hash(t) for t in tokens[-addin.MAX_PER_USER:]}
     # the oldest two ended
-    assert [client.get("/api/files", headers=bearer(t)).status_code for t in tokens[:2]] == [401, 401]
+    assert [client.get("/api/research/companies", headers=bearer(t)).status_code for t in tokens[:2]] == [401, 401]
 
 
 @pytest.mark.parametrize("token", ["addin:", "addin:short", "addin:" + "x" * 43 + "!", "addin:" + "A" * 43])

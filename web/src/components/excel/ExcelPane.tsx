@@ -135,11 +135,6 @@ function SignedIn({ office }: { office: Office }) {
   const [written, setWritten] = useState<Written | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    const found = await listCoverage();
-    setCompanies(found?.companies ?? []);
-    return found?.companies ?? [];
-  }, []);
   useEffect(() => {
     let cancelled = false;
     void listCoverage().then((found) => {
@@ -249,7 +244,8 @@ function SignedIn({ office }: { office: Office }) {
         companies={companies ?? []}
         onCompanies={setCompanies}
         onAccepted={async (companyIdAccepted, ids) => {
-          await load();
+          const found = await listCoverage();
+          setCompanies(found?.companies ?? []);
           setCompanyId(companyIdAccepted);
           await importPeriods(ids);
         }}

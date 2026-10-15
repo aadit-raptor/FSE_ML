@@ -838,7 +838,8 @@ or nearly finished to try. So no task waits for an analyst:
     cookies from it), so Office's dialog signs in on variater.com as any tab
     does and asks `POST /api/addin/sessions` for an **add-in pass**, handed to
     the pane with `messageParent`. A pass reaches only the research endpoints,
-    the PDF upload and its own session (`api.auth.ADDIN_PATHS`, else 403),
+    the three upload steps of the PDF it reads and its own session, by method
+    (`api.auth.ADDIN_PATHS`, else 403; not the file list, links or deleting),
     can't make another, lasts 12 hours, at most five a person, ends at Sign
     out, and is stored only as its SHA-256 (table `addin_sessions`, migration
     0020; `db/addin.py`; expired ones deleted by the nightly job maintenance).
@@ -846,10 +847,11 @@ or nearly finished to try. So no task waits for an analyst:
     the Mac: the pane and the dialog say so and point to email sign-in, which
     never leaves the page. `/privacy` says what is kept.
   - **Headers changed for those pages only** (`lib/security/headers.ts`
-    `isExcelPath`, `next.config.ts`, `proxy.ts`): `frame-ancestors` names
-    Office's hosts, no `X-Frame-Options`, opener policy `unsafe-none` (the
-    dialog's opener), `script-src` names Office.js's CDN host; every other
-    page keeps today's policy. `ops/check_headers.py` now scans `/excel`
+    `excelPage`, `next.config.ts`, `proxy.ts`): opener policy `unsafe-none`
+    (the dialog's opener) and Office.js's CDN host in `script-src` on both;
+    on the pane alone `frame-ancestors` names Office's hosts and there is no
+    `X-Frame-Options` (the dialog is never framed); every other page keeps
+    today's policy. `ops/check_headers.py` now scans `/excel`
     against exactly Office's hosts and `/privacy` and `/sign-in` against the
     strict policy; `tests/test_security.py` keeps its list equal to the web's.
   - **Import results**: pick a covered company and accepted quarter, or read a
@@ -859,7 +861,7 @@ or nearly finished to try. So no task waits for an analyst:
     written from, so the two hold the same cells: words as words (text
     format, so "=..." stays words), figures as numbers, subtotals as formulas,
     every figure's page in a note (a comment on an Excel without notes), the
-    column widths and frozen panes; each import goes into new sheets (a name
+    column widths (Excel's characters-to-points rule) and frozen panes; each import goes into new sheets (a name
     taken gets a number). Recorded as `exported` with `results_excel`.
   - **Proof**: `web/e2e/excel.spec.ts` with `e2e/fake-office.js` served in
     place of Office.js (the dialog in a window of its own, as on Excel on the

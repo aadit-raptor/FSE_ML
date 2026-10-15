@@ -1599,13 +1599,16 @@ of Microsoft's page on Excel on the web), so the dialog signs in on the site
 and asks `POST /api/addin/sessions` for an **add-in pass**
 (`Bearer addin:<pass>`, `db/addin.py`, table `addin_sessions`, migration
 0020: SHA-256 only, 12 hours, five a person, ended at Sign out, swept
-nightly). A pass reaches **only `api.auth.ADDIN_PATHS`** (research, files,
-its own session; else 403) and can't make another; a new endpoint the pane
-needs goes in that list. **Headers differ only on `/excel` and its
-children** (`lib/security/headers.ts` `isExcelPath`,
-`EXCEL_SECURITY_HEADERS`, `OFFICE_FRAME_ANCESTORS`): framed by Office's
-hosts, no X-Frame-Options, opener policy `unsafe-none`, Office.js's CDN in
-`script-src`; `ops/check_headers.py` holds `/excel` to exactly that list
+nightly). A pass reaches **only `api.auth.ADDIN_PATHS`**, by method
+(research, the three upload steps of the PDF it reads, its own session;
+else 403: never the file list, links or deleting, which reach deal
+documents) and can't make another; a new endpoint the pane needs goes in
+that list. **Headers differ only on `/excel` and its children**
+(`lib/security/headers.ts` `excelPage`, `EXCEL_PANE_HEADERS`,
+`EXCEL_DIALOG_HEADERS`, `OFFICE_FRAME_ANCESTORS`): both have opener policy
+`unsafe-none` and Office.js's CDN in `script-src`; only the pane is framed
+by Office's hosts (no X-Frame-Options); the dialog keeps `frame-ancestors
+'none'`. `ops/check_headers.py` holds `/excel` to exactly that list
 (kept equal to the web's by `tests/test_security.py`). **The cells** come
 from `GET /api/research/periods/{id}/cells`, built by `research/coverage.py`
 `layout`, which the download is now written from too, so they can't differ;

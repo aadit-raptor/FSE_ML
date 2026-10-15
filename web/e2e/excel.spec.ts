@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 
-import { asUser, signInAs } from "./helpers";
+import { asUser, onePagePdf, signInAs } from "./helpers";
 
 /**
  * The Excel add-in (PLAN.md R3): its task pane is /excel, signed in through Office's dialog
@@ -28,30 +28,11 @@ async function fakeOffice(context: BrowserContext) {
     route.fulfill({ contentType: "application/javascript", body: FAKE_OFFICE }));
 }
 
-/** A well-formed one-page PDF: the upload's scan passes it. */
-function pdf(): Buffer {
-  const content = "0 0 1 rg 72 600 200 100 re f";
-  const bodies = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>",
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`];
-  let out = "%PDF-1.4\n";
-  const offsets: number[] = [];
-  bodies.forEach((body, i) => {
-    offsets.push(out.length);
-    out += `${i + 1} 0 obj\n${body}\nendobj\n`;
-  });
-  const table = out.length;
-  out += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n`;
-  out += offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
-  out += `trailer\n<< /Size ${bodies.length + 1} /Root 1 0 R >>\nstartxref\n${table}\n%%EOF\n`;
-  return Buffer.from(out, "latin1");
-}
-
 /** An accepted quarter for `company`, made through the API as the Coverage screens make one. */
 async function acceptedQuarter(page: Page, company: string): Promise<string> {
   const headers = await asUser(page);
   const made = await (await page.request.post("/api/research/companies", { headers, data: { name: company } })).json();
-  const bytes = pdf();
+  const bytes = onePagePdf();
   const begun = await (await page.request.post("/api/files", { headers, data: { name: "dmart-h1.pdf", size: bytes.length } })).json();
   const sent = await page.request.put(`/api/files/${begun.id}/content`, {
     headers: { ...headers, "Content-Type": "application/octet-stream" }, data: bytes,
@@ -107,7 +88,8 @@ test.describe("Excel add-in", () => {
   test("signing in through Office's dialog and importing a quarter writes the download's own cells", async ({ page, context }, info) => {
     await fakeOffice(context);
     await signInAs(page, `excel-${run}`, "en-GB");
-    const period = await acceptedQuarter(page, "DMart");
+    // a name that looks like a formula must arrive as words, as it does in the download
+    const period = await acceptedQuarter(page, "=DMart");
 
     await page.goto("/excel");
     await expect(page.locator('[data-pane-state="signed-out"]')).toBeVisible();
@@ -116,7 +98,7 @@ test.describe("Excel add-in", () => {
     await signInThroughDialog(page);
     await expect(page.getByText(`Signed in as excel-${run}`)).toBeVisible();
 
-    await expect(page.getByRole("combobox", { name: "Covered company" }).first()).toContainText("DMart");
+    await expect(page.getByRole("combobox", { name: "Covered company" }).first()).toContainText("=DMart");
     await expect(page.getByRole("combobox", { name: "Accepted quarter" })).toContainText("2026-09-30, 3 months, Consolidated");
     await page.getByRole("button", { name: "Import into workbook" }).click();
     await expect(page.locator("[data-written]")).toBeVisible();
@@ -162,7 +144,7 @@ test.describe("Excel add-in", () => {
     await page.getByLabel("New company").fill("DMart");
     await page.getByRole("button", { name: "Add company" }).click();
     await expect(page.getByRole("combobox", { name: "Covered company" }).last()).toContainText("DMart");
-    await page.locator('input[type="file"]').setInputFiles({ name: "dmart-h1.pdf", mimeType: "application/pdf", buffer: pdf() });
+    await page.locator('input[type="file"]').setInputFiles({ name: "dmart-h1.pdf", mimeType: "application/pdf", buffer: onePagePdf() });
     await page.getByLabel("Quarter end (optional)").fill("2026-09-30");
     await page.getByRole("checkbox", { name: "This is a listed company's published results" }).check();
     await page.getByRole("button", { name: "Read results" }).click();
@@ -203,13 +185,16 @@ test.describe("Excel add-in", () => {
     const pane = await page.request.get("/excel");
     const csp = pane.headers()["content-security-policy"];
     const directive = (policy: string, name: string) => policy.split(";").map((d) => d.trim()).find((d) => d.startsWith(`${name} `)) ?? "";
-    expect(directive(csp, "frame-ancestors")).toBe("frame-ancestors https://*.officeapps.live.com https://*.office.com https://*.office365.com https://*.cloud.microsoft https://*.microsoft365.com https://*.sharepoint.com https://*.live.com");
+    expect(directive(csp, "frame-ancestors")).toBe("frame-ancestors https://*.officeapps.live.com https://*.office.com https://*.office365.com https://*.cloud.microsoft https://*.microsoft365.com https://*.sharepoint.com https://onedrive.live.com");
     expect(directive(csp, "script-src")).toContain("https://appsforoffice.microsoft.com");
     expect(directive(csp, "script-src")).toContain("'strict-dynamic'");
     expect(pane.headers()["x-frame-options"]).toBeUndefined();
     expect(pane.headers()["cross-origin-opener-policy"]).toBe("unsafe-none");
+    // the dialog is a window of its own: it may load Office.js and keep its opener, and is never framed
     const dialog = await page.request.get("/excel/connect");
-    expect(directive(dialog.headers()["content-security-policy"], "frame-ancestors")).toContain("https://*.officeapps.live.com");
+    expect(directive(dialog.headers()["content-security-policy"], "frame-ancestors")).toBe("frame-ancestors 'none'");
+    expect(directive(dialog.headers()["content-security-policy"], "script-src")).toContain("https://appsforoffice.microsoft.com");
+    expect(dialog.headers()["x-frame-options"]).toBe("DENY");
     expect(dialog.headers()["cross-origin-opener-policy"]).toBe("unsafe-none");
 
     for (const path of ["/sign-in", "/privacy", "/start", "/coverage/results", "/excelsior"]) {

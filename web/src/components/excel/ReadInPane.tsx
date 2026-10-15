@@ -9,8 +9,8 @@ import { uploadFile } from "@/lib/files";
 import { fmtNumber } from "@/lib/format";
 import { parseNumber } from "@/lib/locale";
 import {
-  acceptRead, addCompany, amberCells, cellKey, decimalsOf, readJob, startRead, type CellRef, type Correction,
-  type CoverageCompany, type ReaderInfo, type ReadJob,
+  ACCEPT_ERRORS, acceptRead, addCompany, amberCells, cellKey, decimalsOf, readJob, startRead, type CellRef, type Correction,
+  type CoverageCompany, READER_ERRORS, type ReaderInfo, type ReadJob,
 } from "@/lib/research";
 
 /**
@@ -24,15 +24,6 @@ import {
  * i18n-keys: coverage.error_*
  */
 const POLL_MS = 2000;
-const READER_ERRORS = [
-  "reader_off", "reader_not_measured", "confirm_public", "not_pdf", "not_clean", "no_file", "page_limit", "too_long",
-  "store_unreachable", "allowance_spent", "provider_busy", "key_refused", "unreadable_answer", "provider_unreachable",
-  "not_recorded", "answer_blocked", "unreadable_pdf", "upload_failed", "no_company", "too_many_companies", "bad_name",
-];
-const ACCEPT_ERRORS = [
-  "amber_unreviewed", "bad_review", "quarter_unknown", "unit_unknown", "no_figures", "no_read", "read_not_done",
-  "read_expired", "not_found",
-];
 
 type Answer = { do: "accepted" } | { do: "corrected"; value: number | null };
 

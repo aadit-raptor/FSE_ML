@@ -20,7 +20,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { devUserFromCookies } from "@/lib/auth/dev";
 import { AUTH_MODE, CLERK_PUBLISHABLE_KEY, isPublicRoute, SIGN_IN_URL, SIGN_UP_URL } from "@/lib/auth/mode";
-import { contentSecurityPolicy, isExcelPath, newNonce } from "@/lib/security/headers";
+import { contentSecurityPolicy, excelPage, newNonce } from "@/lib/security/headers";
 
 const CSP = "Content-Security-Policy";
 
@@ -33,8 +33,8 @@ function withPolicy(request: NextRequest): NextResponse {
     clerkPublishableKey: CLERK_PUBLISHABLE_KEY,
     sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? "",
     apiOrigin: process.env.NEXT_PUBLIC_FSE_API_ORIGIN ?? "",
-    // The Excel add-in's pages only (PLAN.md R3): Office.js, and framing by Office's hosts
-    excel: isExcelPath(request.nextUrl.pathname),
+    // The Excel add-in's pages only (PLAN.md R3): Office.js, and for the pane framing by Office's hosts
+    excel: excelPage(request.nextUrl.pathname),
   });
   const headers = new Headers(request.headers);
   headers.set(CSP, policy);

@@ -39,6 +39,7 @@ from __future__ import annotations
 import base64
 import binascii
 import os
+import re
 import threading
 import time
 from dataclasses import dataclass
@@ -64,9 +65,17 @@ LEEWAY_S = 30
 JWKS_CACHE_S = 3600
 DEV_TOKEN_PREFIX = "dev:"
 ADDIN_TOKEN_PREFIX = "addin:"
-# What an add-in pass may reach (PLAN.md R3): coverage and the reader, the PDF
-# it uploads, and its own sign-in. Prefixes end in "/" or are whole paths.
-ADDIN_PATHS = ("/api/research/", "/api/files", "/api/files/", "/api/addin/session")
+# What an add-in pass may reach (PLAN.md R3), method by method: coverage and
+# the reader, uploading a PDF (reserve, send, see its check) and its own
+# sign-in. Not the file list, download links or deleting: those reach the
+# person's deal documents too. Each path is matched whole.
+ADDIN_PATHS = (
+    ("GET POST PUT DELETE", re.compile(r"/api/research/.+")),
+    ("POST", re.compile(r"/api/files")),
+    ("GET", re.compile(r"/api/files/[0-9a-fA-F-]{36}")),
+    ("PUT", re.compile(r"/api/files/[0-9a-fA-F-]{36}/content")),
+    ("GET DELETE", re.compile(r"/api/addin/session")),
+)
 # How long a looked-up pass is trusted before the database is asked again
 ADDIN_CACHE_S = 60
 
@@ -237,8 +246,8 @@ _addin_lock = threading.Lock()
 _addin_seen: dict[str, tuple[float, str, float]] = {}
 
 
-def addin_path(path: str) -> bool:
-    return any(path == p or (p.endswith("/") and path.startswith(p)) for p in ADDIN_PATHS)
+def addin_path(method: str, path: str) -> bool:
+    return any(method.upper() in methods.split() and pattern.fullmatch(path) for methods, pattern in ADDIN_PATHS)
 
 
 def forget_addin_pass(token: str) -> None:
@@ -253,11 +262,11 @@ def reset_addin_cache() -> None:
         _addin_seen.clear()
 
 
-def verify_addin_token(token: str, path: str) -> AuthUser:
-    """The user an add-in pass stands for, on a path it may reach; else 401 or 403."""
+def verify_addin_token(token: str, method: str, path: str) -> AuthUser:
+    """The user an add-in pass stands for, on a route it may reach; else 401 or 403."""
     from db import addin
     from db.engine import is_configured as database_configured
-    if not addin_path(path):
+    if not addin_path(method, path):
         raise HTTPException(status_code=403, detail="addin_scope")
     if not addin.looks_like_pass(token):
         raise _unauthorized("add-in pass not recognised")
@@ -286,7 +295,7 @@ def require_user(
     """FastAPI dependency: the signed-in user, or 401."""
     token = credentials.credentials if credentials else None
     if token and token.startswith(ADDIN_TOKEN_PREFIX):
-        user = verify_addin_token(token, request.url.path)
+        user = verify_addin_token(token, request.method, request.url.path)
     else:
         user = authenticate(token)
     # Routes read it from the request too (middleware and handlers)

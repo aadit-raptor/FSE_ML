@@ -11,6 +11,7 @@ import { fmtCount, fmtRate } from "@/lib/format";
 import { formatDateTime } from "@/lib/locale";
 import {
   addCompany, listCoverage, readJob, startRead, type CoverageCompany, type ReaderInfo, type ReadJob, type ReadResult,
+  READER_ERRORS,
 } from "@/lib/research";
 
 import { Review } from "./Review";
@@ -27,11 +28,6 @@ import { Review } from "./Review";
  * i18n-keys: reader.unit_*
  */
 const POLL_MS = 2000;
-const KNOWN_ERRORS = [
-  "reader_off", "reader_not_measured", "confirm_public", "not_pdf", "not_clean", "no_file", "page_limit", "too_long",
-  "store_unreachable", "allowance_spent", "provider_busy", "key_refused", "unreadable_answer", "provider_unreachable",
-  "not_recorded", "answer_blocked", "unreadable_pdf", "upload_failed", "no_company", "too_many_companies", "bad_name",
-];
 
 export function ResultsStep() {
   const t = useTranslations("reader");
@@ -125,7 +121,7 @@ export function ResultsStep() {
 
   const result = job?.status === "succeeded" ? job.result ?? null : null;
   const stage = (job?.progress ?? 0) < 0.55 ? t("stageReadA") : (job?.progress ?? 0) < 0.95 ? t("stageReadB") : t("stageChecking");
-  const errorText = error ? t(`error_${KNOWN_ERRORS.includes(error) ? error : "failed"}`) : null;
+  const errorText = error ? t(`error_${READER_ERRORS.includes(error) ? error : "failed"}`) : null;
 
   return (
     <Screen

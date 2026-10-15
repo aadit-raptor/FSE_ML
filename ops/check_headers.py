@@ -38,7 +38,7 @@ UNKNOWN_ORIGIN = "https://header-scan.invalid"
 # The pages the Excel add-in's pane may sit in (web/src/lib/security/headers.ts, tests/test_security.py)
 OFFICE_FRAME_ANCESTORS = [
     "https://*.officeapps.live.com", "https://*.office.com", "https://*.office365.com", "https://*.cloud.microsoft",
-    "https://*.microsoft365.com", "https://*.sharepoint.com", "https://*.live.com",
+    "https://*.microsoft365.com", "https://*.sharepoint.com", "https://onedrive.live.com",
 ]
 OFFICE_SCRIPT_ORIGIN = "https://appsforoffice.microsoft.com"
 
@@ -123,6 +123,12 @@ def page_problems(headers: Mapping[str, str], *, excel: bool = False) -> list[st
     return found
 
 
+def dialog_problems(headers: Mapping[str, str]) -> list[str]:
+    """The add-in's sign-in dialog: a strict page that may load Office.js and is never framed."""
+    allowed = page_problems(headers)
+    return [p for p in allowed if "Office.js" not in p]
+
+
 def nonce(headers: Mapping[str, str]) -> Optional[str]:
     match = re.search(r"'nonce-([^']+)'", _get(headers, "Content-Security-Policy") or "")
     return match.group(1) if match else None
@@ -194,12 +200,15 @@ def scan(web: Optional[str], api: Optional[str], bypass: Optional[str]) -> list[
             found += [f"web page: {p}" for p in page_problems(headers)]
             if nonces[0] and nonces[0] == nonces[1]:
                 found.append("web page: the CSP nonce is reused between requests")
-        for path, excel in (("/privacy", False), ("/excel", True)):
+        # the add-in's sign-in dialog is a window of its own: never framed, like every page but the pane
+        for path, excel in (("/privacy", False), ("/excel", True), ("/excel/connect", None)):
             status, headers = fetch(f"{web}{path}", headers=extra)
             if status != 200:
                 found.append(f"web {path} answered {status}, not 200")
             else:
-                found += [f"web {path}: {p}" for p in page_problems(headers, excel=excel)]
+                found += [f"web {path}: {p}" for p in (page_problems(headers, excel=True) if excel else
+                                                       dialog_problems(headers) if excel is None else
+                                                       page_problems(headers))]
         status, headers = fetch(f"{web}/api/health", headers=extra)
         found += [f"web /api/health: {p}" for p in api_problems(headers)]
     if api:

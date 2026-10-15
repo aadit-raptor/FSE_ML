@@ -26,10 +26,14 @@ OUT = ROOT / "web" / "public" / "excel"
 # Changing an id makes Excel treat it as a different add-in: never change one
 ENVIRONMENTS = {
     "production": {"file": "manifest.xml", "id": "6f0b1f8e-3c2a-4d7e-9a51-2b8f7c4e1d90",
-                   "origin": "https://variater.com", "name": "Variater", "domains": ()},
+                   "origin": "https://variater.com", "name": "Variater",
+                   # Clerk's own host: its session check may pass through the pane, which would open any
+                   # host not listed here in the system browser instead
+                   "domains": ("https://clerk.variater.com",)},
     "staging": {"file": "manifest-staging.xml", "id": "a3d5c7e9-1b2f-4a6c-8e0d-5f7b9c1a3e24",
                 "origin": "https://fse-ml-git-staging-aadit7.vercel.app", "name": "Variater (staging)",
-                # Vercel's login stands in front of staging; the pane may open it
+                # Vercel's login stands in front of staging; the pane may open it. Staging's Clerk is the
+                # development instance on clerk.accounts.dev, whose own name isn't known here: see DEPLOY.md
                 "domains": ("https://vercel.com",)},
 }
 VERSION = "1.0.0.0"
