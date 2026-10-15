@@ -72,6 +72,19 @@ export function downloadText(filename: string, text: string, type = "text/csv") 
   save(new Blob([text], { type: `${type};charset=utf-8` }), filename);
 }
 
+/** A file the API makes on a GET (the checked statements' workbook, PLAN.md R2), saved as `filename`. */
+export async function downloadFile(path: string, filename: string) {
+  const requestId = newRequestId();
+  const headers = { [REQUEST_ID_HEADER]: requestId, ...(await authHeaders()) };
+  const res = await fetch(path, { headers }).catch((e: unknown) => {
+    reportApiError(path, "network", requestId);
+    throw e;
+  });
+  if (res.status >= 500) reportApiError(path, res.status, requestId);
+  if (!res.ok) throw new Error(downloadFailed(res.status));
+  save(await res.blob(), filename);
+}
+
 async function postForFile(path: string, body: unknown, filename: string, dealId: string | null) {
   const requestId = newRequestId();
   // The saved deal the figures come from: the export goes in its history (PLAN.md 3.3)

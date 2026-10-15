@@ -33,6 +33,10 @@ const confirm = (page: Page) => page.getByRole("checkbox", { name: "This is a li
 
 async function uploadResults(page: Page, name: string) {
   await page.goto("/coverage/results");
+  // a read is for a covered company (PLAN.md R2)
+  await page.getByLabel("New company").fill("Results Co");
+  await page.getByRole("button", { name: "Add company" }).click();
+  await expect(page.getByRole("combobox", { name: "Covered company" })).toContainText("Results Co");
   await expect(page.getByRole("button", { name: "Upload a PDF" })).toBeEnabled();
   await page.locator('input[type="file"]').setInputFiles({ name, mimeType: "application/pdf", buffer: pdf() });
   await expect(page.getByRole("combobox", { name: "Uploaded PDF" })).toContainText(name);
@@ -84,7 +88,8 @@ test.describe("Results reader", () => {
     const amber = page.locator("td[data-amber]");
     await expect(amber).toHaveCount(1);
     await expect(amber).toHaveAttribute("data-amber", "reads_differ");
-    await expect(amber).toHaveAttribute("title", "The two reads give this figure differently");
+    // selected first, its reason beside it
+    await expect(page.locator("[data-selected]")).toContainText("The two reads give this figure differently");
     // the filing's one page is counted against the day's pages
     await expect.poll(left).toBe(before - 1);
   });

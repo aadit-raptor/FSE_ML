@@ -147,7 +147,8 @@ SAMPLE_FORMATS = {
     "Exit Equity": "money", "Exit EV": "money", "Exit EBITDA": "money", "Net Debt Exit": "money",
 }
 
-UNIT_WORDS = {"thousands": "thousands", "millions": "millions", "billions": "billions"}
+UNIT_WORDS = {"thousands": "thousands", "lakhs": "lakhs", "millions": "millions", "crores": "crores",
+              "billions": "billions"}
 
 
 def money_rows(money) -> tuple[list, list]:

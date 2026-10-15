@@ -56,7 +56,7 @@ ForecastPaths = _path_cap(MAX_FORECAST_PATHS)
 # ---------------------------------------------------------------------------
 # Money (PLAN.md 2.2)
 # ---------------------------------------------------------------------------
-MoneyUnit = Literal["thousands", "millions", "billions"]
+MoneyUnit = Literal["thousands", "lakhs", "millions", "crores", "billions"]
 CurrencyCode = Annotated[str, Field(pattern=r"^[A-Z]{3}$", min_length=3, max_length=3,
                                     description="ISO 4217, e.g. EUR")]
 
@@ -73,7 +73,7 @@ class Money(Strict):
     calculates with the code, so the same numbers give the same results in any
     currency."""
     currency: CurrencyCode = DEFAULT_CURRENCY
-    unit: MoneyUnit = Field(DEFAULT_UNIT, description="Money figures are thousands, millions or billions")
+    unit: MoneyUnit = Field(DEFAULT_UNIT, description="Money figures are thousands, lakhs, millions, crores or billions")
 
 
 # ---------------------------------------------------------------------------
@@ -227,7 +227,7 @@ class DealInputsIn(Strict):
     inv_days: float = Field(30.0, ge=0, le=365)
     ap_days: float = Field(60.0, ge=0, le=365)
     currency: CurrencyCode = Field(DEFAULT_CURRENCY, description="The deal's currency (ISO 4217)")
-    unit: MoneyUnit = Field(DEFAULT_UNIT, description="The deal's money figures are thousands, millions or billions")
+    unit: MoneyUnit = Field(DEFAULT_UNIT, description="The deal's money figures are thousands, lakhs, millions, crores or billions")
     # Labels only (PLAN.md 2.3a): the model counts years from 1 whatever these say
     fiscal_year_end_month: int = Field(12, ge=1, le=12, strict=True,
                                        description="Month the deal's fiscal year ends (12 = December)")
@@ -969,7 +969,7 @@ class DealActuals(Strict):
     """What happened to a deal: results for its first years (as many as are
     known, up to its hold) and, once it has been sold, the exit."""
     currency: CurrencyCode = Field(description="The currency the figures are in; must be the deal's")
-    unit: MoneyUnit = Field(description="thousands, millions or billions")
+    unit: MoneyUnit = Field(description="thousands, lakhs, millions, crores or billions")
     years: List[ActualYearIn] = Field(min_length=1, max_length=15, description="From the plan's year 1")
     exit: Optional[ActualExitIn] = Field(None, description="Left out while the deal is still held")
 
@@ -1288,7 +1288,8 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "actuals_saved", "actuals_cleared", "exported", "deleted", "settings_changed",
                       "shared", "library_switched", "reference_proposed", "reference_reviewed",
                       "validation_opted_in", "validation_opted_out", "suggestions_switched",
-                      "file_uploaded", "file_deleted"]
+                      "file_uploaded", "file_deleted", "coverage_added", "coverage_removed",
+                      "period_accepted", "period_removed"]
 
 
 class AuditEntry(BaseModel):
@@ -1307,7 +1308,7 @@ class AuditEntry(BaseModel):
                           "a deal's settings, setting keys for the account's")
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
-    export: Optional[Literal["workbook", "simulation_sample"]] = None
+    export: Optional[Literal["workbook", "simulation_sample", "results_workbook"]] = None
     enabled: Optional[bool] = Field(
         None, description="Whether the reference library was shown or hidden, or suggestions of the "
                           "account's usual figures switched on or off")
@@ -2621,6 +2622,8 @@ class ReadStart(Strict):
                          "is sent to improve its products")
     quarter_end: Optional[date] = Field(None, description="The quarter the filing is for; without it the two "
                                         "reads must agree on it")
+    company_id: Optional[uuid.UUID] = Field(None, description="A covered company of the caller's: the read's "
+                                            "figures are then checked against the periods kept for it (PLAN.md R2)")
 
 
 class ReadCell(BaseModel):
@@ -2743,3 +2746,106 @@ class ReaderInfo(BaseModel):
     pages_left: int
     reads_per_day: int
     max_pages: int
+
+
+# ---------------------------------------------------------------------------
+# Coverage: companies and their accepted periods (PLAN.md R2)
+# ---------------------------------------------------------------------------
+CoverageUnit = Literal["units", "thousands", "lakhs", "millions", "crores", "billions"]
+CoverageScope = Literal["consolidated", "standalone"]
+
+
+class CoverageCompanyIn(Strict):
+    name: str = Field(min_length=1, max_length=120, description="What the analyst calls the company")
+
+
+class CoveragePeriodSummary(BaseModel):
+    id: str
+    company_id: str
+    period_end: str
+    months: int = Field(description="3 for a quarter's filing, 12 for a year's")
+    scope: CoverageScope
+    unit: CoverageUnit
+    currency: Optional[str]
+    file_id: Optional[str] = Field(description="The results PDF while it is kept (PLAN.md 6.1: 90 days); "
+                                   "null once it is gone. The figures stay")
+    accepted_at: str
+
+
+class CoverageCompanyOut(BaseModel):
+    id: str
+    name: str
+    created_at: str
+    updated_at: str
+    periods: List[CoveragePeriodSummary]
+
+
+class CoverageLimits(BaseModel):
+    companies: int
+    periods: int
+
+
+class CoverageList(BaseModel):
+    companies: List[CoverageCompanyOut]
+    limits: CoverageLimits
+
+
+class FigureCorrection(Strict):
+    table: int = Field(ge=0, le=100)
+    row: int = Field(ge=0, le=10_000)
+    column: int = Field(ge=0, le=100)
+    value: Optional[float] = Field(None, ge=-1e15, le=1e15, description="The figure as it should be, in the "
+                                   "read's unit; null for a blank")
+
+
+class PeriodAccept(Strict):
+    read_id: uuid.UUID = Field(description="The caller's finished read (POST /api/research/reads)")
+    accepted: List[List[int]] = Field(default_factory=list, max_length=5000,
+                                      description="Amber figures kept as read, as [table, row, column]")
+    corrected: List[FigureCorrection] = Field(default_factory=list, max_length=5000)
+    unit: Optional[CoverageUnit] = Field(None, description="The unit, when the read could not find it")
+
+
+class FigureMark(BaseModel):
+    do: Literal["accepted", "corrected"]
+    amber: Optional[AmberReason] = None
+    read: Optional[float] = Field(None, description="What the reader read, for a corrected figure")
+
+
+class StoredRow(BaseModel):
+    label: str
+    line: Optional[str]
+    page: Optional[int]
+    values: List[Optional[float]]
+    marks: Optional[List[Optional[FigureMark]]] = None
+
+
+class StoredTable(BaseModel):
+    statement: Statement
+    pages: List[int]
+    columns: List[ReadColumn]
+    rows: List[StoredRow]
+
+
+class StoredFigures(BaseModel):
+    format: int
+    company: str = Field(description="The company's name as the filing prints it")
+    year_end_month: Optional[int]
+    document_pages: Optional[int]
+    tables: List[StoredTable]
+
+
+class PeriodCounts(BaseModel):
+    figures: int
+    corrected: int
+    accepted: int
+
+
+class CoveragePeriodOut(CoveragePeriodSummary):
+    company_name: str
+    figures: StoredFigures
+    counts: PeriodCounts
+
+
+class PeriodAcceptOut(BaseModel):
+    periods: List[CoveragePeriodSummary]

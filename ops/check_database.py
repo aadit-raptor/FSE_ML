@@ -51,6 +51,11 @@ def problems(result: dict) -> list[str]:
         found.append(f"industry averages at {benchmarks.get('bytes', 0) // 1024} KB of their "
                      f"{benchmarks.get('budget_bytes', 0) // 1024} KB budget: store fewer figures "
                      "(benchmarks/catalogue.py DATASETS, PLAN.md 4.3)")
+    coverage = result.get("coverage_data") or {}
+    if coverage.get("warning"):
+        found.append(f"coverage at {coverage.get('bytes', 0) // (1024 * 1024)} MB of its "
+                     f"{coverage.get('budget_bytes', 0) // (1024 * 1024)} MB budget: lower "
+                     "db.coverage.MAX_PERIODS or raise the budget against the free 0.5 GB (PLAN.md R2)")
     return found
 
 

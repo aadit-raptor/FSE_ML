@@ -7,14 +7,17 @@ import { Notice, RailGroup, Screen } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api } from "@/lib/api/client";
 import { refusedLocally, uploadFile, type FileList } from "@/lib/files";
-import { fmtCount, fmtNumber, fmtRate } from "@/lib/format";
+import { fmtCount, fmtRate } from "@/lib/format";
 import { formatDateTime } from "@/lib/locale";
-import { decimalsOf, readJob, startRead, type ReaderInfo, type ReadJob, type ReadResult, type ReadTable } from "@/lib/research";
+import {
+  addCompany, listCoverage, readJob, startRead, type CoverageCompany, type ReaderInfo, type ReadJob, type ReadResult,
+} from "@/lib/research";
+
+import { Review } from "./Review";
 
 /**
- * Coverage -> Results (PLAN.md R1): read a results filing twice and check it.
- * The review screen that accepts a quarter is R2's; this shows what the
- * reader made of the filing, every doubtful figure amber.
+ * Coverage -> Results (PLAN.md R1, R2): read a results filing twice and check it, for a covered company, then
+ * review it with the page beside the figures and accept the quarter. Nothing is kept until it is accepted.
  *
  * i18n-keys: reader.amber_*
  * i18n-keys: reader.problem_*
@@ -27,7 +30,7 @@ const POLL_MS = 2000;
 const KNOWN_ERRORS = [
   "reader_off", "reader_not_measured", "confirm_public", "not_pdf", "not_clean", "no_file", "page_limit", "too_long",
   "store_unreachable", "allowance_spent", "provider_busy", "key_refused", "unreadable_answer", "provider_unreachable",
-  "not_recorded", "answer_blocked", "unreadable_pdf", "upload_failed",
+  "not_recorded", "answer_blocked", "unreadable_pdf", "upload_failed", "no_company", "too_many_companies", "bad_name",
 ];
 
 export function ResultsStep() {
@@ -40,6 +43,8 @@ export function ResultsStep() {
   const [job, setJob] = useState<ReadJob | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [companies, setCompanies] = useState<CoverageCompany[] | null>(null);
+  const [companyId, setCompanyId] = useState("");
 
   const loadFiles = useCallback(async () => {
     const { data } = await api.GET("/api/files");
@@ -53,10 +58,11 @@ export function ResultsStep() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([api.GET("/api/research/reader"), api.GET("/api/files")]).then(([reader, list]) => {
+    Promise.all([api.GET("/api/research/reader"), api.GET("/api/files"), listCoverage()]).then(([reader, list, coverage]) => {
       if (cancelled) return;
       if (reader.data) setInfo(reader.data);
       if (list.data) setFiles(list.data);
+      if (coverage) setCompanies(coverage.companies);
     });
     return () => {
       cancelled = true;
@@ -80,13 +86,24 @@ export function ResultsStep() {
   const pdfs = (files?.files ?? []).filter((f) => f.kind === "pdf" && f.status === "clean");
   const selected = chosen || pdfs[0]?.id || "";
   const needsConfirm = info?.confirm_public ?? true;
-  const canRead = !!info && info.status === "on" && info.open && !!selected && (!needsConfirm || confirmed) && !running;
+  const company = (companies ?? []).find((c) => c.id === companyId) ?? companies?.[0] ?? null;
+  const canRead = !!info && info.status === "on" && info.open && !!selected && !!company && (!needsConfirm || confirmed) && !running;
 
   const read = async () => {
     setError(null);
-    const started = await startRead(selected, confirmed, quarter || null);
+    const started = await startRead(selected, confirmed, quarter || null, company?.id ?? null);
     if (started.job) setJob(started.job);
     else setError(started.error);
+  };
+
+  const add = async (name: string) => {
+    setError(null);
+    const made = await addCompany(name);
+    if (made.company) {
+      const found = made.company;
+      setCompanies((old) => [found, ...(old ?? [])]);
+      setCompanyId(found.id);
+    } else setError(made.error ?? "failed");
   };
 
   const upload = async (file: File) => {
@@ -115,6 +132,10 @@ export function ResultsStep() {
       rail={
         <ReadRail
           info={info}
+          companies={companies ?? []}
+          company={company?.id ?? ""}
+          onCompany={setCompanyId}
+          onAdd={(name) => void add(name)}
           pdfs={pdfs}
           selected={selected}
           onChoose={(id) => {
@@ -160,7 +181,12 @@ export function ResultsStep() {
           <span data-read-error={error ?? ""}>{errorText}</span>
         </Notice>
       )}
-      {result ? <ReadView result={result} /> : !running && (
+      {result && job ? (
+        <Tiles>
+          <ReadView result={result} />
+          <Review key={job.id} readId={job.id} result={result} company={company} onAccepted={() => void listCoverage().then((c) => c && setCompanies(c.companies))} />
+        </Tiles>
+      ) : !running && (
         <Tiles>
           <Tile span={12} title={t("howTitle")}>
             <p className="type-body text-[10.5px]">{t("howBody")}</p>
@@ -173,6 +199,10 @@ export function ResultsStep() {
 
 function ReadRail(props: {
   info: ReaderInfo | null;
+  companies: CoverageCompany[];
+  company: string;
+  onCompany: (id: string) => void;
+  onAdd: (name: string) => void;
   pdfs: { id: string; name: string }[];
   selected: string;
   onChoose: (id: string) => void;
@@ -188,10 +218,51 @@ function ReadRail(props: {
   onUpload: (file: File) => void;
 }) {
   const t = useTranslations("reader");
+  const tc = useTranslations("coverage");
   const input = useRef<HTMLInputElement>(null);
+  const [name, setName] = useState("");
   const { info } = props;
   return (
     <>
+      <RailGroup title={tc("companyGroup")}>
+        <label className="grid gap-1">
+          <span className="type-input-label">{tc("companyLabel")}</span>
+          <select
+            className="border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
+            value={props.company}
+            onChange={(event) => props.onCompany(event.target.value)}
+            disabled={props.companies.length === 0}
+          >
+            {props.companies.length === 0 && <option value="">{tc("noCompanies")}</option>}
+            {props.companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <form
+          className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-1.5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (name.trim()) props.onAdd(name.trim());
+            setName("");
+          }}
+        >
+          <label className="grid min-w-0 gap-1">
+            <span className="type-input-label">{tc("newCompany")}</span>
+            <input
+              className="min-w-0 border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
+              value={name}
+              maxLength={120}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </label>
+          <button type="submit" disabled={!name.trim()} className="type-action border border-line px-2 py-1 text-ink disabled:opacity-50">
+            {tc("addCompany")}
+          </button>
+        </form>
+      </RailGroup>
       <RailGroup title={t("fileGroup")}>
         <label className="grid gap-1">
           <span className="type-input-label">{t("fileLabel")}</span>
@@ -270,7 +341,7 @@ function ReadView({ result }: { result: ReadResult }) {
   const t = useTranslations("reader");
   const share = result.summary.amber_share;
   return (
-    <Tiles>
+    <>
       <Kpi title={t("kpiFigures")} value={fmtCount(result.summary.figures)} sub={t("kpiTables", { count: result.summary.tables })} lead />
       <Kpi
         title={t("kpiAmber")}
@@ -308,54 +379,6 @@ function ReadView({ result }: { result: ReadResult }) {
           </ul>
         </Tile>
       )}
-      {result.tables.map((table, i) => (
-        <StatementTable key={i} table={table} />
-      ))}
-    </Tiles>
-  );
-}
-
-function StatementTable({ table }: { table: ReadTable }) {
-  const t = useTranslations("reader");
-  const digits = decimalsOf(table);
-  const title = t(`statement_${table.statement}`);
-  return (
-    <Tile span={12} title={title} unit={`${t(`scope_${table.scope}`)} · ${t("pagesShort", { pages: table.pages.map(String).join(", ") })}`}>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse font-mono text-[11px]" aria-label={title} data-statement={table.statement}>
-          <thead>
-            <tr className="text-muted">
-              <th scope="col" className="border-b border-grid px-2 py-1 text-start font-normal">
-                <span className="sr-only">{t("colLine")}</span>
-              </th>
-              {table.columns.map((column, c) => (
-                <th key={c} scope="col" className="border-b border-grid px-2 py-1 text-end font-normal" dir="auto">
-                  {column.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {table.rows.map((row, r) => (
-              <tr key={r} data-line={row.line ?? undefined}>
-                <th scope="row" dir="auto" className="max-w-[360px] truncate border-b border-grid px-2 py-1 text-start font-normal text-ink" title={row.label}>
-                  {row.label}
-                </th>
-                {row.cells.map((cell, c) => (
-                  <td
-                    key={c}
-                    className={`border-b border-grid px-2 py-1 text-end ${cell.amber ? "bg-[#1b1710] text-attention" : "text-ink"}`}
-                    data-amber={cell.amber ?? undefined}
-                    title={cell.amber ? t(`amber_${cell.amber}`) : undefined}
-                  >
-                    {cell.value === null || cell.value === undefined ? "" : fmtNumber(cell.value, digits)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Tile>
+    </>
   );
 }

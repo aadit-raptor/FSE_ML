@@ -71,10 +71,14 @@ export const MODES: Mode[] = [
     ],
   },
   {
-    // Equity research (PLAN.md phase R): results filings read and checked (R1); R2 adds the review and the quarters kept
+    // Equity research (PLAN.md phase R): the companies followed and their accepted quarters (R2); results filings
+    // read, checked, reviewed beside their pages and accepted (R1, R2)
     slug: "coverage",
     labelKey: "modeCoverage",
-    steps: [{ slug: "results", labelKey: "coverageResults", summaryKey: "coverageResultsSummary" }],
+    steps: [
+      { slug: "companies", labelKey: "coverageCompanies", summaryKey: "coverageCompaniesSummary" },
+      { slug: "results", labelKey: "coverageResults", summaryKey: "coverageResultsSummary" },
+    ],
   },
   {
     slug: "settings",

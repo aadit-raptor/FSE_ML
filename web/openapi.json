@@ -443,7 +443,11 @@
               "validation_opted_out",
               "suggestions_switched",
               "file_uploaded",
-              "file_deleted"
+              "file_deleted",
+              "coverage_added",
+              "coverage_removed",
+              "period_accepted",
+              "period_removed"
             ],
             "title": "Action",
             "type": "string"
@@ -499,7 +503,8 @@
               {
                 "enum": [
                   "workbook",
-                  "simulation_sample"
+                  "simulation_sample",
+                  "results_workbook"
                 ],
                 "type": "string"
               },
@@ -1911,7 +1916,9 @@
           "unit": {
             "enum": [
               "thousands",
+              "lakhs",
               "millions",
+              "crores",
               "billions"
             ],
             "title": "Unit",
@@ -2650,6 +2657,272 @@
         "title": "CoverageCollection",
         "type": "object"
       },
+      "CoverageCompanyIn": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "What the analyst calls the company",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CoverageCompanyIn",
+        "type": "object"
+      },
+      "CoverageCompanyOut": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/CoveragePeriodSummary"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at",
+          "periods"
+        ],
+        "title": "CoverageCompanyOut",
+        "type": "object"
+      },
+      "CoverageLimits": {
+        "properties": {
+          "companies": {
+            "title": "Companies",
+            "type": "integer"
+          },
+          "periods": {
+            "title": "Periods",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "companies",
+          "periods"
+        ],
+        "title": "CoverageLimits",
+        "type": "object"
+      },
+      "CoverageList": {
+        "properties": {
+          "companies": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageCompanyOut"
+            },
+            "title": "Companies",
+            "type": "array"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/CoverageLimits"
+          }
+        },
+        "required": [
+          "companies",
+          "limits"
+        ],
+        "title": "CoverageList",
+        "type": "object"
+      },
+      "CoveragePeriodOut": {
+        "properties": {
+          "accepted_at": {
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "company_id": {
+            "title": "Company Id",
+            "type": "string"
+          },
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/PeriodCounts"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "figures": {
+            "$ref": "#/components/schemas/StoredFigures"
+          },
+          "file_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The results PDF while it is kept (PLAN.md 6.1: 90 days); null once it is gone. The figures stay",
+            "title": "File Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "months": {
+            "description": "3 for a quarter's filing, 12 for a year's",
+            "title": "Months",
+            "type": "integer"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "consolidated",
+              "standalone"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "units",
+              "thousands",
+              "lakhs",
+              "millions",
+              "crores",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "period_end",
+          "months",
+          "scope",
+          "unit",
+          "currency",
+          "file_id",
+          "accepted_at",
+          "company_name",
+          "figures",
+          "counts"
+        ],
+        "title": "CoveragePeriodOut",
+        "type": "object"
+      },
+      "CoveragePeriodSummary": {
+        "properties": {
+          "accepted_at": {
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "company_id": {
+            "title": "Company Id",
+            "type": "string"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "file_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The results PDF while it is kept (PLAN.md 6.1: 90 days); null once it is gone. The figures stay",
+            "title": "File Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "months": {
+            "description": "3 for a quarter's filing, 12 for a year's",
+            "title": "Months",
+            "type": "integer"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "consolidated",
+              "standalone"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "units",
+              "thousands",
+              "lakhs",
+              "millions",
+              "crores",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "period_end",
+          "months",
+          "scope",
+          "unit",
+          "currency",
+          "file_id",
+          "accepted_at"
+        ],
+        "title": "CoveragePeriodSummary",
+        "type": "object"
+      },
       "CoverageResponse": {
         "properties": {
           "base_rates": {
@@ -2866,10 +3139,12 @@
             "description": "Left out while the deal is still held"
           },
           "unit": {
-            "description": "thousands, millions or billions",
+            "description": "thousands, lakhs, millions, crores or billions",
             "enum": [
               "thousands",
+              "lakhs",
               "millions",
+              "crores",
               "billions"
             ],
             "title": "Unit",
@@ -3572,10 +3847,12 @@
           },
           "unit": {
             "default": "millions",
-            "description": "The deal's money figures are thousands, millions or billions",
+            "description": "The deal's money figures are thousands, lakhs, millions, crores or billions",
             "enum": [
               "thousands",
+              "lakhs",
               "millions",
+              "crores",
               "billions"
             ],
             "title": "Unit",
@@ -4757,7 +5034,9 @@
           "unit": {
             "enum": [
               "thousands",
+              "lakhs",
               "millions",
+              "crores",
               "billions"
             ],
             "title": "Unit",
@@ -5218,6 +5497,100 @@
           "contributions"
         ],
         "title": "ExplainedCase",
+        "type": "object"
+      },
+      "FigureCorrection": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Column",
+            "type": "integer"
+          },
+          "row": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Row",
+            "type": "integer"
+          },
+          "table": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Table",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The figure as it should be, in the read's unit; null for a blank",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "table",
+          "row",
+          "column"
+        ],
+        "title": "FigureCorrection",
+        "type": "object"
+      },
+      "FigureMark": {
+        "properties": {
+          "amber": {
+            "anyOf": [
+              {
+                "enum": [
+                  "reads_differ",
+                  "sign_differs",
+                  "one_read_only",
+                  "sum_fails",
+                  "poor_scan",
+                  "unbalanced",
+                  "cash_mismatch",
+                  "stored_differs"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amber"
+          },
+          "do": {
+            "enum": [
+              "accepted",
+              "corrected"
+            ],
+            "title": "Do",
+            "type": "string"
+          },
+          "read": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the reader read, for a corrected figure",
+            "title": "Read"
+          }
+        },
+        "required": [
+          "do"
+        ],
+        "title": "FigureMark",
         "type": "object"
       },
       "FileBegin": {
@@ -8209,10 +8582,12 @@
           },
           "unit": {
             "default": "millions",
-            "description": "Money figures are thousands, millions or billions",
+            "description": "Money figures are thousands, lakhs, millions, crores or billions",
             "enum": [
               "thousands",
+              "lakhs",
               "millions",
+              "crores",
               "billions"
             ],
             "title": "Unit",
@@ -9713,6 +10088,101 @@
         "title": "PercentileCurve",
         "type": "object"
       },
+      "PeriodAccept": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "description": "Amber figures kept as read, as [table, row, column]",
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "maxItems": 5000,
+            "title": "Accepted",
+            "type": "array"
+          },
+          "corrected": {
+            "items": {
+              "$ref": "#/components/schemas/FigureCorrection"
+            },
+            "maxItems": 5000,
+            "title": "Corrected",
+            "type": "array"
+          },
+          "read_id": {
+            "description": "The caller's finished read (POST /api/research/reads)",
+            "format": "uuid",
+            "title": "Read Id",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "units",
+                  "thousands",
+                  "lakhs",
+                  "millions",
+                  "crores",
+                  "billions"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The unit, when the read could not find it",
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "read_id"
+        ],
+        "title": "PeriodAccept",
+        "type": "object"
+      },
+      "PeriodAcceptOut": {
+        "properties": {
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/CoveragePeriodSummary"
+            },
+            "title": "Periods",
+            "type": "array"
+          }
+        },
+        "required": [
+          "periods"
+        ],
+        "title": "PeriodAcceptOut",
+        "type": "object"
+      },
+      "PeriodCounts": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "corrected": {
+            "title": "Corrected",
+            "type": "integer"
+          },
+          "figures": {
+            "title": "Figures",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "figures",
+          "corrected",
+          "accepted"
+        ],
+        "title": "PeriodCounts",
+        "type": "object"
+      },
       "PlanActualAttribution": {
         "properties": {
           "exit_ebitda": {
@@ -10909,6 +11379,19 @@
       "ReadStart": {
         "additionalProperties": false,
         "properties": {
+          "company_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A covered company of the caller's: the read's figures are then checked against the periods kept for it (PLAN.md R2)",
+            "title": "Company Id"
+          },
           "file_id": {
             "description": "An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)",
             "format": "uuid",
@@ -15506,6 +15989,173 @@
           "actuals"
         ],
         "title": "StoredActuals",
+        "type": "object"
+      },
+      "StoredFigures": {
+        "properties": {
+          "company": {
+            "description": "The company's name as the filing prints it",
+            "title": "Company",
+            "type": "string"
+          },
+          "document_pages": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Pages"
+          },
+          "format": {
+            "title": "Format",
+            "type": "integer"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/StoredTable"
+            },
+            "title": "Tables",
+            "type": "array"
+          },
+          "year_end_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year End Month"
+          }
+        },
+        "required": [
+          "format",
+          "company",
+          "year_end_month",
+          "document_pages",
+          "tables"
+        ],
+        "title": "StoredFigures",
+        "type": "object"
+      },
+      "StoredRow": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "marks": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/FigureMark"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marks"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "values": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "label",
+          "line",
+          "page",
+          "values"
+        ],
+        "title": "StoredRow",
+        "type": "object"
+      },
+      "StoredTable": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/ReadColumn"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "pages": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Pages",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/StoredRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "statement": {
+            "enum": [
+              "results",
+              "segments",
+              "balance_sheet",
+              "cash_flow"
+            ],
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement",
+          "pages",
+          "columns",
+          "rows"
+        ],
+        "title": "StoredTable",
         "type": "object"
       },
       "SuggestionsResponse": {
@@ -20147,6 +20797,109 @@
       }
     },
     "/api/files/{file_id}/content": {
+      "get": {
+        "description": "A clean PDF's bytes, to its owner: what the review screen draws the\nfiling's pages from in the browser (PLAN.md R2). Sent as an attachment,\nnever shown on the API's own address.",
+        "operationId": "get_content_api_files__file_id__content_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "File Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "The file's bytes"
+          },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Request Timeout"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "507": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRefusal"
+                }
+              }
+            },
+            "description": "Insufficient Storage"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Content",
+        "tags": [
+          "files"
+        ]
+      },
       "put": {
         "description": "The file's bytes, as the body. No more of them than ``size`` said:\nthat is what the quota counted. The answer is the file, now being checked.",
         "operationId": "put_content_api_files__file_id__content_put",
@@ -21708,6 +22461,377 @@
         "summary": "Post Scenarios",
         "tags": [
           "monte carlo"
+        ]
+      }
+    },
+    "/api/research/companies": {
+      "get": {
+        "operationId": "get_companies_api_research_companies_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Companies",
+        "tags": [
+          "research"
+        ]
+      },
+      "post": {
+        "operationId": "post_company_api_research_companies_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoverageCompanyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageCompanyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Company",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}": {
+      "delete": {
+        "operationId": "delete_company_api_research_companies__company_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Company",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/periods": {
+      "post": {
+        "description": "Accept a reviewed read into the company: every amber figure accepted\nas read or corrected. A period accepted again replaces the one kept.",
+        "operationId": "post_periods_api_research_companies__company_id__periods_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PeriodAccept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodAcceptOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Periods",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/periods/{period_id}": {
+      "delete": {
+        "operationId": "delete_period_api_research_periods__period_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "period_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Period Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Period",
+        "tags": [
+          "research"
+        ]
+      },
+      "get": {
+        "operationId": "get_period_api_research_periods__period_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "period_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Period Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoveragePeriodOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Period",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/periods/{period_id}/workbook": {
+      "get": {
+        "operationId": "get_workbook_api_research_periods__period_id__workbook_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "period_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Period Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "The checked statements: subtotals as formulas, each figure's page in a note"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Workbook",
+        "tags": [
+          "research"
         ]
       }
     },

@@ -53,7 +53,8 @@ def _out(record) -> dict:
 @router.post("/reads", response_model=ReadJobOut, status_code=202)
 def post_read(body: ReadStart, request: Request, response: Response, user: AuthUser = Depends(require_user)):
     """Read a results PDF twice and check it, as a background job."""
-    record = service.start(user.subject, body.file_id, public=body.public, quarter_end=body.quarter_end)
+    record = service.start(user.subject, body.file_id, public=body.public, quarter_end=body.quarter_end,
+                           company_id=body.company_id)
     response.headers["Location"] = f"{request.url.path}/{record.id}"
     return _out(record)
 

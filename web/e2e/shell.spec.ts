@@ -83,7 +83,7 @@ test("keyboard: Alt+number counts within the current workspace", async ({ page }
   await page.keyboard.press("Alt+3");
   await expect(page).toHaveURL(/\/forecast\/statements$/);
   await page.keyboard.press("Alt+2");
-  await expect(page).toHaveURL(/\/coverage\/results$/);
+  await expect(page).toHaveURL(/\/coverage\/companies$/);
   await page.keyboard.press("Alt+1");
   await expect(page).toHaveURL(/\/forecast\/historicals$/);
 });
@@ -96,7 +96,7 @@ test("Ctrl K searches every workspace, not just the current one", async ({ page 
   const box = page.getByRole("combobox", { name: "Search screens" });
   // The workspace's name finds its screens, and each result names its workspace
   await box.fill("equity research");
-  await expect(page.getByRole("option")).toHaveCount(6);
+  await expect(page.getByRole("option")).toHaveCount(7);
   await expect(page.getByRole("option").first()).toContainText("Equity research");
   await page.getByRole("option", { name: /Forecast\s*Statements/ }).click();
   await expect(page).toHaveURL(/\/forecast\/statements$/);

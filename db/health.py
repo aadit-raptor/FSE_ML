@@ -33,6 +33,7 @@ from api.observability import log_event, utc_now_iso
 from db import migrate
 from db.companies import usage_on
 from db.benchmarks import usage_on as benchmark_usage_on
+from db.coverage import usage_on as coverage_usage_on
 from db.economy import usage_on as economy_usage_on
 from db.engine import DatabaseUnavailable, get_engine, is_configured, open_with_retries
 from db.models import StorageCheck, utc_now
@@ -142,6 +143,7 @@ def check(environment: str, *, force: bool = False) -> dict:
                     company_data = usage_on(conn)
                     economic_data = economy_usage_on(conn)
                     benchmark_data = benchmark_usage_on(conn)
+                    coverage_data = coverage_usage_on(conn)
             head = migrate.head_revision()
             result.update(
                 status="ok",
@@ -154,6 +156,7 @@ def check(environment: str, *, force: bool = False) -> dict:
                 company_data=company_data,
                 economic_data=economic_data,
                 benchmark_data=benchmark_data,
+                coverage_data=coverage_data,
             )
             if report["warning"]:
                 _alert_storage(report, environment)

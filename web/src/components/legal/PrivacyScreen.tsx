@@ -18,7 +18,7 @@ const ISSUES = "https://github.com/aadit-raptor/FSE_ML/issues";
 export function PrivacyScreen() {
   const t = useTranslations("privacy");
   const sections: [string, string[]][] = [
-    [t("storedTitle"), [t("storedSignIn"), t("storedProfile"), t("storedDeals"), t("storedFiles"), t("storedActivity")]],
+    [t("storedTitle"), [t("storedSignIn"), t("storedProfile"), t("storedDeals"), t("storedFiles"), t("storedCoverage"), t("storedActivity")]],
     [t("validationTitle"), [t("validation")]],
     [t("googleTitle"), [t("google")]],
     [t("companiesTitle"), [t("companies")]],

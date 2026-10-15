@@ -40,7 +40,7 @@ from db.models import AUDIT_ACTIONS, AuditEvent, Deal, User, utc_now
 COMPACT_AFTER_DAYS = 7
 # Entries one history request answers at most
 MAX_ENTRIES = 500
-EXPORTS = ("workbook", "simulation_sample")
+EXPORTS = ("workbook", "simulation_sample", "results_workbook")
 # Keys ``detail`` may hold, and nothing else
 # ("reference" is a reference transaction's id, "verdict" an administrator's review of it)
 DETAIL_KEYS = ("fields", "version", "source_deal", "export", "enabled", "reference", "verdict")
