@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { expect, type Page, test } from "@playwright/test";
 
 import { asUser, kpi, signInAs } from "./helpers";
@@ -42,6 +45,13 @@ async function uploadResults(page: Page, name: string) {
   await expect(page.getByRole("combobox", { name: "Uploaded PDF" })).toContainText(name);
 }
 
+/** The card's headline set, which the screen's notice reports (research/reader/gate.py). */
+function headline(): { meets_bar: boolean | null; cases: number } {
+  const card = JSON.parse(readFileSync(path.join(__dirname, "..", "..", "ml", "cards", "reader.json"), "utf8"));
+  const set = card.evaluation.sets[card.evaluation.headline_set];
+  return { meets_bar: set.meets_bar, cases: set.overall.cases };
+}
+
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("Results reader", () => {
@@ -49,6 +59,20 @@ test.describe("Results reader", () => {
     await signInAs(page, `reader-public-${run}`, "en-GB");
     await uploadResults(page, "results-q2.pdf");
     await expect(page.locator("[data-public-warning]")).toContainText("free AI tier");
+    // The notice says what the card says: unmeasured, below its bar, or nothing once it meets it
+    const card = headline();
+    const below = page.getByRole("note").filter({ hasText: "Below its accuracy bar" });
+    const unmeasured = page.getByRole("note").filter({ hasText: "Not yet measured" });
+    if (card.meets_bar === false) {
+      await expect(below).toContainText(`Measured on ${card.cases} filings`);
+      await expect(unmeasured).toHaveCount(0);
+    } else if (card.meets_bar === null) {
+      await expect(unmeasured).toBeVisible();
+      await expect(below).toHaveCount(0);
+    } else {
+      await expect(below).toHaveCount(0);
+      await expect(unmeasured).toHaveCount(0);
+    }
     // The screen keeps the button off until the box is ticked ...
     await expect(confirm(page)).not.toBeChecked();
     await expect(readButton(page)).toBeDisabled();

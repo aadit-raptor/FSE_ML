@@ -208,7 +208,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **R** | **Equity research workspace (the priority since 2026-10-12)** | | |
 | R0 | Proof before code: reader accuracy | 6.1 | ☑ |
 | R1a | Results reader, built and measured on R0's filings | R0 | ☑ |
-| R1b | Results reader measured on held-out filings (recorded over days) | R1a | ☐ |
+| R1b | Results reader measured on held-out filings (recorded over days; measured 2026-10-15, below the bar) | R1a | ☐ |
 | R2 | Coverage, review screen and the checked workbook | R1a | ☑ |
 | R3 | Excel add-in: sign in and import results | R2 | ☑ |
 | R4 | Sector research, the model definition and the first sector model | R2 | ☐ |
@@ -724,6 +724,39 @@ or nearly finished to try. So no task waits for an analyst:
     kept if its card is better; then R1 is ticked.
   - **Done when:** the card's `held_out` set has at least five filings and
     meets R0's bar; production then reads (`gate.py`).
+
+- **R1b, measured (2026-10-15): below the bar, so production stays closed.**
+  The user saved eight filings nobody tuned the prompt on (none of R0's
+  companies): Apollo Hospitals, JSW Steel, Larsen & Toubro, Max Healthcare,
+  Sun Pharma, Trent and UltraTech Cement for the June 2026 quarter, and
+  Indian Hotels' March 2026 year end (balance sheet, segments and cash
+  flow); BSE's table for seven of them (Indian Hotels' saved table is for
+  another quarter, so it is not joined). All eight were read in one evening,
+  through many "high demand" answers (`tests/fixtures/research/reader/held_out`,
+  prompt `r1`). **Held-out card: 1,777 figures, 2.53% amber (bar: under
+  2%), 0 of 96 planted wrong digits missed (one read alone misses 77%), all
+  159 BSE figures shown as BSE gives them, none missed.** So no wrong figure
+  got through, but too many figures are amber: Larsen & Toubro's scan has
+  33 of the 45 (its segment table read differently by the two models; every
+  difference flagged); without it the other seven are at 0.78%. Max
+  Healthcare's read A wrote 2024 for 2026 in every heading (R0's known
+  error), caught by the period check. The prompt and checks were **not**
+  changed after seeing these filings (that would spoil the measurement).
+  - Added for R1b: the recorder joins BSE's table as truth when both reads
+    are in (matched by the file's own name, so another quarter's table is
+    never taken; running the command again joins it with no call) and
+    records the high-resolution trial beside the ordinary reads
+    (`--high`, key `high`); the card scores it as set `held_out_high`
+    only for filings whose ordinary reads are complete. The trial read two
+    filings (Indian Hotels, Trent: the same figures and no amber either
+    way) before the day's allowance ran out: "not enough data", so
+    `READER_HIGH_RESOLUTION` stays off. Staging now says "Below its
+    accuracy bar" (with the share) instead of "Not yet measured".
+  - **Open, the user's decision**: what makes R1 done from here. Options:
+    more held-out filings (the September quarter's are coming out now,
+    which the plan asked for; every filing read is kept, none dropped),
+    finishing the high-resolution trial (it may lower a poor scan's
+    amber), or a different bar.
 
 ### R2 Coverage, review screen and the checked workbook
 - **Claude does:**

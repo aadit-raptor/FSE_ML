@@ -86,14 +86,52 @@
    "held_out": {
     "by_region": {
      "india": {
-      "cases": 0,
+      "baseline": {
+       "amber_share": 0.0017,
+       "planted_missed_share": 0.7708,
+       "truth_confirmed_share": 1.0,
+       "truth_missed": 0.0
+      },
+      "cases": 8,
+      "model": {
+       "amber_share": 0.0253,
+       "planted_missed_share": 0.0,
+       "truth_confirmed_share": 1.0,
+       "truth_missed": 0.0
+      },
+      "verdict": "beats_baseline"
+     }
+    },
+    "description": "Filings read after the prompt and checks were frozen: none tuned on them: 8 filings, 1,777 figures, prompts r1",
+    "meets_bar": false,
+    "overall": {
+     "baseline": {
+      "amber_share": 0.0017,
+      "planted_missed_share": 0.7708,
+      "truth_confirmed_share": 1.0,
+      "truth_missed": 0.0
+     },
+     "cases": 8,
+     "model": {
+      "amber_share": 0.0253,
+      "planted_missed_share": 0.0,
+      "truth_confirmed_share": 1.0,
+      "truth_missed": 0.0
+     },
+     "verdict": "beats_baseline"
+    }
+   },
+   "held_out_high": {
+    "by_region": {
+     "india": {
+      "cases": 2,
       "verdict": "not_enough_data"
      }
     },
-    "description": "Filings read after the prompt and checks were frozen: none tuned on them: 0 filings, 0 figures, prompts -",
+    "description": "The held-out filings read again at high resolution (READER_HIGH_RESOLUTION=1): 2 filings, 628 figures, prompts r1",
     "meets_bar": null,
     "overall": {
-     "cases": 0,
+     "cases": 2,
      "verdict": "not_enough_data"
     }
    }
@@ -106,10 +144,12 @@
  "format": 1,
  "id": "reader",
  "limitations": [
-  "Two reads making the same mistake in a figure outside every sum is not seen: the planted digits test one read's misreads, and the truth file covers the quarter's headline figures of ten filings only.",
+  "Two reads making the same mistake in a figure outside every sum is not seen: the planted digits test one read's misreads, and the truth file covers the quarter's headline figures of 17 filings only (ten development, seven held-out).",
   "The development set's prompt and checks were worked out on those very filings; only the held-out set says how the reader does on new ones.",
   "Six development filings were read by R0's first pass, the results table only; one (Yatharth Hospital) has a lite model's read A.",
   "Indian listed companies' results only; banks, insurers and lenders are left out.",
+  "The held-out filings are eight June 2026 quarter or March 2026 year-end filings saved by hand, not a random sample; one hard scan (Larsen & Toubro's, its segment table read differently by the two models) holds most of their amber figures.",
+  "The high-resolution trial (held_out_high) has fewer filings than the card needs: the free allowance ran out on the first day.",
   "A wrong year in every column heading is a period problem, not an amber figure: the analyst names the quarter, or the reads must agree on it."
  ],
  "min_cases": 5,
