@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { expect, type Page, test } from "@playwright/test";
 
-import { asUser, kpi, signInAs } from "./helpers";
+import { asUser, kpi, onePagePdf, signInAs } from "./helpers";
 
 /**
  * Coverage (PLAN.md R2): a results PDF read (recorded answers: the replay provider answers any file as Avenue
@@ -20,24 +20,6 @@ const root = join(__dirname, "..", "..");
 const venvPython = process.platform === "win32" ? ".venv\\Scripts\\python.exe" : ".venv/bin/python";
 const python = process.env.PYTHON ?? (existsSync(join(root, venvPython)) ? join(root, venvPython) : "python");
 
-/** A well-formed one-page PDF with something drawn on it: the upload's scan passes it, pdf.js draws it. */
-function pdf(): Buffer {
-  const content = "0 0 1 rg 72 600 200 100 re f";
-  const bodies = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>",
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`];
-  let out = "%PDF-1.4\n";
-  const offsets: number[] = [];
-  bodies.forEach((body, i) => {
-    offsets.push(out.length);
-    out += `${i + 1} 0 obj\n${body}\nendobj\n`;
-  });
-  const table = out.length;
-  out += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n`;
-  out += offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
-  out += `trailer\n<< /Size ${bodies.length + 1} /Root 1 0 R >>\nstartxref\n${table}\n%%EOF\n`;
-  return Buffer.from(out, "latin1");
-}
 
 async function readFiling(page: Page, company: string) {
   await page.goto("/coverage/results");
@@ -45,7 +27,7 @@ async function readFiling(page: Page, company: string) {
   await page.getByRole("button", { name: "Add company" }).click();
   await expect(page.getByRole("combobox", { name: "Covered company" })).toContainText(company);
   await expect(page.getByRole("button", { name: "Upload a PDF" })).toBeEnabled();
-  await page.locator('input[type="file"]').setInputFiles({ name: "dmart-h1.pdf", mimeType: "application/pdf", buffer: pdf() });
+  await page.locator('input[type="file"]').setInputFiles({ name: "dmart-h1.pdf", mimeType: "application/pdf", buffer: onePagePdf() });
   await expect(page.getByRole("combobox", { name: "Uploaded PDF" })).toContainText("dmart-h1.pdf");
   await page.getByLabel("Quarter end (optional)").fill("2026-09-30");
   await page.getByRole("checkbox", { name: "This is a listed company's published results" }).check();

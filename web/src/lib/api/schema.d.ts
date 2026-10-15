@@ -99,6 +99,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/addin/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Session */
+        get: operations["get_session_api_addin_session_get"];
+        put?: never;
+        post?: never;
+        /** Delete Session */
+        delete: operations["delete_session_api_addin_session_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/addin/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Session
+         * @description A pass for the add-in, answered once; only its hash is kept.
+         */
+        post: operations["post_session_api_addin_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backtesting/deals": {
         parameters: {
             query?: never;
@@ -1493,6 +1531,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/periods/{period_id}/cells": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Cells
+         * @description What the Excel add-in writes into the open workbook (PLAN.md R3): the
+         *     download's own cells, from the same ``coverage.layout``.
+         */
+        get: operations["get_cells_api_research_periods__period_id__cells_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/periods/{period_id}/workbook": {
         parameters: {
             query?: never;
@@ -1888,6 +1947,26 @@ export interface components {
              */
             total_debt?: number | null;
         };
+        /**
+         * AddinPass
+         * @description The Excel add-in's pass (PLAN.md R3), answered once: send it as ``Authorization: Bearer <token>``.
+         */
+        AddinPass: {
+            /** Expires At */
+            expires_at: string;
+            /** Lifetime S */
+            lifetime_s: number;
+            /**
+             * Token
+             * @description addin: and 43 characters; only its hash is kept
+             */
+            token: string;
+        };
+        /** AddinSessionOut */
+        AddinSessionOut: {
+            /** Expires At */
+            expires_at: string;
+        };
         /** AnnualByGrade */
         AnnualByGrade: {
             /**
@@ -1951,7 +2030,7 @@ export interface components {
              */
             enabled?: boolean | null;
             /** Export */
-            export?: ("workbook" | "simulation_sample" | "results_workbook") | null;
+            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel") | null;
             /**
              * Fields
              * @description What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's
@@ -5850,6 +5929,20 @@ export interface components {
             /** Periods */
             periods: components["schemas"]["CoveragePeriodSummary"][];
         };
+        /**
+         * PeriodCells
+         * @description The checked workbook as cells, for the Excel add-in: the same cells the download holds.
+         */
+        PeriodCells: {
+            /** Company Name */
+            company_name: string;
+            /** Generated */
+            generated: string;
+            /** Period Id */
+            period_id: string;
+            /** Sheets */
+            sheets: components["schemas"]["SheetOut"][];
+        };
         /** PeriodCounts */
         PeriodCounts: {
             /** Accepted */
@@ -7577,6 +7670,65 @@ export interface components {
                 [key: string]: number | boolean;
             };
         };
+        /**
+         * SheetCell
+         * @description One cell of the checked workbook (PLAN.md R3): exactly one of text, number or formula.
+         */
+        SheetCell: {
+            /**
+             * Bold
+             * @default false
+             */
+            bold: boolean;
+            /** Column */
+            column: number;
+            /**
+             * Formula
+             * @description An Excel formula of cells on the same sheet, '=C6+C7'
+             */
+            formula?: string | null;
+            /**
+             * Note
+             * @description The figure's page and what the analyst did with it
+             */
+            note?: string | null;
+            /** Number */
+            number?: number | null;
+            /** Number Format */
+            number_format?: string | null;
+            /**
+             * Row
+             * @description From 1, as Excel counts
+             */
+            row: number;
+            /**
+             * Text
+             * @description Words, written as words even when they start with =
+             */
+            text?: string | null;
+        };
+        /** SheetOut */
+        SheetOut: {
+            /** Cells */
+            cells: components["schemas"]["SheetCell"][];
+            /**
+             * Freeze
+             * @description The first cell that scrolls, 'C6', or null
+             */
+            freeze: string | null;
+            /**
+             * Title
+             * @description The sheet's name in the download; the add-in adds a number when the workbook already has one by that name
+             */
+            title: string;
+            /**
+             * Widths
+             * @description Column letter to width in characters
+             */
+            widths: {
+                [key: string]: number;
+            };
+        };
         /** SimilarDeal */
         SimilarDeal: {
             /** Country */
@@ -8971,6 +9123,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_session_api_addin_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddinSessionOut"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_session_api_addin_session_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_session_api_addin_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddinPass"];
                 };
             };
             /** @description A usage limit was reached */
@@ -12223,6 +12460,46 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_cells_api_research_periods__period_id__cells_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                period_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodCells"];
+                };
             };
             /** @description Validation Error */
             422: {

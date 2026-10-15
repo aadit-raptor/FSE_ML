@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-import { SECURITY_HEADERS } from "./src/lib/security/headers";
+import { EXCEL_DIALOG_HEADERS, EXCEL_PANE_HEADERS, SECURITY_HEADERS } from "./src/lib/security/headers";
 
 // The FastAPI app (api/main.py) serves everything under /api. Proxying it
 // through Next keeps the browser on one origin, so no CORS setup is needed
@@ -52,8 +52,15 @@ const nextConfig: NextConfig = {
   // Security headers on everything but /api, which carries the API's own
   // (api/security.py). The content security policy is set per request, with
   // a nonce, in src/proxy.ts.
+  // The Excel add-in's pages (PLAN.md R3) get their own: an opener policy its
+  // dialog works with, and for the pane framing by Office's hosts
+  // (lib/security/headers.ts).
   async headers() {
-    return [{ source: "/((?!api/).*)", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/((?!api/|excel$|excel/).*)", headers: SECURITY_HEADERS },
+      { source: "/excel", headers: EXCEL_PANE_HEADERS },
+      { source: "/excel/:path+", headers: EXCEL_DIALOG_HEADERS },
+    ];
   },
   // The site's own domain (PLAN.md 0.2). Vercel keeps answering on the old
   // project address, and www is added beside the apex: both send every path

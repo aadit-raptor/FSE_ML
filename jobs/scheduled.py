@@ -59,14 +59,16 @@ def task(name: str, description: str):
 
 @task("job-maintenance", "Requeue or fail jobs whose runner went silent; apply retention; "
                           "merge old audit edits (PLAN.md 3.3); delete uploaded files past their time "
-                          "(PLAN.md 6.1).")
+                          "(PLAN.md 6.1); end the Excel add-in's expired sign-ins (PLAN.md R3).")
 def job_maintenance() -> dict:
     queue = config.get_queue()
     recovered = queue.recover()
     pruned = queue.prune()
     runs = prune_runs()
     compacted = audit.compact()
-    summary = {**recovered, **pruned, "scheduled_runs_deleted": runs, "audit_rows_compacted": compacted, **{
+    from db import addin
+    summary = {**recovered, **pruned, "scheduled_runs_deleted": runs, "audit_rows_compacted": compacted,
+               "addin_sessions_deleted": addin.sweep(), **{
         f"jobs_{status}": n for status, n in queue.counts().items()}}
     # Uploaded files (PLAN.md 6.1) last: a file store that can't be reached
     # fails the run, so it alerts, after everything else was done

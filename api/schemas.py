@@ -1308,7 +1308,7 @@ class AuditEntry(BaseModel):
                           "a deal's settings, setting keys for the account's")
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
-    export: Optional[Literal["workbook", "simulation_sample", "results_workbook"]] = None
+    export: Optional[Literal["workbook", "simulation_sample", "results_workbook", "results_excel"]] = None
     enabled: Optional[bool] = Field(
         None, description="Whether the reference library was shown or hidden, or suggestions of the "
                           "account's usual figures switched on or off")
@@ -2849,3 +2849,42 @@ class CoveragePeriodOut(CoveragePeriodSummary):
 
 class PeriodAcceptOut(BaseModel):
     periods: List[CoveragePeriodSummary]
+
+
+class SheetCell(BaseModel):
+    """One cell of the checked workbook (PLAN.md R3): exactly one of text, number or formula."""
+    row: int = Field(ge=1, description="From 1, as Excel counts")
+    column: int = Field(ge=1)
+    text: Optional[str] = Field(None, description="Words, written as words even when they start with =")
+    number: Optional[float] = None
+    formula: Optional[str] = Field(None, description="An Excel formula of cells on the same sheet, '=C6+C7'")
+    number_format: Optional[str] = None
+    bold: bool = False
+    note: Optional[str] = Field(None, description="The figure's page and what the analyst did with it")
+
+
+class SheetOut(BaseModel):
+    title: str = Field(description="The sheet's name in the download; the add-in adds a number when the "
+                       "workbook already has one by that name")
+    cells: List[SheetCell]
+    widths: Dict[str, float] = Field(description="Column letter to width in characters")
+    freeze: Optional[str] = Field(description="The first cell that scrolls, 'C6', or null")
+
+
+class PeriodCells(BaseModel):
+    """The checked workbook as cells, for the Excel add-in: the same cells the download holds."""
+    period_id: str
+    company_name: str
+    generated: str
+    sheets: List[SheetOut]
+
+
+class AddinPass(BaseModel):
+    """The Excel add-in's pass (PLAN.md R3), answered once: send it as ``Authorization: Bearer <token>``."""
+    token: str = Field(description="addin: and 43 characters; only its hash is kept")
+    expires_at: str
+    lifetime_s: int
+
+
+class AddinSessionOut(BaseModel):
+    expires_at: str

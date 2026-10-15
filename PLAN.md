@@ -210,7 +210,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R1a | Results reader, built and measured on R0's filings | R0 | ☑ |
 | R1b | Results reader measured on held-out filings (recorded over days) | R1a | ☐ |
 | R2 | Coverage, review screen and the checked workbook | R1a | ☑ |
-| R3 | Excel add-in: sign in and import results | R2 | ☐ |
+| R3 | Excel add-in: sign in and import results | R2 | ☑ |
 | R4 | Sector research, the model definition and the first sector model | R2 | ☐ |
 | R5 | Save back and roll forward | R3, R4 | ☐ |
 | R6 | Valuation | R4 | ☐ |
@@ -825,6 +825,58 @@ or nearly finished to try. So no task waits for an analyst:
   quarter writes the same cells as R2's download (a test compares them); the
   header scan passes on every other route; DEPLOY.md says how a tester
   installs it.
+- **Done (2026-10-15):**
+  - **The pane is `/excel`**, a page of the web app without the shell (no new
+    host), and **the sign-in dialog `/excel/connect`**. Manifests (the "add-in
+    only" XML, which Excel on Windows, the Mac and the web all sideload) for
+    production and staging, written by `python -m ops.addin_manifest` into
+    `web/public/excel/` (`tests/test_addin_manifest.py`: current, HTTPS on the
+    environment's own host, icons at their sizes); a **Variater** button on the
+    Home tab; icons `public/brand/addin-*.png` from `scripts/brand.mjs`.
+  - **Sign-in** (decided here): the pane can't hold the site's session (on
+    Excel on the web it is a frame of Microsoft's page, which keeps the site's
+    cookies from it), so Office's dialog signs in on variater.com as any tab
+    does and asks `POST /api/addin/sessions` for an **add-in pass**, handed to
+    the pane with `messageParent`. A pass reaches only the research endpoints,
+    the three upload steps of the PDF it reads and its own session, by method
+    (`api.auth.ADDIN_PATHS`, else 403; not the file list, links or deleting),
+    can't make another, lasts 12 hours, at most five a person, ends at Sign
+    out, and is stored only as its SHA-256 (table `addin_sessions`, migration
+    0020; `db/addin.py`; expired ones deleted by the nightly job maintenance).
+    Google's sign-in may be refused inside Excel's own window on Windows and
+    the Mac: the pane and the dialog say so and point to email sign-in, which
+    never leaves the page. `/privacy` says what is kept.
+  - **Headers changed for those pages only** (`lib/security/headers.ts`
+    `excelPage`, `next.config.ts`, `proxy.ts`): opener policy `unsafe-none`
+    (the dialog's opener) and Office.js's CDN host in `script-src` on both;
+    on the pane alone `frame-ancestors` names Office's hosts and there is no
+    `X-Frame-Options` (the dialog is never framed); every other page keeps
+    today's policy. `ops/check_headers.py` now scans `/excel`
+    against exactly Office's hosts and `/privacy` and `/sign-in` against the
+    strict policy; `tests/test_security.py` keeps its list equal to the web's.
+  - **Import results**: pick a covered company and accepted quarter, or read a
+    PDF from the pane (the amber figures answered there, accepted, then
+    imported). The cells come from `GET /api/research/periods/{id}/cells`,
+    built by the same `research/coverage.py` `layout` the download is now
+    written from, so the two hold the same cells: words as words (text
+    format, so "=..." stays words), figures as numbers, subtotals as formulas,
+    every figure's page in a note (a comment on an Excel without notes), the
+    column widths (Excel's characters-to-points rule) and frozen panes; each import goes into new sheets (a name
+    taken gets a number). Recorded as `exported` with `results_excel`.
+  - **Proof**: `web/e2e/excel.spec.ts` with `e2e/fake-office.js` served in
+    place of Office.js (the dialog in a window of its own, as on Excel on the
+    web; every write recorded): signing in through the dialog (signed in on the
+    site already, and signed out with the dialog's own sign-in), importing a
+    recorded quarter and reading, correcting, accepting and importing one, each
+    compared with the download cell by cell by `tests/addin_cells_check.py`
+    (values, formulas, formats, bold, notes, widths, frozen panes;
+    mutation-checked); the pass refused outside research and after Sign out;
+    the headers of the pane, the dialog and five other routes.
+    `tests/test_addin.py` holds the pass's rules on a real database.
+  - **Not proven here, the user's checks**: the real Excel on Windows, on the
+    Mac and on the web (DEPLOY.md "Excel add-in" has the installing steps);
+    whether Google's sign-in works inside the dialog on each. If one of them
+    fails, what it shows decides the fix.
 
 ### R4 Sector research, the model definition and the first sector model
 - **Part a, sector research (a session of its own, the user and Claude
