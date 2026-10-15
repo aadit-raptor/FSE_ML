@@ -30,7 +30,7 @@ from core.model_version import ENGINE_VERSION
 from api.routers import (
     account, backtesting, benchmarks, companies, deal, deals, economy, export, files, forecasting, integrations, jobs,
     library,
-    montecarlo, scheduled, validation,
+    montecarlo, research, scheduled, validation,
 )
 from db import DatabaseUnavailable
 from db import health as db_health
@@ -130,6 +130,19 @@ def create_app() -> FastAPI:
             response.status_code = 503
         return result
 
+    @app.get("/api/health/reader", tags=["meta"])
+    def health_reader(response: Response):
+        """The results reader (PLAN.md R1): which AI provider this server
+        uses and whether its key works, found by listing the provider's
+        models, which spends none of its allowance. Never the key. Cached
+        five minutes; never queries the database."""
+        from research.reader import providers
+
+        result = providers.status()
+        if result["status"] == "error":
+            response.status_code = 503
+        return result
+
     @app.get("/api/health/jobs", tags=["meta"])
     def health_jobs(response: Response):
         """The job queue (PLAN.md 1.9): which queue and runner are configured,
@@ -196,7 +209,7 @@ def create_app() -> FastAPI:
     # here, not endpoint by endpoint, means a new route is protected by
     # default -- forgetting is impossible rather than unlikely.
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
-                   jobs, companies, economy, benchmarks, library, validation, files):
+                   jobs, companies, economy, benchmarks, library, validation, files, research):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,

@@ -1,0 +1,781 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   299,
+   149,
+   149,
+   299,
+   149,
+   149,
+   null,
+   null,
+   33,
+   null,
+   247,
+   null,
+   null,
+   null,
+   null,
+   600,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   121,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "ajanta-pharma_FY27-Q1",
+  "pages": 51,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "9b3e0348ac8510339726d8d90998f58e24219d15aa7db027e823ad11bc8aa8cf"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Ajanta Pharma Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "3 months ended 30-Jun-26 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "3 months ended 31-Mar-26 Audited (Refer Note 3)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "3 months ended 30-Jun-25 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended 31-Mar-26 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       5
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         1625.96,
+         1421.64,
+         1302.65,
+         5452.86
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income (Refer note 5)",
+        "values": [
+         70.9,
+         61.43,
+         26.33,
+         172.07
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         1696.86,
+         1483.07,
+         1328.98,
+         5624.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         296.51,
+         256.76,
+         207.08,
+         916.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         66.92,
+         71.35,
+         51.63,
+         229.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         -35.58,
+         -23.3,
+         17.17,
+         37.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         381.11,
+         340.72,
+         302.9,
+         1291.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         3.18,
+         2.36,
+         5.26,
+         16.11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         44.5,
+         45.37,
+         41.29,
+         173.14
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses (Refer note 5)",
+        "values": [
+         493.42,
+         442.7,
+         372.52,
+         1583.12
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         1250.06,
+         1135.96,
+         997.85,
+         4247.28
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before and after exceptional items but before tax",
+        "values": [
+         446.8,
+         347.11,
+         331.13,
+         1377.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax Expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax (net)",
+        "values": [
+         102.72,
+         61.4,
+         73.5,
+         300.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax (net)",
+        "values": [
+         9.86,
+         19.01,
+         2.29,
+         21.57
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit after tax",
+        "values": [
+         334.22,
+         266.7,
+         255.34,
+         1056.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income (OCI)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified subsequently to profit or loss",
+        "values": [
+         -0.94,
+         15.83,
+         3.41,
+         29.39
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified subsequently to profit or loss",
+        "values": [
+         -5.11,
+         3.51,
+         -4.99,
+         -0.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         1.79,
+         -1.23,
+         1.74,
+         0.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (loss), net of tax",
+        "values": [
+         -4.26,
+         18.11,
+         0.16,
+         29.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period / year",
+        "values": [
+         329.96,
+         284.81,
+         255.5,
+         1085.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up Equity Share Capital (Face value of ₹ 2 each)",
+        "values": [
+         25.07,
+         25.07,
+         25.07,
+         25.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         4502.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share (Face value of ₹ 2 each) (a) Basic - in ₹",
+        "values": [
+         26.75,
+         21.35,
+         20.44,
+         84.53
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share (Face value of ₹ 2 each) (b) Diluted - in ₹",
+        "values": [
+         26.72,
+         21.34,
+         20.43,
+         84.51
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 25,
+   "usage": {
+    "candidatesTokenCount": 2057,
+    "promptTokenCount": 27635,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 26927
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2047,
+    "totalTokenCount": 31739
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Ajanta Pharma Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30-Jun-26 Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31-Mar-26 Audited (Refer Note 3)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30-Jun-25 Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31-Mar-26 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         1625.96,
+         1421.64,
+         1302.65,
+         5452.86
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income (Refer note 5)",
+        "values": [
+         70.9,
+         61.43,
+         26.33,
+         172.07
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         1696.86,
+         1483.07,
+         1328.98,
+         5624.93
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         296.51,
+         256.76,
+         207.08,
+         916.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         66.92,
+         71.35,
+         51.63,
+         229.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+        "values": [
+         -35.58,
+         -23.3,
+         17.17,
+         37.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         381.11,
+         340.72,
+         302.9,
+         1291.15
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         3.18,
+         2.36,
+         5.26,
+         16.11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         44.5,
+         45.37,
+         41.29,
+         173.14
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses (Refer note 5)",
+        "values": [
+         493.42,
+         442.7,
+         372.52,
+         1583.12
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         1250.06,
+         1135.96,
+         997.85,
+         4247.28
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before and after exceptional items but before tax",
+        "values": [
+         446.8,
+         347.11,
+         331.13,
+         1377.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax Expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax (net)",
+        "values": [
+         102.72,
+         61.4,
+         73.5,
+         300.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax (net)",
+        "values": [
+         9.86,
+         19.01,
+         2.29,
+         21.57
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit after tax",
+        "values": [
+         334.22,
+         266.7,
+         255.34,
+         1056.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income (OCI)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified subsequently to profit or loss",
+        "values": [
+         -0.94,
+         15.83,
+         3.41,
+         29.39
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified subsequently to profit or loss",
+        "values": [
+         -5.11,
+         3.51,
+         -4.99,
+         -0.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         1.79,
+         -1.23,
+         1.74,
+         0.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (loss), net of tax",
+        "values": [
+         -4.26,
+         18.11,
+         0.16,
+         29.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period / year",
+        "values": [
+         329.96,
+         284.81,
+         255.5,
+         1085.08
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up Equity Share Capital (Face value of ₹ 2 each)",
+        "values": [
+         25.07,
+         25.07,
+         25.07,
+         25.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "values": [
+         null,
+         null,
+         null,
+         4502.02
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share (Face value of ₹ 2 each)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic - in ₹",
+        "values": [
+         26.75,
+         21.35,
+         20.44,
+         84.53
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted - in ₹",
+        "values": [
+         26.72,
+         21.34,
+         20.43,
+         84.51
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 31,
+   "usage": {
+    "candidatesTokenCount": 2304,
+    "promptTokenCount": 1826,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 3629,
+    "totalTokenCount": 7759
+   }
+  }
+ }
+}

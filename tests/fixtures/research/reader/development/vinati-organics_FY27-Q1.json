@@ -1,0 +1,767 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   152,
+   152,
+   152,
+   152,
+   152
+  ],
+  "name": "vinati-organics_FY27-Q1",
+  "pages": 7,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "64fa2dc5f344cebddf9c166200a645b40e89ba4a4d2d7c93a295564e11d768ee"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "VINATI ORGANICS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter Ended (30/06/2026) Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter Ended (30/06/2025) Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter Ended (31/03/2026) Audited Refer Note 3",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended (31/03/2026) Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       5
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income from Operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "1 Revenue from operations",
+        "values": [
+         695.91,
+         541.97,
+         603.92,
+         2226.89
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other Income",
+        "values": [
+         9.0,
+         7.39,
+         20.39,
+         52.64
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total Income( 1+2)",
+        "values": [
+         704.91,
+         549.36,
+         624.31,
+         2279.53
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a. Cost of materials Consumed",
+        "values": [
+         380.62,
+         281.48,
+         259.46,
+         1066.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b. Purchase of Stock in Trade",
+        "values": [
+         0,
+         0,
+         0,
+         0.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c. Changes in inventories of finished goods, work in progress and Stock in Trade",
+        "values": [
+         -4.67,
+         -23.2,
+         27.26,
+         -32.4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d. Employee benefits expenses",
+        "values": [
+         50.46,
+         42.37,
+         43.29,
+         175.42
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e. Power & Fuel Cost",
+        "values": [
+         49.43,
+         38.15,
+         40.62,
+         160.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "f. Finance Costs",
+        "values": [
+         0.01,
+         0.37,
+         0.02,
+         0.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "g. Depreciation",
+        "values": [
+         31.72,
+         25.55,
+         30.46,
+         111.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "h. Other expenditure",
+        "values": [
+         49.58,
+         43.48,
+         63.0,
+         202.55
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         557.15,
+         408.2,
+         464.12,
+         1684.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit before Exceptional Items and Tax ( 3-4)",
+        "values": [
+         147.76,
+         141.16,
+         160.2,
+         594.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "7 Profit before Tax",
+        "values": [
+         147.76,
+         141.16,
+         160.2,
+         594.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Tax Expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Current tax",
+        "values": [
+         35.16,
+         35.69,
+         24.42,
+         129.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Deferred tax",
+        "values": [
+         3.74,
+         1.28,
+         11.92,
+         21.45
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "9 Profit for the period from Continuing operations ( 7-8)",
+        "values": [
+         108.86,
+         104.19,
+         123.86,
+         443.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Other comprehensive income (OCI)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) The items that will not be reclassified to profit or loss.",
+        "values": [
+         -0.05,
+         -0.11,
+         0.46,
+         -0.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Income tax relating to items that will not be reclassified to profit or loss.",
+        "values": [
+         0.01,
+         0.03,
+         -0.12,
+         0.05
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) The items that will be reclassified to profit or loss.",
+        "values": [
+         0,
+         0,
+         0.02,
+         -0.03
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Total Comprehensive Income for the year",
+        "values": [
+         108.82,
+         104.11,
+         124.22,
+         443.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Paid-up equity share capital (face value of Rs.1/-)",
+        "values": [
+         10.37,
+         10.37,
+         10.37,
+         10.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Reserves",
+        "values": [
+         null,
+         null,
+         null,
+         3151.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Earnings Per Share from Continuing Operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic",
+        "values": [
+         10.5,
+         10.05,
+         11.95,
+         42.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted",
+        "values": [
+         10.5,
+         10.05,
+         11.95,
+         42.8
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 190,
+   "usage": {
+    "candidatesTokenCount": 2112,
+    "promptTokenCount": 4432,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 3724
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2220,
+    "totalTokenCount": 8764
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "VINATI ORGANICS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter Ended (30/06/2026) Unaudited",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Quarter Ended (30/06/2025) Unaudited",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter Ended (31/03/2026) Audited Refer Note 3",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended (31/03/2026) Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income from Operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "1 Revenue from operations",
+        "values": [
+         695.91,
+         541.97,
+         603.92,
+         2226.89
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other Income",
+        "values": [
+         9.0,
+         7.39,
+         20.39,
+         52.64
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total Income( 1+2 )",
+        "values": [
+         704.91,
+         549.36,
+         624.31,
+         2279.53
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a. Cost of materials Consumed",
+        "values": [
+         380.62,
+         281.48,
+         259.46,
+         1066.29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b. Purchase of Stock in Trade",
+        "values": [
+         0,
+         0,
+         0,
+         0.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c. Changes in inventories of finished goods, work in progress and Stock in Trade",
+        "values": [
+         -4.67,
+         -23.2,
+         27.26,
+         -32.4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d. Employee benefits expenses",
+        "values": [
+         50.46,
+         42.37,
+         43.29,
+         175.42
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e. Power & Fuel Cost",
+        "values": [
+         49.43,
+         38.15,
+         40.62,
+         160.65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "f. Finance Costs",
+        "values": [
+         0.01,
+         0.37,
+         0.02,
+         0.41
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "g. Depreciation",
+        "values": [
+         31.72,
+         25.55,
+         30.46,
+         111.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "h. Other expenditure",
+        "values": [
+         49.58,
+         43.48,
+         63.0,
+         202.55
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "values": [
+         557.15,
+         408.2,
+         464.12,
+         1684.79
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit before Exceptional Items and Tax ( 3-4 )",
+        "values": [
+         147.76,
+         141.16,
+         160.2,
+         594.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional items",
+        "values": [
+         null,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "7 Profit before Tax",
+        "values": [
+         147.76,
+         141.16,
+         160.2,
+         594.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Tax Expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Current tax",
+        "values": [
+         35.16,
+         35.69,
+         24.42,
+         129.55
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Deferred tax",
+        "values": [
+         3.74,
+         1.28,
+         11.92,
+         21.45
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "9 Profit for the period from Continuing operations ( 7-8 )",
+        "values": [
+         108.86,
+         104.19,
+         123.86,
+         443.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Other comprehensive income (OCI)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) The items that will not be reclassified to profit or loss.",
+        "values": [
+         -0.05,
+         -0.11,
+         0.46,
+         -0.22
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Income tax relating to items that will not be reclassified to profit or loss.",
+        "values": [
+         0.01,
+         0.03,
+         -0.12,
+         0.05
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) The items that will be reclassified to profit or loss.",
+        "values": [
+         null,
+         null,
+         0.02,
+         -0.03
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Total Comprehensive Income for the year",
+        "values": [
+         108.82,
+         104.11,
+         124.22,
+         443.54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Paid-up equity share capital (face value of Rs.1/-)",
+        "values": [
+         10.37,
+         10.37,
+         10.37,
+         10.37
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Reserves",
+        "values": [
+         null,
+         null,
+         null,
+         3151.31
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Earnings Per Share from Continuing Operations",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic",
+        "values": [
+         10.5,
+         10.05,
+         11.95,
+         42.8
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted",
+        "values": [
+         10.5,
+         10.05,
+         11.95,
+         42.8
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 33,
+   "usage": {
+    "candidatesTokenCount": 2361,
+    "promptTokenCount": 1826,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4807,
+    "totalTokenCount": 8994
+   }
+  }
+ }
+}

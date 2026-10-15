@@ -64,11 +64,20 @@ def submit(queue: JobQueue, owner: str, job, *, max_active_per_owner: Optional[i
     check = _SETTINGS_CHECKED.get(job.kind)
     if check is not None:
         resolve_settings(job.input.settings, check_correlations=check)
+    return submit_kind(owner, job.kind, job.input.model_dump(mode="json"), queue,
+                       max_active_per_owner=max_active_per_owner, max_queued=max_queued)
+
+
+def submit_kind(owner: str, kind: str, payload: dict, queue: Optional[JobQueue] = None, *,
+                max_active_per_owner: Optional[int] = None, max_queued: Optional[int] = None) -> JobRecord:
+    """Queue a job and wake the runner; a full queue is a 429 or 503. Also how
+    an endpoint queues a kind no caller may submit through ``/api/jobs`` (not
+    in ``JobSubmit``), having checked the request itself."""
+    queue = queue or config.get_queue()
     try:
-        record = queue.submit(
-            owner, job.kind, job.input.model_dump(mode="json"),
-            max_active_per_owner=max_active_per_owner or q.MAX_ACTIVE_PER_OWNER,
-            max_queued=max_queued or q.MAX_QUEUED)
+        record = queue.submit(owner, kind, payload,
+                              max_active_per_owner=max_active_per_owner or q.MAX_ACTIVE_PER_OWNER,
+                              max_queued=max_queued or q.MAX_QUEUED)
     except QueueFull as exc:
         if exc.owner_limit:
             raise HTTPException(429, str(exc), headers={"Retry-After": "10"}) from None

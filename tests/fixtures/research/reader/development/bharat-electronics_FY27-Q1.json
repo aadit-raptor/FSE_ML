@@ -1,0 +1,991 @@
+{
+ "document": {
+  "dpi": [
+   212,
+   212,
+   212,
+   212,
+   212,
+   212,
+   212,
+   212,
+   212,
+   212,
+   212
+  ],
+  "name": "bharat-electronics_FY27-Q1",
+  "pages": 11,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "7f575541145ab25aec449d799a5b712a90f9be610480d9400c4c4bb5434bb16f"
+ },
+ "prompt": "r0-first",
+ "reads": {
+  "A": {
+   "model": "6-flash",
+   "read": {
+    "company": "BHARAT ELECTRONICS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30.06.2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "31.03.2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30.06.2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31.03.2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       9
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         554698,
+         1022443,
+         443974,
+         2761011
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         16956,
+         11025,
+         16332,
+         56603
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total income (1+2)",
+        "values": [
+         571654,
+         1033468,
+         460306,
+         2817614
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(a) Cost of materials consumed",
+        "values": [
+         304123,
+         479387,
+         196084,
+         1388161
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(b) Consumption of stock-in-trade",
+        "values": [
+         27981,
+         37867,
+         9915,
+         74842
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(c) Changes in inventories of finished goods, work-in-progress and scrap",
+        "values": [
+         -30007,
+         12148,
+         1609,
+         -59688
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(d) Employee benefits expense",
+        "values": [
+         79284,
+         83142,
+         69648,
+         311555
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(e) Finance costs",
+        "values": [
+         116,
+         161,
+         144,
+         673
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(f) Depreciation and amortisation expense",
+        "values": [
+         16055,
+         17295,
+         12079,
+         55567
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(g) Other expenses",
+        "values": [
+         34477,
+         111734,
+         42891,
+         241208
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses (a to g)",
+        "values": [
+         432029,
+         741734,
+         332370,
+         2012318
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items, share of net profit of associates accounted under equity method & tax (3-4)",
+        "values": [
+         139625,
+         291734,
+         127936,
+         805296
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before share of net profit of associates accounted under equity method & tax (5 - 6)",
+        "values": [
+         139625,
+         291734,
+         127936,
+         805296
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Current tax",
+        "values": [
+         37446,
+         72601,
+         35286,
+         206443
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Earlier years tax",
+        "values": [
+         0,
+         -3,
+         0,
+         -3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Deferred tax",
+        "values": [
+         -2211,
+         -2283,
+         -3417,
+         -3491
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total provision for taxation",
+        "values": [
+         35235,
+         70315,
+         31869,
+         202949
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before share of net profit of associates accounted under equity method (7 - 8)",
+        "values": [
+         104390,
+         221419,
+         96067,
+         602347
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of net profit of associates accounted under equity method",
+        "values": [
+         1063,
+         1216,
+         838,
+         3879
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the period (9 + 10)",
+        "values": [
+         105453,
+         222635,
+         96905,
+         606226
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Remeasurement of the net defined benefit liability/asset",
+        "values": [
+         -3390,
+         -1188,
+         2452,
+         4766
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Equity instruments through other comprehensive income",
+        "values": [
+         0,
+         1,
+         0,
+         1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Share of other comprehensive income of associate accounted under equity method (net of tax)",
+        "values": [
+         4,
+         143,
+         -2,
+         5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax relating to these items",
+        "values": [
+         853,
+         332,
+         -617,
+         -1201
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income / (loss) (net of tax)",
+        "values": [
+         -2537,
+         -712,
+         1833,
+         3571
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period (11 + 12) [comprising profit and other comprehensive income for the period]",
+        "values": [
+         102920,
+         221923,
+         98738,
+         609797
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net Profit / (Loss) attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         105434,
+         222522,
+         96991,
+         606200
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non Controlling Interest",
+        "values": [
+         19,
+         113,
+         -86,
+         26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         -2533,
+         -712,
+         1833,
+         3571
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non Controlling Interest",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         102901,
+         221810,
+         98824,
+         609771
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non Controlling Interest",
+        "values": [
+         19,
+         113,
+         -86,
+         26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up equity share capital (Face Value of ₹ 1/- each)",
+        "values": [
+         73098,
+         73098,
+         73098,
+         73098
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per share (Basic & Diluted) (₹) (not annualised)",
+        "values": [
+         1.44,
+         3.04,
+         1.33,
+         8.29
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 3045,
+    "promptTokenCount": 6383,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 531
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 5852
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 7070,
+    "totalTokenCount": 16498
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Bharat Electronics Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30.06.2024 (Unaudited)",
+        "months": 3,
+        "period_end": "2024-06-30"
+       },
+       {
+        "audited": false,
+        "label": "31.03.2024 (Refer note 6) (Unaudited)",
+        "months": 3,
+        "period_end": "2024-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30.06.2023 (Unaudited)",
+        "months": 3,
+        "period_end": "2023-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31.03.2024 (Audited)",
+        "months": 12,
+        "period_end": "2024-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "1 Revenue from operations",
+        "values": [
+         554698,
+         1022443,
+         443974,
+         2761011
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other income",
+        "values": [
+         16956,
+         11025,
+         16332,
+         56603
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total income (1+2)",
+        "values": [
+         571654,
+         1033468,
+         460306,
+         2817614
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(a) Cost of materials consumed",
+        "values": [
+         304123,
+         479387,
+         196084,
+         1388161
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(b) Consumption of stock-in-trade",
+        "values": [
+         27981,
+         37867,
+         9915,
+         74842
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(c) Changes in inventories of finished goods, work-in-progress and scrap",
+        "values": [
+         -30007,
+         12148,
+         1609,
+         -59688
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(d) Employee benefits expense",
+        "values": [
+         79284,
+         83142,
+         69648,
+         311555
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(e) Finance costs",
+        "values": [
+         116,
+         161,
+         144,
+         673
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(f) Depreciation and amortisation expense",
+        "values": [
+         16055,
+         17295,
+         12079,
+         55567
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(g) Other expenses",
+        "values": [
+         34477,
+         111734,
+         42891,
+         241208
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses (a to g)",
+        "values": [
+         432029,
+         741734,
+         332370,
+         2012318
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit before exceptional items, share of net profit of associates accounted under equity method & tax (3-4)",
+        "values": [
+         139625,
+         291734,
+         127936,
+         805296
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "7 Profit before share of net profit of associates accounted under equity method & tax (5 - 6)",
+        "values": [
+         139625,
+         291734,
+         127936,
+         805296
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Tax expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Current tax",
+        "values": [
+         37446,
+         72601,
+         35286,
+         206443
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Earlier years tax",
+        "values": [
+         0,
+         -3,
+         0,
+         -3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Deferred tax",
+        "values": [
+         -2211,
+         -2283,
+         -3417,
+         -3491
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total provision for taxation",
+        "values": [
+         35235,
+         70315,
+         31869,
+         202949
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "9 Profit before share of net profit of associates accounted under equity method (7 - 8)",
+        "values": [
+         104390,
+         221419,
+         96067,
+         602347
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Share of net profit of associates accounted under equity method",
+        "values": [
+         1063,
+         1216,
+         838,
+         3879
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "11 Profit for the period (9 + 10)",
+        "values": [
+         105453,
+         222635,
+         96905,
+         606226
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Other Comprehensive Income / (Loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Remeasurement of the net defined benefit liability/asset",
+        "values": [
+         -3390,
+         -1188,
+         2452,
+         4766
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Equity instruments through other comprehensive income",
+        "values": [
+         0,
+         1,
+         0,
+         1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Share of other comprehensive income of associate accounted under equity method (net of tax)",
+        "values": [
+         4,
+         143,
+         -2,
+         5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax relating to these items",
+        "values": [
+         853,
+         332,
+         -617,
+         -1201
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income / (loss) (net of tax)",
+        "values": [
+         -2533,
+         -712,
+         1833,
+         3571
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Total comprehensive income for the period (11 + 12) [comprising profit and other comprehensive income for the period]",
+        "values": [
+         102920,
+         221923,
+         98738,
+         609797
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Net Profit / (Loss) attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         105434,
+         222522,
+         96991,
+         606200
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non Controlling Interest",
+        "values": [
+         19,
+         113,
+         -86,
+         26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         -2533,
+         -712,
+         1833,
+         3571
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non Controlling Interest",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Owners of the Company",
+        "values": [
+         102901,
+         221810,
+         98824,
+         609771
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Non Controlling Interest",
+        "values": [
+         19,
+         113,
+         -86,
+         26
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "15 Paid-up equity share capital (Face Value of ₹ 1/- each)",
+        "values": [
+         73098,
+         73098,
+         73098,
+         73098
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "16 Earnings per share (Basic & Diluted) (₹) (not annualised)",
+        "values": [
+         1.44,
+         3.04,
+         1.33,
+         8.29
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 2754,
+    "promptTokenCount": 1648,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 556
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 18305,
+    "totalTokenCount": 22707
+   }
+  }
+ }
+}

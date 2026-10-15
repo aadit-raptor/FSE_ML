@@ -1,0 +1,1803 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   399,
+   399,
+   399,
+   399,
+   399,
+   399,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   299,
+   299,
+   299,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   299,
+   299,
+   299,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   299,
+   299,
+   299,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   299,
+   299,
+   299,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "infosys_FY27-Q1",
+  "pages": 193,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "333cc90436c5ca52e2b606733ca66ad4247c7e34b9219f291fbac3d589a46f22"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Infosys Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       22
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         48211,
+         46402,
+         42279,
+         178650
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income, net",
+        "values": [
+         984,
+         1159,
+         1042,
+         4322
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         49195,
+         47561,
+         43321,
+         182972
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefit expenses",
+        "values": [
+         25287,
+         24688,
+         22847,
+         95094
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of technical sub-contractors",
+        "values": [
+         4181,
+         3952,
+         3497,
+         15421
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Travel expenses",
+        "values": [
+         701,
+         532,
+         516,
+         2097
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of software packages and others",
+        "values": [
+         4421,
+         3969,
+         3746,
+         15722
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Communication expenses",
+        "values": [
+         150,
+         141,
+         144,
+         603
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Consultancy and professional charges",
+        "values": [
+         603,
+         661,
+         464,
+         2090
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         1246,
+         1424,
+         1140,
+         4902
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance cost",
+        "values": [
+         119,
+         105,
+         105,
+         416
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         1459,
+         1292,
+         1122,
+         5343
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         38167,
+         36764,
+         33581,
+         141688
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional item and tax",
+        "values": [
+         11028,
+         10797,
+         9740,
+         41284
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional item",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Impact of Labour Codes",
+        "values": [
+         null,
+         null,
+         null,
+         1289
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax",
+        "values": [
+         11028,
+         10797,
+         9740,
+         39995
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         3356,
+         2664,
+         3053,
+         11767
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         -103,
+         -376,
+         -237,
+         -1246
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the period",
+        "values": [
+         7775,
+         8509,
+         6924,
+         29474
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Remeasurement of the net defined benefit liability/asset, net",
+        "values": [
+         296,
+         -236,
+         -70,
+         -288
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity instruments through other comprehensive income, net",
+        "values": [
+         60,
+         374,
+         35,
+         397
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Fair value changes on derivatives designated as cash flow hedge, net",
+        "values": [
+         49,
+         -11,
+         6,
+         -1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exchange differences on translation of foreign operations",
+        "values": [
+         -94,
+         1021,
+         1019,
+         3256
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Fair value changes on investments, net",
+        "values": [
+         60,
+         -93,
+         123,
+         -27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income/(loss), net of tax",
+        "values": [
+         371,
+         1055,
+         1113,
+         3337
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period",
+        "values": [
+         8146,
+         9564,
+         8037,
+         32811
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the company",
+        "values": [
+         7769,
+         8501,
+         6921,
+         29440
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         6,
+         8,
+         3,
+         34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total profit attributable to",
+        "values": [
+         7775,
+         8509,
+         6924,
+         29474
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the company",
+        "values": [
+         8142,
+         9546,
+         8024,
+         32750
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         4,
+         18,
+         13,
+         61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable to",
+        "values": [
+         8146,
+         9564,
+         8037,
+         32811
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up share capital (par value ₹5/- each, fully paid)",
+        "values": [
+         2025,
+         2024,
+         2074,
+         2024
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity *",
+        "values": [
+         90828,
+         90828,
+         93745,
+         90828
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (par value ₹5/- each)**",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic (in ₹ per share)",
+        "values": [
+         19.19,
+         21.01,
+         16.7,
+         71.58
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted (in ₹ per share)",
+        "values": [
+         19.17,
+         20.98,
+         16.68,
+         71.46
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       24
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Revenue by business segment",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial Services (1)",
+        "values": [
+         13463,
+         12976,
+         11796,
+         49908
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Manufacturing",
+        "values": [
+         7668,
+         7358,
+         6804,
+         29078
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Energy, Utilities, Resources and Services",
+        "values": [
+         6452,
+         6114,
+         5742,
+         23818
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Retail (2)",
+        "values": [
+         6172,
+         5958,
+         5651,
+         23077
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Communication (3)",
+        "values": [
+         5791,
+         5752,
+         5097,
+         21765
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Life Sciences (4)",
+        "values": [
+         3842,
+         3393,
+         2745,
+         12267
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hi-Tech",
+        "values": [
+         3710,
+         3558,
+         3296,
+         13928
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (5)",
+        "values": [
+         1113,
+         1293,
+         1148,
+         4809
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         48211,
+         46402,
+         42279,
+         178650
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter-segment revenue",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net revenue from operations",
+        "values": [
+         48211,
+         46402,
+         42279,
+         178650
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Profit:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial Services (1)",
+        "values": [
+         3662,
+         3410,
+         2973,
+         12678
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Manufacturing",
+        "values": [
+         1685,
+         1541,
+         1416,
+         6444
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Energy, Utilities, Resources and Services",
+        "values": [
+         1576,
+         1548,
+         1437,
+         5984
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Retail (2)",
+        "values": [
+         1701,
+         1811,
+         1691,
+         7089
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Communication (3)",
+        "values": [
+         1180,
+         1027,
+         880,
+         3861
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Life Sciences (4)",
+        "values": [
+         619,
+         659,
+         554,
+         2444
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hi-Tech",
+        "values": [
+         911,
+         930,
+         768,
+         3228
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (5)",
+        "values": [
+         75,
+         241,
+         224,
+         717
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total",
+        "values": [
+         11409,
+         11167,
+         9943,
+         42445
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Other Unallocable expenditure*",
+        "values": [
+         1246,
+         1424,
+         1140,
+         6191
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Unallocable other income",
+        "values": [
+         984,
+         1159,
+         1042,
+         4157
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Finance cost",
+        "values": [
+         119,
+         105,
+         105,
+         416
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax and non-controlling interests",
+        "values": [
+         11028,
+         10797,
+         9740,
+         39995
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 90,
+   "usage": {
+    "candidatesTokenCount": 4328,
+    "promptTokenCount": 103300,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 102592
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 12400,
+    "totalTokenCount": 120028
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Infosys Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         48211,
+         46402,
+         42279,
+         178650
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income, net",
+        "values": [
+         984,
+         1159,
+         1042,
+         4322
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         49195,
+         47561,
+         43321,
+         182972
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefit expenses",
+        "values": [
+         25287,
+         24688,
+         22847,
+         95094
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of technical sub-contractors",
+        "values": [
+         4181,
+         3952,
+         3497,
+         15421
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Travel expenses",
+        "values": [
+         701,
+         532,
+         516,
+         2097
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of software packages and others",
+        "values": [
+         4421,
+         3969,
+         3746,
+         15722
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Communication expenses",
+        "values": [
+         150,
+         141,
+         144,
+         603
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Consultancy and professional charges",
+        "values": [
+         603,
+         661,
+         464,
+         2090
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         1246,
+         1424,
+         1140,
+         4902
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance cost",
+        "values": [
+         119,
+         105,
+         105,
+         416
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         1459,
+         1292,
+         1122,
+         5343
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         38167,
+         36764,
+         33581,
+         141688
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional item and tax",
+        "values": [
+         11028,
+         10797,
+         9740,
+         41284
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional item",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Impact of Labour Codes",
+        "values": [
+         0,
+         0,
+         0,
+         1289
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax",
+        "values": [
+         11028,
+         10797,
+         9740,
+         39995
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         3356,
+         2664,
+         3053,
+         11767
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         -103,
+         -376,
+         -237,
+         -1246
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the period",
+        "values": [
+         7775,
+         8509,
+         6924,
+         29474
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Remeasurement of the net defined benefit liability/asset, net",
+        "values": [
+         296,
+         -236,
+         -70,
+         -288
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity instruments through other comprehensive income, net",
+        "values": [
+         60,
+         374,
+         35,
+         397
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified subsequently to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Fair value changes on derivatives designated as cash flow hedge, net",
+        "values": [
+         49,
+         -11,
+         6,
+         -1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exchange differences on translation of foreign operations",
+        "values": [
+         -94,
+         1021,
+         1019,
+         3256
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Fair value changes on investments, net",
+        "values": [
+         60,
+         -93,
+         123,
+         -27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income/(loss), net of tax",
+        "values": [
+         371,
+         1055,
+         1113,
+         3337
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period",
+        "values": [
+         8146,
+         9564,
+         8037,
+         32811
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the company",
+        "values": [
+         7769,
+         8501,
+         6921,
+         29440
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         6,
+         8,
+         3,
+         34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the company",
+        "values": [
+         8142,
+         9546,
+         8024,
+         32750
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         4,
+         18,
+         13,
+         61
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid up share capital (par value ₹5/- each, fully paid)",
+        "values": [
+         2025,
+         2024,
+         2074,
+         2024
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity *#",
+        "values": [
+         90828,
+         90828,
+         93745,
+         90828
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (par value ₹5/- each)**",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Basic (in ₹ per share)",
+        "values": [
+         19.19,
+         21.01,
+         16.7,
+         71.58
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Diluted (in ₹ per share)",
+        "values": [
+         19.17,
+         20.98,
+         16.68,
+         71.46
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended June 30, 2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Revenue by business segment",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial Services (1)",
+        "values": [
+         13463,
+         12976,
+         11796,
+         49908
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Manufacturing",
+        "values": [
+         7668,
+         7358,
+         6804,
+         29078
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Energy, Utilities, Resources and Services",
+        "values": [
+         6452,
+         6114,
+         5742,
+         23818
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Retail (2)",
+        "values": [
+         6172,
+         5958,
+         5651,
+         23077
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Communication (3)",
+        "values": [
+         5791,
+         5752,
+         5097,
+         21765
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Life Sciences (4)",
+        "values": [
+         3842,
+         3393,
+         2745,
+         12267
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hi-Tech",
+        "values": [
+         3710,
+         3558,
+         3296,
+         13928
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (5)",
+        "values": [
+         1113,
+         1293,
+         1148,
+         4809
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         48211,
+         46402,
+         42279,
+         178650
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Inter-segment revenue",
+        "values": [
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net revenue from operations",
+        "values": [
+         48211,
+         46402,
+         42279,
+         178650
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment Profit:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial Services (1)",
+        "values": [
+         3662,
+         3410,
+         2973,
+         12678
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Manufacturing",
+        "values": [
+         1685,
+         1541,
+         1416,
+         6444
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Energy, Utilities, Resources and Services",
+        "values": [
+         1576,
+         1548,
+         1437,
+         5984
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Retail (2)",
+        "values": [
+         1701,
+         1811,
+         1691,
+         7089
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Communication (3)",
+        "values": [
+         1180,
+         1027,
+         880,
+         3861
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Life Sciences (4)",
+        "values": [
+         619,
+         659,
+         554,
+         2444
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hi-Tech",
+        "values": [
+         911,
+         930,
+         768,
+         3228
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (5)",
+        "values": [
+         75,
+         241,
+         224,
+         717
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Total",
+        "values": [
+         11409,
+         11167,
+         9943,
+         42445
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Other Unallocable expenditure*",
+        "values": [
+         1246,
+         1424,
+         1140,
+         6191
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: Unallocable other income",
+        "values": [
+         984,
+         1159,
+         1042,
+         4157
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: Finance cost",
+        "values": [
+         119,
+         105,
+         105,
+         416
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax and non-controlling interests",
+        "values": [
+         11028,
+         10797,
+         9740,
+         39995
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 69,
+   "usage": {
+    "candidatesTokenCount": 3440,
+    "promptTokenCount": 2918,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 13131,
+    "totalTokenCount": 19489
+   }
+  }
+ }
+}

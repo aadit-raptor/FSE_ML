@@ -29,6 +29,7 @@ COPY jobs ./jobs
 COPY lbo_engine ./lbo_engine
 COPY library ./library
 COPY ml ./ml
+COPY research ./research
 COPY simulation ./simulation
 COPY uploads ./uploads
 COPY validation ./validation

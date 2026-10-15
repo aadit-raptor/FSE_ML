@@ -34,6 +34,7 @@ services:
         - lbo_engine/**
         - library/**
         - ml/**
+        - research/**
         - simulation/**
         - uploads/**
         - validation/**
@@ -71,4 +72,13 @@ services:
       - key: SUPABASE_UPLOADS_URL
         sync: false
       - key: SUPABASE_UPLOADS_KEY
+        sync: false
+      # The results reader (PLAN.md R1, DEPLOY.md "Results reader"): AI_PROVIDER
+      # gemini and its key (Google project variater-reader, free tier until
+      # billing with a cap is switched on before outside users). Unset = the
+      # reader says it is off. AI_FREE_TIER defaults on: every read asks the
+      # person to confirm the file is public; set 0 only on a paid key
+      - key: AI_PROVIDER
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false

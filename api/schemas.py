@@ -6,6 +6,7 @@ Input bounds mirror the Streamlit input widgets. Percentages are numbers like
 model's inputs; engine outputs keep the engine's own units (IRR 0.157 = 15.7%).
 Every response that holds money says which currency and unit it is in.
 """
+import uuid
 from datetime import date, datetime
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
@@ -1346,7 +1347,8 @@ class ForecastJob(Strict):
 JobSubmit = Annotated[Union[MonteCarloJob, ScenariosJob, BacktestJob, ForecastJob],
                       Field(discriminator="kind")]
 
-JobKindName = Literal["montecarlo.run", "montecarlo.scenarios", "backtesting.run", "forecasting.run"]
+JobKindName = Literal["montecarlo.run", "montecarlo.scenarios", "backtesting.run", "forecasting.run",
+                      "research.read"]
 JobStatus = Literal["queued", "running", "succeeded", "failed", "cancelled"]
 
 
@@ -2602,3 +2604,142 @@ class FileRefusalDetail(BaseModel):
 
 class FileRefusal(BaseModel):
     detail: FileRefusalDetail
+
+
+# ---------------------------------------------------------------------------
+# Results reader (PLAN.md R1, research/reader/)
+# ---------------------------------------------------------------------------
+AmberReason = Literal["reads_differ", "sign_differs", "one_read_only", "sum_fails", "poor_scan", "unbalanced",
+                      "cash_mismatch", "stored_differs"]
+Statement = Literal["results", "segments", "balance_sheet", "cash_flow"]
+
+
+class ReadStart(Strict):
+    file_id: uuid.UUID = Field(description="An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)")
+    public: bool = Field(False, description="The caller confirms the file is a listed company's published "
+                         "results. Required while the reader runs on a free AI tier, which may use what it "
+                         "is sent to improve its products")
+    quarter_end: Optional[date] = Field(None, description="The quarter the filing is for; without it the two "
+                                        "reads must agree on it")
+
+
+class ReadCell(BaseModel):
+    value: Optional[float]
+    amber: Optional[AmberReason] = Field(None, description="Why the figure needs a look; null when it doesn't")
+    other: Optional[float] = Field(None, description="The other read's value, or the sum the parts give")
+    in_sum: bool = Field(description="The figure sits in a sum the table states that holds")
+
+
+class ReadRow(BaseModel):
+    label: str = Field(description="The company's own wording")
+    line: Optional[str] = Field(None, description="The standard line it matches (research/reader/lines.py)")
+    line_source: Optional[Literal["list", "ai"]] = None
+    page: Optional[int] = Field(None, description="The PDF page the row is on, where known")
+    cells: List[ReadCell]
+
+
+class ReadColumn(BaseModel):
+    label: str
+    period_end: str
+    months: Optional[int]
+    audited: bool
+
+
+class ReadTableSummary(BaseModel):
+    figures: int
+    amber: int
+    in_sums: int
+    sums_found: int
+    sums_failed: int
+    agreed: int
+
+
+class ReadTable(BaseModel):
+    statement: Statement
+    scope: Literal["consolidated", "standalone"]
+    pages: List[int]
+    columns: List[ReadColumn]
+    rows: List[ReadRow]
+    summary: ReadTableSummary
+
+
+class ReadProblem(BaseModel):
+    statement: Optional[str]
+    column: Optional[int]
+    code: str = Field(description="What is wrong with a heading, the unit or a table (reader.problem_* on screen)")
+    detail: str
+
+
+class ReadTotals(BaseModel):
+    tables: int
+    figures: int
+    amber: int
+    amber_share: Optional[float]
+    in_sums: int
+    period_problems: int
+
+
+class ReadOneRead(BaseModel):
+    model: str
+    prompt_version: str
+    seconds: float
+    tokens: Dict[str, int]
+
+
+class ReadReads(BaseModel):
+    A: ReadOneRead
+    B: Optional[ReadOneRead]
+    seconds: float
+
+
+class ReadDocument(BaseModel):
+    pages: int
+    poor_pages: List[int]
+    sha256: str
+
+
+class ReadResult(BaseModel):
+    """A results filing read twice and checked. Money is as printed, in ``unit``."""
+    file_id: str
+    company: str
+    currency: Optional[str]
+    unit: Optional[Literal["lakhs", "crores", "millions", "thousands", "units"]]
+    quarter_end: Optional[str]
+    quarter_source: Optional[Literal["given", "reads"]]
+    year_end_month: Optional[int]
+    tables: List[ReadTable]
+    problems: List[ReadProblem]
+    summary: ReadTotals
+    document: ReadDocument
+    reads: ReadReads
+
+
+class ReadJobOut(BaseModel):
+    id: str
+    status: JobStatus
+    progress: float
+    stage: Optional[str]
+    error: Optional[str] = Field(None, description="A code (reader.error_* on screen) when the read failed")
+    error_status: Optional[int] = None
+    result_expired: bool = False
+    result: Optional[ReadResult] = None
+
+
+class ReaderMeasured(BaseModel):
+    set: Optional[str]
+    meets_bar: Optional[bool]
+    cases: int
+    amber_share: Optional[float]
+
+
+class ReaderInfo(BaseModel):
+    status: Literal["on", "off"]
+    provider: str
+    free_tier: bool
+    confirm_public: bool = Field(description="A read needs the caller to confirm the file is public")
+    open: bool = Field(description="This server reads for people (production: only once the card meets the bar)")
+    measured: ReaderMeasured
+    pages_per_day: int
+    pages_left: int
+    reads_per_day: int
+    max_pages: int

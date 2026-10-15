@@ -1,0 +1,1114 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "royal-orchid-hotels_FY27-Q1",
+  "pages": 14,
+  "quarter_end": "2026-06-30",
+  "set": "development",
+  "sha256": "2cc0a05d2d3e51afe7baf599386e4969a9b90485ece36597a3f63d1168a26577"
+ },
+ "prompt": "r0-first",
+ "reads": {
+  "A": {
+   "model": "7-flash",
+   "read": {
+    "company": "ROYAL ORCHID HOTELS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended 30 June 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Quarter ended 31 March 2026 (Audited) (Refer note 4)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended 30 June 2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year ended 31 March 2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       11
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "(a) Revenue from operations",
+        "values": [
+         10721.38,
+         11317.21,
+         7876.53,
+         38415.05
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "(b) Other income",
+        "values": [
+         749.11,
+         575.73,
+         402.99,
+         2228.12
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         11470.49,
+         11892.94,
+         8279.52,
+         40643.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(a) Food and beverages consumed",
+        "values": [
+         887.5,
+         998.8,
+         734.29,
+         3468.45
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(b) Employee benefits expense",
+        "values": [
+         2867.25,
+         2827.16,
+         2196.65,
+         10331.04
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(c) Rent expense",
+        "values": [
+         416.19,
+         349.74,
+         374.79,
+         1589.14
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(d) Power and fuel expense",
+        "values": [
+         719.57,
+         582.66,
+         537.79,
+         2283.42
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(e) Other expenses",
+        "values": [
+         3287.11,
+         4002.4,
+         2069.11,
+         11908.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses before depreciation and amortisation and finance costs",
+        "values": [
+         8177.62,
+         8760.76,
+         5912.63,
+         29580.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before depreciation and amortisation, finance costs and taxes (1-2)",
+        "values": [
+         3292.87,
+         3132.18,
+         2366.89,
+         11062.66
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Finance costs",
+        "values": [
+         1322.1,
+         1308.74,
+         394.0,
+         3881.76
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "Depreciation and amortisation expense",
+        "values": [
+         1153.2,
+         1140.99,
+         512.6,
+         3560.09
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses (2+4+5)",
+        "values": [
+         10652.92,
+         11210.49,
+         6819.23,
+         37022.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax (1-6)",
+        "values": [
+         817.57,
+         682.45,
+         1460.29,
+         3620.81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional item (Refer Note 5)",
+        "values": [
+         0,
+         217.26,
+         0,
+         217.26
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax (7+8)",
+        "values": [
+         817.57,
+         899.71,
+         1460.29,
+         3838.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Current tax",
+        "values": [
+         315.87,
+         473.52,
+         360.31,
+         1600.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Deferred tax charge / (credit)",
+        "values": [
+         -81.5,
+         -222.87,
+         22.03,
+         -618.6
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         234.37,
+         250.65,
+         382.34,
+         982.04
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period / year after tax before share of associate (9-10)",
+        "values": [
+         583.2,
+         649.06,
+         1077.95,
+         2856.03
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share of profit of associate",
+        "values": [
+         96.24,
+         172.8,
+         41.48,
+         476.71
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the period / year (11+12)",
+        "values": [
+         679.44,
+         821.86,
+         1119.43,
+         3332.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified subsequently to profit or loss",
+        "values": [
+         -37.7,
+         -96.06,
+         23.94,
+         13.33
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified to profit or loss",
+        "values": [
+         0,
+         -30.01,
+         0,
+         -11.25
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         0,
+         7.64,
+         0,
+         2.92
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other Comprehensive Income / (Loss)",
+        "values": [
+         -37.7,
+         -118.43,
+         23.94,
+         5.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period / year (13+14)",
+        "values": [
+         641.74,
+         703.43,
+         1143.37,
+         3337.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Profit for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         641.73,
+         794.48,
+         1093.85,
+         3218.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         37.71,
+         27.38,
+         25.58,
+         114.28
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "",
+        "values": [
+         679.44,
+         821.86,
+         1119.43,
+         3332.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         -37.7,
+         -117.25,
+         23.94,
+         6.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0,
+         -1.18,
+         0,
+         -1.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "",
+        "values": [
+         -37.7,
+         -118.43,
+         23.94,
+         5.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         604.03,
+         677.23,
+         1117.79,
+         3224.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         37.71,
+         26.2,
+         25.58,
+         113.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "",
+        "values": [
+         641.74,
+         703.43,
+         1143.37,
+         3337.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up equity share capital (Face Value ₹ 10/- each)",
+        "values": [
+         2742.52,
+         2742.52,
+         2742.52,
+         2742.52
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity (including non-controlling interest)",
+        "values": [
+         null,
+         null,
+         null,
+         24812.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share of ₹ 10 each: *",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic (₹)",
+        "values": [
+         2.34,
+         2.9,
+         3.99,
+         11.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted (₹)",
+        "values": [
+         2.34,
+         2.9,
+         3.99,
+         11.74
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 3252,
+    "promptTokenCount": 7979,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 531
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 7448
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 8929,
+    "totalTokenCount": 20160
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "ROYAL ORCHID HOTELS LIMITED",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30 June 2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31 March 2026 (Audited) (Refer note 4)",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30 June 2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31 March 2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Income",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "(a) Revenue from operations",
+        "values": [
+         10721.38,
+         11317.21,
+         7876.53,
+         38415.05
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "(b) Other income",
+        "values": [
+         749.11,
+         575.73,
+         402.99,
+         2228.12
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income",
+        "values": [
+         11470.49,
+         11892.94,
+         8279.52,
+         40643.17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2 Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(a) Food and beverages consumed",
+        "values": [
+         887.5,
+         998.8,
+         734.29,
+         3468.45
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(b) Employee benefits expense",
+        "values": [
+         2867.25,
+         2827.16,
+         2196.65,
+         10331.04
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(c) Rent expense",
+        "values": [
+         416.19,
+         349.74,
+         374.79,
+         1589.14
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(d) Power and fuel expense",
+        "values": [
+         719.57,
+         582.66,
+         537.79,
+         2283.42
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "(e) Other expenses",
+        "values": [
+         3287.11,
+         4002.4,
+         2069.11,
+         11908.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses before depreciation and amortisation and finance costs",
+        "values": [
+         8177.62,
+         8760.76,
+         5912.63,
+         29580.51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3 Profit before depreciation and amortisation, finance costs and taxes (1-2)",
+        "values": [
+         3292.87,
+         3132.18,
+         2366.89,
+         11062.66
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "4 Finance costs",
+        "values": [
+         1322.1,
+         1308.74,
+         394.0,
+         3881.76
+        ]
+       },
+       {
+        "kind": "expense_item",
+        "label": "5 Depreciation and amortisation expense",
+        "values": [
+         1153.2,
+         1140.99,
+         512.6,
+         3560.09
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "6 Total expenses (2+4+5)",
+        "values": [
+         10652.92,
+         11210.49,
+         6819.23,
+         37022.36
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "7 Profit before exceptional items and tax (1-6)",
+        "values": [
+         817.57,
+         682.45,
+         1460.29,
+         3620.81
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Exceptional item (Refer Note 5)",
+        "values": [
+         0,
+         217.26,
+         0,
+         217.26
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "9 Profit before tax (7+8)",
+        "values": [
+         817.57,
+         899.71,
+         1460.29,
+         3838.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Tax expense",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Current tax",
+        "values": [
+         315.87,
+         473.52,
+         360.31,
+         1600.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Deferred tax charge / (credit)",
+        "values": [
+         -81.5,
+         -222.87,
+         22.03,
+         -618.6
+        ]
+       },
+       {
+        "kind": "tax_total",
+        "label": "Total tax expense",
+        "values": [
+         234.37,
+         250.65,
+         382.34,
+         982.04
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Profit for the period / year after tax before share of associate (9-10)",
+        "values": [
+         583.2,
+         649.06,
+         1077.95,
+         2856.03
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Share of profit of associate",
+        "values": [
+         96.24,
+         172.8,
+         41.48,
+         476.71
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "13 Profit for the period / year (11+12)",
+        "values": [
+         679.44,
+         821.86,
+         1119.43,
+         3332.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Other Comprehensive Income / (Loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified subsequently to profit or loss",
+        "values": [
+         -37.7,
+         -96.06,
+         23.94,
+         13.33
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified to profit or loss",
+        "values": [
+         0,
+         -30.01,
+         0,
+         -11.25
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "values": [
+         0,
+         7.64,
+         0,
+         2.92
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Other Comprehensive Income / (Loss)",
+        "values": [
+         -37.7,
+         -118.43,
+         23.94,
+         5.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "15 Total Comprehensive Income for the period / year (13+14)",
+        "values": [
+         641.74,
+         703.43,
+         1143.37,
+         3337.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "16 Total Profit for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         641.73,
+         794.48,
+         1093.85,
+         3218.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         37.71,
+         27.38,
+         25.58,
+         114.28
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Profit for the period / year attributable to: (Total)",
+        "values": [
+         679.44,
+         821.86,
+         1119.43,
+         3332.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "17 Other Comprehensive Income / (Loss) for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         -37.7,
+         -117.25,
+         23.94,
+         6.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0,
+         -1.18,
+         0,
+         -1.18
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) for the period / year attributable to: (Total)",
+        "values": [
+         -37.7,
+         -118.43,
+         23.94,
+         5.0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "18 Total Comprehensive Income for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the Company",
+        "values": [
+         604.03,
+         677.23,
+         1117.79,
+         3224.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         37.71,
+         26.2,
+         25.58,
+         113.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period / year attributable to: (Total)",
+        "values": [
+         641.74,
+         703.43,
+         1143.37,
+         3337.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "19 Paid-up equity share capital (Face Value ₹ 10/- each)",
+        "values": [
+         2742.52,
+         2742.52,
+         2742.52,
+         2742.52
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "20 Other equity (including non-controlling interest)",
+        "values": [
+         0,
+         0,
+         0,
+         24812.82
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings Per Share of ₹ 10 each: *",
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic (₹)",
+        "values": [
+         2.34,
+         2.9,
+         3.99,
+         11.74
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted (₹)",
+        "values": [
+         2.34,
+         2.9,
+         3.99,
+         11.74
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "lakhs"
+   },
+   "seconds": null,
+   "usage": {
+    "candidatesTokenCount": 3293,
+    "promptTokenCount": 1648,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 556
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 13910,
+    "totalTokenCount": 18851
+   }
+  }
+ }
+}

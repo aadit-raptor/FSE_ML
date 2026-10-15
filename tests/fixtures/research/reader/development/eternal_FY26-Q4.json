@@ -1,0 +1,3878 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199
+  ],
+  "name": "eternal_FY26-Q4",
+  "pages": 22,
+  "quarter_end": "2026-03-31",
+  "set": "development",
+  "sha256": "673f67c6957352f4bbfdff59fc2c63f07642274ada1a22b967f50fe69f394979"
+ },
+ "prompt": "r0",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Eternal Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended December 31, 2025",
+        "months": 3,
+        "period_end": "2025-12-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2025",
+        "months": 3,
+        "period_end": "2025-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2025",
+        "months": 12,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       9
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from operations",
+        "values": [
+         17292,
+         16315,
+         5833,
+         54364,
+         20243
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other income",
+        "values": [
+         342,
+         348,
+         368,
+         1396,
+         1077
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total income (I+II)",
+        "values": [
+         17634,
+         16663,
+         6201,
+         55760,
+         21320
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         39,
+         15,
+         null,
+         54,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         10687,
+         10076,
+         1658,
+         32115,
+         5653
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, stock-in-trade and work-in-progress",
+        "values": [
+         -386,
+         -290,
+         -26,
+         -2002,
+         -88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         927,
+         914,
+         750,
+         3536,
+         2558
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         132,
+         107,
+         56,
+         392,
+         154
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         468,
+         439,
+         287,
+         1597,
+         863
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Advertisement and sales promotion",
+        "values": [
+         936,
+         937,
+         634,
+         3350,
+         1972
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Delivery and related charges",
+        "values": [
+         2607,
+         2376,
+         1552,
+         9065,
+         5728
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Others",
+        "values": [
+         1996,
+         1919,
+         1193,
+         7038,
+         3783
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         17406,
+         16493,
+         6104,
+         55145,
+         20623
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before exceptional items and tax (III-IV)",
+        "values": [
+         228,
+         170,
+         97,
+         615,
+         697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional items",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before tax (V-VI)",
+        "values": [
+         228,
+         170,
+         97,
+         615,
+         697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         76,
+         84,
+         74,
+         319,
+         231
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         -22,
+         -16,
+         -16,
+         -70,
+         -61
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Profit for the period / year (VII-VIII)",
+        "values": [
+         174,
+         102,
+         39,
+         366,
+         527
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income / (loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Items that will not be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Remeasurements of the defined benefit plans",
+        "values": [
+         0,
+         -4,
+         -5,
+         -3,
+         -10
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Equity instruments through other comprehensive income",
+        "values": [
+         -240,
+         -242,
+         36,
+         -515,
+         77
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax relating to above items",
+        "values": [
+         4,
+         25,
+         -30,
+         34,
+         -30
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Items that will be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Exchange differences on translation of foreign operations",
+        "values": [
+         6,
+         8,
+         -1,
+         19,
+         2
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Debt instruments through other comprehensive income",
+        "values": [
+         -132,
+         -25,
+         58,
+         -90,
+         112
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax relating to above items",
+        "values": [
+         34,
+         6,
+         -19,
+         23,
+         -23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income / (loss) for the period / year",
+        "values": [
+         -328,
+         -232,
+         39,
+         -532,
+         128
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income/ (loss) for the period / year (IX+X)",
+        "values": [
+         -154,
+         -130,
+         78,
+         -166,
+         655
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period / year attributable to Owners of the parent",
+        "values": [
+         174,
+         102,
+         39,
+         366,
+         527
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period / year attributable to Non-controlling interest",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income / (loss) for the period / year attributable to Owners of the parent",
+        "values": [
+         -328,
+         -232,
+         39,
+         -532,
+         128
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income / (loss) for the period / year attributable to Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income / (loss) for the period / year attributable to Owners of the parent",
+        "values": [
+         -154,
+         -130,
+         78,
+         -166,
+         655
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income / (loss) for the period / year attributable to Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up share capital (face value of INR 1 per share)",
+        "values": [
+         919,
+         911,
+         907,
+         919,
+         907
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         null,
+         null,
+         null,
+         30061,
+         29410
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (INR) (face value of INR 1 each) - (a) Basic",
+        "values": [
+         0.19,
+         0.11,
+         0.04,
+         0.4,
+         0.6
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (INR) (face value of INR 1 each) - (b) Diluted",
+        "values": [
+         0.19,
+         0.11,
+         0.04,
+         0.39,
+         0.58
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "As at March 31, 2026",
+        "months": 0,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "As at March 31, 2025",
+        "months": 0,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       10
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-current assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Property, plant and equipment",
+        "values": [
+         2033,
+         965
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Capital work-in-progress",
+        "values": [
+         136,
+         51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Right-of-use assets",
+        "values": [
+         4294,
+         1918
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Goodwill",
+        "values": [
+         5737,
+         5737
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other intangible assets",
+        "values": [
+         611,
+         912
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets - Investments",
+        "values": [
+         9742,
+         10920
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets - Other financial assets",
+        "values": [
+         1606,
+         2744
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax assets (net)",
+        "values": [
+         202,
+         129
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax assets (net)",
+        "values": [
+         14,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other non-current assets",
+        "values": [
+         661,
+         546
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total non-current assets",
+        "values": [
+         25036,
+         23922
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Inventories",
+        "values": [
+         2181,
+         176
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets - Investments",
+        "values": [
+         5091,
+         2272
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets - Trade receivables",
+        "values": [
+         1764,
+         1946
+        ]
+       },
+       {
+        "kind": "cash_and_cash_equivalents",
+        "label": "Financial assets - Cash and cash equivalents",
+        "values": [
+         996,
+         666
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets - Bank balances other than cash and cash equivalents",
+        "values": [
+         527,
+         2948
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets - Other financial assets",
+        "values": [
+         3537,
+         2769
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other current assets",
+        "values": [
+         1604,
+         924
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total current assets",
+        "values": [
+         15700,
+         11701
+        ]
+       },
+       {
+        "kind": "total_assets",
+        "label": "Total assets",
+        "values": [
+         40736,
+         35623
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity and liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity share capital",
+        "values": [
+         919,
+         907
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         30061,
+         29410
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity attributable to owners of the Parent",
+        "values": [
+         30980,
+         30317
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         -7,
+         -7
+        ]
+       },
+       {
+        "kind": "total_equity",
+        "label": "Total equity",
+        "values": [
+         30973,
+         30310
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-current liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities - Lease liabilities",
+        "values": [
+         3833,
+         1654
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities - Other financial liabilities",
+        "values": [
+         0,
+         1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Provisions",
+        "values": [
+         156,
+         120
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax liabilities (net)",
+        "values": [
+         102,
+         212
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total non-current liabilities",
+        "values": [
+         4091,
+         1987
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities - Lease liabilities",
+        "values": [
+         759,
+         391
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities - Trade payables - a. total outstanding dues of micro enterprises and small enterprises",
+        "values": [
+         232,
+         75
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities - Trade payables - b. total outstanding dues of creditors other than micro enterprises and small enterprises",
+        "values": [
+         2778,
+         1461
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities - Other financial liabilities",
+        "values": [
+         1105,
+         913
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other current liabilities",
+        "values": [
+         744,
+         452
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Provisions",
+        "values": [
+         39,
+         34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax liabilities (net)",
+        "values": [
+         15,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total current liabilities",
+        "values": [
+         5672,
+         3326
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total liabilities",
+        "values": [
+         9763,
+         5313
+        ]
+       },
+       {
+        "kind": "total_equity_and_liabilities",
+        "label": "Total equity and liabilities",
+        "values": [
+         40736,
+         35623
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "balance_sheet"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2025",
+        "months": 12,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       11
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         615,
+         697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest income on bank deposits and others",
+        "values": [
+         -473,
+         -262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest income on government securities",
+        "values": [
+         -120,
+         -100
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Amortisation of premium / (discount) on government securities",
+        "values": [
+         -102,
+         -89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest income on debentures or bonds",
+        "values": [
+         -484,
+         -436
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Amortisation of premium / (discount) on debentures or bonds",
+        "values": [
+         0,
+         -4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest income on income tax refund",
+        "values": [
+         -9,
+         -17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net gain on mutual fund units",
+        "values": [
+         -155,
+         -151
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net gain on sale of government securities",
+        "values": [
+         -7,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Liabilities written back",
+        "values": [
+         -18,
+         -10
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(Profit) / loss on sale of property, plant and equipment (net) / asset written off",
+        "values": [
+         -3,
+         11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Gain on termination of lease contracts",
+        "values": [
+         -13,
+         -3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Inventories write-down (net)",
+        "values": [
+         37,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share-based payment expense",
+        "values": [
+         819,
+         798
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest expense on lease liabilities",
+        "values": [
+         367,
+         147
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest expense others",
+        "values": [
+         16,
+         4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation on property, plant and equipment and depreciation on right-of-use assets",
+        "values": [
+         1291,
+         576
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Amortisation on intangible assets",
+        "values": [
+         306,
+         287
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Impairment of financial and non financial assets (net)",
+        "values": [
+         148,
+         71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial and non financial assets written off",
+        "values": [
+         7,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(Gain) / loss on disposal of foreign operations",
+        "values": [
+         7,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other non-cash items",
+        "values": [
+         -3,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Operating profit before working capital changes",
+        "values": [
+         2226,
+         1519
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Trade receivables",
+        "values": [
+         117,
+         -1117
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Other financial assets",
+        "values": [
+         -552,
+         -226
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Other assets",
+        "values": [
+         -807,
+         -586
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Inventories",
+        "values": [
+         -2042,
+         -88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Other financial liabilities and other liabilities",
+        "values": [
+         540,
+         274
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Provisions",
+        "values": [
+         38,
+         21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital : Trade payables",
+        "values": [
+         1478,
+         629
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cash generated from / (used in) operations",
+        "values": [
+         998,
+         426
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income taxes (paid) / refund (net)",
+        "values": [
+         -366,
+         -118
+        ]
+       },
+       {
+        "kind": "cash_from_operations",
+        "label": "Net cash generated from / (used in) operating activities (A)",
+        "values": [
+         632,
+         308
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of property, plant and equipment and other intangible assets (including capital work-in-progress, capital advances and capital creditors)",
+        "values": [
+         -1751,
+         -936
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from sale of property, plant and equipment",
+        "values": [
+         5,
+         5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in bank and other deposits (having original maturity of more than 3 months)",
+        "values": [
+         -2321,
+         -7697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from redemption / maturity of bank and other deposits (having original maturity of more than 3 months)",
+        "values": [
+         5668,
+         2942
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in mutual fund units",
+        "values": [
+         -45895,
+         -47326
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from redemption of mutual fund units",
+        "values": [
+         44981,
+         46738
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Acquisition of businesses, net of cash acquired (refer note 7)*",
+        "values": [
+         null,
+         -2005
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of other non-current investments",
+        "values": [
+         null,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in government securities",
+        "values": [
+         -151,
+         -648
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from sale / maturity of government securities",
+        "values": [
+         520,
+         65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in debentures or bonds",
+        "values": [
+         -1839,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from redemption of debentures or bonds",
+        "values": [
+         366,
+         50
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest received",
+        "values": [
+         953,
+         819
+        ]
+       },
+       {
+        "kind": "cash_from_investing",
+        "label": "Net cash generated from / (used in) investing activities (B)",
+        "values": [
+         536,
+         -7993
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from issue of equity shares",
+        "values": [
+         null,
+         8501
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Transaction cost paid on issue of equity shares",
+        "values": [
+         null,
+         -54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share based payment on cash settlement of option (fractional shares)",
+        "values": [
+         null,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Amount collected by ESOP trust on exercise of employee stock options",
+        "values": [
+         12,
+         4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Payment of principal portion of lease liabilities",
+        "values": [
+         -471,
+         -258
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Payment of interest portion of lease liabilities",
+        "values": [
+         -367,
+         -147
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other interest paid",
+        "values": [
+         -16,
+         -4
+        ]
+       },
+       {
+        "kind": "cash_from_financing",
+        "label": "Net cash generated from / (used in) financing activities (C)",
+        "values": [
+         -842,
+         8042
+        ]
+       },
+       {
+        "kind": "net_change_in_cash",
+        "label": "Net increase / (decrease) in cash and cash equivalents (A+B+C)",
+        "values": [
+         326,
+         357
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net foreign exchange difference",
+        "values": [
+         4,
+         0
+        ]
+       },
+       {
+        "kind": "opening_cash",
+        "label": "Cash and cash equivalents as at the beginning of the year",
+        "values": [
+         666,
+         309
+        ]
+       },
+       {
+        "kind": "closing_cash",
+        "label": "Cash and cash equivalents as at the end of the year",
+        "values": [
+         996,
+         666
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "cash_flow"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended December 31, 2025",
+        "months": 3,
+        "period_end": "2025-12-31"
+       },
+       {
+        "audited": false,
+        "label": "Quarter ended March 31, 2025",
+        "months": 3,
+        "period_end": "2025-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "Year ended March 31, 2025",
+        "months": 12,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       12
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers) - India food ordering and delivery",
+        "values": [
+         2737,
+         2676,
+         2054,
+         10159,
+         8080
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers) - Hyperpure supplies (B2B business)",
+        "values": [
+         978,
+         1070,
+         1840,
+         5366,
+         6196
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers) - Quick commerce",
+        "values": [
+         13232,
+         12256,
+         1709,
+         37779,
+         5206
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers) - Going Out",
+        "values": [
+         277,
+         300,
+         229,
+         973,
+         737
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers) - All other segments (Residual)",
+        "values": [
+         68,
+         13,
+         1,
+         87,
+         24
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Revenue from operations (external customers) - Total",
+        "values": [
+         17292,
+         16315,
+         5833,
+         54364,
+         20243
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment) - India food ordering and delivery",
+        "values": [
+         14,
+         12,
+         7,
+         46,
+         17
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment) - Hyperpure supplies (B2B business)",
+        "values": [
+         51,
+         11,
+         1,
+         78,
+         2
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment) - Quick commerce",
+        "values": [
+         2,
+         1,
+         5,
+         13,
+         10
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment) - Going Out",
+        "values": [
+         0,
+         null,
+         null,
+         0,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment) - All other segments (Residual)",
+        "values": [
+         11,
+         15,
+         14,
+         49,
+         59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment) - Total",
+        "values": [
+         78,
+         39,
+         27,
+         186,
+         88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results - India food ordering and delivery",
+        "values": [
+         549,
+         547,
+         439,
+         2079,
+         1541
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results - Hyperpure supplies (B2B business)",
+        "values": [
+         13,
+         7,
+         -8,
+         16,
+         -43
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results - Quick commerce",
+        "values": [
+         265,
+         202,
+         -82,
+         430,
+         -21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results - Going Out",
+        "values": [
+         -73,
+         -114,
+         -44,
+         -292,
+         -30
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results - All other segments (Residual)",
+        "values": [
+         -60,
+         -47,
+         -16,
+         -206,
+         -12
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Segment results",
+        "values": [
+         694,
+         595,
+         289,
+         2027,
+         1435
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: other income",
+        "values": [
+         342,
+         348,
+         368,
+         1396,
+         1077
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: share based payment expense",
+        "values": [
+         208,
+         227,
+         217,
+         819,
+         798
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: finance costs",
+        "values": [
+         132,
+         107,
+         56,
+         392,
+         154
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: depreciation and amortisation expense",
+        "values": [
+         468,
+         439,
+         287,
+         1597,
+         863
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: exceptional items",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         228,
+         170,
+         97,
+         615,
+         697
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 57,
+   "usage": {
+    "candidatesTokenCount": 7603,
+    "promptTokenCount": 12412,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 708
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 11704
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4272,
+    "totalTokenCount": 24287
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Eternal Limited (Formerly known as Zomato Limited)",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "March 31, 2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "December 31, 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-12-31"
+       },
+       {
+        "audited": false,
+        "label": "March 31, 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-03-31"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2025 Audited",
+        "months": 12,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "I Revenue from operations",
+        "values": [
+         17292,
+         16315,
+         5833,
+         54364,
+         20243
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "II Other income",
+        "values": [
+         342,
+         348,
+         368,
+         1396,
+         1077
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "III Total income (I+II)",
+        "values": [
+         17634,
+         16663,
+         6201,
+         55760,
+         21320
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "IV Expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cost of materials consumed",
+        "values": [
+         39,
+         15,
+         0,
+         54,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchases of stock-in-trade",
+        "values": [
+         10687,
+         10076,
+         1658,
+         32115,
+         5653
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Changes in inventories of finished goods, stock-in-trade and work-in-progress",
+        "values": [
+         -386,
+         -290,
+         -26,
+         -2002,
+         -88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Employee benefits expense",
+        "values": [
+         927,
+         914,
+         750,
+         3536,
+         2558
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Finance costs",
+        "values": [
+         132,
+         107,
+         56,
+         392,
+         154
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Depreciation and amortisation expenses",
+        "values": [
+         468,
+         439,
+         287,
+         1597,
+         863
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other expenses",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Advertisement and sales promotion",
+        "values": [
+         936,
+         937,
+         634,
+         3350,
+         1972
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Delivery and related charges",
+        "values": [
+         2607,
+         2376,
+         1552,
+         9065,
+         5728
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Others",
+        "values": [
+         1996,
+         1919,
+         1193,
+         7038,
+         3783
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "values": [
+         17406,
+         16493,
+         6104,
+         55145,
+         20623
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "V Profit before exceptional items and tax (III-IV)",
+        "values": [
+         228,
+         170,
+         97,
+         615,
+         697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VI Exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "VII Profit before tax (V-VI)",
+        "values": [
+         228,
+         170,
+         97,
+         615,
+         697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "VIII Tax expense:",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "values": [
+         76,
+         84,
+         74,
+         319,
+         231
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "values": [
+         -22,
+         -16,
+         -16,
+         -70,
+         -61
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "IX Profit for the period / year (VII-VIII)",
+        "values": [
+         174,
+         102,
+         39,
+         366,
+         527
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "X Other comprehensive income / (loss)",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Items that will not be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Remeasurements of the defined benefit plans",
+        "values": [
+         0,
+         -4,
+         -5,
+         -3,
+         -10
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Equity instruments through other comprehensive income",
+        "values": [
+         -240,
+         -242,
+         36,
+         -515,
+         77
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax relating to above items",
+        "values": [
+         4,
+         25,
+         -30,
+         34,
+         -30
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(ii) Items that will be reclassified to profit or loss",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Exchange differences on translation of foreign operations",
+        "values": [
+         6,
+         8,
+         -1,
+         19,
+         2
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Debt instruments through other comprehensive income",
+        "values": [
+         -132,
+         -25,
+         58,
+         -90,
+         112
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Income tax relating to above items",
+        "values": [
+         34,
+         6,
+         -19,
+         23,
+         -23
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income / (loss) for the period / year",
+        "values": [
+         -328,
+         -232,
+         39,
+         -532,
+         128
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XI Total comprehensive income / (loss) for the period / year (IX+X)",
+        "values": [
+         -154,
+         -130,
+         78,
+         -166,
+         655
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XII Profit for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the parent",
+        "values": [
+         174,
+         102,
+         39,
+         366,
+         527
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIII Other comprehensive income / (loss) for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the parent",
+        "values": [
+         -328,
+         -232,
+         39,
+         -532,
+         128
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XIV Total comprehensive income / (loss) for the period / year attributable to:",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Owners of the parent",
+        "values": [
+         -154,
+         -130,
+         78,
+         -166,
+         655
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interest",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XV Paid-up share capital (face value of INR 1 per share)",
+        "values": [
+         919,
+         911,
+         907,
+         919,
+         907
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVI Other equity",
+        "values": [
+         null,
+         null,
+         null,
+         30061,
+         29410
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "XVII Earnings per equity share (INR) (face value of INR 1 each)",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic",
+        "values": [
+         0.19,
+         0.11,
+         0.04,
+         0.4,
+         0.6
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted",
+        "values": [
+         0.19,
+         0.11,
+         0.04,
+         0.39,
+         0.58
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "As at March 31, 2026 Audited",
+        "months": 0,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "As at March 31, 2025 Audited",
+        "months": 0,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       2
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-current assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Property, plant and equipment",
+        "values": [
+         2033,
+         965
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Capital work-in-progress",
+        "values": [
+         136,
+         51
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Right-of-use assets",
+        "values": [
+         4294,
+         1918
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Goodwill",
+        "values": [
+         5737,
+         5737
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other intangible assets",
+        "values": [
+         611,
+         912
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Investments",
+        "values": [
+         9742,
+         10920
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other financial assets",
+        "values": [
+         1606,
+         2744
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax assets (net)",
+        "values": [
+         202,
+         129
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax assets (net)",
+        "values": [
+         14,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other non-current assets",
+        "values": [
+         661,
+         546
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total non-current assets",
+        "values": [
+         25036,
+         23922
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Inventories",
+        "values": [
+         2181,
+         176
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial assets",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Investments",
+        "values": [
+         5091,
+         2272
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Trade receivables",
+        "values": [
+         1764,
+         1946
+        ]
+       },
+       {
+        "kind": "cash_and_cash_equivalents",
+        "label": "- Cash and cash equivalents",
+        "values": [
+         996,
+         666
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Bank balances other than cash and cash equivalents",
+        "values": [
+         527,
+         2948
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other financial assets",
+        "values": [
+         3537,
+         2769
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other current assets",
+        "values": [
+         1604,
+         924
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total current assets",
+        "values": [
+         15700,
+         11701
+        ]
+       },
+       {
+        "kind": "total_assets",
+        "label": "Total assets",
+        "values": [
+         40736,
+         35623
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity and liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity share capital",
+        "values": [
+         919,
+         907
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other equity",
+        "values": [
+         30061,
+         29410
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity attributable to owners of the Parent",
+        "values": [
+         30980,
+         30317
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-controlling interests",
+        "values": [
+         -7,
+         -7
+        ]
+       },
+       {
+        "kind": "total_equity",
+        "label": "Total equity",
+        "values": [
+         30973,
+         30310
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Non-current liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Lease liabilities",
+        "values": [
+         3833,
+         1654
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other financial liabilities",
+        "values": [
+         0,
+         1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Provisions",
+        "values": [
+         156,
+         120
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax liabilities (net)",
+        "values": [
+         102,
+         212
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total non-current liabilities",
+        "values": [
+         4091,
+         1987
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Financial liabilities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Lease liabilities",
+        "values": [
+         759,
+         391
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Trade payables",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a. total outstanding dues of micro enterprises and small enterprises",
+        "values": [
+         232,
+         75
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b. total outstanding dues of creditors other than micro enterprises and small enterprises",
+        "values": [
+         2778,
+         1461
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other financial liabilities",
+        "values": [
+         1105,
+         913
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other current liabilities",
+        "values": [
+         744,
+         452
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Provisions",
+        "values": [
+         39,
+         34
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax liabilities (net)",
+        "values": [
+         15,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total current liabilities",
+        "values": [
+         5672,
+         3326
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total liabilities",
+        "values": [
+         9763,
+         5313
+        ]
+       },
+       {
+        "kind": "total_equity_and_liabilities",
+        "label": "Total equity and liabilities",
+        "values": [
+         40736,
+         35623
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "balance_sheet"
+     },
+     {
+      "columns": [
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2025 Audited",
+        "months": 12,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       3
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "A) Cash flows from operating activities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         615,
+         697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Adjustments to reconcile profit before tax to net cash flows:",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Interest income on bank deposits and others",
+        "values": [
+         -473,
+         -262
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Interest income on government securities",
+        "values": [
+         -120,
+         -100
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Amortisation of premium / (discount) on government securities",
+        "values": [
+         -102,
+         -89
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Interest income on debentures or bonds",
+        "values": [
+         -484,
+         -436
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Amortisation of premium / (discount) on debentures or bonds",
+        "values": [
+         0,
+         -4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Interest income on income tax refund",
+        "values": [
+         -9,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Net gain on mutual fund units",
+        "values": [
+         -155,
+         -151
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Net gain on sale of government securities",
+        "values": [
+         -7,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Liabilities written back",
+        "values": [
+         -18,
+         -10
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- (Profit) / loss on sale of property, plant and equipment (net) / asset written off",
+        "values": [
+         -3,
+         11
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Gain on termination of lease contracts",
+        "values": [
+         -13,
+         -3
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inventories write-down (net)",
+        "values": [
+         37,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Share-based payment expense",
+        "values": [
+         819,
+         798
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Interest expense on lease liabilities",
+        "values": [
+         367,
+         147
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Interest expense others",
+        "values": [
+         16,
+         4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Depreciation on property, plant and equipment and depreciation on right-of-use assets",
+        "values": [
+         1291,
+         576
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Amortisation on intangible assets",
+        "values": [
+         306,
+         287
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Impairment of financial and non financial assets (net)",
+        "values": [
+         148,
+         71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Financial and non financial assets written off",
+        "values": [
+         7,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- (Gain) / loss on disposal of foreign operations",
+        "values": [
+         7,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other non-cash items",
+        "values": [
+         -3,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Operating profit before working capital changes",
+        "values": [
+         2226,
+         1519
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Movements in working capital :",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Trade receivables",
+        "values": [
+         117,
+         -1117
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other financial assets",
+        "values": [
+         -552,
+         -226
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other assets",
+        "values": [
+         -807,
+         -586
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Inventories",
+        "values": [
+         -2042,
+         -88
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Other financial liabilities and other liabilities",
+        "values": [
+         540,
+         274
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Provisions",
+        "values": [
+         38,
+         21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "- Trade payables",
+        "values": [
+         1478,
+         629
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Cash generated from / (used in) operations",
+        "values": [
+         998,
+         426
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income taxes (paid) / refund (net)",
+        "values": [
+         -366,
+         -118
+        ]
+       },
+       {
+        "kind": "cash_from_operations",
+        "label": "Net cash generated from / (used in) operating activities (A)",
+        "values": [
+         632,
+         308
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "B) Cash flows from investing activities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of property, plant and equipment and other intangible assets (including capital work-in-progress, capital advances and capital creditors)",
+        "values": [
+         -1751,
+         -936
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from sale of property, plant and equipment",
+        "values": [
+         5,
+         5
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in bank and other deposits (having original maturity of more than 3 months)",
+        "values": [
+         -2321,
+         -7697
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from redemption / maturity of bank and other deposits (having original maturity of more than 3 months)",
+        "values": [
+         5668,
+         2942
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in mutual fund units",
+        "values": [
+         -45895,
+         -47326
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from redemption of mutual fund units",
+        "values": [
+         44981,
+         46738
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Acquisition of businesses, net of cash acquired (refer note 7)*",
+        "values": [
+         0,
+         -2005
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Purchase of other non-current investments",
+        "values": [
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in government securities",
+        "values": [
+         -151,
+         -648
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from sale / maturity of government securities",
+        "values": [
+         520,
+         65
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Investment in debentures or bonds",
+        "values": [
+         -1839,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from redemption of debentures or bonds",
+        "values": [
+         366,
+         50
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Interest received",
+        "values": [
+         953,
+         819
+        ]
+       },
+       {
+        "kind": "cash_from_investing",
+        "label": "Net cash generated from / (used in) investing activities (B)",
+        "values": [
+         536,
+         -7993
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "C) Cash flows from financing activities",
+        "values": [
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Proceeds from issue of equity shares",
+        "values": [
+         0,
+         8501
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Transaction cost paid on issue of equity shares",
+        "values": [
+         0,
+         -54
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share based payment on cash settlement of option (fractional shares)",
+        "values": [
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Amount collected by ESOP trust on exercise of employee stock options",
+        "values": [
+         12,
+         4
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Payment of principal portion of lease liabilities",
+        "values": [
+         -471,
+         -258
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Payment of interest portion of lease liabilities",
+        "values": [
+         -367,
+         -147
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other interest paid",
+        "values": [
+         -16,
+         -4
+        ]
+       },
+       {
+        "kind": "cash_from_financing",
+        "label": "Net cash generated from / (used in) financing activities (C)",
+        "values": [
+         -842,
+         8042
+        ]
+       },
+       {
+        "kind": "net_change_in_cash",
+        "label": "Net increase / (decrease) in cash and cash equivalents (A+B+C)",
+        "values": [
+         326,
+         357
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Net foreign exchange difference",
+        "values": [
+         4,
+         0
+        ]
+       },
+       {
+        "kind": "opening_cash",
+        "label": "Cash and cash equivalents as at the beginning of the year",
+        "values": [
+         666,
+         309
+        ]
+       },
+       {
+        "kind": "closing_cash",
+        "label": "Cash and cash equivalents as at the end of the year",
+        "values": [
+         996,
+         666
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "cash_flow"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "March 31, 2026 Unaudited",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "December 31, 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-12-31"
+       },
+       {
+        "audited": false,
+        "label": "March 31, 2025 Unaudited",
+        "months": 3,
+        "period_end": "2025-03-31"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2026 Audited",
+        "months": 12,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": true,
+        "label": "March 31, 2025 Audited",
+        "months": 12,
+        "period_end": "2025-03-31"
+       }
+      ],
+      "pages": [
+       4
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "Revenue from operations (external customers)",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery",
+        "values": [
+         2737,
+         2676,
+         2054,
+         10159,
+         8080
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business)",
+        "values": [
+         978,
+         1070,
+         1840,
+         5366,
+         6196
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce",
+        "values": [
+         13232,
+         12256,
+         1709,
+         37779,
+         5206
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out",
+        "values": [
+         277,
+         300,
+         229,
+         973,
+         737
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual)",
+        "values": [
+         68,
+         13,
+         1,
+         87,
+         24
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "Total",
+        "values": [
+         17292,
+         16315,
+         5833,
+         54364,
+         20243
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations (inter-segment)",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery",
+        "values": [
+         14,
+         12,
+         7,
+         46,
+         27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business)",
+        "values": [
+         51,
+         11,
+         1,
+         78,
+         2
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce",
+        "values": [
+         2,
+         1,
+         5,
+         13,
+         10
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual)",
+        "values": [
+         11,
+         15,
+         14,
+         49,
+         59
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total",
+        "values": [
+         78,
+         39,
+         27,
+         186,
+         98
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Segment results",
+        "values": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "India food ordering and delivery",
+        "values": [
+         549,
+         547,
+         439,
+         2079,
+         1541
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Hyperpure supplies (B2B business)",
+        "values": [
+         13,
+         7,
+         -8,
+         16,
+         -43
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Quick commerce",
+        "values": [
+         265,
+         202,
+         -82,
+         430,
+         -21
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Going Out",
+        "values": [
+         -73,
+         -114,
+         -44,
+         -292,
+         -30
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "All other segments (Residual)",
+        "values": [
+         -60,
+         -47,
+         -16,
+         -206,
+         -12
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "Segment results",
+        "values": [
+         694,
+         595,
+         289,
+         2027,
+         1435
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: other income",
+        "values": [
+         342,
+         348,
+         368,
+         1396,
+         1077
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: share based payment expense",
+        "values": [
+         208,
+         227,
+         217,
+         819,
+         798
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: finance costs",
+        "values": [
+         132,
+         107,
+         56,
+         392,
+         154
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: depreciation and amortisation expense",
+        "values": [
+         468,
+         439,
+         287,
+         1597,
+         863
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: exceptional items",
+        "values": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "values": [
+         228,
+         170,
+         97,
+         615,
+         697
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 95,
+   "usage": {
+    "candidatesTokenCount": 11290,
+    "promptTokenCount": 5102,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4368
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 734
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 7977,
+    "totalTokenCount": 24369
+   }
+  }
+ },
+ "truth": {
+  "figures": [
+   {
+    "label": "Net Sales",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 172920.0
+   },
+   {
+    "label": "Other Income",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 3420.0
+   },
+   {
+    "label": "Total Income",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 176340.0
+   },
+   {
+    "label": "Expenditure",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -174060.0
+   },
+   {
+    "label": "Cost of Materials Consumed",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -390.0
+   },
+   {
+    "label": "Finance Costs",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -1320.0
+   },
+   {
+    "grouped": [
+     [
+      "Advertisement and sales promotion",
+      1,
+      11
+     ],
+     [
+      "Delivery and related charges",
+      1,
+      12
+     ],
+     [
+      "Others",
+      1,
+      13
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Other Expenses",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -55390.0
+   },
+   {
+    "label": "Purchases of stock-in-trade",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -106870.0
+   },
+   {
+    "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 3860.0
+   },
+   {
+    "label": "Employee benefit expense",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -9270.0
+   },
+   {
+    "label": "Depreciation and amortisation expense",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -4680.0
+   },
+   {
+    "label": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 2280.0
+   },
+   {
+    "grouped": [
+     [
+      "Profit before exceptional items and tax (III-IV)",
+      1,
+      15
+     ],
+     [
+      "Profit for the period / year (VII-VIII)",
+      -1,
+      21
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Tax",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -540.0
+   },
+   {
+    "label": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 1740.0
+   },
+   {
+    "label": "Net Profit",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 1740.0
+   },
+   {
+    "label": "Current tax",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -760.0
+   },
+   {
+    "label": "Deferred tax",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 220.0
+   },
+   {
+    "label": "Net Profit after Mino Inter & Share of P & L",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 1740.0
+   },
+   {
+    "label": "Income Attributable to Consolidated Group",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 1740.0
+   },
+   {
+    "label": "Profit after Interest but before Exceptional Items",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 2280.0
+   },
+   {
+    "label": "Net Profit Loss for the period from continuing operations",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 1740.0
+   },
+   {
+    "label": "Other Comprehensive Income Net of Taxes",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -3280.0
+   },
+   {
+    "label": "Total Comprehensive Income for the Period",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": -1540.0
+   },
+   {
+    "label": "Basic EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 0.19
+   },
+   {
+    "label": "Diluted EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-03-31",
+    "value": 0.19
+   }
+  ],
+  "source": "BSE's results page table for the filing, saved by hand (PLAN.md R0)",
+  "unit": "millions"
+ }
+}

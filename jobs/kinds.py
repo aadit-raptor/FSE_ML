@@ -18,14 +18,15 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from datetime import date
+from typing import Any, Callable, Optional
 
 from pydantic import BaseModel, TypeAdapter
 
 from api.routers import backtesting, forecasting, montecarlo
 from api.schemas import (
     BacktestRequest, BacktestResponse, ForecastRunRequest, ForecastRunResponse,
-    MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse,
+    MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
 )
 
 
@@ -62,6 +63,18 @@ def _unwrapped(endpoint):
     return getattr(endpoint, "__wrapped__", endpoint)
 
 
+class ReadRequest(BaseModel):
+    owner: str
+    file_id: uuid.UUID
+    quarter_end: Optional[date] = None
+
+
+def _read_results(request: ReadRequest) -> dict:
+    from research.reader import service
+
+    return service.read_file(request.owner, request.file_id, request.quarter_end)
+
+
 class ScanRequest(BaseModel):
     file_id: uuid.UUID
 
@@ -94,4 +107,12 @@ KINDS: dict[str, JobKind] = {k.name: k for k in (
     # Queued by the API when an upload arrives (uploads/service.py), never by a
     # caller: it is not in api.schemas.JobSubmit, so /api/jobs refuses it
     JobKind("upload.scan", "File scan", ScanRequest, ScanOutcome, _scan_upload),
+    # Queued by POST /api/research/reads under the caller's name, never through
+    # /api/jobs (not in JobSubmit): its endpoint checks the file, the
+    # confirmation and the limits first. Mostly a wait on the AI provider, with
+    # a few tens of megabytes at most held, so it takes no simulation slot
+    JobKind("research.read", "Results read", ReadRequest, ReadResult, _read_results,
+            {"reader.read_a": Stage("Reading the whole filing", 0.55, "Reading the statement pages again"),
+             "reader.read_b": Stage("Reading the statement pages again", 0.95, "Checking the figures")},
+            simulation=False),
 )}

@@ -47,6 +47,7 @@ from jwt import PyJWKClient
 # and the status bar poll, and the schema the typed client is generated from.
 PUBLIC_PATHS = frozenset({
     "/api/health", "/api/health/database", "/api/health/limits", "/api/health/jobs", "/api/health/files",
+    "/api/health/reader",
     "/api/openapi.json", "/api/docs",
     "/api/docs/oauth2-redirect", "/api/debug/error",
 })

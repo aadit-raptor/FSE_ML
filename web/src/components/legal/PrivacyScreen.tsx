@@ -22,6 +22,7 @@ export function PrivacyScreen() {
     [t("validationTitle"), [t("validation")]],
     [t("googleTitle"), [t("google")]],
     [t("companiesTitle"), [t("companies")]],
+    [t("readerTitle"), [t("reader")]],
     [t("processorsTitle"), [t("processors")]],
     [t("notTitle"), [t("not")]],
     [t("keepTitle"), [t("keep")]],

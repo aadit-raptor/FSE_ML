@@ -131,6 +131,7 @@ def render(card: Mapping) -> str:
         f"- **Regions:** {ev['regions_note']}." if ev.get("regions_note") else
         "- **Regions:** S&P's (the validation report's): United States, Europe, emerging markets, "
         "other developed.",
+        *([f"- **Bar:** {ev['bar']['description']}."] if ev.get("bar") else []),
         "",
         "Statistics:",
         "",
@@ -144,6 +145,9 @@ def render(card: Mapping) -> str:
         group = ev["sets"][set_name]
         headline = " (headline)" if set_name == ev["headline_set"] else ""
         lines += ["", f"## Results: {set_name}{headline}", "", group["description"] + ".", ""]
+        if "meets_bar" in group:
+            met = {True: "yes", False: "no", None: "not measured"}[group["meets_bar"]]
+            lines += [f"Meets the bar: **{met}**.", ""]
         lines += _table(card, set_name)
     lines += ["", "## Limitations", ""]
     lines += [f"- {x}" for x in card["limitations"]]

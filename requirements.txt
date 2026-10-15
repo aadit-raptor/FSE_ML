@@ -15,4 +15,5 @@ cryptography>=42         # AES-256-GCM for database backups (ops/encryption.py);
 xlrd>=2.0                # reads the published industry averages (.xls, benchmarks/)
 oletools==0.60.2         # scans uploaded Office files for macros, DDE and encryption (uploads/scan.py)
 pypdf>=6.20,<7           # reads uploaded PDFs object by object, in the scanner's own process (uploads/scan.py)
+pypdfium2>=4.30,<5       # draws a results filing's pages as pictures for the reader's second read, in a child process (research/reader/pages.py)
 tzdata>=2024.1           # IANA time zones for account profiles (slim images have none)
