@@ -1,0 +1,1317 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   299,
+   null,
+   null
+  ],
+  "name": "ultratech-cement_FY27-Q1",
+  "pages": 15,
+  "quarter_end": "2026-06-30",
+  "set": "held_out",
+  "sha256": "559fba61982fe3321e0cdf440ac8e073b5e9eaba9ccae96bbb84f3b86f646fa9"
+ },
+ "prompt": "r1",
+ "reads": {
+  "A": {
+   "model": "gemini-3.6-flash",
+   "read": {
+    "company": "UltraTech Cement Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Three Months Ended 30/06/2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Three Months Ended 31/03/2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Three Months Ended 30/06/2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended 31/03/2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       6
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "Revenue from Operations",
+        "page": 6,
+        "values": [
+         24648.2,
+         25799.47,
+         21275.45,
+         88511.53
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "Other Income",
+        "page": 6,
+        "values": [
+         130.27,
+         87.56,
+         180.23,
+         577.51
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income (1+2)",
+        "page": 6,
+        "values": [
+         24778.47,
+         25887.03,
+         21455.68,
+         89089.04
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Expenses",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Cost of Materials Consumed",
+        "page": 6,
+        "values": [
+         4129.36,
+         4074.19,
+         3432.71,
+         14568.44
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Purchases of Stock-in-Trade",
+        "page": 6,
+        "values": [
+         710.43,
+         807.8,
+         535.21,
+         2516.57
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) Changes in Inventories of Finished Goods, Stock-in-Trade and Work-in-Progress",
+        "page": 6,
+        "values": [
+         -135.69,
+         193.69,
+         -148.88,
+         103.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(d) Employee Benefits Expense",
+        "page": 6,
+        "values": [
+         1106.3,
+         1084.42,
+         972.24,
+         4162.44
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(e) Finance Costs",
+        "page": 6,
+        "values": [
+         452.93,
+         486.92,
+         433.3,
+         1871.71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(f) Depreciation and Amortisation Expense",
+        "page": 6,
+        "values": [
+         1200.51,
+         1208.1,
+         1106.78,
+         4644.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(g) Power and Fuel Expense",
+        "page": 6,
+        "values": [
+         5418.65,
+         5416.42,
+         4861.9,
+         19597.16
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(h) Freight and Forwarding Expense",
+        "page": 6,
+        "values": [
+         5210.61,
+         5635.33,
+         4648.97,
+         19169.13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Other Expenses",
+        "page": 6,
+        "values": [
+         3193.09,
+         2987.31,
+         2562.96,
+         11374.21
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "page": 6,
+        "values": [
+         21286.19,
+         21894.18,
+         18405.19,
+         78007.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before Exceptional Items, Share in Profit / (Loss) of Associates and Joint Venture and Tax Expense (3-4)",
+        "page": 6,
+        "values": [
+         3492.28,
+         3992.85,
+         3050.49,
+         11081.57
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exceptional Items Loss / (Gain) :",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Statutory Impact of New Labour Codes (Refer Note 2)",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         88.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Others (Refer Note 3)",
+        "page": 6,
+        "values": [
+         13.25,
+         10.94,
+         38.38,
+         50.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Share in Profit / (Loss) of Associates and Joint Venture (net of Tax expense)",
+        "page": 6,
+        "values": [
+         1.4,
+         -1.37,
+         -4.31,
+         -15.83
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "Profit before Tax Expense (5-6+7)",
+        "page": 6,
+        "values": [
+         3480.43,
+         3980.54,
+         3007.8,
+         10927.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Tax Expenses",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax Charge",
+        "page": 6,
+        "values": [
+         758.43,
+         865.27,
+         695.16,
+         2313.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax Charge",
+        "page": 6,
+        "values": [
+         118.28,
+         115.25,
+         91.73,
+         425.22
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "Net Profit for the period (8-9)",
+        "page": 6,
+        "values": [
+         2603.72,
+         3000.02,
+         2220.91,
+         8188.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit / (Loss) attributable to Non-Controlling Interest",
+        "page": 6,
+        "values": [
+         4.44,
+         17.26,
+         -4.99,
+         22.71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to the Owners of the Parent",
+        "page": 6,
+        "values": [
+         2599.28,
+         2982.76,
+         2225.9,
+         8165.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) for the period",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified to profit or loss (net)",
+        "page": 6,
+        "values": [
+         33.76,
+         -118.51,
+         29.21,
+         -60.27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "page": 6,
+        "values": [
+         -2.09,
+         19.04,
+         0.37,
+         14.7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified to profit or loss (net)",
+        "page": 6,
+        "values": [
+         90.44,
+         0.25,
+         1.88,
+         122.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will be reclassified to profit or loss",
+        "page": 6,
+        "values": [
+         -23.14,
+         59.96,
+         -1.77,
+         79.03
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) for the period",
+        "page": 6,
+        "values": [
+         98.97,
+         -39.26,
+         29.69,
+         156.13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to Non-Controlling Interest",
+        "page": 6,
+        "values": [
+         6.89,
+         49.77,
+         14.45,
+         121.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) attributable to Owners of the Parent",
+        "page": 6,
+        "values": [
+         92.08,
+         -89.03,
+         15.24,
+         34.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income for the period (10+11)",
+        "page": 6,
+        "values": [
+         2702.69,
+         2960.76,
+         2250.6,
+         8344.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to Non-Controlling Interest",
+        "page": 6,
+        "values": [
+         11.33,
+         67.03,
+         9.46,
+         144.38
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to Owners of the Parent",
+        "page": 6,
+        "values": [
+         2691.36,
+         2893.73,
+         2241.14,
+         8200.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Paid-up Equity Share Capital (Face value ₹ 10/- per share)",
+        "page": 6,
+        "values": [
+         294.68,
+         294.68,
+         294.68,
+         294.68
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Equity",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         76328.86
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Earnings per equity share (of ₹ 10/- each) (Not Annualised):",
+        "page": 6,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic (in ₹)",
+        "page": 6,
+        "values": [
+         88.36,
+         101.41,
+         75.67,
+         277.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted (in ₹)",
+        "page": 6,
+        "values": [
+         88.31,
+         101.35,
+         75.61,
+         277.45
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 110.0,
+   "usage": {
+    "candidatesTokenCount": 3689,
+    "promptTokenCount": 8685,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 729
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 7956
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4317,
+    "totalTokenCount": 16691
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "UltraTech Cement Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "30/06/2026 (Unaudited)",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": true,
+        "label": "31/03/2026 (Audited) [Refer Note 7]",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "30/06/2025 (Unaudited)",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Year Ended 31/03/2026 (Audited)",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       1
+      ],
+      "rows": [
+       {
+        "kind": "revenue_from_operations",
+        "label": "1 Revenue from Operations",
+        "page": 1,
+        "values": [
+         24648.2,
+         25799.47,
+         21275.45,
+         88511.53
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "2 Other Income",
+        "page": 1,
+        "values": [
+         130.27,
+         87.56,
+         180.23,
+         577.51
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "3 Total Income (1+2)",
+        "page": 1,
+        "values": [
+         24778.47,
+         25887.03,
+         21455.68,
+         89089.04
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Expenses",
+        "page": 1,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Cost of Materials Consumed",
+        "page": 1,
+        "values": [
+         4129.36,
+         4074.19,
+         3432.71,
+         14568.44
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Purchases of Stock-in-Trade",
+        "page": 1,
+        "values": [
+         710.43,
+         807.8,
+         535.21,
+         2516.57
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) Changes in Inventories of Finished Goods, Stock-in-Trade and Work-in-Progress",
+        "page": 1,
+        "values": [
+         -135.69,
+         193.69,
+         -148.88,
+         103.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(d) Employee Benefits Expense",
+        "page": 1,
+        "values": [
+         1106.3,
+         1084.42,
+         972.24,
+         4162.44
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(e) Finance Costs",
+        "page": 1,
+        "values": [
+         452.93,
+         486.92,
+         433.3,
+         1871.71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(f) Depreciation and Amortisation Expense",
+        "page": 1,
+        "values": [
+         1200.51,
+         1208.1,
+         1106.78,
+         4644.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(g) Power and Fuel Expense",
+        "page": 1,
+        "values": [
+         5418.65,
+         5416.42,
+         4861.9,
+         19597.16
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(h) Freight and Forwarding Expense",
+        "page": 1,
+        "values": [
+         5210.61,
+         5635.33,
+         4648.97,
+         19169.13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(i) Other Expenses",
+        "page": 1,
+        "values": [
+         3193.09,
+         2987.31,
+         2562.96,
+         11374.21
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total Expenses",
+        "page": 1,
+        "values": [
+         21286.19,
+         21894.18,
+         18405.19,
+         78007.47
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit before Exceptional Items, Share in Profit / (Loss) of Associates and Joint Venture and Tax Expense (3-4)",
+        "page": 1,
+        "values": [
+         3492.28,
+         3992.85,
+         3050.49,
+         11081.57
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional Items Loss / (Gain) :",
+        "page": 1,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Statutory Impact of New Labour Codes (Refer Note 2)",
+        "page": 1,
+        "values": [
+         0,
+         0,
+         0,
+         88.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Others (Refer Note 3)",
+        "page": 1,
+        "values": [
+         13.25,
+         10.94,
+         38.38,
+         50.07
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "7 Share in Profit / (Loss) of Associates and Joint Venture (net of Tax expense)",
+        "page": 1,
+        "values": [
+         1.4,
+         -1.37,
+         -4.31,
+         -15.83
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "8 Profit before Tax Expense (5-6+7)",
+        "page": 1,
+        "values": [
+         3480.43,
+         3980.54,
+         3007.8,
+         10927.19
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "9 Tax Expenses",
+        "page": 1,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current Tax Charge",
+        "page": 1,
+        "values": [
+         758.43,
+         865.27,
+         695.16,
+         2313.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred Tax Charge",
+        "page": 1,
+        "values": [
+         118.28,
+         115.25,
+         91.73,
+         425.22
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "10 Net Profit for the period (8-9)",
+        "page": 1,
+        "values": [
+         2603.72,
+         3000.02,
+         2220.91,
+         8188.35
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit / (Loss) attributable to Non-Controlling Interest",
+        "page": 1,
+        "values": [
+         4.44,
+         17.26,
+         -4.99,
+         22.71
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit attributable to the Owners of the Parent",
+        "page": 1,
+        "values": [
+         2599.28,
+         2982.76,
+         2225.9,
+         8165.64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Other Comprehensive Income / (Loss) for the period",
+        "page": 1,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified to profit or loss (net)",
+        "page": 1,
+        "values": [
+         33.76,
+         -118.51,
+         29.21,
+         -60.27
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "page": 1,
+        "values": [
+         -2.09,
+         19.04,
+         0.37,
+         14.7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified to profit or loss (net)",
+        "page": 1,
+        "values": [
+         90.44,
+         0.25,
+         1.88,
+         122.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will be reclassified to profit or loss",
+        "page": 1,
+        "values": [
+         -23.14,
+         59.96,
+         -1.77,
+         79.03
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) for the period",
+        "page": 1,
+        "values": [
+         98.97,
+         -39.26,
+         29.69,
+         156.13
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income attributable to Non-Controlling Interest",
+        "page": 1,
+        "values": [
+         6.89,
+         49.77,
+         14.45,
+         121.67
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other Comprehensive Income / (Loss) attributable to Owners of the Parent",
+        "page": 1,
+        "values": [
+         92.08,
+         -89.03,
+         15.24,
+         34.46
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Total Comprehensive Income for the period (10+11)",
+        "page": 1,
+        "values": [
+         2702.69,
+         2960.76,
+         2250.6,
+         8344.48
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to Non-Controlling Interest",
+        "page": 1,
+        "values": [
+         11.33,
+         67.03,
+         9.46,
+         144.38
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total Comprehensive Income attributable to Owners of the Parent",
+        "page": 1,
+        "values": [
+         2691.36,
+         2893.73,
+         2241.14,
+         8200.1
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Paid-up Equity Share Capital (Face value ₹ 10/- per share)",
+        "page": 1,
+        "values": [
+         294.68,
+         294.68,
+         294.68,
+         294.68
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "14 Other Equity",
+        "page": 1,
+        "values": [
+         null,
+         null,
+         null,
+         76328.86
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "15 Earnings per equity share (of ₹ 10/- each) (Not Annualised):",
+        "page": 1,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Basic (in ₹)",
+        "page": 1,
+        "values": [
+         88.36,
+         101.41,
+         75.67,
+         277.62
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Diluted (in ₹)",
+        "page": 1,
+        "values": [
+         88.31,
+         101.35,
+         75.61,
+         277.45
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     }
+    ],
+    "unit": "crores"
+   },
+   "seconds": 57.4,
+   "usage": {
+    "candidatesTokenCount": 3395,
+    "promptTokenCount": 1847,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 1092
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 755
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 10377,
+    "totalTokenCount": 15619
+   }
+  }
+ },
+ "truth": {
+  "figures": [
+   {
+    "label": "Net Sales",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 246482.0
+   },
+   {
+    "label": "Other Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 1302.7
+   },
+   {
+    "label": "Total Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 247784.7
+   },
+   {
+    "label": "Expenditure",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -212861.9
+   },
+   {
+    "label": "Cost of Materials Consumed",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -41293.6
+   },
+   {
+    "label": "Finance Costs",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -4529.3
+   },
+   {
+    "grouped": [
+     [
+      "(g) Power and Fuel Expense",
+      1,
+      10
+     ],
+     [
+      "(h) Freight and Forwarding Expense",
+      1,
+      11
+     ],
+     [
+      "(i) Other Expenses",
+      1,
+      12
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Other Expenses",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -138223.5
+   },
+   {
+    "label": "Purchases of stock-in-trade",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -7104.3
+   },
+   {
+    "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 1356.9
+   },
+   {
+    "label": "Employee benefit expense",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -11063.0
+   },
+   {
+    "label": "Depreciation and amortisation expense",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -12005.1
+   },
+   {
+    "grouped": [
+     [
+      "Profit before Exceptional Items, Share in Profit / (Loss) of Associates and Joint Venture and Tax Expense (3-4)",
+      1,
+      14
+     ],
+     [
+      "(b) Others (Refer Note 3)",
+      -1,
+      17
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 34790.3
+   },
+   {
+    "grouped": [
+     [
+      "Profit before Tax Expense (5-6+7)",
+      1,
+      19
+     ],
+     [
+      "Net Profit for the period (8-9)",
+      -1,
+      23
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -8767.1
+   },
+   {
+    "grouped": [
+     [
+      "Share in Profit / (Loss) of Associates and Joint Venture (net of Tax expense)",
+      -1,
+      18
+     ],
+     [
+      "Net Profit for the period (8-9)",
+      1,
+      23
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 26023.2
+   },
+   {
+    "label": "Net Profit",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 26037.2
+   },
+   {
+    "label": "Current tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -7584.3
+   },
+   {
+    "label": "Deferred tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -1182.8
+   },
+   {
+    "label": "Net Profit after Mino Inter & Share of P & L",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 26037.2
+   },
+   {
+    "label": "Income Attributable to Consolidated Group",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 26037.2
+   },
+   {
+    "label": "Exceptional Item",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -132.5
+   },
+   {
+    "label": "Profit after Interest but before Exceptional Items",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 34922.8
+   },
+   {
+    "grouped": [
+     [
+      "Share in Profit / (Loss) of Associates and Joint Venture (net of Tax expense)",
+      -1,
+      18
+     ],
+     [
+      "Net Profit for the period (8-9)",
+      1,
+      23
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Net Profit Loss for the period from continuing operations",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 26023.2
+   },
+   {
+    "label": "Other Comprehensive Income Net of Taxes",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 989.7
+   },
+   {
+    "label": "Total Comprehensive Income for the Period",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 27026.9
+   },
+   {
+    "label": "Share of profit(loss) of associates and joint ventures",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 14.0
+   },
+   {
+    "label": "Basic EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 88.36
+   },
+   {
+    "label": "Diluted EPS for continuing operation",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 88.31
+   }
+  ],
+  "source": "BSE's results page table for the filing, saved by hand (PLAN.md R0)",
+  "unit": "millions"
+ }
+}

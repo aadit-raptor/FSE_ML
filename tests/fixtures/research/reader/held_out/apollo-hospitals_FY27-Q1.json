@@ -1,0 +1,2082 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   199,
+   199,
+   199,
+   149,
+   199,
+   199,
+   199,
+   199,
+   199,
+   149,
+   149,
+   149,
+   149,
+   199,
+   199,
+   199,
+   199,
+   199,
+   200,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "apollo-hospitals_FY27-Q1",
+  "pages": 30,
+  "quarter_end": "2026-06-30",
+  "set": "held_out",
+  "sha256": "3e7f02ef782148727cbf04285f62a911a27dcf3309ec30d5d125ceb913f38458"
+ },
+ "prompt": "r1",
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Apollo Hospitals Enterprise Limited",
+    "currency": "INR",
+    "tables": [
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Three months ended 30/06/2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Preceding three months ended 31/03/2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Corresponding three months ended 30/06/2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Previous year ended 31/03/2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       9
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1 Income",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "revenue_from_operations",
+        "label": "(a) Revenue from operations",
+        "page": 9,
+        "values": [
+         70435,
+         66055,
+         58421,
+         252285
+        ]
+       },
+       {
+        "kind": "other_income",
+        "label": "(b) Other income",
+        "page": 9,
+        "values": [
+         488,
+         439,
+         402,
+         1916
+        ]
+       },
+       {
+        "kind": "total_income",
+        "label": "Total Income (a + b)",
+        "page": 9,
+        "values": [
+         70923,
+         66494,
+         58823,
+         254201
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2 Expenses",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(a) Cost of materials consumed",
+        "page": 9,
+        "values": [
+         8290,
+         7774,
+         7401,
+         30408
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(b) Purchases of stock-in-trade",
+        "page": 9,
+        "values": [
+         27678,
+         26131,
+         23155,
+         100564
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(c) Changes in inventories of stock-in-trade",
+        "page": 9,
+        "values": [
+         3,
+         115,
+         -80,
+         -216
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(d) Employee benefits expense",
+        "page": 9,
+        "values": [
+         7958,
+         7720,
+         7126,
+         30003
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(e) Finance costs",
+        "page": 9,
+        "values": [
+         1204,
+         1191,
+         1083,
+         4496
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(f) Depreciation and amortisation expense",
+        "page": 9,
+        "values": [
+         2351,
+         2244,
+         2147,
+         8761
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "(g) Other expenses",
+        "page": 9,
+        "values": [
+         15585,
+         14205,
+         12300,
+         53833
+        ]
+       },
+       {
+        "kind": "total_expenses",
+        "label": "Total expenses",
+        "page": 9,
+        "values": [
+         63069,
+         59380,
+         53132,
+         227849
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3 Profit before share of profit/(loss) in associates / joint ventures and exceptional items (1) - (2)",
+        "page": 9,
+        "values": [
+         7854,
+         7114,
+         5691,
+         26352
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "4 Share of profit/(loss) of associates /joint ventures",
+        "page": 9,
+        "values": [
+         134,
+         101,
+         136,
+         449
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "5 Profit before tax and exceptional items (3) + (4)",
+        "page": 9,
+        "values": [
+         7988,
+         7215,
+         5827,
+         26801
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "6 Exceptional item (Refer note 8)",
+        "page": 9,
+        "values": [
+         0,
+         0,
+         0,
+         -192
+        ]
+       },
+       {
+        "kind": "profit_before_tax",
+        "label": "7 Profit before tax (5) + (6)",
+        "page": 9,
+        "values": [
+         7988,
+         7215,
+         5827,
+         26609
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "8 Tax expenses",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Current tax",
+        "page": 9,
+        "values": [
+         2103,
+         1960,
+         1248,
+         6293
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Deferred tax",
+        "page": 9,
+        "values": [
+         -219,
+         -258,
+         169,
+         289
+        ]
+       },
+       {
+        "kind": "net_profit",
+        "label": "9 Profit after tax for the period/year (7) - (8)",
+        "page": 9,
+        "values": [
+         6104,
+         5513,
+         4410,
+         20027
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "10 Other Comprehensive Income",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will not be reclassified to profit or loss",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Remeasurement gains / (losses) on defined benefit plan",
+        "page": 9,
+        "values": [
+         40,
+         -76,
+         61,
+         -116
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Equity instruments through other comprehensive income",
+        "page": 9,
+        "values": [
+         null,
+         -10,
+         null,
+         735
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Income tax relating to items that will not be reclassified to profit or loss",
+        "page": 9,
+        "values": [
+         -2,
+         31,
+         -2,
+         -64
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Items that will be reclassified to profit or loss",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Exchange differences in translating the financial statements of foreign operations",
+        "page": 9,
+        "values": [
+         1,
+         14,
+         0,
+         29
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total other comprehensive income/ (loss)",
+        "page": 9,
+        "values": [
+         39,
+         -41,
+         59,
+         584
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "11 Total comprehensive income for the period/year (9) + (10)",
+        "page": 9,
+        "values": [
+         6143,
+         5472,
+         4469,
+         20611
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period/ year attributable to: Owners of the parent",
+        "page": 9,
+        "values": [
+         5807,
+         5293,
+         4328,
+         19417
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit for the period/ year attributable to: Non-controlling interest",
+        "page": 9,
+        "values": [
+         297,
+         220,
+         82,
+         610
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income/ (loss) for the period/ year attributable to: Owners of the parent",
+        "page": 9,
+        "values": [
+         40,
+         -47,
+         60,
+         577
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Other comprehensive income/ (loss) for the period/ year attributable to: Non-controlling interest",
+        "page": 9,
+        "values": [
+         -1,
+         6,
+         -1,
+         7
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period/ year attributable to: Owners of the parent",
+        "page": 9,
+        "values": [
+         5847,
+         5246,
+         4388,
+         19994
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total comprehensive income for the period/ year attributable to: Non-controlling interest",
+        "page": 9,
+        "values": [
+         296,
+         226,
+         81,
+         617
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "12 Paid-up equity share capital (Face value Rs.5/- per share)",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         719
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Reserves (excluding revaluation reserves)",
+        "page": 9,
+        "values": [
+         null,
+         null,
+         null,
+         94004
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Earnings per equity share ('EPS') of Rs.5/- each: Basic EPS for the period/year (Rs.)",
+        "page": 9,
+        "values": [
+         40.39,
+         36.82,
+         30.1,
+         135.04
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "13 Earnings per equity share ('EPS') of Rs.5/- each: Diluted EPS for the period/year (Rs.)",
+        "page": 9,
+        "values": [
+         40.37,
+         36.76,
+         30.1,
+         134.94
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "results"
+     },
+     {
+      "columns": [
+       {
+        "audited": false,
+        "label": "Three months ended 30/06/2026",
+        "months": 3,
+        "period_end": "2026-06-30"
+       },
+       {
+        "audited": false,
+        "label": "Preceding three months ended 31/03/2026",
+        "months": 3,
+        "period_end": "2026-03-31"
+       },
+       {
+        "audited": false,
+        "label": "Corresponding three months ended 30/06/2025",
+        "months": 3,
+        "period_end": "2025-06-30"
+       },
+       {
+        "audited": true,
+        "label": "Previous year ended 31/03/2026",
+        "months": 12,
+        "period_end": "2026-03-31"
+       }
+      ],
+      "pages": [
+       10
+      ],
+      "rows": [
+       {
+        "kind": "other",
+        "label": "1.Segment revenue",
+        "page": 10,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare services",
+        "page": 10,
+        "values": [
+         36195,
+         33337,
+         29738,
+         127501
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Retail health and diagnostics",
+        "page": 10,
+        "values": [
+         4995,
+         4895,
+         4351,
+         18653
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Digital health and pharmacy distribution",
+        "page": 10,
+        "values": [
+         29770,
+         28482,
+         24719,
+         108081
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Others",
+        "page": 10,
+        "values": [
+         13,
+         13,
+         13,
+         52
+        ]
+       },
+       {
+        "kind": "segment_revenue_total",
+        "label": "SUB - TOTAL",
+        "page": 10,
+        "values": [
+         70973,
+         66727,
+         58821,
+         254287
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less : Intersegmental revenue",
+        "page": 10,
+        "values": [
+         538,
+         672,
+         400,
+         2002
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Revenue from operations",
+        "page": 10,
+        "values": [
+         70435,
+         66055,
+         58421,
+         252285
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "2. Segment results",
+        "page": 10,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare services",
+        "page": 10,
+        "values": [
+         6859,
+         6146,
+         5619,
+         24303
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Retail health and diagnostics",
+        "page": 10,
+        "values": [
+         227,
+         399,
+         71,
+         723
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Digital health and pharmacy distribution",
+        "page": 10,
+        "values": [
+         1523,
+         1357,
+         692,
+         3987
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Others",
+        "page": 10,
+        "values": [
+         -39,
+         -36,
+         -10,
+         -81
+        ]
+       },
+       {
+        "kind": "segment_result_total",
+        "label": "SUB - TOTAL",
+        "page": 10,
+        "values": [
+         8570,
+         7866,
+         6372,
+         28932
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Less: (i) Finance cost",
+        "page": 10,
+        "values": [
+         -1204,
+         -1191,
+         -1083,
+         -4496
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: (ii) Other un-allocable income, (net of expenditure)",
+        "page": 10,
+        "values": [
+         488,
+         439,
+         402,
+         1916
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: (iii) Share of profit/(loss) of associates / joint ventures",
+        "page": 10,
+        "values": [
+         134,
+         101,
+         136,
+         449
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Add: (iv) Exceptional item (Refer note 8)",
+        "page": 10,
+        "values": [
+         0,
+         0,
+         0,
+         -192
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Profit before tax",
+        "page": 10,
+        "values": [
+         7988,
+         7215,
+         5827,
+         26609
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "3. Capital employed",
+        "page": 10,
+        "values": [
+         null,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare services * Segment assets",
+        "page": 10,
+        "values": [
+         149864,
+         144862,
+         129519,
+         144862
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "a) Healthcare services * Segment liabilities",
+        "page": 10,
+        "values": [
+         -42018,
+         -39357,
+         -42263,
+         -39357
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Retail health and diagnostics Segment assets",
+        "page": 10,
+        "values": [
+         15166,
+         14732,
+         14094,
+         14732
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "b) Retail health and diagnostics Segment liabilities",
+        "page": 10,
+        "values": [
+         -11591,
+         -11436,
+         -11572,
+         -11436
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Digital health and pharmacy distribution Segment assets",
+        "page": 10,
+        "values": [
+         34971,
+         33181,
+         30614,
+         33181
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "c) Digital health and pharmacy distribution Segment liabilities",
+        "page": 10,
+        "values": [
+         -10082,
+         -9466,
+         -10041,
+         -9466
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Others Segment assets",
+        "page": 10,
+        "values": [
+         249,
+         257,
+         273,
+         257
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "d) Others Segment liabilities",
+        "page": 10,
+        "values": [
+         -185,
+         -183,
+         -178,
+         -183
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Unallocated Segment assets",
+        "page": 10,
+        "values": [
+         31860,
+         28937,
+         38814,
+         28937
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "e) Unallocated Segment liabilities",
+        "page": 10,
+        "values": [
+         -62072,
+         -61782,
+         -57994,
+         -61782
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "Total",
+        "page": 10,
+        "values": [
+         106162,
+         99745,
+         91266,
+         99745
+        ]
+       },
+       {
+        "kind": "other",
+        "label": "* Includes Capital employed in various hospital projects under construction",
+        "page": 10,
+        "values": [
+         12052,
+         10324,
+         8423,
+         10324
+        ]
+       }
+      ],
+      "scope": "consolidated",
+      "statement": "segments"
+     }
+    ],
+    "unit": "millions"
+   },
+   "seconds": 123.7,
+   "usage": {
+    "candidatesTokenCount": 5347,
+    "promptTokenCount": 16557,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 729
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 15828
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 3885,
+    "totalTokenCount": 25789
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": [
+    {
+     "company": "Apollo Hospitals Enterprise Limited",
+     "currency": "INR",
+     "tables": [
+      {
+       "columns": [
+        {
+         "audited": false,
+         "label": "Three months ended 30/06/2026",
+         "months": 3,
+         "period_end": "2026-06-30"
+        },
+        {
+         "audited": false,
+         "label": "Preceding three months ended 31/03/2026",
+         "months": 3,
+         "period_end": "2026-03-31"
+        },
+        {
+         "audited": false,
+         "label": "Corresponding three months ended 30/06/2025",
+         "months": 3,
+         "period_end": "2025-06-30"
+        },
+        {
+         "audited": true,
+         "label": "Previous year ended 31/03/2026",
+         "months": 12,
+         "period_end": "2026-03-31"
+        }
+       ],
+       "pages": [
+        1
+       ],
+       "rows": [
+        {
+         "kind": "other",
+         "label": "1 Income",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "revenue_from_operations",
+         "label": "(a) Revenue from operations",
+         "page": 1,
+         "values": [
+          70435,
+          66055,
+          58421,
+          252285
+         ]
+        },
+        {
+         "kind": "other_income",
+         "label": "(b) Other income",
+         "page": 1,
+         "values": [
+          488,
+          439,
+          402,
+          1916
+         ]
+        },
+        {
+         "kind": "total_income",
+         "label": "Total Income (a + b)",
+         "page": 1,
+         "values": [
+          70923,
+          66494,
+          58823,
+          254201
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "2 Expenses",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(a) Cost of materials consumed",
+         "page": 1,
+         "values": [
+          8290,
+          7774,
+          7401,
+          30408
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(b) Purchases of stock-in-trade",
+         "page": 1,
+         "values": [
+          27678,
+          26131,
+          23155,
+          100564
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(c) Changes in inventories of stock-in-trade",
+         "page": 1,
+         "values": [
+          3,
+          115,
+          -80,
+          -216
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(d) Employee benefits expense",
+         "page": 1,
+         "values": [
+          7958,
+          7720,
+          7126,
+          30003
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(e) Finance costs",
+         "page": 1,
+         "values": [
+          1204,
+          1191,
+          1083,
+          4496
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(f) Depreciation and amortisation expense",
+         "page": 1,
+         "values": [
+          2351,
+          2244,
+          2147,
+          8761
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "(g) Other expenses",
+         "page": 1,
+         "values": [
+          15585,
+          14205,
+          12300,
+          53833
+         ]
+        },
+        {
+         "kind": "total_expenses",
+         "label": "Total expenses",
+         "page": 1,
+         "values": [
+          63069,
+          59380,
+          53132,
+          227849
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "3 Profit before share of profit/(loss) in associates / joint ventures and exceptional items (1) - (2)",
+         "page": 1,
+         "values": [
+          7854,
+          7114,
+          5691,
+          26352
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "4 Share of profit/(loss) of associates /joint ventures",
+         "page": 1,
+         "values": [
+          134,
+          101,
+          136,
+          449
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "5 Profit before tax and exceptional items (3) + (4)",
+         "page": 1,
+         "values": [
+          7988,
+          7215,
+          5827,
+          26801
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "6 Exceptional item (Refer note 8)",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          -192
+         ]
+        },
+        {
+         "kind": "profit_before_tax",
+         "label": "7 Profit before tax (5) + (6)",
+         "page": 1,
+         "values": [
+          7988,
+          7215,
+          5827,
+          26609
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "8 Tax expenses",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Current tax",
+         "page": 1,
+         "values": [
+          2103,
+          1960,
+          1248,
+          6293
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Deferred tax",
+         "page": 1,
+         "values": [
+          -219,
+          -258,
+          169,
+          289
+         ]
+        },
+        {
+         "kind": "net_profit",
+         "label": "9 Profit after tax for the period/year (7) - (8)",
+         "page": 1,
+         "values": [
+          6104,
+          5513,
+          4410,
+          20027
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "10 Other Comprehensive Income",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Items that will not be reclassified to profit or loss",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Remeasurement gains / (losses) on defined benefit plan",
+         "page": 1,
+         "values": [
+          40,
+          -76,
+          61,
+          -116
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Equity instruments through other comprehensive income",
+         "page": 1,
+         "values": [
+          null,
+          -10,
+          null,
+          735
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Income tax relating to items that will not be reclassified to profit or loss",
+         "page": 1,
+         "values": [
+          -2,
+          31,
+          -2,
+          -64
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Items that will be reclassified to profit or loss",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Exchange differences in translating the financial statements of foreign operations",
+         "page": 1,
+         "values": [
+          1,
+          14,
+          0,
+          29
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Total other comprehensive income/ (loss)",
+         "page": 1,
+         "values": [
+          39,
+          -41,
+          59,
+          584
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "11 Total comprehensive income for the period/year (9) + (10)",
+         "page": 1,
+         "values": [
+          6143,
+          5472,
+          4469,
+          20611
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Profit for the period/ year attributable to:",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Owners of the parent",
+         "page": 1,
+         "values": [
+          5807,
+          5293,
+          4328,
+          19417
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Non-controlling interest",
+         "page": 1,
+         "values": [
+          297,
+          220,
+          82,
+          610
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Other comprehensive income/ (loss) for the period/ year attributable to:",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Owners of the parent",
+         "page": 1,
+         "values": [
+          40,
+          -47,
+          60,
+          577
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Non-controlling interest",
+         "page": 1,
+         "values": [
+          -1,
+          6,
+          -1,
+          7
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Total comprehensive income for the period/ year attributable to:",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Owners of the parent",
+         "page": 1,
+         "values": [
+          5847,
+          5246,
+          4388,
+          19994
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Non-controlling interest",
+         "page": 1,
+         "values": [
+          296,
+          226,
+          81,
+          617
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "12 Paid-up equity share capital (Face value Rs.5/- per share)",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          719
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Reserves (excluding revaluation reserves)",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          94004
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "13 Earnings per equity share ('EPS') of Rs.5/- each",
+         "page": 1,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Basic EPS for the period/year (Rs.)",
+         "page": 1,
+         "values": [
+          40.39,
+          36.82,
+          30.1,
+          135.04
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Diluted EPS for the period/year (Rs.)",
+         "page": 1,
+         "values": [
+          40.37,
+          36.76,
+          30.1,
+          134.94
+         ]
+        }
+       ],
+       "scope": "consolidated",
+       "statement": "results"
+      },
+      {
+       "columns": [
+        {
+         "audited": false,
+         "label": "Three months ended 30/06/2026",
+         "months": 3,
+         "period_end": "2026-06-30"
+        },
+        {
+         "audited": false,
+         "label": "Preceding three months ended 31/03/2026",
+         "months": 3,
+         "period_end": "2026-03-31"
+        },
+        {
+         "audited": false,
+         "label": "Corresponding three months ended 30/06/2025",
+         "months": 3,
+         "period_end": "2025-06-30"
+        },
+        {
+         "audited": true,
+         "label": "Previous year ended 31/03/2026",
+         "months": 12,
+         "period_end": "2026-03-31"
+        }
+       ],
+       "pages": [
+        2
+       ],
+       "rows": [
+        {
+         "kind": "other",
+         "label": "1.Segment revenue",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "a) Healthcare services",
+         "page": 2,
+         "values": [
+          36195,
+          33337,
+          29738,
+          127501
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "b) Retail health and diagnostics",
+         "page": 2,
+         "values": [
+          4995,
+          4895,
+          4351,
+          18653
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "c) Digital health and pharmacy distribution",
+         "page": 2,
+         "values": [
+          29770,
+          28482,
+          24719,
+          108081
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "d) Others",
+         "page": 2,
+         "values": [
+          13,
+          13,
+          13,
+          52
+         ]
+        },
+        {
+         "kind": "segment_revenue_total",
+         "label": "SUB - TOTAL",
+         "page": 2,
+         "values": [
+          70973,
+          66727,
+          58821,
+          254287
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Less : Intersegmental revenue",
+         "page": 2,
+         "values": [
+          538,
+          672,
+          400,
+          2002
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Revenue from operations",
+         "page": 2,
+         "values": [
+          70435,
+          66055,
+          58421,
+          252285
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "2. Segment results",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "a) Healthcare services",
+         "page": 2,
+         "values": [
+          6859,
+          6146,
+          5619,
+          24303
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "b) Retail health and diagnostics",
+         "page": 2,
+         "values": [
+          227,
+          399,
+          71,
+          723
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "c) Digital health and pharmacy distribution",
+         "page": 2,
+         "values": [
+          1523,
+          1357,
+          692,
+          3987
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "d) Others",
+         "page": 2,
+         "values": [
+          -39,
+          -36,
+          -10,
+          -81
+         ]
+        },
+        {
+         "kind": "segment_result_total",
+         "label": "SUB - TOTAL",
+         "page": 2,
+         "values": [
+          8570,
+          7866,
+          6372,
+          28932
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Less: (i) Finance cost",
+         "page": 2,
+         "values": [
+          -1204,
+          -1191,
+          -1083,
+          -4496
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Add: (ii) Other un-allocable income, (net of expenditure)",
+         "page": 2,
+         "values": [
+          488,
+          439,
+          402,
+          1916
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Add: (iii) Share of profit/(loss) of associates / joint ventures",
+         "page": 2,
+         "values": [
+          134,
+          101,
+          136,
+          449
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Add: (iv) Exceptional item (Refer note 8)",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          -192
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Profit before tax",
+         "page": 2,
+         "values": [
+          7988,
+          7215,
+          5827,
+          26609
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "3. Capital employed",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "a) Healthcare services *",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment assets",
+         "page": 2,
+         "values": [
+          149864,
+          144862,
+          129519,
+          144862
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment liabilities",
+         "page": 2,
+         "values": [
+          -42018,
+          -39357,
+          -42263,
+          -39357
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "b) Retail health and diagnostics",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment assets",
+         "page": 2,
+         "values": [
+          15166,
+          14732,
+          14094,
+          14732
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment liabilities",
+         "page": 2,
+         "values": [
+          -11591,
+          -11436,
+          -11572,
+          -11436
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "c) Digital health and pharmacy distribution",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment assets",
+         "page": 2,
+         "values": [
+          34971,
+          33181,
+          30614,
+          33181
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment liabilities",
+         "page": 2,
+         "values": [
+          -10082,
+          -9466,
+          -10041,
+          -9466
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "d) Others",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment assets",
+         "page": 2,
+         "values": [
+          249,
+          257,
+          273,
+          257
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment liabilities",
+         "page": 2,
+         "values": [
+          -185,
+          -183,
+          -178,
+          -183
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "e) Unallocated",
+         "page": 2,
+         "values": [
+          null,
+          null,
+          null,
+          null
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment assets",
+         "page": 2,
+         "values": [
+          31860,
+          28937,
+          38814,
+          28937
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Segment liabilities",
+         "page": 2,
+         "values": [
+          -62072,
+          -61782,
+          -57994,
+          -61782
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "Total",
+         "page": 2,
+         "values": [
+          106162,
+          99745,
+          91266,
+          99745
+         ]
+        },
+        {
+         "kind": "other",
+         "label": "* Includes Capital employed in various hospital projects under construction",
+         "page": 2,
+         "values": [
+          12052,
+          10324,
+          8423,
+          10324
+         ]
+        }
+       ],
+       "scope": "consolidated",
+       "statement": "segments"
+      }
+     ],
+     "unit": "millions"
+    }
+   ],
+   "seconds": 60.7,
+   "usage": {
+    "candidatesTokenCount": 6312,
+    "promptTokenCount": 2939,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 2184
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 755
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 7418,
+    "totalTokenCount": 16669
+   }
+  }
+ },
+ "truth": {
+  "figures": [
+   {
+    "label": "Net Sales",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 70435.0
+   },
+   {
+    "label": "Other Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 488.0
+   },
+   {
+    "label": "Total Income",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 70923.0
+   },
+   {
+    "label": "Expenditure",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -63069.0
+   },
+   {
+    "label": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 7854.0
+   },
+   {
+    "grouped": [
+     [
+      "5 Profit before tax and exceptional items (3) + (4)",
+      1,
+      15
+     ],
+     [
+      "9 Profit after tax for the period/year (7) - (8)",
+      -1,
+      21
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": -1884.0
+   },
+   {
+    "grouped": [
+     [
+      "4 Share of profit/(loss) of associates /joint ventures",
+      -1,
+      14
+     ],
+     [
+      "9 Profit after tax for the period/year (7) - (8)",
+      1,
+      21
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 5970.0
+   },
+   {
+    "label": "Net Profit",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 6104.0
+   },
+   {
+    "label": "Net Profit after Mino Inter & Share of P & L",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 6104.0
+   },
+   {
+    "label": "Income Attributable to Consolidated Group",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 6104.0
+   },
+   {
+    "label": "Profit after Interest but before Exceptional Items",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 7854.0
+   },
+   {
+    "grouped": [
+     [
+      "4 Share of profit/(loss) of associates /joint ventures",
+      -1,
+      14
+     ],
+     [
+      "9 Profit after tax for the period/year (7) - (8)",
+      1,
+      21
+     ]
+    ],
+    "grouped_by": "search",
+    "label": "Net Profit Loss for the period from continuing operations",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 5970.0
+   },
+   {
+    "label": "Other Comprehensive Income Net of Taxes",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 39.0
+   },
+   {
+    "label": "Total Comprehensive Income for the Period",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 6143.0
+   },
+   {
+    "label": "Share of profit(loss) of associates and joint ventures",
+    "months": 3,
+    "period_end": "2026-06-30",
+    "value": 134.0
+   }
+  ],
+  "source": "BSE's results page table for the filing, saved by hand (PLAN.md R0)",
+  "unit": "millions"
+ }
+}

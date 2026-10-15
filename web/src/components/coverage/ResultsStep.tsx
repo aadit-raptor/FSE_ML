@@ -162,9 +162,14 @@ export function ResultsStep() {
           {t("closedBody")}
         </Notice>
       )}
-      {info && info.status === "on" && info.open && info.measured.meets_bar !== true && (
+      {info && info.status === "on" && info.open && info.measured.meets_bar === null && (
         <Notice tone="attention" title={t("unmeasuredTitle")} role="note">
           {t("unmeasuredBody", { cases: info.measured.cases })}
+        </Notice>
+      )}
+      {info && info.status === "on" && info.open && info.measured.meets_bar === false && (
+        <Notice tone="attention" title={t("belowBarTitle")} role="note">
+          {t("belowBarBody", { cases: info.measured.cases, share: fmtRate(info.measured.amber_share, 2) })}
         </Notice>
       )}
       {running && (

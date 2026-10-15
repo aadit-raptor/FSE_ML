@@ -17,9 +17,14 @@ Two ways in:
         R0's saved reads (research-samples/r0/out) as the ``development`` set,
         with BSE's tables (research-samples/xbrl) as truth. No call.
 
-    python -m research.reader.record read --set held_out --samples DIR FILE.pdf [...]
+    python -m research.reader.record read --set held_out [--high] FILE.pdf [...]
         Reads filings with Gemini (``GEMINI_API_KEY`` in the environment, or
-        ``--env-file``). **Each answer is saved as it arrives and never asked
+        ``--env-file``); ``--high`` makes the high-resolution trial's two reads
+        (``high``) beside the ordinary ones. BSE's table for the filing, where
+        saved in ``--truth`` (research-samples/xbrl), is joined as truth once
+        the ordinary read A is in: running the command again joins it with no
+        call. The trial waits for a filing's ordinary pair, which the card
+        scores it beside. **Each answer is saved as it arrives and never asked
         for twice**, so a run stopped by the day's allowance carries on the
         next day where it left off: the free tier gives 20 requests a day per
         model, two a filing, so recording is spread over days. A model whose
@@ -240,8 +245,25 @@ def write(path: Path, record: dict) -> None:
 
 # ------------------------------------------------------------- live reads
 
-def read_one(provider: Gemini, pdf: Path, target: Path, set_name: str, quarter: Optional[str]) -> str:
-    """Read one filing, saving after each answer. What happened, in words."""
+def join_truth(record: dict, truth_dir: Optional[Path]) -> bool:
+    """BSE's table for the filing as its truth, once read A is in; whether
+    one was joined. Matched by the file's short name, so a table saved for
+    another quarter of the same company is never taken."""
+    if truth_dir is None or record.get("truth") or "A" not in record["reads"]:
+        return False
+    bse = truth_dir / f"{record['document']['name']}.xls"
+    found = bse_figures(bse) if bse.is_file() else None
+    if not found:
+        return False
+    record["truth"] = found
+    group_truth(record)
+    return True
+
+
+def read_one(provider: Gemini, pdf: Path, target: Path, set_name: str, quarter: Optional[str],
+             *, key: str = "reads", truth_dir: Optional[Path] = None) -> str:
+    """Read one filing, saving after each answer, into ``reads`` or the
+    high-resolution trial's ``high``. What happened, in words."""
     record = json.loads(target.read_text()) if target.exists() else None
     data = pdf.read_bytes()
     if record is None:
@@ -252,7 +274,9 @@ def read_one(provider: Gemini, pdf: Path, target: Path, set_name: str, quarter: 
                   "prompt": prompt.PROMPT_VERSION, "reads": {}}
     if record["prompt"] != prompt.PROMPT_VERSION:
         return f"recorded with prompt {record['prompt']}, not {prompt.PROMPT_VERSION}: left as it is"
-    reads = record["reads"]
+    if key != "reads" and "B" not in record["reads"]:
+        return "the ordinary reads first: the trial is scored only beside them"
+    reads = record.setdefault(key, {})
     for which in ("A", "B"):
         if which in reads:
             continue
@@ -270,7 +294,10 @@ def read_one(provider: Gemini, pdf: Path, target: Path, set_name: str, quarter: 
         reads[which] = {"model": answer.model, "read": answer.read, "usage": dict(answer.usage),
                         "seconds": answer.seconds}
         write(target, record)
-    return f"A by {reads['A']['model']}, B by {reads['B']['model']}"
+    joined = join_truth(record, truth_dir)
+    if joined:
+        write(target, record)
+    return f"A by {reads['A']['model']}, B by {reads['B']['model']}" + (", truth joined" if joined else "")
 
 
 def _key(env_file: Optional[Path]) -> str:
@@ -293,19 +320,24 @@ def main(argv=None) -> int:
     live.add_argument("--set", default="held_out")
     live.add_argument("--env-file", type=Path)
     live.add_argument("--quarter", help="the quarter end, when the file name does not say (YYYY-MM-DD)")
+    live.add_argument("--high", action="store_true", help="the high-resolution trial's reads (READER_HIGH_RESOLUTION)")
+    live.add_argument("--truth", type=Path, default=Path("research-samples") / "xbrl",
+                      help="where BSE's tables are saved (company_FYyy-Qn.xls)")
     live.add_argument("files", nargs="+", type=Path)
     args = parser.parse_args(argv)
     if args.command == "r0":
         for name in from_r0(args.samples):
             print(f"wrote {name}")
         return 0
-    provider = Gemini(_key(args.env_file))
+    provider = Gemini(_key(args.env_file), high_resolution=args.high or None)
     for pdf in args.files:
         target = RECORDINGS / args.set / f"{short_name(pdf.stem)}.json"
         try:
-            print(f"{pdf.name}: {read_one(provider, pdf, target, args.set, args.quarter)}", flush=True)
+            said = read_one(provider, pdf, target, args.set, args.quarter,
+                            key="high" if args.high else "reads", truth_dir=args.truth)
+            print(f"{pdf.name}: {said}", flush=True)
         except ProviderError as exc:
-            print(f"{pdf.name}: {exc.code}", flush=True)
+            print(f"{pdf.name}: {exc}", flush=True)
             if exc.code == SPENT:
                 print("Every model's allowance for today is spent: run the same command again tomorrow.")
                 return 0
