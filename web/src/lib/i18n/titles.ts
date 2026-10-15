@@ -27,3 +27,5 @@ export const SIGN_UP_TITLE = DEFAULT_MESSAGES.auth.signUp;
 export const PRIVACY_TITLE = DEFAULT_MESSAGES.privacy.title;
 export const APP_DESCRIPTION = DEFAULT_MESSAGES.app.description;
 export const APP_BRAND = DEFAULT_MESSAGES.app.brand;
+export const EXCEL_PANE_TITLE = DEFAULT_MESSAGES.excel.title;
+export const EXCEL_CONNECT_TITLE = DEFAULT_MESSAGES.excel.connectTitle;

@@ -25,6 +25,12 @@ instance, so ``FSE_AUTH_DEV=1`` accepts ``Bearer dev:<name>`` as the user
 - when the environment is production (``FSE_ENV``/Render service name), or
 - when Clerk is configured -- a real deployment never also accepts dev tokens.
 
+**The Excel add-in** (PLAN.md R3) sends ``Bearer addin:<pass>``: a pass the
+API made for a signed-in user (``db/addin.py``, ``api/routers/addin.py``),
+looked up by its hash. It works in every sign-in mode but reaches only
+``ADDIN_PATHS``, the research endpoints the pane uses; anywhere else it is a
+403, so a pass taken from a pane can't open the person's deals or settings.
+
 ``tests/test_auth.py`` pins all of this, including that every route outside
 ``PUBLIC_PATHS`` answers 401 without a token.
 """
@@ -57,6 +63,12 @@ LEEWAY_S = 30
 # How long a fetched JWKS is reused before it is fetched again
 JWKS_CACHE_S = 3600
 DEV_TOKEN_PREFIX = "dev:"
+ADDIN_TOKEN_PREFIX = "addin:"
+# What an add-in pass may reach (PLAN.md R3): coverage and the reader, the PDF
+# it uploads, and its own sign-in. Prefixes end in "/" or are whole paths.
+ADDIN_PATHS = ("/api/research/", "/api/files", "/api/files/", "/api/addin/session")
+# How long a looked-up pass is trusted before the database is asked again
+ADDIN_CACHE_S = 60
 
 _bearer = HTTPBearer(auto_error=False, description="Clerk session token")
 
@@ -73,6 +85,8 @@ class AuthUser:
     subject: str
     session_id: Optional[str] = None
     is_dev: bool = False
+    # Signed in through the Excel add-in's pass, not the site's own sign-in
+    via_addin: bool = False
 
 
 def deploy_environment() -> str:
@@ -216,13 +230,65 @@ def authenticate(token: Optional[str]) -> AuthUser:
         detail="Sign-in is not configured on this server (set CLERK_ISSUER).")
 
 
+# ---------------------------------------------------------------------------
+# The Excel add-in's passes
+# ---------------------------------------------------------------------------
+_addin_lock = threading.Lock()
+_addin_seen: dict[str, tuple[float, str, float]] = {}
+
+
+def addin_path(path: str) -> bool:
+    return any(path == p or (p.endswith("/") and path.startswith(p)) for p in ADDIN_PATHS)
+
+
+def forget_addin_pass(token: str) -> None:
+    """Drop a pass from this process's cache (it was signed out)."""
+    from db.addin import token_hash
+    with _addin_lock:
+        _addin_seen.pop(token_hash(token), None)
+
+
+def reset_addin_cache() -> None:
+    with _addin_lock:
+        _addin_seen.clear()
+
+
+def verify_addin_token(token: str, path: str) -> AuthUser:
+    """The user an add-in pass stands for, on a path it may reach; else 401 or 403."""
+    from db import addin
+    from db.engine import is_configured as database_configured
+    if not addin_path(path):
+        raise HTTPException(status_code=403, detail="addin_scope")
+    if not addin.looks_like_pass(token):
+        raise _unauthorized("add-in pass not recognised")
+    if not database_configured():
+        raise HTTPException(status_code=503, detail="no_database")
+    key, now = addin.token_hash(token), time.time()
+    with _addin_lock:
+        seen = _addin_seen.get(key)
+    if seen and now - seen[0] < ADDIN_CACHE_S and now < seen[2]:
+        return AuthUser(subject=seen[1], via_addin=True)
+    holder = addin.lookup(token)
+    if holder is None:
+        forget_addin_pass(token)
+        raise _unauthorized("add-in pass ended; sign in again")
+    with _addin_lock:
+        if len(_addin_seen) > 10_000:
+            _addin_seen.clear()
+        _addin_seen[key] = (now, holder.subject, holder.expires_at.timestamp())
+    return AuthUser(subject=holder.subject, via_addin=True)
+
+
 def require_user(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
 ) -> AuthUser:
     """FastAPI dependency: the signed-in user, or 401."""
     token = credentials.credentials if credentials else None
-    user = authenticate(token)
+    if token and token.startswith(ADDIN_TOKEN_PREFIX):
+        user = verify_addin_token(token, request.url.path)
+    else:
+        user = authenticate(token)
     # Routes read it from the request too (middleware and handlers)
     request.state.user = user
     return user

@@ -890,6 +890,72 @@ a fetched file for the page's life. The PDF itself keeps 6.1's 90 days: the acce
 figures and their page numbers stay after it goes (decided in R2: a longer
 life would hold the per-person file quota of 40 files and 100 MB for good).
 
+## Excel add-in
+
+PLAN.md R3: an Excel task pane that signs in and imports a covered
+company's accepted quarters as cells, or reads a new results PDF, has its
+amber figures answered in the pane, and imports it. **Nothing to set up**:
+the pane is a page of the web app (`/excel`), the sign-in is the site's own
+(Clerk), and the only storage is table `addin_sessions` (migration 0020).
+
+**How it signs in.** Excel on the web shows the pane in a frame of
+Microsoft's page, where the browser keeps the site's own cookies from it, so
+the pane can't use the site's session. It opens Office's dialog on
+`/excel/connect` instead, a window of its own where the sign-in works as in
+any tab; signed in, that page asks `POST /api/addin/sessions` for an
+**add-in pass** and hands it to the pane. A pass (`addin:` and 43 random
+characters) reaches only `/api/research/*`, `/api/files*` and its own
+`/api/addin/session` (`api.auth.ADDIN_PATHS`; anything else is a 403), lasts
+12 hours, is one of at most five per person, and ends when the pane signs
+out. Only its SHA-256 is stored; the nightly job maintenance deletes ended
+ones (`addin_sessions_deleted` in its summary).
+
+**Its pages' headers** differ from every other page's, and only theirs
+(`web/src/lib/security/headers.ts`): `frame-ancestors` names Office's hosts
+(`OFFICE_FRAME_ANCESTORS`) instead of `'none'`, there is no
+`X-Frame-Options` (it can't name hosts), the opener policy is `unsafe-none`
+(Office's dialog needs its opener), and `script-src` names
+`https://appsforoffice.microsoft.com`, where Office.js is loaded from.
+`ops/check_headers.py` (live.yml, staging.yml) checks `/excel` against
+exactly that list and `/sign-in` and `/privacy` against the strict policy.
+If Excel on the web shows an empty pane, its browser console names the
+frame that was refused: add that Microsoft host to both lists (the web's
+and `ops/check_headers.py`'s; `tests/test_security.py` keeps them equal).
+
+### Installing it (a tester)
+
+The manifests are `https://variater.com/excel/manifest.xml` (production) and
+`manifest-staging.xml` (staging, which only the Vercel team can open, since
+staging sits behind Vercel's login). Save the file, then:
+
+- **Excel on the web** (office.com): open any workbook, then **Home ->
+  Add-ins -> More Add-ins** (or **Advanced...**) **-> Upload My Add-in**, and
+  choose the saved `manifest.xml`. A **Variater** button appears on the Home
+  tab. Uploading lasts for that browser session.
+- **Excel on the Mac**: quit Excel; in Finder press Shift-Command-G, go to
+  `~/Library/Containers/com.microsoft.Excel/Data/Documents/` and make a
+  folder `wef` there if there is none; copy `manifest.xml` into it; open
+  Excel and a workbook, then **Home -> Add-ins** (or **Insert -> My
+  Add-ins**) and choose **Variater** under the developer add-ins.
+- **Excel on Windows**: make a folder (say `C:\VariaterAddin`), share it
+  (right-click, **Properties -> Sharing -> Share**) and copy
+  `manifest.xml` into it; in Excel, **File -> Options -> Trust Center ->
+  Trust Center Settings -> Trusted Add-in Catalogs**, add the share's
+  network path (`\\<computer>\VariaterAddin`), tick **Show in Menu**, OK,
+  and restart Excel; then **Home -> Add-ins -> More Add-ins -> Shared
+  Folder -> Variater -> Add**.
+
+Then **Variater** on the Home tab opens the pane; **Sign in** opens the
+sign-in window. Google may refuse to sign in inside Excel's own window on
+Windows and the Mac (it refuses browsers built into apps); the pane and the
+window say so, and email sign-in, which never leaves variater.com, works
+for the same account. A new account is made on the site itself first (it
+asks for country and currency), not in the window.
+
+To remove it: Excel on the web forgets it with the session; on the Mac
+delete the file from `wef`; on Windows remove the catalog in the Trust
+Center. A tester's pass ends by itself within 12 hours, or at **Sign out**.
+
 ## File uploads
 
 Set up in PLAN.md 6.1. People upload PDF, Excel and Word files on Deal →

@@ -19,8 +19,12 @@ export type AuthMode = "clerk" | "dev";
 
 export const AUTH_MODE: AuthMode = CLERK_PUBLISHABLE_KEY ? "clerk" : "dev";
 
-/** Pages a signed-out visitor may open. The privacy policy too: Google's consent screen links to it. */
-export const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/privacy"];
+/**
+ * Pages a signed-out visitor may open. The privacy policy too: Google's consent screen links to it. And the
+ * Excel add-in's pages (PLAN.md R3): the pane signs in with its own pass, not the site's session, and the
+ * dialog it opens shows the sign-in itself, so neither is sent to /sign-in.
+ */
+export const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/privacy", "/excel"];
 
 export function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));

@@ -6,8 +6,12 @@ security policy and CORS, on the web app and the API.
 - Web: ``/sign-in`` (a page anyone may open) is fetched twice. It must carry a
   strict content security policy with a fresh nonce each time, HSTS, nosniff,
   no framing, a strict referrer policy, a permissions policy and no
-  ``X-Powered-By``. ``/api/health`` through the web app's proxy must carry the
-  API's own headers.
+  ``X-Powered-By``; ``/privacy`` the same. ``/api/health`` through the web
+  app's proxy must carry the API's own headers.
+- The Excel add-in's pane (PLAN.md R3, ``/excel``): the same strict policy,
+  except that it may be framed by exactly Office's hosts
+  (``OFFICE_FRAME_ANCESTORS``, the web's ``lib/security/headers.ts`` list)
+  and loads Office.js from Microsoft's CDN; no other page may.
 - API: ``/api/health`` must carry the API headers (``default-src 'none'``,
   ``no-store``), and a cross-origin preflight from an unknown origin must not
   be allowed.
@@ -31,6 +35,12 @@ from typing import Mapping, Optional
 MIN_HSTS_S = 180 * 24 * 3600
 STRICT_REFERRERS = {"no-referrer", "same-origin", "strict-origin", "strict-origin-when-cross-origin"}
 UNKNOWN_ORIGIN = "https://header-scan.invalid"
+# The pages the Excel add-in's pane may sit in (web/src/lib/security/headers.ts, tests/test_security.py)
+OFFICE_FRAME_ANCESTORS = [
+    "https://*.officeapps.live.com", "https://*.office.com", "https://*.office365.com", "https://*.cloud.microsoft",
+    "https://*.microsoft365.com", "https://*.sharepoint.com", "https://*.live.com",
+]
+OFFICE_SCRIPT_ORIGIN = "https://appsforoffice.microsoft.com"
 
 
 def parse_csp(value: str) -> dict[str, list[str]]:
@@ -49,8 +59,8 @@ def _get(headers: Mapping[str, str], name: str) -> Optional[str]:
     return None
 
 
-def common_problems(headers: Mapping[str, str]) -> list[str]:
-    """Headers every response must have."""
+def common_problems(headers: Mapping[str, str], *, framed_by_office: bool = False) -> list[str]:
+    """Headers every response must have (the add-in's pane: no X-Frame-Options, which can't name hosts)."""
     found = []
     hsts = _get(headers, "Strict-Transport-Security") or ""
     match = re.search(r"max-age=(\d+)", hsts)
@@ -58,7 +68,10 @@ def common_problems(headers: Mapping[str, str]) -> list[str]:
         found.append(f"Strict-Transport-Security missing or under 180 days ({hsts or 'absent'})")
     if (_get(headers, "X-Content-Type-Options") or "").lower() != "nosniff":
         found.append("X-Content-Type-Options is not nosniff")
-    if (_get(headers, "X-Frame-Options") or "").upper() != "DENY":
+    framing = (_get(headers, "X-Frame-Options") or "").upper()
+    if framed_by_office and framing:
+        found.append(f"X-Frame-Options is set ({framing}), so Excel on the web can't show the pane")
+    elif not framed_by_office and framing != "DENY":
         found.append("X-Frame-Options is not DENY")
     referrer = (_get(headers, "Referrer-Policy") or "").lower()
     if referrer not in STRICT_REFERRERS:
@@ -70,9 +83,10 @@ def common_problems(headers: Mapping[str, str]) -> list[str]:
     return found
 
 
-def page_problems(headers: Mapping[str, str]) -> list[str]:
-    """A web page: common headers plus a strict, nonce-based policy."""
-    found = common_problems(headers)
+def page_problems(headers: Mapping[str, str], *, excel: bool = False) -> list[str]:
+    """A web page: common headers plus a strict, nonce-based policy. ``excel``: the add-in's pane, which
+    Office's hosts and only they may frame, and which loads Office.js."""
+    found = common_problems(headers, framed_by_office=excel)
     csp = _get(headers, "Content-Security-Policy")
     if not csp:
         return found + ["Content-Security-Policy is missing"]
@@ -92,8 +106,16 @@ def page_problems(headers: Mapping[str, str]) -> list[str]:
             found.append("CSP script-src allows 'unsafe-inline'")
     if d.get("object-src") != ["'none'"]:
         found.append("CSP object-src is not 'none'")
-    if d.get("frame-ancestors") != ["'none'"]:
-        found.append("CSP frame-ancestors is not 'none'")
+    if excel:
+        if d.get("frame-ancestors") != OFFICE_FRAME_ANCESTORS:
+            found.append(f"CSP frame-ancestors is not exactly Office's hosts ({d.get('frame-ancestors')})")
+        if OFFICE_SCRIPT_ORIGIN not in (scripts or []):
+            found.append("CSP script-src does not name Office.js's host")
+    else:
+        if d.get("frame-ancestors") != ["'none'"]:
+            found.append("CSP frame-ancestors is not 'none'")
+        if OFFICE_SCRIPT_ORIGIN in (scripts or []):
+            found.append("CSP script-src lets a page other than the add-in's load Office.js")
     if d.get("base-uri") not in (["'self'"], ["'none'"]):
         found.append("CSP base-uri is not restricted")
     if "default-src" not in d:
@@ -172,6 +194,12 @@ def scan(web: Optional[str], api: Optional[str], bypass: Optional[str]) -> list[
             found += [f"web page: {p}" for p in page_problems(headers)]
             if nonces[0] and nonces[0] == nonces[1]:
                 found.append("web page: the CSP nonce is reused between requests")
+        for path, excel in (("/privacy", False), ("/excel", True)):
+            status, headers = fetch(f"{web}{path}", headers=extra)
+            if status != 200:
+                found.append(f"web {path} answered {status}, not 200")
+            else:
+                found += [f"web {path}: {p}" for p in page_problems(headers, excel=excel)]
         status, headers = fetch(f"{web}/api/health", headers=extra)
         found += [f"web /api/health: {p}" for p in api_problems(headers)]
     if api:

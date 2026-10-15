@@ -336,6 +336,44 @@
         "title": "ActualYearIn",
         "type": "object"
       },
+      "AddinPass": {
+        "description": "The Excel add-in's pass (PLAN.md R3), answered once: send it as ``Authorization: Bearer <token>``.",
+        "properties": {
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "lifetime_s": {
+            "title": "Lifetime S",
+            "type": "integer"
+          },
+          "token": {
+            "description": "addin: and 43 characters; only its hash is kept",
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "expires_at",
+          "lifetime_s"
+        ],
+        "title": "AddinPass",
+        "type": "object"
+      },
+      "AddinSessionOut": {
+        "properties": {
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expires_at"
+        ],
+        "title": "AddinSessionOut",
+        "type": "object"
+      },
       "AnnualByGrade": {
         "properties": {
           "defaults": {
@@ -504,7 +542,8 @@
                 "enum": [
                   "workbook",
                   "simulation_sample",
-                  "results_workbook"
+                  "results_workbook",
+                  "results_excel"
                 ],
                 "type": "string"
               },
@@ -10160,6 +10199,38 @@
         "title": "PeriodAcceptOut",
         "type": "object"
       },
+      "PeriodCells": {
+        "description": "The checked workbook as cells, for the Excel add-in: the same cells the download holds.",
+        "properties": {
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "generated": {
+            "title": "Generated",
+            "type": "string"
+          },
+          "period_id": {
+            "title": "Period Id",
+            "type": "string"
+          },
+          "sheets": {
+            "items": {
+              "$ref": "#/components/schemas/SheetOut"
+            },
+            "title": "Sheets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "period_id",
+          "company_name",
+          "generated",
+          "sheets"
+        ],
+        "title": "PeriodCells",
+        "type": "object"
+      },
       "PeriodCounts": {
         "properties": {
           "accepted": {
@@ -14940,6 +15011,135 @@
         "title": "SettingsValidateRequest",
         "type": "object"
       },
+      "SheetCell": {
+        "description": "One cell of the checked workbook (PLAN.md R3): exactly one of text, number or formula.",
+        "properties": {
+          "bold": {
+            "default": false,
+            "title": "Bold",
+            "type": "boolean"
+          },
+          "column": {
+            "minimum": 1.0,
+            "title": "Column",
+            "type": "integer"
+          },
+          "formula": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An Excel formula of cells on the same sheet, '=C6+C7'",
+            "title": "Formula"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The figure's page and what the analyst did with it",
+            "title": "Note"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "number_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number Format"
+          },
+          "row": {
+            "description": "From 1, as Excel counts",
+            "minimum": 1.0,
+            "title": "Row",
+            "type": "integer"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Words, written as words even when they start with =",
+            "title": "Text"
+          }
+        },
+        "required": [
+          "row",
+          "column"
+        ],
+        "title": "SheetCell",
+        "type": "object"
+      },
+      "SheetOut": {
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SheetCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "freeze": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The first cell that scrolls, 'C6', or null",
+            "title": "Freeze"
+          },
+          "title": {
+            "description": "The sheet's name in the download; the add-in adds a number when the workbook already has one by that name",
+            "title": "Title",
+            "type": "string"
+          },
+          "widths": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Column letter to width in characters",
+            "title": "Widths",
+            "type": "object"
+          }
+        },
+        "required": [
+          "title",
+          "cells",
+          "widths",
+          "freeze"
+        ],
+        "title": "SheetOut",
+        "type": "object"
+      },
       "SimilarDeal": {
         "properties": {
           "country": {
@@ -18196,6 +18396,106 @@
         "summary": "Put Suggestions",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/api/addin/session": {
+      "delete": {
+        "operationId": "delete_session_api_addin_session_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Session",
+        "tags": [
+          "addin"
+        ]
+      },
+      "get": {
+        "operationId": "get_session_api_addin_session_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddinSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Session",
+        "tags": [
+          "addin"
+        ]
+      }
+    },
+    "/api/addin/sessions": {
+      "post": {
+        "description": "A pass for the add-in, answered once; only its hash is kept.",
+        "operationId": "post_session_api_addin_sessions_post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddinPass"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Session",
+        "tags": [
+          "addin"
         ]
       }
     },
@@ -22776,6 +23076,65 @@
           }
         ],
         "summary": "Get Period",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/periods/{period_id}/cells": {
+      "get": {
+        "description": "What the Excel add-in writes into the open workbook (PLAN.md R3): the\ndownload's own cells, from the same ``coverage.layout``.",
+        "operationId": "get_cells_api_research_periods__period_id__cells_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "period_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Period Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodCells"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Cells",
         "tags": [
           "research"
         ]

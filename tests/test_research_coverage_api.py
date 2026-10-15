@@ -123,6 +123,7 @@ def test_another_account_cannot_read_change_or_use_anything(avenue, job_queue):
     assert client.get("/api/research/companies").json()["companies"] == []
     for method, path in (("get", f"/api/research/periods/{period}"),
                          ("get", f"/api/research/periods/{period}/workbook"),
+                         ("get", f"/api/research/periods/{period}/cells"),
                          ("delete", f"/api/research/periods/{period}"),
                          ("delete", f"/api/research/companies/{firm}"),
                          ("get", f"/api/files/{file_id}/content")):
@@ -230,3 +231,60 @@ def test_a_pdf_view_comes_from_the_store_once_the_upload_spool_is_gone(avenue, j
     assert got.status_code == 200 and got.content == s.pdf()
     # the store's copy, fetched to the spool for the answer, is not left behind
     assert not list((tmp_path / "spool").glob("view-*"))
+
+
+# ------------------------------------------------------------------ the Excel add-in's cells (PLAN.md R3)
+
+def as_written(answer: dict) -> dict:
+    """The cells answer in the terms ``tests.addin_cells_check`` compares: what the pane asks Excel to hold."""
+    from openpyxl.utils import get_column_letter
+    sheets = []
+    for sheet in answer["sheets"]:
+        cells = {}
+        for cell in sheet["cells"]:
+            spec = {"formula": cell["formula"]} if cell.get("formula") else \
+                {"value": cell["text"] if cell.get("text") is not None else cell["number"]}
+            if cell.get("number_format"):
+                spec["format"] = cell["number_format"]
+            if cell.get("bold"):
+                spec["bold"] = True
+            if cell.get("note"):
+                spec["note"] = cell["note"]
+            cells[f"{get_column_letter(cell['column'])}{cell['row']}"] = spec
+        sheets.append({"name": sheet["title"], "cells": cells, "widths": sheet["widths"], "freeze": sheet["freeze"]})
+    return {"sheets": sheets}
+
+
+def test_the_add_in_is_given_the_same_cells_as_the_download(avenue, job_queue):
+    from tests.addin_cells_check import differences
+    done = read(job_queue, clean_pdf(job_queue))
+    firm = company()
+    (t, r, c), = amber(done["result"])
+    period = accept(firm, done["id"], corrected=[{"table": t, "row": r, "column": c, "value": 4321.5}]
+                    ).json()["periods"][0]["id"]
+    answer = client.get(f"/api/research/periods/{period}/cells")
+    assert answer.status_code == 200, answer.text
+    body = answer.json()
+    assert (body["period_id"], body["company_name"]) == (period, "DMart")
+    wb = load_workbook(io.BytesIO(client.get(f"/api/research/periods/{period}/workbook").content))
+    problems, count = differences(wb, as_written(body))
+    assert problems == []
+    assert count > 300
+    # subtotals arrive as formulas, the corrected figure as the analyst's
+    formulas = [cell for sheet in body["sheets"] for cell in sheet["cells"] if cell.get("formula")]
+    assert len(formulas) > 40
+    assert any(cell.get("number") == 4321.5 and "Corrected by the analyst" in cell["note"]
+               for sheet in body["sheets"] for cell in sheet["cells"])
+    # and the comparison itself notices a changed cell
+    changed = as_written(body)
+    first = next(spec for spec in changed["sheets"][1]["cells"].values() if "formula" in spec)
+    first["formula"] += "+1"
+    assert differences(wb, changed)[0]
+
+
+def test_writing_into_excel_is_recorded_as_an_export(avenue, job_queue):
+    done = read(job_queue, clean_pdf(job_queue))
+    period = accept(company(), done["id"], accepted=amber(done["result"])).json()["periods"][0]["id"]
+    assert client.get(f"/api/research/periods/{period}/cells").status_code == 200
+    history = client.get("/api/account/history").json()
+    assert [e.get("export") for e in history["entries"] if e["action"] == "exported"] == ["results_excel"]

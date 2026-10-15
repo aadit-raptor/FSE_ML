@@ -10,6 +10,8 @@ import base64
 import hashlib
 import uuid
 
+import pathlib
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
@@ -336,6 +338,39 @@ def test_the_scan_flags_each_weakness(change, finding):
     headers = {k: v for k, v in {**GOOD_PAGE, **change}.items() if v is not None}
     problems = check_headers.page_problems(headers)
     assert any(finding in p for p in problems), problems
+
+
+OFFICE = ("https://*.officeapps.live.com https://*.office.com https://*.office365.com https://*.cloud.microsoft "
+          "https://*.microsoft365.com https://*.sharepoint.com https://*.live.com")
+GOOD_PANE = {**{k: v for k, v in GOOD_PAGE.items() if k != "X-Frame-Options"},
+             "Content-Security-Policy": "default-src 'self'; script-src 'self' 'nonce-abc123' 'strict-dynamic' "
+                                        "https://appsforoffice.microsoft.com; object-src 'none'; base-uri 'self'; "
+                                        f"frame-ancestors {OFFICE}"}
+
+
+def test_the_scan_passes_the_add_ins_pane_and_holds_it_to_offices_hosts():
+    """PLAN.md R3: the pane may be framed by Office's hosts and nobody else; no other page may be framed."""
+    from ops import check_headers
+    assert check_headers.page_problems(GOOD_PANE, excel=True) == []
+    # the pane's policy on any other page is a finding
+    assert any("frame-ancestors" in p for p in check_headers.page_problems(GOOD_PANE | {"X-Frame-Options": "DENY"}))
+    assert any("Office.js" in p for p in check_headers.page_problems(GOOD_PANE | {"X-Frame-Options": "DENY"}))
+    for weaker in (f"frame-ancestors {OFFICE} https://evil.example", "frame-ancestors *", "frame-ancestors https:"):
+        csp = GOOD_PANE["Content-Security-Policy"].replace(f"frame-ancestors {OFFICE}", weaker)
+        assert any("frame-ancestors" in p for p in check_headers.page_problems(
+            {**GOOD_PANE, "Content-Security-Policy": csp}, excel=True)), weaker
+    assert any("X-Frame-Options" in p for p in check_headers.page_problems(
+        {**GOOD_PANE, "X-Frame-Options": "DENY"}, excel=True))
+
+
+def test_the_scan_and_the_web_app_name_the_same_office_hosts():
+    import re
+    from ops import check_headers
+    source = (pathlib.Path(__file__).resolve().parent.parent / "web/src/lib/security/headers.ts").read_text()
+    block = source[source.index("export const OFFICE_FRAME_ANCESTORS"):]
+    block = block[:block.index("];")]
+    assert re.findall(r'"(https://[^"]+)"', block) == check_headers.OFFICE_FRAME_ANCESTORS
+    assert check_headers.OFFICE_SCRIPT_ORIGIN in source
 
 
 def test_the_scan_flags_cacheable_or_loadable_api_answers_and_open_cors():

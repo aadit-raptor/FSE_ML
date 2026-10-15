@@ -22,6 +22,48 @@ export const SECURITY_HEADERS: { key: string; value: string }[] = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
 ];
 
+/**
+ * The Excel add-in's pages (PLAN.md R3): the task pane (`/excel`) and the
+ * sign-in dialog it opens (`/excel/connect`), plus the files its manifest
+ * names (`/excel/*.png`, `/excel/manifest*.xml`). Only these differ from
+ * every other page:
+ *
+ * - Excel on the web shows the pane in a frame of Microsoft's page, so
+ *   framing is allowed from Office's own hosts (`frame-ancestors`, below)
+ *   and X-Frame-Options, which can't name hosts, is left off;
+ * - Office's dialog keeps a link back to the pane through its opener, so
+ *   the opener policy is `unsafe-none` (Microsoft's guidance for dialogs).
+ */
+export const EXCEL_PATH = "/excel";
+
+export function isExcelPath(pathname: string): boolean {
+  return pathname === EXCEL_PATH || pathname.startsWith(`${EXCEL_PATH}/`);
+}
+
+export const EXCEL_SECURITY_HEADERS: { key: string; value: string }[] = SECURITY_HEADERS
+  .filter((h) => h.key !== "X-Frame-Options")
+  .map((h) => (h.key === "Cross-Origin-Opener-Policy" ? { ...h, value: "unsafe-none" } : h));
+
+/** Where Office.js is served from: Microsoft asks add-ins to load it from its CDN, never a copy. */
+export const OFFICE_SCRIPT_ORIGIN = "https://appsforoffice.microsoft.com";
+export const OFFICE_SCRIPT = `${OFFICE_SCRIPT_ORIGIN}/lib/1/hosted/office.js`;
+
+/**
+ * The pages Excel on the web puts the pane inside: Microsoft's own hosts
+ * (Excel on the web on officeapps.live.com and cloud.microsoft, the
+ * Microsoft 365 and OneDrive pages around it, SharePoint for work files).
+ * Every page above the pane must be one of them.
+ */
+export const OFFICE_FRAME_ANCESTORS = [
+  "https://*.officeapps.live.com",
+  "https://*.office.com",
+  "https://*.office365.com",
+  "https://*.cloud.microsoft",
+  "https://*.microsoft365.com",
+  "https://*.sharepoint.com",
+  "https://*.live.com",
+];
+
 /** Clerk's Frontend API origin, from the base64 host inside a publishable key. */
 export function clerkFrontendApi(publishableKey: string): string | null {
   const match = /^pk_(?:test|live)_([A-Za-z0-9+/=_-]+)$/.exec(publishableKey);
@@ -72,6 +114,8 @@ export type CspOptions = {
   sentryDsn: string;
   /** The API's own origin, for file uploads; empty leaves it out */
   apiOrigin?: string;
+  /** One of the Excel add-in's pages (isExcelPath): Office.js, and framing by Office */
+  excel?: boolean;
 };
 
 /** One-time nonce: 16 random bytes, base64. */
@@ -87,7 +131,9 @@ export function contentSecurityPolicy(o: CspOptions): string {
   const uploads = o.apiOrigin ? apiOrigin(o.apiOrigin) : null;
   const directives: [string, (string | null | false)[]][] = [
     ["default-src", ["'self'"]],
-    ["script-src", ["'self'", `'nonce-${o.nonce}'`, "'strict-dynamic'", o.development && "'unsafe-eval'"]],
+    // Office.js is loaded by our own (nonce'd) code, which 'strict-dynamic' allows; its host is named
+    // too for webviews that predate 'strict-dynamic' (older Office on Windows)
+    ["script-src", ["'self'", `'nonce-${o.nonce}'`, "'strict-dynamic'", !!o.excel && OFFICE_SCRIPT_ORIGIN, o.development && "'unsafe-eval'"]],
     // React and Motion set style attributes, and Clerk injects its own styles
     ["style-src", ["'self'", "'unsafe-inline'"]],
     ["img-src", ["'self'", "data:", "blob:", clerk && "https://img.clerk.com"]],
@@ -99,7 +145,7 @@ export function contentSecurityPolicy(o: CspOptions): string {
     ["object-src", ["'none'"]],
     ["base-uri", ["'self'"]],
     ["form-action", ["'self'"]],
-    ["frame-ancestors", ["'none'"]],
+    ["frame-ancestors", o.excel ? OFFICE_FRAME_ANCESTORS : ["'none'"]],
   ];
   const parts = directives.map(([name, values]) => `${name} ${values.filter(Boolean).join(" ")}`);
   if (o.deployed) parts.push("upgrade-insecure-requests");
