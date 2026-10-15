@@ -11,6 +11,7 @@ import { parseNumber } from "@/lib/locale";
 import {
   acceptRead, amberCells, cellKey, decimalsOf, workbookName, workbookPath,
   type CellRef, type Correction, type PeriodSummary, type ReadResult, type ReadTable,
+  ACCEPT_ERRORS,
 } from "@/lib/research";
 
 import { PageView } from "./PageView";
@@ -28,10 +29,6 @@ import { PageView } from "./PageView";
  */
 type Answer = { kind: "accepted" } | { kind: "corrected"; value: number | null };
 
-const KNOWN_ERRORS = [
-  "amber_unreviewed", "bad_review", "quarter_unknown", "unit_unknown", "no_figures", "no_read", "read_not_done",
-  "read_expired", "not_found", "too_many_periods", "coverage_full", "no_account", "no_database",
-];
 
 export function Review({
   readId, result, company, onAccepted,
@@ -127,7 +124,7 @@ export function Review({
         {!company && <p className="type-body mt-1 text-[10px]">{t("chooseCompanyFirst")}</p>}
         {error && (
           <Notice tone="loss" title={t("notAccepted")} role="alert">
-            <span data-accept-error={error}>{t(`error_${KNOWN_ERRORS.includes(error) ? error : "failed"}`)}</span>
+            <span data-accept-error={error}>{t(`error_${ACCEPT_ERRORS.includes(error) ? error : "failed"}`)}</span>
           </Notice>
         )}
         {accepted && company && (

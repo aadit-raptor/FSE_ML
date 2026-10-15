@@ -8,6 +8,7 @@ and the periods they accepted from the results reader.
     GET    /api/research/periods/{id}                  a period with every figure, its page and mark
     DELETE /api/research/periods/{id}                  remove a period
     GET    /api/research/periods/{id}/workbook         the checked statements as a workbook
+    GET    /api/research/periods/{id}/cells            the same workbook as cells, for the Excel add-in (R3)
 
 **Nothing is stored until the analyst accepts.** A read (``POST
 /api/research/reads``) is a job whose result is kept six hours; accepting
@@ -30,6 +31,7 @@ from api.routers.export import SOURCE, _xlsx_response
 from api.routers.jobs import job_queue
 from api.schemas import (
     CoverageCompanyIn, CoverageCompanyOut, CoverageList, CoveragePeriodOut, PeriodAccept, PeriodAcceptOut,
+    PeriodCells,
 )
 from db import coverage as rows
 from db.engine import is_configured as database_configured
@@ -149,11 +151,32 @@ def delete_period(period_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     200: {"content": {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}},
           "description": "The checked statements: subtotals as formulas, each figure's page in a note"}})
 def get_workbook(period_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    found = _exported(user, period_id, "results_workbook")
+    data = coverage.workbook_bytes(found.company_name, _period(found), generated=datetime.now(timezone.utc),
+                                   source=SOURCE)
+    return _xlsx_response(data, f"{found.company_name}_{found.period_end.isoformat()}_{found.scope}.xlsx")
+
+
+@router.get("/periods/{period_id}/cells", response_model=PeriodCells)
+def get_cells(period_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    """What the Excel add-in writes into the open workbook (PLAN.md R3): the
+    download's own cells, from the same ``coverage.layout``."""
+    found = _exported(user, period_id, "results_excel")
+    generated = datetime.now(timezone.utc)
+    sheets = coverage.layout(found.company_name, _period(found), generated=generated, source=SOURCE)
+    return {"period_id": str(found.id), "company_name": found.company_name,
+            "generated": generated.isoformat(), "sheets": sheets}
+
+
+def _exported(user: AuthUser, period_id: uuid.UUID, kind: str):
+    """The caller's period, and one ``exported`` entry in their history."""
     with store_errors():
         found = rows.get_period(user.subject, period_id)
-        rows.record_export(user.subject)
-    period = {"period_end": found.period_end.isoformat(), "months": found.months, "scope": found.scope,
-              "unit": found.unit, "currency": found.currency, "figures": found.figures,
-              "accepted_at": _iso(found.accepted_at)}
-    data = coverage.workbook_bytes(found.company_name, period, generated=datetime.now(timezone.utc), source=SOURCE)
-    return _xlsx_response(data, f"{found.company_name}_{found.period_end.isoformat()}_{found.scope}.xlsx")
+        rows.record_export(user.subject, kind=kind)
+    return found
+
+
+def _period(found) -> dict:
+    return {"period_end": found.period_end.isoformat(), "months": found.months, "scope": found.scope,
+            "unit": found.unit, "currency": found.currency, "figures": found.figures,
+            "accepted_at": _iso(found.accepted_at)}

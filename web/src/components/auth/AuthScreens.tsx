@@ -134,3 +134,44 @@ export function SignUpScreen() {
     </Frame>
   );
 }
+
+/**
+ * Sign-in inside Office's dialog for the Excel add-in (PLAN.md R3, /excel/connect): the same sign-in, on one
+ * page that stays put, so the dialog never leaves the page that hands the pane its pass. No sign-up link: a new
+ * account is made on the site itself, which asks for its country and currency first.
+ */
+export function DialogSignIn({ redirectTo }: { redirectTo: string }) {
+  const t = useTranslations("auth");
+  const { signInAsDeveloper } = useSession();
+  const [name, setName] = useState(DEV_USER);
+  if (AUTH_MODE !== "clerk") {
+    const valid = isDevUserName(name);
+    return (
+      <div className="grid gap-3">
+        <p className="type-body">{t("devHint")}</p>
+        <label className="grid gap-1.5">
+          <span className="type-input-group">{t("devUser")}</span>
+          <input
+            aria-label={t("devUser")}
+            value={name}
+            autoComplete="off"
+            onChange={(e) => setName(e.target.value)}
+            className="border border-line bg-field px-2 py-1.5 font-mono text-[12px] text-ink outline-none focus:border-accent"
+          />
+        </label>
+        <div>
+          <PrimaryButton disabled={!valid} onClick={() => signInAsDeveloper?.(name)}>
+            {t("signIn")}
+          </PrimaryButton>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <SignIn
+      routing="hash"
+      forceRedirectUrl={redirectTo}
+      appearance={{ ...APPEARANCE, elements: { ...APPEARANCE.elements, footerAction: { display: "none" } } }}
+    />
+  );
+}

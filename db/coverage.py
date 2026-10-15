@@ -248,13 +248,14 @@ def delete_period(subject: str, period_id: uuid.UUID, *, now: Optional[datetime]
         audit.record(conn, row.owner_id, "period_removed", now=now)
 
 
-def record_export(subject: str, *, now: Optional[datetime] = None) -> None:
-    """A checked workbook downloaded: one entry in the caller's history (no name, no figure)."""
+def record_export(subject: str, *, kind: str = "results_workbook", now: Optional[datetime] = None) -> None:
+    """A checked workbook downloaded (``results_workbook``) or written into Excel by the add-in
+    (``results_excel``): one entry in the caller's history (no name, no figure)."""
     with transaction() as conn:
         owner = conn.execute(select(User.id).where(User.subject == subject)).scalar()
         if owner is None:
             raise NoAccount(subject)
-        audit.record(conn, owner, "exported", now=now or utc_now(), detail={"export": "results_workbook"})
+        audit.record(conn, owner, "exported", now=now or utc_now(), detail={"export": kind})
 
 
 def usage_on(conn) -> dict:

@@ -287,15 +287,25 @@ def _note(row: Mapping, column: int, sum_parts: Optional[list], printed_off: Opt
     return "\n".join(lines)
 
 
-def workbook(company_name: str, period: Mapping, *, generated: datetime.datetime, source: str) -> Workbook:
-    """The stored period as a workbook: an About sheet, then a sheet a statement."""
+COLUMN_WIDTH = 16
+
+
+def layout(company_name: str, period: Mapping, *, generated: datetime.datetime, source: str) -> list[dict]:
+    """The stored period as sheets of cells, the one description both the
+    download (``workbook``) and the Excel add-in (PLAN.md R3, ``GET
+    /api/research/periods/{id}/cells``) write, so the two can never hold
+    different cells: an About sheet, then a sheet a statement.
+
+    A sheet is ``{"title", "cells", "widths", "freeze"}``; a cell is
+    ``{"row", "column"}`` (from 1) with exactly one of ``text`` (words, never
+    a formula, whatever they start with), ``number`` or ``formula``, and
+    optionally ``number_format``, ``bold`` and ``note``. ``widths`` maps a
+    column letter to its width in characters; ``freeze`` is the first cell
+    that scrolls (``"C6"``) or None."""
     figures = period["figures"]
     scope = period["scope"]
     unit_words = "as printed" if period["unit"] == "units" else period["unit"]
     currency = period.get("currency") or "currency not printed"
-    wb = Workbook()
-    about = wb.active
-    about.title = "About"
     items = [("Source", source), ("Generated (UTC)", generated.strftime("%Y-%m-%d %H:%M:%S")),
              ("Company", company_name), ("Name in the filing", figures.get("company") or ""),
              ("Period ends", str(period["period_end"])), ("Months", str(period["months"])),
@@ -304,57 +314,83 @@ def workbook(company_name: str, period: Mapping, *, generated: datetime.datetime
              ("How it was made", "Read twice from the results filing by the results reader, checked, "
                                  "and reviewed and accepted by the analyst. Subtotals are formulas of "
                                  "the figures they add up; each figure's note gives its page.")]
-    _put(about, 1, 1, "Item").font = Font(bold=True)
-    _put(about, 1, 2, "Value").font = Font(bold=True)
+    about = [_text(1, 1, "Item", bold=True), _text(1, 2, "Value", bold=True)]
     for i, (item, value) in enumerate(items, start=2):
-        _put(about, i, 1, item)
-        _put(about, i, 2, value)
-    about.column_dimensions["A"].width = 22
-    about.column_dimensions["B"].width = 80
+        about += [_text(i, 1, item), _text(i, 2, value)]
+    sheets = [{"title": "About", "cells": about, "widths": {"A": 22, "B": 80}, "freeze": None}]
     used = {"about"}
     for table in figures.get("tables") or []:
-        ws = wb.create_sheet(_sheet_title(f"{STATEMENT_WORDS.get(table['statement'], table['statement'])} "
-                                          f"{scope}", used))
-        _write_table(ws, company_name, table, scope, unit_words, currency)
-    wb.properties.creator = source
-    wb.properties.lastModifiedBy = source
-    return wb
+        title = _sheet_title(f"{STATEMENT_WORDS.get(table['statement'], table['statement'])} {scope}", used)
+        sheets.append({"title": title, **_table_sheet(company_name, table, scope, unit_words, currency)})
+    return sheets
 
 
-def _write_table(ws, company_name: str, table: Mapping, scope: str, unit_words: str, currency: str) -> None:
+def _text(row: int, column: int, text: str, *, bold: bool = False) -> dict:
+    cell = {"row": row, "column": column, "text": text}
+    if bold:
+        cell["bold"] = True
+    return cell
+
+
+def _table_sheet(company_name: str, table: Mapping, scope: str, unit_words: str, currency: str) -> dict:
     grid = [list(row["values"]) for row in table["rows"]]
-    decimals = _decimals(grid)
-    number_format = "#,##0.00" if decimals else "#,##0"
+    number_format = "#,##0.00" if _decimals(grid) else "#,##0"
     sums, worked_off = subtotals(table)
-    _put(ws, 1, 1, f"{company_name}: {STATEMENT_WORDS.get(table['statement'], table['statement'])}, {scope}").font = \
-        Font(bold=True)
-    _put(ws, 2, 1, f"{currency}, {unit_words}. Pages {', '.join(str(p) for p in table.get('pages') or []) or 'not known'}.")
-    _put(ws, 4, 1, "Line as printed").font = Font(bold=True)
-    _put(ws, 4, 2, "Standard line").font = Font(bold=True)
-    _put(ws, 5, 1, "Period ends (months)")
+    statement = STATEMENT_WORDS.get(table["statement"], table["statement"])
+    cells = [_text(1, 1, f"{company_name}: {statement}, {scope}", bold=True),
+             _text(2, 1, f"{currency}, {unit_words}. Pages "
+                         f"{', '.join(str(p) for p in table.get('pages') or []) or 'not known'}."),
+             _text(4, 1, "Line as printed", bold=True), _text(4, 2, "Standard line", bold=True),
+             _text(5, 1, "Period ends (months)")]
     for c, column in enumerate(table["columns"]):
-        _put(ws, 4, FIRST_COLUMN + c, column.get("label") or "").font = Font(bold=True)
         months = column.get("months")
-        _put(ws, 5, FIRST_COLUMN + c, f"{column.get('period_end')} ({months if months is not None else '-'})")
+        cells += [_text(4, FIRST_COLUMN + c, column.get("label") or "", bold=True),
+                  _text(5, FIRST_COLUMN + c, f"{column.get('period_end')} ({months if months is not None else '-'})")]
     for r, row in enumerate(table["rows"]):
         at = FIRST_ROW + r
-        _put(ws, at, 1, row["label"])
+        cells.append(_text(at, 1, row["label"]))
         if row.get("line"):
-            _put(ws, at, 2, row["line"])
+            cells.append(_text(at, 2, row["line"]))
         for c, value in enumerate(row["values"]):
             if value is None:
                 continue
-            cell = ws.cell(at, FIRST_COLUMN + c)
             parts = sums.get((r, c))
-            cell.value = _formula(parts, c) if parts else value
-            cell.number_format = number_format
-            cell.comment = Comment(_note(row, c, parts, worked_off.get((r, c))), "variater.com",
-                                   width=260, height=90)
-    ws.column_dimensions["A"].width = 48
-    ws.column_dimensions["B"].width = 26
-    for c in range(len(table["columns"])):
-        ws.column_dimensions[get_column_letter(FIRST_COLUMN + c)].width = 16
-    ws.freeze_panes = ws.cell(FIRST_ROW, FIRST_COLUMN)
+            cell = {"row": at, "column": FIRST_COLUMN + c, "number_format": number_format,
+                    "note": _note(row, c, parts, worked_off.get((r, c)))}
+            if parts:
+                cell["formula"] = _formula(parts, c)
+            else:
+                cell["number"] = value
+            cells.append(cell)
+    widths = {"A": 48, "B": 26, **{get_column_letter(FIRST_COLUMN + c): COLUMN_WIDTH for c in range(len(table["columns"]))}}
+    return {"cells": cells, "widths": widths, "freeze": f"{get_column_letter(FIRST_COLUMN)}{FIRST_ROW}"}
+
+
+def workbook(company_name: str, period: Mapping, *, generated: datetime.datetime, source: str) -> Workbook:
+    """The stored period as a workbook, written from ``layout``."""
+    wb = Workbook()
+    wb.remove(wb.active)
+    for sheet in layout(company_name, period, generated=generated, source=source):
+        ws = wb.create_sheet(sheet["title"])
+        for spec in sheet["cells"]:
+            if "text" in spec:
+                cell = _put(ws, spec["row"], spec["column"], spec["text"])
+            else:
+                cell = ws.cell(spec["row"], spec["column"])
+                cell.value = spec["formula"] if "formula" in spec else spec["number"]
+            if spec.get("number_format"):
+                cell.number_format = spec["number_format"]
+            if spec.get("bold"):
+                cell.font = Font(bold=True)
+            if spec.get("note"):
+                cell.comment = Comment(spec["note"], "variater.com", width=260, height=90)
+        for letter, width in sheet["widths"].items():
+            ws.column_dimensions[letter].width = width
+        if sheet["freeze"]:
+            ws.freeze_panes = sheet["freeze"]
+    wb.properties.creator = source
+    wb.properties.lastModifiedBy = source
+    return wb
 
 
 def workbook_bytes(company_name: str, period: Mapping, *, generated: datetime.datetime, source: str) -> bytes:

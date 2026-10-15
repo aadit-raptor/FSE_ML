@@ -29,6 +29,11 @@ PNG_SIZES = {
     BRAND / "logo-120.png": (120, 120),
     BRAND / "avatar.png": (400, 400),
     BRAND / "avatar-cyan.png": (400, 400),
+    BRAND / "addin-16.png": (16, 16),
+    BRAND / "addin-32.png": (32, 32),
+    BRAND / "addin-64.png": (64, 64),
+    BRAND / "addin-80.png": (80, 80),
+    BRAND / "addin-128.png": (128, 128),
 }
 
 LOGOS = [

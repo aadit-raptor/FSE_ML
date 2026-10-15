@@ -789,3 +789,32 @@ class CoveredPeriod(Base):
         Uuid, ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
     figures: Mapped[dict] = mapped_column(JSONB, nullable=False)
     accepted_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class AddinSession(Base):
+    """A sign-in of the Excel add-in (PLAN.md R3).
+
+    Excel's task pane can't hold the site's sign-in: on Excel on the web it
+    is a frame inside Microsoft's page, where the browser keeps the site's
+    cookies from it. So the pane signs in through Office's dialog, a window
+    of its own on variater.com, and the signed-in dialog asks the API for an
+    add-in pass, which it hands to the pane (``api/routers/addin.py``). The
+    pass reaches the research endpoints only (``api.auth.ADDIN_PATHS``),
+    lasts ``db.addin.LIFETIME``, and ends when the pane signs out.
+
+    Only the pass's SHA-256 is kept, never the pass itself, so this table
+    can't sign anyone in. Nothing else is stored: no device, no address.
+    """
+
+    __tablename__ = "addin_sessions"
+    __table_args__ = (
+        Index("ix_addin_sessions_owner_id_created_at", "owner_id", "created_at"),
+        Index("ix_addin_sessions_expires_at", "expires_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)

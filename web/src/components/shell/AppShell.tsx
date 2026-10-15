@@ -15,6 +15,7 @@ import { LibraryProvider } from "@/components/library/LibraryProvider";
 import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { isPublicRoute } from "@/lib/auth/mode";
+import { EXCEL_PATH, isExcelPath } from "@/lib/security/headers";
 import { setNumberStyle } from "@/lib/locale";
 
 import { CommandSearch } from "./CommandSearch";
@@ -29,6 +30,18 @@ import { WorkspaceProvider } from "./workspace";
 
 /** The Guided shell: mode tabs, step row, search, content, status bar. */
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  // The Excel add-in's task pane (PLAN.md R3) signs in with its own pass, never the site's session, and has
+  // no room for the shell: it is its own page (components/excel/ExcelPane.tsx)
+  if (pathname === EXCEL_PATH) {
+    return (
+      <I18nScope locale={browserLocale()}>
+        <main id="content" className="h-dvh overflow-auto bg-canvas">
+          {children}
+        </main>
+      </I18nScope>
+    );
+  }
   return (
     <WorkspaceProvider>
       <AuthProvider>
@@ -55,6 +68,17 @@ function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (ready && !signedIn && !publicPage) router.replace("/sign-in");
   }, [ready, signedIn, publicPage, router]);
+
+  // Office's sign-in dialog for the add-in (/excel/connect): the site's session, in a small window of its own
+  if (isExcelPath(pathname)) {
+    return (
+      <I18nScope locale={browserLocale()}>
+        <main id="content" className="h-dvh overflow-auto bg-canvas">
+          {children}
+        </main>
+      </I18nScope>
+    );
+  }
 
   if (publicPage || !ready || !signedIn) {
     return (

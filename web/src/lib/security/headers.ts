@@ -22,6 +22,60 @@ export const SECURITY_HEADERS: { key: string; value: string }[] = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
 ];
 
+/**
+ * The Excel add-in's pages (PLAN.md R3): the task pane (`/excel`) and the
+ * sign-in dialog it opens (`/excel/connect`), plus the files its manifest
+ * names (`/excel/manifest*.xml`). Only these differ from every other page:
+ *
+ * - Office's dialog keeps a link back to the pane through its opener, so
+ *   both have the opener policy `unsafe-none` (Microsoft's guidance for
+ *   dialogs), and both may load Office.js;
+ * - Excel on the web shows **the pane** in a frame of Microsoft's page, so
+ *   the pane alone may be framed, by Office's own hosts (`frame-ancestors`,
+ *   below), and X-Frame-Options, which can't name hosts, is left off it. The
+ *   dialog is a window of its own and is never framed.
+ */
+export const EXCEL_PATH = "/excel";
+
+export function isExcelPath(pathname: string): boolean {
+  return pathname === EXCEL_PATH || pathname.startsWith(`${EXCEL_PATH}/`);
+}
+
+/** Which of the add-in's pages a path is, if any. */
+export function excelPage(pathname: string): "pane" | "dialog" | null {
+  return pathname === EXCEL_PATH ? "pane" : isExcelPath(pathname) ? "dialog" : null;
+}
+
+const openerForDialogs = (h: { key: string; value: string }) =>
+  h.key === "Cross-Origin-Opener-Policy" ? { ...h, value: "unsafe-none" } : h;
+
+export const EXCEL_PANE_HEADERS: { key: string; value: string }[] = SECURITY_HEADERS
+  .filter((h) => h.key !== "X-Frame-Options")
+  .map(openerForDialogs);
+
+export const EXCEL_DIALOG_HEADERS: { key: string; value: string }[] = SECURITY_HEADERS.map(openerForDialogs);
+
+/** Where Office.js is served from: Microsoft asks add-ins to load it from its CDN, never a copy. */
+export const OFFICE_SCRIPT_ORIGIN = "https://appsforoffice.microsoft.com";
+export const OFFICE_SCRIPT = `${OFFICE_SCRIPT_ORIGIN}/lib/1/hosted/office.js`;
+
+/**
+ * The pages Excel on the web puts the pane inside: Microsoft's own hosts
+ * (Excel on the web on officeapps.live.com and cloud.microsoft, the
+ * Microsoft 365 and personal OneDrive pages around it, a company's own
+ * SharePoint for work files, whose name varies, hence its wildcard).
+ * Every page above the pane must be one of them.
+ */
+export const OFFICE_FRAME_ANCESTORS = [
+  "https://*.officeapps.live.com",
+  "https://*.office.com",
+  "https://*.office365.com",
+  "https://*.cloud.microsoft",
+  "https://*.microsoft365.com",
+  "https://*.sharepoint.com",
+  "https://onedrive.live.com",
+];
+
 /** Clerk's Frontend API origin, from the base64 host inside a publishable key. */
 export function clerkFrontendApi(publishableKey: string): string | null {
   const match = /^pk_(?:test|live)_([A-Za-z0-9+/=_-]+)$/.exec(publishableKey);
@@ -72,6 +126,8 @@ export type CspOptions = {
   sentryDsn: string;
   /** The API's own origin, for file uploads; empty leaves it out */
   apiOrigin?: string;
+  /** One of the Excel add-in's pages (excelPage): Office.js, and for the pane framing by Office */
+  excel?: "pane" | "dialog" | null;
 };
 
 /** One-time nonce: 16 random bytes, base64. */
@@ -87,7 +143,9 @@ export function contentSecurityPolicy(o: CspOptions): string {
   const uploads = o.apiOrigin ? apiOrigin(o.apiOrigin) : null;
   const directives: [string, (string | null | false)[]][] = [
     ["default-src", ["'self'"]],
-    ["script-src", ["'self'", `'nonce-${o.nonce}'`, "'strict-dynamic'", o.development && "'unsafe-eval'"]],
+    // Office.js is loaded by our own (nonce'd) code, which 'strict-dynamic' allows; its host is named
+    // too for webviews that predate 'strict-dynamic' (older Office on Windows)
+    ["script-src", ["'self'", `'nonce-${o.nonce}'`, "'strict-dynamic'", !!o.excel && OFFICE_SCRIPT_ORIGIN, o.development && "'unsafe-eval'"]],
     // React and Motion set style attributes, and Clerk injects its own styles
     ["style-src", ["'self'", "'unsafe-inline'"]],
     ["img-src", ["'self'", "data:", "blob:", clerk && "https://img.clerk.com"]],
@@ -99,7 +157,7 @@ export function contentSecurityPolicy(o: CspOptions): string {
     ["object-src", ["'none'"]],
     ["base-uri", ["'self'"]],
     ["form-action", ["'self'"]],
-    ["frame-ancestors", ["'none'"]],
+    ["frame-ancestors", o.excel === "pane" ? OFFICE_FRAME_ANCESTORS : ["'none'"]],
   ];
   const parts = directives.map(([name, values]) => `${name} ${values.filter(Boolean).join(" ")}`);
   if (o.deployed) parts.push("upgrade-insecure-requests");

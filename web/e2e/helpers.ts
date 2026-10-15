@@ -146,3 +146,22 @@ export async function replayRisk(page: Page) {
     return answer ? route.fulfill({ json: answer }) : route.fulfill({ status: 404, json: { detail: "Not recorded." } });
   });
 }
+
+/** A well-formed one-page PDF with something drawn on it: the upload's scan passes it, pdf.js draws it. */
+export function onePagePdf(): Buffer {
+  const content = "0 0 1 rg 72 600 200 100 re f";
+  const bodies = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>",
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`];
+  let out = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  bodies.forEach((body, i) => {
+    offsets.push(out.length);
+    out += `${i + 1} 0 obj\n${body}\nendobj\n`;
+  });
+  const table = out.length;
+  out += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n`;
+  out += offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
+  out += `trailer\n<< /Size ${bodies.length + 1} /Root 1 0 R >>\nstartxref\n${table}\n%%EOF\n`;
+  return Buffer.from(out, "latin1");
+}

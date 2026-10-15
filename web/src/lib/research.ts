@@ -12,6 +12,19 @@ export type ReadJob = Schemas["ReadJobOut"];
 export type ReadResult = Schemas["ReadResult"];
 export type ReadTable = Schemas["ReadTable"];
 
+/** The read's refusal and failure codes the screens have words for (`reader.error_*`); others read "failed". */
+export const READER_ERRORS: string[] = [
+  "reader_off", "reader_not_measured", "confirm_public", "not_pdf", "not_clean", "no_file", "page_limit", "too_long",
+  "store_unreachable", "allowance_spent", "provider_busy", "key_refused", "unreadable_answer", "provider_unreachable",
+  "not_recorded", "answer_blocked", "unreadable_pdf", "upload_failed", "no_company", "too_many_companies", "bad_name",
+];
+
+/** Accepting a review's refusal codes the screens have words for (`coverage.error_*`). */
+export const ACCEPT_ERRORS: string[] = [
+  "amber_unreviewed", "bad_review", "quarter_unknown", "unit_unknown", "no_figures", "no_read", "read_not_done",
+  "read_expired", "not_found", "too_many_periods", "coverage_full", "no_account", "no_database",
+];
+
 /** What the API answers in `detail` when it refuses or a read fails: a code the screen words. */
 export function errorCode(error: unknown): string {
   const detail = (error as { detail?: unknown } | undefined)?.detail;
