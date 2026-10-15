@@ -799,7 +799,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Content
+         * @description A clean PDF's bytes, to its owner: what the review screen draws the
+         *     filing's pages from in the browser (PLAN.md R2). Sent as an attachment,
+         *     never shown on the API's own address.
+         */
+        get: operations["get_content_api_files__file_id__content_get"];
         /**
          * Put Content
          * @description The file's bytes, as the body. No more of them than ``size`` said:
@@ -1413,6 +1419,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Companies */
+        get: operations["get_companies_api_research_companies_get"];
+        put?: never;
+        /** Post Company */
+        post: operations["post_company_api_research_companies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Company */
+        delete: operations["delete_company_api_research_companies__company_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Periods
+         * @description Accept a reviewed read into the company: every amber figure accepted
+         *     as read or corrected. A period accepted again replaces the one kept.
+         */
+        post: operations["post_periods_api_research_companies__company_id__periods_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/periods/{period_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Period */
+        get: operations["get_period_api_research_periods__period_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Period */
+        delete: operations["delete_period_api_research_periods__period_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/periods/{period_id}/workbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Workbook */
+        get: operations["get_workbook_api_research_periods__period_id__workbook_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/reader": {
         parameters: {
             query?: never;
@@ -1827,7 +1924,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -1854,7 +1951,7 @@ export interface components {
              */
             enabled?: boolean | null;
             /** Export */
-            export?: ("workbook" | "simulation_sample") | null;
+            export?: ("workbook" | "simulation_sample" | "results_workbook") | null;
             /**
              * Fields
              * @description What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's
@@ -2398,7 +2495,7 @@ export interface components {
              * Unit
              * @enum {string}
              */
-            unit: "thousands" | "millions" | "billions";
+            unit: "thousands" | "lakhs" | "millions" | "crores" | "billions";
         };
         /**
          * CompanyFigures
@@ -2676,6 +2773,110 @@ export interface components {
              */
             sourced: boolean;
         };
+        /** CoverageCompanyIn */
+        CoverageCompanyIn: {
+            /**
+             * Name
+             * @description What the analyst calls the company
+             */
+            name: string;
+        };
+        /** CoverageCompanyOut */
+        CoverageCompanyOut: {
+            /** Created At */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Periods */
+            periods: components["schemas"]["CoveragePeriodSummary"][];
+            /** Updated At */
+            updated_at: string;
+        };
+        /** CoverageLimits */
+        CoverageLimits: {
+            /** Companies */
+            companies: number;
+            /** Periods */
+            periods: number;
+        };
+        /** CoverageList */
+        CoverageList: {
+            /** Companies */
+            companies: components["schemas"]["CoverageCompanyOut"][];
+            limits: components["schemas"]["CoverageLimits"];
+        };
+        /** CoveragePeriodOut */
+        CoveragePeriodOut: {
+            /** Accepted At */
+            accepted_at: string;
+            /** Company Id */
+            company_id: string;
+            /** Company Name */
+            company_name: string;
+            counts: components["schemas"]["PeriodCounts"];
+            /** Currency */
+            currency: string | null;
+            figures: components["schemas"]["StoredFigures"];
+            /**
+             * File Id
+             * @description The results PDF while it is kept (PLAN.md 6.1: 90 days); null once it is gone. The figures stay
+             */
+            file_id: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Months
+             * @description 3 for a quarter's filing, 12 for a year's
+             */
+            months: number;
+            /** Period End */
+            period_end: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "consolidated" | "standalone";
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "units" | "thousands" | "lakhs" | "millions" | "crores" | "billions";
+        };
+        /** CoveragePeriodSummary */
+        CoveragePeriodSummary: {
+            /** Accepted At */
+            accepted_at: string;
+            /** Company Id */
+            company_id: string;
+            /** Currency */
+            currency: string | null;
+            /**
+             * File Id
+             * @description The results PDF while it is kept (PLAN.md 6.1: 90 days); null once it is gone. The figures stay
+             */
+            file_id: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Months
+             * @description 3 for a quarter's filing, 12 for a year's
+             */
+            months: number;
+            /** Period End */
+            period_end: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "consolidated" | "standalone";
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "units" | "thousands" | "lakhs" | "millions" | "crores" | "billions";
+        };
         /** CoverageResponse */
         CoverageResponse: {
             /** Base Rates */
@@ -2766,10 +2967,10 @@ export interface components {
             exit?: components["schemas"]["ActualExitIn"] | null;
             /**
              * Unit
-             * @description thousands, millions or billions
+             * @description thousands, lakhs, millions, crores or billions
              * @enum {string}
              */
-            unit: "thousands" | "millions" | "billions";
+            unit: "thousands" | "lakhs" | "millions" | "crores" | "billions";
             /**
              * Years
              * @description From the plan's year 1
@@ -3165,11 +3366,11 @@ export interface components {
             tranches?: components["schemas"]["TrancheIn"][];
             /**
              * Unit
-             * @description The deal's money figures are thousands, millions or billions
+             * @description The deal's money figures are thousands, lakhs, millions, crores or billions
              * @default millions
              * @enum {string}
              */
-            unit: "thousands" | "millions" | "billions";
+            unit: "thousands" | "lakhs" | "millions" | "crores" | "billions";
             /**
              * Wsp Mode
              * @description Use AR/inventory/AP days instead of flat NWC
@@ -3700,7 +3901,7 @@ export interface components {
              * Unit
              * @enum {string}
              */
-            unit: "thousands" | "millions" | "billions";
+            unit: "thousands" | "lakhs" | "millions" | "crores" | "billions";
         };
         /** EdgarResponse */
         EdgarResponse: {
@@ -3859,6 +4060,35 @@ export interface components {
              * @description How many paths the tail holds; more than `paths` when it is sampled
              */
             tail_paths: number;
+        };
+        /** FigureCorrection */
+        FigureCorrection: {
+            /** Column */
+            column: number;
+            /** Row */
+            row: number;
+            /** Table */
+            table: number;
+            /**
+             * Value
+             * @description The figure as it should be, in the read's unit; null for a blank
+             */
+            value?: number | null;
+        };
+        /** FigureMark */
+        FigureMark: {
+            /** Amber */
+            amber?: ("reads_differ" | "sign_differs" | "one_read_only" | "sum_fails" | "poor_scan" | "unbalanced" | "cash_mismatch" | "stored_differs") | null;
+            /**
+             * Do
+             * @enum {string}
+             */
+            do: "accepted" | "corrected";
+            /**
+             * Read
+             * @description What the reader read, for a corrected figure
+             */
+            read?: number | null;
         };
         /** FileBegin */
         FileBegin: {
@@ -5038,11 +5268,11 @@ export interface components {
             currency: string;
             /**
              * Unit
-             * @description Money figures are thousands, millions or billions
+             * @description Money figures are thousands, lakhs, millions, crores or billions
              * @default millions
              * @enum {string}
              */
-            unit: "thousands" | "millions" | "billions";
+            unit: "thousands" | "lakhs" | "millions" | "crores" | "billions";
         };
         /** MonteCarloJob */
         MonteCarloJob: {
@@ -5594,6 +5824,41 @@ export interface components {
             /** Values */
             values: number[];
         };
+        /** PeriodAccept */
+        PeriodAccept: {
+            /**
+             * Accepted
+             * @description Amber figures kept as read, as [table, row, column]
+             */
+            accepted?: number[][];
+            /** Corrected */
+            corrected?: components["schemas"]["FigureCorrection"][];
+            /**
+             * Read Id
+             * Format: uuid
+             * @description The caller's finished read (POST /api/research/reads)
+             */
+            read_id: string;
+            /**
+             * Unit
+             * @description The unit, when the read could not find it
+             */
+            unit?: ("units" | "thousands" | "lakhs" | "millions" | "crores" | "billions") | null;
+        };
+        /** PeriodAcceptOut */
+        PeriodAcceptOut: {
+            /** Periods */
+            periods: components["schemas"]["CoveragePeriodSummary"][];
+        };
+        /** PeriodCounts */
+        PeriodCounts: {
+            /** Accepted */
+            accepted: number;
+            /** Corrected */
+            corrected: number;
+            /** Figures */
+            figures: number;
+        };
         /** PlanActualAttribution */
         PlanActualAttribution: {
             /** Exit Ebitda */
@@ -6005,6 +6270,11 @@ export interface components {
         };
         /** ReadStart */
         ReadStart: {
+            /**
+             * Company Id
+             * @description A covered company of the caller's: the read's figures are then checked against the periods kept for it (PLAN.md R2)
+             */
+            company_id?: string | null;
             /**
              * File Id
              * Format: uuid
@@ -7747,6 +8017,49 @@ export interface components {
              * @description UTC, ISO 8601
              */
             updated_at?: string | null;
+        };
+        /** StoredFigures */
+        StoredFigures: {
+            /**
+             * Company
+             * @description The company's name as the filing prints it
+             */
+            company: string;
+            /** Document Pages */
+            document_pages: number | null;
+            /** Format */
+            format: number;
+            /** Tables */
+            tables: components["schemas"]["StoredTable"][];
+            /** Year End Month */
+            year_end_month: number | null;
+        };
+        /** StoredRow */
+        StoredRow: {
+            /** Label */
+            label: string;
+            /** Line */
+            line: string | null;
+            /** Marks */
+            marks?: (components["schemas"]["FigureMark"] | null)[] | null;
+            /** Page */
+            page: number | null;
+            /** Values */
+            values: (number | null)[];
+        };
+        /** StoredTable */
+        StoredTable: {
+            /** Columns */
+            columns: components["schemas"]["ReadColumn"][];
+            /** Pages */
+            pages: number[];
+            /** Rows */
+            rows: components["schemas"]["StoredRow"][];
+            /**
+             * Statement
+             * @enum {string}
+             */
+            statement: "results" | "segments" | "balance_sheet" | "cash_flow";
         };
         /**
          * SuggestionsResponse
@@ -10449,6 +10762,91 @@ export interface operations {
             };
         };
     };
+    get_content_api_files__file_id__content_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                file_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file's bytes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Request Timeout */
+            408: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+            /** @description Insufficient Storage */
+            507: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileRefusal"];
+                };
+            };
+        };
+    };
     put_content_api_files__file_id__content_put: {
         parameters: {
             query?: never;
@@ -11593,6 +11991,277 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScenariosResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_companies_api_research_companies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageList"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_company_api_research_companies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoverageCompanyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageCompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_company_api_research_companies__company_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_periods_api_research_companies__company_id__periods_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PeriodAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodAcceptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_period_api_research_periods__period_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                period_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoveragePeriodOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_period_api_research_periods__period_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                period_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_workbook_api_research_periods__period_id__workbook_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                period_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The checked statements: subtotals as formulas, each figure's page in a note */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
                 };
             };
             /** @description Validation Error */

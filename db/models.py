@@ -282,7 +282,10 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  # The person switched suggestions of their usual figures on or off (PLAN.md 5.9)
                  "suggestions_switched",
                  # The person uploaded a file, or deleted one (PLAN.md 6.1)
-                 "file_uploaded", "file_deleted")
+                 "file_uploaded", "file_deleted",
+                 # The person added or removed a covered company, or accepted or
+                 # removed one of its periods (PLAN.md R2)
+                 "coverage_added", "coverage_removed", "period_accepted", "period_removed")
 
 
 class AuditEvent(Base):
@@ -638,7 +641,8 @@ class ReferenceReview(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
 
-__all__ = ["AUDIT_ACTIONS", "AppFlag", "FILE_KINDS", "FILE_REASONS", "FILE_STATUSES", "StoredFile", "AuditEvent", "REFERENCE_ORIGINS", "REFERENCE_STATUSES", "REJECT_REASONS",
+__all__ = ["AUDIT_ACTIONS", "AppFlag", "COVERAGE_MONTHS", "COVERAGE_SCOPES", "COVERAGE_UNITS", "CoveredCompany",
+           "CoveredPeriod", "FILE_KINDS", "FILE_REASONS", "FILE_STATUSES", "StoredFile", "AuditEvent", "REFERENCE_ORIGINS", "REFERENCE_STATUSES", "REJECT_REASONS",
            "REVIEW_VERDICTS", "ReferenceDeal", "ReferenceReview", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",
            "SCHEDULED_RUN_STATUSES", "ScheduledRun", "StorageCheck", "UsageCounter", "User",
@@ -719,3 +723,69 @@ class StoredFile(Base):
     queued_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
     scanned_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
     expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+
+
+# ---------------------------------------------------------------------------
+# Equity research coverage (PLAN.md R2)
+# ---------------------------------------------------------------------------
+COVERAGE_SCOPES = ("consolidated", "standalone")
+# What a period's figures are counted in: core.money's units, plus "units"
+# for a filing that prints its figures as they are (rupees)
+COVERAGE_UNITS = ("units", "thousands", "lakhs", "millions", "crores", "billions")
+COVERAGE_MONTHS = (3, 6, 9, 12)
+
+
+class CoveredCompany(Base):
+    """A company an analyst follows (PLAN.md R2). Private to its owner, like
+    a deal: every read and write matches the owner in the same statement
+    (db/coverage.py). ``name`` is what the analyst called it; never logged."""
+
+    __tablename__ = "coverage_companies"
+    __table_args__ = (Index("ix_coverage_companies_owner_id_created_at", "owner_id", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class CoveredPeriod(Base):
+    """One accepted period of a covered company: the checked statements of
+    one scope (standalone or consolidated) from one results filing, as the
+    analyst accepted them (PLAN.md R2). Written only when the analyst
+    accepts the read; a quarter accepted again replaces the one stored.
+
+    ``figures`` holds the tables in a compact form (``research/coverage.py``
+    ``FORMAT``): columns, and per row its label, standard line, page, the
+    accepted values and, per figure, what the analyst did with it. Money is
+    in ``unit`` of ``currency``, as printed. ``file_id`` is the results PDF
+    it came from while that file is kept (6.1's retention); the figures and
+    their page numbers stay after it goes.
+    """
+
+    __tablename__ = "coverage_periods"
+    __table_args__ = (
+        CheckConstraint(_one_of("scope", COVERAGE_SCOPES), name="scope"),
+        CheckConstraint(_one_of("unit", COVERAGE_UNITS), name="unit"),
+        CheckConstraint("months IN (3, 6, 9, 12)", name="months"),
+        UniqueConstraint("company_id", "period_end", "months", "scope",
+                         name="uq_coverage_periods_company_period_scope"),
+        Index("ix_coverage_periods_owner_id_accepted_at", "owner_id", "accepted_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("coverage_companies.id", ondelete="CASCADE"), nullable=False)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    period_end: Mapped[date] = mapped_column(Date, nullable=False)
+    months: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    scope: Mapped[str] = mapped_column(String(12), nullable=False)
+    unit: Mapped[str] = mapped_column(String(9), nullable=False)
+    currency: Mapped[Optional[str]] = mapped_column(CurrencyCode, nullable=True)
+    file_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
+    figures: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    accepted_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())

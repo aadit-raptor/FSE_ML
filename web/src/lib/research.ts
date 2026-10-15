@@ -22,9 +22,10 @@ export async function startRead(
   fileId: string,
   confirmed: boolean,
   quarterEnd: string | null,
+  companyId: string | null = null,
 ): Promise<{ job: ReadJob; error?: undefined } | { job?: undefined; error: string }> {
   const { data, error } = await api.POST("/api/research/reads", {
-    body: { file_id: fileId, public: confirmed, quarter_end: quarterEnd || null },
+    body: { file_id: fileId, public: confirmed, quarter_end: quarterEnd || null, company_id: companyId || null },
   });
   return data ? { job: data } : { error: errorCode(error) };
 }
@@ -37,4 +38,76 @@ export async function readJob(id: string): Promise<ReadJob | null> {
 /** How many decimals a table prints: two when any figure has a fraction, else none. */
 export function decimalsOf(table: ReadTable): number {
   return table.rows.some((row) => row.cells.some((c) => c.value !== null && c.value !== undefined && !Number.isInteger(c.value))) ? 2 : 0;
+}
+
+/* ------------------------------------------------------------------ coverage (PLAN.md R2) */
+
+export type CoverageList = Schemas["CoverageList"];
+export type CoverageCompany = Schemas["CoverageCompanyOut"];
+export type PeriodSummary = Schemas["CoveragePeriodSummary"];
+export type StoredPeriod = Schemas["CoveragePeriodOut"];
+export type StoredTable = Schemas["StoredTable"];
+export type Correction = Schemas["FigureCorrection"];
+
+/** A figure of a read: its table, row and column, as the review names it. */
+export type CellRef = [number, number, number];
+export const cellKey = (ref: CellRef) => ref.join(":");
+
+/** Every amber figure the analyst must answer before the quarter can be accepted. */
+export function amberCells(result: ReadResult): CellRef[] {
+  const out: CellRef[] = [];
+  result.tables.forEach((table, t) =>
+    table.rows.forEach((row, r) =>
+      row.cells.forEach((cell, c) => {
+        if (cell.amber && cell.value !== null && cell.value !== undefined) out.push([t, r, c]);
+      }),
+    ),
+  );
+  return out;
+}
+
+export async function listCoverage(): Promise<CoverageList | null> {
+  const { data } = await api.GET("/api/research/companies");
+  return data ?? null;
+}
+
+export async function addCompany(name: string): Promise<{ company?: CoverageCompany; error?: string }> {
+  const { data, error } = await api.POST("/api/research/companies", { body: { name } });
+  return data ? { company: data } : { error: errorCode(error) };
+}
+
+export async function removeCompany(id: string): Promise<boolean> {
+  const { response } = await api.DELETE("/api/research/companies/{company_id}", { params: { path: { company_id: id } } });
+  return response.ok;
+}
+
+export async function acceptRead(
+  companyId: string,
+  readId: string,
+  accepted: CellRef[],
+  corrected: Correction[],
+): Promise<{ periods?: PeriodSummary[]; error?: string }> {
+  const { data, error } = await api.POST("/api/research/companies/{company_id}/periods", {
+    params: { path: { company_id: companyId } },
+    body: { read_id: readId, accepted, corrected },
+  });
+  return data ? { periods: data.periods } : { error: errorCode(error) };
+}
+
+export async function storedPeriod(id: string): Promise<StoredPeriod | null> {
+  const { data } = await api.GET("/api/research/periods/{period_id}", { params: { path: { period_id: id } } });
+  return data ?? null;
+}
+
+export async function removePeriod(id: string): Promise<boolean> {
+  const { response } = await api.DELETE("/api/research/periods/{period_id}", { params: { path: { period_id: id } } });
+  return response.ok;
+}
+
+export const workbookPath = (periodId: string) => `/api/research/periods/${periodId}/workbook`;
+
+/** "DMart_2026-09-30_consolidated.xlsx": the name the API gives the workbook too. */
+export function workbookName(company: string, period: PeriodSummary): string {
+  const stem = `${company}_${period.period_end}_${period.scope}`.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[._]+|[._]+$/g, "");
+  return `${stem || "results"}.xlsx`;
 }

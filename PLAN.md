@@ -209,7 +209,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R0 | Proof before code: reader accuracy | 6.1 | ☑ |
 | R1a | Results reader, built and measured on R0's filings | R0 | ☑ |
 | R1b | Results reader measured on held-out filings (recorded over days) | R1a | ☐ |
-| R2 | Coverage, review screen and the checked workbook | R1a | ☐ |
+| R2 | Coverage, review screen and the checked workbook | R1a | ☑ |
 | R3 | Excel add-in: sign in and import results | R2 | ☐ |
 | R4 | Sector research, the model definition and the first sector model | R2 | ☐ |
 | R5 | Save back and roll forward | R3, R4 | ☐ |
@@ -272,7 +272,7 @@ It lives in the existing **Equity research** workspace (7.10) and in an
 | File storage: Supabase Storage, private bucket, scanned uploads | In place once 6.1 merges |
 | Accounts, saved versions, limits, background jobs, audit history, Excel downloads, plan vs actual, lakh digit grouping, fiscal year labels | In place |
 | An AI key for reading documents | **In place (R1a, 2026-10-14)**: `AI_PROVIDER=gemini`, a free key of Google project `variater-reader`; billing with a cap before outside users |
-| Money in lakhs and crores | **New.** Units today are thousands, millions, billions |
+| Money in lakhs and crores | **In place (R2, 2026-10-15)**: thousands, lakhs, millions, crores, billions |
 | Quarter by quarter (the product follows Indian results, which are quarterly) | **To build.** Today's forecast screen works in whole years |
 | Indian companies' results | **To build, by upload** (decided 2026-10-12: uploading the PDF is enough for a start; fetching from BSE or NSE comes later). 4.1's registers hold no Indian company |
 | Models as live Excel formulas | **New.** 7.3a planned it for deals; R4 builds it for research |
@@ -746,6 +746,65 @@ or nearly finished to try. So no task waits for an analyst:
   stored and downloaded. **This is the first version to put in front of the
   five analysts**: the user shows it, and what they say is written here
   before R3 onwards is confirmed (R4 part a can go on meanwhile).
+- **Done (2026-10-15):**
+  - **Units**: `lakhs` and `crores` join thousands, millions and billions
+    everywhere money has a unit (`core/money.py` `UNIT_SCALE`, the API's
+    `MoneyUnit`, the web's `MONEY_UNITS`: "₹L", "₹Cr"). A deal in lakhs or
+    crores runs in millions as every unit does and answers exactly the
+    millions answer scaled (`tests/test_money.py`'s leaf-by-leaf tests now
+    cover all four other units). No engine number moved.
+  - **Storage** (migration 0019, `db/coverage.py`): `coverage_companies`
+    (owner, name) and `coverage_periods` (company, period end, months 3 or
+    12 (6 and 9 allowed), scope, unit in `units`/thousands/lakhs/millions/
+    crores/billions, currency, the source file while kept, the figures as
+    JSONB, accepted at). One period per scope of a filing; accepting the same
+    quarter again replaces it. Every read and write matches the owner in the
+    same statement (another account's is a 404). A period is about 20 KB;
+    100 companies and 400 periods a person, 64 MB in all (`coverage_data`
+    in `/api/health/database`). Audit actions `coverage_added`,
+    `coverage_removed`, `period_accepted`, `period_removed`, and `exported`
+    with `results_workbook`.
+  - **Accepting** (`research/coverage.py` `accept`, `POST
+    /api/research/companies/{id}/periods`): the figures come from the
+    caller's own finished read job (kept six hours), never from the browser;
+    the review answers every amber figure (accepted as read, or corrected)
+    and may correct any other; an unanswered amber figure is a 422
+    `amber_unreviewed`. Each figure keeps its page and, when the analyst
+    touched it, a mark (`accepted` with its amber reason, or `corrected`
+    with what the reader read).
+  - **The comparison with what is kept**: a read for a covered company
+    (`company_id` on `POST /api/research/reads`) is checked against its
+    stored periods in the unit the new filing prints (R1's
+    `stored_differs`), so a restated comparative is amber.
+  - **Screens**: Coverage now has **Companies** (add, the accepted periods,
+    Show with the page, Workbook, Remove) and **Results** (choose or add the
+    company, read, then the review: the figures beside the page they came
+    from, drawn in the browser by **pdf.js 4.10.38** from `GET
+    /api/files/{id}/content`; amber figures answered one by one with "Next
+    amber figure"; "Accept quarter into ..." only when none is left; the
+    workbook offered at once).
+  - **The checked workbook** (`GET /api/research/periods/{id}/workbook`): an
+    About sheet and a sheet per statement; the statement's own sums
+    (`checks.identities` run again on the accepted figures) are **formulas**
+    wherever the parts add to the printed total exactly, and a printed total
+    they don't reach stays a figure with a note saying what they add to;
+    every figure's note gives its page and what the analyst did. Tests work
+    every figure out from the workbook's formulas with the tests' own Excel
+    reader (`tests/research_support.py`) and get the stored figure.
+  - **Decided here: the PDF keeps 6.1's 90 days**, not longer. A longer
+    life would hold the per-person quota (40 files, 100 MB) for good; the
+    figures and their page numbers stay after the file goes, and the screen
+    says the page can no longer be shown.
+  - Tests: `tests/test_research_coverage.py` (accepting, the workbook
+    recalculates, notes, formula-looking words), `tests/test_research_coverage_api.py`
+    (the whole road, a corrected figure stored and downloaded, another
+    account's 404s, limits, nothing logged), `web/e2e/coverage.spec.ts` (a
+    PDF read, reviewed beside its drawn page, corrected, accepted, the
+    downloaded workbook recalculated by `tests/coverage_workbook_check.py`
+    to every stored figure; another account sees none of it).
+  - **Before the first showing to analysts** (the user's): R1b's held-out
+    filings measured (production reads only then), and billing with a cap on
+    `variater-reader` with `AI_FREE_TIER=0`.
 
 ### R3 Excel add-in: sign in and import results
 - **Pulls forward:** 7.3b, for research instead of deals.

@@ -5,6 +5,7 @@
     PUT    /api/files/{id}/content    the file's bytes, as the request body
     GET    /api/files/{id}            where the file stands
     POST   /api/files/{id}/link       a signed download link (clean files only)
+    GET    /api/files/{id}/content    a clean PDF's bytes, for the review screen's page view (PLAN.md R2)
     DELETE /api/files/{id}
 
 The bytes are streamed to disk as they arrive and counted: they are never
@@ -30,6 +31,8 @@ from contextlib import contextmanager
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 
@@ -186,6 +189,29 @@ def post_link(file_id: uuid.UUID, response: Response, user: AuthUser = Depends(r
         url = service.link(user.subject, file_id)
     response.headers["Cache-Control"] = "no-store"
     return {"url": url, "expires_in": rules.LINK_S}
+
+
+@router.get("/{file_id}/content", response_class=FileResponse, responses={
+    **REFUSALS, 200: {"content": {"application/pdf": {}}, "description": "The file's bytes"}})
+def get_content(file_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    """A clean PDF's bytes, to its owner: what the review screen draws the
+    filing's pages from in the browser (PLAN.md R2). Sent as an attachment,
+    never shown on the API's own address."""
+    with errors():
+        record = rows.get_file(user.subject, file_id)
+        if record.status != "clean":
+            raise service.NotReady()
+        if record.kind != "pdf":
+            raise HTTPException(404, "File not found")
+        target = service.spool() / f"view-{uuid.uuid4().hex}"
+        try:
+            service.store().fetch(record.key, target, rules.MAX_FILE_BYTES)
+        except BaseException:
+            service.discard(target)
+            raise
+    return FileResponse(target, media_type="application/pdf", background=BackgroundTask(service.discard, target),
+                        headers={"Content-Disposition": "attachment", "Cache-Control": "private, no-store",
+                                 "X-Content-Type-Options": "nosniff"})
 
 
 @router.delete("/{file_id}", status_code=204, responses=REFUSALS)

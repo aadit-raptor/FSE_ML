@@ -868,6 +868,25 @@ held_out FILE.pdf ...` with `GEMINI_API_KEY` set (or `--env-file`) reads each
 filing, saving every answer as it arrives, so a run stopped by the day's
 allowance carries on the next day. Then `python -m ml.evaluation evaluate`.
 
+## Coverage
+
+PLAN.md R2: the companies an analyst follows and the quarters they accepted
+from the results reader (Equity research -> Coverage), in tables
+`coverage_companies` and `coverage_periods` (migration 0019). Nothing to set
+up beyond the database and the reader above. A period is about 20 KB (a
+filing's statements, every figure with its page and what the analyst did
+with it); a person keeps at most 100 companies and 400 periods
+(`db/coverage.py`), everyone's at most 64 MB, reported as `coverage_data`
+by `/api/health/database` and failed at 80% by `ops/check_database.py`.
+
+The review screen draws the filing's pages **in the browser** with pdf.js
+from `GET /api/files/{id}/content` (the owner's clean PDF, fetched from the
+API's own address as uploads are sent), so the server never renders a page
+for viewing; each view of a filing costs its size in Supabase egress (5 GB a
+month on the free plan). The PDF itself keeps 6.1's 90 days: the accepted
+figures and their page numbers stay after it goes (decided in R2: a longer
+life would hold the per-person file quota of 40 files and 100 MB for good).
+
 ## File uploads
 
 Set up in PLAN.md 6.1. People upload PDF, Excel and Word files on Deal →

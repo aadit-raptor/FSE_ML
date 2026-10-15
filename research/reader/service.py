@@ -10,8 +10,10 @@ only they can see it and it counts among their waiting runs.
 ``read_file`` is the job: the file is fetched from the store to a private
 spool file, its pages counted (in a child process) and charged against the
 person's **daily page limit**, then read twice and checked
-(``read.read_filing``). The answer is the job's result (kept six hours, like
-every job's); nothing is stored until R2 adds accepting a quarter.
+(``read.read_filing``), against what is kept for the company when the read is
+for a covered one. The answer is the job's result (kept six hours, like every
+job's); nothing is stored until the analyst accepts it (PLAN.md R2,
+``api/routers/coverage.py``).
 
 **Nothing from a document reaches a log**: events carry counts, models and
 timings only, never a label, a figure or the file's name.
@@ -45,6 +47,7 @@ NO_FILE = "no_file"
 PAGE_LIMIT = "page_limit"
 TOO_LONG = "too_long"
 STORE_DOWN = "store_unreachable"
+NO_COMPANY = "no_company"
 
 
 def _refuse(status: int, code: str) -> HTTPException:
@@ -77,7 +80,18 @@ def _clean_pdf(subject: str, file_id: uuid.UUID):
     return record
 
 
-def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Optional[datetime.date]):
+def _kept(subject: str, company_id: Optional[uuid.UUID]) -> list[dict]:
+    """The periods kept for one of the caller's covered companies (PLAN.md R2);
+    a company that isn't theirs (or no longer exists) has none."""
+    if company_id is None:
+        return []
+    from db import coverage
+
+    return coverage.company_figures(subject, company_id)
+
+
+def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Optional[datetime.date],
+          company_id: Optional[uuid.UUID] = None):
     """Queue a read for the caller. Answers the job record."""
     from api.limits import READS_ALL, USER_READS, enforce
     from api.routers.jobs import submit_kind
@@ -87,9 +101,17 @@ def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Option
     if reader.free_tier and not public:
         raise _refuse(422, CONFIRM_PUBLIC)
     _clean_pdf(subject, file_id)
+    if company_id is not None:
+        from db import coverage
+
+        try:
+            coverage.get_company(subject, company_id)
+        except coverage.NotFound:
+            raise _refuse(404, NO_COMPANY) from None
     enforce([(USER_READS, subject), (READS_ALL, "all")])
     payload = {"owner": subject, "file_id": str(file_id),
-               "quarter_end": quarter_end.isoformat() if quarter_end else None}
+               "quarter_end": quarter_end.isoformat() if quarter_end else None,
+               "company_id": str(company_id) if company_id else None}
     return submit_kind(subject, KIND, payload)
 
 
@@ -113,8 +135,9 @@ def pages_left(subject: str, now: Optional[float] = None) -> int:
 
 
 def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.date], *,
-              today: Optional[datetime.date] = None) -> dict:
-    """The job: fetch, count and charge the pages, read twice, check."""
+              today: Optional[datetime.date] = None, company_id: Optional[uuid.UUID] = None) -> dict:
+    """The job: fetch, count and charge the pages, read twice, check (against
+    the periods kept for ``company_id``, when the read is for one)."""
     from uploads import rules, service as uploads
     from uploads.store import NotStored, StorageError
 
@@ -139,7 +162,7 @@ def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.dat
         _charge_pages(owner, info.pages)
         try:
             result = read_filing(path, reader, today=today or datetime.date.today(), quarter=quarter_end,
-                                 info=info)
+                                 info=info, kept=_kept(owner, company_id))
         except ai.ProviderError as exc:
             log_event("reader_failed", logging.WARNING, provider=reader.name, code=exc.code,
                       http_status=exc.status)
