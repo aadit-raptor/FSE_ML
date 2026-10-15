@@ -37,6 +37,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 
 from api.auth import AuthUser, require_user
+from api.limits import USER_FILE_VIEWS, enforce
 from api.schemas import FileBegin, FileLink, FileList, FileOut, FileRefusal
 from db import files as rows
 from db.engine import is_configured as database_configured
@@ -197,12 +198,19 @@ def get_content(file_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     """A clean PDF's bytes, to its owner: what the review screen draws the
     filing's pages from in the browser (PLAN.md R2). Sent as an attachment,
     never shown on the API's own address."""
+    headers = {"Content-Disposition": "attachment", "Cache-Control": "private, no-store",
+               "X-Content-Type-Options": "nosniff"}
     with errors():
         record = rows.get_file(user.subject, file_id)
         if record.status != "clean":
             raise service.NotReady()
         if record.kind != "pdf":
             raise HTTPException(404, "File not found")
+        enforce([(USER_FILE_VIEWS, user.subject)])
+        # the copy the upload left for its scan, while the server still has it: no store egress
+        spooled = service.spooled(file_id)
+        if spooled.is_file() and spooled.stat().st_size == record.size:
+            return FileResponse(spooled, media_type="application/pdf", headers=headers)
         target = service.spool() / f"view-{uuid.uuid4().hex}"
         try:
             service.store().fetch(record.key, target, rules.MAX_FILE_BYTES)
@@ -210,8 +218,7 @@ def get_content(file_id: uuid.UUID, user: AuthUser = Depends(require_user)):
             service.discard(target)
             raise
     return FileResponse(target, media_type="application/pdf", background=BackgroundTask(service.discard, target),
-                        headers={"Content-Disposition": "attachment", "Cache-Control": "private, no-store",
-                                 "X-Content-Type-Options": "nosniff"})
+                        headers=headers)
 
 
 @router.delete("/{file_id}", status_code=204, responses=REFUSALS)

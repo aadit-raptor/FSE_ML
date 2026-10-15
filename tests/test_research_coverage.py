@@ -188,7 +188,7 @@ def test_a_corrected_figure_moves_the_formula_totals_with_it(avenue):
     figure only if the printed total still holds, else the total stays printed."""
     period, = coverage.accept(avenue, everything_accepted(avenue))
     table = period["figures"]["tables"][0]
-    sums = coverage.subtotals(table)
+    sums, _ = coverage.subtotals(table)
     (target, column), parts = next(iter(sums.items()))
     part = parts[0][0]
     period["figures"]["tables"][0]["rows"][part]["values"][column] += 1000

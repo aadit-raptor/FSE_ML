@@ -112,7 +112,7 @@ export function CompaniesStep() {
             }}
           />
         ))}
-        {open && <PeriodView period={open} onClose={() => setOpen(null)} />}
+        {open && <PeriodView key={open.id} period={open} onClose={() => setOpen(null)} />}
       </Tiles>
     </Screen>
   );

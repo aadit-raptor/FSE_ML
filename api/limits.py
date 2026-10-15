@@ -133,6 +133,11 @@ USER_READS = Rule("user_reads_per_day", "results reads", "user", 10, 86_400, sha
 READS_ALL = Rule("reads_per_day", "results reads", "service", 30, 86_400, shared=True)
 USER_READ_PAGES = Rule("user_read_pages_per_day", "pages read", "user", 250, 86_400, shared=True)
 READS_PATH = "/api/research/reads"
+# A clean PDF's bytes for the review screen's page view (PLAN.md R2): each one
+# not still in the upload spool is fetched from the file store, whose free plan
+# allows 5 GB of egress a month. The screen keeps a file it fetched for the
+# page's life, so a person needs a few a day; a hundred is generous
+USER_FILE_VIEWS = Rule("user_file_views_per_day", "PDF views", "user", 100, 86_400, shared=True)
 
 
 def streams_body(method: str, path: str) -> bool:
@@ -150,7 +155,9 @@ def is_run_path(path: str) -> bool:
 
 
 def is_run_request(method: str, path: str) -> bool:
-    return is_run_path(path) or (method == "POST" and path == JOBS_PATH)
+    # fetching a file's bytes from the outside store is a run too (PLAN.md R2)
+    return is_run_path(path) or (method == "POST" and path == JOBS_PATH) or (
+        method == "GET" and _FILE_CONTENT.fullmatch(path) is not None)
 
 
 def limit_multiplier() -> float:

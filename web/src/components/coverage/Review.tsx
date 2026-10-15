@@ -98,8 +98,10 @@ export function Review({
   const column = selected ? result.tables[selected[0]].columns[selected[2]] : null;
   const digits = selected ? decimalsOf(result.tables[selected[0]]) : 0;
   const given = selected ? answers.get(cellKey(selected)) : undefined;
-  const parsed = draft.trim() === "" ? null : parseNumber(draft);
-  const draftOk = parsed === null || Number.isFinite(parsed);
+  // a dash means the figure is blank on the page; an empty box means nothing was typed yet
+  const blank = /^[-\u2013\u2014\u2212]$/.test(draft.trim());
+  const parsed = blank ? null : parseNumber(draft);
+  const draftOk = blank || (draft.trim() !== "" && Number.isFinite(parsed));
 
   return (
     <>

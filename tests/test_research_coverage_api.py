@@ -209,3 +209,24 @@ def test_nothing_from_the_filing_or_the_name_reaches_the_log(avenue, job_queue, 
                                                                           default=str)
     for secret in ("Secret Retail Co", "Avenue Supermarts", "19644.01", "19,644.01"):
         assert secret not in logged
+
+
+def test_pdf_views_are_counted_against_a_daily_limit(avenue, job_queue, monkeypatch):
+    from api.limits import USER_FILE_VIEWS, Rule
+
+    file_id = clean_pdf(job_queue)
+    monkeypatch.setattr("api.routers.files.USER_FILE_VIEWS",
+                        Rule(USER_FILE_VIEWS.name, "PDF views", "user", 2, 86_400, shared=True))
+    assert [client.get(f"/api/files/{file_id}/content").status_code for _ in range(3)] == [200, 200, 429]
+
+
+def test_a_pdf_view_comes_from_the_store_once_the_upload_spool_is_gone(avenue, job_queue, tmp_path):
+    from tests import upload_samples as s
+    from uploads import service
+
+    file_id = clean_pdf(job_queue)
+    service.spooled(file_id).unlink(missing_ok=True)
+    got = client.get(f"/api/files/{file_id}/content")
+    assert got.status_code == 200 and got.content == s.pdf()
+    # the store's copy, fetched to the spool for the answer, is not left behind
+    assert not list((tmp_path / "spool").glob("view-*"))

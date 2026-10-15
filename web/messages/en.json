@@ -2398,7 +2398,7 @@
     "givenAccepted": "Accepted as read",
     "givenCorrected": "Corrected to {value}",
     "acceptAsRead": "Accept as read",
-    "correctLabel": "Correct figure",
+    "correctLabel": "Correct figure (a dash for blank)",
     "useCorrection": "Use correction",
     "cellLabel": "{row}, {column}",
     "tablePages": "Pages {pages}",

@@ -39,6 +39,7 @@ from openpyxl.utils import get_column_letter
 
 from core.money import UNIT_SCALE
 from research.reader import checks
+from research.workbook import _put
 
 FORMAT = 1
 SCOPES = ("consolidated", "standalone")
@@ -224,14 +225,6 @@ FIRST_ROW = 6          # the first figure's row; above it the title, the unit an
 FIRST_COLUMN = 3       # A: the company's label, B: the standard line
 
 
-def _put(ws, row: int, column: int, text: str):
-    """Words into a cell, as words: a label that starts with = must never become a formula."""
-    cell = ws.cell(row, column)
-    cell.value = text
-    cell.data_type = "s"
-    return cell
-
-
 def _sheet_title(name: str, used: set) -> str:
     title, n = name[:31], 2
     while title.lower() in used:
@@ -244,14 +237,16 @@ def _decimals(rows: Sequence[Sequence[Optional[float]]]) -> int:
     return 2 if checks.step(rows) < 1 else 0
 
 
-def subtotals(table: Mapping) -> dict[tuple[int, int], list[tuple[int, int]]]:
-    """The statement's own sums on the accepted figures that add up exactly:
-    ``{(row, column): [(part row, sign), ...]}``."""
+def subtotals(table: Mapping) -> tuple[dict, dict]:
+    """The statement's own sums on the accepted figures, in one search:
+    those that add up exactly, ``{(row, column): [(part row, sign), ...]}``,
+    and the printed totals they don't reach, ``{(row, column): what the
+    parts add to}``."""
     grid = [list(row["values"]) for row in table["rows"]]
     found = checks.identities({"columns": table["columns"],
                                "rows": [{"label": row["label"], "values": row["values"]} for row in table["rows"]]})
     decimals = _decimals(grid)
-    out = {}
+    exact, off = {}, {}
     for item in found["found"]:
         target = item["row"]
         for column in range(len(table["columns"])):
@@ -259,12 +254,13 @@ def subtotals(table: Mapping) -> dict[tuple[int, int], list[tuple[int, int]]]:
             if printed is None:
                 continue
             parts = [(p, s) for p, s in zip(item["parts"], item["signs"]) if grid[p][column] is not None]
-            if len(parts) < 2:
-                continue
             worked = sum(s * grid[p][column] for p, s in parts)
-            if round(worked, decimals) == round(printed, decimals) and abs(worked - printed) < 0.5 * 10 ** -decimals:
-                out[(target, column)] = parts
-    return out
+            if len(parts) >= 2 and round(worked, decimals) == round(printed, decimals) \
+                    and abs(worked - printed) < 0.5 * 10 ** -decimals:
+                exact[(target, column)] = parts
+            else:
+                off[(target, column)] = round(worked, decimals)
+    return exact, off
 
 
 def _formula(parts: list[tuple[int, int]], column: int) -> str:
@@ -329,15 +325,7 @@ def _write_table(ws, company_name: str, table: Mapping, scope: str, unit_words: 
     grid = [list(row["values"]) for row in table["rows"]]
     decimals = _decimals(grid)
     number_format = "#,##0.00" if decimals else "#,##0"
-    sums = subtotals(table)
-    found = checks.identities({"columns": table["columns"],
-                               "rows": [{"label": row["label"], "values": row["values"]} for row in table["rows"]]})
-    worked_off = {}
-    for item in found["found"]:
-        for column in range(len(table["columns"])):
-            if (item["row"], column) not in sums and grid[item["row"]][column] is not None:
-                worked = sum(s * (grid[p][column] or 0.0) for p, s in zip(item["parts"], item["signs"]))
-                worked_off[(item["row"], column)] = round(worked, decimals)
+    sums, worked_off = subtotals(table)
     _put(ws, 1, 1, f"{company_name}: {STATEMENT_WORDS.get(table['statement'], table['statement'])}, {scope}").font = \
         Font(bold=True)
     _put(ws, 2, 1, f"{currency}, {unit_words}. Pages {', '.join(str(p) for p in table.get('pages') or []) or 'not known'}.")

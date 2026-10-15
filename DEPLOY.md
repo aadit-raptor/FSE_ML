@@ -882,8 +882,11 @@ by `/api/health/database` and failed at 80% by `ops/check_database.py`.
 The review screen draws the filing's pages **in the browser** with pdf.js
 from `GET /api/files/{id}/content` (the owner's clean PDF, fetched from the
 API's own address as uploads are sent), so the server never renders a page
-for viewing; each view of a filing costs its size in Supabase egress (5 GB a
-month on the free plan). The PDF itself keeps 6.1's 90 days: the accepted
+for viewing. A view answers from the upload's spool copy while the server
+still has it, else from the store, which costs the file's size in Supabase
+egress (5 GB a month on the free plan): so views count as runs and at most
+100 a day a person (`USER_FILE_VIEWS`, `api/limits.py`), and the screen keeps
+a fetched file for the page's life. The PDF itself keeps 6.1's 90 days: the accepted
 figures and their page numbers stay after it goes (decided in R2: a longer
 life would hold the per-person file quota of 40 files and 100 MB for good).
 

@@ -103,7 +103,10 @@ def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Option
     _clean_pdf(subject, file_id)
     if company_id is not None:
         from db import coverage
+        from db.engine import is_configured
 
+        if not is_configured():
+            raise _refuse(404, NO_COMPANY)
         try:
             coverage.get_company(subject, company_id)
         except coverage.NotFound:
