@@ -2,7 +2,8 @@
 
 Done when: the same inputs give identical results in any currency; every
 response and export says which currency and unit its money is in. Plus: a deal
-entered in thousands or billions gives the same answer as in millions, scaled.
+entered in thousands, lakhs, crores or billions gives the same answer as in
+millions, scaled.
 """
 import io
 
@@ -17,7 +18,8 @@ from core.money import Money, in_unit
 client = TestClient(app)
 
 CURRENCIES = ["USD", "EUR", "JPY", "INR", "GBP", "CHF", "BRL"]
-SCALE = {"thousands": 1e3, "millions": 1.0, "billions": 1e-3}   # figures per million
+SCALE = {"thousands": 1e3, "lakhs": 10.0, "millions": 1.0, "crores": 0.1, "billions": 1e-3}   # figures per million
+OTHER_UNITS = ["thousands", "lakhs", "crores", "billions"]
 MONEY_INPUTS = ("ebitda", "mincash")
 MC = {"n": 2000}
 
@@ -88,7 +90,7 @@ def test_a_backtest_gives_identical_results_in_any_currency():
 # ---------------------------------------------------------------------------
 # Units: thousands and billions answer as millions do, scaled
 # ---------------------------------------------------------------------------
-@pytest.mark.parametrize("unit", ["thousands", "billions"])
+@pytest.mark.parametrize("unit", OTHER_UNITS)
 def test_a_deal_in_another_unit_gives_the_same_returns_and_scaled_money(unit):
     millions = post("/api/deal/run", {"inputs": deal("EUR")})
     other = post("/api/deal/run", {"inputs": scaled(deal("EUR"), unit)})
@@ -101,7 +103,7 @@ def test_a_deal_in_another_unit_gives_the_same_returns_and_scaled_money(unit):
         [v * SCALE[unit] for v in millions["operating_model"]["ebitda"]], rel=1e-9)
 
 
-@pytest.mark.parametrize("unit", ["thousands", "billions"])
+@pytest.mark.parametrize("unit", OTHER_UNITS)
 def test_small_fees_show_in_the_bridge_whatever_the_unit(unit):
     """A 1M EBITDA deal: its fees (a few hundred thousand) are a bridge step in
     every unit, not hidden because the number is small in billions."""
@@ -139,6 +141,9 @@ def test_fixed_amounts_convert_between_units():
     assert in_unit(0.001, "thousands") == 1.0
     assert in_unit(0.001, "millions") == 0.001
     assert in_unit(5.0, "billions") == pytest.approx(0.005)
+    # a lakh is a tenth of a million, a crore ten millions (PLAN.md R2)
+    assert in_unit(1.0, "lakhs") == pytest.approx(10.0)
+    assert in_unit(25.0, "crores") == pytest.approx(2.5)
 
 
 # ---------------------------------------------------------------------------
@@ -332,7 +337,7 @@ def test_a_simulation_answer_converts_its_money_parameters(monkeypatch):
     assert converted["heatmap"] == millions["heatmap"]
 
 
-@pytest.mark.parametrize("unit", ["thousands", "billions"])
+@pytest.mark.parametrize("unit", OTHER_UNITS)
 def test_a_company_in_another_unit_seeds_the_same_assumptions(unit):
     """Seeded money assumptions (dividends, buybacks, minimum cash) are rounded
     to the same precision whatever the unit; the rest are ratios and days."""

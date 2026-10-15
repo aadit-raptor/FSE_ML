@@ -107,3 +107,27 @@ export function megabytes(bytes: number): { value: number; digits: number } {
   const value = bytes / (1024 * 1024);
   return { value, digits: value > 0 && value < 10 ? 1 : 0 };
 }
+
+const pdfBytes = new Map<string, Promise<ArrayBuffer | null>>();
+
+/**
+ * A clean PDF's bytes, from the API's own address as uploads go (PLAN.md R2: the review screen draws the
+ * filing's pages in the browser). Kept for the page's life, so moving between pages or figures fetches the
+ * file once; null when it is gone or not the caller's.
+ */
+export function pdfFile(id: string): Promise<ArrayBuffer | null> {
+  let found = pdfBytes.get(id);
+  if (!found) {
+    found = (async () => {
+      const response = await fetch(`${API_ORIGIN}/api/files/${id}/content`, {
+        headers: { ...(await authHeaders()), [REQUEST_ID_HEADER]: newRequestId() },
+      }).catch(() => null);
+      return response?.ok ? response.arrayBuffer() : null;
+    })();
+    pdfBytes.set(id, found);
+    void found.then((bytes) => {
+      if (bytes === null) pdfBytes.delete(id);
+    });
+  }
+  return found;
+}

@@ -43,10 +43,15 @@ def _unwrap(answer: Answer) -> dict:
 
 
 def read_filing(path: Path, provider, *, today: datetime.date, quarter: Optional[datetime.date] = None,
-                stored: Sequence[Mapping] = (), info: Optional[pages.Info] = None) -> dict:
+                stored: Sequence[Mapping] = (), info: Optional[pages.Info] = None,
+                kept: Sequence[Mapping] = ()) -> dict:
     """The checked statements of the PDF at ``path``. Each read is a timed
     section (``reader.read_a``, ``reader.read_b``), which is what moves a
-    job's stage and progress (jobs/kinds.py)."""
+    job's stage and progress (jobs/kinds.py). ``kept``: a covered company's
+    stored periods (``db.coverage.company_figures``), compared with this
+    filing's figures in the unit it prints (PLAN.md R2)."""
+    from research.coverage import stored_for_read
+
     from api.limits import holding_simulation_slot
     from api.observability import model_timer
 
@@ -59,6 +64,7 @@ def read_filing(path: Path, provider, *, today: datetime.date, quarter: Optional
     with model_timer("reader.read_a"):
         a = provider.read("A", Document(digest, pdf=data))
     read_a = _unwrap(a)
+    stored = list(stored) + stored_for_read(kept, read_a["unit"])
     sent = asm.table_pages(read_a)
     if provider.needs_pictures:
         # a page number past the end of the file is a model's guess: never drawn

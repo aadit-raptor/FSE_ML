@@ -1,7 +1,7 @@
 /**
  * Currency and money units (PLAN.md 2.2). Every money figure belongs to a
- * currency (any ISO 4217 code) and is counted in thousands, millions or
- * billions. Labels come from the browser's own CLDR data, so no currency is
+ * currency (any ISO 4217 code) and is counted in thousands, lakhs, millions,
+ * crores or billions (a lakh is 100,000 and a crore 10 million: PLAN.md R2). Labels come from the browser's own CLDR data, so no currency is
  * written into the code: `moneyLabel({ currency: "EUR", unit: "thousands" })`
  * is "€k".
  */
@@ -17,7 +17,9 @@ export const DEFAULT_MONEY: Money = { currency: "USD", unit: "millions" };
 /** `labelKey` names the unit in the `money` namespace (PLAN.md 2.3b). i18n-keys: money.unit* */
 export const MONEY_UNITS: { value: MoneyUnit; labelKey: string; short: string; scale: number }[] = [
   { value: "thousands", labelKey: "unitThousands", short: "k", scale: 1e3 },
+  { value: "lakhs", labelKey: "unitLakhs", short: "L", scale: 1e5 },
   { value: "millions", labelKey: "unitMillions", short: "M", scale: 1e6 },
+  { value: "crores", labelKey: "unitCrores", short: "Cr", scale: 1e7 },
   { value: "billions", labelKey: "unitBillions", short: "bn", scale: 1e9 },
 ];
 

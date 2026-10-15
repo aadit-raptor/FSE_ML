@@ -20,8 +20,9 @@ from dataclasses import dataclass
 DEFAULT_CURRENCY = "USD"
 DEFAULT_UNIT = "millions"
 
-# How many currency units one money unit is
-UNIT_SCALE = {"thousands": 1e3, "millions": 1e6, "billions": 1e9}
+# How many currency units one money unit is. A lakh is a hundred thousand and
+# a crore ten million: Indian results print one or the other (PLAN.md R2)
+UNIT_SCALE = {"thousands": 1e3, "lakhs": 1e5, "millions": 1e6, "crores": 1e7, "billions": 1e9}
 MONEY_UNITS = tuple(UNIT_SCALE)
 
 CURRENCY_RE = re.compile(r"^[A-Z]{3}$")

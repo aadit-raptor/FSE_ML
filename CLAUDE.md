@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-15 (PLAN.md R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, runs beside R2). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-15 (PLAN.md R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,9 +1423,11 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0 and R1a are done; the next task is **R2**, with **R1b** (held-out
-filings recorded over days) beside it once the user has saved them, then R3
-to R9 in order; 6.2
+R0, R1a and R2 are done; **R1b** (held-out filings recorded over days)
+waits on the user's files and comes before the first showing to analysts
+(PLAN.md R2's "Before the first showing"); the next task is **R3** (the Excel
+add-in), then R4 to R9 in order, unless what the analysts say after R2
+reorders them; 6.2
 onwards and phases 7 to 12 wait, except what a phase R task pulls forward
 and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
 (a tool that never picks a rating; one model definition evaluated by the
@@ -1561,6 +1563,31 @@ research-samples/held-out/*.pdf` once a day until all are read, then
 bar. Known and left: a read job requeued after a restart charges its pages
 and spends its two requests again; a read holds the in-API runner thread
 for minutes, so jobs behind it wait (phase 12's workers).
+**R2 is done (2026-10-15): coverage, the review screen and the checked
+workbook** (PLAN.md R2, DEPLOY.md "Coverage"). Money units gain **`lakhs`
+and `crores`** everywhere (`core/money.py` `UNIT_SCALE`, `MoneyUnit`,
+`MONEY_UNITS`: "₹L", "₹Cr"); deals run in millions as before, no engine
+number moved. Tables `coverage_companies` and `coverage_periods` (migration
+0019, `db/coverage.py`: owner matched in every statement, 100 companies and
+400 periods a person, 64 MB in all as `coverage_data`). **Nothing is kept
+until the analyst accepts**: `POST /api/research/companies/{id}/periods`
+takes the figures from the caller's own finished read job (never from the
+browser), refuses while an amber figure is unanswered (`amber_unreviewed`),
+and stores one period per scope with every figure's page and a mark for
+what the analyst did (`research/coverage.py` `accept`); the same quarter
+accepted again replaces it. A read for a covered company (`company_id`) is
+checked against its kept periods in the new filing's unit
+(`stored_differs`). Screens: Coverage -> **Companies** and **Results** (the
+review: figures beside the page, drawn in the browser by **pdf.js 4.10.38**
+from `GET /api/files/{id}/content`, the owner's clean PDF fetched from the
+API's own address). **The workbook** (`GET
+/api/research/periods/{id}/workbook`): the statement's own sums written as
+formulas wherever the parts add exactly to the printed total, a page note on
+every figure; `tests/coverage_workbook_check.py` recalculates a downloaded
+one with the tests' own Excel reader. **Decided: the PDF keeps 6.1's 90
+days**; the figures and page numbers stay after it. Audit actions
+`coverage_added`, `coverage_removed`, `period_accepted`, `period_removed`,
+and `exported` with `results_workbook`.
 **Analysts come after the product** (the user, 2026-10-12: nobody can be
 approached with a sample page): the first showing is after R2, the second
 after R4, no task waits for one, and a sector model is marked "not yet
@@ -1595,7 +1622,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b (held-out filings) waits on the user's files. **Next is R2** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b (held-out filings) waits on the user's files. R2 is done (coverage, the review screen and the checked workbook, above). **Next is R3** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1879,6 +1906,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `core/live.py`, `ml/evaluation/surrogate.py`, `components/montecarlo/MonteCarloML.tsx`, `jobs/drill.py`, `tests/test_live.py`, `web/e2e/live-sliders.spec.ts` | Live sliders (PLAN.md 5.8): the simulation on a small, fixed set of paths with the sliders as inputs; its card on varied regional deals; the Live step; the staging drill's live session and memory read; the tests (the estimate is the run with that input changed) |
 | `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
 | `research/reader/`, `api/routers/research.py`, `ml/evaluation/reader.py`, `web/src/components/coverage/`, `web/src/lib/research.ts`, `tests/fixtures/research/reader/`, `tests/test_research_reader*.py`, `web/e2e/reader.spec.ts` | The results reader (PLAN.md R1): the provider switch, prompts, page tool, checks, standard lines, assembly, the job's service, the production gate and the recorder; the endpoints; its card; Coverage -> Results; the recorded answers (R0's 30 as `development`, `held_out` from R1b); the tests |
+| `research/coverage.py`, `db/coverage.py`, `api/routers/coverage.py`, `web/src/components/coverage/` (`CompaniesStep`, `Review`, `PageView`), `tests/test_research_coverage*.py`, `tests/coverage_workbook_check.py`, `web/e2e/coverage.spec.ts` | Coverage (PLAN.md R2): a reviewed read made into stored periods and the checked workbook; the rows, owner-matched; the endpoints; the Companies step, the review beside the page and the pdf.js page view; the tests and the browser tests' workbook check |
 | `research/`, `tests/research_support.py`, `tests/fixtures/research/`, `tests/test_research_*.py` | Equity research, sector models (PLAN.md R4 part b): the formula reader (`formula.py`), the model and company as data (`definition.py`), the evaluator, the Excel writer (`workbook.py`), the shared pieces, model 1 (`models/occupancy.py`); the tests' fixture loader, independent Excel-formula reader and LibreOffice runner; the two hand-solved companies; the tests (formulas, the format by hand, workbook against evaluator, model 1 against the hand workbooks) |
 | `uploads/`, `db/files.py`, `api/routers/files.py`, `web/src/lib/files.ts`, `web/src/components/deal/steps/DocumentsStep.tsx`, `tests/test_uploads.py`, `tests/upload_samples.py`, `web/e2e/documents.spec.ts` | File uploads (PLAN.md 6.1): the rules, the scanner, the stores and the steps of an upload; the rows; the endpoints; the browser's side and the Documents step; the tests and the files they build in memory |
 | `benchmarks/usual.py`, `web/src/lib/usual.ts`, `tests/test_usual.py`, `web/e2e/usual.spec.ts` | Personalized defaults (PLAN.md 5.9): a person's usual figures from their own saved deals; the answer shared by the switch and the tile; the tests (only the caller's deals, off stops them) |
@@ -2388,6 +2416,13 @@ Skills load when a session starts: install first, then open a new session.
   which is what lets R0's saved reads replay as recordings (a test checks it
   against R0's script where that is on the machine). Recordings are keyed by
   the PDF's SHA-256; PDFs are never committed (the repository is public).
+- The review screen's pdf.js is pinned at **4.10.38**: version 5 and later
+  decode JPEG 2000 (common in scanned filings) with WebAssembly, which the
+  content security policy would have to allow (`'wasm-unsafe-eval'`).
+  pdf.js loads only on the coverage screens (a dynamic import), runs its
+  worker from this site (`worker-src 'self'`) and is told never to evaluate
+  code (`isEvalSupported: false`). Hand `getDocument` a copy of the bytes:
+  it takes over the buffer it is given.
 - A child process's resource limits (`RLIMIT_CPU` ...) belong in its
   `if __name__ == "__main__":` block, never in the function a test may call
   in-process: R1a's first version set them inside `main`, and a test calling

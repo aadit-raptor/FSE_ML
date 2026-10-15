@@ -67,12 +67,13 @@ class ReadRequest(BaseModel):
     owner: str
     file_id: uuid.UUID
     quarter_end: Optional[date] = None
+    company_id: Optional[uuid.UUID] = None
 
 
 def _read_results(request: ReadRequest) -> dict:
     from research.reader import service
 
-    return service.read_file(request.owner, request.file_id, request.quarter_end)
+    return service.read_file(request.owner, request.file_id, request.quarter_end, company_id=request.company_id)
 
 
 class ScanRequest(BaseModel):
