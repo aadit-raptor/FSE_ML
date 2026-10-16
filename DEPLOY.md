@@ -853,11 +853,12 @@ six hours; "high demand" moves on to the next model.
 
 **Production reads only once the card measures it**: `ml/cards/reader.json`'s
 headline set (`held_out`, filings nobody tuned the prompt or checks on) must
-meet R0's bar (no wrong figure unflagged, under 2% amber). Until then
+meet its bar (no wrong figure unflagged, under 3% amber: R0's 2%, raised by
+the user on 2026-10-16). It does since then (eight held-out filings, 2.53%
+amber), so production reads. Without it
 production answers `503 reader_not_measured` and the screen says it is not
 open yet; staging and local copies read, with a "not yet measured" notice, or
-"below its accuracy bar" once measured short of it (since 2026-10-15: eight
-held-out filings, 2.53% amber).
+"below its accuracy bar" once measured short of it.
 
 **Checking it**: `/api/health/reader` (public, cached five minutes) says
 which provider and whether its key works, by listing Google's models, which

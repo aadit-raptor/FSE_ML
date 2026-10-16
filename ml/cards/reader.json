@@ -2,8 +2,8 @@
  "estimates": "Every figure of a results filing's statements (results, segments, balance sheet, cash flow), read twice by two different AI models, with each figure amber when the reads differ, a check fails or the scan is poor",
  "evaluation": {
   "bar": {
-   "amber_share_below": 0.02,
-   "description": "R0's bar (PLAN.md R0): no wrong figure left unflagged and under 2% of figures amber; production reads filings only while the headline set meets it",
+   "amber_share_below": 0.03,
+   "description": "No wrong figure left unflagged and under 3% of figures amber (R0's 2%, raised by the user on 2026-10-16: PLAN.md R1b); production reads filings only while the headline set meets it",
    "planted_missed_share": 0.0,
    "truth_missed": 0
   },
@@ -103,7 +103,7 @@
      }
     },
     "description": "Filings read after the prompt and checks were frozen: none tuned on them: 8 filings, 1,777 figures, prompts r1",
-    "meets_bar": false,
+    "meets_bar": true,
     "overall": {
      "baseline": {
       "amber_share": 0.0017,

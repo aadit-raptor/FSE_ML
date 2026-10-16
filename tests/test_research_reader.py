@@ -470,9 +470,12 @@ def test_the_card_measures_the_development_set_and_waits_for_held_out_filings():
     development = sets["development"]
     assert development["overall"]["cases"] == 30 and development["meets_bar"] is True
     assert development["overall"]["model"]["planted_missed_share"] == 0.0
-    assert development["overall"]["model"]["amber_share"] < 0.02
+    assert development["overall"]["model"]["amber_share"] < evaluation.BAR["amber_share_below"]
     assert development["overall"]["baseline"]["planted_missed_share"] > 0.5
-    assert sets["held_out"]["meets_bar"] is None or isinstance(sets["held_out"]["meets_bar"], bool)
+    held_out = sets["held_out"]["overall"]
+    assert held_out["cases"] >= 5 and sets["held_out"]["meets_bar"] is True     # PLAN.md R1's "done when"
+    assert held_out["model"]["planted_missed_share"] == 0.0 and held_out["model"]["truth_missed"] == 0.0
+    assert held_out["model"]["amber_share"] < evaluation.BAR["amber_share_below"] == 0.03
 
 
 def test_the_truth_file_holds_bse_figures_for_ten_filings_and_none_is_missed():
