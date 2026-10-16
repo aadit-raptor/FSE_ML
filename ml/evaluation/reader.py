@@ -1,8 +1,10 @@
 """The results reader's evaluation (research/reader/; PLAN.md R1, 5.1).
 
 Question: when the reader shows a figure without amber, is it right; and is
-it amber seldom enough to be worth using? R0's bar, kept as the card's:
-**no wrong figure left unflagged, and under 2% of figures amber**.
+it amber seldom enough to be worth using? The card's bar: **no wrong
+figure left unflagged, and under 3% of figures amber** (R0's was 2%; the
+user raised it to 3% on 2026-10-16, once the held-out filings measured
+2.53% with no wrong figure missed).
 
 - **Cases**: one per filing, from its recorded answers
   (``tests/fixtures/research/reader/<set>/``; ``research/reader/record.py``),
@@ -51,7 +53,7 @@ HEADLINE_SET = "held_out"
 REGION = "india"
 PLANTS = 12                       # planted digits a filing, each checked on its own
 TODAY = datetime.date(2026, 10, 14)
-BAR = {"amber_share_below": 0.02, "truth_missed": 0, "planted_missed_share": 0.0}
+BAR = {"amber_share_below": 0.03, "truth_missed": 0, "planted_missed_share": 0.0}
 TO_MILLIONS = {"lakhs": 0.1, "crores": 10.0, "millions": 1.0, "thousands": 0.001, "units": 1e-6}
 PER_SHARE = re.compile(r"EPS|Basic|Diluted")
 
@@ -271,8 +273,8 @@ def evaluate(base: Optional[str] = None) -> dict:   # noqa: ARG001 -- nothing tr
                   "the prompt and the checks were frozen, and the development set is labelled in-sample"},
         "baseline": {"id": "one_read", "description": "Read A alone, with the sums the table states checked "
                      "(what one AI read and arithmetic give)"},
-        "bar": {"description": "R0's bar (PLAN.md R0): no wrong figure left unflagged and under 2% of figures "
-                "amber; production reads filings only while the headline set meets it",
+        "bar": {"description": "No wrong figure left unflagged and under 3% of figures amber (R0's 2%, raised by "
+                "the user on 2026-10-16: PLAN.md R1b); production reads filings only while the headline set meets it",
                 **BAR},
         "data": {"plants_per_filing": PLANTS, "min_cases": MIN_CASES},
         "sets": sets,

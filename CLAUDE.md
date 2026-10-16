@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-15 (PLAN.md R1b measured: eight held-out filings, below the 2% amber bar, so production keeps the reader closed; before it PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,9 +1423,9 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0, R1a, R2 and R3 are done; **R1b** (held-out filings) is measured and
-below the bar (2.53% amber on eight filings; the next step is the user's
-choice, PLAN.md R1b) and comes before the first showing to analysts
+R0, R1a, R1b, R2 and R3 are done (R1b: the held-out filings meet the
+3% amber bar the user set, so production reads); billing with a cap still
+comes before the first showing to analysts
 (PLAN.md R2's "Before the first showing"); the next task is **R4** (sector
 research and the first sector model; part a and the first slice of part b
 are done), then R5 to R9 in order, unless what the analysts say after R2
@@ -1557,12 +1557,12 @@ amber, no planted wrong digit missed (one read alone misses 75%), no BSE
 figure missed. **R1b measured (2026-10-15)**: the headline set
 `held_out` holds eight filings nobody tuned the prompt on (seven June 2026
 quarters and Indian Hotels' March 2026 year end, seven with BSE's table):
-1,777 figures, **2.53% amber against the 2% bar**, 0 of 96 planted digits
-and 0 of 159 BSE figures missed; Larsen & Toubro's scan holds 33 of the 45
-amber figures. So `meets_bar` is false, **production answers `503
-reader_not_measured`** (`gate.py`) and staging reads with a "Below its
-accuracy bar" notice. What closes R1 is the user's choice (PLAN.md R1b).
-More filings: save them in `research-samples/held-out/` (BSE's tables in
+1,777 figures, **2.53% amber**, 0 of 96 planted digits and 0 of 159 BSE
+figures missed; Larsen & Toubro's scan holds 33 of the 45 amber figures.
+That was below R0's 2%; **the user set the amber bar at 3% (2026-10-16)**,
+so `meets_bar` is true and **production reads** (`gate.py`); a card that
+falls short again closes it (`503 reader_not_measured`) and staging shows
+"Below its accuracy bar". More filings: save them in `research-samples/held-out/` (BSE's tables in
 `research-samples/xbrl/`, named the same) and run `python -m
 research.reader.record read --set held_out --env-file research-samples/.env
 research-samples/held-out/*.pdf` (add `--high` for the high-resolution
@@ -1657,7 +1657,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b (held-out filings) is measured, below the bar. R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). **Next is R4** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). **Next is R4** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1851,10 +1851,7 @@ golden snapshot is untouched and parity tests explain every departure.
   tests prove it against a stand-in for Office.js; what a real Excel shows
   if anything fails decides the fix.
 
-- PLAN.md R1b: **decide what closes R1** now the eight held-out filings
-  measure 2.53% amber against the 2% bar (no wrong figure missed): more
-  held-out filings (September 2026 quarter, saved as before), the
-  high-resolution trial finished, or another bar. Also one workflow edit Claude's token can't push: add `research` to
+- PLAN.md R1: one workflow edit Claude's token can't push: add `research` to
   `API_PATHS` in `.github/workflows/staging.yml` (beside `uploads`), so a
   change to `research/` alone makes the staging check wait for the API.
 
