@@ -2875,7 +2875,7 @@ class SheetOut(BaseModel):
     widths: Dict[str, float] = Field(description="Column letter to width in characters")
     freeze: Optional[str] = Field(description="The first cell that scrolls, 'C6', or null")
     names: Dict[str, str] = Field(default_factory=dict, description="Defined name to an absolute address on "
-                                  "this sheet ('$C$12'): every assumption cell and constant of a sector model")
+                                  "this sheet ('$C$12'): every assumption cell and constant of a sector model")  # currency-ok
     heights: Dict[str, float] = Field(default_factory=dict, description="Row number to height in points")
 
 

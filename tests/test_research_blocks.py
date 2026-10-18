@@ -153,3 +153,12 @@ def test_a_share_of_another_line_and_an_analysts_own_formula():
     assert close(v["s2_rev"]["roy"], 56 + 5)
     assert close(v["s2_rev"]["y2"], 1331 * 0.1 + 5)
     assert close(v["rev"]["y2"], 1331 + 1331 * 0.1 + 5)                       # revenue adds up every line
+
+
+def test_a_model_that_counts_no_places_has_costs_as_a_share_of_revenue_alone():
+    v = run("growth", {"s1_rev": {"ly": 1000, "ytd": 540}, "s1_g": {"cy": 0.1, "y1": 0.08},
+                       "mat_sh": {"roy": 0.4, "y1": 0.42}, "mat": {"ly": 390, "ytd": 220}, "rev": {"ly": 1000, "ytd": 540}})
+    assert close(v["mat"]["roy"], 0.4 * 560)
+    assert close(v["mat"]["cy"], 220 + 0.4 * 560)
+    assert close(v["mat"]["y1"], 0.42 * 1188)
+    assert close(v["mat_m1"]["ly"], 0.39)

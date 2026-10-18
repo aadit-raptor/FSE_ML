@@ -103,6 +103,11 @@ async function postForFile(path: string, body: unknown, filename: string, dealId
   save(await res.blob(), filename);
 }
 
+/** A file the API makes on a POST (a sector model's workbook, PLAN.md R4), saved as `filename`. */
+export function downloadPost(path: string, body: unknown, filename: string) {
+  return postForFile(path, body, filename, null);
+}
+
 /** Which model produced a result (PLAN.md 3.1): every result carries one. */
 export type ModelStamp = Schemas["ModelStamp"];
 

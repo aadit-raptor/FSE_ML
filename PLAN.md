@@ -211,7 +211,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R1b | Results reader measured on held-out filings (recorded over days) | R1a | ☑ |
 | R2 | Coverage, review screen and the checked workbook | R1a | ☑ |
 | R3 | Excel add-in: sign in and import results | R2 | ☑ |
-| R4 | Sector research, the model definition and the first sector model | R2 | ☐ |
+| R4 | Sector research, the model definition and the first sector model | R2 | ☑ |
 | R5 | Save back and roll forward | R3, R4 | ☐ |
 | R6 | Valuation | R4 | ☐ |
 | R7 | Second and third sector models | R4 | ☐ |
@@ -1218,6 +1218,66 @@ or nearly finished to try. So no task waits for an analyst:
     screens, the add-in's "Load model", any endpoint, and with the endpoint
     the three places a new package goes (Dockerfile, `render.yaml`,
     `staging.yml`); a mark and a working for each typed driver on screen.
+- **Part b is done (2026-10-18): the blocks, the composer, quarterly
+  actuals, the screen and "Load model".** Still open, and the user's: the
+  practising analyst's read (the model says "not yet vetted" on screen, in
+  the workbook and in the add-in) and LibreOffice in CI (one workflow edit,
+  CLAUDE.md "Waiting on the user"; until then LibreOffice has been run on
+  the Mac, where it agrees with the server on every cell).
+  - **The eight revenue blocks** (`research/blocks.py`): capacity (places x
+    share filled x price per day, run backwards for the past by the choice
+    `line<n>_past`), units x revenue per unit, volume x price,
+    subscribers x revenue per subscriber less churn, headcount x
+    utilisation x billing rate, order book x share executed, growth on the
+    year before, and a share of another line (or the analyst's own
+    formula). Each is solved by hand in `tests/test_research_blocks.py`.
+  - **The shared lower part** is `research/lower.py`, used by every model;
+    costs per place per day follow the line chosen (`places`), or costs are
+    a share of revenue alone.
+  - **A model is a structure** (`research/compose.py`): its lines in order,
+    each a key and a block. Adding, dropping or swapping a line builds the
+    model again, and `normalise` mends what a change breaks (a share whose
+    line is gone follows line 1, costs per place move to the next counting
+    line or stop), so no change leaves a formula naming a missing row
+    (tested for every block in every place, and for a model of all eight).
+    `fit` leaves out figures the changed model has no place for. A changed
+    model says so in its notes: its new lines were not solved by hand.
+  - **Model 1 is built from the blocks** and is the same as before, row for
+    row, rule for rule and label for label
+    (`tests/fixtures/research/model1_definition.json`, written before the
+    change). The two fixtures' `words` renamed three keys (`places`, `occ`,
+    `price` to `s1_places`, `s1_occ`, `s1_price`); no figure moved.
+  - **The General model** (model 7, `research/models/general.py`: growth per
+    line, pharma and auto components) is built and tested, but **not
+    offered** until two companies are solved by hand for it (rule 4): with
+    R7's models 2 and 3.
+  - **Quarterly actuals** (`research/actuals.py`, `GET
+    /api/research/companies/{id}/fill`): the model's last year and year to
+    date from the analyst's accepted quarters: the filing's own year-to-date
+    column, else the year's quarters added up (blank, and said, if one is
+    missing); how far into the year comes from the fiscal year end the
+    reader stored; money brought to the newest filing's unit; balance sheet
+    lines where a filing carried one. Drivers and lines the filing does not
+    split stay for the analyst to type.
+  - **Partial working out**: assumptions not typed yet, and plain divisions
+    by a blank figure, leave their cells (and what reads them) blank instead
+    of refusing the model, so the past shows before the forecast is typed.
+  - **Endpoints** (`api/routers/research_models.py`, none stored, none a
+    model run): `GET /api/research/models` (catalogue, blocks, the two
+    examples solved by hand, `research/models/examples.json` from `python -m
+    tests.research_examples`), `POST .../models/change`, `.../run`,
+    `.../workbook`, `.../cells`.
+  - **The workbook is written from one cell description**
+    (`research/workbook.py` `sheets`), as R3 did for results: the download
+    and the add-in's "Load model" hold the same cells, fills and names
+    (`tests/addin_cells_check.py` now compares fills and defined names too).
+    Assumptions not typed are blank yellow named cells: typed in Excel, the
+    projection moves with no call to the server (tested).
+  - **Screens**: Equity research -> Coverage -> **Model** (start from a
+    sector, filling the past from a covered company, or open an example;
+    lines of revenue; choices and switched-off lines; the grid of every row
+    with typed cells as inputs; download), and **Load model** in the Excel
+    add-in's pane. Not saved yet: R5 keeps a model per company.
 - **Needs from the user (part b):** the analyst who reads the model. If
   none is found yet, the model ships marked "not yet vetted" and this line
   stays open.

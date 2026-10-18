@@ -82,7 +82,9 @@ def differences(wb, written: Mapping) -> tuple[list[str], int]:
             continue
         ws = wb[sheet["name"]]
         expected = _expected(ws)
-        got = sheet.get("cells") or {}
+        # a cell given only a format or a font holds nothing to Excel, as an empty cell of the download holds nothing
+        got = {a: c for a, c in (sheet.get("cells") or {}).items()
+               if any(c.get(k) is not None for k in ("formula", "value", "note", "fill"))}
         for address in sorted(set(expected) | set(got)):
             want, have = expected.get(address), got.get(address)
             if want is None or have is None:

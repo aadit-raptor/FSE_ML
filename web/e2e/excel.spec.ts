@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 
-import { asUser, onePagePdf, signInAs } from "./helpers";
+import { acceptedQuarter, asUser, onePagePdf, signInAs } from "./helpers";
 
 /**
  * The Excel add-in (PLAN.md R3): its task pane is /excel, signed in through Office's dialog
@@ -26,37 +26,6 @@ const FAKE_OFFICE = readFileSync(join(__dirname, "fake-office.js"), "utf-8");
 async function fakeOffice(context: BrowserContext) {
   await context.route("https://appsforoffice.microsoft.com/**", (route) =>
     route.fulfill({ contentType: "application/javascript", body: FAKE_OFFICE }));
-}
-
-/** An accepted quarter for `company`, made through the API as the Coverage screens make one. */
-async function acceptedQuarter(page: Page, company: string): Promise<string> {
-  const headers = await asUser(page);
-  const made = await (await page.request.post("/api/research/companies", { headers, data: { name: company } })).json();
-  const bytes = onePagePdf();
-  const begun = await (await page.request.post("/api/files", { headers, data: { name: "dmart-h1.pdf", size: bytes.length } })).json();
-  const sent = await page.request.put(`/api/files/${begun.id}/content`, {
-    headers: { ...headers, "Content-Type": "application/octet-stream" }, data: bytes,
-  });
-  expect(sent.ok()).toBe(true);
-  await expect.poll(async () => (await (await page.request.get(`/api/files/${begun.id}`, { headers })).json()).status,
-    { timeout: 30_000 }).toBe("clean");
-  const started = await (await page.request.post("/api/research/reads", {
-    headers, data: { file_id: begun.id, public: true, quarter_end: "2026-09-30" },
-  })).json();
-  let done: { status: string; result: { tables: { rows: { cells: { amber: string | null; value: number | null }[] }[] }[] } } | null = null;
-  await expect.poll(async () => {
-    done = await (await page.request.get(`/api/research/reads/${started.id}`, { headers })).json();
-    return done!.status;
-  }, { timeout: 30_000 }).toBe("succeeded");
-  const amber: number[][] = [];
-  done!.result.tables.forEach((t, ti) => t.rows.forEach((r, ri) => r.cells.forEach((c, ci) => {
-    if (c.amber && c.value !== null) amber.push([ti, ri, ci]);
-  })));
-  const accepted = await page.request.post(`/api/research/companies/${made.id}/periods`, {
-    headers, data: { read_id: started.id, accepted: amber, corrected: [] },
-  });
-  expect(accepted.status()).toBe(201);
-  return (await accepted.json()).periods[0].id;
 }
 
 /** Click Sign in in the pane and wait for Office's dialog to hand it a pass. */
@@ -173,6 +142,30 @@ test.describe("Excel add-in", () => {
     const written = await page.evaluate(() => (window as unknown as { __excelWritten: () => unknown }).__excelWritten());
     const download = await page.request.get(`/api/research/periods/${summary.id}/workbook`, { headers: auth });
     expect(compare(info, await download.body(), written).differences).toEqual([]);
+  });
+
+  test("Load model writes a sector model as the download's own cells, its assumptions named", async ({ page, context }, info) => {
+    await fakeOffice(context);
+    await signInAs(page, `excel-model-${run}`, "en-GB");
+    await page.goto("/excel");
+    await signInThroughDialog(page);
+    await page.getByRole("combobox", { name: "Model for" }).selectOption("example:lemon-tree-hotels");
+    await page.getByRole("button", { name: "Load model" }).click();
+    await expect(page.locator("[data-model-written]")).toBeVisible();
+    const written = await page.evaluate(() => (window as unknown as { __excelWritten: () => { sheets: { name: string; active: boolean; names: Record<string, string> }[] } }).__excelWritten());
+    expect(written.sheets.map((s) => s.name)).toEqual(["Model", "Notes"]);
+    expect(written.sheets[0].active).toBe(true);
+    expect(Object.keys(written.sheets[0].names).length).toBe(100);
+
+    const headers = await asUser(page);
+    const catalogue = await (await page.request.get("/api/research/models", { headers })).json();
+    const example = catalogue.examples.find((e: { id: string }) => e.id === "lemon-tree-hotels");
+    const download = await page.request.post("/api/research/models/workbook", {
+      headers, data: { structure: example.structure, company: example.company },
+    });
+    const checked = compare(info, await download.body(), written);
+    expect(checked.differences).toEqual([]);
+    expect(checked.cells).toBeGreaterThan(700);
   });
 
   test("outside Office the pane says where to open it", async ({ page }) => {
