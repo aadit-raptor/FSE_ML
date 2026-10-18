@@ -166,10 +166,15 @@ def fill(stored: list, scope: str = "consolidated") -> Fill:
     periods = kept
     out.unit_rupees = SCALE[out.unit]
 
-    latest = max(end for *_, end, _ in _columns(periods[:1], "results"))
+    latest = max((end for *_, end, _ in _columns(periods[:1], "results")), default=None)
+    if latest is None:
+        out.notes.append(NOTHING_ACCEPTED)
+        return out
+    # a 52/53-week quarter ending in a month's first week counts as the month before, as fiscal years do
+    anchor = latest - timedelta(days=latest.day) if latest.day <= 7 else latest
     year_end_month = newest["figures"].get("year_end_month")
     if isinstance(year_end_month, int) and 1 <= year_end_month <= 12:
-        months = (latest.month - year_end_month) % 12 or 12      # how far into its fiscal year the filing reaches
+        months = (anchor.month - year_end_month) % 12 or 12     # how far into its fiscal year the filing reaches
     else:                                                        # not known: the longest column ending there says
         months = max((m for *_, end, m in _columns(periods[:1], "results")
                       if end == latest and isinstance(m, int) and 0 < m <= 12), default=None)
@@ -180,8 +185,8 @@ def fill(stored: list, scope: str = "consolidated") -> Fill:
         out.notes.append(YEAR_COMPLETE)
         start = latest + timedelta(days=1)
     else:
-        start = _months_back(latest, months) + timedelta(days=1)
-        part = _year_to_date(periods, latest, months, start)
+        start = _months_back(anchor, months) + timedelta(days=1)
+        part = _year_to_date(periods, latest, anchor, months)
         if part is None:
             out.notes.append(QUARTER_MISSING)
         else:
@@ -209,14 +214,14 @@ def fill(stored: list, scope: str = "consolidated") -> Fill:
     return out
 
 
-def _year_to_date(periods: list, latest: date, months: int, start: date) -> dict | None:
+def _year_to_date(periods: list, latest: date, anchor: date, months: int) -> dict | None:
     """The flows from the start of the year to `latest`: a column printing exactly that, else its quarters added."""
     for p, t, c, end, m in _columns(periods, "results"):
         if end == latest and m == months:
             return {k: (v * p["scale"], page) for k, (v, page) in _flows(t, c).items()}
     total: dict = {}
     for q in range(months // 3):
-        quarter_end = _months_back(latest, months - 3 * (q + 1))
+        quarter_end = _months_back(anchor, months - 3 * (q + 1))
         found = next(((p, t, c) for p, t, c, end, m in _columns(periods, "results") if m == 3 and _near(end, quarter_end)),
                      None)
         if found is None:

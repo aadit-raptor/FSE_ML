@@ -68,16 +68,17 @@ def _order(model: Model, plan: dict) -> list:
     return order
 
 
-def evaluate(model: Model, company: Company, partial: bool = False) -> Result:
+def evaluate(model: Model, company: Company, partial: bool = False, plan: dict | None = None) -> Result:
     """Every row of the model in every period, for one company's typed figures.
 
     With `partial`, assumptions not typed yet are allowed: every cell that
     reads one, however indirectly, is None (not nil), and the answer lists
     them, so the past works out before the forecast is filled in. A plain
     division by a blank figure is None too (listed as `undefined`), where
-    without `partial` it is an error.
+    without `partial` it is an error. `plan` is `cells`' answer when the
+    caller has it already.
     """
-    plan = cells(model, company, allow_missing=partial)
+    plan = plan if plan is not None else cells(model, company, allow_missing=partial)
     absent = missing(plan)
     unknown = set(absent)
     undefined: list = []

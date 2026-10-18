@@ -171,15 +171,12 @@ export async function setModel(owner: string | null, structure: Structure, compa
   else publish({ refused: refused ?? null, busy: false });
 }
 
-export function clearModel() {
-  asked++;
-  publish({ ...EMPTY });
-}
 
 let pending: ReturnType<typeof setTimeout> | null = null;
 
 /** A typed change to the company: shown at once, worked out once the typing rests (300 ms). */
 export function editCompany(owner: string | null, company: ModelCompany) {
+  asked++;                // a run already on its way was for the company before this edit: its answer is stale
   publish({ company });
   if (pending) clearTimeout(pending);
   pending = setTimeout(() => {

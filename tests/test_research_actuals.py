@@ -125,3 +125,14 @@ def test_the_fill_goes_into_model_1_and_its_past_works_out():
     assert v["rev"]["ly"] == 3800 and v["ebitda"]["ly"] == pytest.approx(3800 - 95 - 200 - 50)
     assert v["pbt"]["ly"] == pytest.approx(3800 - 95 - 200 - 50 - 40 + 10 - 30)
     assert v["chk_pbt"]["ly"] == pytest.approx(v["pbt"]["ly"] - 300)    # the filing's own total to check against
+
+
+def test_periods_without_a_results_table_fill_nothing_rather_than_fail():
+    alone = period([BALANCE])
+    assert actuals.fill([alone]).notes == [actuals.NOTHING_ACCEPTED]
+
+
+def test_a_52_week_quarter_ending_in_a_months_first_week_counts_as_the_month_before():
+    filing = period([results([("Q1", "2026-07-02", 3), ("FY", "2026-03-28", 12)], [900, 3800])])
+    fill = actuals.fill([filing])
+    assert fill.values["rev"] == {"ytd": 900, "ly": 3800}

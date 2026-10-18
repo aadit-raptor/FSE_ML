@@ -97,7 +97,6 @@ def post_change(body: ModelChangeIn, user: AuthUser = Depends(require_user)):
             changed = compose.swap_block(structure, body.key, body.block)
         else:                           # costs per place follow this line, or (no key) none
             changed = compose.Structure(structure.model, structure.segments, body.key, structure.forecast_years)
-        compose.validate(changed, CATALOGUE.specs)
         CATALOGUE.build(changed)
     return {"structure": changed.to_dict()}
 
@@ -140,8 +139,8 @@ def post_run(body: ModelRunIn, user: AuthUser = Depends(require_user)):
         spec = CATALOGUE.spec(structure.model)
         model = CATALOGUE.build(structure)
         company, dropped = compose.fit(model, _company(body.company))
-        result = evaluate(model, company, partial=True)
         plan = cells(model, company, allow_missing=True)
+        result = evaluate(model, company, partial=True, plan=plan)
         words = words_for(model, company)
         return {
             "model": spec.id, "name": spec.name, "vetted": model.vetted, "offered": spec.offered,

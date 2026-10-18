@@ -101,6 +101,7 @@ function TypedInput({
   const [draft, setDraft] = useState(toText(value));
   const commit = () => {
     const text = draft.trim();
+    if (text === toText(value)) return;          // left as shown: a share read back through /100 would drift
     if (text === "") {
       if (value !== null) onCommit(null);
       return;

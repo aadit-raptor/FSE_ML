@@ -2525,7 +2525,10 @@ Skills load when a session starts: install first, then open a new session.
   database address, the store's directory). Use `with monkeypatch.context()
   as m:` for a patch that should end mid-test.
 - A new endpoint that runs a model or calls an outside source: add its path
-  to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
+  to `RUN_PATHS` in `api/limits.py` (one exception, decided in R4: the sector
+  model endpoints, `/api/research/models/*`, are a hundred-odd rows of plain
+  arithmetic run on every keystroke, so they count only against the 240
+  requests a minute, like the live sliders); if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.
   A new simulation-size input needs a cap (`SimulationPaths` in
   `api/schemas.py`).
