@@ -1,8 +1,10 @@
 """The results reader's evaluation (research/reader/; PLAN.md R1, 5.1).
 
 Question: when the reader shows a figure without amber, is it right; and is
-it amber seldom enough to be worth using? R0's bar, kept as the card's:
-**no wrong figure left unflagged, and under 2% of figures amber**.
+it amber seldom enough to be worth using? The card's bar: **no wrong
+figure left unflagged, and under 3% of figures amber** (R0's was 2%; the
+user raised it to 3% on 2026-10-16, once the held-out filings measured
+2.53% with no wrong figure missed).
 
 - **Cases**: one per filing, from its recorded answers
   (``tests/fixtures/research/reader/<set>/``; ``research/reader/record.py``),
@@ -14,7 +16,9 @@ it amber seldom enough to be worth using? R0's bar, kept as the card's:
   checks were frozen (PLAN.md R1: "the card meets R0's bar on documents the
   prompts were not tuned on"); **it is the headline**, and until it holds
   ``MIN_CASES`` filings the card says "not enough data" and production
-  keeps the reader closed (``research/reader/gate.py``).
+  keeps the reader closed (``research/reader/gate.py``). ``held_out_high``
+  is the same filings' high-resolution trial (``READER_HIGH_RESOLUTION``),
+  where recorded: the reader's setting follows whichever set does better.
 - **Wrong figures** come three ways: a **planted** wrong digit (one figure
   of read A at a time, a digit changed, ``PLANTS`` a filing, seeded by the
   filing's name: what a misread looks like), the **truth file** (BSE's own
@@ -41,17 +45,21 @@ from research.reader.pages import Info
 from research.reader.providers import RECORDINGS
 
 MODEL_ID = "reader"
-SETS = ("development", "held_out")
+# Each set: the folder its recordings are in and which pair of reads it scores
+SOURCES = {"development": ("development", "reads"), "held_out": ("held_out", "reads"),
+           "held_out_high": ("held_out", "high")}
+SETS = tuple(SOURCES)
 HEADLINE_SET = "held_out"
 REGION = "india"
 PLANTS = 12                       # planted digits a filing, each checked on its own
 TODAY = datetime.date(2026, 10, 14)
-BAR = {"amber_share_below": 0.02, "truth_missed": 0, "planted_missed_share": 0.0}
+BAR = {"amber_share_below": 0.03, "truth_missed": 0, "planted_missed_share": 0.0}
 TO_MILLIONS = {"lakhs": 0.1, "crores": 10.0, "millions": 1.0, "thousands": 0.001, "units": 1e-6}
 PER_SHARE = re.compile(r"EPS|Basic|Diluted")
 
 
-def recordings(set_name: str, folder: Path = RECORDINGS) -> list[dict]:
+def recordings(set_name: str, folder: Optional[Path] = None) -> list[dict]:
+    folder = RECORDINGS if folder is None else folder
     return [json.loads(p.read_text(encoding="utf-8")) for p in sorted((folder / set_name).glob("*.json"))]
 
 
@@ -171,9 +179,9 @@ def truth(record: Mapping, result: Mapping) -> tuple[int, int, int]:
     return count, confirmed, missed
 
 
-def score(record: Mapping) -> tuple[dict, dict]:
+def score(record: Mapping, key: str = "reads") -> tuple[dict, dict]:
     """The reader's counts on one filing, and the one-read baseline's."""
-    a, b = reads(record)
+    a, b = reads(record, key)
     model_result, base_result = run(record, a, b), run(record, a, None, read_twice=False)
     out = []
     for result, read_twice in ((model_result, True), (base_result, False)):
@@ -235,9 +243,13 @@ def meets_bar(group: Mapping) -> Optional[bool]:
 def evaluate(base: Optional[str] = None) -> dict:   # noqa: ARG001 -- nothing trained to read
     sets = {}
     for name in SETS:
+        folder, key = SOURCES[name]
         rows = []
-        for record in recordings(name):
-            model, baseline = score(record)
+        for record in recordings(folder):
+            # the trial is scored only beside a filing's ordinary reads, so the sets compare like with like
+            if any("B" not in record.get(k, {}) for k in {"reads", key}):
+                continue
+            model, baseline = score(record, key)
             doc = record["document"]
             rows.append((Case(id=doc["name"], region=REGION, year=int(doc["quarter_end"][:4]) if doc.get(
                 "quarter_end") else None, features={"prompt": record["prompt"]}, truth=None), model, baseline))
@@ -246,6 +258,7 @@ def evaluate(base: Optional[str] = None) -> dict:   # noqa: ARG001 -- nothing tr
         described = {
             "development": "R0's 30 filings, on which the prompt and the checks were worked out (in-sample)",
             "held_out": "Filings read after the prompt and checks were frozen: none tuned on them",
+            "held_out_high": "The held-out filings read again at high resolution (READER_HIGH_RESOLUTION=1)",
         }[name]
         sets[name] = {"description": f"{described}: {len(rows)} filings, "
                                      f"{sum(r[1]['figures'] for r in rows):,} figures, "
@@ -260,8 +273,8 @@ def evaluate(base: Optional[str] = None) -> dict:   # noqa: ARG001 -- nothing tr
                   "the prompt and the checks were frozen, and the development set is labelled in-sample"},
         "baseline": {"id": "one_read", "description": "Read A alone, with the sums the table states checked "
                      "(what one AI read and arithmetic give)"},
-        "bar": {"description": "R0's bar (PLAN.md R0): no wrong figure left unflagged and under 2% of figures "
-                "amber; production reads filings only while the headline set meets it",
+        "bar": {"description": "No wrong figure left unflagged and under 3% of figures amber (R0's 2%, raised by "
+                "the user on 2026-10-16: PLAN.md R1b); production reads filings only while the headline set meets it",
                 **BAR},
         "data": {"plants_per_filing": PLANTS, "min_cases": MIN_CASES},
         "sets": sets,
@@ -286,12 +299,18 @@ CARD = {
     },
     "limitations": [
         "Two reads making the same mistake in a figure outside every sum is not seen: the planted digits test "
-        "one read's misreads, and the truth file covers the quarter's headline figures of ten filings only.",
+        "one read's misreads, and the truth file covers the quarter's headline figures of 17 filings only "
+        "(ten development, seven held-out).",
         "The development set's prompt and checks were worked out on those very filings; only the held-out set "
         "says how the reader does on new ones.",
         "Six development filings were read by R0's first pass, the results table only; one (Yatharth Hospital) "
         "has a lite model's read A.",
         "Indian listed companies' results only; banks, insurers and lenders are left out.",
+        "The held-out filings are eight June 2026 quarter or March 2026 year-end filings saved by hand, not a "
+        "random sample; one hard scan (Larsen & Toubro's, its segment table read differently by the two models) "
+        "holds most of their amber figures.",
+        "The high-resolution trial (held_out_high) has fewer filings than the card needs: the free allowance "
+        "ran out on the first day.",
         "A wrong year in every column heading is a period problem, not an amber figure: the analyst names the "
         "quarter, or the reads must agree on it.",
     ],

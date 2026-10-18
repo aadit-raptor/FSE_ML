@@ -470,9 +470,12 @@ def test_the_card_measures_the_development_set_and_waits_for_held_out_filings():
     development = sets["development"]
     assert development["overall"]["cases"] == 30 and development["meets_bar"] is True
     assert development["overall"]["model"]["planted_missed_share"] == 0.0
-    assert development["overall"]["model"]["amber_share"] < 0.02
+    assert development["overall"]["model"]["amber_share"] < evaluation.BAR["amber_share_below"]
     assert development["overall"]["baseline"]["planted_missed_share"] > 0.5
-    assert sets["held_out"]["meets_bar"] is None or isinstance(sets["held_out"]["meets_bar"], bool)
+    held_out = sets["held_out"]["overall"]
+    assert held_out["cases"] >= 5 and sets["held_out"]["meets_bar"] is True     # PLAN.md R1's "done when"
+    assert held_out["model"]["planted_missed_share"] == 0.0 and held_out["model"]["truth_missed"] == 0.0
+    assert held_out["model"]["amber_share"] < evaluation.BAR["amber_share_below"] == 0.03
 
 
 def test_the_truth_file_holds_bse_figures_for_ten_filings_and_none_is_missed():
@@ -689,6 +692,64 @@ def test_live_recording_saves_each_answer_and_carries_on_after_a_spent_day(tmp_p
     assert "left as it is" in record.read_one(Scripted([]), pdf, target, "held_out", None)
 
 
+def test_bses_table_is_joined_as_truth_only_for_the_same_quarter_and_with_no_call(tmp_path):
+    read = copy.deepcopy(BY_NAME["eternal_FY27-Q1"]["reads"]["A"]["read"])
+    for table in read["tables"]:
+        table["pages"] = [1]
+    pdf = tmp_path / "acme_FY27-Q2.pdf"
+    pdf.write_bytes(samples.pdf())
+    truth_dir = tmp_path / "xbrl"
+    truth_dir.mkdir()
+    (truth_dir / "acme_FY27-Q1.xls").write_text(BSE_TABLE)          # another quarter's table
+    target = tmp_path / "held_out" / "acme_FY27-Q2.json"
+    said = record.read_one(Scripted([read, read]), pdf, target, "held_out", None, truth_dir=truth_dir)
+    assert "truth" not in said and "truth" not in json.loads(target.read_text())
+    (truth_dir / "acme_FY27-Q2.xls").write_text(BSE_TABLE)
+    nothing_asked = Scripted([])
+    assert record.read_one(nothing_asked, pdf, target, "held_out", None, truth_dir=truth_dir).endswith(
+        "truth joined")
+    assert nothing_asked.asked == []
+    saved = json.loads(target.read_text())
+    assert [f["label"] for f in saved["truth"]["figures"]] == ["Net Sales", "Other Income", "Expenditure"]
+
+
+def test_the_high_resolution_trial_is_recorded_beside_the_ordinary_reads_and_scored_as_its_own_set(
+        tmp_path, monkeypatch):
+    found = copy.deepcopy(BY_NAME["eternal_FY27-Q1"])
+    read = found["reads"]["A"]["read"]
+    for table in read["tables"]:
+        table["pages"] = [1]
+    pdf = tmp_path / "acme_FY27-Q2.pdf"
+    pdf.write_bytes(samples.pdf())
+    target = tmp_path / "held_out" / "acme_FY27-Q2.json"
+    target.parent.mkdir()
+    found["document"].update(name="acme_FY27-Q2", sha256=providers.sha256(pdf.read_bytes()), set="held_out",
+                             pages=1, dpi=[300])
+    found["prompt"] = prompt.PROMPT_VERSION
+    found.pop("high", None)
+    ordinary = found["reads"]
+    found["reads"] = {"A": ordinary["A"]}
+    target.write_text(json.dumps(found))
+    waits = Scripted([])
+    assert "ordinary reads first" in record.read_one(waits, pdf, target, "held_out", None, key="high")
+    assert waits.asked == []
+    found["reads"] = ordinary
+    target.write_text(json.dumps(found))
+    high = Scripted([read, found["reads"]["B"]["read"]])
+    assert record.read_one(high, pdf, target, "held_out", None, key="high").startswith("A by")
+    saved = json.loads(target.read_text())
+    assert saved["reads"] == found["reads"] and set(saved["high"]) == {"A", "B"}
+    assert high.asked[1][2] == ("model-A",)                     # the trial's B is not its own A's model
+
+    monkeypatch.setattr(evaluation, "RECORDINGS", tmp_path)
+    card = evaluation.evaluate()["sets"]
+    assert card["held_out"]["overall"]["cases"] == 1 and card["held_out_high"]["overall"]["cases"] == 1
+    assert card["development"]["overall"]["cases"] == 0
+    saved.pop("high")
+    target.write_text(json.dumps(saved))
+    assert evaluation.evaluate()["sets"]["held_out_high"]["overall"]["cases"] == 0
+
+
 def test_the_recorder_reads_its_key_from_a_file_or_the_environment(tmp_path, monkeypatch):
     env = tmp_path / ".env"
     env.write_text("OTHER=1\nGEMINI_API_KEY= abc \n")
@@ -705,7 +766,7 @@ def test_the_recorder_command_stops_for_the_day_when_every_model_is_spent(tmp_pa
     pdf.write_bytes(samples.pdf())
     monkeypatch.setenv("GEMINI_API_KEY", "k")
     monkeypatch.setattr(record, "RECORDINGS", tmp_path / "recordings")
-    monkeypatch.setattr(record, "Gemini", lambda key: Scripted([providers.ProviderError(providers.SPENT)]))
+    monkeypatch.setattr(record, "Gemini", lambda key, **_: Scripted([providers.ProviderError(providers.SPENT)]))
     assert record.main(["read", "--set", "held_out", str(pdf)]) == 0
     assert "run the same command again tomorrow" in capsys.readouterr().out
 

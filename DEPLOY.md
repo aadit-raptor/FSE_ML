@@ -853,9 +853,12 @@ six hours; "high demand" moves on to the next model.
 
 **Production reads only once the card measures it**: `ml/cards/reader.json`'s
 headline set (`held_out`, filings nobody tuned the prompt or checks on) must
-meet R0's bar (no wrong figure unflagged, under 2% amber). Until then
+meet its bar (no wrong figure unflagged, under 3% amber: R0's 2%, raised by
+the user on 2026-10-16). It does since then (eight held-out filings, 2.53%
+amber), so production reads. Without it
 production answers `503 reader_not_measured` and the screen says it is not
-open yet; staging and local copies read, with a "not yet measured" notice.
+open yet; staging and local copies read, with a "not yet measured" notice, or
+"below its accuracy bar" once measured short of it.
 
 **Checking it**: `/api/health/reader` (public, cached five minutes) says
 which provider and whether its key works, by listing Google's models, which
@@ -866,7 +869,9 @@ drill) runs the same check and fails on a refused key or a missing model.
 On a machine that has them, `python -m research.reader.record read --set
 held_out FILE.pdf ...` with `GEMINI_API_KEY` set (or `--env-file`) reads each
 filing, saving every answer as it arrives, so a run stopped by the day's
-allowance carries on the next day. Then `python -m ml.evaluation evaluate`.
+allowance carries on the next day; BSE's table of the same name in `--truth`
+(default `research-samples/xbrl`) is joined as truth, and `--high` records the
+high-resolution trial. Then `python -m ml.evaluation evaluate --model reader`.
 
 ## Coverage
 
