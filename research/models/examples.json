@@ -1,0 +1,837 @@
+[
+ {
+  "company": {
+   "basis": "Consolidated, Ind AS",
+   "choices": {
+    "line1_end_to_date": "average",
+    "line1_past": "revenue"
+   },
+   "constants": {
+    "unit_rupees": 1000000
+   },
+   "marks": {
+    "cash": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "debt": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "fa": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "gw": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "inv": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "lease": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "nci": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "oca": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "ol": {
+     "ly": {
+      "level": "red",
+      "why": "The source rounds its larger figures, so its lines miss its own total by under 2. The model carries this in other liabilities so that it starts balanced."
+     }
+    },
+    "onca": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "pay": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "rec": {
+     "ly": {
+      "level": "red",
+      "why": "Not from a filing: stockanalysis.com's table (it names S&P Global as its source), which prints four figures at most. Replace from the FY26 results filing of 25 May 2026."
+     }
+    },
+    "s1_occ": {
+     "ly": {
+      "level": "red",
+      "why": "FY26 is the nine months' figure standing in for the year. Q1 FY27 comes from one press report only. Both need the company's presentation."
+     },
+     "ytd": {
+      "level": "red",
+      "why": "FY26 is the nine months' figure standing in for the year. Q1 FY27 comes from one press report only. Both need the company's presentation."
+     }
+    },
+    "s1_price": {
+     "ly": {
+      "level": "amber",
+      "why": "FY26 is worked out (the year's revenue over the occupied bed days above); the year's own figure was not found. Q1 FY27: Not from the company's own page: press reports of the company's release (the company's website refuses programs, and the exchanges' copies may not be fetched by one). Check against the investor presentation."
+     },
+     "ytd": {
+      "level": "amber",
+      "why": "FY26 is worked out (the year's revenue over the occupied bed days above); the year's own figure was not found. Q1 FY27: Not from the company's own page: press reports of the company's release (the company's website refuses programs, and the exchanges' copies may not be fetched by one). Check against the investor presentation."
+     }
+    }
+   },
+   "name": "Yatharth Hospital & Trauma Care Services Limited",
+   "off": [
+    "s2",
+    "s3"
+   ],
+   "period_labels": {
+    "cy": "FY27",
+    "ly": "FY26 (actual)",
+    "roy": "Rest of FY27 (assumed)",
+    "y1": "FY28",
+    "y2": "FY29",
+    "ytd": "Q1 FY27 (actual)"
+   },
+   "sector": "hospitals",
+   "unit_name": "Rs million",
+   "values": {
+    "assoc": {
+     "ly": 0.0,
+     "roy": 0,
+     "y1": 0,
+     "y2": 0,
+     "ytd": 0.0
+    },
+    "capex": {
+     "cy": 2500,
+     "y1": 1500,
+     "y2": 1500
+    },
+    "cash": {
+     "ly": 2982
+    },
+    "days": {
+     "ly": 365,
+     "roy": 274,
+     "y1": 366,
+     "y2": 365,
+     "ytd": 91
+    },
+    "debt": {
+     "ly": 2533.62
+    },
+    "debt_rate": {
+     "roy": 0.09,
+     "y1": 0.09,
+     "y2": 0.09
+    },
+    "dep": {
+     "ly": 878.06,
+     "ytd": 282.38
+    },
+    "dep_rate": {
+     "roy": 0.105,
+     "y1": 0.1,
+     "y2": 0.1
+    },
+    "dividends": {
+     "cy": 48.18,
+     "y1": 96.35,
+     "y2": 96.35
+    },
+    "drawn": {
+     "cy": 1000,
+     "y1": 0,
+     "y2": 0
+    },
+    "emp": {
+     "ly": 2345.98,
+     "ytd": 779.09
+    },
+    "emp_pd": {
+     "roy": 4700,
+     "y1": 4950,
+     "y2": 5200
+    },
+    "emp_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "eq": {
+     "ly": 17805.620000000003
+    },
+    "fa": {
+     "ly": 10454
+    },
+    "gw": {
+     "ly": 3064
+    },
+    "int_debt": {
+     "ly": 65.35,
+     "ytd": 65.92
+    },
+    "int_lease": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "inv": {
+     "ly": 206.66
+    },
+    "inv_days": {
+     "cy": 32,
+     "y1": 32,
+     "y2": 32
+    },
+    "lease": {
+     "ly": 107.61
+    },
+    "lease_rate": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "lease_red": {
+     "cy": 17.27,
+     "y1": 17,
+     "y2": 17
+    },
+    "mat": {
+     "ly": 2345.55,
+     "ytd": 693.48
+    },
+    "mat_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mat_sh": {
+     "roy": 0.177,
+     "y1": 0.177,
+     "y2": 0.177
+    },
+    "mi": {
+     "ly": -50.75,
+     "ytd": -16.38
+    },
+    "mi_share": {
+     "roy": -0.03,
+     "y1": 0,
+     "y2": 0
+    },
+    "min_cash": {
+     "cy": 500,
+     "y1": 500,
+     "y2": 500
+    },
+    "nci": {
+     "ly": 266.02
+    },
+    "oca": {
+     "ly": 183.94
+    },
+    "oi_yield": {
+     "roy": 0.06,
+     "y1": 0.06,
+     "y2": 0.06
+    },
+    "ol": {
+     "ly": 1003.9199999999984
+    },
+    "onca": {
+     "ly": 2178.19
+    },
+    "oth": {
+     "ly": 4459.05,
+     "ytd": 1537.15
+    },
+    "oth_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "oth_sh": {
+     "roy": 0.385,
+     "y1": 0.38,
+     "y2": 0.375
+    },
+    "othinc": {
+     "ly": 257.87,
+     "ytd": 43.53
+    },
+    "pay": {
+     "ly": 1100
+    },
+    "pay_days": {
+     "cy": 59,
+     "y1": 59,
+     "y2": 59
+    },
+    "pwr": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "pwr_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "pwr_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "r_own": {
+     "ly": 1753.8,
+     "ytd": 470.61
+    },
+    "r_pat": {
+     "ly": 1703.05,
+     "ytd": 454.23
+    },
+    "r_pbt": {
+     "ly": 2235.6,
+     "ytd": 612.05
+    },
+    "rec": {
+     "ly": 3748
+    },
+    "rec_days": {
+     "cy": 113,
+     "y1": 110,
+     "y2": 105
+    },
+    "repaid": {
+     "cy": 264.62,
+     "y1": 400,
+     "y2": 400
+    },
+    "rev": {
+     "ly": 12071.72,
+     "ytd": 3926.54
+    },
+    "s1_add": {
+     "roy": 150,
+     "y1": 250,
+     "y2": 150
+    },
+    "s1_cls": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "s1_occ": {
+     "ly": 0.66,
+     "roy": 0.68,
+     "y1": 0.68,
+     "y2": 0.7,
+     "ytd": 0.68
+    },
+    "s1_pg": {
+     "y1": 0.05,
+     "y2": 0.05
+    },
+    "s1_price": {
+     "ly": 33122.11490039807,
+     "roy": 35500,
+     "ytd": 34758
+    },
+    "s1_rev": {
+     "ly": 12071.72,
+     "ytd": 3926.54
+    },
+    "shares": {
+     "cy": 96.354,
+     "ly": 96.354,
+     "y1": 96.354,
+     "y2": 96.354,
+     "ytd": 96.354
+    },
+    "tax": {
+     "ly": 532.55,
+     "ytd": 157.82
+    },
+    "tax_rate": {
+     "roy": 0.258,
+     "y1": 0.255,
+     "y2": 0.255
+    }
+   },
+   "words": {
+    "emp": "Employees",
+    "mat": "Drugs, consumables and implants",
+    "oth": "Other expenses",
+    "place": "bed",
+    "pwr": "Power and fuel (not shown separately)",
+    "s1": "Beds",
+    "s1_occ": "Occupancy",
+    "s1_places": "Beds in use (the beds occupancy is counted on)",
+    "s1_price": "Revenue per occupied bed per day (ARPOB), Rs",
+    "s1_rev": "Hospital revenue",
+    "s2": "Second line: not used for this company",
+    "s2_rev": "Second line revenue (not used)",
+    "s2_rpu": "Revenue per unit per year, Rs (not used)",
+    "s2_units": "Units (not used)",
+    "s3": "Third line: not used for this company",
+    "s3_rev": "Other revenue (not used)",
+    "s3_share": "Other revenue, as a share of hospital revenue (not used)"
+   }
+  },
+  "id": "yatharth-hospital",
+  "structure": {
+   "forecast_years": 2,
+   "model": "occupancy",
+   "places": "s1",
+   "segments": [
+    {
+     "block": "capacity",
+     "formula": null,
+     "key": "s1",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "units",
+     "formula": null,
+     "key": "s2",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "share",
+     "formula": null,
+     "key": "s3",
+     "of": "s1",
+     "rest_of_revenue": true
+    }
+   ]
+  }
+ },
+ {
+  "company": {
+   "basis": "Consolidated, Ind AS",
+   "choices": {
+    "line1_end_to_date": "typed",
+    "line1_past": "drivers"
+   },
+   "constants": {
+    "unit_rupees": 100000
+   },
+   "marks": {
+    "s1_occ": {
+     "ytd": {
+      "level": "amber",
+      "why": "H1 FY26 is worked out: Q1 72.5% over 91 days and Q2 69.8% over 92 days. The half year's own figure is not printed."
+     }
+    },
+    "s1_price": {
+     "ytd": {
+      "level": "amber",
+      "why": "H1 FY26 is worked out from Q1 (Rs 6,236) and Q2 (Rs 6,247), weighted by nights sold."
+     }
+    },
+    "s2_avg": {
+     "ly": {
+      "level": "amber",
+      "why": "A plain average of the start and the end; the company does not print an average."
+     },
+     "ytd": {
+      "level": "amber",
+      "why": "A plain average of the start and the end; the company does not print an average."
+     }
+    }
+   },
+   "name": "Lemon Tree Hotels Limited",
+   "off": [],
+   "period_labels": {
+    "cy": "FY26",
+    "ly": "FY25 (actual)",
+    "roy": "H2 FY26 (assumed)",
+    "y1": "FY27",
+    "y2": "FY28",
+    "ytd": "H1 FY26 (actual)"
+   },
+   "sector": "hotels",
+   "unit_name": "Rs lakh",
+   "values": {
+    "assoc": {
+     "ly": -26.7,
+     "roy": 0,
+     "y1": 0,
+     "y2": 0,
+     "ytd": -39.4
+    },
+    "capex": {
+     "cy": 12000,
+     "y1": 20000,
+     "y2": 25000
+    },
+    "cash": {
+     "ly": 11924.74,
+     "ytd": 13048.9
+    },
+    "days": {
+     "ly": 365,
+     "roy": 182,
+     "y1": 365,
+     "y2": 366,
+     "ytd": 183
+    },
+    "debt": {
+     "ly": 169864.27000000002,
+     "ytd": 161018.9
+    },
+    "debt_rate": {
+     "roy": 0.079,
+     "y1": 0.078,
+     "y2": 0.078
+    },
+    "dep": {
+     "ly": 13929.65,
+     "ytd": 6852.9
+    },
+    "dep_rate": {
+     "roy": 0.039,
+     "y1": 0.039,
+     "y2": 0.039
+    },
+    "dividends": {
+     "cy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "drawn": {
+     "cy": 1000,
+     "y1": 0,
+     "y2": 0
+    },
+    "emp": {
+     "ly": 21848.19,
+     "ytd": 11650.53
+    },
+    "emp_pd": {
+     "roy": 1120,
+     "y1": 1180,
+     "y2": 1250
+    },
+    "emp_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "eq": {
+     "ly": 116351.78,
+     "ytd": 123657.43
+    },
+    "fa": {
+     "ly": 351970.8300000001,
+     "ytd": 349090.93
+    },
+    "gw": {
+     "ly": 9508.43,
+     "ytd": 9508.43
+    },
+    "int_debt": {
+     "ly": 16853.29,
+     "ytd": 7163.5
+    },
+    "int_lease": {
+     "ly": 4270.0,
+     "ytd": 2140.0
+    },
+    "inv": {
+     "ly": 1383.71,
+     "ytd": 1494.74
+    },
+    "inv_days": {
+     "cy": 66,
+     "y1": 66,
+     "y2": 66
+    },
+    "lease": {
+     "ly": 44900.71,
+     "ytd": 44920.479999999996
+    },
+    "lease_rate": {
+     "roy": 0.095,
+     "y1": 0.095,
+     "y2": 0.095
+    },
+    "lease_red": {
+     "cy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mat": {
+     "ly": 7621.09,
+     "ytd": 3983.1
+    },
+    "mat_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mat_sh": {
+     "roy": 0.064,
+     "y1": 0.064,
+     "y2": 0.064
+    },
+    "mi": {
+     "ly": 4656.43,
+     "ytd": 1710.08
+    },
+    "mi_share": {
+     "roy": 0.19,
+     "y1": 0.19,
+     "y2": 0.19
+    },
+    "min_cash": {
+     "cy": 5000,
+     "y1": 5000,
+     "y2": 5000
+    },
+    "nci": {
+     "ly": 62608.36,
+     "ytd": 64322.52
+    },
+    "oca": {
+     "ly": 8173.259999999999,
+     "ytd": 11548.16
+    },
+    "oi_yield": {
+     "roy": 0.12,
+     "y1": 0.1,
+     "y2": 0.1
+    },
+    "ol": {
+     "ly": 8292.78,
+     "ytd": 10112.05
+    },
+    "onca": {
+     "ly": 17356.12,
+     "ytd": 18670.410000000003
+    },
+    "oth": {
+     "ly": 26947.06,
+     "ytd": 15003.11
+    },
+    "oth_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "oth_sh": {
+     "roy": 0.22,
+     "y1": 0.22,
+     "y2": 0.215
+    },
+    "othinc": {
+     "ly": 1289.98,
+     "ytd": 942.0
+    },
+    "pay": {
+     "ly": 6160.76,
+     "ytd": 7994.69
+    },
+    "pay_days": {
+     "cy": 55,
+     "y1": 55,
+     "y2": 55
+    },
+    "pwr": {
+     "ly": 8779.13,
+     "ytd": 4444.83
+    },
+    "pwr_pd": {
+     "roy": 400,
+     "y1": 430,
+     "y2": 450
+    },
+    "pwr_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "r_own": {
+     "ly": 19658.11,
+     "ytd": 7293.38
+    },
+    "r_pat": {
+     "ly": 24314.54,
+     "ytd": 9003.46
+    },
+    "r_pbt": {
+     "ly": 29622.64,
+     "ytd": 11869.34
+    },
+    "rec": {
+     "ly": 7861.57,
+     "ytd": 8664.5
+    },
+    "rec_days": {
+     "cy": 24,
+     "y1": 24,
+     "y2": 24
+    },
+    "repaid": {
+     "cy": 18000,
+     "y1": 20000,
+     "y2": 20000
+    },
+    "rev": {
+     "ly": 128607.77,
+     "ytd": 62204.71
+    },
+    "s1_add": {
+     "roy": 0,
+     "y1": 91,
+     "y2": 165
+    },
+    "s1_avg": {
+     "ly": 5759,
+     "ytd": 5759
+    },
+    "s1_cls": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "s1_end": {
+     "ly": 5759,
+     "ytd": 5759
+    },
+    "s1_occ": {
+     "ly": 0.717,
+     "roy": 0.759,
+     "y1": 0.73,
+     "y2": 0.73,
+     "ytd": 0.7114262295081966
+    },
+    "s1_pg": {
+     "y1": 0.06,
+     "y2": 0.06
+    },
+    "s1_price": {
+     "ly": 6381,
+     "roy": 7300,
+     "ytd": 6241.425689947847
+    },
+    "s2_add": {
+     "roy": 400,
+     "y1": 1500,
+     "y2": 1500
+    },
+    "s2_avg": {
+     "ly": 4307.0,
+     "ytd": 4853.5
+    },
+    "s2_end": {
+     "ly": 4510,
+     "ytd": 5197
+    },
+    "s2_rev": {
+     "ly": 6030.0,
+     "ytd": 3040.0
+    },
+    "s2_rpu": {
+     "roy": 150000,
+     "y1": 140000,
+     "y2": 145000
+    },
+    "s3_share": {
+     "roy": 0.27,
+     "y1": 0.27,
+     "y2": 0.27
+    },
+    "shares": {
+     "cy": 7918.475,
+     "ly": 7918.475,
+     "y1": 7918.475,
+     "y2": 7918.475,
+     "ytd": 7918.475
+    },
+    "tax": {
+     "ly": 5308.1,
+     "ytd": 2865.88
+    },
+    "tax_rate": {
+     "roy": 0.241,
+     "y1": 0.245,
+     "y2": 0.25
+    }
+   },
+   "words": {
+    "emp": "Employees",
+    "mat": "Food and beverages consumed",
+    "oth": "Other expenses (renovation included)",
+    "place": "room",
+    "pwr": "Power and fuel",
+    "s1": "Rooms (owned and leased hotels)",
+    "s1_occ": "Occupancy",
+    "s1_places": "Owned and leased rooms",
+    "s1_price": "Average room rate, Rs per night",
+    "s1_rev": "Room revenue",
+    "s2": "Fees on managed and franchised rooms",
+    "s2_rev": "Fees from third-party owned hotels",
+    "s2_rpu": "Fee per managed room per year, Rs",
+    "s2_units": "Managed and franchised rooms",
+    "s3": "Food, drink and other hotel revenue",
+    "s3_rev": "Food, drink and other revenue",
+    "s3_share": "Food, drink and other, as a share of room revenue"
+   }
+  },
+  "id": "lemon-tree-hotels",
+  "structure": {
+   "forecast_years": 2,
+   "model": "occupancy",
+   "places": "s1",
+   "segments": [
+    {
+     "block": "capacity",
+     "formula": null,
+     "key": "s1",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "units",
+     "formula": null,
+     "key": "s2",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "share",
+     "formula": null,
+     "key": "s3",
+     "of": "s1",
+     "rest_of_revenue": true
+    }
+   ]
+  }
+ }
+]

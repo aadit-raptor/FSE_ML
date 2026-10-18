@@ -16,9 +16,9 @@
  "words": {
   "s1": "Rooms (owned and leased hotels)",
   "place": "room",
-  "places": "Owned and leased rooms",
-  "occ": "Occupancy",
-  "price": "Average room rate, Rs per night",
+  "s1_places": "Owned and leased rooms",
+  "s1_occ": "Occupancy",
+  "s1_price": "Average room rate, Rs per night",
   "s1_rev": "Room revenue",
   "s2": "Fees on managed and franchised rooms",
   "s2_units": "Managed and franchised rooms",

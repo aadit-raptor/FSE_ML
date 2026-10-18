@@ -1492,6 +1492,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/companies/{company_id}/fill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Fill
+         * @description The model's past from the periods the analyst accepted for this company (research/actuals.py).
+         */
+        get: operations["get_fill_api_research_companies__company_id__fill_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/companies/{company_id}/periods": {
         parameters: {
             query?: never;
@@ -1507,6 +1527,100 @@ export interface paths {
          *     as read or corrected. A period accepted again replaces the one kept.
          */
         post: operations["post_periods_api_research_companies__company_id__periods_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Models */
+        get: operations["get_models_api_research_models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/models/cells": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Cells
+         * @description What the Excel add-in writes for "Load model": the download's own cells, from the same `sheets`.
+         */
+        post: operations["post_cells_api_research_models_cells_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/models/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Change
+         * @description The structure after one change, mended so it always builds (research/compose.py `normalise`).
+         */
+        post: operations["post_change_api_research_models_change_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/models/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Run
+         * @description The model worked out. Assumptions not typed yet are allowed: what reads them is null, and listed.
+         */
+        post: operations["post_run_api_research_models_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/models/workbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Workbook */
+        post: operations["post_workbook_api_research_models_workbook_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5277,6 +5391,87 @@ export interface components {
              */
             rate_std: number;
         };
+        /** ModelBlockOut */
+        ModelBlockOut: {
+            /** Counts Places */
+            counts_places: boolean;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share";
+        };
+        /** ModelCatalogueOut */
+        ModelCatalogueOut: {
+            /** Blocks */
+            blocks: components["schemas"]["ModelBlockOut"][];
+            /** Examples */
+            examples: components["schemas"]["ModelExampleOut"][];
+            /** Models */
+            models: components["schemas"]["ModelSpecOut"][];
+        };
+        /** ModelCellOut */
+        ModelCellOut: {
+            /**
+             * Choice
+             * @description The company's choice that settled this cell's rule
+             */
+            choice?: string | null;
+            /**
+             * Formula
+             * @description The formula as the model writes it, 'rev - mat'
+             */
+            formula?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "figure" | "assumption" | "formula";
+            mark?: components["schemas"]["ResearchMark"] | null;
+            /**
+             * Value
+             * @description The figure, the assumption or what the formula gives; null for a blank figure, an assumption not typed, or a formula that reads one
+             */
+            value?: number | null;
+        };
+        /**
+         * ModelCellsOut
+         * @description A sector model as cells, for the Excel add-in's "Load model": the download's own cells.
+         */
+        ModelCellsOut: {
+            /** Company Name */
+            company_name: string;
+            /** Sheets */
+            sheets: components["schemas"]["SheetOut"][];
+            /** Vetted */
+            vetted: boolean;
+        };
+        /**
+         * ModelChangeIn
+         * @description A last change to a model's lines: add one, drop one, or swap the block one is worked out by.
+         */
+        ModelChangeIn: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "add" | "drop" | "swap" | "places";
+            /**
+             * Block
+             * @description add and swap: the block
+             */
+            block?: ("capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share") | null;
+            /**
+             * Key
+             * @description drop, swap and places: the line
+             */
+            key?: string | null;
+            structure: components["schemas"]["ResearchStructure"];
+        };
+        /** ModelChangeOut */
+        ModelChangeOut: {
+            structure: components["schemas"]["ResearchStructure"];
+        };
         /**
          * ModelCheck
          * @description Whether a saved deal's results have changed since it was saved.
@@ -5295,6 +5490,189 @@ export interface components {
              * @enum {string}
              */
             status: "changed" | "unchanged" | "unknown";
+        };
+        /** ModelConstantOut */
+        ModelConstantOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value?: number | null;
+        };
+        /** ModelExampleOut */
+        ModelExampleOut: {
+            company: components["schemas"]["ResearchCompanyIn"];
+            /** Id */
+            id: string;
+            structure: components["schemas"]["ResearchStructure"];
+        };
+        /**
+         * ModelFillOut
+         * @description A model's past (last year and the year to date) from the company's accepted quarters.
+         */
+        ModelFillOut: {
+            /** Currency */
+            currency?: string | null;
+            /** Labels */
+            labels: {
+                [key: string]: string;
+            };
+            /** Notes */
+            notes: ("nothing_accepted" | "year_complete" | "quarter_missing" | "no_last_year" | "no_balance_sheet" | "leases_in_finance_costs" | "other_currency")[];
+            /**
+             * Sources
+             * @description Row to period to the filing's page
+             */
+            sources: {
+                [key: string]: {
+                    [key: string]: number | null;
+                };
+            };
+            /** Unit */
+            unit?: string | null;
+            /** Unit Rupees */
+            unit_rupees?: number | null;
+            /**
+             * Values
+             * @description Row to period ('ly', 'ytd') to the figure
+             */
+            values: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+        };
+        /** ModelMissing */
+        ModelMissing: {
+            /** Period */
+            period: string;
+            /** Row */
+            row: string;
+        };
+        /** ModelPeriodOut */
+        ModelPeriodOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "past_year" | "to_date" | "rest" | "current" | "forecast";
+            /** Label */
+            label: string;
+            /** Name */
+            name: string;
+        };
+        /** ModelRowOut */
+        ModelRowOut: {
+            /**
+             * Bold
+             * @default false
+             */
+            bold: boolean;
+            /**
+             * Cells
+             * @description Period name to the cell; empty cells are left out
+             */
+            cells?: {
+                [key: string]: components["schemas"]["ModelCellOut"];
+            };
+            /**
+             * Key
+             * @description Null for a heading
+             */
+            key: string | null;
+            /**
+             * Label
+             * @description The row's words, the sector's and the company's filled in (model output, shown as sent)
+             */
+            label: string;
+            /** Segment */
+            segment?: string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Unit Text */
+            unit_text?: string | null;
+        };
+        /** ModelRunIn */
+        ModelRunIn: {
+            company: components["schemas"]["ResearchCompanyIn"];
+            structure: components["schemas"]["ResearchStructure"];
+        };
+        /**
+         * ModelRunOut
+         * @description A sector model worked out for one company: every row, every cell, and what is still to type.
+         */
+        ModelRunOut: {
+            /** Choices */
+            choices: {
+                [key: string]: string[];
+            };
+            /**
+             * Choices Made
+             * @description Every choice as the run took it: a new line's takes its first option
+             */
+            choices_made: {
+                [key: string]: string;
+            };
+            /** Constants */
+            constants: components["schemas"]["ModelConstantOut"][];
+            /**
+             * Dropped
+             * @description Figures typed for cells this model works out or no longer has (after a change to its lines): left out of the run
+             */
+            dropped: components["schemas"]["ModelMissing"][];
+            /**
+             * Missing
+             * @description Assumptions not typed yet; the cells that read them are null
+             */
+            missing: components["schemas"]["ModelMissing"][];
+            /** Model */
+            model: string;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes: string[];
+            /** Offered */
+            offered: boolean;
+            /** Periods */
+            periods: components["schemas"]["ModelPeriodOut"][];
+            /** Rows */
+            rows: components["schemas"]["ModelRowOut"][];
+            /**
+             * Segments
+             * @description Lines a company may switch off (every line but the first)
+             */
+            segments: string[];
+            structure: components["schemas"]["ResearchStructure"];
+            /**
+             * Undefined
+             * @description Cells that divide by a figure left blank; they and the cells that read them are null
+             */
+            undefined: components["schemas"]["ModelMissing"][];
+            /** Vetted */
+            vetted: boolean;
+        };
+        /** ModelSpecOut */
+        ModelSpecOut: {
+            /** About */
+            about: string;
+            default: components["schemas"]["ResearchStructure"];
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Offered
+             * @description Listed for analysts: solved by hand for two companies (phase R, rule 4)
+             */
+            offered: boolean;
+            /** Sectors */
+            sectors: string[];
+            /**
+             * Vetted
+             * @description Read by a practising analyst
+             */
+            vetted: boolean;
         };
         /**
          * ModelStamp
@@ -7032,6 +7410,121 @@ export interface components {
             /** Task */
             task: string;
         };
+        /**
+         * ResearchCompanyIn
+         * @description What is typed for one company: words, unit, choices and numbers. No formulas.
+         */
+        ResearchCompanyIn: {
+            /**
+             * Basis
+             * @default
+             */
+            basis: string;
+            /** Choices */
+            choices?: {
+                [key: string]: string;
+            };
+            /** Constants */
+            constants?: {
+                [key: string]: number;
+            };
+            /** Marks */
+            marks?: {
+                [key: string]: {
+                    [key: string]: components["schemas"]["ResearchMark"];
+                };
+            };
+            /** Name */
+            name: string;
+            /** Off */
+            off?: string[];
+            /** Period Labels */
+            period_labels?: {
+                [key: string]: string;
+            };
+            /**
+             * Sector
+             * @default
+             */
+            sector: string;
+            /**
+             * Unit Name
+             * @description What the statements' money is in, 'Rs lakh'
+             */
+            unit_name: string;
+            /** Values */
+            values?: {
+                [key: string]: {
+                    [key: string]: number | null;
+                };
+            };
+            /** Words */
+            words?: {
+                [key: string]: string;
+            };
+        };
+        /** ResearchMark */
+        ResearchMark: {
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "amber" | "red";
+            /**
+             * Why
+             * @default
+             */
+            why: string;
+        };
+        /**
+         * ResearchSegment
+         * @description One line of revenue and the block it is worked out by.
+         */
+        ResearchSegment: {
+            /**
+             * Block
+             * @enum {string}
+             */
+            block: "capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share";
+            /**
+             * Formula
+             * @description A share line: the analyst's own forecast formula, naming only days, unit_rupees and the rows of lines before it
+             */
+            formula?: string | null;
+            /** Key */
+            key: string;
+            /**
+             * Of
+             * @description A share line: the line before it that it is a share of
+             */
+            of?: string | null;
+            /**
+             * Rest Of Revenue
+             * @description A share line: for the past, total revenue less the other lines
+             * @default false
+             */
+            rest_of_revenue: boolean;
+        };
+        /**
+         * ResearchStructure
+         * @description A sector model as the analyst has shaped it: the model it started from and its lines of revenue.
+         */
+        ResearchStructure: {
+            /**
+             * Forecast Years
+             * @default 2
+             */
+            forecast_years: number;
+            /** Model */
+            model: string;
+            /**
+             * Places
+             * @description The line whose average count costs per place per day follow; null for costs as a share of revenue only
+             */
+            places?: string | null;
+            /** Segments */
+            segments: components["schemas"]["ResearchSegment"][];
+        };
         /** ReturnsResult */
         ReturnsResult: {
             /** Cash Flow Stream */
@@ -7675,13 +8168,25 @@ export interface components {
          * @description One cell of the checked workbook (PLAN.md R3): exactly one of text, number or formula.
          */
         SheetCell: {
+            /** Align */
+            align?: ("left" | "right" | "center") | null;
             /**
              * Bold
              * @default false
              */
             bold: boolean;
+            /**
+             * Color
+             * @description The font's colour as six hex digits (a sector model's sheet)
+             */
+            color?: string | null;
             /** Column */
             column: number;
+            /**
+             * Fill
+             * @description The cell's fill as six hex digits: yellow for an assumption
+             */
+            fill?: string | null;
             /**
              * Formula
              * @description An Excel formula of cells on the same sheet, '=C6+C7'
@@ -7702,10 +8207,20 @@ export interface components {
              */
             row: number;
             /**
+             * Size
+             * @description The font's size in points, when not the default
+             */
+            size?: number | null;
+            /**
              * Text
              * @description Words, written as words even when they start with =
              */
             text?: string | null;
+            /**
+             * Wrap
+             * @default false
+             */
+            wrap: boolean;
         };
         /** SheetOut */
         SheetOut: {
@@ -7716,6 +8231,20 @@ export interface components {
              * @description The first cell that scrolls, 'C6', or null
              */
             freeze: string | null;
+            /**
+             * Heights
+             * @description Row number to height in points
+             */
+            heights?: {
+                [key: string]: number;
+            };
+            /**
+             * Names
+             * @description Defined name to an absolute address on this sheet ('$C$12'): every assumption cell and constant of a sector model
+             */
+            names?: {
+                [key: string]: string;
+            };
             /**
              * Title
              * @description The sheet's name in the download; the add-in adds a number when the workbook already has one by that name
@@ -12359,6 +12888,48 @@ export interface operations {
             };
         };
     };
+    get_fill_api_research_companies__company_id__fill_get: {
+        parameters: {
+            query?: {
+                scope?: string;
+            };
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelFillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     post_periods_api_research_companies__company_id__periods_post: {
         parameters: {
             query?: never;
@@ -12381,6 +12952,203 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PeriodAcceptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_models_api_research_models_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCatalogueOut"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_cells_api_research_models_cells_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelRunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCellsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_change_api_research_models_change_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelChangeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelChangeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_run_api_research_models_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelRunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_workbook_api_research_models_workbook_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelRunIn"];
+            };
+        };
+        responses: {
+            /** @description The model as live Excel formulas: assumptions yellow and named, typed figures blue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
                 };
             };
             /** @description Validation Error */

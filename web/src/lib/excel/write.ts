@@ -8,6 +8,9 @@
  * page in a note. Words go in as words even when they start with "=" (a
  * cell formatted as text, and Excel's leading apostrophe), so a company's
  * name can never become a formula. Each sheet is new: a name the workbook already has gets a number.
+ *
+ * A sector model's sheets (PLAN.md R4, "Load model") come the same way from `/api/research/models/cells`, with
+ * fills, font colours and defined names besides: the yellow assumption cells are named on their sheet.
  */
 import { api, type Schemas } from "@/lib/api/client";
 
@@ -20,6 +23,8 @@ export async function periodCells(periodId: string): Promise<PeriodCells | null>
   const { data } = await api.GET("/api/research/periods/{period_id}/cells", { params: { path: { period_id: periodId } } });
   return data ?? null;
 }
+
+const ALIGN = { left: "Left", right: "Right", center: "Center" } as const;
 
 /** Excel's own limit on a sheet's name, the characters it refuses in one, and the name it keeps for itself. */
 const MAX_NAME = 31;
@@ -91,8 +96,9 @@ export type Written = { sheets: string[]; notes: "notes" | "comments" | "none" }
  */
 export async function writeCells(
   run: (batch: (context: ExcelContext) => Promise<Written>) => Promise<Written>,
-  cells: PeriodCells,
+  cells: { sheets: SheetOut[] },
   support: { notes: boolean; comments: boolean },
+  open = 1,
 ): Promise<Written> {
   return run(async (context) => {
     const sheets = context.workbook.worksheets;
@@ -117,10 +123,23 @@ export async function writeCells(
         } else {
           if (cell.number_format) range.numberFormat = [[cell.number_format]];
           if (cell.formula) range.formulas = [[cell.formula]];
-          else range.values = [[cell.number]];
+          else if (cell.number !== null && cell.number !== undefined) range.values = [[cell.number]];
         }
         if (cell.bold) range.format.font.bold = true;
+        if (cell.color) range.format.font.color = `#${cell.color}`;
+        if (cell.size) range.format.font.size = cell.size;
+        if (cell.fill) range.format.fill.color = `#${cell.fill}`;
+        if (cell.align) range.format.horizontalAlignment = ALIGN[cell.align];
+        if (cell.wrap) range.format.wrapText = true;
         if (cell.note && writeNote) writeNote(ws, name, address, cell.note);
+      }
+      // a sector model's assumption cells and constants, named on their own sheet (ExcelApi 1.4) so a second
+      // model loaded into the same workbook keeps its own
+      for (const [defined, address] of Object.entries(sheet.names ?? {})) {
+        ws.names?.add(defined, ws.getRange(address.replace(/\$/g, "")));
+      }
+      for (const [row, height] of Object.entries(sheet.heights ?? {})) {
+        ws.getRange(`${row}:${row}`).format.rowHeight = height;
       }
       for (const [letter, width] of Object.entries(sheet.widths)) {
         ws.getRange(`${letter}:${letter}`).format.columnWidth = widthInPoints(width);
@@ -129,8 +148,8 @@ export async function writeCells(
       if (frozen) ws.freezePanes.freezeAt(frozen);
       await context.sync();
     }
-    // the first statement, not the About sheet
-    (added[1] ?? added[0])?.activate();
+    // the checked results open on their first statement, not the About sheet; a model on its own sheet
+    (added[open] ?? added[0])?.activate();
     await context.sync();
     return { sheets: names, notes: support.notes ? "notes" : support.comments ? "comments" : "none" };
   });

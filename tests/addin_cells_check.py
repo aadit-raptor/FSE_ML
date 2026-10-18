@@ -6,11 +6,14 @@ browser tests record it from the pane, ``web/e2e/excel.spec.ts``)::
 
     {"sheets": [{"name": "Results consolidated",
                  "cells": {"C6": {"formula": "=C7+C8"} | {"value": 12.5 | "words"},
-                           ... each also "format", "bold", "note"},
+                           ... each also "format", "bold", "note", "fill"},
+                 "names": {"s1_occ_y1": "$G$20"},
                  "widths": {"A": 48}, "freeze": "C6"}]}
 
 Every cell of the download must be written with the same value or formula,
-number format, boldness and note, every written cell must be in the
+number format, boldness, note and fill (a blank cell counts when it is
+filled: a sector model's assumption not typed yet), every defined name on the
+sheet must be written at the same address, every written cell must be in the
 download, and the sheets must come in the same order. The one cell allowed
 to differ is when each was generated (About, row 3). Run as::
 
@@ -31,17 +34,26 @@ from openpyxl import load_workbook
 GENERATED = ("About", "B3")
 
 
+def _fill(cell) -> str | None:
+    if cell.fill is not None and cell.fill.patternType == "solid":
+        return str(cell.fill.fgColor.rgb)[-6:]
+    return None
+
+
 def _expected(ws) -> dict:
     out = {}
     for row in ws.iter_rows():
         for cell in row:
-            if cell.value is None:
+            fill = _fill(cell)
+            if cell.value is None and fill is None:
                 continue
             spec: dict[str, Any] = {}
             if cell.data_type == "f":
                 spec["formula"] = cell.value
-            else:
+            elif cell.value is not None:
                 spec["value"] = cell.value
+            if fill:
+                spec["fill"] = fill
             if cell.number_format and cell.number_format != "General":
                 spec["format"] = cell.number_format
             if cell.font is not None and cell.font.b:
@@ -70,7 +82,9 @@ def differences(wb, written: Mapping) -> tuple[list[str], int]:
             continue
         ws = wb[sheet["name"]]
         expected = _expected(ws)
-        got = sheet.get("cells") or {}
+        # a cell given only a format or a font holds nothing to Excel, as an empty cell of the download holds nothing
+        got = {a: c for a, c in (sheet.get("cells") or {}).items()
+               if any(c.get(k) is not None for k in ("formula", "value", "note", "fill"))}
         for address in sorted(set(expected) | set(got)):
             want, have = expected.get(address), got.get(address)
             if want is None or have is None:
@@ -80,7 +94,7 @@ def differences(wb, written: Mapping) -> tuple[list[str], int]:
             if isinstance(have.get("value"), str) and have.get("format") == "@":
                 # words are written into a cell formatted as text, so one that starts with = stays words
                 have = {k: v for k, v in have.items() if k != "format"}
-            for key in ("formula", "value", "format", "bold", "note"):
+            for key in ("formula", "value", "format", "bold", "note", "fill"):
                 if (sheet["name"], address) == GENERATED and key == "value":
                     continue
                 if not _same(want.get(key), have.get(key)):
@@ -90,6 +104,10 @@ def differences(wb, written: Mapping) -> tuple[list[str], int]:
                 problems.append(f"{sheet['name']} column {letter} width {width} != {ws.column_dimensions[letter].width}")
         if (sheet.get("freeze") or None) != ws.freeze_panes:
             problems.append(f"{sheet['name']} freeze {sheet.get('freeze')!r} != {ws.freeze_panes!r}")
+        named = {name: wb.defined_names[name].attr_text.split("!", 1)[1] for name in wb.defined_names
+                 if wb.defined_names[name].attr_text.split("!", 1)[0].strip("'") == sheet["name"]}
+        if named != (sheet.get("names") or {}):
+            problems.append(f"{sheet['name']} names: {len(sheet.get('names') or {})} written, {len(named)} in the download")
     return problems, count
 
 

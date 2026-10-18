@@ -37,13 +37,9 @@ FORMATS = {
     "money": "#,##0.00;(#,##0.00);-", "count": "#,##0;(#,##0);-", "count3": "#,##0.000", "days": "0",
     "share": "0.0%;-0.0%;-", "rupees": "#,##0;(#,##0);-", "rupees2": "0.00", "times": "0.00", "check": "0.00;-0.00;0.00",
 }
-BLUE = Font(color="0B4F9E")
-BOLD = Font(bold=True)
-WHITE_BOLD = Font(bold=True, color="FFFFFF")
-HEAD = PatternFill("solid", fgColor="1F2A30")
-SECTION = PatternFill("solid", fgColor="DCE6EA")
-ASSUMED = PatternFill("solid", fgColor="FFF8D6")
-MARKED = {"amber": PatternFill("solid", fgColor="F6C566"), "red": PatternFill("solid", fgColor="F2A097")}
+BLUE_RGB, GREY_RGB, WHITE_RGB, GREEN, RED = "0B4F9E", "888888", "FFFFFF", "1D6F42", "B03A2E"
+HEAD_RGB, SECTION_RGB, ASSUMED_RGB = "1F2A30", "DCE6EA", "FFF8D6"
+MARKED_RGB = {"amber": "F6C566", "red": "F2A097"}
 _LOOKS_LIKE_A_CELL = re.compile(r"[A-Za-z]{1,3}[0-9]+|[Rr][0-9]*[Cc][0-9]*")
 
 
@@ -74,14 +70,6 @@ def _absolute(address: str) -> str:
     return re.sub(r"([A-Z]+)([0-9]+)", r"$\1$\2", address)
 
 
-def _name(wb: Workbook, name: str, address: str) -> None:
-    if _LOOKS_LIKE_A_CELL.fullmatch(name):
-        raise ModelError("%r cannot be a name in Excel: it reads as a cell" % name)
-    if name in wb.defined_names:
-        raise ModelError("two cells would both be named %r" % name)
-    wb.defined_names[name] = DefinedName(name, attr_text="%s!%s" % (SHEET, _absolute(address)))
-
-
 def _put(ws, row: int, column: int, text: str):
     """Words into a cell, as words: a name or label that starts with = must never become a formula."""
     cell = ws.cell(row, column)
@@ -96,38 +84,52 @@ def _unit_text(unit: str, company: Company, words: dict) -> str:
             "count": "number", "count3": "number", "days": "days", "times": "times"}[unit]
 
 
-def write(model: Model, company: Company) -> Workbook:
-    """The model for one company as a workbook: a Model sheet of live formulas and a Notes sheet."""
-    plan = cells(model, company)
+def sheets(model: Model, company: Company, allow_missing: bool = False) -> list[dict]:
+    """The model for one company as sheets of cells: the one description the
+    download (`write`) and the Excel add-in's "Load model" both write, so the
+    two can never hold different cells. The shape is research/coverage.py
+    `layout`'s, plus a cell's `color`, `fill`, `size`, `align` and `wrap`,
+    and a sheet's `names` (defined name -> address) and `heights`.
+
+    With `allow_missing`, assumptions not typed yet are blank yellow cells:
+    the analyst types them in Excel and the formulas do the rest.
+    """
+    plan = cells(model, company, allow_missing=allow_missing)
     words = words_for(model, company)
     where = layout(model)
-    wb = Workbook()
-    ws = wb.active
-    ws.title = SHEET
-    wb.properties.creator = wb.properties.lastModifiedBy = SOURCE
-    wb.calculation = CalcProperties(fullCalcOnLoad=True)      # no values are stored: work everything out on opening
-
     width = FIRST_PERIOD_COLUMN + len(model.periods) - 1
+    out: list = []
+    names: dict = {}
+
+    def put(row, column, **spec):
+        out.append({"row": row, "column": column, **{k: v for k, v in spec.items() if v is not None and v is not False}})
+
+    def name(key: str, address: str) -> None:
+        if _LOOKS_LIKE_A_CELL.fullmatch(key):
+            raise ModelError("%r cannot be a name in Excel: it reads as a cell" % key)
+        if key in names:
+            raise ModelError("two cells would both be named %r" % key)
+        names[key] = _absolute(address)
+
     title = "%s: %s model%s" % (company.name, model.name, " (%s)" % company.sector if company.sector else "")
-    _put(ws, 1, 1, title).font = Font(bold=True, size=13)
+    put(1, 1, text=title, bold=True, size=13)
     vetted = ("Read by a practising analyst." if model.vetted else
               "NOT YET VETTED: no practising analyst has read this model yet.")
-    _put(ws, 2, 1, vetted + " Yellow cells are assumptions to type; everything in black is a formula. Source: " + SOURCE
-         ).font = Font(bold=True, color="1D6F42" if model.vetted else "B03A2E")
-    _put(ws, 3, 1, "%sMoney in %s." % (company.basis + ". " if company.basis else "", company.unit_name))
-    for name, text in model.constants.items():
-        at = where.constant(name)
-        _put(ws, int(at[1:]), 1, label(text, words))
-        ws[at] = float(company.constants[name])
-        ws[at].font, ws[at].number_format = BLUE, "#,##0.######"
-        _name(wb, name, at)
+    put(2, 1, text=vetted + " Yellow cells are assumptions to type; everything in black is a formula. Source: " + SOURCE,
+        bold=True, color=GREEN if model.vetted else RED)
+    put(3, 1, text="%sMoney in %s." % (company.basis + ". " if company.basis else "", company.unit_name))
+    for key, text in model.constants.items():
+        at = where.constant(key)
+        put(int(at[1:]), 1, text=label(text, words))
+        put(int(at[1:]), 3, number=float(company.constants[key]), color=BLUE_RGB, number_format="#,##0.######")
+        name(key, at)
 
-    ws.cell(where.header_row, 1, "Row")
-    ws.cell(where.header_row, 2, "Unit")
+    head = dict(bold=True, color=WHITE_RGB, fill=HEAD_RGB, wrap=True)
+    put(where.header_row, 1, text="Row", **head)
+    put(where.header_row, 2, text="Unit", **head)
     for i, period in enumerate(model.periods):
-        _put(ws, where.header_row, FIRST_PERIOD_COLUMN + i, str(company.period_labels.get(period.name, period.name)))
-    for cell in ws[where.header_row][:width]:
-        cell.font, cell.fill, cell.alignment = WHITE_BOLD, HEAD, Alignment(horizontal="right" if cell.column > 2 else "left", wrap_text=True)
+        put(where.header_row, FIRST_PERIOD_COLUMN + i, text=str(company.period_labels.get(period.name, period.name)),
+            align="right", **head)
 
     def address(ref: Ref, period: str) -> str:
         if ref.name in where.constants:
@@ -141,67 +143,96 @@ def write(model: Model, company: Company) -> Workbook:
         n += 1
         text = label(row.label, words)
         if isinstance(row, Heading):
-            _put(ws, n, 1, text).font = BOLD
-            for cell in ws[n][:width]:
-                cell.fill = SECTION
+            put(n, 1, text=text, bold=True, fill=SECTION_RGB)
+            for column in range(2, width + 1):
+                put(n, column, fill=SECTION_RGB)
             continue
-        _put(ws, n, 1, text).font = BOLD if row.bold else Font()
-        _put(ws, n, 2, _unit_text(row.unit, company, words)).font = Font(color="888888")
-        for period in model.periods:
-            cell = ws[where.cell(row.key, period.name)]
-            cell.number_format = FORMATS[row.unit]
-            if row.bold:
-                cell.font = BOLD
+        put(n, 1, text=text, bold=row.bold)
+        put(n, 2, text=_unit_text(row.unit, company, words), color=GREY_RGB)
+        for i, period in enumerate(model.periods):
             held = plan.get((row.key, period.name))
             if held is None:
                 continue
+            spec = dict(number_format=FORMATS[row.unit], bold=row.bold)
             if held.tree is not None:
-                cell.value = "=" + formula.to_excel(held.tree, lambda ref, p=period.name: address(ref, p))
-                continue
-            cell.value, cell.font = held.value, BLUE
-            if held.typed is ASSUME:
-                cell.fill = ASSUMED
-                _name(wb, "%s_%s" % (row.key, period.name), cell.coordinate)
-            mark = company.marks.get(row.key, {}).get(period.name)
-            if mark:
-                cell.fill = MARKED[mark["level"]]
-                cell.comment = Comment(str(mark.get("why", "")), SOURCE)
-                marked.append(("%s!%s" % (SHEET, cell.coordinate), "%s, %s" % (text.strip(), company.period_labels.get(period.name, period.name)),
-                               mark["level"], str(mark.get("why", ""))))
+                spec["formula"] = "=" + formula.to_excel(held.tree, lambda ref, p=period.name: address(ref, p))
+            else:
+                spec.update(number=held.value, color=BLUE_RGB)
+                if held.typed is ASSUME:
+                    spec["fill"] = ASSUMED_RGB
+                    name("%s_%s" % (row.key, period.name), where.cell(row.key, period.name))
+                mark = company.marks.get(row.key, {}).get(period.name)
+                if mark:
+                    spec.update(fill=MARKED_RGB[mark["level"]], note=str(mark.get("why", "")))
+                    marked.append(("%s!%s" % (SHEET, where.cell(row.key, period.name)),
+                                   "%s, %s" % (text.strip(), company.period_labels.get(period.name, period.name)),
+                                   mark["level"], str(mark.get("why", ""))))
+            put(n, FIRST_PERIOD_COLUMN + i, **spec)
 
-    ws.column_dimensions["A"].width = 74
-    ws.column_dimensions["B"].width = 12
-    for period in model.periods:
-        ws.column_dimensions[where.columns[period.name]].width = 17
-    ws.row_dimensions[where.header_row].height = 32
-    ws.freeze_panes = "C%d" % (where.header_row + 1)
-    _notes(wb, model, marked)
-    return wb
+    widths = {"A": 74, "B": 12, **{where.columns[p.name]: 17 for p in model.periods}}
+    model_sheet = {"title": SHEET, "cells": out, "widths": widths, "freeze": "C%d" % (where.header_row + 1),
+                   "names": names, "heights": {str(where.header_row): 32}}
+    return [model_sheet, _notes(model, marked)]
 
 
-def _notes(wb: Workbook, model: Model, marked: list) -> None:
-    ws = wb.create_sheet("Notes")
-    ws["A1"] = "What this model does and leaves out"
-    ws["A1"].font = Font(bold=True, size=13)
+def _notes(model: Model, marked: list) -> dict:
+    out: list = []
+
+    def put(row, column, **spec):
+        out.append({"row": row, "column": column, **{k: v for k, v in spec.items() if v is not None and v is not False}})
+
+    put(1, 1, text="What this model does and leaves out", bold=True, size=13)
     n = 2
     for note in model.notes:
         n += 1
-        _put(ws, n, 1, note)
+        put(n, 1, text=note)
     n += 2
-    ws.cell(n, 1, "Figures to look at again, and why").font = Font(bold=True, size=13)
+    put(n, 1, text="Figures to look at again, and why", bold=True, size=13)
     n += 1
     for j, head in enumerate(["Cell", "Figure", "Level", "Why"]):
-        cell = ws.cell(n, 1 + j, head)
-        cell.font, cell.fill = WHITE_BOLD, HEAD
+        put(n, 1 + j, text=head, bold=True, color=WHITE_RGB, fill=HEAD_RGB)
     for at, figure, level, why in marked:
         n += 1
-        ws.cell(n, 1, at)
-        _put(ws, n, 2, figure)
-        ws.cell(n, 3, level).fill = MARKED[level]
-        _put(ws, n, 4, why)
+        put(n, 1, text=at)
+        put(n, 2, text=figure)
+        put(n, 3, text=level, fill=MARKED_RGB[level])
+        put(n, 4, text=why)
     if not marked:
-        ws.cell(n + 1, 1, "None.")
-    ws.column_dimensions["A"].width = 18
-    ws.column_dimensions["B"].width = 60
-    ws.column_dimensions["C"].width = 9
-    ws.column_dimensions["D"].width = 140
+        put(n + 1, 1, text="None.")
+    return {"title": "Notes", "cells": out, "widths": {"A": 18, "B": 60, "C": 9, "D": 140}, "freeze": None,
+            "names": {}, "heights": {}}
+
+
+def write(model: Model, company: Company, allow_missing: bool = False) -> Workbook:
+    """The model for one company as a workbook, written from `sheets`: a Model sheet of live formulas and a Notes sheet."""
+    wb = Workbook()
+    wb.remove(wb.active)
+    wb.properties.creator = wb.properties.lastModifiedBy = SOURCE
+    wb.calculation = CalcProperties(fullCalcOnLoad=True)      # no values are stored: work everything out on opening
+    for sheet in sheets(model, company, allow_missing=allow_missing):
+        ws = wb.create_sheet(sheet["title"])
+        for spec in sheet["cells"]:
+            if "text" in spec:
+                cell = _put(ws, spec["row"], spec["column"], spec["text"])
+            else:
+                cell = ws.cell(spec["row"], spec["column"])
+                cell.value = spec.get("formula", spec.get("number"))
+            if spec.get("number_format"):
+                cell.number_format = spec["number_format"]
+            if spec.get("bold") or spec.get("color") or spec.get("size"):
+                cell.font = Font(bold=bool(spec.get("bold")), color=spec.get("color"), size=spec.get("size"))
+            if spec.get("fill"):
+                cell.fill = PatternFill("solid", fgColor=spec["fill"])
+            if spec.get("align") or spec.get("wrap"):
+                cell.alignment = Alignment(horizontal=spec.get("align"), wrap_text=bool(spec.get("wrap")))
+            if spec.get("note"):
+                cell.comment = Comment(spec["note"], SOURCE)
+        for key, address in sheet["names"].items():
+            wb.defined_names[key] = DefinedName(key, attr_text="%s!%s" % (sheet["title"], address))
+        for letter, width in sheet["widths"].items():
+            ws.column_dimensions[letter].width = width
+        for row, height in sheet["heights"].items():
+            ws.row_dimensions[int(row)].height = height
+        if sheet["freeze"]:
+            ws.freeze_panes = sheet["freeze"]
+    return wb

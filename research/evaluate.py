@@ -12,7 +12,7 @@ import math
 from dataclasses import dataclass
 
 from research import formula
-from research.definition import Company, Model, ModelError, cells
+from research.definition import Company, Model, ModelError, cells, missing
 from research.formula import DivisionByNil, Ref
 
 
@@ -23,6 +23,8 @@ class EvaluationError(ArithmeticError):
 @dataclass(frozen=True)
 class Result:
     values: dict        # row -> period -> number, or None for an empty cell
+    missing: tuple = () # assumptions not typed yet, as (row, period): the cells that read them are None
+    undefined: tuple = ()   # with `partial`, cells that divide by a blank figure: None, as are those that read them
 
     def value(self, row: str, period: str) -> float | None:
         return self.values[row][period]
@@ -66,12 +68,30 @@ def _order(model: Model, plan: dict) -> list:
     return order
 
 
-def evaluate(model: Model, company: Company) -> Result:
-    """Every row of the model in every period, for one company's typed figures."""
-    plan = cells(model, company)
+def evaluate(model: Model, company: Company, partial: bool = False, plan: dict | None = None) -> Result:
+    """Every row of the model in every period, for one company's typed figures.
+
+    With `partial`, assumptions not typed yet are allowed: every cell that
+    reads one, however indirectly, is None (not nil), and the answer lists
+    them, so the past works out before the forecast is filled in. A plain
+    division by a blank figure is None too (listed as `undefined`), where
+    without `partial` it is an error. `plan` is `cells`' answer when the
+    caller has it already.
+    """
+    plan = plan if plan is not None else cells(model, company, allow_missing=partial)
+    absent = missing(plan)
+    unknown = set(absent)
+    undefined: list = []
     known = {key: cell.value for key, cell in plan.items() if cell.tree is None}
     constants = {name: float(company.constants[name]) for name in model.constants}
     for key in _order(model, plan):
+        if unknown and plan[key].tree is not None:
+            reads = {target(model, ref, key[1]) for ref in formula.refs(plan[key].tree) if ref.name not in constants}
+            if reads & unknown:
+                unknown.add(key)
+                known[key] = None
+                continue
+
         def lookup(ref: Ref, period=key[1]) -> float:
             if ref.name in constants:
                 return constants[ref.name]
@@ -79,8 +99,14 @@ def evaluate(model: Model, company: Company) -> Result:
         try:
             value = formula.compute(plan[key].tree, lookup)
         except DivisionByNil:
+            if partial:                 # a figure not typed yet: blank, as are the cells that read it
+                undefined.append(key)
+                unknown.add(key)
+                known[key] = None
+                continue
             raise EvaluationError("row %r divides by nil in %r: a figure it divides by is nil or missing" % key) from None
         if not math.isfinite(value):
             raise EvaluationError("row %r in %r is too large to work out" % key)
         known[key] = value
-    return Result({row.key: {p.name: known.get((row.key, p.name)) for p in model.periods} for row in model.data_rows()})
+    return Result({row.key: {p.name: known.get((row.key, p.name)) for p in model.periods} for row in model.data_rows()},
+                  tuple(absent), tuple(undefined))

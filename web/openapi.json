@@ -8480,6 +8480,228 @@
         "title": "MCInputsIn",
         "type": "object"
       },
+      "ModelBlockOut": {
+        "properties": {
+          "counts_places": {
+            "title": "Counts Places",
+            "type": "boolean"
+          },
+          "id": {
+            "enum": [
+              "capacity",
+              "units",
+              "price_volume",
+              "subscribers",
+              "people",
+              "order_book",
+              "growth",
+              "share"
+            ],
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "counts_places"
+        ],
+        "title": "ModelBlockOut",
+        "type": "object"
+      },
+      "ModelCatalogueOut": {
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/ModelBlockOut"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/ModelExampleOut"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelSpecOut"
+            },
+            "title": "Models",
+            "type": "array"
+          }
+        },
+        "required": [
+          "models",
+          "blocks",
+          "examples"
+        ],
+        "title": "ModelCatalogueOut",
+        "type": "object"
+      },
+      "ModelCellOut": {
+        "properties": {
+          "choice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The company's choice that settled this cell's rule",
+            "title": "Choice"
+          },
+          "formula": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The formula as the model writes it, 'rev - mat'",
+            "title": "Formula"
+          },
+          "kind": {
+            "enum": [
+              "figure",
+              "assumption",
+              "formula"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "mark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchMark"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The figure, the assumption or what the formula gives; null for a blank figure, an assumption not typed, or a formula that reads one",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ModelCellOut",
+        "type": "object"
+      },
+      "ModelCellsOut": {
+        "description": "A sector model as cells, for the Excel add-in's \"Load model\": the download's own cells.",
+        "properties": {
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "sheets": {
+            "items": {
+              "$ref": "#/components/schemas/SheetOut"
+            },
+            "title": "Sheets",
+            "type": "array"
+          },
+          "vetted": {
+            "title": "Vetted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "company_name",
+          "vetted",
+          "sheets"
+        ],
+        "title": "ModelCellsOut",
+        "type": "object"
+      },
+      "ModelChangeIn": {
+        "description": "A last change to a model's lines: add one, drop one, or swap the block one is worked out by.",
+        "properties": {
+          "action": {
+            "enum": [
+              "add",
+              "drop",
+              "swap",
+              "places"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "block": {
+            "anyOf": [
+              {
+                "enum": [
+                  "capacity",
+                  "units",
+                  "price_volume",
+                  "subscribers",
+                  "people",
+                  "order_book",
+                  "growth",
+                  "share"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "add and swap: the block",
+            "title": "Block"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "pattern": "^s[1-8]$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "drop, swap and places: the line",
+            "title": "Key"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          }
+        },
+        "required": [
+          "structure",
+          "action"
+        ],
+        "title": "ModelChangeIn",
+        "type": "object"
+      },
+      "ModelChangeOut": {
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          }
+        },
+        "required": [
+          "structure"
+        ],
+        "title": "ModelChangeOut",
+        "type": "object"
+      },
       "ModelCheck": {
         "description": "Whether a saved deal's results have changed since it was saved.",
         "properties": {
@@ -8527,6 +8749,459 @@
           "causes"
         ],
         "title": "ModelCheck",
+        "type": "object"
+      },
+      "ModelConstantOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "ModelConstantOut",
+        "type": "object"
+      },
+      "ModelExampleOut": {
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/ResearchCompanyIn"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          }
+        },
+        "required": [
+          "id",
+          "structure",
+          "company"
+        ],
+        "title": "ModelExampleOut",
+        "type": "object"
+      },
+      "ModelFillOut": {
+        "description": "A model's past (last year and the year to date) from the company's accepted quarters.",
+        "properties": {
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "object"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "nothing_accepted",
+                "year_complete",
+                "quarter_missing",
+                "no_last_year",
+                "no_balance_sheet",
+                "leases_in_finance_costs",
+                "other_currency"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "sources": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "description": "Row to period to the filing's page",
+            "title": "Sources",
+            "type": "object"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "unit_rupees": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Rupees"
+          },
+          "values": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "description": "Row to period ('ly', 'ytd') to the figure",
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "values",
+          "sources",
+          "labels",
+          "notes"
+        ],
+        "title": "ModelFillOut",
+        "type": "object"
+      },
+      "ModelMissing": {
+        "properties": {
+          "period": {
+            "title": "Period",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row",
+          "period"
+        ],
+        "title": "ModelMissing",
+        "type": "object"
+      },
+      "ModelPeriodOut": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "past_year",
+              "to_date",
+              "rest",
+              "current",
+              "forecast"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "label"
+        ],
+        "title": "ModelPeriodOut",
+        "type": "object"
+      },
+      "ModelRowOut": {
+        "properties": {
+          "bold": {
+            "default": false,
+            "title": "Bold",
+            "type": "boolean"
+          },
+          "cells": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ModelCellOut"
+            },
+            "description": "Period name to the cell; empty cells are left out",
+            "title": "Cells",
+            "type": "object"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null for a heading",
+            "title": "Key"
+          },
+          "label": {
+            "description": "The row's words, the sector's and the company's filled in (model output, shown as sent)",
+            "title": "Label",
+            "type": "string"
+          },
+          "segment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "unit_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Text"
+          }
+        },
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "ModelRowOut",
+        "type": "object"
+      },
+      "ModelRunIn": {
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/ResearchCompanyIn"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          }
+        },
+        "required": [
+          "structure",
+          "company"
+        ],
+        "title": "ModelRunIn",
+        "type": "object"
+      },
+      "ModelRunOut": {
+        "description": "A sector model worked out for one company: every row, every cell, and what is still to type.",
+        "properties": {
+          "choices": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Choices",
+            "type": "object"
+          },
+          "choices_made": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Every choice as the run took it: a new line's takes its first option",
+            "title": "Choices Made",
+            "type": "object"
+          },
+          "constants": {
+            "items": {
+              "$ref": "#/components/schemas/ModelConstantOut"
+            },
+            "title": "Constants",
+            "type": "array"
+          },
+          "dropped": {
+            "description": "Figures typed for cells this model works out or no longer has (after a change to its lines): left out of the run",
+            "items": {
+              "$ref": "#/components/schemas/ModelMissing"
+            },
+            "title": "Dropped",
+            "type": "array"
+          },
+          "missing": {
+            "description": "Assumptions not typed yet; the cells that read them are null",
+            "items": {
+              "$ref": "#/components/schemas/ModelMissing"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "offered": {
+            "title": "Offered",
+            "type": "boolean"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/ModelPeriodOut"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ModelRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "segments": {
+            "description": "Lines a company may switch off (every line but the first)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Segments",
+            "type": "array"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          },
+          "undefined": {
+            "description": "Cells that divide by a figure left blank; they and the cells that read them are null",
+            "items": {
+              "$ref": "#/components/schemas/ModelMissing"
+            },
+            "title": "Undefined",
+            "type": "array"
+          },
+          "vetted": {
+            "title": "Vetted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "model",
+          "name",
+          "vetted",
+          "offered",
+          "structure",
+          "periods",
+          "constants",
+          "choices",
+          "segments",
+          "rows",
+          "missing",
+          "undefined",
+          "dropped",
+          "choices_made",
+          "notes"
+        ],
+        "title": "ModelRunOut",
+        "type": "object"
+      },
+      "ModelSpecOut": {
+        "properties": {
+          "about": {
+            "title": "About",
+            "type": "string"
+          },
+          "default": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "offered": {
+            "description": "Listed for analysts: solved by hand for two companies (phase R, rule 4)",
+            "title": "Offered",
+            "type": "boolean"
+          },
+          "sectors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sectors",
+            "type": "array"
+          },
+          "vetted": {
+            "description": "Read by a practising analyst",
+            "title": "Vetted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "about",
+          "offered",
+          "vetted",
+          "sectors",
+          "default"
+        ],
+        "title": "ModelSpecOut",
         "type": "object"
       },
       "ModelStamp": {
@@ -13287,6 +13962,267 @@
         "title": "ReportedRun",
         "type": "object"
       },
+      "ResearchCompanyIn": {
+        "description": "What is typed for one company: words, unit, choices and numbers. No formulas.",
+        "properties": {
+          "basis": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Basis",
+            "type": "string"
+          },
+          "choices": {
+            "additionalProperties": {
+              "maxLength": 60,
+              "type": "string"
+            },
+            "maxProperties": 40,
+            "propertyNames": {
+              "maxLength": 60
+            },
+            "title": "Choices",
+            "type": "object"
+          },
+          "constants": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "maxProperties": 20,
+            "propertyNames": {
+              "maxLength": 60
+            },
+            "title": "Constants",
+            "type": "object"
+          },
+          "marks": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/ResearchMark"
+              },
+              "propertyNames": {
+                "maxLength": 60
+              },
+              "type": "object"
+            },
+            "maxProperties": 400,
+            "propertyNames": {
+              "maxLength": 60
+            },
+            "title": "Marks",
+            "type": "object"
+          },
+          "name": {
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "off": {
+            "items": {
+              "pattern": "^s[1-8]$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Off",
+            "type": "array"
+          },
+          "period_labels": {
+            "additionalProperties": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "maxProperties": 20,
+            "propertyNames": {
+              "maxLength": 60
+            },
+            "title": "Period Labels",
+            "type": "object"
+          },
+          "sector": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Sector",
+            "type": "string"
+          },
+          "unit_name": {
+            "description": "What the statements' money is in, 'Rs lakh'",
+            "maxLength": 200,
+            "title": "Unit Name",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "propertyNames": {
+                "maxLength": 60
+              },
+              "type": "object"
+            },
+            "maxProperties": 400,
+            "propertyNames": {
+              "maxLength": 60
+            },
+            "title": "Values",
+            "type": "object"
+          },
+          "words": {
+            "additionalProperties": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "maxProperties": 200,
+            "propertyNames": {
+              "maxLength": 60
+            },
+            "title": "Words",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "unit_name"
+        ],
+        "title": "ResearchCompanyIn",
+        "type": "object"
+      },
+      "ResearchMark": {
+        "properties": {
+          "level": {
+            "enum": [
+              "amber",
+              "red"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "why": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "level"
+        ],
+        "title": "ResearchMark",
+        "type": "object"
+      },
+      "ResearchSegment": {
+        "description": "One line of revenue and the block it is worked out by.",
+        "properties": {
+          "block": {
+            "enum": [
+              "capacity",
+              "units",
+              "price_volume",
+              "subscribers",
+              "people",
+              "order_book",
+              "growth",
+              "share"
+            ],
+            "title": "Block",
+            "type": "string"
+          },
+          "formula": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A share line: the analyst's own forecast formula, naming only days, unit_rupees and the rows of lines before it",
+            "title": "Formula"
+          },
+          "key": {
+            "pattern": "^s[1-8]$",
+            "title": "Key",
+            "type": "string"
+          },
+          "of": {
+            "anyOf": [
+              {
+                "pattern": "^s[1-8]$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A share line: the line before it that it is a share of",
+            "title": "Of"
+          },
+          "rest_of_revenue": {
+            "default": false,
+            "description": "A share line: for the past, total revenue less the other lines",
+            "title": "Rest Of Revenue",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "block"
+        ],
+        "title": "ResearchSegment",
+        "type": "object"
+      },
+      "ResearchStructure": {
+        "description": "A sector model as the analyst has shaped it: the model it started from and its lines of revenue.",
+        "properties": {
+          "forecast_years": {
+            "default": 2,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Forecast Years",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 40,
+            "title": "Model",
+            "type": "string"
+          },
+          "places": {
+            "anyOf": [
+              {
+                "pattern": "^s[1-8]$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The line whose average count costs per place per day follow; null for costs as a share of revenue only",
+            "title": "Places"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchSegment"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Segments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "model",
+          "segments"
+        ],
+        "title": "ResearchStructure",
+        "type": "object"
+      },
       "ReturnsResult": {
         "properties": {
           "cash_flow_stream": {
@@ -15014,15 +15950,55 @@
       "SheetCell": {
         "description": "One cell of the checked workbook (PLAN.md R3): exactly one of text, number or formula.",
         "properties": {
+          "align": {
+            "anyOf": [
+              {
+                "enum": [
+                  "left",
+                  "right",
+                  "center"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Align"
+          },
           "bold": {
             "default": false,
             "title": "Bold",
             "type": "boolean"
           },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The font's colour as six hex digits (a sector model's sheet)",
+            "title": "Color"
+          },
           "column": {
             "minimum": 1.0,
             "title": "Column",
             "type": "integer"
+          },
+          "fill": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The cell's fill as six hex digits: yellow for an assumption",
+            "title": "Fill"
           },
           "formula": {
             "anyOf": [
@@ -15076,6 +16052,18 @@
             "title": "Row",
             "type": "integer"
           },
+          "size": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The font's size in points, when not the default",
+            "title": "Size"
+          },
           "text": {
             "anyOf": [
               {
@@ -15087,6 +16075,11 @@
             ],
             "description": "Words, written as words even when they start with =",
             "title": "Text"
+          },
+          "wrap": {
+            "default": false,
+            "title": "Wrap",
+            "type": "boolean"
           }
         },
         "required": [
@@ -15116,6 +16109,22 @@
             ],
             "description": "The first cell that scrolls, 'C6', or null",
             "title": "Freeze"
+          },
+          "heights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Row number to height in points",
+            "title": "Heights",
+            "type": "object"
+          },
+          "names": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Defined name to an absolute address on this sheet ('$C$12'): every assumption cell and constant of a sector model",
+            "title": "Names",
+            "type": "object"
           },
           "title": {
             "description": "The sheet's name in the download; the add-in adds a number when the workbook already has one by that name",
@@ -22905,6 +23914,76 @@
         ]
       }
     },
+    "/api/research/companies/{company_id}/fill": {
+      "get": {
+        "description": "The model's past from the periods the analyst accepted for this company (research/actuals.py).",
+        "operationId": "get_fill_api_research_companies__company_id__fill_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "schema": {
+              "default": "consolidated",
+              "pattern": "^(consolidated|standalone)$",
+              "title": "Scope",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelFillOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Fill",
+        "tags": [
+          "research"
+        ]
+      }
+    },
     "/api/research/companies/{company_id}/periods": {
       "post": {
         "description": "Accept a reviewed read into the company: every amber figure accepted\nas read or corrected. A period accepted again replaces the one kept.",
@@ -22969,6 +24048,265 @@
           }
         ],
         "summary": "Post Periods",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/models": {
+      "get": {
+        "operationId": "get_models_api_research_models_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelCatalogueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Models",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/models/cells": {
+      "post": {
+        "description": "What the Excel add-in writes for \"Load model\": the download's own cells, from the same `sheets`.",
+        "operationId": "post_cells_api_research_models_cells_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelCellsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Cells",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/models/change": {
+      "post": {
+        "description": "The structure after one change, mended so it always builds (research/compose.py `normalise`).",
+        "operationId": "post_change_api_research_models_change_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelChangeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Change",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/models/run": {
+      "post": {
+        "description": "The model worked out. Assumptions not typed yet are allowed: what reads them is null, and listed.",
+        "operationId": "post_run_api_research_models_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelRunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Run",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/models/workbook": {
+      "post": {
+        "operationId": "post_workbook_api_research_models_workbook_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "The model as live Excel formulas: assumptions yellow and named, typed figures blue"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Workbook",
         "tags": [
           "research"
         ]

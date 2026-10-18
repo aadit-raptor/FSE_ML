@@ -343,11 +343,13 @@ def check_company(model: Model, company: Company) -> None:
             _text("the reason for the mark on row %r" % key, mark.get("why", ""), MAX_REASON)
 
 
-def cells(model: Model, company: Company) -> dict:
+def cells(model: Model, company: Company, allow_missing: bool = False) -> dict:
     """{(row, period): Cell} for every cell that is not empty.
 
     Refuses a company that leaves a choice or a constant out, misses an
-    assumption, or types a figure where the model works one out.
+    assumption (unless `allow_missing`: the cell is then an assumption with no
+    value, as a blank yellow cell in a workbook not yet filled in), or types a
+    figure where the model works one out.
     """
     check(model)
     check_company(model, company)
@@ -395,6 +397,11 @@ def cells(model: Model, company: Company) -> dict:
                     row.key, "empty" if rule is None else "worked out by the model", period.name))
             if rule is not None:
                 out[(row.key, period.name)] = Cell(tree=formula.parse(rule))
-    if missing:
+    if missing and not allow_missing:
         raise InputError("assumptions not given: " + ", ".join(missing))
     return out
+
+
+def missing(plan: dict) -> list:
+    """The assumption cells of a plan with nothing typed in them, as (row, period)."""
+    return [key for key, cell in plan.items() if cell.typed is ASSUME and cell.value is None]
