@@ -2861,6 +2861,11 @@ class SheetCell(BaseModel):
     number_format: Optional[str] = None
     bold: bool = False
     note: Optional[str] = Field(None, description="The figure's page and what the analyst did with it")
+    color: Optional[str] = Field(None, description="The font's colour as six hex digits (a sector model's sheet)")
+    fill: Optional[str] = Field(None, description="The cell's fill as six hex digits: yellow for an assumption")
+    size: Optional[float] = Field(None, description="The font's size in points, when not the default")
+    align: Optional[Literal["left", "right", "center"]] = None
+    wrap: bool = False
 
 
 class SheetOut(BaseModel):
@@ -2869,6 +2874,9 @@ class SheetOut(BaseModel):
     cells: List[SheetCell]
     widths: Dict[str, float] = Field(description="Column letter to width in characters")
     freeze: Optional[str] = Field(description="The first cell that scrolls, 'C6', or null")
+    names: Dict[str, str] = Field(default_factory=dict, description="Defined name to an absolute address on "
+                                  "this sheet ('$C$12'): every assumption cell and constant of a sector model")
+    heights: Dict[str, float] = Field(default_factory=dict, description="Row number to height in points")
 
 
 class PeriodCells(BaseModel):
@@ -2877,6 +2885,177 @@ class PeriodCells(BaseModel):
     company_name: str
     generated: str
     sheets: List[SheetOut]
+
+
+# ---------------------------------------------------------------------------
+# Sector models (PLAN.md R4)
+# ---------------------------------------------------------------------------
+ResearchBlock = Literal["capacity", "units", "price_volume", "subscribers", "people", "order_book", "growth", "share"]
+SegmentKey = Annotated[str, Field(pattern=r"^s[1-8]$")]
+ModelText = Annotated[str, Field(max_length=200)]
+RowName = Annotated[str, Field(max_length=60)]
+
+
+class ResearchSegment(BaseModel):
+    """One line of revenue and the block it is worked out by."""
+    key: SegmentKey
+    block: ResearchBlock
+    of: Optional[SegmentKey] = Field(None, description="A share line: the line before it that it is a share of")
+    rest_of_revenue: bool = Field(False, description="A share line: for the past, total revenue less the other lines")
+    formula: Optional[str] = Field(None, max_length=1000, description="A share line: the analyst's own forecast "
+                                   "formula, naming only days, unit_rupees and the rows of lines before it")
+
+
+class ResearchStructure(BaseModel):
+    """A sector model as the analyst has shaped it: the model it started from and its lines of revenue."""
+    model: str = Field(max_length=40)
+    segments: List[ResearchSegment] = Field(min_length=1, max_length=8)
+    places: Optional[SegmentKey] = Field(None, description="The line whose average count costs per place per "
+                                         "day follow; null for costs as a share of revenue only")
+    forecast_years: int = Field(2, ge=1, le=10)
+
+
+class ResearchMark(BaseModel):
+    level: Literal["amber", "red"]
+    why: str = Field("", max_length=1000)
+
+
+class ResearchCompanyIn(BaseModel):
+    """What is typed for one company: words, unit, choices and numbers. No formulas."""
+    name: ModelText
+    unit_name: ModelText = Field(description="What the statements' money is in, 'Rs lakh'")
+    sector: ModelText = ""
+    basis: ModelText = ""
+    words: Dict[RowName, ModelText] = Field(default_factory=dict, max_length=200)
+    period_labels: Dict[RowName, ModelText] = Field(default_factory=dict, max_length=20)
+    constants: Dict[RowName, float] = Field(default_factory=dict, max_length=20)
+    choices: Dict[RowName, RowName] = Field(default_factory=dict, max_length=40)
+    values: Dict[RowName, Dict[RowName, Optional[float]]] = Field(default_factory=dict, max_length=400)
+    off: List[SegmentKey] = Field(default_factory=list, max_length=8)
+    marks: Dict[RowName, Dict[RowName, ResearchMark]] = Field(default_factory=dict, max_length=400)
+
+
+class ModelRunIn(BaseModel):
+    structure: ResearchStructure
+    company: ResearchCompanyIn
+
+
+class ModelChangeIn(BaseModel):
+    """A last change to a model's lines: add one, drop one, or swap the block one is worked out by."""
+    structure: ResearchStructure
+    action: Literal["add", "drop", "swap", "places"]
+    key: Optional[SegmentKey] = Field(None, description="drop, swap and places: the line")
+    block: Optional[ResearchBlock] = Field(None, description="add and swap: the block")
+
+
+class ModelChangeOut(BaseModel):
+    structure: ResearchStructure
+
+
+class ModelCellOut(BaseModel):
+    kind: Literal["figure", "assumption", "formula"]
+    value: Optional[float] = Field(None, description="The figure, the assumption or what the formula gives; "
+                                   "null for a blank figure, an assumption not typed, or a formula that reads one")
+    formula: Optional[str] = Field(None, description="The formula as the model writes it, 'rev - mat'")
+    choice: Optional[str] = Field(None, description="The company's choice that settled this cell's rule")
+    mark: Optional[ResearchMark] = None
+
+
+class ModelRowOut(BaseModel):
+    key: Optional[str] = Field(description="Null for a heading")
+    label: str = Field(description="The row's words, the sector's and the company's filled in (model output, "
+                       "shown as sent)")
+    unit: Optional[str] = None
+    unit_text: Optional[str] = None
+    bold: bool = False
+    segment: Optional[str] = None
+    cells: Dict[str, ModelCellOut] = Field(default_factory=dict, description="Period name to the cell; empty "
+                                           "cells are left out")
+
+
+class ModelPeriodOut(BaseModel):
+    name: str
+    kind: Literal["past_year", "to_date", "rest", "current", "forecast"]
+    label: str
+
+
+class ModelConstantOut(BaseModel):
+    key: str
+    label: str
+    value: Optional[float] = None
+
+
+class ModelMissing(BaseModel):
+    row: str
+    period: str
+
+
+class ModelRunOut(BaseModel):
+    """A sector model worked out for one company: every row, every cell, and what is still to type."""
+    model: str
+    name: str
+    vetted: bool
+    offered: bool
+    structure: ResearchStructure
+    periods: List[ModelPeriodOut]
+    constants: List[ModelConstantOut]
+    choices: Dict[str, List[str]]
+    segments: List[str] = Field(description="Lines a company may switch off (every line but the first)")
+    rows: List[ModelRowOut]
+    missing: List[ModelMissing] = Field(description="Assumptions not typed yet; the cells that read them are null")
+    undefined: List[ModelMissing] = Field(description="Cells that divide by a figure left blank; they and the "
+                                          "cells that read them are null")
+    dropped: List[ModelMissing] = Field(description="Figures typed for cells this model works out or no longer "
+                                        "has (after a change to its lines): left out of the run")
+    choices_made: Dict[str, str] = Field(description="Every choice as the run took it: a new line's takes its "
+                                         "first option")
+    notes: List[str]
+
+
+class ModelSpecOut(BaseModel):
+    id: str
+    name: str
+    about: str
+    offered: bool = Field(description="Listed for analysts: solved by hand for two companies (phase R, rule 4)")
+    vetted: bool = Field(description="Read by a practising analyst")
+    sectors: List[str]
+    default: ResearchStructure
+
+
+class ModelBlockOut(BaseModel):
+    id: ResearchBlock
+    counts_places: bool
+
+
+class ModelExampleOut(BaseModel):
+    id: str
+    structure: ResearchStructure
+    company: ResearchCompanyIn
+
+
+class ModelCatalogueOut(BaseModel):
+    models: List[ModelSpecOut]
+    blocks: List[ModelBlockOut]
+    examples: List[ModelExampleOut]
+
+
+class ModelCellsOut(BaseModel):
+    """A sector model as cells, for the Excel add-in's "Load model": the download's own cells."""
+    company_name: str
+    vetted: bool
+    sheets: List[SheetOut]
+
+
+class ModelFillOut(BaseModel):
+    """A model's past (last year and the year to date) from the company's accepted quarters."""
+    values: Dict[str, Dict[str, float]] = Field(description="Row to period ('ly', 'ytd') to the figure")
+    sources: Dict[str, Dict[str, Optional[int]]] = Field(description="Row to period to the filing's page")
+    labels: Dict[str, str]
+    unit: Optional[str] = None
+    currency: Optional[str] = None
+    unit_rupees: Optional[float] = None
+    notes: List[Literal["nothing_accepted", "year_complete", "quarter_missing", "no_last_year", "no_balance_sheet",
+                        "leases_in_finance_costs", "other_currency"]]
 
 
 class AddinPass(BaseModel):

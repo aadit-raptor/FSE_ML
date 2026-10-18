@@ -16,9 +16,9 @@
  "words": {
   "s1": "Beds",
   "place": "bed",
-  "places": "Beds in use (the beds occupancy is counted on)",
-  "occ": "Occupancy",
-  "price": "Revenue per occupied bed per day (ARPOB), Rs",
+  "s1_places": "Beds in use (the beds occupancy is counted on)",
+  "s1_occ": "Occupancy",
+  "s1_price": "Revenue per occupied bed per day (ARPOB), Rs",
   "s1_rev": "Hospital revenue",
   "s2": "Second line: not used for this company",
   "s2_units": "Units (not used)",
