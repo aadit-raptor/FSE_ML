@@ -165,3 +165,34 @@ export function onePagePdf(): Buffer {
   out += `trailer\n<< /Size ${bodies.length + 1} /Root 1 0 R >>\nstartxref\n${table}\n%%EOF\n`;
   return Buffer.from(out, "latin1");
 }
+
+/** An accepted quarter for `company`, made through the API as the Coverage screens make one. */
+export async function acceptedQuarter(page: Page, company: string): Promise<string> {
+  const headers = await asUser(page);
+  const made = await (await page.request.post("/api/research/companies", { headers, data: { name: company } })).json();
+  const bytes = onePagePdf();
+  const begun = await (await page.request.post("/api/files", { headers, data: { name: "dmart-h1.pdf", size: bytes.length } })).json();
+  const sent = await page.request.put(`/api/files/${begun.id}/content`, {
+    headers: { ...headers, "Content-Type": "application/octet-stream" }, data: bytes,
+  });
+  expect(sent.ok()).toBe(true);
+  await expect.poll(async () => (await (await page.request.get(`/api/files/${begun.id}`, { headers })).json()).status,
+    { timeout: 30_000 }).toBe("clean");
+  const started = await (await page.request.post("/api/research/reads", {
+    headers, data: { file_id: begun.id, public: true, quarter_end: "2026-09-30" },
+  })).json();
+  let done: { status: string; result: { tables: { rows: { cells: { amber: string | null; value: number | null }[] }[] }[] } } | null = null;
+  await expect.poll(async () => {
+    done = await (await page.request.get(`/api/research/reads/${started.id}`, { headers })).json();
+    return done!.status;
+  }, { timeout: 30_000 }).toBe("succeeded");
+  const amber: number[][] = [];
+  done!.result.tables.forEach((t, ti) => t.rows.forEach((r, ri) => r.cells.forEach((c, ci) => {
+    if (c.amber && c.value !== null) amber.push([ti, ri, ci]);
+  })));
+  const accepted = await page.request.post(`/api/research/companies/${made.id}/periods`, {
+    headers, data: { read_id: started.id, accepted: amber, corrected: [] },
+  });
+  expect(accepted.status()).toBe(201);
+  return (await accepted.json()).periods[0].id;
+}

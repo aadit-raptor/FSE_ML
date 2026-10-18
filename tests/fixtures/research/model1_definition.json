@@ -1,0 +1,3012 @@
+{
+ "constants": {
+  "hospitals": {
+   "unit_rupees": "Rs in one unit of the statements (prices per day are in Rs)"
+  },
+  "hotels": {
+   "unit_rupees": "Rs in one unit of the statements (prices per day are in Rs)"
+  }
+ },
+ "notes": [
+  "Deferred tax is left out: the tax charged is taken as the tax paid, so no deferred tax balance moves.",
+  "The year in progress is the part reported plus the rest assumed. The rest is typed, not grown from the part reported: a hotel's second half is its strong half.",
+  "A price per day is in single units of the currency and the statements are in lakh, crore or million, so revenue and costs per place are divided by the constant at the top of the sheet.",
+  "For the past, a company that prints its revenue, share filled and price has its places in use worked out from them; the count it prints as capacity may be larger than the count its occupancy is measured on.",
+  "Lease liabilities and other balance sheet lines without a rule of their own are held at their last figure unless an assumption moves them.",
+  "The forecast columns hold whatever assumptions were typed. The model states no view and picks no rating."
+ ],
+ "periods": [
+  {
+   "kind": "past_year",
+   "name": "ly",
+   "prev": null
+  },
+  {
+   "kind": "to_date",
+   "name": "ytd",
+   "prev": null
+  },
+  {
+   "kind": "rest",
+   "name": "roy",
+   "prev": null
+  },
+  {
+   "kind": "current",
+   "name": "cy",
+   "prev": "ly"
+  },
+  {
+   "kind": "forecast",
+   "name": "y1",
+   "prev": "cy"
+  },
+  {
+   "kind": "forecast",
+   "name": "y2",
+   "prev": "y1"
+  }
+ ],
+ "rows": {
+  "hospitals": [
+   {
+    "heading": "PERIOD"
+   },
+   {
+    "bold": false,
+    "key": "days",
+    "label": "Days in the period",
+    "rules": {
+     "current": "days[ytd] + days[roy]",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "days"
+   },
+   {
+    "heading": "REVENUE LINE 1: places x share filled x price per day  [Beds]"
+   },
+   {
+    "bold": false,
+    "key": "s1_open",
+    "label": "Beds: at the start",
+    "rules": {
+     "forecast": "s1_end[prev]",
+     "rest": "s1_end[ytd]"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_add",
+    "label": "   added",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_cls",
+    "label": "   closed",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_end",
+    "label": "   at the end",
+    "rules": {
+     "current": "s1_end[roy]",
+     "forecast": "s1_open + s1_add - s1_cls",
+     "ly": {
+      "typed": "figure"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s1_open + s1_add - s1_cls",
+     "ytd": {
+      "choice": "line1_end_to_date",
+      "options": {
+       "average": "s1_avg",
+       "typed": {
+        "typed": "figure"
+       }
+      }
+     }
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_avg",
+    "label": "   average over the period",
+    "rules": {
+     "current": "(s1_avg[ytd] * days[ytd] + s1_avg[roy] * days[roy]) / days",
+     "forecast": "(s1_open + s1_end) / 2",
+     "past": {
+      "choice": "line1_past",
+      "options": {
+       "drivers": {
+        "typed": "figure"
+       },
+       "revenue": "s1_rev * unit_rupees / (days * s1_occ * s1_price)"
+      }
+     },
+     "rest": "(s1_open + s1_end) / 2"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_occ",
+    "label": "Occupancy",
+    "rules": {
+     "current": "(s1_occ[ytd] * s1_avg[ytd] * days[ytd] + s1_occ[roy] * s1_avg[roy] * days[roy]) / (s1_avg * days)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "s1_pg",
+    "label": "   assumption: price growth on the year before",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "s1_price",
+    "label": "Revenue per occupied bed per day, Rs",
+    "rules": {
+     "current": "s1_rev * unit_rupees / (s1_avg * days * s1_occ)",
+     "forecast": "s1_price[prev] * (1 + s1_pg)",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "s1_rev",
+    "label": "Hospital revenue",
+    "rules": {
+     "current": "s1_rev[ytd] + s1_rev[roy]",
+     "forecast": "s1_avg * days * s1_occ * s1_price / unit_rupees",
+     "past": {
+      "choice": "line1_past",
+      "options": {
+       "drivers": "s1_avg * days * s1_occ * s1_price / unit_rupees",
+       "revenue": {
+        "typed": "figure"
+       }
+      }
+     },
+     "rest": "s1_avg * days * s1_occ * s1_price / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "heading": "REVENUE LINE 2: units x revenue per unit  [Second line]"
+   },
+   {
+    "bold": false,
+    "key": "s2_open",
+    "label": "Units: at the start",
+    "rules": {
+     "forecast": "s2_end[prev]",
+     "rest": "s2_end[ytd]"
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_add",
+    "label": "   added, net",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_end",
+    "label": "   at the end",
+    "rules": {
+     "current": "s2_end[roy]",
+     "forecast": "s2_open + s2_add",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s2_open + s2_add"
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_avg",
+    "label": "   average over the period",
+    "rules": {
+     "current": "(s2_avg[ytd] * days[ytd] + s2_avg[roy] * days[roy]) / days",
+     "forecast": "(s2_open + s2_end) / 2",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "(s2_open + s2_end) / 2"
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_rpu",
+    "label": "Revenue per unit per year, Rs",
+    "rules": {
+     "current": "div(s2_rev * unit_rupees, s2_avg * days / 365)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(s2_rev * unit_rupees, s2_avg * days / 365)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": "s2",
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "s2_rev",
+    "label": "Second line revenue",
+    "rules": {
+     "current": "s2_rev[ytd] + s2_rev[roy]",
+     "forecast": "s2_avg * s2_rpu * days / 365 / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s2_avg * s2_rpu * days / 365 / unit_rupees"
+    },
+    "segment": "s2",
+    "unit": "money"
+   },
+   {
+    "heading": "REVENUE LINE 3: free formula, a share of line 1  [Third line]"
+   },
+   {
+    "bold": false,
+    "key": "s3_share",
+    "label": "Other revenue, as a share of hospital revenue",
+    "rules": {
+     "current": "div(s3_rev, s1_rev)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(s3_rev, s1_rev)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": "s3",
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "s3_rev",
+    "label": "Other revenue",
+    "rules": {
+     "current": "s3_rev[ytd] + s3_rev[roy]",
+     "forecast": "s3_share * s1_rev",
+     "past": "rev - s1_rev - s2_rev",
+     "rest": "s3_share * s1_rev"
+    },
+    "segment": "s3",
+    "unit": "money"
+   },
+   {
+    "heading": "INCOME STATEMENT"
+   },
+   {
+    "bold": true,
+    "key": "rev",
+    "label": "Revenue from operations",
+    "rules": {
+     "current": "rev[ytd] + rev[roy]",
+     "forecast": "s1_rev + s2_rev + s3_rev",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s1_rev + s2_rev + s3_rev"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "rev_g",
+    "label": "   growth on the year before",
+    "rules": {
+     "current": "rev / rev[prev] - 1",
+     "forecast": "rev / rev[prev] - 1"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "mat",
+    "label": "Drugs, consumables and implants",
+    "rules": {
+     "current": "mat[ytd] + mat[roy]",
+     "forecast": "mat_sh * rev + mat_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "mat_sh * rev + mat_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "mat_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "mat_pd",
+    "label": "   assumption: Rs per bed per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "mat_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(mat, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "mat_m2",
+    "label": "   as it came out: Rs per bed per day",
+    "rules": {
+     "all": "div(mat * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "emp",
+    "label": "Employees",
+    "rules": {
+     "current": "emp[ytd] + emp[roy]",
+     "forecast": "emp_sh * rev + emp_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "emp_sh * rev + emp_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "emp_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "emp_pd",
+    "label": "   assumption: Rs per bed per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "emp_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(emp, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "emp_m2",
+    "label": "   as it came out: Rs per bed per day",
+    "rules": {
+     "all": "div(emp * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "pwr",
+    "label": "Power and fuel",
+    "rules": {
+     "current": "pwr[ytd] + pwr[roy]",
+     "forecast": "pwr_sh * rev + pwr_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "pwr_sh * rev + pwr_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "pwr_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "pwr_pd",
+    "label": "   assumption: Rs per bed per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "pwr_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(pwr, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "pwr_m2",
+    "label": "   as it came out: Rs per bed per day",
+    "rules": {
+     "all": "div(pwr * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "oth",
+    "label": "Other expenses",
+    "rules": {
+     "current": "oth[ytd] + oth[roy]",
+     "forecast": "oth_sh * rev + oth_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "oth_sh * rev + oth_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "oth_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "oth_pd",
+    "label": "   assumption: Rs per bed per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "oth_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(oth, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "oth_m2",
+    "label": "   as it came out: Rs per bed per day",
+    "rules": {
+     "all": "div(oth * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": true,
+    "key": "ebitda",
+    "label": "EBITDA (before other income)",
+    "rules": {
+     "all": "rev - mat - emp - pwr - oth"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "ebitda_m",
+    "label": "   margin",
+    "rules": {
+     "all": "div(ebitda, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "dep",
+    "label": "Depreciation and amortisation",
+    "rules": {
+     "current": "dep[ytd] + dep[roy]",
+     "forecast": "dep_rate * fa[prev]",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "dep_rate * fa[ly] * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "dep_rate",
+    "label": "   a year's charge as a share of fixed assets at the start",
+    "rules": {
+     "current": "div(dep, fa[ly])",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(dep * 365 / days, fa[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "othinc",
+    "label": "Other income and finance income",
+    "rules": {
+     "current": "othinc[ytd] + othinc[roy]",
+     "forecast": "oi_yield * cash[prev]",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "oi_yield * cash[ly] * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "oi_yield",
+    "label": "   a year's income as a share of cash and investments at the start",
+    "rules": {
+     "current": "div(othinc, cash[ly])",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(othinc * 365 / days, cash[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "int_debt",
+    "label": "Interest on borrowings",
+    "rules": {
+     "current": "int_debt[ytd] + int_debt[roy]",
+     "forecast": "debt_rate * (debt[prev] + debt) / 2",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "debt_rate * (debt[ly] + debt[cy]) / 2 * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "debt_rate",
+    "label": "   interest rate on average borrowings",
+    "rules": {
+     "current": "div(int_debt, (debt[ly] + debt) / 2)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(int_debt * 365 / days, debt[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "int_lease",
+    "label": "Interest on lease liabilities",
+    "rules": {
+     "current": "int_lease[ytd] + int_lease[roy]",
+     "forecast": "lease_rate * lease[prev]",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "lease_rate * lease[ly] * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "lease_rate",
+    "label": "   interest rate on lease liabilities at the start",
+    "rules": {
+     "current": "div(int_lease, lease[ly])",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(int_lease * 365 / days, lease[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "assoc",
+    "label": "Share of profit or loss of associates",
+    "rules": {
+     "current": "assoc[ytd] + assoc[roy]",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "pbt",
+    "label": "Profit before tax",
+    "rules": {
+     "all": "ebitda - dep + othinc - int_debt - int_lease + assoc"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "tax",
+    "label": "Tax",
+    "rules": {
+     "current": "tax[ytd] + tax[roy]",
+     "forecast": "tax_rate * max(pbt, 0)",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "tax_rate * max(pbt, 0)"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "tax_rate",
+    "label": "   tax as a share of profit before tax",
+    "rules": {
+     "current": "div(tax, pbt)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(tax, pbt)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": true,
+    "key": "pat",
+    "label": "Profit after tax",
+    "rules": {
+     "all": "pbt - tax"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "mi",
+    "label": "Non-controlling interests' share",
+    "rules": {
+     "current": "mi[ytd] + mi[roy]",
+     "forecast": "mi_share * pat",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "mi_share * pat"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "mi_share",
+    "label": "   as a share of profit after tax",
+    "rules": {
+     "current": "div(mi, pat)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(mi, pat)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": true,
+    "key": "pat_own",
+    "label": "Profit for the owners of the company",
+    "rules": {
+     "all": "pat - mi"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "shares",
+    "label": "Shares, in the statements' unit of count",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "count3"
+   },
+   {
+    "bold": false,
+    "key": "eps",
+    "label": "Earnings per share, Rs",
+    "rules": {
+     "year_end": "div(pat_own, shares)"
+    },
+    "segment": null,
+    "unit": "rupees2"
+   },
+   {
+    "heading": "BALANCE SHEET (year ends; the year in progress is rolled from the last year end)"
+   },
+   {
+    "bold": false,
+    "key": "fa",
+    "label": "Fixed assets (work in progress, intangibles and leased assets included)",
+    "rules": {
+     "current": "fa[prev] + capex - dep",
+     "forecast": "fa[prev] + capex - dep",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "gw",
+    "label": "Goodwill",
+    "rules": {
+     "current": "gw[prev]",
+     "forecast": "gw[prev]",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "onca",
+    "label": "Investments and other non-current assets",
+    "rules": {
+     "current": "onca[prev] + assoc",
+     "forecast": "onca[prev] + assoc",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "inv",
+    "label": "Inventories",
+    "rules": {
+     "current": "inv_days * mat / days",
+     "forecast": "inv_days * mat / days",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "rec",
+    "label": "Trade receivables",
+    "rules": {
+     "current": "rec_days * rev / days",
+     "forecast": "rec_days * rev / days",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "oca",
+    "label": "Other current assets",
+    "rules": {
+     "current": "oca[prev]",
+     "forecast": "oca[prev]",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cash",
+    "label": "Cash, bank balances and liquid investments",
+    "rules": {
+     "current": "cf_close",
+     "forecast": "cf_close",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "ta",
+    "label": "Total assets",
+    "rules": {
+     "year_end": "fa + gw + onca + inv + rec + oca + cash"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "eq",
+    "label": "Equity of the owners",
+    "rules": {
+     "current": "eq[prev] + pat_own - dividends",
+     "forecast": "eq[prev] + pat_own - dividends",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "nci",
+    "label": "Non-controlling interests",
+    "rules": {
+     "current": "nci[prev] + mi",
+     "forecast": "nci[prev] + mi",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "debt",
+    "label": "Borrowings",
+    "rules": {
+     "current": "debt[prev] + drawn - repaid",
+     "forecast": "debt[prev] + drawn - repaid",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "lease",
+    "label": "Lease liabilities",
+    "rules": {
+     "current": "lease[prev] - lease_red",
+     "forecast": "lease[prev] - lease_red",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "pay",
+    "label": "Trade payables",
+    "rules": {
+     "current": "pay_days * (mat + pwr + oth) / days",
+     "forecast": "pay_days * (mat + pwr + oth) / days",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "ol",
+    "label": "Other liabilities and provisions",
+    "rules": {
+     "current": "ol[prev]",
+     "forecast": "ol[prev]",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "tle",
+    "label": "Total equity and liabilities",
+    "rules": {
+     "year_end": "eq + nci + debt + lease + pay + ol"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "chk_bs",
+    "label": "CHECK: assets less equity and liabilities (must be 0)",
+    "rules": {
+     "year_end": "ta - tle"
+    },
+    "segment": null,
+    "unit": "check"
+   },
+   {
+    "heading": "Balance sheet assumptions"
+   },
+   {
+    "bold": false,
+    "key": "capex",
+    "label": "Capital expenditure in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "drawn",
+    "label": "Borrowings drawn in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "repaid",
+    "label": "Borrowings repaid in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "lease_red",
+    "label": "Lease liabilities paid down in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "dividends",
+    "label": "Dividends paid in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "inv_days",
+    "label": "Inventories, days of materials used",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past_year": "div(inv * days, mat)"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "rec_days",
+    "label": "Receivables, days of revenue",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past_year": "div(rec * days, rev)"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "pay_days",
+    "label": "Payables, days of materials, power and other expenses",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past_year": "div(pay * days, (mat + pwr + oth))"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "min_cash",
+    "label": "The least cash the company wants to hold",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "short",
+    "label": "Cash still to be found (0 when the plan funds itself)",
+    "rules": {
+     "current": "max(min_cash - cash, 0)",
+     "forecast": "max(min_cash - cash, 0)"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "heading": "CASH FLOW (forecast years)"
+   },
+   {
+    "bold": false,
+    "key": "cf_pat",
+    "label": "Profit after tax",
+    "rules": {
+     "current": "pat",
+     "forecast": "pat"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_dep",
+    "label": "Depreciation and amortisation",
+    "rules": {
+     "current": "dep",
+     "forecast": "dep"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_assoc",
+    "label": "Less associates' profit (not cash)",
+    "rules": {
+     "current": "0 - assoc",
+     "forecast": "0 - assoc"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_wc",
+    "label": "Change in working capital",
+    "rules": {
+     "current": "(inv[prev] - inv) + (rec[prev] - rec) + (oca[prev] - oca) + (pay - pay[prev]) + (ol - ol[prev])",
+     "forecast": "(inv[prev] - inv) + (rec[prev] - rec) + (oca[prev] - oca) + (pay - pay[prev]) + (ol - ol[prev])"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "cf_ops",
+    "label": "Cash from operations",
+    "rules": {
+     "current": "cf_pat + cf_dep + cf_assoc + cf_wc",
+     "forecast": "cf_pat + cf_dep + cf_assoc + cf_wc"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_capex",
+    "label": "Capital expenditure",
+    "rules": {
+     "current": "0 - capex",
+     "forecast": "0 - capex"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_debt",
+    "label": "Borrowings drawn less repaid",
+    "rules": {
+     "current": "drawn - repaid",
+     "forecast": "drawn - repaid"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_lease",
+    "label": "Lease liabilities paid down",
+    "rules": {
+     "current": "0 - lease_red",
+     "forecast": "0 - lease_red"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_div",
+    "label": "Dividends",
+    "rules": {
+     "current": "0 - dividends",
+     "forecast": "0 - dividends"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "cf_change",
+    "label": "Change in cash",
+    "rules": {
+     "current": "cf_ops + cf_capex + cf_debt + cf_lease + cf_div",
+     "forecast": "cf_ops + cf_capex + cf_debt + cf_lease + cf_div"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_open",
+    "label": "Cash at the start",
+    "rules": {
+     "current": "cash[prev]",
+     "forecast": "cash[prev]"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "cf_close",
+    "label": "Cash at the end",
+    "rules": {
+     "current": "cf_open + cf_change",
+     "forecast": "cf_open + cf_change"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "netdebt",
+    "label": "Borrowings and leases less cash",
+    "rules": {
+     "year_end": "debt + lease - cash"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "nd_ebitda",
+    "label": "   as a multiple of the year's EBITDA",
+    "rules": {
+     "current": "div(netdebt, ebitda)",
+     "forecast": "div(netdebt, ebitda)",
+     "past_year": "div(netdebt, ebitda)"
+    },
+    "segment": null,
+    "unit": "times"
+   },
+   {
+    "heading": "CHECKS ON THE PAST (the model's lines against the filing's own totals; must be 0)"
+   },
+   {
+    "bold": false,
+    "key": "r_pbt",
+    "label": "Profit before tax, as the filing prints it",
+    "rules": {
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "r_pat",
+    "label": "Profit after tax, as the filing prints it",
+    "rules": {
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "r_own",
+    "label": "Owners' profit, as the filing prints it",
+    "rules": {
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "chk_pbt",
+    "label": "Profit before tax: model less filing",
+    "rules": {
+     "past": "pbt - r_pbt"
+    },
+    "segment": null,
+    "unit": "check"
+   },
+   {
+    "bold": false,
+    "key": "chk_pat",
+    "label": "Profit after tax: model less filing",
+    "rules": {
+     "past": "pat - r_pat"
+    },
+    "segment": null,
+    "unit": "check"
+   },
+   {
+    "bold": false,
+    "key": "chk_own",
+    "label": "Owners' profit: model less filing",
+    "rules": {
+     "past": "pat_own - r_own"
+    },
+    "segment": null,
+    "unit": "check"
+   }
+  ],
+  "hotels": [
+   {
+    "heading": "PERIOD"
+   },
+   {
+    "bold": false,
+    "key": "days",
+    "label": "Days in the period",
+    "rules": {
+     "current": "days[ytd] + days[roy]",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "days"
+   },
+   {
+    "heading": "REVENUE LINE 1: places x share filled x price per day  [Rooms]"
+   },
+   {
+    "bold": false,
+    "key": "s1_open",
+    "label": "Rooms: at the start",
+    "rules": {
+     "forecast": "s1_end[prev]",
+     "rest": "s1_end[ytd]"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_add",
+    "label": "   added",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_cls",
+    "label": "   closed",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_end",
+    "label": "   at the end",
+    "rules": {
+     "current": "s1_end[roy]",
+     "forecast": "s1_open + s1_add - s1_cls",
+     "ly": {
+      "typed": "figure"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s1_open + s1_add - s1_cls",
+     "ytd": {
+      "choice": "line1_end_to_date",
+      "options": {
+       "average": "s1_avg",
+       "typed": {
+        "typed": "figure"
+       }
+      }
+     }
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_avg",
+    "label": "   average over the period",
+    "rules": {
+     "current": "(s1_avg[ytd] * days[ytd] + s1_avg[roy] * days[roy]) / days",
+     "forecast": "(s1_open + s1_end) / 2",
+     "past": {
+      "choice": "line1_past",
+      "options": {
+       "drivers": {
+        "typed": "figure"
+       },
+       "revenue": "s1_rev * unit_rupees / (days * s1_occ * s1_price)"
+      }
+     },
+     "rest": "(s1_open + s1_end) / 2"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s1_occ",
+    "label": "Occupancy",
+    "rules": {
+     "current": "(s1_occ[ytd] * s1_avg[ytd] * days[ytd] + s1_occ[roy] * s1_avg[roy] * days[roy]) / (s1_avg * days)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "s1_pg",
+    "label": "   assumption: price growth on the year before",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "s1_price",
+    "label": "Average room rate, Rs per night",
+    "rules": {
+     "current": "s1_rev * unit_rupees / (s1_avg * days * s1_occ)",
+     "forecast": "s1_price[prev] * (1 + s1_pg)",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "s1_rev",
+    "label": "Room revenue",
+    "rules": {
+     "current": "s1_rev[ytd] + s1_rev[roy]",
+     "forecast": "s1_avg * days * s1_occ * s1_price / unit_rupees",
+     "past": {
+      "choice": "line1_past",
+      "options": {
+       "drivers": "s1_avg * days * s1_occ * s1_price / unit_rupees",
+       "revenue": {
+        "typed": "figure"
+       }
+      }
+     },
+     "rest": "s1_avg * days * s1_occ * s1_price / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "heading": "REVENUE LINE 2: units x revenue per unit  [Fees on managed rooms]"
+   },
+   {
+    "bold": false,
+    "key": "s2_open",
+    "label": "Managed rooms: at the start",
+    "rules": {
+     "forecast": "s2_end[prev]",
+     "rest": "s2_end[ytd]"
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_add",
+    "label": "   added, net",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_end",
+    "label": "   at the end",
+    "rules": {
+     "current": "s2_end[roy]",
+     "forecast": "s2_open + s2_add",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s2_open + s2_add"
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_avg",
+    "label": "   average over the period",
+    "rules": {
+     "current": "(s2_avg[ytd] * days[ytd] + s2_avg[roy] * days[roy]) / days",
+     "forecast": "(s2_open + s2_end) / 2",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "(s2_open + s2_end) / 2"
+    },
+    "segment": "s2",
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "s2_rpu",
+    "label": "Fee per managed room per year, Rs",
+    "rules": {
+     "current": "div(s2_rev * unit_rupees, s2_avg * days / 365)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(s2_rev * unit_rupees, s2_avg * days / 365)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": "s2",
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "s2_rev",
+    "label": "Fees from managed hotels",
+    "rules": {
+     "current": "s2_rev[ytd] + s2_rev[roy]",
+     "forecast": "s2_avg * s2_rpu * days / 365 / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s2_avg * s2_rpu * days / 365 / unit_rupees"
+    },
+    "segment": "s2",
+    "unit": "money"
+   },
+   {
+    "heading": "REVENUE LINE 3: free formula, a share of line 1  [Food, drink and other revenue]"
+   },
+   {
+    "bold": false,
+    "key": "s3_share",
+    "label": "Food, drink and other, as a share of room revenue",
+    "rules": {
+     "current": "div(s3_rev, s1_rev)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(s3_rev, s1_rev)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": "s3",
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "s3_rev",
+    "label": "Food, drink and other revenue",
+    "rules": {
+     "current": "s3_rev[ytd] + s3_rev[roy]",
+     "forecast": "s3_share * s1_rev",
+     "past": "rev - s1_rev - s2_rev",
+     "rest": "s3_share * s1_rev"
+    },
+    "segment": "s3",
+    "unit": "money"
+   },
+   {
+    "heading": "INCOME STATEMENT"
+   },
+   {
+    "bold": true,
+    "key": "rev",
+    "label": "Revenue from operations",
+    "rules": {
+     "current": "rev[ytd] + rev[roy]",
+     "forecast": "s1_rev + s2_rev + s3_rev",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "s1_rev + s2_rev + s3_rev"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "rev_g",
+    "label": "   growth on the year before",
+    "rules": {
+     "current": "rev / rev[prev] - 1",
+     "forecast": "rev / rev[prev] - 1"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "mat",
+    "label": "Food and beverages consumed",
+    "rules": {
+     "current": "mat[ytd] + mat[roy]",
+     "forecast": "mat_sh * rev + mat_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "mat_sh * rev + mat_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "mat_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "mat_pd",
+    "label": "   assumption: Rs per room per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "mat_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(mat, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "mat_m2",
+    "label": "   as it came out: Rs per room per day",
+    "rules": {
+     "all": "div(mat * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "emp",
+    "label": "Employees",
+    "rules": {
+     "current": "emp[ytd] + emp[roy]",
+     "forecast": "emp_sh * rev + emp_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "emp_sh * rev + emp_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "emp_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "emp_pd",
+    "label": "   assumption: Rs per room per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "emp_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(emp, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "emp_m2",
+    "label": "   as it came out: Rs per room per day",
+    "rules": {
+     "all": "div(emp * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "pwr",
+    "label": "Power and fuel",
+    "rules": {
+     "current": "pwr[ytd] + pwr[roy]",
+     "forecast": "pwr_sh * rev + pwr_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "pwr_sh * rev + pwr_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "pwr_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "pwr_pd",
+    "label": "   assumption: Rs per room per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "pwr_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(pwr, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "pwr_m2",
+    "label": "   as it came out: Rs per room per day",
+    "rules": {
+     "all": "div(pwr * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "oth",
+    "label": "Other expenses",
+    "rules": {
+     "current": "oth[ytd] + oth[roy]",
+     "forecast": "oth_sh * rev + oth_pd * s1_avg * days / unit_rupees",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "oth_sh * rev + oth_pd * s1_avg * days / unit_rupees"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "oth_sh",
+    "label": "   assumption: share of revenue",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "oth_pd",
+    "label": "   assumption: Rs per room per day",
+    "rules": {
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": false,
+    "key": "oth_m1",
+    "label": "   as it came out: share of revenue",
+    "rules": {
+     "all": "div(oth, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "oth_m2",
+    "label": "   as it came out: Rs per room per day",
+    "rules": {
+     "all": "div(oth * unit_rupees, s1_avg * days)"
+    },
+    "segment": null,
+    "unit": "rupees"
+   },
+   {
+    "bold": true,
+    "key": "ebitda",
+    "label": "EBITDA (before other income)",
+    "rules": {
+     "all": "rev - mat - emp - pwr - oth"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "ebitda_m",
+    "label": "   margin",
+    "rules": {
+     "all": "div(ebitda, rev)"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "dep",
+    "label": "Depreciation and amortisation",
+    "rules": {
+     "current": "dep[ytd] + dep[roy]",
+     "forecast": "dep_rate * fa[prev]",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "dep_rate * fa[ly] * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "dep_rate",
+    "label": "   a year's charge as a share of fixed assets at the start",
+    "rules": {
+     "current": "div(dep, fa[ly])",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(dep * 365 / days, fa[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "othinc",
+    "label": "Other income and finance income",
+    "rules": {
+     "current": "othinc[ytd] + othinc[roy]",
+     "forecast": "oi_yield * cash[prev]",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "oi_yield * cash[ly] * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "oi_yield",
+    "label": "   a year's income as a share of cash and investments at the start",
+    "rules": {
+     "current": "div(othinc, cash[ly])",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(othinc * 365 / days, cash[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "int_debt",
+    "label": "Interest on borrowings",
+    "rules": {
+     "current": "int_debt[ytd] + int_debt[roy]",
+     "forecast": "debt_rate * (debt[prev] + debt) / 2",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "debt_rate * (debt[ly] + debt[cy]) / 2 * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "debt_rate",
+    "label": "   interest rate on average borrowings",
+    "rules": {
+     "current": "div(int_debt, (debt[ly] + debt) / 2)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(int_debt * 365 / days, debt[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "int_lease",
+    "label": "Interest on lease liabilities",
+    "rules": {
+     "current": "int_lease[ytd] + int_lease[roy]",
+     "forecast": "lease_rate * lease[prev]",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "lease_rate * lease[ly] * days / 365"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "lease_rate",
+    "label": "   interest rate on lease liabilities at the start",
+    "rules": {
+     "current": "div(int_lease, lease[ly])",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "rest": {
+      "typed": "assumption"
+     },
+     "to_date": "div(int_lease * 365 / days, lease[ly])"
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": false,
+    "key": "assoc",
+    "label": "Share of profit or loss of associates",
+    "rules": {
+     "current": "assoc[ytd] + assoc[roy]",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     },
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "pbt",
+    "label": "Profit before tax",
+    "rules": {
+     "all": "ebitda - dep + othinc - int_debt - int_lease + assoc"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "tax",
+    "label": "Tax",
+    "rules": {
+     "current": "tax[ytd] + tax[roy]",
+     "forecast": "tax_rate * max(pbt, 0)",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "tax_rate * max(pbt, 0)"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "tax_rate",
+    "label": "   tax as a share of profit before tax",
+    "rules": {
+     "current": "div(tax, pbt)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(tax, pbt)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": true,
+    "key": "pat",
+    "label": "Profit after tax",
+    "rules": {
+     "all": "pbt - tax"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "mi",
+    "label": "Non-controlling interests' share",
+    "rules": {
+     "current": "mi[ytd] + mi[roy]",
+     "forecast": "mi_share * pat",
+     "past": {
+      "typed": "figure"
+     },
+     "rest": "mi_share * pat"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "mi_share",
+    "label": "   as a share of profit after tax",
+    "rules": {
+     "current": "div(mi, pat)",
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": "div(mi, pat)",
+     "rest": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "share"
+   },
+   {
+    "bold": true,
+    "key": "pat_own",
+    "label": "Profit for the owners of the company",
+    "rules": {
+     "all": "pat - mi"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "shares",
+    "label": "Shares, in the statements' unit of count",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "count3"
+   },
+   {
+    "bold": false,
+    "key": "eps",
+    "label": "Earnings per share, Rs",
+    "rules": {
+     "year_end": "div(pat_own, shares)"
+    },
+    "segment": null,
+    "unit": "rupees2"
+   },
+   {
+    "heading": "BALANCE SHEET (year ends; the year in progress is rolled from the last year end)"
+   },
+   {
+    "bold": false,
+    "key": "fa",
+    "label": "Fixed assets (work in progress, intangibles and leased assets included)",
+    "rules": {
+     "current": "fa[prev] + capex - dep",
+     "forecast": "fa[prev] + capex - dep",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "gw",
+    "label": "Goodwill",
+    "rules": {
+     "current": "gw[prev]",
+     "forecast": "gw[prev]",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "onca",
+    "label": "Investments and other non-current assets",
+    "rules": {
+     "current": "onca[prev] + assoc",
+     "forecast": "onca[prev] + assoc",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "inv",
+    "label": "Inventories",
+    "rules": {
+     "current": "inv_days * mat / days",
+     "forecast": "inv_days * mat / days",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "rec",
+    "label": "Trade receivables",
+    "rules": {
+     "current": "rec_days * rev / days",
+     "forecast": "rec_days * rev / days",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "oca",
+    "label": "Other current assets",
+    "rules": {
+     "current": "oca[prev]",
+     "forecast": "oca[prev]",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cash",
+    "label": "Cash, bank balances and liquid investments",
+    "rules": {
+     "current": "cf_close",
+     "forecast": "cf_close",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "ta",
+    "label": "Total assets",
+    "rules": {
+     "year_end": "fa + gw + onca + inv + rec + oca + cash"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "eq",
+    "label": "Equity of the owners",
+    "rules": {
+     "current": "eq[prev] + pat_own - dividends",
+     "forecast": "eq[prev] + pat_own - dividends",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "nci",
+    "label": "Non-controlling interests",
+    "rules": {
+     "current": "nci[prev] + mi",
+     "forecast": "nci[prev] + mi",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "debt",
+    "label": "Borrowings",
+    "rules": {
+     "current": "debt[prev] + drawn - repaid",
+     "forecast": "debt[prev] + drawn - repaid",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "lease",
+    "label": "Lease liabilities",
+    "rules": {
+     "current": "lease[prev] - lease_red",
+     "forecast": "lease[prev] - lease_red",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "pay",
+    "label": "Trade payables",
+    "rules": {
+     "current": "pay_days * (mat + pwr + oth) / days",
+     "forecast": "pay_days * (mat + pwr + oth) / days",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "ol",
+    "label": "Other liabilities and provisions",
+    "rules": {
+     "current": "ol[prev]",
+     "forecast": "ol[prev]",
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "tle",
+    "label": "Total equity and liabilities",
+    "rules": {
+     "year_end": "eq + nci + debt + lease + pay + ol"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "chk_bs",
+    "label": "CHECK: assets less equity and liabilities (must be 0)",
+    "rules": {
+     "year_end": "ta - tle"
+    },
+    "segment": null,
+    "unit": "check"
+   },
+   {
+    "heading": "Balance sheet assumptions"
+   },
+   {
+    "bold": false,
+    "key": "capex",
+    "label": "Capital expenditure in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "drawn",
+    "label": "Borrowings drawn in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "repaid",
+    "label": "Borrowings repaid in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "lease_red",
+    "label": "Lease liabilities paid down in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "dividends",
+    "label": "Dividends paid in the year",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "inv_days",
+    "label": "Inventories, days of materials used",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past_year": "div(inv * days, mat)"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "rec_days",
+    "label": "Receivables, days of revenue",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past_year": "div(rec * days, rev)"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "pay_days",
+    "label": "Payables, days of materials, power and other expenses",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     },
+     "past_year": "div(pay * days, (mat + pwr + oth))"
+    },
+    "segment": null,
+    "unit": "count"
+   },
+   {
+    "bold": false,
+    "key": "min_cash",
+    "label": "The least cash the company wants to hold",
+    "rules": {
+     "current": {
+      "typed": "assumption"
+     },
+     "forecast": {
+      "typed": "assumption"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "short",
+    "label": "Cash still to be found (0 when the plan funds itself)",
+    "rules": {
+     "current": "max(min_cash - cash, 0)",
+     "forecast": "max(min_cash - cash, 0)"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "heading": "CASH FLOW (forecast years)"
+   },
+   {
+    "bold": false,
+    "key": "cf_pat",
+    "label": "Profit after tax",
+    "rules": {
+     "current": "pat",
+     "forecast": "pat"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_dep",
+    "label": "Depreciation and amortisation",
+    "rules": {
+     "current": "dep",
+     "forecast": "dep"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_assoc",
+    "label": "Less associates' profit (not cash)",
+    "rules": {
+     "current": "0 - assoc",
+     "forecast": "0 - assoc"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_wc",
+    "label": "Change in working capital",
+    "rules": {
+     "current": "(inv[prev] - inv) + (rec[prev] - rec) + (oca[prev] - oca) + (pay - pay[prev]) + (ol - ol[prev])",
+     "forecast": "(inv[prev] - inv) + (rec[prev] - rec) + (oca[prev] - oca) + (pay - pay[prev]) + (ol - ol[prev])"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "cf_ops",
+    "label": "Cash from operations",
+    "rules": {
+     "current": "cf_pat + cf_dep + cf_assoc + cf_wc",
+     "forecast": "cf_pat + cf_dep + cf_assoc + cf_wc"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_capex",
+    "label": "Capital expenditure",
+    "rules": {
+     "current": "0 - capex",
+     "forecast": "0 - capex"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_debt",
+    "label": "Borrowings drawn less repaid",
+    "rules": {
+     "current": "drawn - repaid",
+     "forecast": "drawn - repaid"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_lease",
+    "label": "Lease liabilities paid down",
+    "rules": {
+     "current": "0 - lease_red",
+     "forecast": "0 - lease_red"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_div",
+    "label": "Dividends",
+    "rules": {
+     "current": "0 - dividends",
+     "forecast": "0 - dividends"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "cf_change",
+    "label": "Change in cash",
+    "rules": {
+     "current": "cf_ops + cf_capex + cf_debt + cf_lease + cf_div",
+     "forecast": "cf_ops + cf_capex + cf_debt + cf_lease + cf_div"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "cf_open",
+    "label": "Cash at the start",
+    "rules": {
+     "current": "cash[prev]",
+     "forecast": "cash[prev]"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": true,
+    "key": "cf_close",
+    "label": "Cash at the end",
+    "rules": {
+     "current": "cf_open + cf_change",
+     "forecast": "cf_open + cf_change"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "netdebt",
+    "label": "Borrowings and leases less cash",
+    "rules": {
+     "year_end": "debt + lease - cash"
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "nd_ebitda",
+    "label": "   as a multiple of the year's EBITDA",
+    "rules": {
+     "current": "div(netdebt, ebitda)",
+     "forecast": "div(netdebt, ebitda)",
+     "past_year": "div(netdebt, ebitda)"
+    },
+    "segment": null,
+    "unit": "times"
+   },
+   {
+    "heading": "CHECKS ON THE PAST (the model's lines against the filing's own totals; must be 0)"
+   },
+   {
+    "bold": false,
+    "key": "r_pbt",
+    "label": "Profit before tax, as the filing prints it",
+    "rules": {
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "r_pat",
+    "label": "Profit after tax, as the filing prints it",
+    "rules": {
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "r_own",
+    "label": "Owners' profit, as the filing prints it",
+    "rules": {
+     "past": {
+      "typed": "figure"
+     }
+    },
+    "segment": null,
+    "unit": "money"
+   },
+   {
+    "bold": false,
+    "key": "chk_pbt",
+    "label": "Profit before tax: model less filing",
+    "rules": {
+     "past": "pbt - r_pbt"
+    },
+    "segment": null,
+    "unit": "check"
+   },
+   {
+    "bold": false,
+    "key": "chk_pat",
+    "label": "Profit after tax: model less filing",
+    "rules": {
+     "past": "pat - r_pat"
+    },
+    "segment": null,
+    "unit": "check"
+   },
+   {
+    "bold": false,
+    "key": "chk_own",
+    "label": "Owners' profit: model less filing",
+    "rules": {
+     "past": "pat_own - r_own"
+    },
+    "segment": null,
+    "unit": "check"
+   }
+  ]
+ }
+}

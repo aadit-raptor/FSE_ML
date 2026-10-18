@@ -64,13 +64,21 @@ def running_count(key: str, label: str, closures: bool = False, days: str = "day
     return rows
 
 
-def cost(key: str, label: str, revenue: str, places: str, place: str = "{place}", days: str = "days") -> list:
+def cost(key: str, label: str, revenue: str, places: str | None, place: str = "{place}", days: str = "days") -> list:
     """A cost that is a share of revenue plus an amount per place per day.
 
     One of the two assumptions is left at nil: food follows revenue, staff and
     power follow rooms. The two "as it came out" rows show every period both
-    ways, so the analyst sees which one the past supports.
+    ways, so the analyst sees which one the past supports. A model that counts
+    no places (`places` None) has the share of revenue alone.
     """
+    if places is None:
+        forward = "%s_sh * %s" % (key, revenue)
+        return [
+            Row(key, label, "money", {"past": FIGURE, "rest": forward, "current": added_up(key), "forecast": forward}),
+            Row(key + "_sh", "   assumption: share of revenue", "share", {"rest": ASSUME, "forecast": ASSUME}),
+            Row(key + "_m1", "   as it came out: share of revenue", "share", {"all": "div(%s, %s)" % (key, revenue)}),
+        ]
     forward = "%s_sh * %s + %s_pd * %s * %s / %s" % (key, revenue, key, places, days, UNIT)
     return [
         Row(key, label, "money", {"past": FIGURE, "rest": forward, "current": added_up(key), "forecast": forward}),

@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,12 +1423,12 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0, R1a, R1b, R2 and R3 are done (R1b: the held-out filings meet the
-3% amber bar the user set, so production reads); billing with a cap still
+R0, R1a, R1b, R2, R3 and R4 are done (R1b: the held-out filings meet the
+3% amber bar the user set, so production reads; R4's model is "not yet
+vetted" until an analyst reads it); billing with a cap still
 comes before the first showing to analysts
-(PLAN.md R2's "Before the first showing"); the next task is **R4** (sector
-research and the first sector model; part a and the first slice of part b
-are done), then R5 to R9 in order, unless what the analysts say after R2
+(PLAN.md R2's "Before the first showing"); the next task is **R5** (save
+back and roll forward), then R6 to R9 in order, unless what the analysts say after R2
 reorders them; 6.2
 onwards and phases 7 to 12 wait, except what a phase R task pulls forward
 and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
@@ -1531,6 +1531,35 @@ blocks, quarterly actuals, screens, the add-in, an endpoint; with the
 endpoint come the Dockerfile, `render.yaml` and `staging.yml` lines for
 `research/`: done with R1a). The rest of part b comes in its turn, after
 R1 to R3.
+**R4 is done (2026-10-18): sector models** (PLAN.md R4 part b). **The
+eight revenue blocks** are `research/blocks.py` (row keys and word slots
+start with the line's key, `s1_...`; a capacity line's choices are
+`line<key number>_past`/`_end_to_date`); **the lower part every model
+shares** is `research/lower.py`; **a model is built from a structure**
+(`research/compose.py`: lines in order, each a key `s1`-`s8` and a block,
+`places` = the counting line costs per place follow): `add_segment`,
+`drop_segment`, `swap_block` then `normalise`, so no change breaks a
+formula; `fit` drops a company's figures the changed model has no place for.
+`research/models/` holds `CATALOGUE` (`occupancy` = model 1, offered;
+`general` = model 7, **built but not offered until two companies are solved
+by hand**, rule 4). **Model 1 built from blocks is pinned to
+`tests/fixtures/research/model1_definition.json`** (every row, rule, label
+and note as before the blocks): a change to model 1 updates that file
+deliberately. `evaluate(..., partial=True)` leaves cells reading an
+assumption not typed, or dividing by a blank figure, blank (`missing`,
+`undefined`) instead of refusing. **The workbook is `sheets()`, one cell
+description** written by the download and by the add-in's Load model
+(`/api/research/models/cells`, sheet-scoped names, fills);
+`tests/addin_cells_check.py` compares fills and names too.
+`research/actuals.py` (`GET /api/research/companies/{id}/fill`) fills
+`ly`/`ytd` from accepted quarters (the filing's year-to-date column, else
+its quarters added, months reported from the stored `year_end_month`).
+Endpoints (`api/routers/research_models.py`) store nothing and are not runs;
+refusals are 422 `{code, message}`. `research/models/examples.json` (the two
+hand-solved companies) is written by `python -m tests.research_examples`,
+checked stale. Screen: Coverage -> **Model** (`components/coverage/ModelStep.tsx`,
+`ModelGrid.tsx`, `lib/sectorModel.ts`: the model lives in page memory until
+R5 saves it); add-in `components/excel/ModelInPane.tsx`.
 **R1a is done (2026-10-15): the results reader** (`research/reader/`,
 DEPLOY.md "Results reader"). **Decided by the user (2026-10-14): built on a
 free Gemini key** (Google project `variater-reader`, no billing; `AI_PROVIDER`
@@ -1657,7 +1686,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). **Next is R4** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). **Next is R5** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1859,8 +1888,10 @@ golden snapshot is untouched and parity tests explain every departure.
   on Google project `variater-reader`, then `AI_FREE_TIER=0` on both Render
   services (DEPLOY.md "Results reader").
 
-- PLAN.md R4 part b: **LibreOffice in CI** (one workflow edit Claude's token
-  can't push). In `.github/workflows/tests.yml`, job `ml`: before the step
+- PLAN.md R4: **LibreOffice in CI** (one workflow edit Claude's token
+  can't push; on the Mac it is installed since 2026-10-18 and agrees with
+  the server on every cell of model 1's two companies and of a model of all
+  eight blocks). In `.github/workflows/tests.yml`, job `ml`: before the step
   "Run all tests, failing if any ML test skips" add a step that runs
   `sudo apt-get install -y -qq libreoffice-calc` and then
   `soffice --version`, and give the test step `env: FSE_REQUIRE_SOFFICE: "1"`.
@@ -2142,8 +2173,9 @@ Skills load when a session starts: install first, then open a new session.
   Excel"`) opened the workbook and then timed out, leaving it open: don't
   count on it to recalculate a file. openpyxl writes formulas without their
   values, so until Excel has opened and saved a workbook, Quick Look and
-  `data_only=True` show blanks. Part b's "real spreadsheet engine in CI" is
-  LibreOffice, which the Mac does not have.
+  `data_only=True` show blanks. The real spreadsheet engine is LibreOffice
+  (`brew install --cask libreoffice`, on the Mac since 2026-10-18): with
+  `soffice` on the PATH the LibreOffice tests run by themselves.
 - A company's "investor relations" page may sit behind a bot check
   (yatharthhospitals.com): don't get round it. Newspapers keep copies of
   exchange announcements (`bsmedia.business-standard.com/_media/bs/data/announcements/...`),
@@ -2193,6 +2225,13 @@ Skills load when a session starts: install first, then open a new session.
   program the runner may lack (LibreOffice) is defined only where the
   program is found or a `FSE_REQUIRE_*` variable demands it
   (`tests/test_research_workbook.py`), never `pytest.skip`ped.
+- In Python `0.0 in (None, False)` is True (`0.0 == False`): a filter that
+  drops "no value" this way drops every nil figure. Test `is None` / `is
+  False` (`research/workbook.py` `put`).
+- A run of a sector model after the analyst swaps a line must `fit` the
+  company first (`research/compose.py`): the figures typed for the old rows
+  would otherwise be refused, and a wrong choice is still refused, never
+  replaced.
 - openpyxl turns any string that starts with `=` into a formula. Text that
   a person typed (a company's name, a label, a reason) goes into a workbook
   with its `data_type` forced to `"s"` (`research/workbook.py` `_put`).
@@ -2486,7 +2525,10 @@ Skills load when a session starts: install first, then open a new session.
   database address, the store's directory). Use `with monkeypatch.context()
   as m:` for a patch that should end mid-test.
 - A new endpoint that runs a model or calls an outside source: add its path
-  to `RUN_PATHS` in `api/limits.py`; if it simulates, also to
+  to `RUN_PATHS` in `api/limits.py` (one exception, decided in R4: the sector
+  model endpoints, `/api/research/models/*`, are a hundred-odd rows of plain
+  arithmetic run on every keystroke, so they count only against the 240
+  requests a minute, like the live sliders); if it simulates, also to
   `SIMULATION_PATHS` and put `@simulation_slot` under its route decorator.
   A new simulation-size input needs a cap (`SimulationPaths` in
   `api/schemas.py`).

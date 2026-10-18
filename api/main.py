@@ -31,7 +31,7 @@ from api.routers import (
     account, addin, backtesting, benchmarks, companies, coverage, deal, deals, economy, export, files, forecasting,
     integrations, jobs,
     library,
-    montecarlo, research, scheduled, validation,
+    montecarlo, research, research_models, scheduled, validation,
 )
 from db import DatabaseUnavailable
 from db import health as db_health
@@ -210,7 +210,8 @@ def create_app() -> FastAPI:
     # here, not endpoint by endpoint, means a new route is protected by
     # default -- forgetting is impossible rather than unlikely.
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
-                   jobs, companies, economy, benchmarks, library, validation, files, research, coverage, addin):
+                   jobs, companies, economy, benchmarks, library, validation, files, research, coverage,
+                   research_models, addin):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,

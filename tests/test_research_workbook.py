@@ -147,7 +147,7 @@ def test_words_that_start_with_an_equals_sign_stay_words():
     company.name = "=1+1"
     company.unit_name = "=2+2"
     company.basis = "=3+3"
-    company.words = {**company.words, "occ": "=HYPERLINK(\"http://x\")", "s1": "=4+4"}
+    company.words = {**company.words, "s1_occ": "=HYPERLINK(\"http://x\")", "s1": "=4+4"}
     company.period_labels = {**company.period_labels, "y1": "=5+5"}
     company.marks = {"rev": {"ly": {"level": "amber", "why": "=6+6"}}}
     wb, where, plan = write(model, company), layout(model), cells(model, company)

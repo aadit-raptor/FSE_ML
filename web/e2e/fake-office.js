@@ -4,8 +4,8 @@
  *
  * - the dialog: displayDialogAsync opens the page in a window of its own, as Excel on the web does, and the
  *   page's messageParent reaches the pane only from this site's own origin;
- * - the workbook: every value, formula, number format, bold, note, column width and frozen pane the pane
- *   asks for, kept per sheet; window.__excelWritten() answers them in the shape
+ * - the workbook: every value, formula, number format, bold, font colour and size, fill, alignment, note,
+ *   column width, row height, frozen pane and sheet-scoped defined name the pane asks for, kept per sheet; window.__excelWritten() answers them in the shape
  *   tests/addin_cells_check.py compares with the download.
  *
  * Plain script, no imports: it runs where Office.js would.
@@ -29,7 +29,7 @@
   }
 
   function makeSheet(name) {
-    var sheet = { name: name, cells: {}, widths: {}, freeze: null, active: false };
+    var sheet = { name: name, cells: {}, widths: {}, heights: {}, names: {}, freeze: null, active: false };
     sheets.push(sheet);
     function cell(address) {
       if (!sheet.cells[address]) sheet.cells[address] = {};
@@ -42,6 +42,10 @@
         if (column) {
           // Excel's conversion: n characters are n x 7 + 5 pixels, a pixel 0.75 points
           return { format: { set columnWidth(points) { sheet.widths[column[1]] = Math.round((points / 0.75 - 5) / 7 * 1000) / 1000; } } };
+        }
+        var whole = /^(\d+):\1$/.exec(address);
+        if (whole) {
+          return { format: { set rowHeight(points) { sheet.heights[whole[1]] = points; } } };
         }
         if (!/^[A-Z]+\d+$/.test(address)) throw new Error("fake Excel takes one cell at a time: " + address);
         var target = cell(address);
@@ -62,7 +66,17 @@
           set numberFormat(v) {
             target.format = v[0][0];
           },
-          format: { font: { set bold(b) { if (b) target.bold = true; else delete target.bold; } } },
+          format: {
+            font: {
+              set bold(b) { if (b) target.bold = true; else delete target.bold; },
+              set color(c) { target.color = String(c).replace(/^#/, ""); },
+              set size(n) { target.size = n; },
+            },
+            fill: { set color(c) { target.fill = String(c).replace(/^#/, ""); } },
+            set horizontalAlignment(a) { target.align = String(a).toLowerCase(); },
+            set wrapText(w) { if (w) target.wrap = true; },
+          },
+          address: address,
         };
       },
       freezePanes: {
@@ -72,6 +86,14 @@
           sheet.freeze = letters(columnNumber(m[1]) + 1) + (Number(m[2]) + 1);
         },
         unfreeze: function () { sheet.freeze = null; },
+      },
+      names: {
+        // worksheet-scoped names, as ws.names.add makes them (ExcelApi 1.4)
+        add: function (defined, range) {
+          if (sheet.names[defined]) throw new Error("fake Excel: the name " + defined + " is taken on " + name);
+          var m = /^([A-Z]+)(\d+)$/.exec(range.address);
+          sheet.names[defined] = "$" + m[1] + "$" + m[2];
+        },
       },
       notes: {
         add: function (address, content) {
@@ -112,7 +134,8 @@
   window.__excelWritten = function () {
     return {
       sheets: sheets.filter(function (s) { return s.name !== "Sheet1"; }).map(function (s) {
-        return { name: s.name, cells: s.cells, widths: s.widths, freeze: s.freeze, active: s.active };
+        return { name: s.name, cells: s.cells, widths: s.widths, heights: s.heights, names: s.names, freeze: s.freeze,
+                 active: s.active };
       }),
     };
   };

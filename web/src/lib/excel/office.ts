@@ -23,7 +23,14 @@ export type ExcelRange = {
   values: unknown[][];
   formulas: unknown[][];
   numberFormat: unknown[][];
-  format: { font: { bold: boolean }; columnWidth: number };
+  format: {
+    font: { bold: boolean; color: string; size: number };
+    fill: { color: string };
+    horizontalAlignment: string;
+    wrapText: boolean;
+    columnWidth: number;
+    rowHeight: number;
+  };
 };
 
 export type ExcelWorksheet = {
@@ -31,6 +38,7 @@ export type ExcelWorksheet = {
   getRange(address: string): ExcelRange;
   freezePanes: { freezeAt(range: string): void; unfreeze(): void };
   notes?: { add(cellAddress: string, content: string): void };
+  names?: { add(name: string, reference: ExcelRange): void };
   activate(): void;
 };
 

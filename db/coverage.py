@@ -232,9 +232,10 @@ def company_figures(subject: str, company_id: uuid.UUID) -> list[dict]:
     """Every period kept for one of the caller's companies, with its figures:
     what a new read of that company is compared with."""
     with connect() as conn:
-        rows = conn.execute(select(CoveredPeriod.scope, CoveredPeriod.unit, CoveredPeriod.figures).where(
+        rows = conn.execute(select(CoveredPeriod.scope, CoveredPeriod.unit, CoveredPeriod.currency,
+                                   CoveredPeriod.figures).where(
             CoveredPeriod.company_id == company_id, CoveredPeriod.owner_id == _owner_id(subject))).all()
-    return [{"scope": r.scope, "unit": r.unit, "figures": r.figures} for r in rows]
+    return [{"scope": r.scope, "unit": r.unit, "currency": r.currency, "figures": r.figures} for r in rows]
 
 
 def delete_period(subject: str, period_id: uuid.UUID, *, now: Optional[datetime] = None) -> None:
