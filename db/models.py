@@ -23,7 +23,7 @@ from typing import Optional
 
 from sqlalchemy import (
     BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Identity, Index, Integer,
-    MetaData, Numeric, SmallInteger, String, UniqueConstraint, Uuid, false, func, text, true,
+    MetaData, Numeric, SmallInteger, String, Text, UniqueConstraint, Uuid, false, func, text, true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -288,7 +288,10 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  "coverage_added", "coverage_removed", "period_accepted", "period_removed",
                  # The person changed a covered company's saved sector model (on screen or from Excel), kept
                  # a version of it, restored one, or rolled it forward on new results (PLAN.md R5)
-                 "model_saved", "model_versioned", "model_restored", "model_rolled")
+                 "model_saved", "model_versioned", "model_restored", "model_rolled",
+                 # The person changed a covered company's results note, or the account's firm name and
+                 # disclosures every note carries (PLAN.md R8)
+                 "report_saved", "report_details_saved")
 
 
 class AuditEvent(Base):
@@ -887,3 +890,50 @@ class ResearchModelVersion(Base):
     as_of: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     comparison: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class ResearchReport(Base):
+    """A covered company's results note, as the analyst keeps it (PLAN.md R8): one per company.
+
+    ``fields`` is what the analyst typed for it (research/report.py
+    ``Fields``: the argument, the rating, the target, the note's date, the
+    version the estimates are set against); ``sentences`` the linking
+    sentences last written for it (research/writer.py: text with slots, never
+    a figure). Every figure of the note is read from the saved model when it
+    is drawn, so none is stored here. Private to its owner
+    (db/research_reports.py).
+    """
+
+    __tablename__ = "research_reports"
+    __table_args__ = (
+        UniqueConstraint("company_id", name="uq_research_reports_company_id"),
+        Index("ix_research_reports_owner_id", "owner_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("coverage_companies.id", ondelete="CASCADE"), nullable=False)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    fields: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    sentences: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class ResearchReportDetails(Base):
+    """The firm name and disclosures an account's notes carry (PLAN.md R8), typed once.
+
+    What the analyst types, kept as typed: a firm, not a person, though the
+    disclosures are theirs to word (a registration number, conflicts). Never
+    logged; ``/privacy`` says it is stored.
+    """
+
+    __tablename__ = "research_report_details"
+
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    firm: Mapped[str] = mapped_column(String(200), nullable=False, server_default="")
+    disclosures: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+

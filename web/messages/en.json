@@ -540,6 +540,8 @@
     "activityExport_simulation_sample": "Simulated paths, Excel",
     "activityExport_results_workbook": "Checked statements, Excel",
     "activityExport_results_excel": "Checked statements, into Excel by the add-in",
+    "activityExport_report_word": "Results note, as a Word file",
+    "activityExport_report_pdf": "Results note, as a PDF",
     "tileWorkingCapital": "Working capital",
     "useExplicitTranches": "Use explicit tranches",
     "explicitTranchesNote": "Writes the debt above out as two facilities you can edit, add to, reorder and remove. This deal's results stay exactly as they are. The exit-sensitivity grid's other holds will differ: a listed facility matures when its terms say, not with the hold.",
@@ -612,6 +614,8 @@
     "activity_model_versioned": "Kept version {version} of a sector model",
     "activity_model_restored": "Restored version {version} of a sector model",
     "activity_model_rolled": "Sector model rolled forward",
+    "activity_report_saved": "Results note saved",
+    "activity_report_details_saved": "Report details saved",
     "groupCredit": "Credit"
   },
   "montecarlo": {

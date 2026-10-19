@@ -1290,7 +1290,8 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "validation_opted_in", "validation_opted_out", "suggestions_switched",
                       "file_uploaded", "file_deleted", "coverage_added", "coverage_removed",
                       "period_accepted", "period_removed",
-                      "model_saved", "model_versioned", "model_restored", "model_rolled"]
+                      "model_saved", "model_versioned", "model_restored", "model_rolled",
+                      "report_saved", "report_details_saved"]
 
 
 class AuditEntry(BaseModel):
@@ -1309,7 +1310,8 @@ class AuditEntry(BaseModel):
                           "a deal's settings, setting keys for the account's")
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
-    export: Optional[Literal["workbook", "simulation_sample", "results_workbook", "results_excel"]] = None
+    export: Optional[Literal["workbook", "simulation_sample", "results_workbook", "results_excel", "report_word",
+                             "report_pdf"]] = None
     enabled: Optional[bool] = Field(
         None, description="Whether the reference library was shown or hidden, or suggestions of the "
                           "account's usual figures switched on or off")
