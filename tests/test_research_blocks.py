@@ -15,6 +15,7 @@ from research import compose
 from research.definition import Company
 from research.evaluate import evaluate
 from research.models import CATALOGUE
+from tests import research_support as support
 
 L = 100_000
 DAYS = {"ly": 365, "ytd": 183, "roy": 182, "y1": 365, "y2": 366}
@@ -26,7 +27,7 @@ def run(block, values, choices=None, second=None):
     structure = compose.Structure("general", segments, "s1" if block in ("capacity", "units", "subscribers", "people") else None)
     model = CATALOGUE.build(structure)
     company = Company(name="Case", unit_name="Rs lakh", sector="pharma", constants={"unit_rupees": L},
-                      choices=choices or {}, values={"days": DAYS, **values})
+                      choices={**support.VALUE_CHOICES, **(choices or {})}, values={"days": DAYS, **values})
     return evaluate(model, company, partial=True).values
 
 

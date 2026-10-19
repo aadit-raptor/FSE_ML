@@ -150,7 +150,7 @@ def test_the_add_in_is_given_the_same_cells_as_the_download(blank):
     company = ex["company"]
     if blank:                                        # assumptions to type in Excel: blank yellow cells, still named
         company = {**company, "values": {k: {p: v for p, v in by.items() if p in ("ly", "ytd")}
-                                         for k, by in company["values"].items()}}
+                                         for k, by in company["values"].items() if not k.startswith("v_")}}
     payload = {"structure": ex["structure"], "company": company}
     cells = client.post("/api/research/models/cells", json=payload)
     download = client.post("/api/research/models/workbook", json=payload)
@@ -161,9 +161,9 @@ def test_the_add_in_is_given_the_same_cells_as_the_download(blank):
     assert problems == []
     assert count > 700
     named = body["sheets"][0]["names"]
-    assert len(named) == 100 and named["unit_rupees"] == "$C$4"           # 99 assumption cells and the constant
+    assert len(named) == 105 and named["unit_rupees"] == "$C$4"           # 104 assumption cells and the constant
     yellow = [c for c in body["sheets"][0]["cells"] if c.get("fill") == "FFF8D6"]
-    assert len(yellow) == 99 and (all(c.get("number") is None for c in yellow) if blank else True)
+    assert len(yellow) == 104 and (all(c.get("number") is None for c in yellow) if blank else True)
     changed = as_written(body)
     first = next(spec for spec in changed["sheets"][0]["cells"].values() if spec.get("fill") == "FFF8D6")
     first["fill"] = "FFFFFF"

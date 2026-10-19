@@ -10,6 +10,7 @@ from research import actuals
 from research.models import occupancy
 from research.definition import Company
 from research.evaluate import evaluate
+from tests import research_support as support
 
 
 def table(statement, columns, rows):
@@ -120,7 +121,8 @@ def test_a_52_week_year_ending_within_a_week_of_the_month_end_still_counts_as_la
 def test_the_fill_goes_into_model_1_and_its_past_works_out():
     fill = actuals.fill([period([results(H1, [1000, 900, 950, 1900, 1800, 3800]), BALANCE])])
     company = Company("Filled", "Rs lakh", sector="hotels", constants={"unit_rupees": fill.unit_rupees},
-                      choices={"line1_past": "revenue", "line1_end_to_date": "average"}, values=fill.values)
+                      choices={"line1_past": "revenue", "line1_end_to_date": "average", **support.VALUE_CHOICES},
+                      values=fill.values)
     v = evaluate(occupancy.MODEL, company, partial=True).values
     assert v["rev"]["ly"] == 3800 and v["ebitda"]["ly"] == pytest.approx(3800 - 95 - 200 - 50)
     assert v["pbt"]["ly"] == pytest.approx(3800 - 95 - 200 - 50 - 40 + 10 - 30)

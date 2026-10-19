@@ -190,6 +190,11 @@ def roll(model: Model, company: Company, as_of: dict | None, fill: Fill) -> Roll
                 else:
                     carry(row, LY, before.get(row, {}).get(CY),
                           "The model's estimate for %s when it rolled forward: type the year as reported." % new_ly)
+        # the valuation's assumptions stay in last year's column, but it is now as at the new year end (PLAN.md R6)
+        for row in ("v_price", "v_date"):
+            if plan.get((row, LY)) is not None and plan[(row, LY)].typed is ASSUME:
+                carry(row, LY, old_values.get(row, {}).get(LY),
+                      "Typed before the model rolled forward: the valuation is now as at the end of %s." % new_ly)
         _past_to_date(model, company, plan, fill, values, put, carry, to_type, start_of_year=True)
         year_days = (_year_on(_day(fill.as_of["ly_end"])) - _day(fill.as_of["ly_end"])).days
         to_date = (values.get("days") or {}).get(YTD) or 0

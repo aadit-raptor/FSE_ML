@@ -23,7 +23,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field, replace
 
-from research import blocks, formula, lower
+from research import blocks, formula, lower, valuation
 from research.definition import Heading, Model, ModelError, check
 from research.formula import FormulaError
 from research.pieces import UNIT, days_row, periods
@@ -204,10 +204,11 @@ def build(spec: Spec, structure: Structure, specs: dict | None = None) -> Model:
         revenue_rows.append(seg.key + "_rev")
     places = structure.places + "_avg" if structure.places else None
     rows += lower.rows(revenue_rows, places)
+    rows += valuation.rows(structure.forecast_years)
     model = Model(
         id=spec.id, name=spec.name, periods=periods(structure.forecast_years),
         constants={UNIT: "{currency} in one unit of the statements (prices per day are in {currency})"},
-        rows=tuple(rows), sectors=_words(spec, structure), notes=tuple(spec.notes) + tuple(changes(spec, structure)),
+        rows=tuple(rows), sectors=_words(spec, structure), notes=tuple(spec.notes) + valuation.NOTES + tuple(changes(spec, structure)),
         vetted=spec.vetted)
     check(model)
     return model
@@ -252,8 +253,10 @@ def fit(model: Model, company):
     rows = {r.key: r for r in model.data_rows()}
     periods = {p.name: p for p in model.periods}
     choices = model.choices()
-    picked = {k: v for k, v in company.choices.items() if k in choices}       # a wrong answer is still refused
-    for choice in choices:
+    picked = {k: v for k, v in company.choices.items() if k in choices}       # a wrong answer is still refused,
+    for choice in choices:                                                    # but a year the model no longer has
+        if choice in picked and picked[choice] not in choices[choice] and choices[choice] <= set(periods):
+            del picked[choice]                                                # goes back to the first option
         if choice not in picked:
             first = next(rule.options for r in rows.values() for rule in r.rules.values()
                          if isinstance(rule, Pick) and rule.choice == choice)

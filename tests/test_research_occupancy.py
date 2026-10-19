@@ -80,14 +80,17 @@ def test_headline_figures_of_the_hand_build():
 
 def test_one_model_serves_both_companies_and_only_the_choices_differ():
     hospital, hotel = (support.company(support.load(s)) for s in SLUGS)
-    assert hospital.choices == {"line1_past": "revenue", "line1_end_to_date": "average"}
-    assert hotel.choices == {"line1_past": "drivers", "line1_end_to_date": "typed"}
+    assert hospital.choices == {"line1_past": "revenue", "line1_end_to_date": "average",
+                                "value_multiple": "ev_ebitda", "value_year": "y1"}
+    assert hotel.choices == {"line1_past": "drivers", "line1_end_to_date": "typed",
+                             "value_multiple": "pe", "value_year": "y2"}
     a, b = cells(MODEL, hospital), cells(MODEL, hotel)
     assert set(a) == set(b)
     future = [k for k in a if k[1] in ("roy", "cy", "y1", "y2")]
     assert len(future) > 300
-    for key in future:                                               # every forecast cell is the same rule
-        assert a[key].tree == b[key].tree and a[key].typed == b[key].typed, key
+    for key in future:                                               # every forecast cell is the same rule,
+        if key[0] != "v_mv":                                         # but for the multiple each values on
+            assert a[key].tree == b[key].tree and a[key].typed == b[key].typed, key
     differ = {k[0] for k in a if k[1] in ("ly", "ytd") and (a[k].tree is None) != (b[k].tree is None)}
     assert differ == {"s1_avg", "s1_rev", "s1_end"}                 # which figure is worked out
     assert a[("s1_avg", "ly")].tree is not None and a[("s1_rev", "ly")].typed is FIGURE
@@ -158,9 +161,10 @@ def test_the_model_is_checked_data_and_says_what_it_leaves_out():
     assert MODEL.vetted is False
     assert any("Deferred tax is left out" in note for note in MODEL.notes)
     assert set(MODEL.sectors) == {"hospitals", "hotels"}
-    assert MODEL.choices() == {"line1_past": {"drivers", "revenue"}, "line1_end_to_date": {"typed", "average"}}
+    assert MODEL.choices() == {"line1_past": {"drivers", "revenue"}, "line1_end_to_date": {"typed", "average"},
+                               "value_multiple": {"ev_ebitda", "pe"}, "value_year": {"cy", "y1", "y2"}}
     picks = [r.key for r in MODEL.data_rows() if any(isinstance(rule, Pick) for rule in r.rules.values())]
-    assert sorted(picks) == ["s1_avg", "s1_end", "s1_rev"]
+    assert sorted(picks) == ["s1_avg", "s1_end", "s1_rev", "v_mps", "v_mv"]
 
 
 def test_more_forecast_years_are_more_columns_of_the_same_rows():

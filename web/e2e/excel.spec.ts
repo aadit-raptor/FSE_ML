@@ -155,7 +155,7 @@ test.describe("Excel add-in", () => {
     const written = await page.evaluate(() => (window as unknown as { __excelWritten: () => { sheets: { name: string; active: boolean; names: Record<string, string> }[] } }).__excelWritten());
     expect(written.sheets.map((s) => s.name)).toEqual(["Model", "Notes"]);
     expect(written.sheets[0].active).toBe(true);
-    expect(Object.keys(written.sheets[0].names).length).toBe(100);
+    expect(Object.keys(written.sheets[0].names).length).toBe(105);       // with the valuation's five (PLAN.md R6)
 
     const headers = await asUser(page);
     const catalogue = await (await page.request.get("/api/research/models", { headers })).json();
