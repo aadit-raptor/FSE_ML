@@ -212,7 +212,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R2 | Coverage, review screen and the checked workbook | R1a | ☑ |
 | R3 | Excel add-in: sign in and import results | R2 | ☑ |
 | R4 | Sector research, the model definition and the first sector model | R2 | ☑ |
-| R5 | Save back and roll forward | R3, R4 | ☐ |
+| R5 | Save back and roll forward | R3, R4 | ☑ |
 | R6 | Valuation | R4 | ☐ |
 | R7 | Second and third sector models | R4 | ☐ |
 | R8 | Report draft | R6 | ☐ |
@@ -1277,7 +1277,7 @@ or nearly finished to try. So no task waits for an analyst:
     sector, filling the past from a covered company, or open an example;
     lines of revenue; choices and switched-off lines; the grid of every row
     with typed cells as inputs; download), and **Load model** in the Excel
-    add-in's pane. Not saved yet: R5 keeps a model per company.
+    add-in's pane. Saved per company since R5.
 - **Needs from the user (part b):** the analyst who reads the model. If
   none is found yet, the model ships marked "not yet vetted" and this line
   stays open.
@@ -1318,6 +1318,44 @@ or nearly finished to try. So no task waits for an analyst:
   quarter's actuals after it, unchanged by later edits (test); a workbook
   saved, changed in Excel and saved again returns the changed assumptions;
   a restructured sheet is refused.
+- **Done (2026-10-19).**
+  - **Saved per company** (`db/research_models.py`, migration 0021: tables
+    `research_models`, one per covered company, and
+    `research_model_versions`): autosave of the working copy, checkpoints and
+    versions as saved deals keep them, restore (unsaved edits kept first).
+    A model stores how far its past reaches (`as_of`, from the fill). Both
+    tables count against coverage's 64 MB budget.
+  - **Roll forward** (`research/rollforward.py`, `POST .../model/roll`): the
+    results are read from the caller's accepted periods, never sent by the
+    browser. A later quarter of the year: the year to date is the new
+    results, the rest of the year keeps its assumptions and its days shrink;
+    the estimate for the months just reported is the rest of the year's
+    estimate shared by days (the model holds no quarters; the screen says
+    so). A new year: last year is the year reported, every assumption moves
+    back a year (the last forecast year repeats, amber), and the old
+    current year is compared exactly, balance sheet too. A count or
+    balance the results don't carry is carried amber with why; a flow over
+    the new period is left blank to type. Money comes into the model's unit.
+    **The comparison is stored with the `rolled` version** (the model as it
+    stood), so later edits never change it (tested in Python and the
+    browser).
+  - **Save to Variater** (`research/sheetback.py`, `POST .../model/sheet`):
+    a saved model's sheet carries "Saved in Variater: <company id>" in B1,
+    named `variater_model`; only the named cells (assumptions and constants)
+    are read back; every name must be at its own address and every row's
+    words in column A where they were, else 422 `restructured` naming the
+    first difference; words in a named cell are `not_a_number`.
+  - Screens: Coverage -> Model opens a covered company's saved model, a
+    **Saved** rail group (state, versions, restore, keep in coverage), a
+    "Newer results accepted" notice with **Roll forward**, and the
+    **Estimate against results** tile; the add-in's Load model loads (or
+    starts and saves) the saved model, with **Save to Variater** and **Roll
+    forward**. Audit actions `model_saved`, `model_versioned`,
+    `model_restored`, `model_rolled`.
+  - Known and left (from the review): a version restored after the
+    catalogue changes may no longer build (the screen then refuses it until
+    it is edited); a model without the `unit_rupees` constant is rolled
+    without converting the results' unit.
 
 ### R6 Valuation
 - **Claude does:** inside the model definition, so it is formulas too: a

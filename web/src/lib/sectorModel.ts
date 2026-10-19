@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 
 import { api, type Schemas } from "@/lib/api/client";
 import { downloadPost } from "@/lib/export";
+import { putSaved, savedFrom, type Saved, type SavedRefusal } from "@/lib/savedModel";
 
 /**
  * Sector models (PLAN.md R4): the analyst picks a sector (which picks the model and its words), makes the last
@@ -12,8 +13,9 @@ import { downloadPost } from "@/lib/export";
  * writes it as live Excel formulas (`/workbook`, and `/cells` for the add-in's "Load model"), from one
  * definition.
  *
- * Nothing is saved yet (R5 keeps a model per company with versions): the model on screen lives in this page's
- * memory, kept across steps, and the workbook is how to keep it.
+ * A covered company's model is saved (R5, lib/savedModel.ts): while the model on screen carries a `saved`, every
+ * change that works out is autosaved a moment after the typing rests. A model with none (an example, a company
+ * not covered) lives in this page's memory until it is kept in coverage.
  */
 export type Catalogue = Schemas["ModelCatalogueOut"];
 export type ModelSpec = Schemas["ModelSpecOut"];
@@ -126,6 +128,8 @@ export function prunedTo(company: ModelCompany, run: ModelRun): ModelCompany {
 
 /* ------------------------------------------------------------------ the model on screen, kept across steps */
 
+export type SaveState = "idle" | "saving" | "saved" | "failed";
+
 export type ModelState = {
   owner: string | null;
   structure: Structure | null;
@@ -134,9 +138,15 @@ export type ModelState = {
   refused: Refusal | null;
   fillNotes: string[];
   busy: boolean;
+  saved: Saved | null;
+  saving: SaveState;
+  saveRefused: SavedRefusal | null;
 };
 
-const EMPTY: ModelState = { owner: null, structure: null, company: null, run: null, refused: null, fillNotes: [], busy: false };
+const EMPTY: ModelState = {
+  owner: null, structure: null, company: null, run: null, refused: null, fillNotes: [], busy: false,
+  saved: null, saving: "idle", saveRefused: null,
+};
 let state: ModelState = EMPTY;
 let asked = 0;
 const listeners = new Set<() => void>();
@@ -161,14 +171,71 @@ export function useModelState(owner: string | null): ModelState {
   return current.owner === owner ? current : EMPTY;
 }
 
-/** Work the model out for `structure` and `company` and show it; a later edit's answer wins over an earlier one's. */
-export async function setModel(owner: string | null, structure: Structure, company: ModelCompany, fillNotes?: string[]) {
+/**
+ * Work the model out for `structure` and `company` and show it; a later edit's answer wins over an earlier one's.
+ * `saved` makes it a company's saved model (null: no longer one; left out: as it was). A saved model that works out
+ * is autosaved.
+ */
+export async function setModel(
+  owner: string | null, structure: Structure, company: ModelCompany, fillNotes?: string[], saved?: Saved | null,
+) {
   const mine = ++asked;
-  publish({ owner, structure, company, busy: true, ...(fillNotes ? { fillNotes } : {}) });
+  const keeping = saved === undefined ? {} : { saved, saving: "idle" as SaveState, saveRefused: null };
+  publish({ owner, structure, company, busy: true, ...(fillNotes ? { fillNotes } : {}), ...keeping });
   const { run, refused } = await runModel(structure, company);
   if (mine !== asked) return;
-  if (run) publish({ run, refused: null, busy: false, structure: run.structure, company: prunedTo(company, run) });
-  else publish({ refused: refused ?? null, busy: false });
+  if (run) {
+    publish({ run, refused: null, busy: false, structure: run.structure, company: prunedTo(company, run) });
+    if (state.saved) scheduleSave();
+  } else publish({ refused: refused ?? null, busy: false });
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let saving: Promise<void> = Promise.resolve();
+
+/** Autosave a moment after the last change that worked out; saves go one after another, newest content last. */
+function scheduleSave(wait = 600) {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    saving = saving.then(saveNow);
+  }, wait);
+}
+
+async function saveNow() {
+  const { saved, structure, company, owner } = state;
+  if (!saved || !structure || !company) return;
+  publish({ saving: "saving" });
+  const { model, refused } = await putSaved(saved.companyId, { structure, company, scope: saved.scope, as_of: saved.asOf });
+  if (state.owner !== owner || state.saved?.companyId !== saved.companyId) return;
+  if (model) publish({ saved: savedFrom(model), saving: "saved", saveRefused: null });
+  else publish({ saving: "failed", saveRefused: refused ?? null });
+}
+
+/** Save what is pending now and wait for every save under way: before a roll forward, which reads the saved copy. */
+export async function flushSave() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    saving = saving.then(saveNow);
+  }
+  if (pending) {
+    clearTimeout(pending);
+    pending = null;
+    if (state.structure && state.company) await setModel(state.owner, state.structure, state.company);
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      saving = saving.then(saveNow);
+    }
+  }
+  await saving;
+}
+
+/** Make the model on screen a company's saved model (kept in coverage): saved at once. */
+export function keepAs(saved: Saved) {
+  publish({ saved, saving: "idle", saveRefused: null });
+  scheduleSave(0);
 }
 
 
