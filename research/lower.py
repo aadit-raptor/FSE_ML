@@ -5,19 +5,26 @@ and a cash flow that closes it, and the checks of the model's past against the
 filing's own totals.
 
 It reads the revenue blocks through two names only: each segment's
-``<segment>_rev`` (revenue is their sum) and, when a segment counts places,
-its average (``places``), which costs per place per day are worked on. A model
-whose lines count no places has costs as a share of revenue alone.
+``<segment>_rev`` (revenue is their sum) and the row costs follow
+(``driver``): a segment's average count of places, for costs per place per
+day, or its volume sold, for costs per unit sold (PLAN.md R7). A model with
+neither has costs as a share of revenue alone.
+
+**The cost lines** are a model's own (``costs``): model 1 has four
+(`COSTS`), a cement model adds freight, a retailer has no power line of its
+own. Every model has materials, employees and other expenses; payables are
+days of every cost but employees.
 """
 from __future__ import annotations
 
-from research.definition import ASSUME, FIGURE, Heading, Row
-from research.pieces import added_up, balance, balance_rate, cost, ratio
+from research.definition import ASSUME, FIGURE, Heading, ModelError, Row
+from research.pieces import UNIT, added_up, balance, balance_rate, cost, cost_per_unit, ratio
 
 WORKING_CAPITAL = "(inv[prev] - inv) + (rec[prev] - rec) + (oca[prev] - oca) + (pay - pay[prev]) + (ol - ol[prev])"
-SUPPLIERS = "(mat + pwr + oth)"
 PROFIT = "ebitda - dep + othinc - int_debt - int_lease + assoc"
 COSTS = ("mat", "emp", "pwr", "oth")
+COST_LINES = ("mat", "emp", "pwr", "frt", "oth")     # every cost line a model may have, in the order shown
+NEEDED = ("mat", "emp", "oth")                       # and the ones every model has
 
 NOTES = (
     "Deferred tax is left out: the tax charged is taken as the tax paid, so no deferred tax balance moves.",
@@ -27,24 +34,43 @@ NOTES = (
 )
 
 
-def rows(revenues: list, places: str | None) -> list:
-    """The income statement, balance sheet, cash flow and checks under the revenue lines `revenues`."""
-    return [*_income(" + ".join(revenues), places), *_balance_sheet(), *_cash_flow(), *_checks()]
+def check_costs(costs: tuple) -> None:
+    if any(c not in COST_LINES for c in costs) or not set(NEEDED) <= set(costs) or len(set(costs)) != len(costs):
+        raise ModelError("a model's cost lines are %s, each once, with %s among them, not %r"
+                         % (", ".join(COST_LINES), ", ".join(NEEDED), costs))
 
 
-def _income(revenue: str, places: str | None) -> list:
+def suppliers(costs: tuple) -> str:
+    return "(%s)" % " + ".join(c for c in costs if c != "emp")
+
+
+def rows(revenues: list, driver: tuple | None, costs: tuple = COSTS) -> list:
+    """The income statement, balance sheet, cash flow and checks under the revenue lines `revenues`. `driver`
+    is (row, "day") for costs per place per day, (row, "unit") for costs per unit sold, or None."""
+    check_costs(costs)
+    return [*_income(" + ".join(revenues), driver, costs), *_balance_sheet(costs), *_cash_flow(), *_checks()]
+
+
+def _income(revenue: str, driver: tuple | None, costs_: tuple) -> list:
+    on, per = driver or (None, "day")
+
     def costs(key):
-        return cost(key, "{%s}" % key, revenue="rev", places=places)
+        if per == "unit":
+            return cost_per_unit(key, "{%s}" % key, revenue="rev", volume=on)
+        return cost(key, "{%s}" % key, revenue="rev", places=on)
 
     tax = "tax_rate * max(pbt, 0)"
+    per_unit = [Row("ebitda_pu", "   EBITDA per {place} sold, {currency}", "rupees",
+                    {"all": "div(ebitda * %s, %s)" % (UNIT, on)})] if per == "unit" else []
     return [
         Heading("INCOME STATEMENT"),
         Row("rev", "Revenue from operations", "money",
             {"past": FIGURE, "rest": revenue, "forecast": revenue, "current": added_up("rev")}, bold=True),
         Row("rev_g", "   growth on the year before", "share", {"current": "rev / rev[prev] - 1", "forecast": "rev / rev[prev] - 1"}),
-        *[r for key in COSTS for r in costs(key)],
-        Row("ebitda", "EBITDA (before other income)", "money", {"all": "rev - mat - emp - pwr - oth"}, bold=True),
+        *[r for key in costs_ for r in costs(key)],
+        Row("ebitda", "EBITDA (before other income)", "money", {"all": " - ".join(("rev",) + tuple(costs_))}, bold=True),
         Row("ebitda_m", "   margin", "share", {"all": "div(ebitda, rev)"}),
+        *per_unit,
         *balance_rate("dep", "Depreciation and amortisation", "dep_rate",
                       "   a year's charge as a share of fixed assets at the start", balance="fa"),
         *balance_rate("othinc", "Other income and finance income", "oi_yield",
@@ -68,9 +94,11 @@ def _income(revenue: str, places: str | None) -> list:
     ]
 
 
-def _balance_sheet() -> list:
+def _balance_sheet(costs: tuple) -> list:
     assumed = {"current": ASSUME, "forecast": ASSUME}
-    payables = "pay_days * %s / days" % SUPPLIERS
+    payables = "pay_days * %s / days" % suppliers(costs)
+    pay_label = ("Payables, days of materials, power and other expenses" if costs == COSTS
+                 else "Payables, days of every cost but employees")
     short = "max(min_cash - cash, 0)"
     return [
         Heading("BALANCE SHEET (year ends; the year in progress is rolled from the last year end)"),
@@ -99,8 +127,7 @@ def _balance_sheet() -> list:
         Row("dividends", "Dividends paid in the year", "money", assumed),
         Row("inv_days", "Inventories, days of materials used", "count", {"past_year": "div(inv * days, mat)", **assumed}),
         Row("rec_days", "Receivables, days of revenue", "count", {"past_year": "div(rec * days, rev)", **assumed}),
-        Row("pay_days", "Payables, days of materials, power and other expenses", "count",
-            {"past_year": "div(pay * days, %s)" % SUPPLIERS, **assumed}),
+        Row("pay_days", pay_label, "count", {"past_year": "div(pay * days, %s)" % suppliers(costs), **assumed}),
         Row("min_cash", "The least cash the company wants to hold", "money", assumed),
         Row("short", "Cash still to be found (0 when the plan funds itself)", "money", {"current": short, "forecast": short}),
     ]

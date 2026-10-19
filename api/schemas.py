@@ -2891,7 +2891,8 @@ class PeriodCells(BaseModel):
 # ---------------------------------------------------------------------------
 # Sector models (PLAN.md R4)
 # ---------------------------------------------------------------------------
-ResearchBlock = Literal["capacity", "units", "price_volume", "subscribers", "people", "order_book", "growth", "share"]
+ResearchBlock = Literal["capacity", "units", "price_volume", "subscribers", "people", "order_book", "growth", "share",
+                        "plant", "stores"]
 SegmentKey = Annotated[str, Field(pattern=r"^s[1-8]$")]
 ModelText = Annotated[str, Field(max_length=200)]
 RowName = Annotated[str, Field(max_length=60)]
@@ -3025,7 +3026,9 @@ class ModelSpecOut(BaseModel):
 
 class ModelBlockOut(BaseModel):
     id: ResearchBlock
-    counts_places: bool
+    counts_places: bool = Field(description="Costs per place per day, or per unit sold, can follow this line")
+    costs_per: Optional[Literal["day", "unit"]] = Field(
+        None, description="What costs follow on this line: a place per day, a unit sold, or nothing")
 
 
 class ModelExampleOut(BaseModel):

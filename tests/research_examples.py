@@ -1,6 +1,6 @@
-"""Writes `research/models/examples.json`: model 1's two companies solved by
-hand (PLAN.md R4 part a), as the screen and the add-in open them, from the
-fixtures in `tests/fixtures/research/` (public filings only).
+"""Writes `research/models/examples.json`: the companies solved by hand for
+each offered model (PLAN.md R4 part a, R7), as the screen and the add-in open
+them, from the fixtures in `tests/fixtures/research/` (public filings only).
 
     python -m tests.research_examples
 
@@ -12,19 +12,23 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from research.models import occupancy
+from research.models import CATALOGUE
 from tests import research_support as support
 
 OUT = Path(__file__).resolve().parent.parent / "research" / "models" / "examples.json"
-EXAMPLES = (("yatharth-hospital", "hospitals"), ("lemon-tree-hotels", "hotels"))
+EXAMPLES = (("yatharth-hospital", "hospitals"), ("lemon-tree-hotels", "hotels"),
+            ("jk-lakshmi-cement", "model2_jk_lakshmi"), ("star-cement", "model2_star_cement"),
+            ("avenue-supermarts", "model3_avenue_supermarts"), ("v-mart-retail", "model3_v_mart"))
 
 
 def examples() -> list:
     out = []
-    for slug, fixture in EXAMPLES:
-        company = asdict(support.company(support.load(fixture)))
+    for slug, name in EXAMPLES:
+        fixture = support.load(name)
+        company = asdict(support.company(fixture))
         company["off"] = list(company["off"])
-        out.append({"id": slug, "structure": occupancy.DEFAULT.to_dict(), "company": company})
+        structure = CATALOGUE.spec(fixture.get("model", "occupancy")).default
+        out.append({"id": slug, "structure": structure.to_dict(), "company": company})
     return out
 
 

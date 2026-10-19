@@ -64,6 +64,37 @@ test.describe("Sector models", () => {
     expect((await download).suggestedFilename()).toBe("Lemon_Tree_Hotels_Limited_occupancy_model.xlsx");
   });
 
+  test("models 2 and 3: freight per tonne and stores opened move the projection to the server's answer", async ({ page }) => {
+    // PLAN.md R7: Star Cement (per tonne) and V-Mart (stores), each solved by hand
+    await signInAs(page, `models-r7-${run}`, "en-US");
+    await page.goto("/coverage/model");
+    await page.getByLabel("Start from").selectOption("star-cement");
+    await page.getByRole("button", { name: "Start the model" }).click();
+    await expect(page.locator('[data-model-grid="per_tonne"]')).toBeVisible();
+    await expect(page.getByText("Not yet vetted", { exact: true })).toBeVisible();
+    const money = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const before = await serverValue(page, "star-cement", {}, "pat_own", "y1");
+    await expect(cell(page, "pat_own", "y1")).toHaveText(money(before));
+    const freight = cell(page, "frt_pu", "y1").locator("input");
+    await freight.fill("2100");
+    await freight.press("Enter");
+    const after = await serverValue(page, "star-cement", { frt_pu: { y1: 2100 } }, "pat_own", "y1");
+    expect(after).toBeLessThan(before - 1000);                           // Rs 230 a tonne more on 6 million tonnes
+    await expect(cell(page, "pat_own", "y1")).toHaveText(money(after));
+
+    await page.getByLabel("Start from").selectOption("v-mart-retail");
+    await page.getByRole("button", { name: "Start the model" }).click();
+    await expect(page.locator('[data-model-grid="stores"]')).toBeVisible();
+    const sales = await serverValue(page, "v-mart-retail", {}, "s1_rev", "y1");
+    await expect(cell(page, "s1_rev", "y1")).toHaveText(money(sales));
+    const opened = cell(page, "s1_add", "y1").locator("input");
+    await opened.fill("120");
+    await opened.press("Enter");
+    const more = await serverValue(page, "v-mart-retail", { s1_add: { y1: 120 } }, "s1_rev", "y1");
+    expect(more).toBeGreaterThan(sales);
+    await expect(cell(page, "s1_rev", "y1")).toHaveText(money(more));
+  });
+
   test("a new company's past is filled from its accepted quarter", async ({ page }) => {
     await signInAs(page, `models-fill-${run}`, "en-GB");
     await acceptedQuarter(page, "DMart");
