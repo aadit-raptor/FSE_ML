@@ -80,4 +80,51 @@ test.describe("Sector models", () => {
     await expect(cell(page, "rev", "ytd").locator("input")).toHaveValue(String(Number(fill.values.rev.ytd.toFixed(4))));
     await expect(page.getByText("From accepted quarters").first()).toBeVisible();
   });
+
+  test("a saved model rolls forward on newer results, its estimate kept beside them and unchanged by later edits", async ({ page }) => {
+    await signInAs(page, `models-roll-${run}`, "en-US");
+    await acceptedQuarter(page, "DMart");                        // six months to 30 September 2026 accepted
+    const headers = await asUser(page);
+    const companyId: string = (await (await page.request.get("/api/research/companies", { headers })).json()).companies[0].id;
+    const catalogue = await (await page.request.get("/api/research/models", { headers })).json();
+    const example = catalogue.examples.find((e: { id: string }) => e.id === "lemon-tree-hotels");
+    // the model as saved after the first quarter: three months of FY27 reported
+    const put = await page.request.put(`/api/research/companies/${companyId}/model`, {
+      headers, data: { structure: example.structure, company: { ...example.company, name: "DMart" },
+        as_of: { ly_end: "2026-03-31", ytd_end: "2026-06-30", ytd_months: 3 } },
+    });
+    expect(put.status()).toBe(200);
+
+    await page.goto("/coverage/model");
+    await page.getByLabel("Fill the past from").selectOption({ label: "DMart" });
+    await expect(page.getByText("This company has a saved model")).toBeVisible();
+    await page.getByRole("button", { name: "Open the saved model" }).click();
+    await expect(page.locator('[data-model-grid="occupancy"]')).toBeVisible();
+    await expect(page.getByText("Newer results accepted")).toBeVisible();
+    await page.getByRole("button", { name: "Roll forward" }).click();
+    await expect(page.getByText("Rolled forward", { exact: true })).toBeVisible();
+
+    const versions = async () => (await (await page.request.get(`/api/research/companies/${companyId}/model/versions`, { headers })).json()).versions;
+    const rolled = (await versions()).find((v: { kind: string }) => v.kind === "rolled");
+    const rev = rolled.comparison.lines.find((l: { row: string }) => l.row === "rev");
+    const fmt = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const line = page.locator('[data-compare="rev"]');
+    await expect(line.locator("[data-estimate]")).toHaveText(fmt(rev.estimate));
+    await expect(line.locator("[data-actual]")).toHaveText(fmt(rev.actual));
+    const model = await (await page.request.get(`/api/research/companies/${companyId}/model`, { headers })).json();
+    expect(model.as_of).toEqual({ ly_end: "2026-03-31", ytd_end: "2026-09-30", ytd_months: 6 });
+    expect(model.company.values.rev.ytd).toBeCloseTo(example.company.values.rev.ytd + rev.actual, 3);
+
+    // an assumption changed afterwards is saved, and the estimate beside the results does not move
+    const occupancy = cell(page, "s1_occ", "roy").locator("input");
+    await occupancy.fill("10");
+    await occupancy.press("Enter");
+    await expect.poll(async () => (await (await page.request.get(`/api/research/companies/${companyId}/model`, { headers })).json())
+      .company.values.s1_occ.roy).toBe(0.1);
+    await page.reload();
+    await page.getByLabel("Fill the past from").selectOption({ label: "DMart" });
+    await page.getByRole("button", { name: "Open the saved model" }).click();
+    await expect(line.locator("[data-estimate]")).toHaveText(fmt(rev.estimate));
+    expect((await versions()).find((v: { kind: string }) => v.kind === "rolled").comparison).toEqual(rolled.comparison);
+  });
 });

@@ -485,7 +485,11 @@
               "coverage_added",
               "coverage_removed",
               "period_accepted",
-              "period_removed"
+              "period_removed",
+              "model_saved",
+              "model_versioned",
+              "model_restored",
+              "model_rolled"
             ],
             "title": "Action",
             "type": "string"
@@ -2616,6 +2620,62 @@
           "filing"
         ],
         "title": "CompanyYearOut",
+        "type": "object"
+      },
+      "ComparisonLine": {
+        "properties": {
+          "actual": {
+            "title": "Actual",
+            "type": "number"
+          },
+          "difference": {
+            "description": "actual - estimate",
+            "title": "Difference",
+            "type": "number"
+          },
+          "estimate": {
+            "title": "Estimate",
+            "type": "number"
+          },
+          "kind": {
+            "enum": [
+              "flow",
+              "stock"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "description": "The row's words (model output, shown as sent)",
+            "title": "Label",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "string"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "difference / estimate; null when the estimate is 0",
+            "title": "Share"
+          }
+        },
+        "required": [
+          "row",
+          "label",
+          "kind",
+          "estimate",
+          "actual",
+          "difference"
+        ],
+        "title": "ComparisonLine",
         "type": "object"
       },
       "CoverageBucket": {
@@ -8702,6 +8762,53 @@
         "title": "ModelChangeOut",
         "type": "object"
       },
+      "ModelChangedCell": {
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null for a constant",
+            "title": "Period"
+          },
+          "row": {
+            "title": "Row",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row"
+        ],
+        "title": "ModelChangedCell",
+        "type": "object"
+      },
       "ModelCheck": {
         "description": "Whether a saved deal's results have changed since it was saved.",
         "properties": {
@@ -8804,6 +8911,17 @@
       "ModelFillOut": {
         "description": "A model's past (last year and the year to date) from the company's accepted quarters.",
         "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchAsOf"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How far the accepted results reach (null when nothing is accepted): a saved model started from them keeps it (R5)"
+          },
           "currency": {
             "anyOf": [
               {
@@ -8945,6 +9063,55 @@
           "label"
         ],
         "title": "ModelPeriodOut",
+        "type": "object"
+      },
+      "ModelRollOut": {
+        "properties": {
+          "carried": {
+            "description": "Figures kept from before the roll and marked amber",
+            "items": {
+              "$ref": "#/components/schemas/ModelMissing"
+            },
+            "title": "Carried",
+            "type": "array"
+          },
+          "comparison": {
+            "$ref": "#/components/schemas/RollComparison"
+          },
+          "kind": {
+            "enum": [
+              "quarter",
+              "year"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "$ref": "#/components/schemas/SavedModelOut"
+          },
+          "to_type": {
+            "description": "Figures over the new period the results don't carry: blank",
+            "items": {
+              "$ref": "#/components/schemas/ModelMissing"
+            },
+            "title": "To Type",
+            "type": "array"
+          },
+          "version": {
+            "description": "The version holding the model as it stood before the roll",
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "model",
+          "kind",
+          "version",
+          "comparison",
+          "carried",
+          "to_type"
+        ],
+        "title": "ModelRollOut",
         "type": "object"
       },
       "ModelRowOut": {
@@ -9157,6 +9324,73 @@
         "title": "ModelRunOut",
         "type": "object"
       },
+      "ModelSheetIn": {
+        "description": "The Model sheet as Excel answers it: its values from A1 and its defined names with their addresses.",
+        "properties": {
+          "grid": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "maxItems": 1000,
+            "title": "Grid",
+            "type": "array"
+          },
+          "names": {
+            "additionalProperties": {
+              "maxLength": 80,
+              "type": "string"
+            },
+            "maxProperties": 2000,
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "title": "Names",
+            "type": "object"
+          }
+        },
+        "required": [
+          "grid",
+          "names"
+        ],
+        "title": "ModelSheetIn",
+        "type": "object"
+      },
+      "ModelSheetOut": {
+        "properties": {
+          "changed": {
+            "items": {
+              "$ref": "#/components/schemas/ModelChangedCell"
+            },
+            "title": "Changed",
+            "type": "array"
+          },
+          "model": {
+            "$ref": "#/components/schemas/SavedModelOut"
+          }
+        },
+        "required": [
+          "model",
+          "changed"
+        ],
+        "title": "ModelSheetOut",
+        "type": "object"
+      },
       "ModelSpecOut": {
         "properties": {
           "about": {
@@ -9279,6 +9513,102 @@
           "data_fingerprint"
         ],
         "title": "ModelStamp",
+        "type": "object"
+      },
+      "ModelVersionIn": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "title": "ModelVersionIn",
+        "type": "object"
+      },
+      "ModelVersionList": {
+        "properties": {
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/ModelVersionOut"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "versions"
+        ],
+        "title": "ModelVersionList",
+        "type": "object"
+      },
+      "ModelVersionOut": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchAsOf"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RollComparison"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A rolled version: its estimate beside the results the roll brought"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "created",
+              "saved",
+              "auto",
+              "restored",
+              "rolled"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number",
+          "kind",
+          "created_at"
+        ],
+        "title": "ModelVersionOut",
         "type": "object"
       },
       "Money": {
@@ -13962,6 +14292,40 @@
         "title": "ReportedRun",
         "type": "object"
       },
+      "ResearchAsOf": {
+        "description": "How far a model's past reaches: the last full year's end and the months of the year in progress.",
+        "properties": {
+          "ly_end": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Ly End",
+            "type": "string"
+          },
+          "ytd_end": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ytd End"
+          },
+          "ytd_months": {
+            "maximum": 11.0,
+            "minimum": 0.0,
+            "title": "Ytd Months",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ly_end",
+          "ytd_months"
+        ],
+        "title": "ResearchAsOf",
+        "type": "object"
+      },
       "ResearchCompanyIn": {
         "description": "What is typed for one company: words, unit, choices and numbers. No formulas.",
         "properties": {
@@ -15459,6 +15823,53 @@
         "title": "RiskWarning",
         "type": "object"
       },
+      "RollComparison": {
+        "description": "The estimate made before new results, set beside them line by line, as it stood when the model rolled.",
+        "properties": {
+          "basis": {
+            "enum": [
+              "share_of_rest_by_days",
+              "year_as_reported"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "estimate_label": {
+            "description": "The period the estimate came from, in the model's words",
+            "title": "Estimate Label",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ComparisonLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "months": {
+            "title": "Months",
+            "type": "integer"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          }
+        },
+        "required": [
+          "basis",
+          "period",
+          "period_end",
+          "months",
+          "estimate_label",
+          "lines"
+        ],
+        "title": "RollComparison",
+        "type": "object"
+      },
       "RuleProblem": {
         "properties": {
           "at": {
@@ -15580,6 +15991,122 @@
           "data_fingerprint"
         ],
         "title": "SavedModel",
+        "type": "object"
+      },
+      "SavedModelIn": {
+        "description": "The working copy of a covered company's model, autosaved.",
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchAsOf"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How far the model's past reaches: the fill's `as_of` when it was started from accepted results, else null"
+          },
+          "company": {
+            "$ref": "#/components/schemas/ResearchCompanyIn"
+          },
+          "scope": {
+            "default": "consolidated",
+            "enum": [
+              "consolidated",
+              "standalone"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          }
+        },
+        "required": [
+          "structure",
+          "company"
+        ],
+        "title": "SavedModelIn",
+        "type": "object"
+      },
+      "SavedModelOut": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchAsOf"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "changed": {
+            "description": "Rows this save changed (empty: nothing did)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Changed",
+            "type": "array"
+          },
+          "company": {
+            "$ref": "#/components/schemas/ResearchCompanyIn"
+          },
+          "company_id": {
+            "title": "Company Id",
+            "type": "string"
+          },
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "latest_version": {
+            "title": "Latest Version",
+            "type": "integer"
+          },
+          "newer_results": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchAsOf"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Accepted results reaching further than the model: what a roll forward would move it to; null when none"
+          },
+          "scope": {
+            "enum": [
+              "consolidated",
+              "standalone"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ResearchStructure"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "company_id",
+          "company_name",
+          "scope",
+          "structure",
+          "company",
+          "latest_version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SavedModelOut",
         "type": "object"
       },
       "ScenarioStats": {
@@ -23979,6 +24506,561 @@
           }
         ],
         "summary": "Get Fill",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model": {
+      "get": {
+        "operationId": "get_saved_api_research_companies__company_id__model_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Saved",
+        "tags": [
+          "research"
+        ]
+      },
+      "put": {
+        "description": "Autosave: only a model that builds and a company that fits it are kept, its choices settled and figures\nfor cells it no longer has left out, as a run takes them (research/compose.py `fit`).",
+        "operationId": "put_saved_api_research_companies__company_id__model_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedModelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Saved",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model/cells": {
+      "get": {
+        "description": "What the add-in writes for a saved model: the download's cells, with the model's reference beside the title.",
+        "operationId": "get_saved_cells_api_research_companies__company_id__model_cells_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelCellsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Saved Cells",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model/roll": {
+      "post": {
+        "description": "Roll the model forward to the accepted results: kept as it stood (with its estimate beside the results),\nthen moved on.",
+        "operationId": "post_roll_api_research_companies__company_id__model_roll_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelRollOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Roll",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model/sheet": {
+      "post": {
+        "description": "\"Save to Variater\": the sheet's named cells (assumptions and constants) read back and saved, as a version.\nA sheet whose structure was changed is refused, saying what changed.",
+        "operationId": "post_sheet_api_research_companies__company_id__model_sheet_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelSheetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSheetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Sheet",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model/versions": {
+      "get": {
+        "operationId": "get_versions_api_research_companies__company_id__model_versions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelVersionList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Versions",
+        "tags": [
+          "research"
+        ]
+      },
+      "post": {
+        "operationId": "post_version_api_research_companies__company_id__model_versions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelVersionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Version",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model/versions/{number}/restore": {
+      "post": {
+        "operationId": "post_restore_api_research_companies__company_id__model_versions__number__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedModelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Restore",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/model/workbook": {
+      "get": {
+        "operationId": "get_saved_workbook_api_research_companies__company_id__model_workbook_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "The saved model as live Excel formulas, which the add-in can save back"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Saved Workbook",
         "tags": [
           "research"
         ]

@@ -74,10 +74,14 @@ class Fill:
     currency: str | None = None
     unit_rupees: float | None = None
     notes: list = field(default_factory=list)
+    # how far the accepted results reach (R5's roll forward compares it with a saved model's):
+    # {"ly_end": the last full year's end, "ytd_end": the year to date's end or None, "ytd_months": 0-11}
+    as_of: dict | None = None
 
     def to_dict(self) -> dict:
         return {"values": self.values, "sources": self.sources, "labels": self.labels, "unit": self.unit,
-                "currency": self.currency, "unit_rupees": self.unit_rupees, "notes": self.notes}
+                "currency": self.currency, "unit_rupees": self.unit_rupees, "notes": self.notes,
+                "as_of": self.as_of}
 
 
 def _months_back(day: date, months: int) -> date:
@@ -196,6 +200,8 @@ def fill(stored: list, scope: str = "consolidated") -> Fill:
             if stocks:
                 _put(out, "ytd", stocks)
     year_end = start - timedelta(days=1)
+    out.as_of = {"ly_end": year_end.isoformat(), "ytd_end": None if months == 12 else latest.isoformat(),
+                 "ytd_months": 0 if months == 12 else months}
     year = next(((p, t, c) for p, t, c, end, m in _columns(periods, "results") if m == 12 and _near(end, year_end)), None)
     if year is None:
         out.notes.append(NO_LAST_YEAR)
