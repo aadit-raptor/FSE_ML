@@ -6,7 +6,10 @@
  *   page's messageParent reaches the pane only from this site's own origin;
  * - the workbook: every value, formula, number format, bold, font colour and size, fill, alignment, note,
  *   column width, row height, frozen pane and sheet-scoped defined name the pane asks for, kept per sheet; window.__excelWritten() answers them in the shape
- *   tests/addin_cells_check.py compares with the download.
+ *   tests/addin_cells_check.py compares with the download;
+ * - reading back (PLAN.md R5): the active sheet's used range from A1 and its names with their formulas, as Excel
+ *   answers them (a formula's value is not worked out here: it reads as 0); window.__excelType(sheet, cell, value)
+ *   types into a cell and window.__excelInsertRow(sheet, row) inserts a row, moving cells and names as Excel does.
  *
  * Plain script, no imports: it runs where Office.js would.
  */
@@ -106,13 +109,43 @@
         sheets.forEach(function (s) { s.active = false; });
         sheet.active = true;
       },
+      load: function () {},
+      getUsedRange: function () {
+        var rows = 0, cols = 0;
+        Object.keys(sheet.cells).forEach(function (address) {
+          var m = /^([A-Z]+)(\d+)$/.exec(address);
+          rows = Math.max(rows, Number(m[2]));
+          cols = Math.max(cols, columnNumber(m[1]));
+        });
+        var values = [];
+        for (var r = 1; r <= rows; r++) {
+          var row = [];
+          for (var c = 1; c <= cols; c++) {
+            var held = sheet.cells[letters(c) + r];
+            row.push(!held ? "" : held.formula !== undefined ? 0 : held.value === undefined ? "" : held.value);
+          }
+          values.push(row);
+        }
+        return { load: function () {}, values: values, address: name + "!A1:" + letters(Math.max(cols, 1)) + Math.max(rows, 1) };
+      },
     };
+    ws.names.load = function () {};
+    Object.defineProperty(ws.names, "items", {
+      get: function () {
+        return Object.keys(sheet.names).map(function (n) { return { name: n, formula: "='" + name + "'!" + sheet.names[n] }; });
+      },
+    });
+    sheet.ws = ws;
     return ws;
   }
 
   var worksheets = {
     items: [],
     load: function () {},
+    getActiveWorksheet: function () {
+      var active = sheets.filter(function (s) { return s.active; })[0] || sheets[0];
+      return active.ws;
+    },
     add: function (name) {
       if (worksheets.items.some(function (ws) { return ws.name.toLowerCase() === name.toLowerCase(); })) {
         throw new Error("fake Excel: a sheet named " + name + " exists");
@@ -138,6 +171,35 @@
                  active: s.active };
       }),
     };
+  };
+
+  function sheetNamed(name) {
+    var found = sheets.filter(function (s) { return s.name === name; })[0];
+    if (!found) throw new Error("fake Excel: no sheet " + name);
+    return found;
+  }
+
+  // The analyst typing in Excel: a value replaces whatever the cell held
+  window.__excelType = function (sheetName, address, value) {
+    var target = sheetNamed(sheetName).cells[address] || (sheetNamed(sheetName).cells[address] = {});
+    delete target.formula;
+    target.value = value;
+  };
+
+  // A row inserted above `at`: the cells and the names below move down one, as Excel moves them
+  window.__excelInsertRow = function (sheetName, at) {
+    var sheet = sheetNamed(sheetName);
+    var moved = {};
+    Object.keys(sheet.cells).forEach(function (address) {
+      var m = /^([A-Z]+)(\d+)$/.exec(address);
+      var row = Number(m[2]);
+      moved[row >= at ? m[1] + (row + 1) : address] = sheet.cells[address];
+    });
+    sheet.cells = moved;
+    Object.keys(sheet.names).forEach(function (n) {
+      var m = /^\$([A-Z]+)\$(\d+)$/.exec(sheet.names[n]);
+      if (Number(m[2]) >= at) sheet.names[n] = "$" + m[1] + "$" + (Number(m[2]) + 1);
+    });
   };
 
   var listeners = [];

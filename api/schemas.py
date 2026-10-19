@@ -1289,7 +1289,8 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "shared", "library_switched", "reference_proposed", "reference_reviewed",
                       "validation_opted_in", "validation_opted_out", "suggestions_switched",
                       "file_uploaded", "file_deleted", "coverage_added", "coverage_removed",
-                      "period_accepted", "period_removed"]
+                      "period_accepted", "period_removed",
+                      "model_saved", "model_versioned", "model_restored", "model_rolled"]
 
 
 class AuditEntry(BaseModel):
@@ -3046,6 +3047,13 @@ class ModelCellsOut(BaseModel):
     sheets: List[SheetOut]
 
 
+class ResearchAsOf(BaseModel):
+    """How far a model's past reaches: the last full year's end and the months of the year in progress."""
+    ly_end: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    ytd_end: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    ytd_months: int = Field(ge=0, le=11)
+
+
 class ModelFillOut(BaseModel):
     """A model's past (last year and the year to date) from the company's accepted quarters."""
     values: Dict[str, Dict[str, float]] = Field(description="Row to period ('ly', 'ytd') to the figure")
@@ -3056,6 +3064,106 @@ class ModelFillOut(BaseModel):
     unit_rupees: Optional[float] = None
     notes: List[Literal["nothing_accepted", "year_complete", "quarter_missing", "no_last_year", "no_balance_sheet",
                         "leases_in_finance_costs", "other_currency"]]
+    as_of: Optional[ResearchAsOf] = Field(None, description="How far the accepted results reach (null when nothing "
+                                          "is accepted): a saved model started from them keeps it (R5)")
+
+
+# ---------------------------------------------------------------------------
+# Saved sector models, save back from Excel and roll forward (PLAN.md R5)
+# ---------------------------------------------------------------------------
+CoverageScope = Literal["consolidated", "standalone"]
+
+
+class SavedModelIn(BaseModel):
+    """The working copy of a covered company's model, autosaved."""
+    structure: ResearchStructure
+    company: ResearchCompanyIn
+    scope: CoverageScope = "consolidated"
+    as_of: Optional[ResearchAsOf] = Field(None, description="How far the model's past reaches: the fill's `as_of` "
+                                          "when it was started from accepted results, else null")
+
+
+class SavedModelOut(BaseModel):
+    company_id: str
+    company_name: str
+    scope: CoverageScope
+    structure: ResearchStructure
+    company: ResearchCompanyIn
+    as_of: Optional[ResearchAsOf] = None
+    latest_version: int
+    created_at: str
+    updated_at: str
+    newer_results: Optional[ResearchAsOf] = Field(None, description="Accepted results reaching further than the "
+                                                  "model: what a roll forward would move it to; null when none")
+    changed: List[str] = Field(default_factory=list, description="Rows this save changed (empty: nothing did)")
+
+
+class ComparisonLine(BaseModel):
+    row: str
+    label: str = Field(description="The row's words (model output, shown as sent)")
+    kind: Literal["flow", "stock"]
+    estimate: float
+    actual: float
+    difference: float = Field(description="actual - estimate")
+    share: Optional[float] = Field(None, description="difference / estimate; null when the estimate is 0")
+
+
+class RollComparison(BaseModel):
+    """The estimate made before new results, set beside them line by line, as it stood when the model rolled."""
+    basis: Literal["share_of_rest_by_days", "year_as_reported"]
+    period: str
+    period_end: str
+    months: int
+    estimate_label: str = Field(description="The period the estimate came from, in the model's words")
+    lines: List[ComparisonLine]
+
+
+class ModelVersionOut(BaseModel):
+    number: int
+    kind: Literal["created", "saved", "auto", "restored", "rolled"]
+    label: Optional[str] = None
+    created_at: str
+    as_of: Optional[ResearchAsOf] = None
+    comparison: Optional[RollComparison] = Field(None, description="A rolled version: its estimate beside the "
+                                                 "results the roll brought")
+
+
+class ModelVersionList(BaseModel):
+    versions: List[ModelVersionOut]
+
+
+class ModelVersionIn(BaseModel):
+    label: Optional[str] = Field(None, max_length=120)
+
+
+class ModelRollOut(BaseModel):
+    model: SavedModelOut
+    kind: Literal["quarter", "year"]
+    version: int = Field(description="The version holding the model as it stood before the roll")
+    comparison: RollComparison
+    carried: List[ModelMissing] = Field(description="Figures kept from before the roll and marked amber")
+    to_type: List[ModelMissing] = Field(description="Figures over the new period the results don't carry: blank")
+
+
+SheetValue = Union[float, str, bool, None]
+
+
+class ModelSheetIn(BaseModel):
+    """The Model sheet as Excel answers it: its values from A1 and its defined names with their addresses."""
+    grid: List[List[SheetValue]] = Field(max_length=1000)
+    names: Dict[Annotated[str, Field(max_length=80)], Annotated[str, Field(max_length=80)]] = Field(max_length=2000)
+
+
+class ModelChangedCell(BaseModel):
+    row: str
+    period: Optional[str] = Field(None, description="Null for a constant")
+    before: Optional[float] = None
+    after: Optional[float] = None
+
+
+class ModelSheetOut(BaseModel):
+    model: SavedModelOut
+    changed: List[ModelChangedCell]
 
 
 class AddinPass(BaseModel):

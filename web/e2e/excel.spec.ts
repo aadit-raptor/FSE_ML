@@ -168,6 +168,51 @@ test.describe("Excel add-in", () => {
     expect(checked.cells).toBeGreaterThan(700);
   });
 
+  test("Save to Variater reads typed assumptions back, again after a second change, and refuses a restructured sheet", async ({ page, context }) => {
+    await fakeOffice(context);
+    await signInAs(page, `excel-save-${run}`, "en-GB");
+    await acceptedQuarter(page, "DMart");
+    await page.goto("/excel");
+    await signInThroughDialog(page);
+    await page.getByRole("button", { name: "Load model" }).click();
+    await expect(page.locator("[data-model-written]")).toBeVisible();
+
+    type Written = { sheets: { name: string; active: boolean; names: Record<string, string>; cells: Record<string, { value?: unknown }> }[] };
+    const written = await page.evaluate(() => (window as unknown as { __excelWritten: () => Written }).__excelWritten());
+    const sheet = written.sheets.find((s) => s.active)!;
+    const headers = await asUser(page);
+    const companies = await (await page.request.get("/api/research/companies", { headers })).json();
+    const companyId: string = companies.companies[0].id;
+    expect(sheet.cells.B1.value).toBe(`Saved in Variater: ${companyId}`);   // the sheet says whose saved model it is
+    const at = (name: string) => sheet.names[name].replace(/\$/g, "");
+    const saved = async () => (await (await page.request.get(`/api/research/companies/${companyId}/model`, { headers })).json()).company;
+    const type = (address: string, value: number) => page.evaluate(([n, a, v]) =>
+      (window as unknown as { __excelType: (s: string, a: string, v: number) => void }).__excelType(n as string, a as string, v as number),
+    [sheet.name, address, value]);
+
+    await type(at("mat_sh_y1"), 0.31);
+    await page.getByRole("button", { name: "Save to Variater" }).click();
+    await expect(page.locator('[data-saved-outcome="status"]')).toHaveText(/Saved: 1 cell changed/);
+    expect((await saved()).values.mat_sh.y1).toBe(0.31);
+
+    // changed again in Excel and saved again: the changed assumptions come back
+    await type(at("mat_sh_y1"), 0.35);
+    await type(at("unit_rupees"), 1000000);
+    await page.getByRole("button", { name: "Save to Variater" }).click();
+    await expect(page.locator('[data-saved-outcome="status"]')).toHaveText(/Saved: 2 cells changed/);
+    const after = await saved();
+    expect(after.values.mat_sh.y1).toBe(0.35);
+    expect(after.constants.unit_rupees).toBe(1000000);
+
+    // a row inserted: refused, saying what changed, and nothing saved
+    await type(at("mat_sh_y2"), 0.5);
+    await page.evaluate((n) => (window as unknown as { __excelInsertRow: (s: string, r: number) => void }).__excelInsertRow(n, 20), sheet.name);
+    await page.getByRole("button", { name: "Save to Variater" }).click();
+    await expect(page.locator('[data-saved-outcome="alert"]')).toContainText("structure was changed");
+    await expect(page.locator('[data-saved-outcome="alert"]')).toContainText("row 20");
+    expect((await saved()).values.mat_sh.y2).toBe(after.values.mat_sh.y2);
+  });
+
   test("outside Office the pane says where to open it", async ({ page }) => {
     await page.route("https://appsforoffice.microsoft.com/**", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
     await page.goto("/excel");

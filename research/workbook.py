@@ -41,6 +41,9 @@ BLUE_RGB, GREY_RGB, WHITE_RGB, GREEN, RED = "0B4F9E", "888888", "FFFFFF", "1D6F4
 HEAD_RGB, SECTION_RGB, ASSUMED_RGB = "1F2A30", "DCE6EA", "FFF8D6"
 MARKED_RGB = {"amber": "F6C566", "red": "F2A097"}
 _LOOKS_LIKE_A_CELL = re.compile(r"[A-Za-z]{1,3}[0-9]+|[Rr][0-9]*[Cc][0-9]*")
+# A saved model's sheet says which company's model it is (PLAN.md R5), so "Save to Variater" knows where to save
+SAVED_NAME, SAVED_AT = "variater_model", (1, 2)
+SAVED_TEXT = "Saved in Variater: "
 
 
 @dataclass(frozen=True)
@@ -84,7 +87,7 @@ def _unit_text(unit: str, company: Company, words: dict) -> str:
             "count": "number", "count3": "number", "days": "days", "times": "times"}[unit]
 
 
-def sheets(model: Model, company: Company, allow_missing: bool = False) -> list[dict]:
+def sheets(model: Model, company: Company, allow_missing: bool = False, saved: str | None = None) -> list[dict]:
     """The model for one company as sheets of cells: the one description the
     download (`write`) and the Excel add-in's "Load model" both write, so the
     two can never hold different cells. The shape is research/coverage.py
@@ -92,7 +95,9 @@ def sheets(model: Model, company: Company, allow_missing: bool = False) -> list[
     and a sheet's `names` (defined name -> address) and `heights`.
 
     With `allow_missing`, assumptions not typed yet are blank yellow cells:
-    the analyst types them in Excel and the formulas do the rest.
+    the analyst types them in Excel and the formulas do the rest. `saved`, a
+    saved model's company id (R5), is written beside the title and named
+    `variater_model`, so the add-in's "Save to Variater" finds the model.
     """
     plan = cells(model, company, allow_missing=allow_missing)
     words = words_for(model, company)
@@ -113,6 +118,9 @@ def sheets(model: Model, company: Company, allow_missing: bool = False) -> list[
 
     title = "%s: %s model%s" % (company.name, model.name, " (%s)" % company.sector if company.sector else "")
     put(1, 1, text=title, bold=True, size=13)
+    if saved is not None:
+        put(*SAVED_AT, text=SAVED_TEXT + str(saved), color=GREY_RGB)
+        name(SAVED_NAME, "B1")
     vetted = ("Read by a practising analyst." if model.vetted else
               "NOT YET VETTED: no practising analyst has read this model yet.")
     put(2, 1, text=vetted + " Yellow cells are assumptions to type; everything in black is a formula. Source: " + SOURCE,
@@ -203,13 +211,13 @@ def _notes(model: Model, marked: list) -> dict:
             "names": {}, "heights": {}}
 
 
-def write(model: Model, company: Company, allow_missing: bool = False) -> Workbook:
+def write(model: Model, company: Company, allow_missing: bool = False, saved: str | None = None) -> Workbook:
     """The model for one company as a workbook, written from `sheets`: a Model sheet of live formulas and a Notes sheet."""
     wb = Workbook()
     wb.remove(wb.active)
     wb.properties.creator = wb.properties.lastModifiedBy = SOURCE
     wb.calculation = CalcProperties(fullCalcOnLoad=True)      # no values are stored: work everything out on opening
-    for sheet in sheets(model, company, allow_missing=allow_missing):
+    for sheet in sheets(model, company, allow_missing=allow_missing, saved=saved):
         ws = wb.create_sheet(sheet["title"])
         for spec in sheet["cells"]:
             if "text" in spec:

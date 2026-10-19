@@ -33,18 +33,32 @@ export type ExcelRange = {
   };
 };
 
+/** A range read back (R5's "Save to Variater"): its values once loaded, and where it is ("Model!A1:H120"). */
+export type ExcelReadRange = { values: unknown[][]; address: string; load(what: string): void };
+
 export type ExcelWorksheet = {
   name: string;
   getRange(address: string): ExcelRange;
+  getUsedRange(): ExcelReadRange;
   freezePanes: { freezeAt(range: string): void; unfreeze(): void };
   notes?: { add(cellAddress: string, content: string): void };
-  names?: { add(name: string, reference: ExcelRange): void };
+  names?: {
+    add(name: string, reference: ExcelRange): void;
+    items: { name: string; formula: string }[];
+    load(what: string): void;
+  };
   activate(): void;
+  load?(what: string): void;
 };
 
 export type ExcelContext = {
   workbook: {
-    worksheets: { items: ExcelWorksheet[]; add(name: string): ExcelWorksheet; load(what: string): void };
+    worksheets: {
+      items: ExcelWorksheet[];
+      add(name: string): ExcelWorksheet;
+      load(what: string): void;
+      getActiveWorksheet(): ExcelWorksheet;
+    };
     comments?: { add(cellAddress: string, content: string): void };
   };
   sync(): Promise<void>;

@@ -1512,6 +1512,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/companies/{company_id}/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Saved */
+        get: operations["get_saved_api_research_companies__company_id__model_get"];
+        /**
+         * Put Saved
+         * @description Autosave: only a model that builds and a company that fits it are kept, its choices settled and figures
+         *     for cells it no longer has left out, as a run takes them (research/compose.py `fit`).
+         */
+        put: operations["put_saved_api_research_companies__company_id__model_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/model/cells": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Saved Cells
+         * @description What the add-in writes for a saved model: the download's cells, with the model's reference beside the title.
+         */
+        get: operations["get_saved_cells_api_research_companies__company_id__model_cells_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/model/roll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Roll
+         * @description Roll the model forward to the accepted results: kept as it stood (with its estimate beside the results),
+         *     then moved on.
+         */
+        post: operations["post_roll_api_research_companies__company_id__model_roll_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/model/sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Sheet
+         * @description "Save to Variater": the sheet's named cells (assumptions and constants) read back and saved, as a version.
+         *     A sheet whose structure was changed is refused, saying what changed.
+         */
+        post: operations["post_sheet_api_research_companies__company_id__model_sheet_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/model/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Versions */
+        get: operations["get_versions_api_research_companies__company_id__model_versions_get"];
+        put?: never;
+        /** Post Version */
+        post: operations["post_version_api_research_companies__company_id__model_versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/model/versions/{number}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Restore */
+        post: operations["post_restore_api_research_companies__company_id__model_versions__number__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/model/workbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Saved Workbook */
+        get: operations["get_saved_workbook_api_research_companies__company_id__model_workbook_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/companies/{company_id}/periods": {
         parameters: {
             query?: never;
@@ -2117,7 +2253,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -2934,6 +3070,35 @@ export interface components {
              * Format: date
              */
             period_end: string;
+        };
+        /** ComparisonLine */
+        ComparisonLine: {
+            /** Actual */
+            actual: number;
+            /**
+             * Difference
+             * @description actual - estimate
+             */
+            difference: number;
+            /** Estimate */
+            estimate: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "flow" | "stock";
+            /**
+             * Label
+             * @description The row's words (model output, shown as sent)
+             */
+            label: string;
+            /** Row */
+            row: string;
+            /**
+             * Share
+             * @description difference / estimate; null when the estimate is 0
+             */
+            share?: number | null;
         };
         /** CoverageBucket */
         CoverageBucket: {
@@ -5472,6 +5637,20 @@ export interface components {
         ModelChangeOut: {
             structure: components["schemas"]["ResearchStructure"];
         };
+        /** ModelChangedCell */
+        ModelChangedCell: {
+            /** After */
+            after?: number | null;
+            /** Before */
+            before?: number | null;
+            /**
+             * Period
+             * @description Null for a constant
+             */
+            period?: string | null;
+            /** Row */
+            row: string;
+        };
         /**
          * ModelCheck
          * @description Whether a saved deal's results have changed since it was saved.
@@ -5512,6 +5691,8 @@ export interface components {
          * @description A model's past (last year and the year to date) from the company's accepted quarters.
          */
         ModelFillOut: {
+            /** @description How far the accepted results reach (null when nothing is accepted): a saved model started from them keeps it (R5) */
+            as_of?: components["schemas"]["ResearchAsOf"] | null;
             /** Currency */
             currency?: string | null;
             /** Labels */
@@ -5561,6 +5742,31 @@ export interface components {
             label: string;
             /** Name */
             name: string;
+        };
+        /** ModelRollOut */
+        ModelRollOut: {
+            /**
+             * Carried
+             * @description Figures kept from before the roll and marked amber
+             */
+            carried: components["schemas"]["ModelMissing"][];
+            comparison: components["schemas"]["RollComparison"];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "quarter" | "year";
+            model: components["schemas"]["SavedModelOut"];
+            /**
+             * To Type
+             * @description Figures over the new period the results don't carry: blank
+             */
+            to_type: components["schemas"]["ModelMissing"][];
+            /**
+             * Version
+             * @description The version holding the model as it stood before the roll
+             */
+            version: number;
         };
         /** ModelRowOut */
         ModelRowOut: {
@@ -5652,6 +5858,24 @@ export interface components {
             /** Vetted */
             vetted: boolean;
         };
+        /**
+         * ModelSheetIn
+         * @description The Model sheet as Excel answers it: its values from A1 and its defined names with their addresses.
+         */
+        ModelSheetIn: {
+            /** Grid */
+            grid: (number | string | boolean | null)[][];
+            /** Names */
+            names: {
+                [key: string]: string;
+            };
+        };
+        /** ModelSheetOut */
+        ModelSheetOut: {
+            /** Changed */
+            changed: components["schemas"]["ModelChangedCell"][];
+            model: components["schemas"]["SavedModelOut"];
+        };
         /** ModelSpecOut */
         ModelSpecOut: {
             /** About */
@@ -5709,6 +5933,33 @@ export interface components {
              * @description Fingerprint of the resolved Settings the run used; null when it used none
              */
             settings_fingerprint?: string | null;
+        };
+        /** ModelVersionIn */
+        ModelVersionIn: {
+            /** Label */
+            label?: string | null;
+        };
+        /** ModelVersionList */
+        ModelVersionList: {
+            /** Versions */
+            versions: components["schemas"]["ModelVersionOut"][];
+        };
+        /** ModelVersionOut */
+        ModelVersionOut: {
+            as_of?: components["schemas"]["ResearchAsOf"] | null;
+            /** @description A rolled version: its estimate beside the results the roll brought */
+            comparison?: components["schemas"]["RollComparison"] | null;
+            /** Created At */
+            created_at: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "created" | "saved" | "auto" | "restored" | "rolled";
+            /** Label */
+            label?: string | null;
+            /** Number */
+            number: number;
         };
         /**
          * Money
@@ -7411,6 +7662,18 @@ export interface components {
             task: string;
         };
         /**
+         * ResearchAsOf
+         * @description How far a model's past reaches: the last full year's end and the months of the year in progress.
+         */
+        ResearchAsOf: {
+            /** Ly End */
+            ly_end: string;
+            /** Ytd End */
+            ytd_end?: string | null;
+            /** Ytd Months */
+            ytd_months: number;
+        };
+        /**
          * ResearchCompanyIn
          * @description What is typed for one company: words, unit, choices and numbers. No formulas.
          */
@@ -7967,6 +8230,30 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["RiskSource"][];
         };
+        /**
+         * RollComparison
+         * @description The estimate made before new results, set beside them line by line, as it stood when the model rolled.
+         */
+        RollComparison: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "share_of_rest_by_days" | "year_as_reported";
+            /**
+             * Estimate Label
+             * @description The period the estimate came from, in the model's words
+             */
+            estimate_label: string;
+            /** Lines */
+            lines: components["schemas"]["ComparisonLine"][];
+            /** Months */
+            months: number;
+            /** Period */
+            period: string;
+            /** Period End */
+            period_end: string;
+        };
         /** RuleProblem */
         RuleProblem: {
             /**
@@ -8007,6 +8294,50 @@ export interface components {
             moic?: number | null;
             /** Settings Fingerprint */
             settings_fingerprint?: string | null;
+        };
+        /**
+         * SavedModelIn
+         * @description The working copy of a covered company's model, autosaved.
+         */
+        SavedModelIn: {
+            /** @description How far the model's past reaches: the fill's `as_of` when it was started from accepted results, else null */
+            as_of?: components["schemas"]["ResearchAsOf"] | null;
+            company: components["schemas"]["ResearchCompanyIn"];
+            /**
+             * Scope
+             * @default consolidated
+             * @enum {string}
+             */
+            scope: "consolidated" | "standalone";
+            structure: components["schemas"]["ResearchStructure"];
+        };
+        /** SavedModelOut */
+        SavedModelOut: {
+            as_of?: components["schemas"]["ResearchAsOf"] | null;
+            /**
+             * Changed
+             * @description Rows this save changed (empty: nothing did)
+             */
+            changed?: string[];
+            company: components["schemas"]["ResearchCompanyIn"];
+            /** Company Id */
+            company_id: string;
+            /** Company Name */
+            company_name: string;
+            /** Created At */
+            created_at: string;
+            /** Latest Version */
+            latest_version: number;
+            /** @description Accepted results reaching further than the model: what a roll forward would move it to; null when none */
+            newer_results?: components["schemas"]["ResearchAsOf"] | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "consolidated" | "standalone";
+            structure: components["schemas"]["ResearchStructure"];
+            /** Updated At */
+            updated_at: string;
         };
         /** ScenarioStats */
         ScenarioStats: {
@@ -12908,6 +13239,379 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelFillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_saved_api_research_companies__company_id__model_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedModelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_saved_api_research_companies__company_id__model_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedModelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedModelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_saved_cells_api_research_companies__company_id__model_cells_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCellsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_roll_api_research_companies__company_id__model_roll_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelRollOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_sheet_api_research_companies__company_id__model_sheet_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelSheetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelSheetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_versions_api_research_companies__company_id__model_versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelVersionList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_version_api_research_companies__company_id__model_versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelVersionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_restore_api_research_companies__company_id__model_versions__number__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedModelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_saved_workbook_api_research_companies__company_id__model_workbook_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The saved model as live Excel formulas, which the add-in can save back */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
                 };
             };
             /** @description Validation Error */

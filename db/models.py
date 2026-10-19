@@ -285,7 +285,10 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  "file_uploaded", "file_deleted",
                  # The person added or removed a covered company, or accepted or
                  # removed one of its periods (PLAN.md R2)
-                 "coverage_added", "coverage_removed", "period_accepted", "period_removed")
+                 "coverage_added", "coverage_removed", "period_accepted", "period_removed",
+                 # The person changed a covered company's saved sector model (on screen or from Excel), kept
+                 # a version of it, restored one, or rolled it forward on new results (PLAN.md R5)
+                 "model_saved", "model_versioned", "model_restored", "model_rolled")
 
 
 class AuditEvent(Base):
@@ -818,3 +821,69 @@ class AddinSession(Base):
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+
+
+RESEARCH_MODEL_VERSION_KINDS = ("created", "saved", "auto", "restored", "rolled")
+
+
+class ResearchModel(Base):
+    """A covered company's sector model, saved (PLAN.md R5): one per company.
+
+    ``structure`` and ``company`` are the working copy (research/compose.py
+    ``Structure`` and research/definition.py ``Company`` as dicts): the
+    model's lines and everything typed for the company, its figures and
+    assumptions. Autosave overwrites them; history is in
+    ``research_model_versions``. ``as_of`` is how far its past reaches
+    (research/actuals.py ``Fill.as_of``), null for a model not started from
+    accepted results; ``scope`` is the statements' scope it reads.
+    Private to its owner, matched in every statement (db/research_models.py).
+    """
+
+    __tablename__ = "research_models"
+    __table_args__ = (
+        CheckConstraint(_one_of("scope", COVERAGE_SCOPES), name="scope"),
+        UniqueConstraint("company_id", name="uq_research_models_company_id"),
+        Index("ix_research_models_owner_id", "owner_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("coverage_companies.id", ondelete="CASCADE"), nullable=False)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    scope: Mapped[str] = mapped_column(String(12), nullable=False)
+    structure: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    company: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    as_of: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    # Highest version number handed out; numbers are never reused
+    latest_version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class ResearchModelVersion(Base):
+    """A point in a saved model's history (PLAN.md R5), as deal versions are.
+
+    A ``rolled`` version is the model as it stood before a roll forward, and
+    holds in ``comparison`` its estimate set beside the results the roll
+    brought (research/rollforward.py): written once, so later edits never
+    change what the estimate was.
+    """
+
+    __tablename__ = "research_model_versions"
+    __table_args__ = (
+        UniqueConstraint("model_id", "number", name="uq_research_model_versions_model_id_number"),
+        CheckConstraint(_one_of("kind", RESEARCH_MODEL_VERSION_KINDS), name="kind"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    model_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("research_models.id", ondelete="CASCADE"), nullable=False)
+    number: Mapped[int] = mapped_column(Integer, nullable=False)
+    kind: Mapped[str] = mapped_column(String(10), nullable=False)
+    label: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    structure: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    company: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    as_of: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    comparison: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())

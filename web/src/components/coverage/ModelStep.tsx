@@ -8,18 +8,21 @@ import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton } from "@/com
 import { Tile, Tiles } from "@/components/ui/Tile";
 import { fmtCount } from "@/lib/format";
 import { listCoverage, type CoverageCompany } from "@/lib/research";
+import { getSaved, savedFrom } from "@/lib/savedModel";
 import {
   UNIT_RUPEES, blankCompany, changeModel, downloadModel, editCompany, fillFromCoverage, loadCatalogue, setModel,
   useModelState, withValue, type Block, type Catalogue, type Change, type ModelCompany, type ModelState,
 } from "@/lib/sectorModel";
 
 import { ModelGrid } from "./ModelGrid";
+import { ComparisonTile, RollNotice, SavedGroup, useVersions } from "./SavedModel";
 
 /**
  * Coverage -> Model (PLAN.md R4): pick a sector (which picks the model and its words), or open one of the
  * companies the model was solved by hand for; make the last changes for the company (add, drop or swap a line of
  * revenue); type the drivers' history and the assumptions; see the projection at once; download it as live
- * Excel formulas. The model says "not yet vetted" until a practising analyst has read it.
+ * Excel formulas. The model says "not yet vetted" until a practising analyst has read it. A covered company's model
+ * is saved, with versions, and rolled forward on newer results (PLAN.md R5, ./SavedModel.tsx).
  *
  * i18n-keys: models.block_*
  * i18n-keys: models.sector_*
@@ -29,6 +32,7 @@ import { ModelGrid } from "./ModelGrid";
  * i18n-keys: models.error_*
  * i18n-keys: models.unit_*
  * i18n-keys: models.example_*
+ * i18n-keys: models.openSaved, models.start
  */
 const UNITS = ["lakhs", "crores", "millions", "thousands", "billions", "units"];
 const ERRORS = ["model_refused", "company_refused", "cannot_work_out"];
@@ -55,6 +59,7 @@ export function ModelStep() {
 
   const run = model.run;
   const edit = (company: ModelCompany) => editCompany(subject, company);
+  const [versions, reloadVersions] = useVersions(model.saved?.companyId ?? null, model.saved?.version ?? null);
 
   return (
     <Screen
@@ -65,15 +70,19 @@ export function ModelStep() {
             <>
               <LinesGroup model={model} catalogue={catalogue} owner={subject} />
               <CompanyGroup model={model} onChange={edit} />
-              <RailGroup title={t("workbookGroup")}>
-                <p className="type-body mb-1.5 text-[10.5px]">{t("workbookHint")}</p>
-                <PrimaryButton onClick={() => void downloadModel(model.structure!, model.company!)}>{t("download")}</PrimaryButton>
-              </RailGroup>
+              <SavedGroup model={model} owner={subject} versions={versions} reload={reloadVersions} />
+              {!model.saved && (
+                <RailGroup title={t("workbookGroup")}>
+                  <p className="type-body mb-1.5 text-[10.5px]">{t("workbookHint")}</p>
+                  <PrimaryButton onClick={() => void downloadModel(model.structure!, model.company!)}>{t("download")}</PrimaryButton>
+                </RailGroup>
+              )}
             </>
           )}
         </>
       }
     >
+      {run && <RollNotice model={model} owner={subject} onRolled={reloadVersions} />}
       {run && !run.vetted && (
         <Notice tone="attention" title={t("notVettedTitle")} role="note">
           {t("notVetted")}
@@ -102,6 +111,7 @@ export function ModelStep() {
             <p className="type-body text-[10.5px]">{t("emptyBody")}</p>
           </Tile>
         )}
+        {run && model.saved && <ComparisonTile versions={versions} />}
         {run && model.company && (
           <Tile span={12} title={t("gridTitle", { name: model.company.name, model: run.name })} unit={model.company.unit_name}>
             <ModelGrid run={run} onEdit={(row, period, value) => edit(withValue(model.company!, row, period, value))} />
@@ -127,6 +137,18 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
   const [currency, setCurrency] = useState("INR");
   const [unit, setUnit] = useState("lakhs");
   const [starting, setStarting] = useState(false);
+  const [hasSaved, setHasSaved] = useState<string | null>(null);
+  useEffect(() => {
+    if (!covered) return;
+    let cancelled = false;
+    void getSaved(covered).then((found) => {
+      if (!cancelled) setHasSaved(found?.model ? covered : null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [covered]);
+  const opensSaved = from === "new" && !!covered && hasSaved === covered;
   if (!catalogue) return <RailGroup title={t("startGroup")}><p className="type-step">{t("loading")}</p></RailGroup>;
 
   const offered = catalogue.models.filter((m) => m.offered);
@@ -139,15 +161,24 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
     try {
       const example = catalogue.examples.find((e) => e.id === from);
       if (example) {
-        await setModel(owner, example.structure, example.company, []);
+        await setModel(owner, example.structure, example.company, [], null);
         return;
+      }
+      if (covered) {
+        const found = await getSaved(covered);
+        if (found?.model) {
+          await setModel(owner, found.model.structure, found.model.company, [], savedFrom(found.model));
+          return;
+        }
       }
       if (!chosen) return;
       const fill = covered ? await fillFromCoverage(covered, scope) : null;
       const unitWord = t(`unit_${fill?.unit ?? unit}`);
       const company = blankCompany(companyName, chosen.sector, `${fill?.currency ?? currency} ${unitWord}`,
         UNIT_RUPEES[unit] ?? 1, fill);
-      await setModel(owner, chosen.model.default, company, fill?.notes ?? []);
+      // a covered company's model is saved from the start, knowing how far its past reaches
+      const saved = covered ? { companyId: covered, scope, asOf: fill?.as_of ?? null, version: 0, updatedAt: null, newer: null } : null;
+      await setModel(owner, chosen.model.default, company, fill?.notes ?? [], saved);
     } finally {
       setStarting(false);
     }
@@ -215,8 +246,9 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
         </>
       )}
       <div className="mt-1.5">
+        {opensSaved && <p className="type-body mb-1.5 text-[10.5px]">{t("opensSaved")}</p>}
         <PrimaryButton disabled={starting || (from === "new" && !companyName)} onClick={() => void start()}>
-          {t("start")}
+          {t(opensSaved ? "openSaved" : "start")}
         </PrimaryButton>
       </div>
     </RailGroup>
