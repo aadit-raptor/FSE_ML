@@ -1928,6 +1928,15 @@ golden snapshot is untouched and parity tests explain every departure.
   tests prove it against a stand-in for Office.js; what a real Excel shows
   if anything fails decides the fix.
 
+- **The `core` CI job is at its 15-minute limit** (found in R6, 2026-10-19:
+  its tests take about 820 s on GitHub's runner, `tests/test_model_cards.py`
+  alone about 200 s, and with setup the job finished in 14:59 on main that
+  morning; R6's first run was cancelled at 99%). One workflow edit Claude's
+  token can't push: in `.github/workflows/tests.yml`, job `core`, change
+  `timeout-minutes: 15` to `timeout-minutes: 25` (the `ml` job, which runs
+  the same tests and more, already has 20 and 25 is safe for both). Until
+  then `core` may be cancelled near the end and need another push.
+
 - PLAN.md R1: one workflow edit Claude's token can't push: add `research` to
   `API_PATHS` in `.github/workflows/staging.yml` (beside `uploads`), so a
   change to `research/` alone makes the staging check wait for the API.
