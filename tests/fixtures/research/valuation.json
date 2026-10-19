@@ -1,0 +1,130 @@
+{
+ "about": [
+  "PLAN.md R6: the valuation solved by hand for model 1's two companies. The inputs below are typed for the test (the prices are not quotes). Every figure the working reads (EBITDA, depreciation, tax rate, working capital, capital expenditure, net debt, non-controlling interests, shares, EPS) is the hand-built workbook's own, from model1_<slug>.json 'expected', never the model's. Never change this file to agree with the model."
+ ],
+ "cases": {
+  "hospitals": {
+   "assumptions": {
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.05
+    },
+    "v_mult": {
+     "ly": 25.0
+    },
+    "v_price": {
+     "ly": 650.0
+    },
+    "v_rate": {
+     "ly": 0.13
+    }
+   },
+   "choices": {
+    "value_multiple": "ev_ebitda",
+    "value_year": "y1"
+   },
+   "expected": {
+    "v_df": {
+     "cy": 0.884956,
+     "y1": 0.783147,
+     "y2": 0.69305
+    },
+    "v_eq": {
+     "ly": 27566.28093
+    },
+    "v_ev": {
+     "ly": 27491.53093
+    },
+    "v_fcf": {
+     "cy": -270.850684,
+     "y1": 1840.327072,
+     "y2": 2685.573604
+    },
+    "v_gap_dcf": {
+     "ly": -0.559856
+    },
+    "v_gap_mult": {
+     "ly": 0.910642
+    },
+    "v_mps": {
+     "ly": 1241.917027
+    },
+    "v_ps": {
+     "ly": 286.093789
+    },
+    "v_tv": {
+     "y2": 35248.153548
+    }
+   },
+   "price_date": "2026-10-16"
+  },
+  "hotels": {
+   "assumptions": {
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.05
+    },
+    "v_mult": {
+     "ly": 35.0
+    },
+    "v_price": {
+     "ly": 140.0
+    },
+    "v_rate": {
+     "ly": 0.12
+    }
+   },
+   "choices": {
+    "value_multiple": "pe",
+    "value_year": "y2"
+   },
+   "expected": {
+    "v_df": {
+     "cy": 0.892857,
+     "y1": 0.797194,
+     "y2": 0.71178
+    },
+    "v_eq": {
+     "ly": 251624.690712
+    },
+    "v_ev": {
+     "ly": 517073.290712
+    },
+    "v_fcf": {
+     "cy": 41813.015617,
+     "y1": 38299.753823,
+     "y2": 39444.048319
+    },
+    "v_gap_dcf": {
+     "ly": -0.773022
+    },
+    "v_gap_mult": {
+     "ly": 0.103411
+    },
+    "v_mps": {
+     "ly": 154.477516
+    },
+    "v_ps": {
+     "ly": 31.776913
+    },
+    "v_tv": {
+     "y2": 591660.724783
+    }
+   },
+   "price_date": "2026-10-16"
+  }
+ },
+ "working": [
+  "fcf[p] = ebitda[p] - tax_rate[p] * max(ebitda[p] - dep[p], 0) + cf_wc[p] - capex[p], p = cy, y1, y2",
+  "df[cy] = 1 / (1 + rate); df[y1] = df[cy] / (1 + rate); df[y2] = df[y1] / (1 + rate)",
+  "tv = fcf[y2] * (1 + g) / (rate - g)",
+  "ev = fcf[cy] * df[cy] + fcf[y1] * df[y1] + fcf[y2] * df[y2] + tv * df[y2]",
+  "equity = ev - netdebt[ly] - nci[ly]; value per share = equity / shares[ly]",
+  "ev_ebitda: multiple value = (mult * ebitda[year] - netdebt[ly] - nci[ly]) / shares[ly]; pe: mult * eps[year]",
+  "gap = value / price - 1"
+ ]
+}

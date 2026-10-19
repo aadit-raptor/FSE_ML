@@ -213,7 +213,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R3 | Excel add-in: sign in and import results | R2 | ☑ |
 | R4 | Sector research, the model definition and the first sector model | R2 | ☑ |
 | R5 | Save back and roll forward | R3, R4 | ☑ |
-| R6 | Valuation | R4 | ☐ |
+| R6 | Valuation | R4 | ☑ |
 | R7 | Second and third sector models | R4 | ☐ |
 | R8 | Report draft | R6 | ☐ |
 | R9 | Ready for the paid switch | R5 | ☐ |
@@ -1367,6 +1367,48 @@ or nearly finished to try. So no task waits for an analyst:
 - **Done when:** both methods match a hand-solved case to 0.01; the workbook
   agrees with the server; nothing on screen or in the workbook words a
   recommendation (test over the catalogue).
+- **Done (2026-10-19).**
+  - **In the model definition** (`research/valuation.py`, added to every
+    model by `research/compose.py`): rows, so the workbook holds them as
+    formulas and the server works them out from the same trees. **As at the
+    end of last year**: net debt, non-controlling interests (at book) and
+    shares are last year's balance sheet from the accepted results, so the
+    valuation sits in last year's column; the assumptions are typed there
+    too (discount rate, growth after the forecast, target multiple, the
+    price and its date), and a roll forward leaves them where they are (a
+    new year marks the price amber: the valuation date moved).
+  - **Discounted cash flow**: each year from the current one, EBITDA less
+    tax on operating profit (the year's tax rate on EBITDA less
+    depreciation), less capital expenditure, plus the change in working
+    capital; the current year discounted one year, then Gordon's formula
+    after the last forecast year. Other income, associates and investments
+    are left out (said in the notes). Growth at the discount rate is no
+    value (blank), never a number.
+  - **Target multiple**: two choices, `value_multiple` (EV/EBITDA, less the
+    same net debt and non-controlling interests, or P/E on the year's EPS)
+    and `value_year` (any year from the current one; each year's value is a
+    row, so the choice is in plain sight). A saved model from before R6
+    takes the first options when it is opened (`compose.fit`, which also
+    sends a year the model no longer has back to the first).
+  - **The price's date** is a cell of the new unit `date`, an Excel day
+    number formatted as a date, so the add-in reads it back like any
+    number. Each method's value is set against the price as a percentage,
+    uncoloured.
+  - **Risk-free starting point**: `GET /api/research/companies/{id}/risk-free`
+    answers the 10-year government yield (stored economic data, 4.2) of the
+    one country whose currency the company's accepted results are in, or why
+    there is none (several currencies, the euro, nothing stored); the screen
+    offers "Start the discount rate from it" and asks for the premium.
+  - **Proof**: `tests/fixtures/research/valuation.json` solves both methods
+    by hand for model 1's two companies on the hand workbooks' figures
+    (Yatharth on EV/EBITDA, Lemon Tree on P/E); the model, the tests' own
+    Excel reader and LibreOffice give them to 0.01. No recommendation:
+    `tests/test_research_valuation.py` reads every word of the research
+    screens' catalogue, every model's labels and notes and every text cell
+    of the workbooks for rating words.
+  - Screen: Coverage -> Model, three value tiles (discounted cash flow,
+    target multiple, price) and a Valuation tile with the risk-free offer,
+    above the grid; date cells in the grid.
 
 ### R7 Second and third sector models
 - **Needs from the user:** the readers. The models are R4 part a's:

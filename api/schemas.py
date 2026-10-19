@@ -3068,6 +3068,19 @@ class ModelFillOut(BaseModel):
                                           "is accepted): a saved model started from them keeps it (R5)")
 
 
+class RiskFreeOut(BaseModel):
+    """The country's 10-year government bond yield, offered as the discount rate's starting point (PLAN.md R6)."""
+    status: Literal["ok", "no_currency", "no_country", "no_data"]
+    currency: Optional[str] = None
+    country: Optional[str] = Field(None, description="ISO 3166-1 alpha-2 of the country whose currency it is")
+    value: Optional[float] = Field(None, description="The yield as a fraction (0.0706 = 7.06%)")
+    period: Optional[str] = None
+    source: Optional[str] = None
+    source_series: Optional[str] = None
+    url: Optional[str] = None
+    current: Optional[bool] = None
+
+
 # ---------------------------------------------------------------------------
 # Saved sector models, save back from Excel and roll forward (PLAN.md R5)
 # ---------------------------------------------------------------------------

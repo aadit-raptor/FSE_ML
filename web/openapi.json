@@ -15382,6 +15382,116 @@
         "title": "RiskFigure",
         "type": "object"
       },
+      "RiskFreeOut": {
+        "description": "The country's 10-year government bond yield, offered as the discount rate's starting point (PLAN.md R6).",
+        "properties": {
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 3166-1 alpha-2 of the country whose currency it is",
+            "title": "Country"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_series": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Series"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "no_currency",
+              "no_country",
+              "no_data"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The yield as a fraction (0.0706 = 7.06%)",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "RiskFreeOut",
+        "type": "object"
+      },
       "RiskMissing": {
         "properties": {
           "field": {
@@ -25130,6 +25240,65 @@
           }
         ],
         "summary": "Post Periods",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/risk-free": {
+      "get": {
+        "description": "The 10-year government yield of the country whose currency the company's accepted results are in (PLAN.md\nR6), as the nightly economic data refresh stored it: offered beside the discount rate, never put in by itself.",
+        "operationId": "get_risk_free_api_research_companies__company_id__risk_free_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskFreeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Risk Free",
         "tags": [
           "research"
         ]

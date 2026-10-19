@@ -78,7 +78,8 @@ def _built(record: rows.ModelRecord):
     model = CATALOGUE.build(structure)
     raw = dict(record.company)
     raw["off"] = tuple(raw.get("off") or ())
-    return model, Company(**raw)
+    company, _ = compose.fit(model, Company(**raw))      # a model saved before a choice was added takes its first
+    return model, company
 
 
 def _stored(company: Company) -> dict:

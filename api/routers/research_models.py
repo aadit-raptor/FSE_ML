@@ -7,6 +7,7 @@ company, worked out on the server and written as live Excel formulas.
     POST /api/research/models/workbook           the same as a workbook of live formulas
     POST /api/research/models/cells              the same workbook as cells, for the Excel add-in
     GET  /api/research/companies/{id}/fill       the model's past from the company's accepted quarters
+    GET  /api/research/companies/{id}/risk-free  its country's 10-year yield, the discount rate's starting point
 
 Nothing is stored here: the company's figures and assumptions come with each
 request (saving a model per company is R5). A run is a hundred-odd rows of
@@ -17,6 +18,7 @@ and period at fault and is shown as the model's own words.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 from contextlib import contextmanager
 import io
 import json
@@ -29,9 +31,10 @@ from api.routers.coverage import store_errors
 from api.routers.export import _xlsx_response
 from api.schemas import (
     ModelCatalogueOut, ModelCellsOut, ModelChangeIn, ModelChangeOut, ModelFillOut, ModelRunIn, ModelRunOut,
+    RiskFreeOut,
 )
 from db import coverage as rows
-from research import actuals, blocks, compose
+from research import actuals, blocks, compose, valuation
 from research.definition import (
     ASSUME, Company, Heading, InputError, ModelError, Pick, cells, label, rule_for, words_for,
 )
@@ -198,3 +201,16 @@ def get_fill(company_id: uuid.UUID, scope: str = Query("consolidated", pattern="
         stored = rows.company_figures(user.subject, company_id)
     return actuals.fill(stored, scope).to_dict()
 
+
+
+@router.get("/companies/{company_id}/risk-free", response_model=RiskFreeOut)
+def get_risk_free(company_id: uuid.UUID, user: AuthUser = Depends(require_user)):
+    """The 10-year government yield of the country whose currency the company's accepted results are in (PLAN.md
+    R6), as the nightly economic data refresh stored it: offered beside the discount rate, never put in by itself."""
+    from db import economy
+
+    with store_errors():
+        rows.get_company(user.subject, company_id)
+        currencies = [p["currency"] for p in rows.company_figures(user.subject, company_id)]
+        series, _ = economy.all_series()
+    return valuation.risk_free(currencies, series, datetime.now(timezone.utc).date())

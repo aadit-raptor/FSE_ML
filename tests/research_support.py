@@ -18,6 +18,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 from openpyxl import load_workbook
@@ -27,6 +28,16 @@ from research.definition import Company
 
 FIXTURES = Path(__file__).parent / "fixtures" / "research"
 PAST = ("ly", "ytd")
+# Every model values the company (PLAN.md R6): a company built for a test that is not about valuation makes its
+# two choices and types these, so a whole evaluation (every assumption given) still works out
+VALUE_CHOICES = {"value_multiple": "ev_ebitda", "value_year": "y1"}
+VALUE_TYPED = {"v_rate": {"ly": 0.12}, "v_g": {"ly": 0.04}, "v_mult": {"ly": 12.0}, "v_price": {"ly": 100.0},
+               "v_date": {"ly": 46311}}
+
+
+def valuation_case(sector: str) -> dict:
+    """The valuation solved by hand for one of model 1's companies (`valuation.json`)."""
+    return json.loads((FIXTURES / "valuation.json").read_text(encoding="utf-8"))["cases"][sector]
 
 
 def load(slug: str) -> dict:
@@ -79,14 +90,15 @@ def past_figures(fixture: dict) -> tuple[dict, dict]:
 def company(fixture: dict, **changes) -> Company:
     """The fixture as the model's input. `changes` are `row={period: value}` overrides."""
     values, marks = past_figures(fixture)
-    for row, by_period in fixture["assumptions"].items():
+    valued = valuation_case(fixture["sector"])
+    for row, by_period in {**fixture["assumptions"], **valued["assumptions"]}.items():
         values.setdefault(row, {}).update(by_period)
     for row, by_period in changes.items():
         values.setdefault(row, {}).update(by_period)
     return Company(
         name=fixture["name"], sector=fixture["sector"], unit_name=fixture["unit_name"], basis=fixture["basis"],
         words=fixture["words"], period_labels=fixture["period_labels"],
-        constants={"unit_rupees": fixture["unit_rupees"]}, choices=fixture["choices"],
+        constants={"unit_rupees": fixture["unit_rupees"]}, choices={**fixture["choices"], **valued["choices"]},
         values=values, off=tuple(fixture["off"]), marks=marks)
 
 
@@ -245,4 +257,16 @@ def recalculated_by_libreoffice(wb):
             capture_output=True, text=True, timeout=180)
         result = out / "model.xlsx"
         assert result.exists(), "LibreOffice wrote nothing: %s %s" % (done.stdout[-400:], done.stderr[-400:])
-        return load_workbook(result, data_only=True)
+        wb = load_workbook(result, data_only=True)
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.value = as_excel_holds_it(cell.value)
+    return wb
+
+
+def as_excel_holds_it(value):
+    """openpyxl reads a cell formatted as a date as a datetime; Excel (and Office.js) hold it as a day number."""
+    if isinstance(value, datetime):
+        return (value - datetime(1899, 12, 30)).total_seconds() / 86400
+    return value

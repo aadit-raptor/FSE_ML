@@ -79,6 +79,59 @@ test.describe("Sector models", () => {
     // an input shows no grouping and the fewest decimals that keep the figure
     await expect(cell(page, "rev", "ytd").locator("input")).toHaveValue(String(Number(fill.values.rev.ytd.toFixed(4))));
     await expect(page.getByText("From accepted quarters").first()).toBeVisible();
+
+    // valuation (PLAN.md R6): the country's 10-year yield is offered, and taken, as the discount rate's start
+    // (the real endpoint answers from stored economic data: none on CI's empty database, a figure on a refreshed one)
+    await expect(page.getByText(/Starting point for the discount rate|No risk-free rate to offer: no 10-year yield/)).toBeVisible();
+    await page.route("**/risk-free", (route) => route.fulfill({ json: {
+      status: "ok", currency: "INR", country: "IN", value: 0.0706, period: "2026-09", source: "oecd",
+      source_series: "DF_FINMARK/IND.M.IRLT", url: "https://data-explorer.oecd.org/", current: true } }));
+    await page.reload();
+    await page.getByLabel("Fill the past from").selectOption({ label: "DMart" });
+    await page.getByRole("button", { name: /^(Open the saved model|Start the model)$/ }).click();   // saved or not yet
+    await expect(page.getByText(/India's 10-year government bond yield, 7.06%/)).toBeVisible();
+    await page.getByRole("button", { name: "Start the discount rate from it" }).click();
+    await expect(cell(page, "v_rate", "ly").locator("input")).toHaveValue("7.06");
+  });
+
+  test("the valuation: both methods per share as the server works them out, moved by what the analyst types", async ({ page }) => {
+    await signInAs(page, `models-value-${run}`, "en-US");
+    await page.goto("/coverage/model");
+    await page.getByLabel("Start from").selectOption("lemon-tree-hotels");
+    await page.getByRole("button", { name: "Start the model" }).click();
+    const dcf = page.locator('[data-kpi="Value per share, discounted cash flow"]');
+    const multiple = page.locator('[data-kpi="Value per share, target multiple"]');
+    const two = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // the example carries the case solved by hand (tests/fixtures/research/valuation.json): 31.78 and 154.48
+    await expect(dcf).toHaveText("31.78");
+    await expect(multiple).toHaveText("154.48");
+    await expect(page.getByText("35.0x P/E on FY28 · 10.3% against the price")).toBeVisible();
+    await expect(page.getByText("on Oct 16, 2026")).toBeVisible();
+
+    const rate = cell(page, "v_rate", "ly").locator("input");
+    await rate.fill("14");
+    await rate.press("Enter");
+    const dearer = await serverValue(page, "lemon-tree-hotels", { v_rate: { ly: 0.14 } }, "v_ps", "ly");
+    expect(dearer).toBeLessThan(31.78);
+    await expect(dcf).toHaveText(two(dearer));
+
+    // the multiple on another year, then of EBITDA: the server's value for that year
+    await page.getByLabel("Target multiple: the year it is applied to").selectOption("y1");
+    await expect(multiple).toHaveText(two(await serverValue(page, "lemon-tree-hotels", {}, "v_mv", "y1")));
+    await page.getByLabel("Target multiple: of which figure").selectOption("ev_ebitda");
+    await expect(page.getByText(/35.0x EV\/EBITDA on FY27/)).toBeVisible();
+    const ev = (await multiple.textContent()) ?? "";
+    expect(Number(ev.replace(/,/g, ""))).toBeGreaterThan(154.48);
+
+    // the price's date is a date cell, kept as Excel keeps one
+    const day = cell(page, "v_date", "ly").locator("input");
+    await day.fill("2026-10-20");
+    await day.blur();
+    await expect(page.getByText("on Oct 20, 2026")).toBeVisible();
+    const price = cell(page, "v_price", "ly").locator("input");
+    await price.fill("");
+    await price.press("Enter");
+    await expect(page.getByText("Type the price and its date in the model below")).toBeVisible();
   });
 
   test("a saved model rolls forward on newer results, its estimate kept beside them and unchanged by later edits", async ({ page }) => {

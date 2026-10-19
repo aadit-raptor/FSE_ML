@@ -1669,6 +1669,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/companies/{company_id}/risk-free": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Risk Free
+         * @description The 10-year government yield of the country whose currency the company's accepted results are in (PLAN.md
+         *     R6), as the nightly economic data refresh stored it: offered beside the discount rate, never put in by itself.
+         */
+        get: operations["get_risk_free_api_research_companies__company_id__risk_free_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/models": {
         parameters: {
             query?: never;
@@ -8054,6 +8075,39 @@ export interface components {
              */
             value: number;
         };
+        /**
+         * RiskFreeOut
+         * @description The country's 10-year government bond yield, offered as the discount rate's starting point (PLAN.md R6).
+         */
+        RiskFreeOut: {
+            /**
+             * Country
+             * @description ISO 3166-1 alpha-2 of the country whose currency it is
+             */
+            country?: string | null;
+            /** Currency */
+            currency?: string | null;
+            /** Current */
+            current?: boolean | null;
+            /** Period */
+            period?: string | null;
+            /** Source */
+            source?: string | null;
+            /** Source Series */
+            source_series?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "no_currency" | "no_country" | "no_data";
+            /** Url */
+            url?: string | null;
+            /**
+             * Value
+             * @description The yield as a fraction (0.0706 = 7.06%)
+             */
+            value?: number | null;
+        };
         /** RiskMissing */
         RiskMissing: {
             /**
@@ -13656,6 +13710,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PeriodAcceptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_risk_free_api_research_companies__company_id__risk_free_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiskFreeOut"];
                 };
             };
             /** @description Validation Error */

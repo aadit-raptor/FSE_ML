@@ -10,7 +10,7 @@ from dataclasses import replace
 
 import pytest
 
-from research import blocks, compose
+from research import blocks, compose, valuation
 from research.definition import ASSUME, FIGURE, Company, Heading, InputError, ModelError, cells, label
 from research.evaluate import EvaluationError, evaluate
 from research.models import CATALOGUE, general, occupancy
@@ -34,27 +34,32 @@ def rendered(model, words):
 
 def test_model1_built_from_blocks_is_the_model_solved_by_hand_row_for_row():
     """`model1_definition.json` is model 1 as it stood before the blocks were shared: every row, rule, label
-    (with each sector's words), constant and note is still the same."""
+    (with each sector's words), constant and note is still the same. The valuation every model gained in R6 comes
+    after them, rows and notes alike, and adds nothing else."""
     before = json.loads((support.FIXTURES / "model1_definition.json").read_text(encoding="utf-8"))
     model = occupancy.MODEL
+    added = len(valuation.rows(2))
     assert model.to_dict()["periods"] == before["periods"]
-    assert list(model.notes) == before["notes"]
+    assert [n for n in model.notes if n not in valuation.NOTES] == before["notes"]
     for sector, words in model.sectors.items():
         assert {k: label(v, words) for k, v in model.constants.items()} == before["constants"][sector]
-        assert rendered(model, words) == before["rows"][sector], sector
+        assert rendered(model, words)[:-added] == before["rows"][sector], sector
+        assert rendered(model, words)[-added]["heading"].startswith("VALUATION")
 
 
 def every_assumption(model, company_values=None, value=None):
     """A company with every typed cell filled: past figures and assumptions alike, by unit."""
     plan = cells(model, Company("x", "Rs lakh", sector=next(iter(model.sectors)), constants={"unit_rupees": 100000},
                                 choices={c: sorted(o)[0] for c, o in model.choices().items()}), allow_missing=True)
-    pick = {"share": 0.07, "rupees": 2500.0, "count": 40.0, "money": 900.0, "days": 0.0, "count3": 12.0}
+    pick = {"share": 0.07, "rupees": 2500.0, "count": 40.0, "money": 900.0, "days": 0.0, "count3": 12.0,
+            "times": 8.0, "rupees2": 100.0, "date": 46311.0}
     units = {r.key: r.unit for r in model.data_rows()}
     values = {}
     for (row, period), cell in plan.items():
         if cell.typed is None:
             continue
         v = {"ly": 365, "ytd": 183, "roy": 182}.get(period, 365) if units[row] == "days" else pick[units[row]]
+        v = 0.03 if row == "v_g" else v                 # growth after the forecast below the discount rate
         values.setdefault(row, {})[period] = v * (1.1 if period == "ytd" else 1.0)
     values["days"]["ytd"] = 183
     return values
@@ -230,7 +235,7 @@ def test_partial_evaluation_works_the_past_out_before_any_assumption_is_typed():
 
 def test_partial_evaluation_leaves_a_division_by_a_blank_figure_blank_and_says_so():
     empty = Company("x", "Rs lakh", sector="hotels", constants={"unit_rupees": 100000},
-                    choices={"line1_past": "drivers", "line1_end_to_date": "typed"})
+                    choices={"line1_past": "drivers", "line1_end_to_date": "typed", **support.VALUE_CHOICES})
     with pytest.raises(EvaluationError):
         evaluate(occupancy.MODEL, replace(empty, values=every_assumption(occupancy.MODEL) | {"rev": {"ly": None}}))
     result = evaluate(occupancy.MODEL, empty, partial=True)

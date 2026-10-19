@@ -36,6 +36,7 @@ FIRST_PERIOD_COLUMN = 3          # A = the row's label, B = its unit
 FORMATS = {
     "money": "#,##0.00;(#,##0.00);-", "count": "#,##0;(#,##0);-", "count3": "#,##0.000", "days": "0",
     "share": "0.0%;-0.0%;-", "rupees": "#,##0;(#,##0);-", "rupees2": "0.00", "times": "0.00", "check": "0.00;-0.00;0.00",
+    "date": "yyyy-mm-dd", "factor": "0.0000",
 }
 BLUE_RGB, GREY_RGB, WHITE_RGB, GREEN, RED = "0B4F9E", "888888", "FFFFFF", "1D6F42", "B03A2E"
 HEAD_RGB, SECTION_RGB, ASSUMED_RGB = "1F2A30", "DCE6EA", "FFF8D6"
@@ -84,7 +85,7 @@ def _put(ws, row: int, column: int, text: str):
 def _unit_text(unit: str, company: Company, words: dict) -> str:
     money = company.unit_name
     return {"money": money, "check": money, "share": "%", "rupees": words.get("currency", ""), "rupees2": words.get("currency", ""),
-            "count": "number", "count3": "number", "days": "days", "times": "times"}[unit]
+            "count": "number", "count3": "number", "days": "days", "times": "times", "date": "date", "factor": "factor"}[unit]
 
 
 def sheets(model: Model, company: Company, allow_missing: bool = False, saved: str | None = None) -> list[dict]:
