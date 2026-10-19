@@ -26,7 +26,7 @@ KINDS = ("past_year", "to_date", "rest", "current", "forecast")
 GROUPS = (("past", ("past_year", "to_date")),
           ("year_end", ("past_year", "to_date", "current", "forecast")),      # every period with a balance sheet
           ("all", KINDS))
-UNITS = ("money", "count", "count3", "days", "share", "rupees", "rupees2", "times", "check")
+UNITS = ("money", "count", "count3", "days", "share", "rupees", "rupees2", "times", "check", "date", "factor")
 MARKS = ("amber", "red")
 _NAME = re.compile(r"[a-z][a-z0-9_]*", re.ASCII)
 _SLOT = re.compile(r"\{([a-z][a-z0-9_]*)\}", re.ASCII)

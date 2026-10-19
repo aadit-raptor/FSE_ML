@@ -15,6 +15,7 @@ from openpyxl.utils import get_column_letter
 
 from research.sheetback import NOT_A_NUMBER, OTHER_MODEL, RESTRUCTURED, SheetRefused, read_back
 from research.workbook import SAVED_NAME, write
+from tests import research_support as support
 from tests.test_research_rollforward import yatharth
 
 SAVED = "5b0d1f3e-6a8e-4d55-9b1c-2f7f0e9a1c11"
@@ -30,7 +31,7 @@ def as_excel_reads_it(wb):
     """The Model sheet's values from A1 (formulas stand in as their text: only words and named cells are read)
     and its names, as {name: address}."""
     ws = wb["Model"]
-    grid = [[cell.value if cell.value is not None else "" for cell in row]
+    grid = [[support.as_excel_holds_it(cell.value) if cell.value is not None else "" for cell in row]
             for row in ws.iter_rows(min_row=1, max_row=ws.max_row, max_col=ws.max_column)]
     names = {}
     for name, defined in wb.defined_names.items():

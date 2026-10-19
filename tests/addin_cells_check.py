@@ -30,6 +30,8 @@ from typing import Any, Mapping
 
 from openpyxl import load_workbook
 
+from tests import research_support as support
+
 # When each was made: the download and the add-in's write are two requests
 GENERATED = ("About", "B3")
 
@@ -51,7 +53,7 @@ def _expected(ws) -> dict:
             if cell.data_type == "f":
                 spec["formula"] = cell.value
             elif cell.value is not None:
-                spec["value"] = cell.value
+                spec["value"] = support.as_excel_holds_it(cell.value)
             if fill:
                 spec["fill"] = fill
             if cell.number_format and cell.number_format != "General":

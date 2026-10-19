@@ -91,6 +91,9 @@ def read_back(model: Model, company: Company, saved: str, grid: list, names: dic
     for cell in expected["cells"]:
         if cell["column"] == 1 and cell["row"] >= header and "text" in cell:
             found = _text(_at(grid, cell["row"], 1))
+            if found == "" and not any(_text(c) for r in grid[cell["row"] - 1:] for c in r[:1]):
+                raise SheetRefused(RESTRUCTURED, "the model has gained rows since this sheet was loaded ('%s' from row %d "
+                                   "on): load the model again" % (cell["text"].strip()[:80], cell["row"]))
             if found != cell["text"].strip():
                 raise SheetRefused(RESTRUCTURED, "row %d should read '%s' but reads '%s': rows were added, removed "
                                    "or moved" % (cell["row"], cell["text"].strip()[:80], found[:80]))

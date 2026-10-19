@@ -4,7 +4,9 @@
    "basis": "Consolidated, Ind AS",
    "choices": {
     "line1_end_to_date": "average",
-    "line1_past": "revenue"
+    "line1_past": "revenue",
+    "value_multiple": "ev_ebitda",
+    "value_year": "y1"
    },
    "constants": {
     "unit_rupees": 1000000
@@ -379,6 +381,21 @@
      "roy": 0.258,
      "y1": 0.255,
      "y2": 0.255
+    },
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.05
+    },
+    "v_mult": {
+     "ly": 25.0
+    },
+    "v_price": {
+     "ly": 650.0
+    },
+    "v_rate": {
+     "ly": 0.13
     }
    },
    "words": {
@@ -436,7 +453,9 @@
    "basis": "Consolidated, Ind AS",
    "choices": {
     "line1_end_to_date": "typed",
-    "line1_past": "drivers"
+    "line1_past": "drivers",
+    "value_multiple": "pe",
+    "value_year": "y2"
    },
    "constants": {
     "unit_rupees": 100000
@@ -782,6 +801,21 @@
      "roy": 0.241,
      "y1": 0.245,
      "y2": 0.25
+    },
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.05
+    },
+    "v_mult": {
+     "ly": 35.0
+    },
+    "v_price": {
+     "ly": 140.0
+    },
+    "v_rate": {
+     "ly": 0.12
     }
    },
    "words": {

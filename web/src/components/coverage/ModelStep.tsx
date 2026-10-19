@@ -15,6 +15,7 @@ import {
 } from "@/lib/sectorModel";
 
 import { ModelGrid } from "./ModelGrid";
+import { ValuationTiles } from "./ValuationTile";
 import { ComparisonTile, RollNotice, SavedGroup, useVersions } from "./SavedModel";
 
 /**
@@ -110,6 +111,9 @@ export function ModelStep() {
           <Tile span={12} title={t("emptyTitle")}>
             <p className="type-body text-[10.5px]">{t("emptyBody")}</p>
           </Tile>
+        )}
+        {run && model.company && (
+          <ValuationTiles run={run} company={model.company} companyId={model.saved?.companyId ?? null} onChange={edit} />
         )}
         {run && model.saved && <ComparisonTile versions={versions} />}
         {run && model.company && (
@@ -341,7 +345,9 @@ function CompanyGroup({ model, onChange }: { model: ModelState; onChange: (compa
           <select className={field} value={run.choices_made[choice] ?? options[0]}
             onChange={(e) => onChange({ ...company, choices: { ...run.choices_made, [choice]: e.target.value } })}>
             {options.map((o) => (
-              <option key={o} value={o}>{t(`option_${o}`)}</option>
+              <option key={o} value={o}>
+                {choice === "value_year" ? (run.periods.find((p) => p.name === o)?.label ?? o) : t(`option_${o}`)}
+              </option>
             ))}
           </select>
         </label>

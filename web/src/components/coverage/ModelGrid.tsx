@@ -4,18 +4,22 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
-import { formatInput, parseNumber } from "@/lib/locale";
-import type { ModelCell, ModelRow, ModelRun } from "@/lib/sectorModel";
+import { formatDateTime, formatInput, parseNumber } from "@/lib/locale";
+import { excelDay, isoOfExcelDay, type ModelCell, type ModelRow, type ModelRun } from "@/lib/sectorModel";
 
 /**
  * The model's rows down and periods across (PLAN.md R4), as the workbook holds them. Typed figures (blue) and
  * assumptions (yellow) are inputs; everything else is what the model's formula gives, the formula in its
  * tooltip. Shares are typed and shown as percentages and kept as fractions, as the workbook keeps them.
  */
-const DECIMALS: Record<string, number> = { money: 2, count: 0, count3: 3, days: 0, rupees: 0, rupees2: 2, check: 2 };
+const DECIMALS: Record<string, number> = { money: 2, count: 0, count3: 3, days: 0, rupees: 0, rupees2: 2, check: 2, factor: 4 };
 
 function shown(unit: string | null | undefined, v: number | null | undefined): string {
   if (unit === "share") return fmtRate(v, 1);
+  if (unit === "date") {                       // a day number, as Excel holds a date (the price's date, PLAN.md R6)
+    const day = isoOfExcelDay(v);
+    return day ? formatDateTime(new Date(`${day}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }) : fmtNumber(null);
+  }
   if (unit === "times") return fmtMultiple(v, 2);
   return fmtNumber(v, DECIMALS[unit ?? "money"] ?? 2);
 }
@@ -74,12 +78,32 @@ function Cell({ row, cell, onEdit }: { row: ModelRow; cell: ModelCell | undefine
   }
   const assumption = cell.kind === "assumption";
   const ring = cell.mark ? (cell.mark.level === "red" ? "ring-1 ring-loss" : "ring-1 ring-attention") : "";
+  const label = assumption ? t("assumptionCell", { row: row.label.trim() }) : t("figureCell", { row: row.label.trim() });
+  if (row.unit === "date") {
+    return (
+      <input
+        type="date"
+        key={String(cell.value)}
+        aria-label={label}
+        title={cell.mark?.why || undefined}
+        defaultValue={isoOfExcelDay(cell.value)}
+        onBlur={(e) => {
+          const next = e.target.value ? excelDay(e.target.value) : null;
+          if (next !== (cell.value ?? null)) onEdit(next);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className={`w-32 border border-line px-1 py-0.5 text-end ${assumption ? "bg-[#2a2614]" : "bg-transparent"} ${ring} text-accent`}
+      />
+    );
+  }
   return (
     <TypedInput
       key={String(cell.value)}
       value={cell.value ?? null}
       share={row.unit === "share"}
-      label={assumption ? t("assumptionCell", { row: row.label.trim() }) : t("figureCell", { row: row.label.trim() })}
+      label={label}
       title={cell.mark?.why || undefined}
       className={`${assumption ? "bg-[#2a2614]" : "bg-transparent"} ${ring} text-accent`}
       onCommit={onEdit}

@@ -251,3 +251,36 @@ export function editCompany(owner: string | null, company: ModelCompany) {
     if (state.structure && state.company) void setModel(owner, state.structure, state.company);
   }, 300);
 }
+
+/* ------------------------------------------------------------------ valuation (PLAN.md R6) */
+
+export type RiskFree = Schemas["RiskFreeOut"];
+
+/** The country's 10-year government yield for a covered company, the discount rate's starting point. */
+export async function riskFree(companyId: string): Promise<RiskFree | null> {
+  const { data } = await api.GET("/api/research/companies/{company_id}/risk-free", {
+    params: { path: { company_id: companyId } },
+  });
+  return data ?? null;
+}
+
+const EXCEL_DAY_ZERO = Date.UTC(1899, 11, 30);
+const DAY_MS = 86_400_000;
+
+/** A date as Excel holds it (a day number), so the price's date is a cell the workbook and the add-in read alike. */
+export function excelDay(iso: string): number | null {
+  const ms = Date.parse(`${iso}T00:00:00Z`);
+  return Number.isFinite(ms) ? Math.round((ms - EXCEL_DAY_ZERO) / DAY_MS) : null;
+}
+
+/** An Excel day number as a calendar date, "2026-10-16". */
+export function isoOfExcelDay(day: number | null | undefined): string {
+  if (day === null || day === undefined || !Number.isFinite(day)) return "";
+  return new Date(EXCEL_DAY_ZERO + Math.round(day) * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** The value in last year's column of a valuation row (the model values the company as at last year's end). */
+export function valuationValue(run: ModelRun, row: string): number | null {
+  const found = run.rows.find((r) => r.key === row);
+  return found?.cells?.ly?.value ?? null;
+}
