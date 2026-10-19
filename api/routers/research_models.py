@@ -78,7 +78,8 @@ def get_models(user: AuthUser = Depends(require_user)):
     return {
         "models": [{"id": s.id, "name": s.name, "about": s.about, "offered": s.offered, "vetted": s.vetted,
                     "sectors": sorted(s.sectors), "default": s.default.to_dict()} for s in CATALOGUE.specs.values()],
-        "blocks": [{"id": b, "counts_places": b in blocks.COUNTING} for b in blocks.BLOCKS],
+        "blocks": [{"id": b, "counts_places": per is not None, "costs_per": per}
+                   for b, per in ((b, (blocks.driver(b, "") or (None, None))[1]) for b in blocks.BLOCKS)],
         "examples": EXAMPLES,
     }
 

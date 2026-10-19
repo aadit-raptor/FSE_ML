@@ -1,4 +1,4 @@
-"""The eight revenue blocks (PLAN.md R4), each solved by hand.
+"""The revenue blocks (PLAN.md R4, and R7's plant and stores), each solved by hand.
 
 Every case is one line of revenue in the General model's frame (no other
 line, the lower part left unfilled: `evaluate(..., partial=True)` works the
@@ -24,7 +24,8 @@ DAYS = {"ly": 365, "ytd": 183, "roy": 182, "y1": 365, "y2": 366}
 def run(block, values, choices=None, second=None):
     values = {"rev": {"ly": 1, "ytd": 1}, **values}         # the lower part's growth row divides by last year's
     segments = (compose.Segment("s1", block),) + ((second,) if second else ())
-    structure = compose.Structure("general", segments, "s1" if block in ("capacity", "units", "subscribers", "people") else None)
+    structure = compose.Structure("general", segments, "s1" if block in ("capacity", "units", "subscribers", "people", "stores",
+                                                                     "plant") else None)
     model = CATALOGUE.build(structure)
     company = Company(name="Case", unit_name="Rs lakh", sector="pharma", constants={"unit_rupees": L},
                       choices={**support.VALUE_CHOICES, **(choices or {})}, values={"days": DAYS, **values})
@@ -88,6 +89,74 @@ def test_price_times_volume():
     assert close(v["s1_price"]["cy"], cy_price)
     assert close(v["s1_rev"]["y1"], 1060 * 1.1 * cy_price * 1.03 / L)
     assert close(v["s1_rev"]["y2"], 1060 * 1.1 * 1.05 * cy_price * 1.03 * 1.02 / L)
+
+
+def test_plant_capacity_times_utilisation_times_price_per_unit_sold():
+    v = run("plant", {"s1_end": {"ly": 10_000_000, "ytd": 10_000_000}, "s1_avg": {"ly": 9_500_000, "ytd": 10_000_000},
+                      "s1_vol": {"ly": 7_600_000, "ytd": 4_000_000}, "s1_rev": {"ly": 380_000, "ytd": 216_000},
+                      "s1_add": {"roy": 1_000_000, "y1": 0, "y2": 2_000_000},
+                      "s1_util": {"roy": 0.85, "y1": 0.86, "y2": 0.8}, "s1_price": {"roy": 5500},
+                      "s1_pg": {"y1": 0.03, "y2": 0.02}})
+    assert close(v["s1_util"]["ly"], 7_600_000 / 9_500_000)                    # 0.8 of the year's capacity
+    assert close(v["s1_util"]["ytd"], 4_000_000 * 365 / (10_000_000 * 183))     # a part year's capacity is its days'
+    assert close(v["s1_price"]["ly"], 380_000 * L / 7_600_000)                  # Rs 5,000 a tonne, worked out
+    assert close(v["s1_price"]["ytd"], 5400)
+    roy_avg = (10_000_000 + 11_000_000) / 2
+    roy_vol = roy_avg * 0.85 * 182 / 365
+    assert close(v["s1_vol"]["roy"], roy_vol)
+    assert close(v["s1_rev"]["roy"], roy_vol * 5500 / L)
+    cy_vol, cy_rev = 4_000_000 + roy_vol, 216_000 + roy_vol * 5500 / L
+    assert close(v["s1_vol"]["cy"], cy_vol)
+    assert close(v["s1_price"]["cy"], cy_rev * L / cy_vol)
+    cy_avg = (10_000_000 * 183 + roy_avg * 182) / 365
+    assert close(v["s1_util"]["cy"], cy_vol * 365 / (cy_avg * 365))
+    y1_vol = 11_000_000 * 0.86
+    assert close(v["s1_rev"]["y1"], y1_vol * cy_rev * L / cy_vol * 1.03 / L)
+    y2_vol = 12_000_000 * 0.8 * 366 / 365
+    assert close(v["s1_rev"]["y2"], y2_vol * cy_rev * L / cy_vol * 1.03 * 1.02 / L)
+
+
+def test_stores_times_revenue_per_store_per_day():
+    v = run("stores", {"s1_end": {"ly": 400, "ytd": 420}, "s1_avg": {"ly": 380, "ytd": 410},
+                       "s1_rev": {"ly": 55_480, "ytd": 30_012}, "s1_add": {"roy": 30, "y1": 50, "y2": 60},
+                       "s1_cls": {"roy": 2, "y1": 4, "y2": 0}, "s1_price": {"roy": 420_000},
+                       "s1_sg": {"y1": 0.06, "y2": 0.05}})
+    assert close(v["s1_price"]["ly"], 55_480 * L / (380 * 365))                 # Rs 40,000 a store a day
+    assert close(v["s1_price"]["ytd"], 30_012 * L / (410 * 183))
+    assert close(v["s1_end"]["roy"], 420 + 30 - 2)
+    roy_rev = (420 + 448) / 2 * 420_000 * 182 / L
+    assert close(v["s1_rev"]["roy"], roy_rev)
+    cy_avg = (410 * 183 + 434 * 182) / 365
+    assert close(v["s1_avg"]["cy"], cy_avg)
+    cy_price = (30_012 + roy_rev) * L / (cy_avg * 365)
+    assert close(v["s1_price"]["cy"], cy_price)
+    assert close(v["s1_rev"]["y1"], (448 + 494) / 2 * cy_price * 1.06 * 365 / L)
+    assert close(v["s1_rev"]["y2"], (494 + 554) / 2 * cy_price * 1.06 * 1.05 * 366 / L)
+
+
+def test_costs_follow_a_volume_sold_per_unit_and_places_per_day():
+    """The plant's costs are per unit sold, no days; the stores' per store per day."""
+    def costs(block, extra):
+        structure = compose.Structure("per_tonne" if block == "plant" else "stores", (compose.Segment("s1", block),), "s1")
+        model = CATALOGUE.build(structure)
+        company = Company(name="Case", unit_name="Rs lakh", sector="cement" if block == "plant" else "retail",
+                          constants={"unit_rupees": L}, choices=support.VALUE_CHOICES,
+                          values={"days": DAYS, "rev": {"ly": 1, "ytd": 1}, **extra})
+        return evaluate(model, company, partial=True).values
+
+    plant = costs("plant", {"s1_end": {"ly": 100, "ytd": 100}, "s1_avg": {"ly": 100, "ytd": 100},
+                            "s1_vol": {"ly": 80, "ytd": 40}, "s1_rev": {"ly": 400, "ytd": 210}, "frt": {"ly": 96, "ytd": 50},
+                            "s1_add": {"roy": 0}, "s1_util": {"roy": 0.9}, "s1_price": {"roy": 520_000},
+                            "frt_sh": {"roy": 0.01}, "frt_pu": {"roy": 125_000}})
+    assert close(plant["frt_m2"]["ly"], 96 * L / 80)                             # Rs 1.2 lakh a unit sold
+    roy_vol = 100 * 0.9 * 182 / 365
+    assert close(plant["frt"]["roy"], 0.01 * roy_vol * 520_000 / L + 125_000 * roy_vol / L)
+    shop = costs("stores", {"s1_end": {"ly": 10, "ytd": 10}, "s1_avg": {"ly": 10, "ytd": 10}, "s1_rev": {"ly": 100, "ytd": 50},
+                            "emp": {"ly": 7.3, "ytd": 3.66}, "s1_add": {"roy": 0}, "s1_cls": {"roy": 0},
+                            "s1_price": {"roy": 30_000}, "emp_sh": {"roy": 0}, "emp_pd": {"roy": 2_100}})
+    assert close(shop["emp_m2"]["ly"], 7.3 * L / (10 * 365))                     # Rs 200 a store a day
+    assert close(shop["emp"]["roy"], 2_100 * 10 * 182 / L)
+    assert "frt" not in shop and "pwr" not in shop and "pwr" in plant
 
 
 def test_subscribers_less_churn():

@@ -39,11 +39,19 @@ def test_the_catalogue_offers_only_models_solved_by_hand_and_says_none_is_vetted
     body = client.get("/api/research/models").json()
     models = {m["id"]: m for m in body["models"]}
     assert models["occupancy"]["offered"] is True and models["general"]["offered"] is False
+    assert models["per_tonne"]["offered"] is True and models["stores"]["offered"] is True
     assert not any(m["vetted"] for m in models.values())
     assert models["occupancy"]["sectors"] == ["hospitals", "hotels"]
-    assert {b["id"] for b in body["blocks"]} == {"capacity", "units", "price_volume", "subscribers", "people",
-                                                 "order_book", "growth", "share"}
-    assert [e["id"] for e in body["examples"]] == ["yatharth-hospital", "lemon-tree-hotels"]
+    assert models["per_tonne"]["sectors"] == ["cement", "chemicals", "steel"]
+    assert models["stores"]["sectors"] == ["restaurants", "retail"]
+    per = {b["id"]: (b["counts_places"], b["costs_per"]) for b in body["blocks"]}
+    assert per == {"capacity": (True, "day"), "units": (True, "day"), "price_volume": (True, "unit"),
+                   "subscribers": (True, "day"), "people": (True, "day"), "order_book": (False, None),
+                   "growth": (False, None), "share": (False, None), "plant": (True, "unit"), "stores": (True, "day")}
+    assert [e["id"] for e in body["examples"]] == ["yatharth-hospital", "lemon-tree-hotels", "jk-lakshmi-cement",
+                                                   "star-cement", "avenue-supermarts", "v-mart-retail"]
+    assert {e["id"]: e["structure"]["model"] for e in body["examples"]}["star-cement"] == "per_tonne"
+    assert {e["id"]: e["structure"]["model"] for e in body["examples"]}["v-mart-retail"] == "stores"
 
 
 @pytest.mark.parametrize("n, fixture", [(0, "hospitals"), (1, "hotels")])
@@ -67,6 +75,30 @@ def test_a_run_answers_the_evaluators_figures_for_every_cell(n, fixture):
     assert rev["cells"]["ly"]["choice"] == "line1_past"
     occ = next(r for r in body["rows"] if r["key"] == "s1_occ")
     assert occ["cells"]["y1"]["kind"] == "assumption" and occ["cells"]["ly"]["kind"] == "figure"
+
+
+@pytest.mark.parametrize("n, fixture, line", [(2, "model2_jk_lakshmi", "s1_vol * s1_price / unit_rupees"),
+                                              (3, "model2_star_cement", "s1_vol * s1_price / unit_rupees"),
+                                              (4, "model3_avenue_supermarts", "s1_avg * s1_price * days / unit_rupees"),
+                                              (5, "model3_v_mart", "s1_avg * s1_price * days / unit_rupees")])
+def test_a_run_of_models_two_and_three_answers_the_hand_workbooks_figures(n, fixture, line):
+    """PLAN.md R7: the examples as the screen opens them give, through the endpoint, what the hand-built
+    workbooks gave (the fixture's own `expected`, never the evaluator's)."""
+    ex = example(n)
+    answer = client.post("/api/research/models/run", json={"structure": ex["structure"], "company": ex["company"]})
+    assert answer.status_code == 200, answer.text
+    body, expected = answer.json(), support.load(fixture)["expected"]
+    compared = 0
+    for row in body["rows"]:
+        if row["key"] in expected:
+            for p, cell in row["cells"].items():
+                hand = expected[row["key"]][p]
+                assert (cell["value"] is None) == (hand is None) and (hand is None or abs(cell["value"] - hand) <= 0.01), \
+                    (row["key"], p, cell["value"], hand)
+                compared += 1
+    assert compared > 400 and body["missing"] == [] and body["vetted"] is False
+    rev = next(r for r in body["rows"] if r["key"] == "s1_rev")
+    assert rev["cells"]["y1"]["formula"] == line
 
 
 def test_a_run_with_assumptions_still_to_type_works_the_past_out_and_lists_them():

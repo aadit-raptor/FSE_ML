@@ -70,28 +70,39 @@ ALL_BLOCKS = compose.Structure("occupancy", (
     compose.Segment("s4", "subscribers"), compose.Segment("s5", "people"), compose.Segment("s6", "order_book"),
     compose.Segment("s7", "growth"), compose.Segment("s8", "share", of="s1", rest_of_revenue=True),
 ), places="s1", forecast_years=3)
+# R7's two blocks, with costs per unit sold (the plant's volume), and per place per day in the other structure
+LATER_BLOCKS = compose.Structure("per_tonne", (
+    compose.Segment("s1", "plant"), compose.Segment("s2", "stores"), compose.Segment("s3", "price_volume"),
+    compose.Segment("s4", "share", of="s2", rest_of_revenue=True),
+), places="s1", forecast_years=3)
+STRUCTURES = {"eight": ALL_BLOCKS, "later": LATER_BLOCKS}
 
 
-def all_blocks():
-    model = CATALOGUE.build(ALL_BLOCKS)
+def all_blocks(which="eight"):
+    model = CATALOGUE.build(STRUCTURES[which])
     choices = {c: sorted(o)[0] for c, o in model.choices().items()}
-    company = Company("All blocks", "Rs lakh", sector="hotels", constants={"unit_rupees": 100000}, choices=choices,
+    company = Company("All blocks", "Rs lakh", sector={"eight": "hotels", "later": "cement"}[which], constants={"unit_rupees": 100000}, choices=choices,
                       values=every_assumption(model))
     return model, company
 
 
-def test_one_model_can_hold_all_eight_blocks_and_works_out_whole():
-    model, company = all_blocks()
+def test_every_block_is_in_one_of_the_whole_structures():
+    assert {s.block for st in STRUCTURES.values() for s in st.segments} == set(blocks.BLOCKS)
+
+
+@pytest.mark.parametrize("which", STRUCTURES)
+def test_one_model_can_hold_all_eight_blocks_and_works_out_whole(which):
+    model, company = all_blocks(which)
     values = evaluate(model, company).values
-    assert {s.block for s in ALL_BLOCKS.segments} == set(blocks.BLOCKS)
-    revenue = sum(values["s%d_rev" % i]["y3"] for i in range(1, 9))
+    revenue = sum(values["%s_rev" % s.key]["y3"] for s in STRUCTURES[which].segments)
     assert values["rev"]["y3"] == pytest.approx(revenue)
     for period in ("cy", "y1", "y2", "y3"):              # the filler's opening balance sheet is out by its own gap,
         assert values["chk_bs"][period] == pytest.approx(values["chk_bs"]["ly"])     # and the cash flow adds none
 
 
-def test_the_workbook_of_all_eight_blocks_gives_the_servers_figures():
-    model, company = all_blocks()
+@pytest.mark.parametrize("which", STRUCTURES)
+def test_the_workbook_of_all_eight_blocks_gives_the_servers_figures(which):
+    model, company = all_blocks(which)
     where, values = layout(model), evaluate(model, company).values
     get = support.workbook_values(write(model, company))
     wrong = [(r.key, p.name) for r in model.data_rows() for p in model.periods
@@ -101,8 +112,9 @@ def test_the_workbook_of_all_eight_blocks_gives_the_servers_figures():
 
 
 if support.soffice_wanted():
-    def test_libreoffice_works_all_eight_blocks_out_to_the_servers_figures():
-        model, company = all_blocks()
+    @pytest.mark.parametrize("which", STRUCTURES)
+    def test_libreoffice_works_all_eight_blocks_out_to_the_servers_figures(which):
+        model, company = all_blocks(which)
         where, values = layout(model), evaluate(model, company).values
         sheet = support.recalculated_by_libreoffice(write(model, company))["Model"]
         wrong = [(r.key, p.name, values[r.key][p.name], sheet[where.cell(r.key, p.name)].value)
@@ -251,7 +263,8 @@ def test_the_general_model_is_built_but_not_offered_until_solved_by_hand():
     assert {r.key for r in model.data_rows()} >= {"s1_g", "s2_g", "mat_sh", "rev", "chk_bs"}
     assert "mat_pd" not in {r.key for r in model.data_rows()}
     assert CATALOGUE.sectors() == {"hospitals": "occupancy", "hotels": "occupancy", "pharma": "general",
-                                   "auto_components": "general"}
+                                   "auto_components": "general", "cement": "per_tonne", "steel": "per_tonne",
+                                   "chemicals": "per_tonne", "retail": "stores", "restaurants": "stores"}
 
 
 def test_line_one_cannot_be_switched_off_and_every_other_line_can():
@@ -266,3 +279,17 @@ def test_typed_and_assumed_cells_follow_the_rules_each_block_states():
     assert plan[("s7_g", "cy")].typed is ASSUME and plan[("s7_rev", "roy")].tree is not None
     assert plan[("s6_ob_in", "ytd")].typed is FIGURE and plan[("s6_exec", "y1")].typed is ASSUME
     assert plan[("s4_churn", "roy")].typed is ASSUME and plan[("s4_cls", "y2")].tree is not None
+
+
+def test_a_models_cost_lines_must_hold_materials_employees_and_other_expenses():
+    """PLAN.md R7: a model names its own cost lines (freight for cement, no power for a retailer), from a fixed
+    list, each once, and payables are days of every cost but employees."""
+    from research import lower
+    for bad in (("mat", "oth"), ("mat", "emp", "oth", "rent"), ("mat", "emp", "emp", "oth")):
+        with pytest.raises(ModelError, match="cost lines"):
+            lower.check_costs(bad)
+    assert lower.suppliers(("mat", "emp", "pwr", "frt", "oth")) == "(mat + pwr + frt + oth)"
+    assert lower.suppliers(lower.COSTS) == "(mat + pwr + oth)"                  # model 1's, unchanged
+    rows = {r.key: r for r in CATALOGUE.build(CATALOGUE.spec("stores").default).data_rows()}
+    assert rows["ebitda"].rules["all"] == "rev - mat - emp - oth"
+    assert rows["pay_days"].label == "Payables, days of every cost but employees"

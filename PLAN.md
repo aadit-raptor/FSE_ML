@@ -214,7 +214,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R4 | Sector research, the model definition and the first sector model | R2 | ☑ |
 | R5 | Save back and roll forward | R3, R4 | ☑ |
 | R6 | Valuation | R4 | ☑ |
-| R7 | Second and third sector models | R4 | ☐ |
+| R7 | Second and third sector models | R4 | ☑ |
 | R8 | Report draft | R6 | ☐ |
 | R9 | Ready for the paid switch | R5 | ☐ |
 
@@ -1418,6 +1418,66 @@ or nearly finished to try. So no task waits for an analyst:
 - **Claude does:** each as R4's last three bullets; what R4's format lacked
   is added to the format, never worked around in one model.
 - **Done when:** as R4, per model.
+- **Done (2026-10-19): model 2, Per tonne, and model 3, Stores, offered and
+  marked "not yet vetted"** (no practising analyst has read them; the line
+  stays open as it does for model 1).
+  - **What the format lacked, added to the format:** two blocks in
+    `research/blocks.py`: **plant** (capacity a year, its average, the volume
+    sold, the utilisation and the price per unit sold; for the past the
+    volume and revenue are printed and the utilisation and price worked out)
+    and **stores** (stores opened and closed, revenue per store per day,
+    grown by an assumption read as like-for-like growth); **costs per unit
+    sold** (`research/pieces.py` `cost_per_unit`: a share of revenue plus an
+    amount per unit, the "cost row that picks its driver" of R4's list), a
+    line counting places or a volume sold being what costs follow
+    (`blocks.driver`), with **EBITDA per unit sold** beside the margin; and
+    **a model's own cost lines** (`Spec.costs`, from mat, emp, pwr, frt,
+    oth: cement adds freight, a retailer has no power line; payables are
+    days of every cost but employees). Model 1's definition is unchanged
+    (`model1_definition.json` still pins every row).
+  - **Model 2** (`research/models/per_tonne.py`): sectors cement, steel and
+    chemicals; lines plant and a share of it (other operating revenue);
+    costs per tonne sold. **Model 3** (`research/models/stores.py`): sectors
+    retail and restaurants; lines stores and a share; three cost lines per
+    store per day.
+  - **Solved by hand for four companies** (`research-samples/r7/` on the
+    Mac: `typed.py`, the figures read by eye from the pages at 250-300 dpi;
+    `build_r7.py`, the hand workbooks with their own formula templates;
+    `write_fixtures.py`, LibreOffice works them out and writes the
+    fixtures): **JK Lakshmi Cement** (standalone, H1 FY26, volumes from its
+    press release) and **Star Cement** (consolidated, Q1 FY27; its 31 March
+    2026 balance sheet from the audited results on the company's own
+    website) for model 2; **Avenue Supermarts** (standalone, H1 FY27) and
+    **V-Mart Retail** (H1 FY26) for model 3. Every sum the pages print holds
+    on the typed figures; the models' past equals each filing's profit
+    before tax, after tax and for the owners; the balance sheets balance;
+    **the models give the hand workbooks' number on every row and period
+    to 0.01** (`tests/test_research_later_models.py`, fixtures
+    `tests/fixtures/research/model2_*.json`, `model3_*.json`); the written
+    workbooks agree with the server by the tests' reader and by LibreOffice.
+    Both companies of a model share every forecast rule.
+  - **What the hand build found:** filings print no volumes or store counts:
+    they come from the companies' releases as press and broker reports
+    carry them (amber, with the reason); exceptional items have no row, so
+    the past folds them into other expenses (noted per company); no filing
+    of the four splits interest on leases out of finance costs, so the rate
+    on borrowings that comes out is high (V-Mart's 48%); store counts need
+    each quarter's end, because openings are uneven (DMart opened 58 of
+    FY26's 85 stores in its fourth quarter); a bonus issue changes last
+    year's share count (V-Mart, 3-for-1); a cement company's volume includes
+    clinker sold, so its utilisation is not the plants' own. Restaurants and
+    steel and chemicals share their model's formulas but have no company of
+    their own solved by hand yet.
+  - **Left:** the General model (7) is still not offered (no two companies
+    solved for it). **From the review, recorded:** the fill from accepted
+    quarters (`research/actuals.py`) fills materials, employees and other
+    expenses only, because the reader has no standard line for power and
+    fuel or for freight: a per-tonne model started from a covered company
+    shows those two blank (read as nil) until typed, and the fill does not
+    say so (model 1's power line has the same gap). Adding the two lines to
+    the reader's fixed list (`research/reader/lines.py`) and to `FLOWS` is a
+    follow-up. Swapping a line to `price_volume` now makes costs per unit
+    sold, as a volume block's costs are.
 
 ### R8 Report draft
 - **Pulls forward:** 6.3's writer and its rule, and 7.9's charts.

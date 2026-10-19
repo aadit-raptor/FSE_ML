@@ -5579,13 +5579,21 @@ export interface components {
         };
         /** ModelBlockOut */
         ModelBlockOut: {
-            /** Counts Places */
+            /**
+             * Costs Per
+             * @description What costs follow on this line: a place per day, a unit sold, or nothing
+             */
+            costs_per?: ("day" | "unit") | null;
+            /**
+             * Counts Places
+             * @description Costs per place per day, or per unit sold, can follow this line
+             */
             counts_places: boolean;
             /**
              * Id
              * @enum {string}
              */
-            id: "capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share";
+            id: "capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share" | "plant" | "stores";
         };
         /** ModelCatalogueOut */
         ModelCatalogueOut: {
@@ -5646,7 +5654,7 @@ export interface components {
              * Block
              * @description add and swap: the block
              */
-            block?: ("capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share") | null;
+            block?: ("capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share" | "plant" | "stores") | null;
             /**
              * Key
              * @description drop, swap and places: the line
@@ -7769,7 +7777,7 @@ export interface components {
              * Block
              * @enum {string}
              */
-            block: "capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share";
+            block: "capacity" | "units" | "price_volume" | "subscribers" | "people" | "order_book" | "growth" | "share" | "plant" | "stores";
             /**
              * Formula
              * @description A share line: the analyst's own forecast formula, naming only days, unit_rupees and the rows of lines before it

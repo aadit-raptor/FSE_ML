@@ -90,6 +90,20 @@ def cost(key: str, label: str, revenue: str, places: str | None, place: str = "{
     ]
 
 
+def cost_per_unit(key: str, label: str, revenue: str, volume: str, place: str = "{place}") -> list:
+    """A cost that is a share of revenue plus an amount per unit sold (cement: power and fuel, freight per
+    tonne). One of the two assumptions is left at nil, as in `cost`."""
+    forward = "%s_sh * %s + %s_pu * %s / %s" % (key, revenue, key, volume, UNIT)
+    return [
+        Row(key, label, "money", {"past": FIGURE, "rest": forward, "current": added_up(key), "forecast": forward}),
+        Row(key + "_sh", "   assumption: share of revenue", "share", {"rest": ASSUME, "forecast": ASSUME}),
+        Row(key + "_pu", "   assumption: {currency} per %s sold" % place, "rupees", {"rest": ASSUME, "forecast": ASSUME}),
+        Row(key + "_m1", "   as it came out: share of revenue", "share", {"all": "div(%s, %s)" % (key, revenue)}),
+        Row(key + "_m2", "   as it came out: {currency} per %s sold" % place, "rupees",
+            {"all": "div(%s * %s, %s)" % (key, UNIT, volume)}),
+    ]
+
+
 def balance_rate(key: str, label: str, rate_key: str, rate_label: str, balance: str, basis: str = "opening",
                  days: str = "days") -> list:
     """A yearly flow that is a rate on a balance: interest, income on cash, depreciation.

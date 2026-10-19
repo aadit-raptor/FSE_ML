@@ -13,7 +13,7 @@ import pytest
 
 from research.definition import ASSUME, Company, InputError, cells
 from research.evaluate import evaluate
-from research.models import occupancy
+from research.models import occupancy, per_tonne, stores
 from research.workbook import layout, write
 from tests import research_support as support
 from tests.test_research_model import toy, yatharth
@@ -25,10 +25,18 @@ def model1(slug, **changes):
     return occupancy.MODEL, support.company(support.load(slug), **changes)
 
 
+def later(name):
+    """A company solved by hand for model 2 or 3 (PLAN.md R7)."""
+    fixture = support.load(name)
+    return {"per_tonne": per_tonne.MODEL, "stores": stores.MODEL}[fixture["model"]], support.company(fixture)
+
+
 CASES = {
     "toy": lambda: (toy(), yatharth()),
     "hospitals": lambda: model1("hospitals"),
     "hotels": lambda: model1("hotels"),
+    **{name: (lambda name=name: later(name)) for name in (
+        "model2_jk_lakshmi", "model2_star_cement", "model3_avenue_supermarts", "model3_v_mart")},
 }
 
 
