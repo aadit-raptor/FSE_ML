@@ -2,9 +2,9 @@
 
 Three things the tests need and the product does not:
 
-- the two hand-solved companies of model 1 (`tests/fixtures/research/`: the
-  figures typed from their filings, which lines make each model row, and what
-  the hand-built Excel workbooks gave), turned into a `Company`;
+- the hand-solved companies of each sector model (`tests/fixtures/research/`:
+  the figures typed from their filings, which lines make each model row, and
+  what the hand-built Excel workbooks gave), turned into a `Company`;
 - **an independent reader of a written workbook**: its own small reader of
   Excel formula text, which shares nothing with `research/formula.py`, so a
   mistake in how the writer turns a formula into Excel shows as a difference;
@@ -41,7 +41,9 @@ def valuation_case(sector: str) -> dict:
 
 
 def load(slug: str) -> dict:
-    return json.loads((FIXTURES / ("model1_%s.json" % slug)).read_text(encoding="utf-8"))
+    """A hand-solved company: model 1's by sector (``hotels``), later models' by file name (``model2_star_cement``)."""
+    name = slug if slug.startswith("model") else "model1_%s" % slug
+    return json.loads((FIXTURES / ("%s.json" % name)).read_text(encoding="utf-8"))
 
 
 def reported(fixture: dict) -> dict:
@@ -90,7 +92,7 @@ def past_figures(fixture: dict) -> tuple[dict, dict]:
 def company(fixture: dict, **changes) -> Company:
     """The fixture as the model's input. `changes` are `row={period: value}` overrides."""
     values, marks = past_figures(fixture)
-    valued = valuation_case(fixture["sector"])
+    valued = fixture.get("valuation") or valuation_case(fixture["sector"])   # model 1's valuation was solved apart (R6)
     for row, by_period in {**fixture["assumptions"], **valued["assumptions"]}.items():
         values.setdefault(row, {}).update(by_period)
     for row, by_period in changes.items():

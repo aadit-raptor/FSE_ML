@@ -8542,7 +8542,24 @@
       },
       "ModelBlockOut": {
         "properties": {
+          "costs_per": {
+            "anyOf": [
+              {
+                "enum": [
+                  "day",
+                  "unit"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What costs follow on this line: a place per day, a unit sold, or nothing",
+            "title": "Costs Per"
+          },
           "counts_places": {
+            "description": "Costs per place per day, or per unit sold, can follow this line",
             "title": "Counts Places",
             "type": "boolean"
           },
@@ -8555,7 +8572,9 @@
               "people",
               "order_book",
               "growth",
-              "share"
+              "share",
+              "plant",
+              "stores"
             ],
             "title": "Id",
             "type": "string"
@@ -8715,7 +8734,9 @@
                   "people",
                   "order_book",
                   "growth",
-                  "share"
+                  "share",
+                  "plant",
+                  "stores"
                 ],
                 "type": "string"
               },
@@ -14492,7 +14513,9 @@
               "people",
               "order_book",
               "growth",
-              "share"
+              "share",
+              "plant",
+              "stores"
             ],
             "title": "Block",
             "type": "string"

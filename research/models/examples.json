@@ -867,5 +867,1429 @@
     }
    ]
   }
+ },
+ {
+  "company": {
+   "basis": "Standalone, Ind AS (the volumes the company prints are standalone)",
+   "choices": {
+    "value_multiple": "ev_ebitda",
+    "value_year": "y1"
+   },
+   "constants": {
+    "unit_rupees": 10000000
+   },
+   "marks": {
+    "s1_avg": {
+     "ly": {
+      "level": "amber",
+      "why": "Not printed. FY25 is taken as 16.5 million tonnes all year; H1 FY26 as the two ends halved (the day the Surat unit started is not given)."
+     },
+     "ytd": {
+      "level": "amber",
+      "why": "Not printed. FY25 is taken as 16.5 million tonnes all year; H1 FY26 as the two ends halved (the day the Surat unit started is not given)."
+     }
+    },
+    "s1_end": {
+     "ly": {
+      "level": "amber",
+      "why": "The press release says capacity rose from 16.5 to 18 million tonnes a year with the Surat grinding unit commissioned in the quarter; 16.5 stands for 31 March 2025."
+     }
+    }
+   },
+   "name": "JK Lakshmi Cement Limited",
+   "off": [
+    "s2"
+   ],
+   "period_labels": {
+    "cy": "FY26",
+    "ly": "FY25 (actual)",
+    "roy": "H2 FY26 (assumed)",
+    "y1": "FY27",
+    "y2": "FY28",
+    "ytd": "H1 FY26 (actual)"
+   },
+   "sector": "cement",
+   "unit_name": "Rs crore",
+   "values": {
+    "assoc": {
+     "ly": 0.0,
+     "roy": 0,
+     "y1": 0,
+     "y2": 0,
+     "ytd": 0.0
+    },
+    "capex": {
+     "cy": 900,
+     "y1": 1500,
+     "y2": 1200
+    },
+    "cash": {
+     "ly": 795.05,
+     "ytd": 1152.02
+    },
+    "days": {
+     "ly": 365,
+     "roy": 182,
+     "y1": 365,
+     "y2": 366,
+     "ytd": 183
+    },
+    "debt": {
+     "ly": 2527.17,
+     "ytd": 2574.24
+    },
+    "debt_rate": {
+     "roy": 0.08,
+     "y1": 0.08,
+     "y2": 0.08
+    },
+    "dep": {
+     "ly": 298.76,
+     "ytd": 154.32
+    },
+    "dep_rate": {
+     "roy": 0.058,
+     "y1": 0.058,
+     "y2": 0.058
+    },
+    "dividends": {
+     "cy": 75,
+     "y1": 80,
+     "y2": 90
+    },
+    "drawn": {
+     "cy": 600,
+     "y1": 1000,
+     "y2": 600
+    },
+    "emp": {
+     "ly": 439.45,
+     "ytd": 254.29
+    },
+    "emp_pu": {
+     "roy": 420,
+     "y1": 430,
+     "y2": 440
+    },
+    "emp_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "eq": {
+     "ly": 3579.46,
+     "ytd": 3735.4100000000003
+    },
+    "fa": {
+     "ly": 5304.83,
+     "ytd": 5311.4
+    },
+    "frt": {
+     "ly": 1401.31,
+     "ytd": 748.43
+    },
+    "frt_pu": {
+     "roy": 1220,
+     "y1": 1230,
+     "y2": 1240
+    },
+    "frt_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "gw": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "int_debt": {
+     "ly": 181.17,
+     "ytd": 102.76
+    },
+    "int_lease": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "inv": {
+     "ly": 864.83,
+     "ytd": 899.8
+    },
+    "inv_days": {
+     "cy": 250,
+     "y1": 250,
+     "y2": 250
+    },
+    "lease": {
+     "ly": 86.74000000000001,
+     "ytd": 98.64
+    },
+    "lease_rate": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "lease_red": {
+     "cy": 15,
+     "y1": 15,
+     "y2": 15
+    },
+    "mat": {
+     "ly": 1234.6899999999998,
+     "ytd": 574.41
+    },
+    "mat_pu": {
+     "roy": 940,
+     "y1": 950,
+     "y2": 960
+    },
+    "mat_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mi": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "mi_share": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "min_cash": {
+     "cy": 300,
+     "y1": 300,
+     "y2": 300
+    },
+    "nci": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "oca": {
+     "ly": 293.31,
+     "ytd": 404.21999999999997
+    },
+    "oi_yield": {
+     "roy": 0.1,
+     "y1": 0.08,
+     "y2": 0.08
+    },
+    "ol": {
+     "ly": 1804.94,
+     "ytd": 1817.83
+    },
+    "onca": {
+     "ly": 1088.29,
+     "ytd": 824.5
+    },
+    "oth": {
+     "ly": 883.0,
+     "ytd": 429.86
+    },
+    "oth_pu": {
+     "roy": 650,
+     "y1": 660,
+     "y2": 670
+    },
+    "oth_sh": {
+     "roy": 0.01,
+     "y1": 0.01,
+     "y2": 0.01
+    },
+    "othinc": {
+     "ly": 53.08,
+     "ytd": 49.02
+    },
+    "pay": {
+     "ly": 454.8,
+     "ytd": 549.23
+    },
+    "pay_days": {
+     "cy": 35,
+     "y1": 35,
+     "y2": 35
+    },
+    "pwr": {
+     "ly": 1404.42,
+     "ytd": 746.38
+    },
+    "pwr_pu": {
+     "roy": 1150,
+     "y1": 1150,
+     "y2": 1160
+    },
+    "pwr_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "r_own": {
+     "ly": 282.72,
+     "ytd": 234.0
+    },
+    "r_pat": {
+     "ly": 282.72,
+     "ytd": 234.0
+    },
+    "r_pbt": {
+     "ly": 402.9,
+     "ytd": 311.27
+    },
+    "rec": {
+     "ly": 106.8,
+     "ytd": 183.41
+    },
+    "rec_days": {
+     "cy": 7,
+     "y1": 7,
+     "y2": 7
+    },
+    "repaid": {
+     "cy": 300,
+     "y1": 350,
+     "y2": 400
+    },
+    "rev": {
+     "ly": 6192.62,
+     "ytd": 3272.7
+    },
+    "s1_add": {
+     "roy": 0,
+     "y1": 1200000,
+     "y2": 2200000
+    },
+    "s1_avg": {
+     "ly": 16500000,
+     "ytd": 17250000
+    },
+    "s1_end": {
+     "ly": 16500000,
+     "ytd": 18000000
+    },
+    "s1_pg": {
+     "y1": 0.03,
+     "y2": 0.03
+    },
+    "s1_price": {
+     "roy": 5400
+    },
+    "s1_rev": {
+     "ly": 6192.62,
+     "ytd": 3272.7
+    },
+    "s1_util": {
+     "roy": 0.78,
+     "y1": 0.8,
+     "y2": 0.82
+    },
+    "s1_vol": {
+     "ly": 12129000.0,
+     "ytd": 6169000.0
+    },
+    "shares": {
+     "cy": 12.418,
+     "ly": 11.77,
+     "y1": 12.418,
+     "y2": 12.418,
+     "ytd": 12.418000000000001
+    },
+    "tax": {
+     "ly": 120.18,
+     "ytd": 77.27
+    },
+    "tax_rate": {
+     "roy": 0.25,
+     "y1": 0.25,
+     "y2": 0.25
+    },
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.05
+    },
+    "v_mult": {
+     "ly": 10.0
+    },
+    "v_price": {
+     "ly": 800.0
+    },
+    "v_rate": {
+     "ly": 0.12
+    }
+   },
+   "words": {
+    "s1_vol": "Cement and clinker sold, tonnes (standalone)",
+    "s2": "Second line: not used for this company",
+    "s2_rev": "Other operating revenue (not used)",
+    "s2_share": "Other operating revenue, as a share (not used)"
+   }
+  },
+  "id": "jk-lakshmi-cement",
+  "structure": {
+   "forecast_years": 2,
+   "model": "per_tonne",
+   "places": "s1",
+   "segments": [
+    {
+     "block": "plant",
+     "formula": null,
+     "key": "s1",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "share",
+     "formula": null,
+     "key": "s2",
+     "of": "s1",
+     "rest_of_revenue": true
+    }
+   ]
+  }
+ },
+ {
+  "company": {
+   "basis": "Consolidated, Ind AS",
+   "choices": {
+    "value_multiple": "pe",
+    "value_year": "y2"
+   },
+   "constants": {
+    "unit_rupees": 100000
+   },
+   "marks": {
+    "s1_avg": {
+     "ly": {
+      "level": "amber",
+      "why": "Not printed: the capacity at the end stands in, as nothing was commissioned in the period by the reports read."
+     },
+     "ytd": {
+      "level": "amber",
+      "why": "Not printed: the capacity at the end stands in, as nothing was commissioned in the period by the reports read."
+     }
+    },
+    "s1_end": {
+     "ly": {
+      "level": "amber",
+      "why": "Not in the filing: ICICI Securities' Q4 FY26 note gives 9.7 million tonnes a year 'at present'; no grinding unit was commissioned in Q1 FY27 by the press reports. Check against the presentation."
+     },
+     "ytd": {
+      "level": "amber",
+      "why": "Not in the filing: ICICI Securities' Q4 FY26 note gives 9.7 million tonnes a year 'at present'; no grinding unit was commissioned in Q1 FY27 by the press reports. Check against the presentation."
+     }
+    }
+   },
+   "name": "Star Cement Limited",
+   "off": [
+    "s2"
+   ],
+   "period_labels": {
+    "cy": "FY27",
+    "ly": "FY26 (actual)",
+    "roy": "Rest of FY27 (assumed)",
+    "y1": "FY28",
+    "y2": "FY29",
+    "ytd": "Q1 FY27 (actual)"
+   },
+   "sector": "cement",
+   "unit_name": "Rs lakh",
+   "values": {
+    "assoc": {
+     "ly": 0.0,
+     "roy": 0,
+     "y1": 0,
+     "y2": 0,
+     "ytd": 0.0
+    },
+    "capex": {
+     "cy": 60000,
+     "y1": 90000,
+     "y2": 120000
+    },
+    "cash": {
+     "ly": 12467.119999999999
+    },
+    "days": {
+     "ly": 365,
+     "roy": 274,
+     "y1": 366,
+     "y2": 365,
+     "ytd": 91
+    },
+    "debt": {
+     "ly": 58618.72
+    },
+    "debt_rate": {
+     "roy": 0.09,
+     "y1": 0.09,
+     "y2": 0.09
+    },
+    "dep": {
+     "ly": 36528.67,
+     "ytd": 9141.93
+    },
+    "dep_rate": {
+     "roy": 0.135,
+     "y1": 0.13,
+     "y2": 0.13
+    },
+    "dividends": {
+     "cy": 4041.8,
+     "y1": 4041.8,
+     "y2": 8083.6
+    },
+    "drawn": {
+     "cy": 20000,
+     "y1": 50000,
+     "y2": 60000
+    },
+    "emp": {
+     "ly": 27722.82,
+     "ytd": 7740.14
+    },
+    "emp_pu": {
+     "roy": 560,
+     "y1": 580,
+     "y2": 600
+    },
+    "emp_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "eq": {
+     "ly": 319120.27999999997
+    },
+    "fa": {
+     "ly": 270658.05
+    },
+    "frt": {
+     "ly": 103538.12,
+     "ytd": 25124.06
+    },
+    "frt_pu": {
+     "roy": 1850,
+     "y1": 1870,
+     "y2": 1900
+    },
+    "frt_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "gw": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "int_debt": {
+     "ly": 4630.45,
+     "ytd": 1375.46
+    },
+    "int_lease": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "inv": {
+     "ly": 46560.51
+    },
+    "inv_days": {
+     "cy": 340,
+     "y1": 340,
+     "y2": 340
+    },
+    "lease": {
+     "ly": 1713.71
+    },
+    "lease_rate": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "lease_red": {
+     "cy": 800,
+     "y1": 800,
+     "y2": 800
+    },
+    "mat": {
+     "ly": 49607.77,
+     "ytd": 14208.869999999999
+    },
+    "mat_pu": {
+     "roy": 900,
+     "y1": 920,
+     "y2": 940
+    },
+    "mat_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mi": {
+     "ly": -296.83,
+     "ytd": -80.76
+    },
+    "mi_share": {
+     "roy": -0.01,
+     "y1": 0,
+     "y2": 0
+    },
+    "min_cash": {
+     "cy": 5000,
+     "y1": 5000,
+     "y2": 5000
+    },
+    "nci": {
+     "ly": -312.16
+    },
+    "oca": {
+     "ly": 36955.21
+    },
+    "oi_yield": {
+     "roy": 0.25,
+     "y1": 0.2,
+     "y2": 0.2
+    },
+    "ol": {
+     "ly": 59824.38999999999
+    },
+    "onca": {
+     "ly": 73879.93
+    },
+    "oth": {
+     "ly": 48526.3,
+     "ytd": 12570.92
+    },
+    "oth_pu": {
+     "roy": 900,
+     "y1": 910,
+     "y2": 930
+    },
+    "oth_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "othinc": {
+     "ly": 1926.09,
+     "ytd": 820.47
+    },
+    "pay": {
+     "ly": 25720.760000000002
+    },
+    "pay_days": {
+     "cy": 36,
+     "y1": 36,
+     "y2": 36
+    },
+    "pwr": {
+     "ly": 55790.56,
+     "ytd": 15196.34
+    },
+    "pwr_pu": {
+     "roy": 1050,
+     "y1": 1060,
+     "y2": 1080
+    },
+    "pwr_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "r_own": {
+     "ly": 39342.42,
+     "ytd": 7471.66
+    },
+    "r_pat": {
+     "ly": 39045.59,
+     "ytd": 7390.9
+    },
+    "r_pbt": {
+     "ly": 53230.13,
+     "ytd": 9751.64
+    },
+    "rec": {
+     "ly": 24164.88
+    },
+    "rec_days": {
+     "cy": 23,
+     "y1": 23,
+     "y2": 23
+    },
+    "repaid": {
+     "cy": 10000,
+     "y1": 10000,
+     "y2": 10000
+    },
+    "rev": {
+     "ly": 377648.73,
+     "ytd": 94288.89
+    },
+    "s1_add": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 2000000
+    },
+    "s1_avg": {
+     "ly": 9700000,
+     "ytd": 9700000
+    },
+    "s1_end": {
+     "ly": 9700000,
+     "ytd": 9700000
+    },
+    "s1_pg": {
+     "y1": 0.03,
+     "y2": 0.03
+    },
+    "s1_price": {
+     "roy": 6950
+    },
+    "s1_rev": {
+     "ly": 377648.73,
+     "ytd": 94288.89
+    },
+    "s1_util": {
+     "roy": 0.6,
+     "y1": 0.62,
+     "y2": 0.65
+    },
+    "s1_vol": {
+     "ly": 5496000.0,
+     "ytd": 1354000.0
+    },
+    "shares": {
+     "cy": 4041.8,
+     "ly": 4041.8,
+     "y1": 4041.8,
+     "y2": 4041.8,
+     "ytd": 4041.8
+    },
+    "tax": {
+     "ly": 14184.539999999999,
+     "ytd": 2360.74
+    },
+    "tax_rate": {
+     "roy": 0.25,
+     "y1": 0.25,
+     "y2": 0.25
+    },
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.05
+    },
+    "v_mult": {
+     "ly": 25.0
+    },
+    "v_price": {
+     "ly": 220.0
+    },
+    "v_rate": {
+     "ly": 0.12
+    }
+   },
+   "words": {
+    "s2": "Second line: not used for this company",
+    "s2_rev": "Other operating revenue (not used)",
+    "s2_share": "Other operating revenue, as a share (not used)"
+   }
+  },
+  "id": "star-cement",
+  "structure": {
+   "forecast_years": 2,
+   "model": "per_tonne",
+   "places": "s1",
+   "segments": [
+    {
+     "block": "plant",
+     "formula": null,
+     "key": "s1",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "share",
+     "formula": null,
+     "key": "s2",
+     "of": "s1",
+     "rest_of_revenue": true
+    }
+   ]
+  }
+ },
+ {
+  "company": {
+   "basis": "Standalone, Ind AS (the stores are the standalone company's; online grocery is a subsidiary)",
+   "choices": {
+    "value_multiple": "pe",
+    "value_year": "y1"
+   },
+   "constants": {
+    "unit_rupees": 10000000
+   },
+   "marks": {},
+   "name": "Avenue Supermarts Limited (DMart)",
+   "off": [
+    "s2"
+   ],
+   "period_labels": {
+    "cy": "FY27",
+    "ly": "FY26 (actual)",
+    "roy": "H2 FY27 (assumed)",
+    "y1": "FY28",
+    "y2": "FY29",
+    "ytd": "H1 FY27 (actual)"
+   },
+   "sector": "retail",
+   "unit_name": "Rs crore",
+   "values": {
+    "assoc": {
+     "ly": 0.0,
+     "roy": 0,
+     "y1": 0,
+     "y2": 0,
+     "ytd": 0.0
+    },
+    "capex": {
+     "cy": 4500,
+     "y1": 5500,
+     "y2": 6000
+    },
+    "cash": {
+     "ly": 265.59000000000003,
+     "ytd": 166.27
+    },
+    "days": {
+     "ly": 365,
+     "roy": 182,
+     "y1": 366,
+     "y2": 365,
+     "ytd": 183
+    },
+    "debt": {
+     "ly": 965.27,
+     "ytd": 2628.66
+    },
+    "debt_rate": {
+     "roy": 0.2,
+     "y1": 0.15,
+     "y2": 0.15
+    },
+    "dep": {
+     "ly": 934.81,
+     "ytd": 549.11
+    },
+    "dep_rate": {
+     "roy": 0.053,
+     "y1": 0.053,
+     "y2": 0.053
+    },
+    "dividends": {
+     "cy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "drawn": {
+     "cy": 1700,
+     "y1": 0,
+     "y2": 0
+    },
+    "emp": {
+     "ly": 1352.42,
+     "ytd": 793.6
+    },
+    "emp_pd": {
+     "roy": 90000,
+     "y1": 95000,
+     "y2": 100000
+    },
+    "emp_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "eq": {
+     "ly": 25519.59,
+     "ytd": 27289.81
+    },
+    "fa": {
+     "ly": 20903.58,
+     "ytd": 22682.019999999997
+    },
+    "gw": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "int_debt": {
+     "ly": 129.93,
+     "ytd": 110.15
+    },
+    "int_lease": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "inv": {
+     "ly": 5630.44,
+     "ytd": 7018.14
+    },
+    "inv_days": {
+     "cy": 37,
+     "y1": 37,
+     "y2": 37
+    },
+    "lease": {
+     "ly": 1301.95,
+     "ytd": 1450.64
+    },
+    "lease_rate": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "lease_red": {
+     "cy": 150,
+     "y1": 170,
+     "y2": 190
+    },
+    "mat": {
+     "ly": 57391.12,
+     "ytd": 32063.149999999998
+    },
+    "mat_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mat_sh": {
+     "roy": 0.855,
+     "y1": 0.855,
+     "y2": 0.855
+    },
+    "mi": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "mi_share": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "min_cash": {
+     "cy": 300,
+     "y1": 300,
+     "y2": 300
+    },
+    "nci": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "oca": {
+     "ly": 939.53,
+     "ytd": 1187.69
+    },
+    "oi_yield": {
+     "roy": 0.4,
+     "y1": 0.3,
+     "y2": 0.3
+    },
+    "ol": {
+     "ly": 1244.08,
+     "ytd": 1192.42
+    },
+    "onca": {
+     "ly": 2208.2200000000003,
+     "ytd": 2302.38
+    },
+    "oth": {
+     "ly": 2969.27,
+     "ytd": 1762.82
+    },
+    "oth_pd": {
+     "roy": 195000,
+     "y1": 205000,
+     "y2": 215000
+    },
+    "oth_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "othinc": {
+     "ly": 128.02,
+     "ytd": 61.03
+    },
+    "pay": {
+     "ly": 1273.44,
+     "ytd": 1117.98
+    },
+    "pay_days": {
+     "cy": 8,
+     "y1": 8,
+     "y2": 8
+    },
+    "r_own": {
+     "ly": 3223.93,
+     "ytd": 1739.37
+    },
+    "r_pat": {
+     "ly": 3223.93,
+     "ytd": 1739.37
+    },
+    "r_pbt": {
+     "ly": 4318.5,
+     "ytd": 2331.87
+    },
+    "rec": {
+     "ly": 356.97,
+     "ytd": 323.01
+    },
+    "rec_days": {
+     "cy": 2,
+     "y1": 2,
+     "y2": 2
+    },
+    "repaid": {
+     "cy": 0,
+     "y1": 1000,
+     "y2": 1000
+    },
+    "rev": {
+     "ly": 66968.03,
+     "ytd": 37549.67
+    },
+    "s1_add": {
+     "roy": 40,
+     "y1": 60,
+     "y2": 60
+    },
+    "s1_avg": {
+     "ly": 438.875,
+     "ytd": 506.0
+    },
+    "s1_cls": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 1
+    },
+    "s1_end": {
+     "ly": 500,
+     "ytd": 518
+    },
+    "s1_price": {
+     "roy": 4300000
+    },
+    "s1_rev": {
+     "ly": 66968.03,
+     "ytd": 37549.67
+    },
+    "s1_sg": {
+     "y1": 0.07,
+     "y2": 0.07
+    },
+    "shares": {
+     "cy": 65.225,
+     "ly": 65.196,
+     "y1": 65.225,
+     "y2": 65.225,
+     "ytd": 65.225
+    },
+    "tax": {
+     "ly": 1094.57,
+     "ytd": 592.5
+    },
+    "tax_rate": {
+     "roy": 0.254,
+     "y1": 0.254,
+     "y2": 0.254
+    },
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.06
+    },
+    "v_mult": {
+     "ly": 80.0
+    },
+    "v_price": {
+     "ly": 4200.0
+    },
+    "v_rate": {
+     "ly": 0.11
+    }
+   },
+   "words": {
+    "s2": "Second line: not used for this company",
+    "s2_rev": "Other operating revenue (not used)",
+    "s2_share": "Other operating revenue, as a share (not used)"
+   }
+  },
+  "id": "avenue-supermarts",
+  "structure": {
+   "forecast_years": 2,
+   "model": "stores",
+   "places": "s1",
+   "segments": [
+    {
+     "block": "stores",
+     "formula": null,
+     "key": "s1",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "share",
+     "formula": null,
+     "key": "s2",
+     "of": "s1",
+     "rest_of_revenue": true
+    }
+   ]
+  }
+ },
+ {
+  "company": {
+   "basis": "Standalone, Ind AS (the company has no subsidiaries)",
+   "choices": {
+    "value_multiple": "ev_ebitda",
+    "value_year": "y2"
+   },
+   "constants": {
+    "unit_rupees": 100000
+   },
+   "marks": {
+    "s1_avg": {
+     "ly": {
+      "level": "amber",
+      "why": "FY25's quarter-end counts were not found: the year's two ends halved stand in."
+     }
+    },
+    "s1_end": {
+     "ly": {
+      "level": "amber",
+      "why": "The company's Q4 FY25 business update, as carried by press reports."
+     }
+    }
+   },
+   "name": "V-Mart Retail Limited",
+   "off": [
+    "s2"
+   ],
+   "period_labels": {
+    "cy": "FY26",
+    "ly": "FY25 (actual)",
+    "roy": "H2 FY26 (assumed)",
+    "y1": "FY27",
+    "y2": "FY28",
+    "ytd": "H1 FY26 (actual)"
+   },
+   "sector": "retail",
+   "unit_name": "Rs lakh",
+   "values": {
+    "assoc": {
+     "ly": 0.0,
+     "roy": 0,
+     "y1": 0,
+     "y2": 0,
+     "ytd": 0.0
+    },
+    "capex": {
+     "cy": 15000,
+     "y1": 18000,
+     "y2": 18000
+    },
+    "cash": {
+     "ly": 4447,
+     "ytd": 2907
+    },
+    "days": {
+     "ly": 365,
+     "roy": 182,
+     "y1": 365,
+     "y2": 366,
+     "ytd": 183
+    },
+    "debt": {
+     "ly": 14896,
+     "ytd": 10111
+    },
+    "debt_rate": {
+     "roy": 0.45,
+     "y1": 0.45,
+     "y2": 0.45
+    },
+    "dep": {
+     "ly": 23299,
+     "ytd": 13902
+    },
+    "dep_rate": {
+     "roy": 0.27,
+     "y1": 0.27,
+     "y2": 0.27
+    },
+    "dividends": {
+     "cy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "drawn": {
+     "cy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "emp": {
+     "ly": 36338,
+     "ytd": 19257
+    },
+    "emp_pd": {
+     "roy": 22500,
+     "y1": 23500,
+     "y2": 24500
+    },
+    "emp_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "eq": {
+     "ly": 81018,
+     "ytd": 84575
+    },
+    "fa": {
+     "ly": 104133,
+     "ytd": 116299
+    },
+    "gw": {
+     "ly": 150,
+     "ytd": 150
+    },
+    "int_debt": {
+     "ly": 13646,
+     "ytd": 3569
+    },
+    "int_lease": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "inv": {
+     "ly": 98683,
+     "ytd": 104411
+    },
+    "inv_days": {
+     "cy": 165,
+     "y1": 165,
+     "y2": 165
+    },
+    "lease": {
+     "ly": 63355,
+     "ytd": 70013
+    },
+    "lease_rate": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "lease_red": {
+     "cy": 10000,
+     "y1": 11000,
+     "y2": 12000
+    },
+    "mat": {
+     "ly": 212972,
+     "ytd": 110837
+    },
+    "mat_pd": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "mat_sh": {
+     "roy": 0.655,
+     "y1": 0.65,
+     "y2": 0.65
+    },
+    "mi": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "mi_share": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "min_cash": {
+     "cy": 3000,
+     "y1": 3000,
+     "y2": 3000
+    },
+    "nci": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "oca": {
+     "ly": 19449,
+     "ytd": 21785
+    },
+    "oi_yield": {
+     "roy": 0.2,
+     "y1": 0.2,
+     "y2": 0.2
+    },
+    "ol": {
+     "ly": 8157,
+     "ytd": 11072
+    },
+    "onca": {
+     "ly": 16762,
+     "ytd": 17079
+    },
+    "oth": {
+     "ly": 35947,
+     "ytd": 19347
+    },
+    "oth_pd": {
+     "roy": 21500,
+     "y1": 22500,
+     "y2": 23500
+    },
+    "oth_sh": {
+     "roy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "othinc": {
+     "ly": 1212,
+     "ytd": 636
+    },
+    "pay": {
+     "ly": 76198,
+     "ytd": 86860
+    },
+    "pay_days": {
+     "cy": 110,
+     "y1": 110,
+     "y2": 110
+    },
+    "r_own": {
+     "ly": 4577,
+     "ytd": 2473
+    },
+    "r_pat": {
+     "ly": 4577,
+     "ytd": 2473
+    },
+    "r_pbt": {
+     "ly": 4396,
+     "ytd": 2933
+    },
+    "rec": {
+     "ly": 0.0,
+     "ytd": 0.0
+    },
+    "rec_days": {
+     "cy": 0,
+     "y1": 0,
+     "y2": 0
+    },
+    "repaid": {
+     "cy": 4000,
+     "y1": 5000,
+     "y2": 5000
+    },
+    "rev": {
+     "ly": 325386,
+     "ytd": 169209
+    },
+    "s1_add": {
+     "roy": 35,
+     "y1": 60,
+     "y2": 60
+    },
+    "s1_avg": {
+     "ly": 470.5,
+     "ytd": 512.5
+    },
+    "s1_cls": {
+     "roy": 3,
+     "y1": 5,
+     "y2": 5
+    },
+    "s1_end": {
+     "ly": 497,
+     "ytd": 533
+    },
+    "s1_price": {
+     "roy": 200000
+    },
+    "s1_rev": {
+     "ly": 325386,
+     "ytd": 169209
+    },
+    "s1_sg": {
+     "y1": 0.06,
+     "y2": 0.06
+    },
+    "shares": {
+     "cy": 793.9,
+     "ly": 792.0,
+     "y1": 793.9,
+     "y2": 793.9,
+     "ytd": 793.9
+    },
+    "tax": {
+     "ly": -181,
+     "ytd": 460
+    },
+    "tax_rate": {
+     "roy": 0.25,
+     "y1": 0.25,
+     "y2": 0.25
+    },
+    "v_date": {
+     "ly": 46311
+    },
+    "v_g": {
+     "ly": 0.06
+    },
+    "v_mult": {
+     "ly": 20.0
+    },
+    "v_price": {
+     "ly": 750.0
+    },
+    "v_rate": {
+     "ly": 0.12
+    }
+   },
+   "words": {
+    "s2": "Second line: not used for this company",
+    "s2_rev": "Other operating revenue (not used)",
+    "s2_share": "Other operating revenue, as a share (not used)"
+   }
+  },
+  "id": "v-mart-retail",
+  "structure": {
+   "forecast_years": 2,
+   "model": "stores",
+   "places": "s1",
+   "segments": [
+    {
+     "block": "stores",
+     "formula": null,
+     "key": "s1",
+     "of": null,
+     "rest_of_revenue": false
+    },
+    {
+     "block": "share",
+     "formula": null,
+     "key": "s2",
+     "of": "s1",
+     "rest_of_revenue": true
+    }
+   ]
+  }
  }
 ]

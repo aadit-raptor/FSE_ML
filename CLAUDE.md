@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-19 (PLAN.md R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,11 +1423,11 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0, R1a, R1b, R2, R3, R4, R5 and R6 are done (R1b: the held-out filings meet the
+R0, R1a, R1b, R2, R3, R4, R5, R6 and R7 are done (R1b: the held-out filings meet the
 3% amber bar the user set, so production reads; R4's model is "not yet
 vetted" until an analyst reads it); billing with a cap still
 comes before the first showing to analysts
-(PLAN.md R2's "Before the first showing"); the next task is **R7** (the second and third sector models), then R8 and R9 in order, unless what the analysts say after R2
+(PLAN.md R2's "Before the first showing"); the next task is **R8** (the report draft; its "You first" is a securities lawyer's view and the disclosure wording), then R9, unless what the analysts say after R2
 reorders them; 6.2
 onwards and phases 7 to 12 wait, except what a phase R task pulls forward
 and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
@@ -1559,6 +1559,28 @@ hand-solved companies) is written by `python -m tests.research_examples`,
 checked stale. Screen: Coverage -> **Model** (`components/coverage/ModelStep.tsx`,
 `ModelGrid.tsx`, `lib/sectorModel.ts`: the model lives in page memory until
 R5 saves it); add-in `components/excel/ModelInPane.tsx`.
+**R7 is done (2026-10-19): models 2 and 3** (PLAN.md R7). **Model 2, Per
+tonne** (`research/models/per_tonne.py`: cement, steel, chemicals) and
+**model 3, Stores** (`research/models/stores.py`: retail, restaurants) are
+offered, marked not vetted. The format gained, for every model: blocks
+**`plant`** (capacity a year x utilisation x price per unit sold, the volume
+a row of its own) and **`stores`** (stores opened and closed x revenue per
+store per day); **costs per unit sold** (`pieces.cost_per_unit`, keys
+`<cost>_pu`, and `ebitda_pu`), chosen by `blocks.driver` (a counting block's
+`_avg` per day, a volume block's `_vol` per unit; `price_volume` counts as a
+volume too); and **a model's own cost lines** (`Spec.costs`, from
+`lower.COST_LINES` mat, emp, pwr, frt, oth, with mat, emp and oth always:
+cement adds freight `frt`, a retailer has no `pwr`). Model 1's definition is
+byte for byte as before. **Solved by hand**: JK Lakshmi Cement and Star
+Cement (model 2), Avenue Supermarts and V-Mart Retail (model 3);
+`tests/fixtures/research/model2_*.json`, `model3_*.json` hold the typed
+filings, the map and what the hand workbooks gave (LibreOffice), and carry
+their own valuation inputs (`"valuation"`, where model 1's are in
+`valuation.json`); `support.load("model2_star_cement")` reads one. **Never
+change those fixtures to agree with the model.** The hand build lives on the
+Mac in `research-samples/r7/` (`typed.py`, `build_r7.py`,
+`write_fixtures.py`). The examples list is six (`python -m
+tests.research_examples`). What the hand build found is under R7 in PLAN.md.
 **R6 is done (2026-10-19): valuation** (PLAN.md R6). **Rows of every
 sector model** (`research/valuation.py`, added by `research/compose.py`
 `build` after the lower part), so the workbook holds them as formulas and
@@ -1734,7 +1756,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). **Next is R7** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). **Next is R8** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -2297,6 +2319,9 @@ Skills load when a session starts: install first, then open a new session.
 - openpyxl turns any string that starts with `=` into a formula. Text that
   a person typed (a company's name, a label, a reason) goes into a workbook
   with its `data_type` forced to `"s"` (`research/workbook.py` `_put`).
+- A script beside the repository (`research-samples/`) that imports a module
+  called `companies` gets the repository's `companies/` package once the root
+  is on `sys.path`: R7's typed figures are `research-samples/r7/typed.py`.
 - A sector model's row may not be named after a formula word or a kind of
   period (`div`, `max`, `min`, `prev`, `rest`, `all` ...): the dividends row
   is `dividends`. An Excel defined name may not read as a cell (`rev1`,

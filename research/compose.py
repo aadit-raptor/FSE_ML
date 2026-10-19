@@ -71,6 +71,7 @@ class Spec:
     notes: tuple
     offered: bool = False               # listed for analysts only once two companies are solved by hand (rule 4)
     vetted: bool = False                # and read by a practising analyst
+    costs: tuple = lower.COSTS          # its cost lines (research/lower.py)
 
 
 # ---------------------------------------------------------------------------
@@ -116,8 +117,9 @@ def validate(structure: Structure, specs: dict) -> None:
     if sum(bool(s.rest_of_revenue) for s in structure.segments) > 1:
         raise ModelError("at most one line is, for the past, revenue less the others")
     if structure.places is not None and (structure.places not in seen
-                                         or structure.segment(structure.places).block not in blocks.COUNTING):
-        raise ModelError("costs per place follow a line that counts places, not %r" % structure.places)
+                                         or blocks.driver(structure.segment(structure.places).block, "") is None):
+        raise ModelError("costs per place follow a line that counts places or a volume sold, not %r"
+                         % structure.places)
 
 
 def normalise(structure: Structure) -> Structure:
@@ -133,7 +135,7 @@ def normalise(structure: Structure) -> Structure:
                 seg = replace(seg, block="growth", rest_of_revenue=False)
         mended.append(seg)
     places = structure.places
-    counting = [s.key for s in mended if s.block in blocks.COUNTING]
+    counting = [s.key for s in mended if blocks.driver(s.block, s.key) is not None]
     if places not in counting:
         places = counting[0] if counting and places is not None else None
     return replace(structure, segments=tuple(mended), places=places)
@@ -189,7 +191,8 @@ def changes(spec: Spec, structure: Structure) -> list:
            "among the companies the model was solved by hand for." % (
                spec.name, ", ".join("%s (%s)" % (s.key, s.block) for s in spec.default.segments))]
     out.append("Lines now: %s." % ", ".join("%s (%s)" % (s.key, s.block) for s in structure.segments))
-    out.append("Costs per place per day follow %s." % (structure.places or "no line: costs are a share of revenue only"))
+    out.append("Costs per place per day, or per unit sold, follow %s."
+               % (structure.places or "no line: costs are a share of revenue only"))
     return out
 
 
@@ -202,8 +205,8 @@ def build(spec: Spec, structure: Structure, specs: dict | None = None) -> Model:
         others = tuple(k for k in keys if k != seg.key) if seg.rest_of_revenue else ()
         rows += blocks.rows(seg.block, seg.key, n, of=seg.of, rest_of_revenue=others, formula=seg.formula)
         revenue_rows.append(seg.key + "_rev")
-    places = structure.places + "_avg" if structure.places else None
-    rows += lower.rows(revenue_rows, places)
+    driver = blocks.driver(structure.segment(structure.places).block, structure.places) if structure.places else None
+    rows += lower.rows(revenue_rows, driver, spec.costs)
     rows += valuation.rows(structure.forecast_years)
     model = Model(
         id=spec.id, name=spec.name, periods=periods(structure.forecast_years),

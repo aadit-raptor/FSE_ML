@@ -1,0 +1,2006 @@
+{
+ "about": "Typed by eye from public filings for the hand build of model 2, Per tonne (PLAN.md R7, 2026-10-19). 'expected' is what the hand-built Excel workbook's own formulas give, worked out by LibreOffice. Assumptions are placeholders, nobody's forecast. Never change this file to agree with the model.",
+ "name": "JK Lakshmi Cement Limited",
+ "model": "per_tonne",
+ "sector": "cement",
+ "unit_name": "Rs crore",
+ "unit_rupees": 10000000,
+ "basis": "Standalone, Ind AS (the volumes the company prints are standalone)",
+ "period_labels": {
+  "ly": "FY25 (actual)",
+  "ytd": "H1 FY26 (actual)",
+  "roy": "H2 FY26 (assumed)",
+  "cy": "FY26",
+  "y1": "FY27",
+  "y2": "FY28"
+ },
+ "words": {
+  "s1_vol": "Cement and clinker sold, tonnes (standalone)",
+  "s2": "Second line: not used for this company",
+  "s2_share": "Other operating revenue, as a share (not used)",
+  "s2_rev": "Other operating revenue (not used)"
+ },
+ "choices": {},
+ "off": [
+  "s2"
+ ],
+ "sections": [
+  {
+   "id": "is",
+   "title": "Statement of unaudited standalone financial results, Rs crore",
+   "source": "Results filing dated 6 November 2025, PDF page 2 (jk-lakshmi-cement_FY26-Q2-scanned.pdf)",
+   "columns": [
+    "Q2 FY26",
+    "Q1 FY26",
+    "Q2 FY25",
+    "H1 FY26",
+    "H1 FY25",
+    "FY25"
+   ],
+   "use": {
+    "ly": "FY25",
+    "ytd": "H1 FY26"
+   },
+   "rows": [
+    {
+     "key": "rev",
+     "label": "Revenue from operations",
+     "values": [
+      1531.77,
+      1740.93,
+      1234.29,
+      3272.7,
+      2798.17,
+      6192.62
+     ]
+    },
+    {
+     "key": "oi",
+     "label": "Other income",
+     "values": [
+      24.73,
+      24.29,
+      11.57,
+      49.02,
+      24.57,
+      53.08
+     ]
+    },
+    {
+     "key": "ti",
+     "label": "Total income",
+     "values": [
+      1556.5,
+      1765.22,
+      1245.86,
+      3321.72,
+      2822.74,
+      6245.7
+     ]
+    },
+    {
+     "key": "cmc",
+     "label": "Cost of materials consumed",
+     "values": [
+      246.23,
+      264.42,
+      207.68,
+      510.65,
+      428.83,
+      943.79
+     ]
+    },
+    {
+     "key": "purch",
+     "label": "Purchase of stock-in-trade",
+     "values": [
+      42.36,
+      28.65,
+      61.17,
+      71.01,
+      138.89,
+      220.83
+     ]
+    },
+    {
+     "key": "chinv",
+     "label": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+     "values": [
+      -20.7,
+      13.45,
+      -24.29,
+      -7.25,
+      42.98,
+      70.07
+     ]
+    },
+    {
+     "key": "emp",
+     "label": "Employee benefit expense",
+     "values": [
+      130.04,
+      124.25,
+      110.05,
+      254.29,
+      211.4,
+      439.45
+     ]
+    },
+    {
+     "key": "pwr",
+     "label": "Power and fuel",
+     "values": [
+      368.29,
+      378.09,
+      320.66,
+      746.38,
+      662.89,
+      1404.42
+     ]
+    },
+    {
+     "key": "frt",
+     "label": "Transport, clearing and forwarding charges",
+     "values": [
+      351.18,
+      397.25,
+      281.64,
+      748.43,
+      614.14,
+      1401.31
+     ]
+    },
+    {
+     "key": "fin",
+     "label": "Finance costs",
+     "values": [
+      50.53,
+      52.23,
+      44.57,
+      102.76,
+      91.51,
+      181.17
+     ]
+    },
+    {
+     "key": "dep",
+     "label": "Depreciation and amortisation expenses",
+     "values": [
+      77.36,
+      76.96,
+      74.86,
+      154.32,
+      146.5,
+      298.76
+     ]
+    },
+    {
+     "key": "others",
+     "label": "Other expenses",
+     "values": [
+      206.24,
+      223.62,
+      188.39,
+      429.86,
+      386.39,
+      847.56
+     ]
+    },
+    {
+     "key": "texp",
+     "label": "Total expenses",
+     "values": [
+      1451.53,
+      1558.92,
+      1264.73,
+      3010.45,
+      2723.53,
+      5807.36
+     ]
+    },
+    {
+     "key": "pbidt",
+     "label": "Profit before interest, depreciation and taxes (EBITDA), as printed",
+     "values": [
+      232.86,
+      335.49,
+      100.56,
+      568.35,
+      337.22,
+      918.27
+     ]
+    },
+    {
+     "key": "pbt0",
+     "label": "Profit before exceptional items and tax",
+     "values": [
+      104.97,
+      206.3,
+      -18.87,
+      311.27,
+      99.21,
+      438.34
+     ]
+    },
+    {
+     "key": "exc",
+     "label": "Exceptional items: stamp duty on business combinations",
+     "values": [
+      0,
+      0,
+      0,
+      0,
+      -35.44,
+      -35.44
+     ]
+    },
+    {
+     "key": "pbt",
+     "label": "Profit before tax",
+     "values": [
+      104.97,
+      206.3,
+      -18.87,
+      311.27,
+      63.77,
+      402.9
+     ]
+    },
+    {
+     "key": "ctax",
+     "label": "Current tax",
+     "values": [
+      15.15,
+      4.85,
+      0,
+      20.0,
+      0,
+      0
+     ]
+    },
+    {
+     "key": "dtax",
+     "label": "Deferred tax",
+     "values": [
+      7.47,
+      49.78,
+      2.92,
+      57.25,
+      11.57,
+      102.56
+     ]
+    },
+    {
+     "key": "matc",
+     "label": "MAT credit entitlement written off",
+     "values": [
+      0,
+      0,
+      0,
+      0,
+      18.03,
+      18.03
+     ]
+    },
+    {
+     "key": "etax",
+     "label": "Tax adjustments for earlier years",
+     "values": [
+      0.02,
+      0,
+      0,
+      0.02,
+      -0.41,
+      -0.41
+     ]
+    },
+    {
+     "key": "ttax",
+     "label": "Total tax",
+     "values": [
+      22.64,
+      54.63,
+      2.92,
+      77.27,
+      29.19,
+      120.18
+     ]
+    },
+    {
+     "key": "pat",
+     "label": "Net profit after tax",
+     "values": [
+      82.33,
+      151.67,
+      -21.79,
+      234.0,
+      34.58,
+      282.72
+     ]
+    },
+    {
+     "key": "sharecap",
+     "label": "Paid-up equity share capital (face value Rs 5)",
+     "values": [
+      62.09,
+      58.85,
+      58.85,
+      62.09,
+      58.85,
+      58.85
+     ]
+    },
+    {
+     "key": "eps",
+     "label": "Basic and diluted earnings per share, Rs",
+     "values": [
+      6.63,
+      12.22,
+      -1.78,
+      18.85,
+      2.79,
+      22.81
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "label": "Total income = revenue + other income",
+     "formula": "ti-(rev+oi)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total expenses = the nine expense lines",
+     "formula": "texp-(cmc+purch+chinv+emp+pwr+frt+fin+dep+others)",
+     "tolerance": 0.015
+    },
+    {
+     "label": "EBITDA as printed = total income - expenses + finance costs + depreciation",
+     "formula": "pbidt-(ti-texp+fin+dep)",
+     "tolerance": 0.015
+    },
+    {
+     "label": "Profit before exceptional items = total income - total expenses",
+     "formula": "pbt0-(ti-texp)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Profit before tax = that + exceptional items",
+     "formula": "pbt-(pbt0+exc)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total tax = its four parts",
+     "formula": "ttax-(ctax+dtax+matc+etax)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Profit after tax = profit before tax - tax",
+     "formula": "pat-(pbt-ttax)",
+     "tolerance": 0.005
+    }
+   ]
+  },
+  {
+   "id": "bs",
+   "title": "Statement of assets and liabilities (standalone), Rs crore",
+   "source": "Results filing dated 6 November 2025, PDF page 3 (jk-lakshmi-cement_FY26-Q2-scanned.pdf)",
+   "columns": [
+    "30 Sep 2025",
+    "31 Mar 2025"
+   ],
+   "use": {
+    "ly": "31 Mar 2025",
+    "ytd": "30 Sep 2025"
+   },
+   "rows": [
+    {
+     "key": "ppe",
+     "label": "Property, plant and equipment",
+     "values": [
+      5076.76,
+      5020.58
+     ]
+    },
+    {
+     "key": "cwip",
+     "label": "Capital work-in-progress",
+     "values": [
+      227.55,
+      276.24
+     ]
+    },
+    {
+     "key": "invprop",
+     "label": "Investment property",
+     "values": [
+      3.48,
+      3.51
+     ]
+    },
+    {
+     "key": "intang",
+     "label": "Other intangible assets",
+     "values": [
+      3.61,
+      4.5
+     ]
+    },
+    {
+     "key": "ncinv",
+     "label": "Non-current investments",
+     "values": [
+      482.13,
+      475.51
+     ]
+    },
+    {
+     "key": "ncloans",
+     "label": "Non-current loans",
+     "values": [
+      15.0,
+      15.0
+     ]
+    },
+    {
+     "key": "ncofa",
+     "label": "Other non-current financial assets",
+     "values": [
+      58.62,
+      408.88
+     ]
+    },
+    {
+     "key": "oncas",
+     "label": "Other non-current assets",
+     "values": [
+      268.75,
+      188.9
+     ]
+    },
+    {
+     "key": "tnca",
+     "label": "Total non-current assets",
+     "values": [
+      6135.9,
+      6393.12
+     ]
+    },
+    {
+     "key": "inv",
+     "label": "Inventories",
+     "values": [
+      899.8,
+      864.83
+     ]
+    },
+    {
+     "key": "cinv",
+     "label": "Current investments",
+     "values": [
+      622.68,
+      598.36
+     ]
+    },
+    {
+     "key": "rec",
+     "label": "Trade receivables",
+     "values": [
+      183.41,
+      106.8
+     ]
+    },
+    {
+     "key": "cash",
+     "label": "Cash and cash equivalents",
+     "values": [
+      20.75,
+      75.8
+     ]
+    },
+    {
+     "key": "bank",
+     "label": "Bank balances other than cash and cash equivalents",
+     "values": [
+      508.59,
+      120.89
+     ]
+    },
+    {
+     "key": "cloans",
+     "label": "Current loans",
+     "values": [
+      94.56,
+      98.43
+     ]
+    },
+    {
+     "key": "cofa",
+     "label": "Other current financial assets",
+     "values": [
+      41.76,
+      18.46
+     ]
+    },
+    {
+     "key": "ctaxa",
+     "label": "Current tax assets (net)",
+     "values": [
+      91.71,
+      39.55
+     ]
+    },
+    {
+     "key": "ocas",
+     "label": "Other current assets",
+     "values": [
+      176.19,
+      136.87
+     ]
+    },
+    {
+     "key": "tca",
+     "label": "Total current assets",
+     "values": [
+      2639.45,
+      2059.99
+     ]
+    },
+    {
+     "key": "ta",
+     "label": "Total assets",
+     "values": [
+      8775.35,
+      8453.11
+     ]
+    },
+    {
+     "key": "sc",
+     "label": "Equity share capital",
+     "values": [
+      62.09,
+      58.85
+     ]
+    },
+    {
+     "key": "oe",
+     "label": "Other equity",
+     "values": [
+      3673.32,
+      3520.61
+     ]
+    },
+    {
+     "key": "teq",
+     "label": "Total equity",
+     "values": [
+      3735.41,
+      3579.46
+     ]
+    },
+    {
+     "key": "ncb",
+     "label": "Non-current borrowings",
+     "values": [
+      2002.53,
+      2051.09
+     ]
+    },
+    {
+     "key": "ncl",
+     "label": "Non-current lease liabilities",
+     "values": [
+      86.73,
+      73.29
+     ]
+    },
+    {
+     "key": "ncofl",
+     "label": "Other non-current financial liabilities",
+     "values": [
+      264.66,
+      257.28
+     ]
+    },
+    {
+     "key": "ncprov",
+     "label": "Non-current provisions",
+     "values": [
+      19.99,
+      19.99
+     ]
+    },
+    {
+     "key": "dtl",
+     "label": "Deferred tax liabilities (net)",
+     "values": [
+      461.08,
+      404.36
+     ]
+    },
+    {
+     "key": "oncl",
+     "label": "Other non-current liabilities",
+     "values": [
+      80.6,
+      83.09
+     ]
+    },
+    {
+     "key": "tncl",
+     "label": "Total non-current liabilities",
+     "values": [
+      2915.59,
+      2889.1
+     ]
+    },
+    {
+     "key": "cb",
+     "label": "Current borrowings",
+     "values": [
+      571.71,
+      476.08
+     ]
+    },
+    {
+     "key": "cl",
+     "label": "Current lease liabilities",
+     "values": [
+      11.91,
+      13.45
+     ]
+    },
+    {
+     "key": "tpm",
+     "label": "Trade payables: micro and small enterprises",
+     "values": [
+      27.07,
+      17.6
+     ]
+    },
+    {
+     "key": "tpo",
+     "label": "Trade payables: others",
+     "values": [
+      522.16,
+      437.2
+     ]
+    },
+    {
+     "key": "cofl",
+     "label": "Other current financial liabilities",
+     "values": [
+      710.96,
+      745.7
+     ]
+    },
+    {
+     "key": "ocl",
+     "label": "Other current liabilities",
+     "values": [
+      272.32,
+      289.07
+     ]
+    },
+    {
+     "key": "cprov",
+     "label": "Current provisions",
+     "values": [
+      8.22,
+      5.45
+     ]
+    },
+    {
+     "key": "tcl",
+     "label": "Total current liabilities",
+     "values": [
+      2124.35,
+      1984.55
+     ]
+    },
+    {
+     "key": "tel",
+     "label": "Total equity and liabilities",
+     "values": [
+      8775.35,
+      8453.11
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "label": "Non-current assets add up",
+     "formula": "tnca-(ppe+cwip+invprop+intang+ncinv+ncloans+ncofa+oncas)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Current assets add up",
+     "formula": "tca-(inv+cinv+rec+cash+bank+cloans+cofa+ctaxa+ocas)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total assets = non-current + current",
+     "formula": "ta-(tnca+tca)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total equity = share capital + other equity",
+     "formula": "teq-(sc+oe)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Non-current liabilities add up",
+     "formula": "tncl-(ncb+ncl+ncofl+ncprov+dtl+oncl)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Current liabilities add up",
+     "formula": "tcl-(cb+cl+tpm+tpo+cofl+ocl+cprov)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "The balance sheet balances",
+     "formula": "ta-(teq+tncl+tcl)",
+     "tolerance": 0.005
+    },
+    {
+     "label": "Total equity and liabilities as printed = total assets",
+     "formula": "tel-ta",
+     "tolerance": 0.005
+    }
+   ]
+  },
+  {
+   "id": "drv",
+   "title": "Drivers",
+   "source": "Press release of 6 November 2025 in the same PDF, page 12 (sales volume, capacity); FY25's volume from press reports of the company's FY26 results",
+   "columns": [
+    "FY25",
+    "H1 FY26"
+   ],
+   "use": {
+    "ly": "FY25",
+    "ytd": "H1 FY26"
+   },
+   "rows": [
+    {
+     "key": "d_days",
+     "label": "Days in the period",
+     "values": [
+      365,
+      183
+     ]
+    },
+    {
+     "key": "d_cap_end",
+     "label": "Cement capacity at the end, tonnes a year",
+     "values": [
+      16500000,
+      18000000
+     ],
+     "marks": [
+      "amber",
+      null
+     ],
+     "why": "The press release says capacity rose from 16.5 to 18 million tonnes a year with the Surat grinding unit commissioned in the quarter; 16.5 stands for 31 March 2025."
+    },
+    {
+     "key": "d_cap_avg",
+     "label": "Cement capacity, average over the period, tonnes a year",
+     "values": [
+      16500000,
+      17250000
+     ],
+     "marks": [
+      "amber",
+      "amber"
+     ],
+     "why": "Not printed. FY25 is taken as 16.5 million tonnes all year; H1 FY26 as the two ends halved (the day the Surat unit started is not given)."
+    },
+    {
+     "key": "d_vol_l",
+     "label": "Working: sales volume, lakh tonnes",
+     "values": [
+      121.29,
+      61.69
+     ],
+     "marks": [
+      "amber",
+      null
+     ],
+     "why": "FY25 is not in this filing: press reports of the FY26 results (cemnet.com and others) give 121.29 lakh tonnes for FY25. Check against the company's FY25 investor presentation."
+    },
+    {
+     "key": "d_vol",
+     "label": "Sales volume, tonnes",
+     "values": [
+      "d_vol_l*100000",
+      "d_vol_l*100000"
+     ]
+    }
+   ],
+   "checks": []
+  }
+ ],
+ "map": {
+  "rev": "rev",
+  "mat": "cmc+purch+chinv",
+  "emp": "emp",
+  "pwr": "pwr",
+  "frt": "frt",
+  "oth": "others-exc",
+  "dep": "dep",
+  "othinc": "oi",
+  "int_lease": "0",
+  "int_debt": "fin",
+  "assoc": "0",
+  "tax": "ttax",
+  "mi": "0",
+  "r_pbt": "pbt",
+  "r_pat": "pat",
+  "r_own": "pat",
+  "shares": "sharecap/5",
+  "fa": "ppe+cwip+invprop+intang",
+  "gw": "0",
+  "onca": "ncinv+ncloans+ncofa+oncas",
+  "inv": "inv",
+  "rec": "rec",
+  "oca": "cloans+cofa+ctaxa+ocas",
+  "cash": "cash+bank+cinv",
+  "eq": "sc+oe",
+  "nci": "0",
+  "debt": "ncb+cb",
+  "lease": "ncl+cl",
+  "pay": "tpm+tpo",
+  "ol": "ncofl+ncprov+dtl+oncl+cofl+ocl+cprov",
+  "days": "d_days",
+  "s1_end": "d_cap_end",
+  "s1_avg": "d_cap_avg",
+  "s1_vol": "d_vol",
+  "s1_rev": "rev"
+ },
+ "assumptions": {
+  "days": {
+   "roy": 182,
+   "y1": 365,
+   "y2": 366
+  },
+  "s1_add": {
+   "roy": 0,
+   "y1": 1200000,
+   "y2": 2200000
+  },
+  "s1_util": {
+   "roy": 0.78,
+   "y1": 0.8,
+   "y2": 0.82
+  },
+  "s1_price": {
+   "roy": 5400
+  },
+  "s1_pg": {
+   "y1": 0.03,
+   "y2": 0.03
+  },
+  "mat_sh": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "mat_pu": {
+   "roy": 940,
+   "y1": 950,
+   "y2": 960
+  },
+  "emp_sh": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "emp_pu": {
+   "roy": 420,
+   "y1": 430,
+   "y2": 440
+  },
+  "pwr_sh": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "pwr_pu": {
+   "roy": 1150,
+   "y1": 1150,
+   "y2": 1160
+  },
+  "frt_sh": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "frt_pu": {
+   "roy": 1220,
+   "y1": 1230,
+   "y2": 1240
+  },
+  "oth_sh": {
+   "roy": 0.01,
+   "y1": 0.01,
+   "y2": 0.01
+  },
+  "oth_pu": {
+   "roy": 650,
+   "y1": 660,
+   "y2": 670
+  },
+  "dep_rate": {
+   "roy": 0.058,
+   "y1": 0.058,
+   "y2": 0.058
+  },
+  "oi_yield": {
+   "roy": 0.1,
+   "y1": 0.08,
+   "y2": 0.08
+  },
+  "debt_rate": {
+   "roy": 0.08,
+   "y1": 0.08,
+   "y2": 0.08
+  },
+  "lease_rate": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "assoc": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "tax_rate": {
+   "roy": 0.25,
+   "y1": 0.25,
+   "y2": 0.25
+  },
+  "mi_share": {
+   "roy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "shares": {
+   "cy": 12.418,
+   "y1": 12.418,
+   "y2": 12.418
+  },
+  "capex": {
+   "cy": 900,
+   "y1": 1500,
+   "y2": 1200
+  },
+  "drawn": {
+   "cy": 600,
+   "y1": 1000,
+   "y2": 600
+  },
+  "repaid": {
+   "cy": 300,
+   "y1": 350,
+   "y2": 400
+  },
+  "lease_red": {
+   "cy": 15,
+   "y1": 15,
+   "y2": 15
+  },
+  "dividends": {
+   "cy": 75,
+   "y1": 80,
+   "y2": 90
+  },
+  "inv_days": {
+   "cy": 250,
+   "y1": 250,
+   "y2": 250
+  },
+  "rec_days": {
+   "cy": 7,
+   "y1": 7,
+   "y2": 7
+  },
+  "pay_days": {
+   "cy": 35,
+   "y1": 35,
+   "y2": 35
+  },
+  "min_cash": {
+   "cy": 300,
+   "y1": 300,
+   "y2": 300
+  }
+ },
+ "valuation": {
+  "choices": {
+   "value_multiple": "ev_ebitda",
+   "value_year": "y1"
+  },
+  "assumptions": {
+   "v_rate": {
+    "ly": 0.12
+   },
+   "v_g": {
+    "ly": 0.05
+   },
+   "v_mult": {
+    "ly": 10.0
+   },
+   "v_price": {
+    "ly": 800.0
+   },
+   "v_date": {
+    "ly": 46311
+   }
+  }
+ },
+ "notes": [
+  "Volumes and capacity are in tonnes; the press release prints lakh tonnes and the statements are in crore, so the constant at the top is 1,00,00,000 rupees in a crore.",
+  "The company calls revenue from operations its net sales; cement and its other products (ready-mix concrete, wall putty) are not split, so line 1 is all revenue and line 2 is switched off. The realisation per tonne is revenue over tonnes sold.",
+  "The model has no row for exceptional items: the past folds them into other expenses (a cost is added, a gain taken off), so the model's profit before tax is the filing's. FY25's stamp duty on the amalgamation (35.44) is in other expenses.",
+  "The filing does not split interest on leases out of finance costs, so all of it is interest on borrowings and the rate on borrowings that comes out is high; interest on leases is left at nil.",
+  "Udaipur Cement Works was amalgamated into the company from 1 April 2024 (effective 31 July 2025): the FY25 and H1 FY25 columns are restated, and the share capital rose from 58.85 to 62.09 for the shares issued. Earnings per share as printed is on the weighted shares; the model's is on the shares at each period end.",
+  "Freight is a cost of its own (transport, clearing and forwarding), as cement analysts carry it per tonne."
+ ],
+ "expected": {
+  "days": {
+   "ly": 365,
+   "ytd": 183,
+   "roy": 182,
+   "cy": 365,
+   "y1": 365,
+   "y2": 366
+  },
+  "s1_open": {
+   "ly": null,
+   "ytd": null,
+   "roy": 18000000,
+   "cy": null,
+   "y1": 18000000,
+   "y2": 19200000
+  },
+  "s1_add": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0,
+   "cy": null,
+   "y1": 1200000,
+   "y2": 2200000
+  },
+  "s1_end": {
+   "ly": 16500000,
+   "ytd": 18000000,
+   "roy": 18000000,
+   "cy": 18000000,
+   "y1": 19200000,
+   "y2": 21400000
+  },
+  "s1_avg": {
+   "ly": 16500000,
+   "ytd": 17250000,
+   "roy": 18000000,
+   "cy": 17623972.6027397,
+   "y1": 18600000,
+   "y2": 20300000
+  },
+  "s1_vol": {
+   "ly": 12129000,
+   "ytd": 6169000,
+   "roy": 7000767.12328767,
+   "cy": 13169767.1232877,
+   "y1": 14880000,
+   "y2": 16691605.4794521
+  },
+  "s1_util": {
+   "ly": 0.735090909090909,
+   "ytd": 0.713292151738339,
+   "roy": 0.78,
+   "cy": 0.747264389258093,
+   "y1": 0.8,
+   "y2": 0.82
+  },
+  "s1_pg": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": 0.03,
+   "y2": 0.03
+  },
+  "s1_price": {
+   "ly": 5105.63113199769,
+   "ytd": 5305.07375587616,
+   "roy": 5400,
+   "cy": 5355.53452126238,
+   "y1": 5516.20055690025,
+   "y2": 5681.68657360726
+  },
+  "s1_rev": {
+   "ly": 6192.62,
+   "ytd": 3272.7,
+   "roy": 3780.41424657534,
+   "cy": 7053.11424657534,
+   "y1": 8208.10642866757,
+   "y2": 9483.6470744552
+  },
+  "s2_share": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "s2_rev": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "rev": {
+   "ly": 6192.62,
+   "ytd": 3272.7,
+   "roy": 3780.41424657534,
+   "cy": 7053.11424657534,
+   "y1": 8208.10642866757,
+   "y2": 9483.6470744552
+  },
+  "rev_g": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0.138954795639865,
+   "y1": 0.163756341059276,
+   "y2": 0.155400110472824
+  },
+  "mat": {
+   "ly": 1234.69,
+   "ytd": 574.41,
+   "roy": 658.072109589041,
+   "cy": 1232.48210958904,
+   "y1": 1413.6,
+   "y2": 1602.3941260274
+  },
+  "mat_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0,
+   "cy": null,
+   "y1": 0,
+   "y2": 0
+  },
+  "mat_pu": {
+   "ly": null,
+   "ytd": null,
+   "roy": 940,
+   "cy": null,
+   "y1": 950,
+   "y2": 960
+  },
+  "mat_m1": {
+   "ly": 0.199380875945884,
+   "ytd": 0.175515629296911,
+   "roy": 0.174074074074074,
+   "cy": 0.174742966936552,
+   "y1": 0.17221998913938,
+   "y2": 0.168963913718758
+  },
+  "mat_m2": {
+   "ly": 1017.96520735427,
+   "ytd": 931.12335872913,
+   "roy": 940,
+   "cy": 935.841991776516,
+   "y1": 950,
+   "y2": 960
+  },
+  "emp": {
+   "ly": 439.45,
+   "ytd": 254.29,
+   "roy": 294.032219178082,
+   "cy": 548.322219178082,
+   "y1": 639.84,
+   "y2": 734.43064109589
+  },
+  "emp_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0,
+   "cy": null,
+   "y1": 0,
+   "y2": 0
+  },
+  "emp_pu": {
+   "ly": null,
+   "ytd": null,
+   "roy": 420,
+   "cy": null,
+   "y1": 430,
+   "y2": 440
+  },
+  "emp_m1": {
+   "ly": 0.0709635017165594,
+   "ytd": 0.0777003697253033,
+   "roy": 0.0777777777777778,
+   "cy": 0.0777418598379179,
+   "y1": 0.077952205610456,
+   "y2": 0.0774417937877639
+  },
+  "emp_m2": {
+   "ly": 362.313463599637,
+   "ytd": 412.206192251581,
+   "roy": 420,
+   "cy": 416.34921410911,
+   "y1": 430,
+   "y2": 440
+  },
+  "pwr": {
+   "ly": 1404.42,
+   "ytd": 746.38,
+   "roy": 805.088219178082,
+   "cy": 1551.46821917808,
+   "y1": 1711.2,
+   "y2": 1936.22623561644
+  },
+  "pwr_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0,
+   "cy": null,
+   "y1": 0,
+   "y2": 0
+  },
+  "pwr_pu": {
+   "ly": null,
+   "ytd": null,
+   "roy": 1150,
+   "cy": null,
+   "y1": 1150,
+   "y2": 1160
+  },
+  "pwr_m1": {
+   "ly": 0.226789307272205,
+   "ytd": 0.228062456076023,
+   "roy": 0.212962962962963,
+   "cy": 0.219969245490586,
+   "y1": 0.208476828958196,
+   "y2": 0.204164729076832
+  },
+  "pwr_m2": {
+   "ly": 1157.90254761316,
+   "ytd": 1209.88815042957,
+   "roy": 1150,
+   "cy": 1178.05288784087,
+   "y1": 1150,
+   "y2": 1160
+  },
+  "frt": {
+   "ly": 1401.31,
+   "ytd": 748.43,
+   "roy": 854.093589041096,
+   "cy": 1602.5235890411,
+   "y1": 1830.24,
+   "y2": 2069.75907945205
+  },
+  "frt_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0,
+   "cy": null,
+   "y1": 0,
+   "y2": 0
+  },
+  "frt_pu": {
+   "ly": null,
+   "ytd": null,
+   "roy": 1220,
+   "cy": null,
+   "y1": 1230,
+   "y2": 1240
+  },
+  "frt_m1": {
+   "ly": 0.226287096576247,
+   "ytd": 0.228688850184863,
+   "roy": 0.225925925925926,
+   "cy": 0.227207944323205,
+   "y1": 0.222979564885723,
+   "y2": 0.218245055220062
+  },
+  "frt_m2": {
+   "ly": 1155.33844504906,
+   "ytd": 1213.21121737721,
+   "roy": 1220,
+   "cy": 1216.81998932799,
+   "y1": 1230,
+   "y2": 1240
+  },
+  "oth": {
+   "ly": 883,
+   "ytd": 429.86,
+   "roy": 492.854005479452,
+   "cy": 922.714005479452,
+   "y1": 1064.16106428668,
+   "y2": 1213.17403786784
+  },
+  "oth_sh": {
+   "ly": null,
+   "ytd": null,
+   "roy": 0.01,
+   "cy": null,
+   "y1": 0.01,
+   "y2": 0.01
+  },
+  "oth_pu": {
+   "ly": null,
+   "ytd": null,
+   "roy": 650,
+   "cy": null,
+   "y1": 660,
+   "y2": 670
+  },
+  "oth_m1": {
+   "ly": 0.14258908184258,
+   "ytd": 0.131347205671158,
+   "roy": 0.13037037037037,
+   "cy": 0.13082362956583,
+   "y1": 0.129647571402095,
+   "y2": 0.12792273144955
+  },
+  "oth_m2": {
+   "ly": 728.007255338445,
+   "ytd": 696.80661371373,
+   "roy": 704,
+   "cy": 700.630464336645,
+   "y1": 715.162005569003,
+   "y2": 726.816865736073
+  },
+  "ebitda": {
+   "ly": 829.750000000001,
+   "ytd": 519.33,
+   "roy": 676.274104109589,
+   "cy": 1195.60410410959,
+   "y1": 1549.06536438089,
+   "y2": 1927.66295439558
+  },
+  "ebitda_m": {
+   "ly": 0.133990136646524,
+   "ytd": 0.158685489045742,
+   "roy": 0.178888888888889,
+   "cy": 0.169514353845908,
+   "y1": 0.18872384000415,
+   "y2": 0.203261776747035
+  },
+  "ebitda_pu": {
+   "ly": 684.10421304312,
+   "ytd": 841.838223374939,
+   "roy": 966,
+   "cy": 907.839973871247,
+   "y1": 1041.03855133125,
+   "y2": 1154.86970787118
+  },
+  "dep": {
+   "ly": 298.76,
+   "ytd": 154.32,
+   "roy": 153.418590356164,
+   "cy": 307.738590356164,
+   "y1": 342.031301759342,
+   "y2": 409.193486257301
+  },
+  "dep_rate": {
+   "ly": null,
+   "ytd": 0.0580219764462717,
+   "roy": 0.058,
+   "cy": 0.0580110183278568,
+   "y1": 0.058,
+   "y2": 0.058
+  },
+  "othinc": {
+   "ly": 53.08,
+   "ytd": 49.02,
+   "roy": 39.6435890410959,
+   "cy": 88.6635890410959,
+   "y1": 82.8053629943628,
+   "y2": 90.5781820545482
+  },
+  "oi_yield": {
+   "ly": null,
+   "ytd": 0.122976078419648,
+   "roy": 0.1,
+   "cy": 0.111519513289851,
+   "y1": 0.08,
+   "y2": 0.08
+  },
+  "int_debt": {
+   "ly": 181.17,
+   "ytd": 102.76,
+   "roy": 106.793411506849,
+   "cy": 209.553411506849,
+   "y1": 252.1736,
+   "y2": 286.1736
+  },
+  "debt_rate": {
+   "ly": null,
+   "ytd": 0.0811019717491721,
+   "roy": 0.08,
+   "cy": 0.0782742267046356,
+   "y1": 0.08,
+   "y2": 0.08
+  },
+  "int_lease": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "lease_rate": {
+   "ly": null,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "assoc": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "pbt": {
+   "ly": 402.900000000001,
+   "ytd": 311.27,
+   "roy": 455.705691287671,
+   "cy": 766.97569128767,
+   "y1": 1037.66582561591,
+   "y2": 1322.87405019283
+  },
+  "tax": {
+   "ly": 120.18,
+   "ytd": 77.27,
+   "roy": 113.926422821918,
+   "cy": 191.196422821918,
+   "y1": 259.416456403978,
+   "y2": 330.718512548207
+  },
+  "tax_rate": {
+   "ly": 0.298287416232315,
+   "ytd": 0.248241076878594,
+   "roy": 0.25,
+   "cy": 0.249286157297788,
+   "y1": 0.25,
+   "y2": 0.25
+  },
+  "pat": {
+   "ly": 282.720000000001,
+   "ytd": 234,
+   "roy": 341.779268465754,
+   "cy": 575.779268465753,
+   "y1": 778.249369211934,
+   "y2": 992.155537644622
+  },
+  "mi": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "mi_share": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": 0,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "pat_own": {
+   "ly": 282.720000000001,
+   "ytd": 234,
+   "roy": 341.779268465754,
+   "cy": 575.779268465753,
+   "y1": 778.249369211934,
+   "y2": 992.155537644622
+  },
+  "shares": {
+   "ly": 11.77,
+   "ytd": 12.418,
+   "roy": null,
+   "cy": 12.418,
+   "y1": 12.418,
+   "y2": 12.418
+  },
+  "eps": {
+   "ly": 24.0203908241292,
+   "ytd": 18.8436141085521,
+   "roy": null,
+   "cy": 46.3665057550131,
+   "y1": 62.6710717677512,
+   "y2": 79.8965644745227
+  },
+  "fa": {
+   "ly": 5304.83,
+   "ytd": 5311.4,
+   "roy": null,
+   "cy": 5897.09140964384,
+   "y1": 7055.06010788449,
+   "y2": 7845.86662162719
+  },
+  "gw": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": null,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "onca": {
+   "ly": 1088.29,
+   "ytd": 824.5,
+   "roy": null,
+   "cy": 1088.29,
+   "y1": 1088.29,
+   "y2": 1088.29
+  },
+  "inv": {
+   "ly": 864.83,
+   "ytd": 899.8,
+   "roy": null,
+   "cy": 844.165828485645,
+   "y1": 968.219178082192,
+   "y2": 1094.53150684932
+  },
+  "rec": {
+   "ly": 106.8,
+   "ytd": 183.41,
+   "roy": null,
+   "cy": 135.265204728842,
+   "y1": 157.415739727871,
+   "y2": 181.381228199963
+  },
+  "oca": {
+   "ly": 293.31,
+   "ytd": 404.22,
+   "roy": null,
+   "cy": 293.31,
+   "y1": 293.31,
+   "y2": 293.31
+  },
+  "cash": {
+   "ly": 795.05,
+   "ytd": 1152.02,
+   "roy": null,
+   "cy": 1035.06703742954,
+   "y1": 1132.22727568185,
+   "y2": 1353.44916772707
+  },
+  "ta": {
+   "ly": 8453.11,
+   "ytd": 8775.35,
+   "roy": null,
+   "cy": 9293.18948028786,
+   "y1": 10694.5223013764,
+   "y2": 11856.8285244035
+  },
+  "eq": {
+   "ly": 3579.46,
+   "ytd": 3735.41,
+   "roy": null,
+   "cy": 4080.23926846575,
+   "y1": 4778.48863767769,
+   "y2": 5680.64417532231
+  },
+  "nci": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": null,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "debt": {
+   "ly": 2527.17,
+   "ytd": 2574.24,
+   "roy": null,
+   "cy": 2827.17,
+   "y1": 3477.17,
+   "y2": 3677.17
+  },
+  "lease": {
+   "ly": 86.74,
+   "ytd": 98.64,
+   "roy": null,
+   "cy": 71.74,
+   "y1": 56.74,
+   "y2": 41.74
+  },
+  "pay": {
+   "ly": 454.8,
+   "ytd": 549.23,
+   "roy": null,
+   "cy": 509.100211822105,
+   "y1": 577.183663698722,
+   "y2": 652.334349081231
+  },
+  "ol": {
+   "ly": 1804.94,
+   "ytd": 1817.83,
+   "roy": null,
+   "cy": 1804.94,
+   "y1": 1804.94,
+   "y2": 1804.94
+  },
+  "tle": {
+   "ly": 8453.11,
+   "ytd": 8775.35,
+   "roy": null,
+   "cy": 9293.18948028786,
+   "y1": 10694.5223013764,
+   "y2": 11856.8285244035
+  },
+  "chk_bs": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": null,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "capex": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 900,
+   "y1": 1500,
+   "y2": 1200
+  },
+  "drawn": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 600,
+   "y1": 1000,
+   "y2": 600
+  },
+  "repaid": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 300,
+   "y1": 350,
+   "y2": 400
+  },
+  "lease_red": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 15,
+   "y1": 15,
+   "y2": 15
+  },
+  "dividends": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 75,
+   "y1": 80,
+   "y2": 90
+  },
+  "inv_days": {
+   "ly": 255.661704557419,
+   "ytd": null,
+   "roy": null,
+   "cy": 250,
+   "y1": 250,
+   "y2": 250
+  },
+  "rec_days": {
+   "ly": 6.29491233112964,
+   "ytd": null,
+   "roy": null,
+   "cy": 7,
+   "y1": 7,
+   "y2": 7
+  },
+  "pay_days": {
+   "ly": 33.7168066100394,
+   "ytd": null,
+   "roy": null,
+   "cy": 35,
+   "y1": 35,
+   "y2": 35
+  },
+  "min_cash": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 300,
+   "y1": 300,
+   "y2": 300
+  },
+  "short": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "cf_pat": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 575.779268465753,
+   "y1": 778.249369211934,
+   "y2": 992.155537644622
+  },
+  "cf_dep": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 307.738590356164,
+   "y1": 342.031301759342,
+   "y2": 409.193486257301
+  },
+  "cf_assoc": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0,
+   "y1": 0,
+   "y2": 0
+  },
+  "cf_wc": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 46.4991786076187,
+   "y1": -78.1204327189593,
+   "y2": -75.1271318567064
+  },
+  "cf_ops": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 930.017037429536,
+   "y1": 1042.16023825232,
+   "y2": 1326.22189204522
+  },
+  "cf_capex": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -900,
+   "y1": -1500,
+   "y2": -1200
+  },
+  "cf_debt": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 300,
+   "y1": 650,
+   "y2": 200
+  },
+  "cf_lease": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -15,
+   "y1": -15,
+   "y2": -15
+  },
+  "cf_div": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": -75,
+   "y1": -80,
+   "y2": -90
+  },
+  "cf_change": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 240.017037429536,
+   "y1": 97.1602382523174,
+   "y2": 221.221892045216
+  },
+  "cf_open": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 795.05,
+   "y1": 1035.06703742954,
+   "y2": 1132.22727568185
+  },
+  "cf_close": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 1035.06703742954,
+   "y1": 1132.22727568185,
+   "y2": 1353.44916772707
+  },
+  "netdebt": {
+   "ly": 1818.86,
+   "ytd": 1520.86,
+   "roy": null,
+   "cy": 1863.84296257046,
+   "y1": 2401.68272431815,
+   "y2": 2365.46083227293
+  },
+  "nd_ebitda": {
+   "ly": 2.19205784874962,
+   "ytd": null,
+   "roy": null,
+   "cy": 1.55891315207431,
+   "y1": 1.55040760676875,
+   "y2": 1.22711329118976
+  },
+  "chk_pbt": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "chk_pat": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "chk_own": {
+   "ly": 0,
+   "ytd": 0,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_rate": {
+   "ly": 0.12,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_g": {
+   "ly": 0.05,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_fcf": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 120.77070059639,
+   "y1": -330.813583993454,
+   "y2": 272.918455504306
+  },
+  "v_df": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 0.892857142857143,
+   "y1": 0.79719387755102,
+   "y2": 0.711780247813411
+  },
+  "v_pv": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 107.830982675348,
+   "y1": -263.722563770292,
+   "y2": 194.257965891708
+  },
+  "v_tv": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": 4093.77683256458
+  },
+  "v_ev": {
+   "ly": 2952.23587317238,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_eq": {
+   "ly": 1133.37587317238,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_ps": {
+   "ly": 96.2936170919611,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_mult": {
+   "ly": 10,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_mv": {
+   "ly": null,
+   "ytd": null,
+   "roy": null,
+   "cy": 861.272815726073,
+   "y1": 1161.57974883678,
+   "y2": 1483.24295190789
+  },
+  "v_mps": {
+   "ly": 1161.57974883678,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_price": {
+   "ly": 800,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_date": {
+   "ly": 46311,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_gap_dcf": {
+   "ly": -0.879632978635049,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  },
+  "v_gap_mult": {
+   "ly": 0.451974686045978,
+   "ytd": null,
+   "roy": null,
+   "cy": null,
+   "y1": null,
+   "y2": null
+  }
+ }
+}

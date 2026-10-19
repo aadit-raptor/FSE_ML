@@ -5,6 +5,6 @@ chooses the model and its words. Only models solved by hand for two companies
 are `offered` (phase R, rule 4).
 """
 from research.compose import Catalogue
-from research.models import general, occupancy
+from research.models import general, occupancy, per_tonne, stores
 
-CATALOGUE = Catalogue({spec.id: spec for spec in (occupancy.SPEC, general.SPEC)})
+CATALOGUE = Catalogue({spec.id: spec for spec in (occupancy.SPEC, per_tonne.SPEC, stores.SPEC, general.SPEC)})

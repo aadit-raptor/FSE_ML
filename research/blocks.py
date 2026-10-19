@@ -22,7 +22,14 @@ order_book      the order book x the share of it executed in a year    no
 growth          last year's grown                                      no
 share           a share of another line (a free formula, or the        no
                 analyst's own ``formula``)
+plant           capacity a year x utilisation x price per unit sold    no: costs per unit sold
+                (cement, steel, chemicals: PLAN.md R7)
+stores          stores x revenue per store per day (retail,            yes
+                restaurants: PLAN.md R7)
 ==============  =====================================================  =====================
+
+Costs in the lower part follow either a count of places (per place per day:
+`COUNTING`) or a volume sold (per unit sold: `VOLUME`).
 
 The year in progress is the part reported (typed) plus the rest, which each
 block works out from its own assumptions; the current year adds the two.
@@ -32,8 +39,20 @@ from __future__ import annotations
 from research.definition import ASSUME, FIGURE, Heading, ModelError, Pick, Row
 from research.pieces import LY, ROY, UNIT, YTD, added_up, ratio, running_count
 
-BLOCKS = ("capacity", "units", "price_volume", "subscribers", "people", "order_book", "growth", "share")
-COUNTING = {"capacity", "units", "subscribers", "people"}       # blocks with an average count of places
+BLOCKS = ("capacity", "units", "price_volume", "subscribers", "people", "order_book", "growth", "share", "plant",
+          "stores")
+COUNTING = {"capacity", "units", "subscribers", "people", "stores"}     # blocks with an average count of places
+VOLUME = {"price_volume", "plant"}                                      # blocks with a volume sold (``<seg>_vol``)
+
+
+def driver(block: str, seg: str) -> tuple[str, str] | None:
+    """What costs per unit follow on a line of this block: (row, "day") for an average count of places,
+    (row, "unit") for a volume sold, or None."""
+    if block in COUNTING:
+        return seg + "_avg", "day"
+    if block in VOLUME:
+        return seg + "_vol", "unit"
+    return None
 
 
 def words(block: str, seg: str, n: int) -> dict:
@@ -48,6 +67,9 @@ def words(block: str, seg: str, n: int) -> dict:
         "order_book": {"book": "Order book"},
         "growth": {},
         "share": {"share": "%s revenue, as a share of the line it follows" % line},
+        "plant": {"cap": "Capacity, units a year", "util": "Capacity utilisation", "vol": "Volume sold",
+                  "price": "Price per unit sold"},
+        "stores": {"places": "Stores", "price": "Revenue per store per day"},
     }[block]
     return {seg: line, seg + "_rev": line + " revenue", **{"%s_%s" % (seg, k): v for k, v in own.items()}}
 
@@ -63,7 +85,8 @@ def rows(block: str, seg: str, n: int, *, of: str | None = None, rest_of_revenue
         raise ModelError("there is no block called %r (the blocks are %s)" % (block, ", ".join(BLOCKS)))
     part = None if n == 1 else seg
     make = {"capacity": _capacity, "units": _units, "price_volume": _price_volume, "subscribers": _subscribers,
-            "people": _people, "order_book": _order_book, "growth": _growth}.get(block)
+            "people": _people, "order_book": _order_book, "growth": _growth, "plant": _plant,
+            "stores": _stores}.get(block)
     if make is not None:
         return make(seg, n, part)
     return _share(seg, n, part, of, rest_of_revenue, formula)
@@ -124,6 +147,44 @@ def _price_volume(seg: str, n: int, part) -> list:
             "past": price, "rest": ASSUME, "current": price,
             "forecast": "%s_price[prev] * (1 + %s_pg)" % (seg, seg)}, segment=part),
         Row(seg + "_pg", "   assumption: price growth on the year before", "share", {"forecast": ASSUME}, segment=part),
+        _revenue(seg, part, line),
+    ]
+
+
+def _plant(seg: str, n: int, part) -> list:
+    """Capacity a year x the share of it used x the price per unit sold (cement: tonnes of capacity, tonnes
+    sold, the realisation per tonne). The volume sold is a row of its own, which costs per unit follow. For the
+    past the volume is printed and the utilisation and the price are worked out from it."""
+    volume = "%s_avg * %s_util * days / 365" % (seg, seg)
+    price = "div(%s_rev * %s, %s_vol)" % (seg, UNIT, seg)
+    return [
+        Heading("REVENUE LINE %d: capacity x utilisation x price per unit sold  [{%s}]" % (n, seg)),
+        *running_count(seg, "{%s_cap}" % seg, segment=part),
+        Row(seg + "_vol", "{%s_vol}" % seg, "count", {
+            "past": FIGURE, "rest": volume, "current": added_up(seg + "_vol"), "forecast": volume}, segment=part),
+        ratio(seg + "_util", "{%s_util}" % seg, "div(%s_vol * 365, %s_avg * days)" % (seg, seg), segment=part),
+        Row(seg + "_pg", "   assumption: price growth on the year before", "share", {"forecast": ASSUME}, segment=part),
+        Row(seg + "_price", "{%s_price}" % seg, "rupees", {
+            "past": price, "rest": ASSUME, "current": price,
+            "forecast": "%s_price[prev] * (1 + %s_pg)" % (seg, seg)}, segment=part),
+        _revenue(seg, part, "%s_vol * %s_price / %s" % (seg, seg, UNIT)),
+    ]
+
+
+def _stores(seg: str, n: int, part) -> list:
+    """Stores x revenue per store per day. Stores open and close; the revenue per store per day is worked out
+    for the past and grows, for the future, by an assumption close to the like-for-like growth analysts quote
+    (it also moves with the size of the stores opened)."""
+    line = "%s_avg * %s_price * days / %s" % (seg, seg, UNIT)
+    price = "div(%s_rev * %s, %s_avg * days)" % (seg, UNIT, seg)
+    return [
+        Heading("REVENUE LINE %d: stores x revenue per store per day  [{%s}]" % (n, seg)),
+        *running_count(seg, "{%s_places}" % seg, closures=True, segment=part),
+        Row(seg + "_sg", "   assumption: growth in revenue per store per day on the year before", "share",
+            {"forecast": ASSUME}, segment=part),
+        Row(seg + "_price", "{%s_price}" % seg, "rupees", {
+            "past": price, "rest": ASSUME, "current": price,
+            "forecast": "%s_price[prev] * (1 + %s_sg)" % (seg, seg)}, segment=part),
         _revenue(seg, part, line),
     ]
 
