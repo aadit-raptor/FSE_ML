@@ -489,7 +489,9 @@
               "model_saved",
               "model_versioned",
               "model_restored",
-              "model_rolled"
+              "model_rolled",
+              "report_saved",
+              "report_details_saved"
             ],
             "title": "Action",
             "type": "string"
@@ -547,7 +549,9 @@
                   "workbook",
                   "simulation_sample",
                   "results_workbook",
-                  "results_excel"
+                  "results_excel",
+                  "report_word",
+                  "report_pdf"
                 ],
                 "type": "string"
               },
@@ -14248,6 +14252,466 @@
         "title": "RegimeYear",
         "type": "object"
       },
+      "ReportBlock": {
+        "properties": {
+          "categories": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categories"
+          },
+          "header": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportSegment"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Header"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "text",
+                  "sentence",
+                  "analyst",
+                  "note"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReportSegment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "items": {
+                      "$ref": "#/components/schemas/ReportSegment"
+                    },
+                    "type": "array"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows"
+          },
+          "series": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReportSeries"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReportSegment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "type": {
+            "enum": [
+              "heading",
+              "paragraph",
+              "table",
+              "chart"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "ReportBlock",
+        "type": "object"
+      },
+      "ReportDetailsIn": {
+        "additionalProperties": false,
+        "description": "The firm name and disclosures every note of the account carries, typed once.",
+        "properties": {
+          "disclosures": {
+            "default": "",
+            "maxLength": 8000,
+            "title": "Disclosures",
+            "type": "string"
+          },
+          "firm": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Firm",
+            "type": "string"
+          }
+        },
+        "title": "ReportDetailsIn",
+        "type": "object"
+      },
+      "ReportDetailsOut": {
+        "properties": {
+          "disclosures": {
+            "title": "Disclosures",
+            "type": "string"
+          },
+          "firm": {
+            "title": "Firm",
+            "type": "string"
+          }
+        },
+        "required": [
+          "firm",
+          "disclosures"
+        ],
+        "title": "ReportDetailsOut",
+        "type": "object"
+      },
+      "ReportFieldsIn": {
+        "additionalProperties": false,
+        "description": "What the analyst types for a note. The tool fills none of these (PLAN.md phase R, rule 1).",
+        "properties": {
+          "argument": {
+            "default": "",
+            "description": "The analyst's argument, as typed",
+            "maxLength": 20000,
+            "title": "Argument",
+            "type": "string"
+          },
+          "compare_version": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The saved model's version the estimates are set against",
+            "title": "Compare Version"
+          },
+          "note_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The note's date",
+            "title": "Note Date"
+          },
+          "rating": {
+            "default": "",
+            "description": "The analyst's rating, in their own words; empty until typed",
+            "maxLength": 40,
+            "title": "Rating",
+            "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "maximum": 1000000000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The analyst's target per share; null until typed",
+            "title": "Target"
+          }
+        },
+        "title": "ReportFieldsIn",
+        "type": "object"
+      },
+      "ReportFieldsOut": {
+        "properties": {
+          "argument": {
+            "default": "",
+            "title": "Argument",
+            "type": "string"
+          },
+          "compare_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compare Version"
+          },
+          "note_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Date"
+          },
+          "rating": {
+            "default": "",
+            "title": "Rating",
+            "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          }
+        },
+        "title": "ReportFieldsOut",
+        "type": "object"
+      },
+      "ReportOut": {
+        "description": "A covered company's results note, drawn from its saved model and checked figure by figure.",
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/ReportBlock"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "company_id": {
+            "title": "Company Id",
+            "type": "string"
+          },
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ReportDetailsOut"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/ReportFieldsOut"
+          },
+          "sentences": {
+            "items": {
+              "$ref": "#/components/schemas/ReportSentence"
+            },
+            "title": "Sentences",
+            "type": "array"
+          },
+          "written_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The AI model that wrote the stored sentences, if one did",
+            "title": "Written By"
+          }
+        },
+        "required": [
+          "company_id",
+          "company_name",
+          "fields",
+          "details",
+          "sentences",
+          "blocks"
+        ],
+        "title": "ReportOut",
+        "type": "object"
+      },
+      "ReportSegment": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "text",
+              "label",
+              "figure",
+              "typed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where a figure or a label comes from (research/report.py)",
+            "title": "Source"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "ReportSegment",
+        "type": "object"
+      },
+      "ReportSentence": {
+        "properties": {
+          "section": {
+            "enum": [
+              "outlook",
+              "results",
+              "estimates",
+              "valuation"
+            ],
+            "title": "Section",
+            "type": "string"
+          },
+          "source": {
+            "description": "Who wrote it: the AI, or the template and why",
+            "enum": [
+              "ai",
+              "template",
+              "ai_off",
+              "ai_failed",
+              "ai_refused"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "section",
+          "source"
+        ],
+        "title": "ReportSentence",
+        "type": "object"
+      },
+      "ReportSeries": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "texts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Texts",
+            "type": "array"
+          },
+          "values": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "values",
+          "texts"
+        ],
+        "title": "ReportSeries",
+        "type": "object"
+      },
       "ReportedRun": {
         "properties": {
           "error": {
@@ -19827,6 +20291,96 @@
         ]
       }
     },
+    "/api/account/report-details": {
+      "get": {
+        "operationId": "get_details_api_account_report_details_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetailsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Details",
+        "tags": [
+          "research"
+        ]
+      },
+      "put": {
+        "operationId": "put_details_api_account_report_details_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportDetailsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetailsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Details",
+        "tags": [
+          "research"
+        ]
+      }
+    },
     "/api/account/settings": {
       "get": {
         "description": "The caller's Settings overrides, the same on every device.",
@@ -25263,6 +25817,298 @@
           }
         ],
         "summary": "Post Periods",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/report": {
+      "get": {
+        "operationId": "get_report_api_research_companies__company_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Report",
+        "tags": [
+          "research"
+        ]
+      },
+      "put": {
+        "description": "Keep what the analyst typed. A version to compare with must be one the saved model has.",
+        "operationId": "put_report_api_research_companies__company_id__report_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportFieldsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Report",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/report/pdf": {
+      "get": {
+        "operationId": "get_pdf_api_research_companies__company_id__report_pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "The note as a PDF"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Pdf",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/report/sentences": {
+      "post": {
+        "description": "The linking sentences written again: by the AI when one is set up (its answer checked, a section that breaks\na rule written by its template), else by the templates. Kept with the note.",
+        "operationId": "post_sentences_api_research_companies__company_id__report_sentences_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Sentences",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/research/companies/{company_id}/report/word": {
+      "get": {
+        "operationId": "get_word_api_research_companies__company_id__report_word_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Company Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {}
+            },
+            "description": "The note as a Word file, its charts native Word charts"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Word",
         "tags": [
           "research"
         ]

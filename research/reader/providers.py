@@ -47,6 +47,8 @@ TIMEOUT_S = 600.0
 SPENT_FOR_S = 6 * 3600         # Google's day is a rolling 24 hours; look again in six
 STATUS_CACHE_S = 300.0
 RECORDINGS = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "research" / "reader"
+# The report writer's recorded answers (PLAN.md R8), by the SHA-256 of the prompt (research/writer.py)
+WRITINGS = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "research" / "writer"
 
 # Errors, as codes the screen words (web/messages/en.json reader.error_*)
 SPENT = "allowance_spent"          # every model's day is used up: try again tomorrow
@@ -238,6 +240,28 @@ class Gemini:
                 self._forget(uploaded)
         raise failure
 
+    # -- the report writer's side (PLAN.md R8) --------------------------------
+    def write(self, text: str) -> Answer:
+        """Linking sentences for a note: `text` is the whole prompt (research/writer.py), which holds no company,
+        no figure and nothing from a document. One request, by the first model with allowance left."""
+        failure = ProviderError(SPENT)
+        for model in self._usable(_models("GEMINI_MODELS_WRITE", MODELS_A), frozenset()):
+            started = time.time()
+            try:
+                answer, usage = self._generate(model, [{"text": text}])
+                parsed = parse_json(answer)
+            except ProviderError as exc:
+                if exc.code == KEY_REFUSED:
+                    raise
+                if exc.code == SPENT:
+                    with self._lock:
+                        self._spent[model] = time.time() + SPENT_FOR_S
+                else:
+                    failure = exc
+                continue
+            return Answer(parsed, model, "", dict(usage), round(time.time() - started, 1))
+        raise failure
+
     def status(self) -> dict:
         """Whether the key works, by listing the models (free: it spends no
         allowance). Never the key itself."""
@@ -303,6 +327,13 @@ class Replay:
             raise ProviderError(NOT_RECORDED)
         return Answer(read["read"], read["model"], found.get("prompt", "r0"), read.get("usage") or {},
                       read.get("seconds") or 0.0)
+
+    def write(self, text: str) -> Answer:
+        path = WRITINGS / ("%s.json" % sha256(text.encode("utf-8")))
+        if not path.is_file():
+            raise ProviderError(NOT_RECORDED)
+        found = json.loads(path.read_text(encoding="utf-8"))
+        return Answer(found["answer"], found["model"], "", found.get("usage") or {}, found.get("seconds") or 0.0)
 
     def status(self) -> dict:
         return {"status": "ok", "provider": self.name, "key": "none", "free_tier": True,

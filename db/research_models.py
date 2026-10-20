@@ -255,6 +255,23 @@ def list_versions(subject: str, company_id: uuid.UUID) -> list[VersionRecord]:
                           comparison=r.comparison) for r in rows]
 
 
+def get_version(subject: str, company_id: uuid.UUID, number: int) -> VersionRecord:
+    """One version with its content (a results note sets its estimates against it, PLAN.md R8)."""
+    with connect() as conn:
+        row = _model_row(conn, subject, company_id)
+        if row is None:
+            _owned_company(conn, subject, company_id)
+            raise NoModel(str(company_id))
+        r = conn.execute(select(*_SUMMARY, ResearchModelVersion.structure, ResearchModelVersion.company,
+                                ResearchModelVersion.comparison)
+                         .where(ResearchModelVersion.model_id == row.id,
+                                ResearchModelVersion.number == number)).first()
+    if r is None:
+        raise VersionNotFound(str(number))
+    return VersionRecord(number=r.number, kind=r.kind, label=r.label, created_at=r.created_at, as_of=r.as_of,
+                         structure=r.structure, company=r.company, comparison=r.comparison)
+
+
 def save_version(subject: str, company_id: uuid.UUID, label: Optional[str] = None,
                  *, now: Optional[datetime] = None) -> VersionRecord:
     """Keep the working copy as a version; when nothing changed since the latest, that one is kept (and named)."""
@@ -334,5 +351,5 @@ def roll(subject: str, company_id: uuid.UUID, worked_from: datetime, company: di
 
 
 __all__ = ["AUTO_CHECKPOINT_S", "CHANGED_MEANWHILE", "KEEP_AUTO_VERSIONS", "MAX_VERSIONS", "ModelRecord", "NoAccount",
-           "NoModel", "NotFound", "Refused", "VersionNotFound", "VersionRecord", "get_model", "list_versions",
-           "restore_version", "roll", "save_model", "save_version"]
+           "NoModel", "NotFound", "Refused", "VersionNotFound", "VersionRecord", "get_model", "get_version",
+           "list_versions", "restore_version", "roll", "save_model", "save_version"]

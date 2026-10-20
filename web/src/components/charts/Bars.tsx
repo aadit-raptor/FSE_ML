@@ -125,7 +125,8 @@ export function GroupedBars({
   label,
 }: {
   categories: string[];
-  series: { name: string; values: number[]; color: string; labelled?: boolean }[];
+  // `labels`, when given, are written above the bars in place of `format` (a figure already written elsewhere)
+  series: { name: string; values: number[]; color: string; labelled?: boolean; labels?: string[] }[];
   format: (v: number) => string;
   label: string;
 }) {
@@ -170,7 +171,7 @@ export function GroupedBars({
                     <rect x={bx + 1} y={y(v)} width={w - 2} height={H - BOTTOM - y(v)} fill={s.color} />
                     {s.labelled && (
                       <text x={bx + w / 2} y={y(v) - 6} textAnchor="middle" className="chart-total">
-                        {format(v)}
+                        {s.labels ? s.labels[i] : format(v)}
                       </text>
                     )}
                   </g>

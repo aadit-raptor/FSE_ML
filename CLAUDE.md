@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-20 (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,11 +1423,11 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0, R1a, R1b, R2, R3, R4, R5, R6 and R7 are done (R1b: the held-out filings meet the
+R0, R1a, R1b, R2, R3, R4, R5, R6, R7 and R8 are done (R1b: the held-out filings meet the
 3% amber bar the user set, so production reads; R4's model is "not yet
 vetted" until an analyst reads it); billing with a cap still
 comes before the first showing to analysts
-(PLAN.md R2's "Before the first showing"); the next task is **R8** (the report draft; its "You first" is a securities lawyer's view and the disclosure wording), then R9, unless what the analysts say after R2
+(PLAN.md R2's "Before the first showing"); the next task is **R9** (ready for the paid switch: pages read and AI cost per user, the paid provider's path on recorded answers, limits per plan as settings, the add-in's store listing as steps), unless what the analysts say after R2
 reorders them; 6.2
 onwards and phases 7 to 12 wait, except what a phase R task pulls forward
 and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
@@ -1559,6 +1559,40 @@ hand-solved companies) is written by `python -m tests.research_examples`,
 checked stale. Screen: Coverage -> **Model** (`components/coverage/ModelStep.tsx`,
 `ModelGrid.tsx`, `lib/sectorModel.ts`: the model lives in page memory until
 R5 saves it); add-in `components/excel/ModelInPane.tsx`.
+**R8 is done (2026-10-20): the results note** (PLAN.md R8). Decided by the
+user: build before the lawyer's view (which waits, below), firm name and
+disclosures as account fields. **Every number comes from the saved model,
+every time the note is drawn**: `research/report.py` builds the draft as
+blocks of segments (`Figure` of the model, of the version the estimates are
+set against (`earlier`) or of the latest roll's stored comparison; `Label`;
+`Typed`, the analyst's; `Text`, the tool's words) and `check` works each out
+again, refusing (`DraftRefused`, codes `report.refused_*`) a figure whose
+value or text differs, a label not its source's, and a digit, a number word
+(`NUMBER_WORDS`), a rating (`RATING_WORDS`, "add" included) or, in an AI
+sentence, a call (`CALLS`) in the tool's words. Nothing stores a figure:
+`research_reports` (migration 0022) holds the analyst's fields and the
+sentences as text with `{slot}`s; `research_report_details` the account's firm
+and disclosures. **The AI writes linking sentences only** (`research/writer.py`,
+`PROMPT_VERSION` r8-1): it is sent slot names, their meanings and directions
+the code worked out ("revenue is higher in the current year than last year"),
+never the company, the sector's words or a figure; an answer naming another
+section's slot, holding a number or a call, or too long is replaced by that
+section's template, and the note says which wrote each (`source_*`). One
+request (`Gemini.write`, `GEMINI_MODELS_WRITE`), limited to `USER_WRITES` 5 a
+person and `WRITES_ALL` 10 a day (the reader's free allowance); with no
+provider nothing is counted. **The rating, the target and the argument are
+empty until typed**; the tool's words never name a rating, and
+`tests/test_research_report.py` checks the screen's `report` namespace words a
+call only as the analyst's field labels. Files: `research/report_files.py`
+writes Word (native Word charts holding the figures) and PDF (Helvetica, A4)
+with Python alone, from a checked draft only; each download is an `exported`
+audit entry (`report_word`, `report_pdf`). Endpoints
+`api/routers/research_report.py`: `/api/account/report-details` (GET/PUT) and
+`/api/research/companies/{id}/report` (GET/PUT, `sentences`, `word`, `pdf`);
+audit actions `report_saved` (fields changed) and `report_details_saved`.
+Screen: Coverage -> **Report** (`components/coverage/ReportStep.tsx`,
+`lib/report.ts`, namespace `report`). Browser tests replay the AI with nothing
+recorded for a note, so the templates write there and say so.
 **R7 is done (2026-10-19): models 2 and 3** (PLAN.md R7). **Model 2, Per
 tonne** (`research/models/per_tonne.py`: cement, steel, chemicals) and
 **model 3, Stores** (`research/models/stores.py`: retail, restaurants) are
@@ -1756,7 +1790,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). **Next is R8** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). **Next is R9** (phase R, the priority above; 6.2 waits).
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1944,6 +1978,12 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- PLAN.md R8: **a securities lawyer's view** that the tool stays outside
+  SEBI's research analyst rules (it drafts; the analyst rates, targets and
+  argues), and **the disclosure wording** your testers will type in Coverage
+  -> Report's "Report details". Both before the first outside user, not before
+  code (decided 2026-10-20).
+
 - PLAN.md R3: **try the Excel add-in in the real Excel** on Windows, the Mac
   and the web (DEPLOY.md "Excel add-in", "Installing it"), signing in once
   with email and once with Google, and importing a quarter. The browser
@@ -2054,6 +2094,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `research/reader/`, `api/routers/research.py`, `ml/evaluation/reader.py`, `web/src/components/coverage/`, `web/src/lib/research.ts`, `tests/fixtures/research/reader/`, `tests/test_research_reader*.py`, `web/e2e/reader.spec.ts` | The results reader (PLAN.md R1): the provider switch, prompts, page tool, checks, standard lines, assembly, the job's service, the production gate and the recorder; the endpoints; its card; Coverage -> Results; the recorded answers (R0's 30 as `development`, `held_out` from R1b); the tests |
 | `web/src/app/excel/`, `web/src/components/excel/`, `web/src/lib/excel/`, `api/routers/addin.py`, `db/addin.py`, `ops/addin_manifest.py`, `web/public/excel/`, `web/e2e/excel.spec.ts`, `web/e2e/fake-office.js`, `tests/test_addin*.py`, `tests/addin_cells_check.py` | The Excel add-in (PLAN.md R3): the pane and sign-in dialog pages; their components (sign-in, import, read and review); Office.js loading, the dialog, the pass and the cell writer; the pass endpoints and storage; the manifests' writer and the manifests; the browser tests and their stand-in for Office.js; the pass and manifest tests; the cell-by-cell comparison with the download |
 | `research/coverage.py`, `db/coverage.py`, `api/routers/coverage.py`, `web/src/components/coverage/` (`CompaniesStep`, `Review`, `PageView`), `tests/test_research_coverage*.py`, `tests/coverage_workbook_check.py`, `web/e2e/coverage.spec.ts` | Coverage (PLAN.md R2): a reviewed read made into stored periods and the checked workbook; the rows, owner-matched; the endpoints; the Companies step, the review beside the page and the pdf.js page view; the tests and the browser tests' workbook check |
+| `research/report.py`, `research/writer.py`, `research/report_files.py`, `db/research_reports.py`, `api/routers/research_report.py`, `web/src/lib/report.ts`, `web/src/components/coverage/ReportStep.tsx`, `tests/test_research_report*.py`, `web/e2e/report.spec.ts` | Results notes (PLAN.md R8): the draft and its figure-by-figure check, the AI's linking sentences and their templates, the Word and PDF writers; the notes and the account's firm and disclosures, owner-matched; the endpoints; the browser's side and Coverage -> Report; the tests (every figure against the model, planted numbers and calls refused, no rating until typed) |
 | `research/valuation.py`, `web/src/components/coverage/ValuationTile.tsx`, `tests/fixtures/research/valuation.json`, `tests/test_research_valuation.py` | Valuation (PLAN.md R6): the discounted cash flow and target multiple rows every model gains, and the country's risk-free rate; the value tiles and the risk-free offer; the cases solved by hand; the tests (hand cases, workbook and LibreOffice, rolls, sheet back, no recommendation words) |
 | `research/rollforward.py`, `research/sheetback.py`, `db/research_models.py`, `api/routers/research_saved.py`, `web/src/lib/savedModel.ts`, `web/src/lib/excel/read.ts`, `web/src/components/coverage/SavedModel.tsx`, `tests/test_research_rollforward.py`, `tests/test_research_sheetback.py`, `tests/test_research_saved_api.py` | Saved models (PLAN.md R5): the roll forward and its comparison, reading a sheet's named cells back (and refusing a restructured one), the saved models and versions, owner-matched; the endpoints; the browser's side, the add-in's sheet reader and the Saved rail group, roll notice and comparison tile; the tests |
 | `research/`, `tests/research_support.py`, `tests/fixtures/research/`, `tests/test_research_*.py` | Equity research, sector models (PLAN.md R4 part b): the formula reader (`formula.py`), the model and company as data (`definition.py`), the evaluator, the Excel writer (`workbook.py`), the shared pieces, model 1 (`models/occupancy.py`); the tests' fixture loader, independent Excel-formula reader and LibreOffice runner; the two hand-solved companies; the tests (formulas, the format by hand, workbook against evaluator, model 1 against the hand workbooks) |
@@ -2322,6 +2363,11 @@ Skills load when a session starts: install first, then open a new session.
 - A script beside the repository (`research-samples/`) that imports a module
   called `companies` gets the repository's `companies/` package once the root
   is on `sys.path`: R7's typed figures are `research-samples/r7/typed.py`.
+- A results note's own words (`research/report.py` `Text`) are refused if
+  they hold a digit, a number word or a rating word, and "add" is one (an
+  Indian broker's rating): "add it in the details" made every draft fail.
+  Write the tool's words with "type", "put" and so on, and put any number in
+  as a `Figure` or a `Label`.
 - A sector model's row may not be named after a formula word or a kind of
   period (`div`, `max`, `min`, `prev`, `rest`, `all` ...): the dividends row
   is `dividends`. An Excel defined name may not read as a cell (`rev1`,
