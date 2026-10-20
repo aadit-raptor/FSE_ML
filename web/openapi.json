@@ -374,6 +374,162 @@
         "title": "AddinSessionOut",
         "type": "object"
       },
+      "AiPlan": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pages_per_day": {
+            "title": "Pages Per Day",
+            "type": "integer"
+          },
+          "reads_per_day": {
+            "title": "Reads Per Day",
+            "type": "integer"
+          },
+          "writes_per_day": {
+            "title": "Writes Per Day",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "reads_per_day",
+          "pages_per_day",
+          "writes_per_day"
+        ],
+        "title": "AiPlan",
+        "type": "object"
+      },
+      "AiUsageDay": {
+        "properties": {
+          "cost": {
+            "description": "At the provider's paid list price, in money's currency",
+            "title": "Cost",
+            "type": "number"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "kind": {
+            "description": "read: a results read (R1); write: a note's sentences (R8)",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "requests": {
+            "title": "Requests",
+            "type": "integer"
+          },
+          "tier": {
+            "description": "free: nothing was charged; cost is what it would cost",
+            "enum": [
+              "free",
+              "billed"
+            ],
+            "title": "Tier",
+            "type": "string"
+          },
+          "unpriced": {
+            "description": "Requests to a model with no price on the list: not in cost",
+            "title": "Unpriced",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "kind",
+          "tier",
+          "requests",
+          "pages",
+          "input_tokens",
+          "output_tokens",
+          "unpriced",
+          "cost"
+        ],
+        "title": "AiUsageDay",
+        "type": "object"
+      },
+      "AiUsageMoney": {
+        "description": "What the cost figures are in: whole units of the provider's billing currency, not the deal units.",
+        "properties": {
+          "currency": {
+            "description": "ISO 4217 code of the provider's price list",
+            "title": "Currency",
+            "type": "string"
+          },
+          "unit": {
+            "const": "one",
+            "default": "one",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency"
+        ],
+        "title": "AiUsageMoney",
+        "type": "object"
+      },
+      "AiUsageResponse": {
+        "description": "The caller's own AI use, a day at a time (newest first), and the plan their limits come from.",
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/AiUsageDay"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "money": {
+            "$ref": "#/components/schemas/AiUsageMoney"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/AiPlan"
+          },
+          "prices_checked_on": {
+            "format": "date",
+            "title": "Prices Checked On",
+            "type": "string"
+          },
+          "prices_source": {
+            "title": "Prices Source",
+            "type": "string"
+          },
+          "total_cost": {
+            "title": "Total Cost",
+            "type": "number"
+          }
+        },
+        "required": [
+          "days",
+          "total_cost",
+          "money",
+          "plan",
+          "prices_source",
+          "prices_checked_on"
+        ],
+        "title": "AiUsageResponse",
+        "type": "object"
+      },
       "AnnualByGrade": {
         "properties": {
           "defaults": {
@@ -20223,6 +20379,67 @@
           }
         ],
         "summary": "Save Account",
+        "tags": [
+          "account"
+        ]
+      }
+    },
+    "/api/account/ai-usage": {
+      "get": {
+        "description": "What the caller's results reads and note sentences used, a day at a time (PLAN.md R9): their own rows\nonly, counts and cost, never anything from a document.",
+        "operationId": "get_ai_usage_api_account_ai_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 31,
+              "maximum": 400,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Ai Usage",
         "tags": [
           "account"
         ]

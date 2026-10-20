@@ -847,10 +847,30 @@ project `variater-reader`, set up billing and a budget, then set
 `AI_FREE_TIER=0` on both services. Nothing else changes.
 
 **Free-tier limits that shape it**: 20 requests a day per model; a read is
-two requests. `api/limits.py` holds the reader to 30 reads a day for the
-whole service, 10 per person and 250 pages per person (`USER_READS`,
-`READS_ALL`, `USER_READ_PAGES`). A model whose day is spent is skipped for
-six hours; "high demand" moves on to the next model.
+two requests. The reader is held to 30 reads a day for the whole service,
+10 per person and 250 pages per person (`USER_READS`, `READS_ALL`,
+`USER_READ_PAGES` in `api/limits.py`). Since R9 those numbers are **the free
+plan's and the free tier's** (`api/plans.py`, "Paid switches" below). A model
+whose day is spent is skipped for six hours; "high demand" moves on to the
+next model.
+
+**What it costs (PLAN.md R9).** Every read and every note writing is counted
+per person and per UTC day in table `ai_usage` (migration 0023,
+`db/ai_usage.py`): pages read, requests, input and output tokens, and their
+cost at Google's **paid** price list (`research/ai_costs.py`, transcribed
+from https://ai.google.dev/gemini-api/docs/pricing on 2026-10-20, with the
+day each price changes; thinking is billed as output). On the free tier
+nothing is charged and the row's `tier` is `free`: the cost is what it would
+have cost. Measured on the 38 recorded filings: **about 0.09 US dollars a
+filing** (the dearest 0.19), about 0.004 a page; a note's sentences are a
+fraction of a cent. A person sees their own on `GET /api/account/ai-usage`;
+the nightly `job-maintenance` summary gives yesterday's total for everyone
+together, nobody named (`ai_requests_yesterday`, `ai_pages_yesterday`,
+`ai_cost_usd_yesterday`, `ai_people_yesterday`), and deletes rows older than
+400 days. Google's 3.x flash prices **double on 2027-01-01**; the list
+already holds both. When Google changes a price, transcribe it with its day
+and move `CHECKED_ON`; a model the reader may ask without a price fails
+`tests/test_paid_switch.py`.
 
 **Results notes (PLAN.md R8)** use the same provider and key for their
 linking sentences only (Coverage -> Report, "Write with the AI"): one request,
@@ -974,6 +994,57 @@ To remove it: Excel on the web forgets it with the session; on the Mac
 delete the file from `wef`; on Windows remove the catalog in the Trust
 Center. A tester's pass ends by itself within 12 hours, or at **Sign out**.
 
+### Listing it in Microsoft's store (the user's steps)
+
+Testers install it from the manifest (above); anyone else finds it in
+**Microsoft Marketplace** (formerly AppSource) once it is listed. Microsoft
+says to expect **four to six weeks and more than one submission**, and
+answers each submission within three or four business days. The steps, from
+Microsoft's submission guide and checklist
+(https://learn.microsoft.com/partner-center/marketplace-offers/add-in-submission-guide,
+read 2026-10-20):
+
+1. **Before you start** (Claude's part, a follow-up task): a support page
+   on variater.com (the manifest's `SupportUrl` is `/privacy` today; the store
+   wants a page where people can get help, never an email address), terms of
+   use or Microsoft's standard contract, and the store icons in the sizes the
+   listing form asks for (`node web/scripts/brand.mjs` draws any size from
+   the mark). The privacy policy already names Variater and the add-in
+   (`/privacy`), which the store requires. The account must be ready for paid
+   use first: AI billing on ("Paid switches"), Vercel Pro if anyone pays.
+2. **Join the Microsoft 365 and Copilot program**: sign in to Partner Center
+   (https://partner.microsoft.com/dashboard) with a work account and open a
+   developer account for it. The **publisher name must match the manifest's
+   `ProviderName`, `Variater`**, and can't be changed on the offer later.
+3. **Validate the manifest** with Microsoft's own check (the store's
+   validation service, `npx office-addin-manifest validate -p
+   web/public/excel/manifest.xml`) and fix anything it names. Keep the
+   manifest's `Id` for every later version; raise `Version`.
+4. Partner Center -> **Marketplace offers -> Microsoft 365 and Copilot ->
+   + New offer -> Office Add-in**; name it **Variater**, check availability,
+   create.
+5. **Product setup**: not in the Apple store; no Microsoft Entra single
+   sign-on; tick **"requires additional purchases"** once a paid plan exists
+   (a Variater account is needed in any case, which the description must say).
+6. **Packages**: upload `web/public/excel/manifest.xml` (the production one,
+   from `python -m ops.addin_manifest`); its checks must read Complete.
+7. **Properties**: up to three categories (Finance; Data analytics),
+   the industry Financial services, the standard contract or a terms link,
+   the privacy link `https://variater.com/privacy`, the support link.
+8. **Marketplace listings**: English; the name, a short summary, a long
+   description in HTML that says **a Variater account is needed (free sign-up
+   at variater.com)** and any charges, at least one screenshot (the pane with
+   an imported quarter), the icons.
+9. **Availability**: the date (it can't be changed after the first publish).
+10. **Notes for certification** (submissions without clear notes fail):
+    a test account made for reviewers on production (email sign-in, since
+    reviewers can't use Google sign-in in Excel's own window), its password,
+    a public results PDF to read and the steps: open Variater on the Home
+    tab, Sign in, Read a results PDF, answer the amber figures, Import.
+    Reviewers can't contact you, so write every step. Their reads spend the
+    AI allowance: switch billing on first.
+11. **Review and publish**. Fix what the report names and submit again.
+
 The production manifest lists `https://clerk.variater.com` among its
 domains, so a Clerk session check that passes through the pane stays in
 it. Staging's Clerk is the development instance (`<name>.clerk.accounts.dev`,
@@ -1091,6 +1162,28 @@ fails the run. After the nightly run, `/api/health/jobs` shows
 `job-maintenance` succeeded; a store that can't be reached fails that run,
 which raises the usual alert. Locally, `FSE_UPLOADS_DIR=<a directory>` stands
 in for the bucket (refused in production); the browser tests use it.
+
+## Paid switches
+
+Phase R's rule 8: **free now, paid by a switch**. Each paid step is an
+account change on the provider's side plus, where the app must know, one
+setting; nothing else in the code changes. Done when listed here with what it
+lifts (PLAN.md R9). The free numbers are what runs today.
+
+| Switch | What you do | Setting | What it lifts | What stays |
+|---|---|---|---|---|
+| **AI billing** (before the first outside showing) | Google AI Studio, project `variater-reader`: set up billing and a **budget with an alert** (the real backstop) | `AI_FREE_TIER=0` on both Render services | The public-documents confirmation (Google doesn't use paid-tier content to improve its products); the service's day from 30 reads and 10 note writings to **300 and 300** (`TIERS["billed"]` in `api/plans.py`: at about 0.09 dollars a filing, under 30 dollars a day); the cost in `ai_usage` becomes a bill | Each person's plan limits; the accuracy gate; the provider and its models |
+| **A person's plan** | (Until billing, PLAN.md 9, gives each account its own) | `FSE_PLAN=research` on the service | Per person a day: results reads **10 to 40**, pages **250 to 1,000**, note writings **5 to 30** (`PLANS` in `api/plans.py`). An unknown name is the free plan | The service's tier (above) still caps everyone together |
+| **The AI provider** | A key for the provider | `AI_PROVIDER` (`gemini` today) | Changes the provider and **nothing else** (`tests/test_paid_switch.py`: on staging, every figure, check, limit and the note's words are the same through Gemini's code as through the recordings). A new provider (PLAN.md 12.4, confidential documents) needs its own class in `research/reader/providers.py`, its prices in `research/ai_costs.py` and its own card before it reads for anyone | The tier, plans and gate |
+| **Always-on API** (12.1) | Render, `fse-api`: a paid instance type | none | The minute-long wake after 15 idle minutes (an add-in user feels it). More memory lets the simulation and upload caps rise, but those are code (`api/limits.py`): measure first | Every limit in `api/limits.py` |
+| **Database** (12.2) | Neon: a paid plan | none | 0.5 GB of storage and 100 compute hours a month; longer restore window | The per-feature budgets (coverage 64 MB, companies 64 MB ...) until raised in code; `ops/check_database.py` warns at 80% of the plan |
+| **File storage** | Supabase uploads project: a paid plan | `FSE_UPLOADS_BUDGET_MB` | 1 GB of storage (the 800 MB budget) and 5 GB of egress a month (`USER_FILE_VIEWS`, 100 PDF views a person a day) | The per-person 100 MB and 40 files (`uploads/rules.py`) |
+| **Web hosting** (12.3) | Vercel: Pro | none | Hobby is for non-commercial use: Pro before charging anyone | Everything else |
+| **Usage counters** | Upstash: pay as you go | none | The 500,000 commands a month (the daily command budget in "Usage limits") | Limits themselves |
+| **Sign-in** | Clerk: a paid plan, when the free plan's monthly users run out | none | Clerk's free-plan user limit | Who may call what |
+
+Before any paid switch, check `ai_cost_usd_yesterday` and the database and
+storage reports for a week, so the switch is sized on what is used.
 
 ## Usage limits
 

@@ -290,13 +290,14 @@ class Replay:
     """Recorded answers, by the document's SHA-256 (``research/reader/record.py``)."""
 
     name = "replay"
-    free_tier = True
     needs_pictures = False         # the recorded answers stand for the reads
 
     def __init__(self, folder: Path = RECORDINGS, default: Optional[str] = None):
         self.folder = folder
         self.default = default if default is not None else os.environ.get("FSE_READER_REPLAY_DEFAULT") or None
         self._index: Optional[dict[str, Path]] = None
+        # the recordings stand for the provider, tier and all: switching AI_PROVIDER changes nothing else
+        self.free_tier = free_tier()
 
     def recordings(self) -> dict[str, Path]:
         if self._index is None:
@@ -336,7 +337,7 @@ class Replay:
         return Answer(found["answer"], found["model"], "", found.get("usage") or {}, found.get("seconds") or 0.0)
 
     def status(self) -> dict:
-        return {"status": "ok", "provider": self.name, "key": "none", "free_tier": True,
+        return {"status": "ok", "provider": self.name, "key": "none", "free_tier": self.free_tier,
                 "recordings": len(self.recordings())}
 
 

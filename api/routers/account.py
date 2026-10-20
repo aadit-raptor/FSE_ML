@@ -20,7 +20,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.auth import AuthUser, require_user
-from api.schemas import AccountProfile, AccountResponse, SuggestionsResponse, SuggestionsSwitch
+from api.schemas import AccountProfile, AccountResponse, AiUsageResponse, SuggestionsResponse, SuggestionsSwitch
 from benchmarks import usual
 from benchmarks.catalogue import ALL_INDUSTRIES_ID, canonical
 from db import deals as deal_store
@@ -84,3 +84,25 @@ def put_suggestions(req: SuggestionsSwitch, user: AuthUser = Depends(require_use
         return {"enabled": deal_store.set_suggestions(user.subject, req.enabled)}
     except deal_store.NoAccount:
         raise HTTPException(status_code=409, detail=NO_ACCOUNT) from None
+
+
+@router.get("/ai-usage", response_model=AiUsageResponse)
+def get_ai_usage(days: int = Query(31, ge=1, le=400), user: AuthUser = Depends(require_user)):
+    """What the caller's results reads and note sentences used, a day at a time (PLAN.md R9): their own rows
+    only, counts and cost, never anything from a document."""
+    import dataclasses
+    import datetime
+
+    from api import plans
+    from research import ai_costs
+
+    rows = []
+    if database_configured():
+        from db import ai_usage
+
+        since = datetime.datetime.now(datetime.timezone.utc).date() - datetime.timedelta(days=days - 1)
+        rows = ai_usage.own(user.subject, since)
+    total = sum((r["cost"] for r in rows), start=0)
+    return {"days": [{**r, "cost": float(r["cost"])} for r in rows], "total_cost": float(total),
+            "money": {"currency": ai_costs.CURRENCY}, "plan": dataclasses.asdict(plans.plan_for(user.subject)),
+            "prices_source": ai_costs.SOURCE, "prices_checked_on": ai_costs.CHECKED_ON}
