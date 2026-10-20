@@ -96,7 +96,7 @@ test("Ctrl K searches every workspace, not just the current one", async ({ page 
   const box = page.getByRole("combobox", { name: "Search screens" });
   // The workspace's name finds its screens, and each result names its workspace
   await box.fill("equity research");
-  await expect(page.getByRole("option")).toHaveCount(8);        // forecast's five, coverage's three
+  await expect(page.getByRole("option")).toHaveCount(9);        // forecast's five, coverage's four
   await expect(page.getByRole("option").first()).toContainText("Equity research");
   await page.getByRole("option", { name: /Forecast\s*Statements/ }).click();
   await expect(page).toHaveURL(/\/forecast\/statements$/);

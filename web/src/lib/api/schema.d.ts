@@ -49,6 +49,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/account/report-details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Details */
+        get: operations["get_details_api_account_report_details_get"];
+        /** Put Details */
+        put: operations["put_details_api_account_report_details_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/account/settings": {
         parameters: {
             query?: never;
@@ -1669,6 +1687,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/research/companies/{company_id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_research_companies__company_id__report_get"];
+        /**
+         * Put Report
+         * @description Keep what the analyst typed. A version to compare with must be one the saved model has.
+         */
+        put: operations["put_report_api_research_companies__company_id__report_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/report/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pdf */
+        get: operations["get_pdf_api_research_companies__company_id__report_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/report/sentences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Sentences
+         * @description The linking sentences written again: by the AI when one is set up (its answer checked, a section that breaks
+         *     a rule written by its template), else by the templates. Kept with the note.
+         */
+        post: operations["post_sentences_api_research_companies__company_id__report_sentences_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/research/companies/{company_id}/report/word": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Word */
+        get: operations["get_word_api_research_companies__company_id__report_word_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/research/companies/{company_id}/risk-free": {
         parameters: {
             query?: never;
@@ -2274,7 +2368,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -2301,7 +2395,7 @@ export interface components {
              */
             enabled?: boolean | null;
             /** Export */
-            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel") | null;
+            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel" | "report_word" | "report_pdf") | null;
             /**
              * Fields
              * @description What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's
@@ -7669,6 +7763,166 @@ export interface components {
             /** Year */
             year: number;
         };
+        /** ReportBlock */
+        ReportBlock: {
+            /** Categories */
+            categories?: string[] | null;
+            /** Header */
+            header?: components["schemas"]["ReportSegment"][][] | null;
+            /** Kind */
+            kind?: ("text" | "sentence" | "analyst" | "note") | null;
+            /** Level */
+            level?: number | null;
+            /** Parts */
+            parts?: components["schemas"]["ReportSegment"][] | null;
+            /** Rows */
+            rows?: components["schemas"]["ReportSegment"][][][] | null;
+            /** Series */
+            series?: components["schemas"]["ReportSeries"][] | null;
+            /** Title */
+            title?: components["schemas"]["ReportSegment"][] | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "heading" | "paragraph" | "table" | "chart";
+            /** Unit */
+            unit?: string | null;
+        };
+        /**
+         * ReportDetailsIn
+         * @description The firm name and disclosures every note of the account carries, typed once.
+         */
+        ReportDetailsIn: {
+            /**
+             * Disclosures
+             * @default
+             */
+            disclosures: string;
+            /**
+             * Firm
+             * @default
+             */
+            firm: string;
+        };
+        /** ReportDetailsOut */
+        ReportDetailsOut: {
+            /** Disclosures */
+            disclosures: string;
+            /** Firm */
+            firm: string;
+        };
+        /**
+         * ReportFieldsIn
+         * @description What the analyst types for a note. The tool fills none of these (PLAN.md phase R, rule 1).
+         */
+        ReportFieldsIn: {
+            /**
+             * Argument
+             * @description The analyst's argument, as typed
+             * @default
+             */
+            argument: string;
+            /**
+             * Compare Version
+             * @description The saved model's version the estimates are set against
+             */
+            compare_version?: number | null;
+            /**
+             * Note Date
+             * @description The note's date
+             */
+            note_date?: string | null;
+            /**
+             * Rating
+             * @description The analyst's rating, in their own words; empty until typed
+             * @default
+             */
+            rating: string;
+            /**
+             * Target
+             * @description The analyst's target per share; null until typed
+             */
+            target?: number | null;
+        };
+        /** ReportFieldsOut */
+        ReportFieldsOut: {
+            /**
+             * Argument
+             * @default
+             */
+            argument: string;
+            /** Compare Version */
+            compare_version?: number | null;
+            /** Note Date */
+            note_date?: string | null;
+            /**
+             * Rating
+             * @default
+             */
+            rating: string;
+            /** Target */
+            target?: number | null;
+        };
+        /**
+         * ReportOut
+         * @description A covered company's results note, drawn from its saved model and checked figure by figure.
+         */
+        ReportOut: {
+            /** Blocks */
+            blocks: components["schemas"]["ReportBlock"][];
+            /** Company Id */
+            company_id: string;
+            /** Company Name */
+            company_name: string;
+            details: components["schemas"]["ReportDetailsOut"];
+            fields: components["schemas"]["ReportFieldsOut"];
+            /** Sentences */
+            sentences: components["schemas"]["ReportSentence"][];
+            /**
+             * Written By
+             * @description The AI model that wrote the stored sentences, if one did
+             */
+            written_by?: string | null;
+        };
+        /** ReportSegment */
+        ReportSegment: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "text" | "label" | "figure" | "typed";
+            /**
+             * Source
+             * @description Where a figure or a label comes from (research/report.py)
+             */
+            source?: string | null;
+            /** Text */
+            text: string;
+        };
+        /** ReportSentence */
+        ReportSentence: {
+            /**
+             * Section
+             * @enum {string}
+             */
+            section: "outlook" | "results" | "estimates" | "valuation";
+            /**
+             * Source
+             * @description Who wrote it: the AI, or the template and why
+             * @enum {string}
+             */
+            source: "ai" | "template" | "ai_off" | "ai_failed" | "ai_refused";
+        };
+        /** ReportSeries */
+        ReportSeries: {
+            /** Name */
+            name: string;
+            /** Texts */
+            texts: string[];
+            /** Values */
+            values: (number | null)[];
+        };
         /** ReportedRun */
         ReportedRun: {
             /** Error */
@@ -9878,6 +10132,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_details_api_account_report_details_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetailsOut"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_details_api_account_report_details_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportDetailsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetailsOut"];
                 };
             };
             /** @description Validation Error */
@@ -13718,6 +14043,210 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PeriodAcceptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_report_api_research_companies__company_id__report_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_report_api_research_companies__company_id__report_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportFieldsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_pdf_api_research_companies__company_id__report_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The note as a PDF */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_sentences_api_research_companies__company_id__report_sentences_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_word_api_research_companies__company_id__report_word_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The note as a Word file, its charts native Word charts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": unknown;
                 };
             };
             /** @description Validation Error */

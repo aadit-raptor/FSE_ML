@@ -133,6 +133,15 @@ USER_READS = Rule("user_reads_per_day", "results reads", "user", 10, 86_400, sha
 READS_ALL = Rule("reads_per_day", "results reads", "service", 30, 86_400, shared=True)
 USER_READ_PAGES = Rule("user_read_pages_per_day", "pages read", "user", 250, 86_400, shared=True)
 READS_PATH = "/api/research/reads"
+# The results note's linking sentences (PLAN.md R8): one request to the same
+# free allowance the reader spends, so few: five a person a day and ten for
+# the service, leaving the reader most of the day's forty-odd requests. A note
+# needs them once; the templates write it otherwise
+# The endpoint that asks the AI for them: a run (it calls an outside source)
+_NOTE_SENTENCES = re.compile(r"/api/research/companies/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}"
+                             r"/report/sentences")
+USER_WRITES = Rule("user_writes_per_day", "note sentences written", "user", 5, 86_400, shared=True)
+WRITES_ALL = Rule("writes_per_day", "note sentences written", "service", 10, 86_400, shared=True)
 # A clean PDF's bytes for the review screen's page view (PLAN.md R2): each one
 # not still in the upload spool is fetched from the file store, whose free plan
 # allows 5 GB of egress a month. The screen keeps a file it fetched for the
@@ -157,7 +166,8 @@ def is_run_path(path: str) -> bool:
 def is_run_request(method: str, path: str) -> bool:
     # fetching a file's bytes from the outside store is a run too (PLAN.md R2)
     return is_run_path(path) or (method == "POST" and path == JOBS_PATH) or (
-        method == "GET" and _FILE_CONTENT.fullmatch(path) is not None)
+        method == "GET" and _FILE_CONTENT.fullmatch(path) is not None) or (
+        method == "POST" and _NOTE_SENTENCES.fullmatch(path) is not None)
 
 
 def limit_multiplier() -> float:

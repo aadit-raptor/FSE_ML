@@ -37,7 +37,8 @@ MAX_COMPANIES = 100
 MAX_PERIODS = 400
 BUDGET_BYTES = 64 * 1024 * 1024
 BUDGET_WARN_FRACTION = 0.8
-TABLES = ("coverage_companies", "coverage_periods", "research_models", "research_model_versions")  # R5's saved models too
+TABLES = ("coverage_companies", "coverage_periods", "research_models", "research_model_versions",  # R5's saved models
+          "research_reports", "research_report_details")      # and R8's notes
 
 # Refusals, as codes the screen words (web/messages/en.json coverage.error_*)
 TOO_MANY_COMPANIES = "too_many_companies"
