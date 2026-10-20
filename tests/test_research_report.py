@@ -294,7 +294,7 @@ def test_the_word_file_holds_the_drafts_text_and_native_charts_of_its_figures():
         document = z.read("word/document.xml").decode()
         charts = sorted(n for n in z.namelist() if n.startswith("word/charts/"))
         chart = z.read(charts[0]).decode()
-        assert "variater.com" in z.read("docProps/core.xml").decode()
+        assert "<dc:creator>%s</dc:creator>" % report_files.SOURCE in z.read("docProps/core.xml").decode()
     assert len(charts) == 2
     for f in figures(draft):
         assert f.text in document or f.text == report.MISSING or any(
