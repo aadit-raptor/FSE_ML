@@ -136,6 +136,9 @@ async function main() {
   writeFileSync(join(out, "avatar-cyan.png"), await square("onCyan", 400, { background: mark.tones.onCyan.background, fill: 0.55 }));
   // The Excel add-in's icons (PLAN.md R3): its manifest names these sizes for the store list and the ribbon
   for (const size of [16, 32, 64, 80, 128]) writeFileSync(join(out, `addin-${size}.png`), await square("dark", size, tile));
+  // Its logos for Microsoft's store listing, the same tile as the manifest's icon (the store wants them to match):
+  // the large logo in its 216-350 px range, and the small and medium ones it would otherwise scale down itself
+  for (const size of [48, 90, 300]) writeFileSync(join(out, `addin-${size}.png`), await square("dark", size, tile));
 
   // favicon.ico for browsers that don't take the SVG: 16, 32 and 48 on a dark
   // square. Its rounded corners keep the PNGs RGBA (Chromium saves a fully
