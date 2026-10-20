@@ -24,6 +24,8 @@ from db.models import CoveredCompany, ResearchReport, ResearchReportDetails, Use
 MAX_FIRM = 200
 MAX_DISCLOSURES = 8000
 FIELD_NAMES = ("argument", "rating", "target", "note_date", "compare_version")
+# A note nothing is typed for yet (an empty text and a missing one are the same)
+EMPTY = {"argument": "", "rating": "", "target": None, "note_date": None, "compare_version": None}
 
 
 def _owner(subject: str):
@@ -50,18 +52,21 @@ def get_report(subject: str, company_id: uuid.UUID) -> tuple[dict, Optional[dict
 _KEEP = object()
 
 
-def save_report(subject: str, company_id: uuid.UUID, fields: dict, sentences=_KEEP) -> list[str]:
-    """Keep the note's fields (and, given, its sentences). Answers the names of what changed."""
-    fields = {k: fields.get(k) for k in FIELD_NAMES}
+def save_report(subject: str, company_id: uuid.UUID, fields=_KEEP, sentences=_KEEP) -> list[str]:
+    """Keep the note's fields and its sentences (either left as stored when not given: the sentences are written
+    while the analyst may be typing, so they never carry the fields along). Answers the names of what changed."""
     now = utc_now()
     with transaction() as conn:
         owned = _owned(conn, subject, company_id)
         row = conn.execute(select(ResearchReport.id, ResearchReport.fields, ResearchReport.sentences).where(
             ResearchReport.company_id == company_id).with_for_update()).first()
-        old_fields = dict(row.fields) if row else {k: None for k in FIELD_NAMES}
+        old_fields = dict(row.fields) if row else dict(EMPTY)
+        if fields is _KEEP:
+            fields = old_fields
+        fields = {k: EMPTY[k] if fields.get(k) is None else fields.get(k) for k in FIELD_NAMES}
         old_sentences = row.sentences if row else None
         new_sentences = old_sentences if sentences is _KEEP else sentences
-        changed = [k for k in FIELD_NAMES if old_fields.get(k) != fields.get(k)]
+        changed = [k for k in FIELD_NAMES if old_fields.get(k, EMPTY[k]) != fields[k]]
         if new_sentences != old_sentences:
             changed.append("sentences")
         if not changed and row is not None:
@@ -104,4 +109,4 @@ def save_details(subject: str, firm: str, disclosures: str) -> bool:
         return True
 
 
-__all__ = ["FIELD_NAMES", "NoAccount", "NotFound", "get_details", "get_report", "save_details", "save_report"]
+__all__ = ["EMPTY", "FIELD_NAMES", "NoAccount", "NotFound", "get_details", "get_report", "save_details", "save_report"]

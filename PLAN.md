@@ -215,7 +215,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R5 | Save back and roll forward | R3, R4 | ☑ |
 | R6 | Valuation | R4 | ☑ |
 | R7 | Second and third sector models | R4 | ☑ |
-| R8 | Report draft | R6 | ☐ |
+| R8 | Report draft | R6 | ☑ |
 | R9 | Ready for the paid switch | R5 | ☐ |
 
 **Priority since 2026-10-12 (the user's decision): phase R comes before
@@ -1493,6 +1493,31 @@ or nearly finished to try. So no task waits for an analyst:
 - **Done when:** a test checks every figure in a draft against its model; a
   planted wrong number is refused; no draft contains a rating the analyst
   did not type.
+- **Done 2026-10-20.** Decided by the user before the session: **build now**,
+  the firm name and disclosures as **account fields** (typed once, on every
+  note), and **the securities lawyer's view is recorded as waiting** (CLAUDE.md
+  "Waiting on the user"): it comes before the first outside user, not before
+  the code. Built: `research/report.py` (the draft as segments, each a figure
+  of the saved model, of the version the estimates are set against or of the
+  roll forward's stored comparison, a label, a field the analyst typed or the
+  tool's own words; `check` works every one out again and refuses the draft on
+  any difference, a digit or number word in the tool's words, or a rating or a
+  call), `research/writer.py` (the AI's linking sentences: sent only slot names,
+  their meanings and the directions the code worked out, never the company or
+  a figure; an answer with a number, a call or an unknown slot goes back to the
+  section's template), `research/report_files.py` (Word with native Word
+  charts, and PDF, both with Python alone), `db/research_reports.py` and
+  migration 0022 (`research_reports`, `research_report_details`), the
+  endpoints `api/routers/research_report.py`, and Coverage -> **Report**.
+  Proof: `tests/test_research_report.py` checks every figure of a draft
+  against an evaluation made in the test, plants wrong values, texts, periods,
+  sources, digits, number words and calls (each refused), and shows no rating
+  appears until typed and then only the analyst's; `tests/test_research_report_api.py`
+  on a real database; `web/e2e/report.spec.ts`. The writer's daily limits:
+  five a person, ten for the service (`api/limits.py`), from the reader's free
+  allowance. **Not done here:** 7.9's charts in the other Excel downloads (only
+  the note's charts are native, in Word); a recorded answer of the real AI for
+  the writer (the browser tests replay none, so the templates write there).
 
 ### R9 Ready for the paid switch
 - **Claude does:** pages read and AI cost counted per user; the paid

@@ -839,6 +839,7 @@ Equity research -> Coverage -> Results starts it; it runs as background job
 | `AI_FREE_TIER` | optional | On unless `0`. While on, every read needs the person to confirm the file is public: Google may use free-tier content to improve its products. Set `0` only once billing is on |
 | `GEMINI_MODELS_A`, `GEMINI_MODELS_B` | optional | Comma-separated model names for read A (the whole PDF) and read B (pictures of the statement pages); B never uses A's model. Defaults in `research/reader/providers.py` |
 | `READER_HIGH_RESOLUTION` | optional | `1` sends the API's high-resolution setting (R0 hinted it helps; the card decides) |
+| `GEMINI_MODELS_WRITE` | optional | Model names, best first, for a results note's linking sentences (PLAN.md R8, one request each). Defaults to read A's list |
 
 **Billing with a spending cap is switched on before the first outside
 showing after R2** (the user's decision, 2026-10-14): in Google AI Studio,
@@ -850,6 +851,13 @@ two requests. `api/limits.py` holds the reader to 30 reads a day for the
 whole service, 10 per person and 250 pages per person (`USER_READS`,
 `READS_ALL`, `USER_READ_PAGES`). A model whose day is spent is skipped for
 six hours; "high demand" moves on to the next model.
+
+**Results notes (PLAN.md R8)** use the same provider and key for their
+linking sentences only (Coverage -> Report, "Write with the AI"): one request,
+sent slot names and directions, never a company or a figure, so it is safe on
+the free tier. `USER_WRITES` (5 a person) and `WRITES_ALL` (10 for the service)
+a day keep most of the allowance for reading. Without `AI_PROVIDER` the
+templates write every sentence and the screen says so; nothing else changes.
 
 **Production reads only once the card measures it**: `ml/cards/reader.json`'s
 headline set (`held_out`, filings nobody tuned the prompt or checks on) must

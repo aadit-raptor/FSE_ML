@@ -134,7 +134,7 @@ def facts(s: Sources) -> dict:
             slots[base + "_now"] = (model_figure(s, row, p), "%s for that year now" % MEANS[row])
             slots[base + "_year"] = (make_label(s, "period:" + p), "the name of that year")
             word = _higher(s.result.value(row, p), s.earlier.result.value(row, old))
-            directions.append("%s for %s is %s now than in the earlier version" % (MEANS[row], base + "_year", word))
+            directions.append("%s for {%s} is %s now than in the earlier version" % (MEANS[row], base + "_year", word))
         out["estimates"] = (slots, directions)
 
     # valuation
@@ -154,18 +154,19 @@ def facts(s: Sources) -> dict:
     return out
 
 
-def slots_for(s: Sources) -> dict:
+def slots_for(s: Sources, known: Optional[dict] = None) -> dict:
     """Every section's slots in one map (their names do not collide), for the draft builder."""
     out: dict = {}
-    for slots, _ in facts(s).values():
+    for slots, _ in (facts(s) if known is None else known).values():
         out.update({k: v[0] for k, v in slots.items()})
     return out
 
 
 # ---------------------------------------------------------------------------------------------- templates
-def template(section: str, s: Sources) -> Optional[str]:
-    """The section's sentences when the AI does not write them: plain, and from the same slots."""
-    found = facts(s).get(section)
+def template(section: str, s: Sources, known: Optional[dict] = None) -> Optional[str]:
+    """The section's sentences when the AI does not write them: plain, and from the same slots. `known` is
+    ``facts(s)`` when the caller has it already."""
+    found = (facts(s) if known is None else known).get(section)
     if not found:
         return None
     slots, _ = found
@@ -223,9 +224,9 @@ def prompt(s: Sources) -> Optional[str]:
     return rules + "\n\nSections:\n" + json.dumps(sections, indent=1, sort_keys=True)
 
 
-def checked(section: str, text, s: Sources) -> Optional[str]:
+def checked(section: str, text, s: Sources, known: Optional[dict] = None) -> Optional[str]:
     """The AI's text for a section if it keeps every rule, else None."""
-    found = facts(s).get(section)
+    found = (facts(s) if known is None else known).get(section)
     if not found or not isinstance(text, str) or not text.strip() or len(text) > MAX_SENTENCE:
         return None
     slots, _ = found
@@ -243,7 +244,8 @@ def write(s: Sources, provider=None) -> dict:
     Answers ``{section: {"text", "source"}}`` plus ``_model`` (the AI's model, if any)."""
     from research.reader.providers import ProviderError
 
-    sections = {name: template(name, s) for name in SECTIONS}
+    known = facts(s)
+    sections = {name: template(name, s, known) for name in SECTIONS}
     out: dict = {}
     answer, reason, model = None, AI_OFF, None
     text = prompt(s)
@@ -256,31 +258,40 @@ def write(s: Sources, provider=None) -> dict:
     for name, fallback in sections.items():
         if fallback is None:
             continue
-        mine = checked(name, answer.get(name), s) if isinstance(answer, dict) else None
-        if mine is not None:
-            out[name] = {"text": mine, "source": AI}
+        mine = checked(name, answer.get(name), s, known) if isinstance(answer, dict) else None
+        if mine is not None:        # kept with the directions it was written from (`stored`)
+            out[name] = {"text": mine, "source": AI, "directions": known[name][1]}
         else:
             out[name] = {"text": fallback, "source": reason if answer is None else AI_REFUSED}
     return {"sections": out, "model": model, "prompt_version": PROMPT_VERSION}
 
 
-def stored_sentences(saved: Optional[dict], s: Sources) -> dict:
-    """The stored sentences that still fit the model (their slots), else the templates': a model changed since
-    they were written may have lost a slot."""
+def stored(saved: Optional[dict], s: Sources, known: Optional[dict] = None) -> dict:
+    """Each section's text and who wrote it: the AI's stored sentence while it still fits the model (its slots, and
+    the directions it was written from: a sentence that said "higher" must not stand beside figures now lower),
+    else the template's. Answers ``{section: (text, source)}``."""
+    known = facts(s) if known is None else known
     out = {}
-    stored = (saved or {}).get("sections") or {}
+    sections = (saved or {}).get("sections") or {}
     for name in SECTIONS:
-        fallback = template(name, s)
+        fallback = template(name, s, known)
         if fallback is None:
             continue
-        text = (stored.get(name) or {}).get("text")
-        source = (stored.get(name) or {}).get("source")
-        if text and source == AI and checked(name, text, s) is not None:
-            out[name] = text
+        mine = sections.get(name) or {}
+        source = mine.get("source")
+        if source == AI:
+            fits = mine.get("text") and mine.get("directions") == known[name][1] \
+                and checked(name, mine["text"], s, known) is not None
+            out[name] = (mine["text"], AI) if fits else (fallback, TEMPLATE)
         else:
-            out[name] = fallback
+            out[name] = (fallback, source if source in (AI_OFF, AI_FAILED, AI_REFUSED) else TEMPLATE)
     return out
 
 
+def stored_sentences(saved: Optional[dict], s: Sources, known: Optional[dict] = None) -> dict:
+    """The sentences the note is drawn with (`stored`), by section."""
+    return {name: text for name, (text, _) in stored(saved, s, known).items()}
+
+
 __all__ = ["AI", "AI_FAILED", "AI_OFF", "AI_REFUSED", "PROMPT_VERSION", "SECTIONS", "SlotError", "checked", "facts",
-           "parse", "prompt", "slots_for", "stored_sentences", "template", "write"]
+           "parse", "prompt", "slots_for", "stored", "stored_sentences", "template", "write"]

@@ -3184,6 +3184,85 @@ class ModelSheetOut(BaseModel):
     changed: List[ModelChangedCell]
 
 
+# ---------------------------------------------------------------------------------------------- results notes (R8)
+ReportSentenceSource = Literal["ai", "template", "ai_off", "ai_failed", "ai_refused"]
+
+
+class ReportFieldsIn(BaseModel):
+    """What the analyst types for a note. The tool fills none of these (PLAN.md phase R, rule 1)."""
+    model_config = ConfigDict(extra="forbid")
+
+    argument: str = Field("", max_length=20_000, description="The analyst's argument, as typed")
+    rating: str = Field("", max_length=40, description="The analyst's rating, in their own words; empty until typed")
+    target: Optional[float] = Field(None, ge=0, le=1e9, allow_inf_nan=False,
+                                    description="The analyst's target per share; null until typed")
+    note_date: Optional[date] = Field(None, description="The note's date")
+    compare_version: Optional[int] = Field(None, ge=1, le=100_000,
+                                           description="The saved model's version the estimates are set against")
+
+
+class ReportFieldsOut(BaseModel):
+    argument: str = ""
+    rating: str = ""
+    target: Optional[float] = None
+    note_date: Optional[str] = None
+    compare_version: Optional[int] = None
+
+
+class ReportDetailsIn(BaseModel):
+    """The firm name and disclosures every note of the account carries, typed once."""
+    model_config = ConfigDict(extra="forbid")
+
+    firm: str = Field("", max_length=200)
+    disclosures: str = Field("", max_length=8_000)
+
+
+class ReportDetailsOut(BaseModel):
+    firm: str
+    disclosures: str
+
+
+class ReportSegment(BaseModel):
+    kind: Literal["text", "label", "figure", "typed"]
+    text: str
+    source: Optional[str] = Field(None, description="Where a figure or a label comes from (research/report.py)")
+
+
+class ReportSeries(BaseModel):
+    name: str
+    values: List[Optional[float]]
+    texts: List[str]
+
+
+class ReportBlock(BaseModel):
+    type: Literal["heading", "paragraph", "table", "chart"]
+    level: Optional[int] = None
+    kind: Optional[Literal["text", "sentence", "analyst", "note"]] = None
+    parts: Optional[List[ReportSegment]] = None
+    header: Optional[List[List[ReportSegment]]] = None
+    rows: Optional[List[List[List[ReportSegment]]]] = None
+    title: Optional[List[ReportSegment]] = None
+    unit: Optional[str] = None
+    categories: Optional[List[str]] = None
+    series: Optional[List[ReportSeries]] = None
+
+
+class ReportSentence(BaseModel):
+    section: Literal["outlook", "results", "estimates", "valuation"]
+    source: ReportSentenceSource = Field(description="Who wrote it: the AI, or the template and why")
+
+
+class ReportOut(BaseModel):
+    """A covered company's results note, drawn from its saved model and checked figure by figure."""
+    company_id: str
+    company_name: str
+    fields: ReportFieldsOut
+    details: ReportDetailsOut
+    sentences: List[ReportSentence]
+    written_by: Optional[str] = Field(None, description="The AI model that wrote the stored sentences, if one did")
+    blocks: List[ReportBlock]
+
+
 class AddinPass(BaseModel):
     """The Excel add-in's pass (PLAN.md R3), answered once: send it as ``Authorization: Bearer <token>``."""
     token: str = Field(description="addin: and 43 characters; only its hash is kept")

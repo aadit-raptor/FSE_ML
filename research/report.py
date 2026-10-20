@@ -38,7 +38,7 @@ from research.valuation import MULTIPLES, VALUE_MULTIPLE, VALUE_YEAR
 
 # ---------------------------------------------------------------------------------------------- what a call is
 # Ratings, in any case: none may stand in the tool's words (the analyst's own fields are theirs)
-RATING_WORDS = re.compile(r"\b(buy|sell|hold|accumulate|reduce|outperform|underperform|overweight|underweight|"
+RATING_WORDS = re.compile(r"\b(buy|sell|hold|accumulate|add|reduce|outperform|underperform|overweight|underweight|"
                           r"neutral|market\s*perform|sector\s*perform)\b", re.IGNORECASE)
 # What a recommendation is worded with: refused in the AI's sentences (the field labels are the tool's own)
 CALLS = re.compile(r"\b(recommend\w*|rating|rated|target\s*price|price\s*target|upside|downside|undervalued|"
@@ -504,7 +504,7 @@ def build(s: Sources) -> Draft:
     slots = slots_for(s)
     f = s.fields
     blocks: list = [
-        Paragraph((make_label(s, "firm"),) if s.details.firm else _t("Firm name not typed: add it in the report "
+        Paragraph((make_label(s, "firm"),) if s.details.firm else _t("Firm name not typed: type it in the report "
                                                                      "details."), kind="note"),
         Heading((make_label(s, "company_name"),), 1),
         Paragraph(((make_label(s, "basis"), Text(". ")) if s.company.basis else ()) +
@@ -544,7 +544,7 @@ def build(s: Sources) -> Draft:
     if s.details.disclosures.strip():
         blocks.append(Paragraph((typed(s, "disclosures"),), kind="analyst"))
     else:
-        blocks.append(Paragraph(_t("Disclosures not typed: add the firm's disclosures in the report details "
+        blocks.append(Paragraph(_t("Disclosures not typed: type the firm's disclosures in the report details "
                                    "before this note goes to anyone."), kind="note"))
     blocks.append(Paragraph(_t("The figures come from the analyst's model; the view, the target and the argument "
                                "are the analyst's own."), kind="note"))
