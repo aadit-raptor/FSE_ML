@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable, Optional
 
 from sqlalchemy import delete, func, insert, select
@@ -59,17 +59,24 @@ def task(name: str, description: str):
 
 @task("job-maintenance", "Requeue or fail jobs whose runner went silent; apply retention; "
                           "merge old audit edits (PLAN.md 3.3); delete uploaded files past their time "
-                          "(PLAN.md 6.1); end the Excel add-in's expired sign-ins (PLAN.md R3).")
+                          "(PLAN.md 6.1); end the Excel add-in's expired sign-ins (PLAN.md R3); sum yesterday's "
+                          "AI use and delete old counts (PLAN.md R9).")
 def job_maintenance() -> dict:
     queue = config.get_queue()
     recovered = queue.recover()
     pruned = queue.prune()
     runs = prune_runs()
     compacted = audit.compact()
-    from db import addin
+    from db import addin, ai_usage
+    from db.models import utc_now
+    yesterday = ai_usage.totals(utc_now().date() - timedelta(days=1))
     summary = {**recovered, **pruned, "scheduled_runs_deleted": runs, "audit_rows_compacted": compacted,
                "addin_sessions_deleted": addin.sweep(), **{
-        f"jobs_{status}": n for status, n in queue.counts().items()}}
+        f"jobs_{status}": n for status, n in queue.counts().items()},
+               # what the AI cost yesterday, for everyone together (nobody named): the paid tier's bill
+               "ai_requests_yesterday": yesterday["requests"], "ai_pages_yesterday": yesterday["pages"],
+               "ai_cost_usd_yesterday": float(yesterday["cost"]), "ai_people_yesterday": yesterday["people"],
+               "ai_usage_rows_deleted": ai_usage.sweep()}
     # Uploaded files (PLAN.md 6.1) last: a file store that can't be reached
     # fails the run, so it alerts, after everything else was done
     from uploads import service

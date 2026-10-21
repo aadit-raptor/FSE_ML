@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 import uuid
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
 from sqlalchemy import (
@@ -937,3 +938,39 @@ class ResearchReportDetails(Base):
     disclosures: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
+
+
+AI_USAGE_KINDS = ("read", "write")
+AI_TIERS = ("free", "billed")
+
+
+class AiUsage(Base):
+    """What a person's AI requests used, a day (PLAN.md R9): pages read, requests, tokens and their cost.
+
+    One row per person, UTC day, kind (``read``: a results read, PLAN.md R1; ``write``: a note's linking
+    sentences, R8) and tier (``free`` or ``billed``, research/reader/providers.py ``AI_FREE_TIER``). The cost
+    is the provider's paid list price for the tokens (research/ai_costs.py): on the free tier, what it would
+    cost. Counts only: never anything from a document, a model's answer or a file's name. Rows older than
+    ``db.ai_usage.KEEP_DAYS`` are deleted by the nightly ``job-maintenance`` task.
+    """
+
+    __tablename__ = "ai_usage"
+    __table_args__ = (
+        CheckConstraint("kind IN ('read', 'write')", name="kind"),
+        CheckConstraint("tier IN ('free', 'billed')", name="tier"),
+        Index("ix_ai_usage_day", "day"),
+    )
+
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    tier: Mapped[str] = mapped_column(String(16), primary_key=True)
+    requests: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    pages: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    input_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    output_tokens: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    unpriced: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    cost_amount: Mapped[Decimal] = mapped_column(MoneyAmount, nullable=False, server_default="0")
+    cost_currency: Mapped[str] = mapped_column(CurrencyCode, nullable=False, server_default="USD")
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())

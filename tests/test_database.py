@@ -184,7 +184,7 @@ def test_migrations_run_forwards_and_backwards(fresh_db):
                                  "exchange_rates", "app_flags", "reference_deals", "reference_reviews",
                                  "validation_reports", "files", "coverage_companies", "coverage_periods",
                                      "addin_sessions", "research_models", "research_model_versions",
-                                     "research_reports", "research_report_details"}
+                                     "research_reports", "research_report_details", "ai_usage"}
     assert migrate.current(fresh_db) == head
 
     # Every revision back to an empty schema, one step at a time

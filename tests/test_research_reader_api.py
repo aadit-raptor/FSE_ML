@@ -78,7 +78,7 @@ def test_a_free_provider_needs_the_caller_to_confirm_the_file_is_public(reader, 
 
 
 def test_a_paid_provider_asks_for_no_confirmation(reader, job_queue, monkeypatch):
-    monkeypatch.setattr(providers.Replay, "free_tier", False)
+    monkeypatch.setenv("AI_FREE_TIER", "0")
     file_id = clean_pdf(job_queue)
     assert client.get("/api/research/reader").json()["confirm_public"] is False
     assert client.post("/api/research/reads", json={"file_id": file_id}).status_code == 202

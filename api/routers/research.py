@@ -39,8 +39,9 @@ def get_reader(user: AuthUser = Depends(require_user)):
             "confirm_public": bool(getattr(found, "free_tier", True)),
             "open": found is not None and gate.open_to_people(deploy_environment()),
             "measured": gate.measured(),
-            "pages_per_day": effective_limit(USER_READ_PAGES), "pages_left": service.pages_left(user.subject),
-            "reads_per_day": min(effective_limit(USER_READS), effective_limit(READS_ALL)),
+            "pages_per_day": effective_limit(USER_READ_PAGES, user.subject),
+            "pages_left": service.pages_left(user.subject),
+            "reads_per_day": min(effective_limit(USER_READS, user.subject), effective_limit(READS_ALL, "all")),
             "max_pages": pages.MAX_PAGES}
 
 

@@ -18,7 +18,7 @@ jobs:
     # Core install only: proves the app and its tests work without the
     # optional ML layer (test_ml.py skips here).
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     # Real Postgres for tests/test_database.py (migrations both ways, the
     # health check, recovery after the database drops every connection).
     # Neon runs Postgres 18. FSE_REQUIRE_DB turns a skipped database test into a failure.

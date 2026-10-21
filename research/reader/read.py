@@ -44,12 +44,14 @@ def _unwrap(answer: Answer) -> dict:
 
 def read_filing(path: Path, provider, *, today: datetime.date, quarter: Optional[datetime.date] = None,
                 stored: Sequence[Mapping] = (), info: Optional[pages.Info] = None,
-                kept: Sequence[Mapping] = ()) -> dict:
+                kept: Sequence[Mapping] = (), spent: Optional[list] = None) -> dict:
     """The checked statements of the PDF at ``path``. Each read is a timed
     section (``reader.read_a``, ``reader.read_b``), which is what moves a
     job's stage and progress (jobs/kinds.py). ``kept``: a covered company's
     stored periods (``db.coverage.company_figures``), compared with this
-    filing's figures in the unit it prints (PLAN.md R2)."""
+    filing's figures in the unit it prints (PLAN.md R2). ``spent`` gets each
+    answer as it arrives, so a read that fails later is still counted
+    (PLAN.md R9, ``db.ai_usage``)."""
     from research.coverage import stored_for_read
 
     from api.limits import holding_simulation_slot
@@ -63,6 +65,8 @@ def read_filing(path: Path, provider, *, today: datetime.date, quarter: Optional
     started = time.time()
     with model_timer("reader.read_a"):
         a = provider.read("A", Document(digest, pdf=data))
+    if spent is not None:
+        spent.append(a)
     read_a = _unwrap(a)
     stored = list(stored) + stored_for_read(kept, read_a["unit"])
     sent = asm.table_pages(read_a)
@@ -80,6 +84,8 @@ def read_filing(path: Path, provider, *, today: datetime.date, quarter: Optional
                 with holding_simulation_slot():
                     pictures = pages.render(path, sent)
             b = provider.read("B", Document(digest, pictures=pictures), exclude=frozenset({a.model}))
+        if spent is not None:
+            spent.append(b)
         read_b = asm.picture_pages(_unwrap(b), sent)
     result = asm.assemble(read_a, read_b, today=today, info=info, quarter=quarter, stored=stored)
     if not sent:

@@ -69,6 +69,9 @@ class Rule:
     limit: int
     window_s: int
     shared: bool = False  # kept across restarts and instances (api/usage.py)
+    # A plan's number instead of ``limit`` (PLAN.md R9, api/plans.py): the field of the person's plan, or of the
+    # AI's tier for a "service" rule. ``limit`` is then the free plan's, which is what a test checks
+    plan: Optional[str] = None
 
 
 USER_REQUESTS = Rule("user_requests_per_minute", "requests", "user", 240, 60)
@@ -129,9 +132,11 @@ UPLOADS_PATH = "/api/files"
 # READS_ALL a day across every account (room left for retries), ten a
 # person, and a page limit a person, checked once the job has counted the
 # filing's pages (a quarterly filing is 5 to 25 pages; R0's longest, 193).
-USER_READS = Rule("user_reads_per_day", "results reads", "user", 10, 86_400, shared=True)
-READS_ALL = Rule("reads_per_day", "results reads", "service", 30, 86_400, shared=True)
-USER_READ_PAGES = Rule("user_read_pages_per_day", "pages read", "user", 250, 86_400, shared=True)
+# Since R9 these numbers are the free plan's and the free tier's: api/plans.py.
+USER_READS = Rule("user_reads_per_day", "results reads", "user", 10, 86_400, shared=True, plan="reads_per_day")
+READS_ALL = Rule("reads_per_day", "results reads", "service", 30, 86_400, shared=True, plan="reads_per_day")
+USER_READ_PAGES = Rule("user_read_pages_per_day", "pages read", "user", 250, 86_400, shared=True,
+                       plan="pages_per_day")
 READS_PATH = "/api/research/reads"
 # The results note's linking sentences (PLAN.md R8): one request to the same
 # free allowance the reader spends, so few: five a person a day and ten for
@@ -140,8 +145,10 @@ READS_PATH = "/api/research/reads"
 # The endpoint that asks the AI for them: a run (it calls an outside source)
 _NOTE_SENTENCES = re.compile(r"/api/research/companies/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}"
                              r"/report/sentences")
-USER_WRITES = Rule("user_writes_per_day", "note sentences written", "user", 5, 86_400, shared=True)
-WRITES_ALL = Rule("writes_per_day", "note sentences written", "service", 10, 86_400, shared=True)
+USER_WRITES = Rule("user_writes_per_day", "note sentences written", "user", 5, 86_400, shared=True,
+                   plan="writes_per_day")
+WRITES_ALL = Rule("writes_per_day", "note sentences written", "service", 10, 86_400, shared=True,
+                  plan="writes_per_day")
 # A clean PDF's bytes for the review screen's page view (PLAN.md R2): each one
 # not still in the upload spool is fetched from the file store, whose free plan
 # allows 5 GB of egress a month. The screen keeps a file it fetched for the
@@ -180,13 +187,18 @@ def limit_multiplier() -> float:
         return 1.0
 
 
-def effective_limit(rule: Rule) -> int:
+def effective_limit(rule: Rule, identity: str = "") -> int:
+    """The rule's number for ``identity`` (a plan rule's comes from the person's plan or the AI's tier)."""
+    if rule.plan is not None:
+        from api import plans
+
+        return int(plans.limit(rule.per, rule.plan, identity) * limit_multiplier())
     return int(rule.limit * limit_multiplier())
 
 
 def check_for(rule: Rule, identity: str, now: float, *, count: bool = True) -> Check:
     window = int(now // rule.window_s)
-    return Check(key=f"{rule.name}:{identity_hash(identity)}:{window}", limit=effective_limit(rule),
+    return Check(key=f"{rule.name}:{identity_hash(identity)}:{window}", limit=effective_limit(rule, identity),
                  window_end=(window + 1) * rule.window_s, shared=rule.shared, count=count)
 
 
