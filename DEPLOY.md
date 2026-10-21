@@ -1032,8 +1032,10 @@ the upload left on the server's disk, not the bucket.
 
 ### You need to set this up first
 
-Until these exist the Documents screen says uploads are off; nothing else is
-affected.
+Done on 2026-10-12 (project `variater-uploads`, West US; both services
+answer `ok` at `/api/health/files`). Kept here for a new environment or a
+replaced key. Until these exist the Documents screen says uploads are off;
+nothing else is affected.
 
 1. **A Supabase project for uploads, separate from the backups' project.**
    The secret key can read and delete everything in its project, and this one
