@@ -1,0 +1,700 @@
+{
+ "document": {
+  "dpi": [
+   144,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   144,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   144,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   144,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "de-bauer-2025",
+  "pages": 165,
+  "set": "evaluation",
+  "sha256": "b6417458ed73fdc145566f28a5d5395fc47792e370f413a24e82efe7cbb8ee93",
+  "text_pages": [
+   52,
+   53,
+   55,
+   56,
+   57,
+   120
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "120": [
+   "675d7613ed8f700d",
+   "9e6420d46daa3296"
+  ],
+  "52": [
+   "45c578cebad1f7ce"
+  ],
+  "53": [
+   "4646437186eb5bdf",
+   "767a3a723b1d4dfe",
+   "849f5bae8067bbe8",
+   "8e1dd762235325c1",
+   "925d8b526320beb6",
+   "add08c773cdc14cf",
+   "b94a6d417672f40e",
+   "c7ee71cb71c155fc",
+   "ca78cfcb6e50969a",
+   "e130ba85ebc37751",
+   "eb456ad8fa2e4f37",
+   "f0ab589d31400dc5",
+   "f2a2c64f929e7ff4"
+  ],
+  "55": [
+   "0374dd33c3e7f15b",
+   "1aae02bef7b4493c",
+   "22a0f941efa765a1",
+   "29df7135b67aff63"
+  ],
+  "56": [
+   "3e00dbfaeb7247fc",
+   "6630a11fa9b8815b",
+   "78299ac923e5ee7c",
+   "beefea9f8e65619b",
+   "ebda7db4de56b8f8"
+  ],
+  "57": [
+   "fc5f41ebf1c47b79"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "BAUER Aktiengesellschaft",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse (7) 2.035.882 1.627.914",
+      "value": 2035882
+     },
+     {
+      "key": "revenue",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse (7) 2.035.882 1.627.914",
+      "value": 1627914
+     },
+     {
+      "key": "ebitda",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen (EBITDA) 223.932 234.701",
+      "value": 223932
+     },
+     {
+      "key": "ebitda",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen (EBITDA) 223.932 234.701",
+      "value": 234701
+     },
+     {
+      "key": "operating_income",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 89.065 102.969",
+      "value": 89065
+     },
+     {
+      "key": "operating_income",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 89.065 102.969",
+      "value": 102969
+     },
+     {
+      "key": "interest_expense",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Finanzaufwendungen (18) –85.601 –91.292",
+      "value": -85601
+     },
+     {
+      "key": "interest_expense",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Finanzaufwendungen (18) –85.601 –91.292",
+      "value": -91292
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 50.464 54.282",
+      "value": 50464
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 50.464 54.282",
+      "value": 54282
+     },
+     {
+      "key": "income_tax",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Ertragsteueraufwand (19) –40.763 –41.775",
+      "value": -40763
+     },
+     {
+      "key": "income_tax",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Ertragsteueraufwand (19) –40.763 –41.775",
+      "value": -41775
+     },
+     {
+      "key": "net_income",
+      "page": 53,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis nach Steuern 9.701 12.507",
+      "value": 9701
+     },
+     {
+      "key": "net_income",
+      "page": 53,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis nach Steuern 9.701 12.507",
+      "value": 12507
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 55,
+      "period_end": "2024-12-31",
+      "quote": "Erwerb von Sachanlagen und immateriellen Vermögenswerten –181.558 –118.752",
+      "value": 181558
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 55,
+      "period_end": "2025-12-31",
+      "quote": "Erwerb von Sachanlagen und immateriellen Vermögenswerten –181.558 –118.752",
+      "value": 118752
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 55,
+      "period_end": "2024-12-31",
+      "quote": "Nettozahlungsmittel aus betrieblicher Tätigkeit 194.223 172.495",
+      "value": 194223
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 55,
+      "period_end": "2025-12-31",
+      "quote": "Nettozahlungsmittel aus betrieblicher Tätigkeit 194.223 172.495",
+      "value": 172495
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente (28) 72.944 55.972",
+      "value": 72944
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente (28) 72.944 55.972",
+      "value": 55972
+     },
+     {
+      "key": "total_assets",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "1.683.634 1.539.855",
+      "value": 1683634
+     },
+     {
+      "key": "total_assets",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "1.683.634 1.539.855",
+      "value": 1539855
+     },
+     {
+      "key": "total_equity",
+      "page": 57,
+      "period_end": "2024-12-31",
+      "quote": "Eigenkapital (30) 501.982 501.978",
+      "value": 501982
+     },
+     {
+      "key": "total_equity",
+      "page": 57,
+      "period_end": "2025-12-31",
+      "quote": "Eigenkapital (30) 501.982 501.978",
+      "value": 501978
+     },
+     {
+      "key": "total_borrowings",
+      "page": 120,
+      "period_end": "2024-12-31",
+      "quote": "Finanzschulden 448.200 349.316",
+      "value": 448200
+     },
+     {
+      "key": "total_borrowings",
+      "page": 120,
+      "period_end": "2025-12-31",
+      "quote": "Finanzschulden 448.200 349.316",
+      "value": 349316
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 52,
+      "quote": "Konzernabschluss nach IFRS",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 53,
+      "quote": "in Tausend EUR",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 56,
+      "quote": "Konzernbilanz zum 31. Dezember 2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 53,
+      "quote": "Konzern-Gewinn- und Verlustrechnung",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 53,
+      "quote": "in Tausend EUR",
+      "value": "thousands"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 91.2,
+   "usage": {
+    "candidatesTokenCount": 2586,
+    "promptTokenCount": 88653,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 87780
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 8385,
+    "totalTokenCount": 99624
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "BAUER AG",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse 1.627.914",
+      "value": 1627914
+     },
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse 2.035.882",
+      "value": 2035882
+     },
+     {
+      "key": "ebitda",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen (EBITDA) 234.701",
+      "value": 234701
+     },
+     {
+      "key": "ebitda",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen (EBITDA) 223.932",
+      "value": 223932
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 102.969",
+      "value": 102969
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 89.065",
+      "value": 89065
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Finanzaufwendungen -91.292",
+      "value": -91292
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Finanzaufwendungen -85.601",
+      "value": -85601
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 54.282",
+      "value": 54282
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 50.464",
+      "value": 50464
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ertragsteueraufwand -41.775",
+      "value": -41775
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ertragsteueraufwand -40.763",
+      "value": -40763
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis nach Steuern 12.507",
+      "value": 12507
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis nach Steuern 9.701",
+      "value": 9701
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Nettozahlungsmittel aus betrieblicher Tätigkeit 172.495",
+      "value": 172495
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Nettozahlungsmittel aus betrieblicher Tätigkeit 194.223",
+      "value": 194223
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Erwerb von Sachanlagen und immateriellen Vermögenswerten -118.752",
+      "value": 118752
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Erwerb von Sachanlagen und immateriellen Vermögenswerten -181.558",
+      "value": 181558
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente 55.972",
+      "value": 55972
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente 72.944",
+      "value": 72944
+     },
+     {
+      "key": "total_assets",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "AKTIVA",
+      "value": 1539855
+     },
+     {
+      "key": "total_assets",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "AKTIVA",
+      "value": 1683634
+     },
+     {
+      "key": "total_equity",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Eigenkapital 501.978",
+      "value": 501978
+     },
+     {
+      "key": "total_equity",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Eigenkapital 501.982",
+      "value": 501982
+     },
+     {
+      "key": "total_borrowings",
+      "page": 5,
+      "period_end": "2025-12-31",
+      "quote": "Finanzschulden 349.316",
+      "value": 349316
+     },
+     {
+      "key": "total_borrowings",
+      "page": 5,
+      "period_end": "2024-12-31",
+      "quote": "Finanzschulden 448.200",
+      "value": 448200
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 6,
+      "quote": "Konzernabschluss nach IFRS",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "in Tausend EUR",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 3,
+      "quote": "31. Dezember 2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 1,
+      "quote": "Konzern-Gewinn- und Verlustrechnung",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "in Tausend EUR",
+      "value": "thousands"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 39.4,
+   "usage": {
+    "candidatesTokenCount": 2294,
+    "promptTokenCount": 7444,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 6552
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 7911,
+    "totalTokenCount": 17649
+   }
+  }
+ }
+}

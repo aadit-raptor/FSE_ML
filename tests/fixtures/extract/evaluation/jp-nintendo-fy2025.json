@@ -1,0 +1,640 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "jp-nintendo-fy2025",
+  "pages": 111,
+  "set": "evaluation",
+  "sha256": "342593bdd3fbd8e7950478f154738e4e5d2d89b0e4b0d7711ee6c5e39275450f",
+  "text_pages": [
+   52,
+   53,
+   54,
+   55,
+   59,
+   84
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "52": [
+   "81f521b20846c829",
+   "dbeeb2812bdaa64b"
+  ],
+  "53": [
+   "04d763acc466908b",
+   "31e87d6e183a7025",
+   "32bd670b2db82627",
+   "343d72abc9e030bc",
+   "37b8fe46e5712efb",
+   "4dcbb50b8927eecc",
+   "5305baf874be8fa8",
+   "66f009fe5389077d",
+   "88a472c09f127cc9",
+   "e2683a14beb84184"
+  ],
+  "54": [
+   "4118621f150ab22e",
+   "f247a0f8a3dbad5d"
+  ],
+  "55": [
+   "1d84427f3e611d09",
+   "347a1de200519148",
+   "45c47240ca619a6c",
+   "5db0324532a12f75",
+   "81b6bc532afd1206",
+   "88bfa1db30f2e5c4",
+   "af2d24cdd1961ca3",
+   "c315c61e5cbfde89",
+   "ca6f967706cf0523",
+   "dd2811e48fa1cfc4",
+   "e85aa47265e329c2",
+   "e8aa51dcda6cf2a6"
+  ],
+  "59": [
+   "3910bde2e86ddc54",
+   "6e2ed423c40917a9",
+   "6e97369817e62e25",
+   "91fbcdc1f8af27ec",
+   "b15fec309acd427e",
+   "dfd0d0a54e623d86"
+  ],
+  "84": [
+   "9734b52b843bcfe9",
+   "e234d6636ddc9432"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "任天堂株式会社",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 55,
+      "period_end": "2024-03-31",
+      "quote": "売上高 1,671,865",
+      "value": 1671865
+     },
+     {
+      "key": "revenue",
+      "page": 55,
+      "period_end": "2025-03-31",
+      "quote": "売上高 1,671,865 1,164,922",
+      "value": 1164922
+     },
+     {
+      "key": "gross_profit",
+      "page": 55,
+      "period_end": "2024-03-31",
+      "quote": "売上総利益 954,335",
+      "value": 954335
+     },
+     {
+      "key": "gross_profit",
+      "page": 55,
+      "period_end": "2025-03-31",
+      "quote": "売上総利益 954,335 710,168",
+      "value": 710168
+     },
+     {
+      "key": "operating_income",
+      "page": 55,
+      "period_end": "2024-03-31",
+      "quote": "営業利益 528,941",
+      "value": 528941
+     },
+     {
+      "key": "operating_income",
+      "page": 55,
+      "period_end": "2025-03-31",
+      "quote": "営業利益 528,941 282,553",
+      "value": 282553
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 55,
+      "period_end": "2024-03-31",
+      "quote": "税金等調整前当期純利益 680,722",
+      "value": 680722
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 55,
+      "period_end": "2025-03-31",
+      "quote": "税金等調整前当期純利益 680,722 372,331",
+      "value": 372331
+     },
+     {
+      "key": "income_tax",
+      "page": 55,
+      "period_end": "2024-03-31",
+      "quote": "法人税等合計 190,080",
+      "value": 190080
+     },
+     {
+      "key": "income_tax",
+      "page": 55,
+      "period_end": "2025-03-31",
+      "quote": "法人税等合計 190,080 93,478",
+      "value": 93478
+     },
+     {
+      "key": "net_income",
+      "page": 55,
+      "period_end": "2024-03-31",
+      "quote": "当期純利益 490,642",
+      "value": 490642
+     },
+     {
+      "key": "net_income",
+      "page": 55,
+      "period_end": "2025-03-31",
+      "quote": "当期純利益 490,642 278,852",
+      "value": 278852
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 53,
+      "period_end": "2024-03-31",
+      "quote": "現金及び預金 1,484,350",
+      "value": 1484350
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 53,
+      "period_end": "2025-03-31",
+      "quote": "現金及び預金 1,484,350 1,586,275",
+      "value": 1586275
+     },
+     {
+      "key": "total_assets",
+      "page": 53,
+      "period_end": "2024-03-31",
+      "quote": "資産合計 3,151,394",
+      "value": 3151394
+     },
+     {
+      "key": "total_assets",
+      "page": 53,
+      "period_end": "2025-03-31",
+      "quote": "資産合計 3,151,394 3,398,515",
+      "value": 3398515
+     },
+     {
+      "key": "total_equity",
+      "page": 54,
+      "period_end": "2024-03-31",
+      "quote": "純資産合計 2,604,998",
+      "value": 2604998
+     },
+     {
+      "key": "total_equity",
+      "page": 54,
+      "period_end": "2025-03-31",
+      "quote": "純資産合計 2,604,998 2,725,446",
+      "value": 2725446
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 59,
+      "period_end": "2024-03-31",
+      "quote": "減価償却費 17,856",
+      "value": 17856
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 59,
+      "period_end": "2025-03-31",
+      "quote": "減価償却費 17,856 15,361",
+      "value": 15361
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 59,
+      "period_end": "2024-03-31",
+      "quote": "営業活動によるキャッシュ・フロー 462,097",
+      "value": 462097
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 59,
+      "period_end": "2025-03-31",
+      "quote": "営業活動によるキャッシュ・フロー 462,097 12,069",
+      "value": 12069
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 59,
+      "period_end": "2024-03-31",
+      "quote": "有形及び無形固定資産の取得による支出 △16,123",
+      "value": 16123
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 59,
+      "period_end": "2025-03-31",
+      "quote": "有形及び無形固定資産の取得による支出 △16,123 △19,008",
+      "value": 19008
+     },
+     {
+      "key": "total_borrowings",
+      "page": 84,
+      "period_end": "2024-03-31",
+      "quote": "合計 6,136",
+      "value": 6136
+     },
+     {
+      "key": "total_borrowings",
+      "page": 84,
+      "period_end": "2025-03-31",
+      "quote": "合計 6,136 7,158",
+      "value": 7158
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 52,
+      "quote": "当社の連結財務諸表は、「連結財務諸表の用語、様式及び作成方法に関する規則」（1976年大蔵省令第28号。以下「連結財務諸表規則」という。）に基づいて作成しています。",
+      "value": "jgaap"
+     },
+     "currency": {
+      "page": 53,
+      "quote": "(単位：百万円)",
+      "value": "JPY"
+     },
+     "fiscal_year_end": {
+      "page": 53,
+      "quote": "当連結会計年度\n(2025年3月31日)",
+      "value": "2025-03-31"
+     },
+     "scope": {
+      "page": 53,
+      "quote": "①【連結貸借対照表】",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 53,
+      "quote": "(単位：百万円)",
+      "value": "millions"
+     }
+    },
+    "language": "ja"
+   },
+   "seconds": 63.0,
+   "usage": {
+    "candidatesTokenCount": 2438,
+    "promptTokenCount": 59925,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 59052
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 5962,
+    "totalTokenCount": 68325
+   }
+  },
+  "B": {
+   "model": "gemini-3.7-flash",
+   "read": {
+    "company": "任天堂株式会社",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "total_assets",
+      "page": 1,
+      "period_end": "2024-03-31",
+      "quote": "資産合計 3, 151, 394",
+      "value": 3151394
+     },
+     {
+      "key": "total_assets",
+      "page": 1,
+      "period_end": "2025-03-31",
+      "quote": "資産合計 3, 398, 515",
+      "value": 3398515
+     },
+     {
+      "key": "total_equity",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "純資産合計 2, 604, 998",
+      "value": 2604998
+     },
+     {
+      "key": "total_equity",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "純資産合計 2, 725, 446",
+      "value": 2725446
+     },
+     {
+      "key": "revenue",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "売上高 1, 671, 865",
+      "value": 1671865
+     },
+     {
+      "key": "revenue",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "売上高 1, 164, 922",
+      "value": 1164922
+     },
+     {
+      "key": "gross_profit",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "売上総利益 954, 335",
+      "value": 954335
+     },
+     {
+      "key": "gross_profit",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "売上総利益 710, 168",
+      "value": 710168
+     },
+     {
+      "key": "operating_income",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "営業利益 528, 941",
+      "value": 528941
+     },
+     {
+      "key": "operating_income",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "営業利益 282, 553",
+      "value": 282553
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "税金等調整前当期純利益 680, 722",
+      "value": 680722
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "税金等調整前当期純利益 372, 331",
+      "value": 372331
+     },
+     {
+      "key": "income_tax",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "法人税等合計 190, 080",
+      "value": 190080
+     },
+     {
+      "key": "income_tax",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "法人税等合計 93, 478",
+      "value": 93478
+     },
+     {
+      "key": "net_income",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "当期純利益 490, 642",
+      "value": 490642
+     },
+     {
+      "key": "net_income",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "当期純利益 278, 852",
+      "value": 278852
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 4,
+      "period_end": "2024-03-31",
+      "quote": "減価償却費 17, 856",
+      "value": 17856
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 4,
+      "period_end": "2025-03-31",
+      "quote": "減価償却費 15, 361",
+      "value": 15361
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 4,
+      "period_end": "2024-03-31",
+      "quote": "営業活動によるキャッシュ・フロー 462, 097",
+      "value": 462097
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 4,
+      "period_end": "2025-03-31",
+      "quote": "営業活動によるキャッシュ・フロー 12, 069",
+      "value": 12069
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 4,
+      "period_end": "2024-03-31",
+      "quote": "有形及び無形固定資産の取得による支出 △16, 123",
+      "value": 16123
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 4,
+      "period_end": "2025-03-31",
+      "quote": "有形及び無形固定資産の取得による支出 △19, 008",
+      "value": 19008
+     },
+     {
+      "key": "total_borrowings",
+      "page": 5,
+      "period_end": "2024-03-31",
+      "quote": "合計 6, 136",
+      "value": 6136
+     },
+     {
+      "key": "total_borrowings",
+      "page": 5,
+      "period_end": "2025-03-31",
+      "quote": "合計 7, 158",
+      "value": 7158
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 6,
+      "quote": "「連結財務諸表の用語、様式及び作成方法に関する規則」（1976年大蔵省令第28号。以下「連結財務諸表規則」という。）に基づいて作成しています。",
+      "value": "jgaap"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "(単位：百万円)",
+      "value": "JPY"
+     },
+     "fiscal_year_end": {
+      "page": 1,
+      "quote": "(2025年3月31日)",
+      "value": "2025-03-31"
+     },
+     "scope": {
+      "page": 1,
+      "quote": "【連結貸借対照表】",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "百万円",
+      "value": "millions"
+     }
+    },
+    "language": "ja"
+   },
+   "seconds": 42.0,
+   "usage": {
+    "candidatesTokenCount": 2149,
+    "promptTokenCount": 7444,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 6552
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4781,
+    "totalTokenCount": 14374
+   }
+  }
+ }
+}

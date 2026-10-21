@@ -1,0 +1,530 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "in-lm-manufacturing-fy25",
+  "pages": 34,
+  "set": "evaluation",
+  "sha256": "5e406e465ff51c6be1ac3789068d4705d7c6869d9757d7ac5dc7a769dda32c90",
+  "text_pages": [
+   13,
+   14,
+   15,
+   17,
+   26,
+   29
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "13": [
+   "0e4a8bd365c0742b",
+   "31edd670d2579980",
+   "326999e0dcd0084a",
+   "3cd8f55bba44dd46",
+   "4cb76f27c1c944ae",
+   "9fa598e8fbe941cc",
+   "b666b03f669c3020",
+   "eea91896172102ca",
+   "f1e92e52787f6c79"
+  ],
+  "14": [
+   "5329f0d537956a04",
+   "53edeb48d7d20ffb",
+   "5494cb02e3186dee",
+   "6b5f6616bddb3001",
+   "7d2bf21cb492cca9",
+   "7e41550ea7d07cd5",
+   "9590c22e66f266e8",
+   "a31b7b95c95600ca",
+   "c73f8856cc66fb04",
+   "cfa0e4c8a2926a36",
+   "e29747c009079b09"
+  ],
+  "15": [
+   "9a2904576f1895c8",
+   "a95981f8511c59fa"
+  ],
+  "17": [
+   "40adccbc6997b173",
+   "748cd9ad275596e7",
+   "e2a9c9314c7af551"
+  ],
+  "26": [
+   "359ccb46711f52ae",
+   "5994af5a3c457f22"
+  ],
+  "29": [
+   "4d5330084f65ecde",
+   "fbad26640f361750"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.7-flash",
+   "read": {
+    "company": "LM MANUFACTURING INDIA PRIVATE LIMITED",
+    "document": "financial_statements",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 14,
+      "period_end": "2025-03-31",
+      "quote": "Revenue from Operations 19 64,422",
+      "value": 64422
+     },
+     {
+      "key": "revenue",
+      "page": 14,
+      "period_end": "2024-03-31",
+      "quote": "Revenue from Operations 19 64,422 67,303",
+      "value": 67303
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 14,
+      "period_end": "2025-03-31",
+      "quote": "Depreciation and Amortisation Expense 3 [C] 881",
+      "value": 881
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 14,
+      "period_end": "2024-03-31",
+      "quote": "Depreciation and Amortisation Expense 3 [C] 881 1,609",
+      "value": 1609
+     },
+     {
+      "key": "interest_expense",
+      "page": 14,
+      "period_end": "2025-03-31",
+      "quote": "Finance Costs 23 435",
+      "value": 435
+     },
+     {
+      "key": "interest_expense",
+      "page": 14,
+      "period_end": "2024-03-31",
+      "quote": "Finance Costs 23 435 528",
+      "value": 528
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 14,
+      "period_end": "2025-03-31",
+      "quote": "Profit before Tax 8,545",
+      "value": 8545
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 14,
+      "period_end": "2024-03-31",
+      "quote": "Profit before Tax 8,545 8,762",
+      "value": 8762
+     },
+     {
+      "key": "income_tax",
+      "page": 29,
+      "period_end": "2025-03-31",
+      "quote": "Tax expense reported in profit or loss 1,946",
+      "value": 1946
+     },
+     {
+      "key": "income_tax",
+      "page": 29,
+      "period_end": "2024-03-31",
+      "quote": "Tax expense reported in profit or loss 1,946 2,891",
+      "value": 2891
+     },
+     {
+      "key": "net_income",
+      "page": 14,
+      "period_end": "2025-03-31",
+      "quote": "Profit for the year 6,599",
+      "value": 6599
+     },
+     {
+      "key": "net_income",
+      "page": 14,
+      "period_end": "2024-03-31",
+      "quote": "Profit for the year 6,599 5,871",
+      "value": 5871
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 15,
+      "period_end": "2025-03-31",
+      "quote": "Purchase of property, plant and equipment and intangible assets (756)",
+      "value": 756
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 15,
+      "period_end": "2024-03-31",
+      "quote": "Purchase of property, plant and equipment and intangible assets (756) (483)",
+      "value": 483
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 15,
+      "period_end": "2025-03-31",
+      "quote": "Net cash from operating activities 7,487",
+      "value": 7487
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 15,
+      "period_end": "2024-03-31",
+      "quote": "Net cash from operating activities 7,487 2,853",
+      "value": 2853
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 13,
+      "period_end": "2025-03-31",
+      "quote": "Cash and Cash Equivalents 7 6,303",
+      "value": 6303
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 13,
+      "period_end": "2024-03-31",
+      "quote": "Cash and Cash Equivalents 7 6,303 901",
+      "value": 901
+     },
+     {
+      "key": "total_borrowings",
+      "page": 26,
+      "period_end": "2025-03-31",
+      "quote": "Total 4,354",
+      "value": 4354
+     },
+     {
+      "key": "total_borrowings",
+      "page": 26,
+      "period_end": "2024-03-31",
+      "quote": "Total 4,354 4,354",
+      "value": 4354
+     },
+     {
+      "key": "total_assets",
+      "page": 13,
+      "period_end": "2025-03-31",
+      "quote": "TOTAL ASSETS 33,315",
+      "value": 33315
+     },
+     {
+      "key": "total_assets",
+      "page": 13,
+      "period_end": "2024-03-31",
+      "quote": "TOTAL ASSETS 33,315 32,262",
+      "value": 32262
+     },
+     {
+      "key": "total_equity",
+      "page": 13,
+      "period_end": "2025-03-31",
+      "quote": "Total Equity 15,755",
+      "value": 15755
+     },
+     {
+      "key": "total_equity",
+      "page": 13,
+      "period_end": "2024-03-31",
+      "quote": "Total Equity 15,755 9,279",
+      "value": 9279
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 17,
+      "quote": "in accordance with the Indian Accounting Standards [Ind AS] notified under section 133 of the Companies Act, 2013",
+      "value": "ind_as"
+     },
+     "currency": {
+      "page": 13,
+      "quote": "INR-Thousand",
+      "value": "INR"
+     },
+     "fiscal_year_end": {
+      "page": 13,
+      "quote": "Balance Sheet as at March 31, 2025",
+      "value": "2025-03-31"
+     },
+     "scope": {
+      "page": 17,
+      "quote": "These standalone financial statements were authorised for issue",
+      "value": "standalone"
+     },
+     "unit": {
+      "page": 13,
+      "quote": "INR-Thousand",
+      "value": "thousands"
+     }
+    },
+    "language": "en"
+   },
+   "seconds": 53.0,
+   "usage": {
+    "candidatesTokenCount": 2135,
+    "promptTokenCount": 18697,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 17824
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 5609,
+    "totalTokenCount": 26441
+   }
+  },
+  "B": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "LM MANUFACTURING INDIA PRIVATE LIMITED",
+    "document": "financial_statements",
+    "figures": [
+     {
+      "key": "cash_and_equivalents",
+      "page": 1,
+      "period_end": "2025-03-31",
+      "quote": "Cash and Cash Equivalents 6,303",
+      "value": 6303
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 1,
+      "period_end": "2024-03-31",
+      "quote": "Cash and Cash Equivalents 6 901",
+      "value": 901
+     },
+     {
+      "key": "total_assets",
+      "page": 1,
+      "period_end": "2025-03-31",
+      "quote": "TOTAL ASSETS 33,315",
+      "value": 33315
+     },
+     {
+      "key": "total_assets",
+      "page": 1,
+      "period_end": "2024-03-31",
+      "quote": "TOTAL ASSETS 33,315 32,262",
+      "value": 32262
+     },
+     {
+      "key": "total_equity",
+      "page": 1,
+      "period_end": "2025-03-31",
+      "quote": "Total Equity 15,755",
+      "value": 15755
+     },
+     {
+      "key": "total_equity",
+      "page": 1,
+      "period_end": "2024-03-31",
+      "quote": "Total Equity 15,755 9,279",
+      "value": 9279
+     },
+     {
+      "key": "revenue",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "Revenue from Operations 19 64,422",
+      "value": 64422
+     },
+     {
+      "key": "revenue",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "Revenue from Operations 19 64,422 67,303",
+      "value": 67303
+     },
+     {
+      "key": "interest_expense",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "Finance Costs 23 435",
+      "value": 435
+     },
+     {
+      "key": "interest_expense",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "Finance Costs 23 435 528",
+      "value": 528
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "Depreciation and Amortisation Expense 3 [C] 881",
+      "value": 881
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "Depreciation and Amortisation Expense 3 [C] 881 1,609",
+      "value": 1609
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "Profit before Tax 8,545",
+      "value": 8545
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "Profit before Tax 8,545 8,762",
+      "value": 8762
+     },
+     {
+      "key": "income_tax",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "1,946",
+      "value": 1946
+     },
+     {
+      "key": "income_tax",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "1,946 2,891",
+      "value": 2891
+     },
+     {
+      "key": "net_income",
+      "page": 2,
+      "period_end": "2025-03-31",
+      "quote": "Profit for the year 6,599",
+      "value": 6599
+     },
+     {
+      "key": "net_income",
+      "page": 2,
+      "period_end": "2024-03-31",
+      "quote": "Profit for the year 6,599 5,871",
+      "value": 5871
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "Net cash from operating activities 7,487",
+      "value": 7487
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "Net cash from operating activities 7,487 2,853",
+      "value": 2853
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 3,
+      "period_end": "2025-03-31",
+      "quote": "Purchase of property, plant and equipment and intangible assets (756)",
+      "value": 756
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 3,
+      "period_end": "2024-03-31",
+      "quote": "Purchase of property, plant and equipment and intangible assets (756) (483)",
+      "value": 483
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 6,
+      "quote": "Indian Accounting Standards [Ind AS]",
+      "value": "ind_as"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "INR-Thousand",
+      "value": "INR"
+     },
+     "fiscal_year_end": {
+      "page": 1,
+      "quote": "March 31, 2025",
+      "value": "2025-03-31"
+     },
+     "scope": {
+      "page": 6,
+      "quote": "These standalone financial statements were authorised for issue",
+      "value": "standalone"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "INR-Thousand",
+      "value": "thousands"
+     }
+    },
+    "language": "en"
+   },
+   "seconds": 43.0,
+   "usage": {
+    "candidatesTokenCount": 1905,
+    "promptTokenCount": 7504,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 6612
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 3232,
+    "totalTokenCount": 12641
+   }
+  }
+ }
+}

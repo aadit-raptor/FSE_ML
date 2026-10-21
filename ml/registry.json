@@ -16,6 +16,13 @@
    "train": null
   },
   {
+   "id": "extractor",
+   "evaluation": "ml.evaluation.extractor",
+   "loaded_by": "ml/document_reader.py",
+   "artifacts": [],
+   "train": null
+  },
+  {
    "id": "growth",
    "evaluation": "ml.evaluation.growth",
    "loaded_by": "api/routers/integrations.py",

@@ -1,0 +1,638 @@
+{
+ "document": {
+  "dpi": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "de-mbb-2025",
+  "pages": 135,
+  "set": "evaluation",
+  "sha256": "a66c1d3adfdae6a8fbef5c55c3c28d8f9d580d8ceb7dbf0daf62559f5df50ed8",
+  "text_pages": [
+   56,
+   58,
+   59,
+   60
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "56": [
+   "227ed29b09e9d73d",
+   "251d6420104538f8",
+   "272922337dee8246",
+   "2efa397046885d1e",
+   "4705d93590849cdc",
+   "4f9ae06eaccb12ff",
+   "587bba95ebd56537",
+   "5b8ee4124d2c4440",
+   "5c67865b3fbe0060",
+   "5d86eb82fe0d613a",
+   "6c96cfaf65fb63ee",
+   "6cc30cb9b700a18e",
+   "6ee6e6885ceb1eae",
+   "8fc4fee7d368c41a",
+   "96ff7f47c8ec069b",
+   "a1032a79504944a7",
+   "a43cf81eff0eb9dd",
+   "ccbb5ca1fa7408ff",
+   "e3247529227c4e2c",
+   "f368480c06f51b19"
+  ],
+  "58": [
+   "3f7315cc6b7ecba2",
+   "b0e365965b63bf97",
+   "bc1305a5f840c0fa",
+   "e6e81567fba86da1"
+  ],
+  "59": [
+   "84bba56e46c5a1fb",
+   "e7ab3ae9a45be86d"
+  ],
+  "60": [
+   "777edeb7a6440400",
+   "87e978fc188b122a"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "MBB SE",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse III.1. 1.170.008",
+      "value": 1170008
+     },
+     {
+      "key": "revenue",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse III.1. 1.170.008 1.068.377",
+      "value": 1068377
+     },
+     {
+      "key": "ebitda",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen\n(EBITDA) 217.835",
+      "value": 217835
+     },
+     {
+      "key": "ebitda",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen\n(EBITDA) 217.835 145.682",
+      "value": 145682
+     },
+     {
+      "key": "operating_income",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 164.466",
+      "value": 164466
+     },
+     {
+      "key": "operating_income",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 164.466 99.037",
+      "value": 99037
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Abschreibungen III.7. -53.369",
+      "value": -53369
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Abschreibungen III.7. -53.369 -46.645",
+      "value": -46645
+     },
+     {
+      "key": "interest_expense",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Finanzierungsaufwendungen III.9. -3.985",
+      "value": -3985
+     },
+     {
+      "key": "interest_expense",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Finanzierungsaufwendungen III.9. -3.985 -4.721",
+      "value": -4721
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 157.322",
+      "value": 157322
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 157.322 99.977",
+      "value": 99977
+     },
+     {
+      "key": "income_tax",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Steuern vom Einkommen und vom Ertrag III.10. -51.205",
+      "value": -51205
+     },
+     {
+      "key": "income_tax",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Steuern vom Einkommen und vom Ertrag III.10. -51.205 -31.843",
+      "value": -31843
+     },
+     {
+      "key": "net_income",
+      "page": 56,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis nach Steuern 104.997",
+      "value": 104997
+     },
+     {
+      "key": "net_income",
+      "page": 56,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis nach Steuern 104.997 66.731",
+      "value": 66731
+     },
+     {
+      "key": "total_assets",
+      "page": 58,
+      "period_end": "2025-12-31",
+      "quote": "Summe Aktiva 1.420.713",
+      "value": 1420713
+     },
+     {
+      "key": "total_assets",
+      "page": 58,
+      "period_end": "2024-12-31",
+      "quote": "Summe Aktiva 1.420.713 1.214.671",
+      "value": 1214671
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 58,
+      "period_end": "2025-12-31",
+      "quote": "Kassenbestand, Guthaben bei Kreditinstituten 509.802",
+      "value": 509802
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 58,
+      "period_end": "2024-12-31",
+      "quote": "Kassenbestand, Guthaben bei Kreditinstituten 509.802 390.149",
+      "value": 390149
+     },
+     {
+      "key": "total_equity",
+      "page": 59,
+      "period_end": "2025-12-31",
+      "quote": "948.461",
+      "value": 948461
+     },
+     {
+      "key": "total_equity",
+      "page": 59,
+      "period_end": "2024-12-31",
+      "quote": "948.461 783.181",
+      "value": 783181
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 60,
+      "period_end": "2025-12-31",
+      "quote": "Cashflow aus betrieblicher Tätigkeit 244.652",
+      "value": 244652
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 60,
+      "period_end": "2024-12-31",
+      "quote": "Cashflow aus betrieblicher Tätigkeit 244.652 194.192",
+      "value": 194192
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 56,
+      "quote": "IFRS-Konzernabschluss 2025",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 56,
+      "quote": "T€",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 56,
+      "quote": "31.12.2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 56,
+      "quote": "IFRS-Konzern-Gewinn- und Verlustrechnung",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 56,
+      "quote": "T€",
+      "value": "thousands"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 63.6,
+   "usage": {
+    "candidatesTokenCount": 2303,
+    "promptTokenCount": 72693,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 71820
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4590,
+    "totalTokenCount": 79586
+   }
+  },
+  "B": {
+   "model": "gemini-3.7-flash",
+   "read": {
+    "company": "MBB SE",
+    "document": "financial_statements",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse III.1. 1.170.008",
+      "value": 1170008
+     },
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse III.1. 1.170.008 1.068.377",
+      "value": 1068377
+     },
+     {
+      "key": "ebitda",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen\n(EBITDA) 217.835",
+      "value": 217835
+     },
+     {
+      "key": "ebitda",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibungen\n(EBITDA) 217.835 145.682",
+      "value": 145682
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Abschreibungen III.7. -53.369",
+      "value": -53369
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Abschreibungen III.7. -53.369 -46.645",
+      "value": -46645
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 164.466",
+      "value": 164466
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 164.466 99.037",
+      "value": 99037
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Finanzierungsaufwendungen III.9. -3.985",
+      "value": -3985
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Finanzierungsaufwendungen III.9. -3.985 -4.721",
+      "value": -4721
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 157.322",
+      "value": 157322
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Steuern (EBT) 157.322 99.977",
+      "value": 99977
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Steuern vom Einkommen und vom Ertrag III.10. -51.205",
+      "value": -51205
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Steuern vom Einkommen und vom Ertrag III.10. -51.205 -31.843",
+      "value": -31843
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis nach Steuern 104.997",
+      "value": 104997
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis nach Steuern 104.997 66.731",
+      "value": 66731
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Kassenbestand, Guthaben bei Kreditinstituten 509.802",
+      "value": 509802
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Kassenbestand, Guthaben bei Kreditinstituten 509.802 390.149",
+      "value": 390149
+     },
+     {
+      "key": "total_assets",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Summe Aktiva 1.420.713",
+      "value": 1420713
+     },
+     {
+      "key": "total_assets",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Summe Aktiva 1.420.713 1.214.671",
+      "value": 1214671
+     },
+     {
+      "key": "total_equity",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "948.461 783.181",
+      "value": 948461
+     },
+     {
+      "key": "total_equity",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "948.461 783.181",
+      "value": 783181
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Cashflow aus betrieblicher Tätigkeit 244.652",
+      "value": 244652
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Cashflow aus betrieblicher Tätigkeit 244.652 194.192",
+      "value": 194192
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 1,
+      "quote": "IFRS-Konzernabschluss 2025",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "T€",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 1,
+      "quote": "31.12.2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 1,
+      "quote": "IFRS-Konzern-Gewinn- und Verlustrechnung",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "T€",
+      "value": "thousands"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 42.1,
+   "usage": {
+    "candidatesTokenCount": 2282,
+    "promptTokenCount": 5260,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4368
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2907,
+    "totalTokenCount": 10449
+   }
+  }
+ }
+}

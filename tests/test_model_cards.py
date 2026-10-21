@@ -44,7 +44,7 @@ def test_each_registered_model_names_its_evaluation_and_has_a_card():
         json_path, md_path = card.paths(m["id"])
         assert json_path.exists() and md_path.exists()
         assert m["evaluation"] in {"ml.evaluation.deal_risk", "ml.evaluation.distress", "ml.evaluation.growth",
-                                   "ml.evaluation.multiples", "ml.evaluation.reader", "ml.evaluation.regime",
+                                   "ml.evaluation.multiples", "ml.evaluation.reader", "ml.evaluation.regime", "ml.evaluation.extractor",
                                    "ml.evaluation.surrogate"}
 
 

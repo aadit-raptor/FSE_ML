@@ -1,0 +1,794 @@
+{
+ "document": {
+  "dpi": [
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   199,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   173,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "name": "es-insur-2025",
+  "pages": 310,
+  "set": "evaluation",
+  "sha256": "75772d9e6be3194730f5aca96ff333bfbbabe59dfb862058ec18cda7c57338b0",
+  "text_pages": [
+   12,
+   13,
+   16,
+   19,
+   91,
+   92
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "12": [
+   "186f7dac3d0ac664",
+   "2b38fb1d63b9a1f3",
+   "335b79c3cb1656fd",
+   "3da28ac198bcbe40",
+   "5c0f679b7dde830e",
+   "f86ada0b21d93c81"
+  ],
+  "13": [
+   "1368f076e548f869",
+   "21dc5254b9cae930",
+   "4162e9a2c5916ba0",
+   "92e2c38e94c0ac7a",
+   "c23bac80b38c55cc",
+   "df1794991643a4cf",
+   "e716c139fc5c94c6"
+  ],
+  "16": [
+   "2bc58892c169f9eb"
+  ],
+  "19": [
+   "9931fdc2f5dcd7f7"
+  ],
+  "91": [
+   "79bf7be3d9bdfddb"
+  ],
+  "92": [
+   "35fe54ae68d851dc"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "Inmobiliaria del Sur, S.A.",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "Importe neto de la cifra de negocios Nota 20.a 208.276 164.491",
+      "value": 208276
+     },
+     {
+      "key": "revenue",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "Importe neto de la cifra de negocios Nota 20.a 208.276 164.491",
+      "value": 164491
+     },
+     {
+      "key": "operating_income",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "RESULTADO DE EXPLOTACIÓN 56.167 38.351",
+      "value": 56167
+     },
+     {
+      "key": "operating_income",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "RESULTADO DE EXPLOTACIÓN 56.167 38.351",
+      "value": 38351
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "Gastos por amortización Notas 8, 9 y 10 (312) (403)",
+      "value": -312
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "Gastos por amortización Notas 8, 9 y 10 (312) (403)",
+      "value": -403
+     },
+     {
+      "key": "interest_expense",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "Gastos financieros de pasivos financieros valorados a coste amortizado Nota 18.d (13.136) (15.966)",
+      "value": -13136
+     },
+     {
+      "key": "interest_expense",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "Gastos financieros de pasivos financieros valorados a coste amortizado Nota 18.d (13.136) (15.966)",
+      "value": -15966
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "RESULTADO ANTES DE IMPUESTOS 49.850 31.648",
+      "value": 49850
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "RESULTADO ANTES DE IMPUESTOS 49.850 31.648",
+      "value": 31648
+     },
+     {
+      "key": "income_tax",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "Impuestos sobre las ganancias Nota 19 (10.230) (6.881)",
+      "value": -10230
+     },
+     {
+      "key": "income_tax",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "Impuestos sobre las ganancias Nota 19 (10.230) (6.881)",
+      "value": -6881
+     },
+     {
+      "key": "net_income",
+      "page": 13,
+      "period_end": "2025-12-31",
+      "quote": "RESULTADO DEL EJERCICIO 39.620 24.767",
+      "value": 39620
+     },
+     {
+      "key": "net_income",
+      "page": 13,
+      "period_end": "2024-12-31",
+      "quote": "RESULTADO DEL EJERCICIO 39.620 24.767",
+      "value": 24767
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 16,
+      "period_end": "2025-12-31",
+      "quote": "Total flujos de efectivo netos de las actividades de explotación 41.301 20.714",
+      "value": 41301
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 16,
+      "period_end": "2024-12-31",
+      "quote": "Total flujos de efectivo netos de las actividades de explotación 41.301 20.714",
+      "value": 20714
+     },
+     {
+      "key": "total_borrowings",
+      "page": 91,
+      "period_end": "2025-12-31",
+      "quote": "Total 329.301 19.980 94.172 120.958 235.110",
+      "value": 235110
+     },
+     {
+      "key": "total_borrowings",
+      "page": 92,
+      "period_end": "2024-12-31",
+      "quote": "Total 360.746 43.892 59.569 151.844 255.305",
+      "value": 255305
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 12,
+      "period_end": "2025-12-31",
+      "quote": "Efectivo y otros activos líquidos equivalentes Nota 15 83.795 55.390 29.264",
+      "value": 83795
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 12,
+      "period_end": "2024-12-31",
+      "quote": "Efectivo y otros activos líquidos equivalentes Nota 15 83.795 55.390 29.264",
+      "value": 55390
+     },
+     {
+      "key": "total_assets",
+      "page": 12,
+      "period_end": "2025-12-31",
+      "quote": "TOTAL ACTIVO 631.705 633.226 603.384",
+      "value": 631705
+     },
+     {
+      "key": "total_assets",
+      "page": 12,
+      "period_end": "2024-12-31",
+      "quote": "TOTAL ACTIVO 631.705 633.226 603.384",
+      "value": 633226
+     },
+     {
+      "key": "total_equity",
+      "page": 12,
+      "period_end": "2025-12-31",
+      "quote": "Total patrimonio neto Nota 16 279.029 252.356 235.727",
+      "value": 279029
+     },
+     {
+      "key": "total_equity",
+      "page": 12,
+      "period_end": "2024-12-31",
+      "quote": "Total patrimonio neto Nota 16 279.029 252.356 235.727",
+      "value": 252356
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 19,
+      "quote": "Normas Internacionales de Información Financiera adoptadas por la Unión Europea (NIIF-UE)",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 12,
+      "quote": "(Miles de Euros)",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 12,
+      "quote": "ESTADO DE SITUACIÓN FINANCIERA CONSOLIDADO AL 31 DE DICIEMBRE DE 2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 12,
+      "quote": "ESTADO DE SITUACIÓN FINANCIERA CONSOLIDADO AL 31 DE DICIEMBRE DE 2025",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 12,
+      "quote": "(Miles de Euros)",
+      "value": "thousands"
+     }
+    },
+    "language": "es"
+   },
+   "seconds": 121.6,
+   "usage": {
+    "candidatesTokenCount": 2510,
+    "promptTokenCount": 165769,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 164896
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 7374,
+    "totalTokenCount": 175653
+   }
+  },
+  "B": {
+   "model": "gemini-3.7-flash",
+   "read": {
+    "company": "INMOBILIARIA DEL SUR, S.A.",
+    "document": "financial_statements",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Importe neto de la cifra de negocios | Nota 20.a | 208.276",
+      "value": 208276
+     },
+     {
+      "key": "revenue",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Importe neto de la cifra de negocios | Nota 20.a | 208.276 | 164.491",
+      "value": 164491
+     },
+     {
+      "key": "operating_income",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "RESULTADO DE EXPLOTACIÓN | 56.167",
+      "value": 56167
+     },
+     {
+      "key": "operating_income",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "RESULTADO DE EXPLOTACIÓN | 56.167 | 38.351",
+      "value": 38351
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Amortizaciones | Notas 8, 9 y 10 | 312",
+      "value": 312
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Amortizaciones | Notas 8, 9 y 10 | 312 | 403",
+      "value": 403
+     },
+     {
+      "key": "interest_expense",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Gastos financieros de pasivos financieros valorados a coste amortizado | Nota 18.d | (13.136)",
+      "value": -13136
+     },
+     {
+      "key": "interest_expense",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Gastos financieros de pasivos financieros valorados a coste amortizado | Nota 18.d | (13.136) | (15.966)",
+      "value": -15966
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "RESULTADO ANTES DE IMPUESTOS | 49.850",
+      "value": 49850
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "RESULTADO ANTES DE IMPUESTOS | 49.850 | 31.648",
+      "value": 31648
+     },
+     {
+      "key": "income_tax",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Impuestos sobre las ganancias | Nota 19 | (10.230)",
+      "value": -10230
+     },
+     {
+      "key": "income_tax",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Impuestos sobre las ganancias | Nota 19 | (10.230) | (6.881)",
+      "value": -6881
+     },
+     {
+      "key": "net_income",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "RESULTADO DEL EJERCICIO | 39.620",
+      "value": 39620
+     },
+     {
+      "key": "net_income",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "RESULTADO DEL EJERCICIO | 39.620 | 24.767",
+      "value": 24767
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Total flujos de efectivo netos de las actividades de explotación | 41.301",
+      "value": 41301
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Total flujos de efectivo netos de las actividades de explotación | 41.301 | 20.714",
+      "value": 20714
+     },
+     {
+      "key": "total_assets",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "TOTAL ACTIVO | 631.705",
+      "value": 631705
+     },
+     {
+      "key": "total_assets",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "TOTAL ACTIVO | 631.705 | 633.226",
+      "value": 633226
+     },
+     {
+      "key": "total_equity",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Total patrimonio neto | Nota 16 | 279.029",
+      "value": 279029
+     },
+     {
+      "key": "total_equity",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Total patrimonio neto | Nota 16 | 279.029 | 252.356",
+      "value": 252356
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Efectivo y otros activos líquidos equivalentes | Nota 15 | 83.795",
+      "value": 83795
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Efectivo y otros activos líquidos equivalentes | Nota 15 | 83.795 | 55.390",
+      "value": 55390
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 6,
+      "quote": "Normas Internacionales de Información Financiera adoptadas por la Unión Europea (NIIF-UE)",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "(Miles de Euros)",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 1,
+      "quote": "ESTADO DE SITUACIÓN FINANCIERA CONSOLIDADO AL 31 DE DICIEMBRE DE 2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 1,
+      "quote": "ESTADO DE SITUACIÓN FINANCIERA CONSOLIDADO",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "(Miles de Euros)",
+      "value": "thousands"
+     }
+    },
+    "language": "es"
+   },
+   "seconds": 35.4,
+   "usage": {
+    "candidatesTokenCount": 2169,
+    "promptTokenCount": 7444,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 6552
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 4030,
+    "totalTokenCount": 13643
+   }
+  }
+ }
+}

@@ -709,6 +709,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/reader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Reader */
+        get: operations["get_reader_api_documents_reader_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/reads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Read
+         * @description Read a document twice and check every quote, as a background job.
+         */
+        post: operations["post_read_api_documents_reads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/reads/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Read
+         * @description A read's progress, and its values once done. Another account's read, or another kind of job, is a 404.
+         */
+        get: operations["get_read_api_documents_reads__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/reads/{job_id}/deal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Deal
+         * @description The deal inputs the caller's accepted values give: from the read's own result, only what was accepted.
+         */
+        post: operations["post_deal_api_documents_reads__job_id__deal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/economy/countries": {
         parameters: {
             query?: never;
@@ -2380,10 +2457,10 @@ export interface components {
             input_tokens: number;
             /**
              * Kind
-             * @description read: a results read (R1); write: a note's sentences (R8)
+             * @description read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2)
              * @enum {string}
              */
-            kind: "read" | "write";
+            kind: "read" | "write" | "extract";
             /** Output Tokens */
             output_tokens: number;
             /** Pages */
@@ -4265,6 +4342,254 @@ export interface components {
              */
             verdict: "beats_baseline" | "does_not_beat_baseline" | "not_enough_data";
         };
+        /**
+         * DocumentDealInputs
+         * @description Deal inputs from the accepted values only, money in the document's currency and unit.
+         */
+        DocumentDealInputs: {
+            /** Accounting Standard */
+            accounting_standard?: ("ifrs" | "us_gaap") | null;
+            /** Capex */
+            capex?: number | null;
+            /** Currency */
+            currency?: string | null;
+            /** Da */
+            da?: number | null;
+            /** Ebitda */
+            ebitda?: number | null;
+            /** First Fiscal Year */
+            first_fiscal_year?: number | null;
+            /** Fiscal Year End Month */
+            fiscal_year_end_month?: number | null;
+            /** Gross Margin */
+            gross_margin?: number | null;
+            /** Growth */
+            growth?: number | null;
+            /** Opex */
+            opex?: number | null;
+            /** Tax */
+            tax?: number | null;
+            /** Unit */
+            unit?: ("thousands" | "lakhs" | "millions" | "crores" | "billions") | null;
+        };
+        /** DocumentDealLeftOut */
+        DocumentDealLeftOut: {
+            /** Input */
+            input: string;
+            /**
+             * Needs
+             * @description The values it is made from that were not accepted
+             */
+            needs: string[];
+        };
+        /** DocumentDealRequest */
+        DocumentDealRequest: {
+            /**
+             * Accepted
+             * @description The ids of the values the caller accepted
+             */
+            accepted: string[];
+        };
+        /** DocumentDealResponse */
+        DocumentDealResponse: {
+            inputs: components["schemas"]["DocumentDealInputs"];
+            /** Left Out */
+            left_out: components["schemas"]["DocumentDealLeftOut"][];
+            /** Notes */
+            notes: ("standard_not_in_deal" | "ebitda_not_positive")[];
+            /**
+             * Used
+             * @description The accepted values each input was made from
+             */
+            used: {
+                [key: string]: string[];
+            };
+        };
+        /** DocumentFigure */
+        DocumentFigure: {
+            /** Amber */
+            amber: ("reads_differ" | "one_read_only" | "quote_not_on_page" | "number_not_in_quote" | "poor_scan") | null;
+            /**
+             * Id
+             * @description figure:<key>:<period end>, what the caller accepts
+             */
+            id: string;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "revenue" | "gross_profit" | "operating_income" | "depreciation_amortization" | "ebitda" | "interest_expense" | "profit_before_tax" | "income_tax" | "net_income" | "capital_expenditures" | "cash_from_operations" | "cash_and_equivalents" | "total_borrowings" | "total_assets" | "total_equity";
+            /** Other */
+            other: number | null;
+            /** Page */
+            page: number | null;
+            /** Period End */
+            period_end: string;
+            /** Quote */
+            quote: string;
+            /**
+             * Value
+             * @description As printed, in the document's unit
+             */
+            value: number;
+        };
+        /** DocumentLabel */
+        DocumentLabel: {
+            /**
+             * Amber
+             * @description Why it needs a look; null when it doesn't
+             */
+            amber?: ("reads_differ" | "one_read_only" | "quote_not_on_page" | "number_not_in_quote" | "poor_scan") | null;
+            /**
+             * Id
+             * @description label:<key>, what the caller accepts
+             */
+            id: string;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "currency" | "unit" | "accounting_standard" | "fiscal_year_end" | "scope";
+            /**
+             * Other
+             * @description The second read's value
+             */
+            other?: string | null;
+            /**
+             * Page
+             * @description The PDF page it is read from
+             */
+            page?: number | null;
+            /**
+             * Quote
+             * @description The document's own words, verbatim
+             */
+            quote: string;
+            /**
+             * Value
+             * @description ISO 4217 code, a unit, a standard, YYYY-MM-DD or a scope
+             */
+            value: string;
+        };
+        /** DocumentPages */
+        DocumentPages: {
+            /** Pages */
+            pages: number;
+            /** Sha256 */
+            sha256: string;
+            /**
+             * Text Pages
+             * @description Cited pages with a text layer, where quotes were looked up
+             */
+            text_pages: number[];
+        };
+        /** DocumentReadJobOut */
+        DocumentReadJobOut: {
+            /**
+             * Error
+             * @description A code (documents.error_* on screen) when the read failed
+             */
+            error?: string | null;
+            /** Error Status */
+            error_status?: number | null;
+            /** Id */
+            id: string;
+            /** Progress */
+            progress: number;
+            result?: components["schemas"]["DocumentReadResult"] | null;
+            /**
+             * Result Expired
+             * @default false
+             */
+            result_expired: boolean;
+            /** Stage */
+            stage: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
+        /**
+         * DocumentReadResult
+         * @description A document read twice and checked; nothing in it is in a deal until accepted.
+         */
+        DocumentReadResult: {
+            /** Company */
+            company: string;
+            document: components["schemas"]["DocumentPages"];
+            /**
+             * Document Kind
+             * @enum {string}
+             */
+            document_kind: "annual_report" | "information_pack" | "results" | "financial_statements" | "other";
+            /** Figures */
+            figures: components["schemas"]["DocumentFigure"][];
+            /** File Id */
+            file_id: string;
+            /** Labels */
+            labels: components["schemas"]["DocumentLabel"][];
+            /**
+             * Language
+             * @description ISO 639-1 code of the document's language, as read
+             */
+            language: string;
+            reads: components["schemas"]["ReadReads"];
+            summary: components["schemas"]["DocumentSummary"];
+        };
+        /** DocumentReadStart */
+        DocumentReadStart: {
+            /**
+             * File Id
+             * Format: uuid
+             * @description An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)
+             */
+            file_id: string;
+            /**
+             * Public
+             * @description The caller confirms the document is public (a published annual report, say). Required while the reader runs on a free AI tier, which may use what it is sent to improve its products
+             * @default false
+             */
+            public: boolean;
+        };
+        /** DocumentReaderInfo */
+        DocumentReaderInfo: {
+            /**
+             * Confirm Public
+             * @description A read needs the caller to confirm the document is public
+             */
+            confirm_public: boolean;
+            /** Max Pages */
+            max_pages: number;
+            measured: components["schemas"]["ReaderMeasured"];
+            /**
+             * Open
+             * @description This server reads documents for people (production: once the card meets its bar)
+             */
+            open: boolean;
+            /** Pages Left */
+            pages_left: number;
+            /** Pages Per Day */
+            pages_per_day: number;
+            /** Provider */
+            provider: string;
+            /** Reads Per Day */
+            reads_per_day: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "on" | "off";
+        };
+        /** DocumentSummary */
+        DocumentSummary: {
+            /** Amber */
+            amber: number;
+            /** Figures */
+            figures: number;
+            /** Labels */
+            labels: number;
+        };
         /** DrillJob */
         DrillJob: {
             /** Attempts */
@@ -5424,7 +5749,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run" | "research.read";
+            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run" | "research.read" | "document.extract";
             /**
              * Progress
              * @description 0 to 1; moves as the run passes its stages
@@ -11856,6 +12181,161 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_reader_api_documents_reader_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentReaderInfo"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_read_api_documents_reads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentReadStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentReadJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_read_api_documents_reads__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentReadJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_deal_api_documents_reads__job_id__deal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentDealRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDealResponse"];
                 };
             };
             /** @description Validation Error */

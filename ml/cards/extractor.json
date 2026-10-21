@@ -1,0 +1,133 @@
+{
+ "estimates": "A document's currency, unit, accounting standard, fiscal year end and scope, and up to fifteen headline figures for its latest two years, each with its page and a verbatim quote, read twice by two different AI models, with each value amber when the reads differ, its quote is not on its page, its quote does not hold it or its page is a poor scan",
+ "evaluation": {
+  "bar": {
+   "description": "Set before any document was read: no wrong figure or label and no planted misread left unflagged, and at least 80% of the truth file's figures found without amber; production reads documents only while the headline set meets it",
+   "planted_missed_share": 0.0,
+   "truth_found_share_at_least": 0.8,
+   "truth_missed": 0
+  },
+  "baseline": {
+   "description": "One AI read taken as it answers, with no second read and no check (what ml/nlp_extractor.py did before PLAN.md 6.2)",
+   "id": "one_read"
+  },
+  "data": {
+   "min_cases": 5,
+   "plants_per_document": 10
+  },
+  "headline_metric": "planted_missed_share",
+  "headline_set": "evaluation",
+  "metrics": [
+   {
+    "better": "lower",
+    "description": "Share of misreads planted in read A (a digit changed in the value and its quote, one at a time) still shown without amber",
+    "id": "planted_missed_share",
+    "tolerance": 0.0
+   },
+   {
+    "better": "lower",
+    "description": "Figures and labels of the truth file shown without amber and not as the document prints them",
+    "id": "truth_missed",
+    "tolerance": 0.0
+   },
+   {
+    "better": "higher",
+    "description": "Share of the truth file's figures shown without amber, as the document prints them",
+    "id": "truth_found_share",
+    "tolerance": 0.03
+   },
+   {
+    "better": "higher",
+    "description": "Share of currency, unit, standard, fiscal year end and scope read right without amber",
+    "id": "labels_right_share",
+    "tolerance": 0.0
+   },
+   {
+    "better": "lower",
+    "description": "Share of values shown amber (the person must look at each one)",
+    "id": "amber_share",
+    "tolerance": 0.03
+   }
+  ],
+  "sets": {
+   "evaluation": {
+    "by_region": {
+     "emerging": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "europe": {
+      "baseline": {
+       "amber_share": 0.0,
+       "labels_right_share": 1.0,
+       "planted_missed_share": 1.0,
+       "truth_found_share": 1.0,
+       "truth_missed": 0.0
+      },
+      "cases": 6,
+      "model": {
+       "amber_share": 0.0795,
+       "labels_right_share": 0.9667,
+       "planted_missed_share": 0.0,
+       "truth_found_share": 1.0,
+       "truth_missed": 0.0
+      },
+      "verdict": "beats_baseline"
+     },
+     "other_developed": {
+      "cases": 1,
+      "verdict": "not_enough_data"
+     },
+     "us": {
+      "cases": 0,
+      "verdict": "not_enough_data"
+     }
+    },
+    "description": "Public annual reports and financial statements read after the prompt was written, none tuned on: 8 documents in de, en, es, fr, ja, 55 truth figures, 236 values",
+    "meets_bar": true,
+    "overall": {
+     "baseline": {
+      "amber_share": 0.0,
+      "labels_right_share": 1.0,
+      "planted_missed_share": 1.0,
+      "truth_found_share": 0.9818,
+      "truth_missed": 1.0
+     },
+     "cases": 8,
+     "model": {
+      "amber_share": 0.0847,
+      "labels_right_share": 0.975,
+      "planted_missed_share": 0.0,
+      "truth_found_share": 0.9818,
+      "truth_missed": 0.0
+     },
+     "verdict": "beats_baseline"
+    }
+   }
+  },
+  "split": {
+   "kind": "none",
+   "why": "nothing is trained; every document was read after the prompt was frozen, and none changed it"
+  }
+ },
+ "format": 1,
+ "id": "extractor",
+ "limitations": [
+  "Eight documents: four German-language (three from Germany, one from Austria), one each in Japanese, French, Spanish and English (India); no US filer, no information pack (they are not public), no scan.",
+  "The truth file holds each document's headline figures only (four to nine of them); a wrong figure outside it is seen only through the planted misreads and the quote check.",
+  "The quote check needs a text layer: on a scanned page a quote can't be looked up, and two reads making the same mistake there would pass.",
+  "Both reads may take the same line for a figure the document prints twice (an operating result before and after other items, profit before and after minorities): the truth file allows either."
+ ],
+ "min_cases": 5,
+ "module": "ml/nlp_extractor.py",
+ "name": "Document reader",
+ "registry": {
+  "artifacts": []
+ },
+ "training": {
+  "command": null,
+  "data": "Nothing is trained: the prompt and checks are ml/nlp_extractor.py; the recorded answers are tests/fixtures/extract (python -m ml.document_reader record), the truth file tests/fixtures/extract/truth.json",
+  "deterministic": true
+ },
+ "used_by": "Deal -> From a document (POST /api/documents/reads, job document.extract); production reads documents only while this card's headline set meets its bar"
+}

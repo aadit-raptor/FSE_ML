@@ -940,7 +940,7 @@ class ResearchReportDetails(Base):
 
 
 
-AI_USAGE_KINDS = ("read", "write")
+AI_USAGE_KINDS = ("read", "write", "extract")
 AI_TIERS = ("free", "billed")
 
 
@@ -948,7 +948,7 @@ class AiUsage(Base):
     """What a person's AI requests used, a day (PLAN.md R9): pages read, requests, tokens and their cost.
 
     One row per person, UTC day, kind (``read``: a results read, PLAN.md R1; ``write``: a note's linking
-    sentences, R8) and tier (``free`` or ``billed``, research/reader/providers.py ``AI_FREE_TIER``). The cost
+    sentences, R8; ``extract``: a document read for a deal, PLAN.md 6.2) and tier (``free`` or ``billed``, research/reader/providers.py ``AI_FREE_TIER``). The cost
     is the provider's paid list price for the tokens (research/ai_costs.py): on the free tier, what it would
     cost. Counts only: never anything from a document, a model's answer or a file's name. Rows older than
     ``db.ai_usage.KEEP_DAYS`` are deleted by the nightly ``job-maintenance`` task.
@@ -956,7 +956,7 @@ class AiUsage(Base):
 
     __tablename__ = "ai_usage"
     __table_args__ = (
-        CheckConstraint("kind IN ('read', 'write')", name="kind"),
+        CheckConstraint("kind IN ('read', 'write', 'extract')", name="kind"),
         CheckConstraint("tier IN ('free', 'billed')", name="tier"),
         Index("ix_ai_usage_day", "day"),
     )
