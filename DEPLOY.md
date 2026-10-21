@@ -1004,14 +1004,27 @@ Microsoft's submission guide and checklist
 (https://learn.microsoft.com/partner-center/marketplace-offers/add-in-submission-guide,
 read 2026-10-20):
 
-1. **Before you start** (Claude's part, a follow-up task): a support page
-   on variater.com (the manifest's `SupportUrl` is `/privacy` today; the store
-   wants a page where people can get help, never an email address), terms of
-   use or Microsoft's standard contract, and the store icons in the sizes the
-   listing form asks for (`node web/scripts/brand.mjs` draws any size from
-   the mark). The privacy policy already names Variater and the add-in
-   (`/privacy`), which the store requires. The account must be ready for paid
-   use first: AI billing on ("Paid switches"), Vercel Pro if anyone pays.
+1. **Before you start** -- **done (2026-10-20)**, except the paid-use items
+   at its end. The **support page** is https://variater.com/support (public,
+   strict headers; the manifests' `SupportUrl` and "learn more" link point
+   at it): how to get help (GitHub issues, an https page; never an email
+   address), what the add-in does and that a Variater account is needed.
+   **Terms: Microsoft's Standard Contract** (decided 2026-10-20): tick
+   "Standard Contract" in step 7 and accept; there is no Variater terms page,
+   and a terms link can't replace the standard contract once published, so
+   any own terms come with the securities lawyer's view (PLAN.md R8). **The
+   store logos** are `web/public/brand/addin-300.png` (the large logo;
+   Microsoft documents a 216-350 px PNG for other offer types and gives no
+   size for add-ins, so if the form asks for another size, add it to the
+   loop in `web/scripts/brand.mjs` and run `node web/scripts/brand.mjs`),
+   `addin-90.png` and `addin-48.png` (medium and small, which the form
+   otherwise scales itself), the same tile as the manifest's icon, as the
+   store wants. **The screenshot** is yours: at least one at 1366 x 768
+   pixels, under 1 MB, of the pane with an imported quarter and no personal
+   information. The privacy policy names Variater and the add-in
+   (`/privacy`), which the store requires. The account must be ready for
+   paid use first: AI billing on ("Paid switches"), Vercel Pro if anyone
+   pays.
 2. **Join the Microsoft 365 and Copilot program**: sign in to Partner Center
    (https://partner.microsoft.com/dashboard) with a work account and open a
    developer account for it. The **publisher name must match the manifest's
@@ -1029,8 +1042,9 @@ read 2026-10-20):
 6. **Packages**: upload `web/public/excel/manifest.xml` (the production one,
    from `python -m ops.addin_manifest`); its checks must read Complete.
 7. **Properties**: up to three categories (Finance; Data analytics),
-   the industry Financial services, the standard contract or a terms link,
-   the privacy link `https://variater.com/privacy`, the support link.
+   the industry Financial services, **Standard Contract** ticked (and
+   accepted), the privacy link `https://variater.com/privacy`, the support
+   link `https://variater.com/support`.
 8. **Marketplace listings**: English; the name, a short summary, a long
    description in HTML that says **a Variater account is needed (free sign-up
    at variater.com)** and any charges, at least one screenshot (the pane with

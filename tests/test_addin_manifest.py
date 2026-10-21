@@ -57,3 +57,16 @@ def test_every_resource_the_ribbon_names_is_defined():
     defined = {el.get("id") for el in root.iter() if el.tag.endswith(("}Image", "}Url", "}String")) and el.get("id")}
     used = {el.get("resid") for el in root.iter() if el.get("resid")}
     assert used and used <= defined
+
+
+@pytest.mark.parametrize("environment", sorted(m.ENVIRONMENTS))
+def test_its_support_link_is_the_public_support_page(environment):
+    """Microsoft's store wants a page where people get help (never an email address), open signed out."""
+    origin = m.ENVIRONMENTS[environment]["origin"]
+    root = ET.fromstring(m.manifest(environment).encode("utf-8"))
+    assert root.find("o:SupportUrl", NS).get("DefaultValue") == f"{origin}/support"
+    learn = [el for el in root.iter() if el.get("id") == "GetStarted.LearnMoreUrl"]
+    assert [el.get("DefaultValue") for el in learn] == [f"{origin}/support"]
+    assert (WEB / "src" / "app" / "support" / "page.tsx").is_file()
+    public = (WEB / "src" / "lib" / "auth" / "mode.ts").read_text(encoding="utf-8")
+    assert '"/support"' in public.split("export const PUBLIC_ROUTES", 1)[1].split("\n", 1)[0]

@@ -13,7 +13,7 @@
   <Description DefaultValue="Bring checked quarterly results into Excel: statements read from a results filing, reviewed by you, with subtotals as formulas and every figure's page in a note."/>
   <IconUrl DefaultValue="https://variater.com/brand/addin-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://variater.com/brand/addin-64.png"/>
-  <SupportUrl DefaultValue="https://variater.com/privacy"/>
+  <SupportUrl DefaultValue="https://variater.com/support"/>
   <AppDomains>
     <AppDomain>https://variater.com</AppDomain>
     <AppDomain>https://clerk.variater.com</AppDomain>
@@ -77,7 +77,7 @@
         <bt:Image id="Icon.80" DefaultValue="https://variater.com/brand/addin-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://variater.com/privacy"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://variater.com/support"/>
         <bt:Url id="Pane.Url" DefaultValue="https://variater.com/excel"/>
       </bt:Urls>
       <bt:ShortStrings>

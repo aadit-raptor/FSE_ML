@@ -6,7 +6,8 @@ security policy and CORS, on the web app and the API.
 - Web: ``/sign-in`` (a page anyone may open) is fetched twice. It must carry a
   strict content security policy with a fresh nonce each time, HSTS, nosniff,
   no framing, a strict referrer policy, a permissions policy and no
-  ``X-Powered-By``; ``/privacy`` the same. ``/api/health`` through the web
+  ``X-Powered-By``; ``/privacy`` and ``/support`` (the pages Microsoft's
+  store and Google's consent screen link to) the same. ``/api/health`` through the web
   app's proxy must carry the API's own headers.
 - The Excel add-in's pane (PLAN.md R3, ``/excel``): the same strict policy,
   except that it may be framed by exactly Office's hosts
@@ -201,7 +202,7 @@ def scan(web: Optional[str], api: Optional[str], bypass: Optional[str]) -> list[
             if nonces[0] and nonces[0] == nonces[1]:
                 found.append("web page: the CSP nonce is reused between requests")
         # the add-in's sign-in dialog is a window of its own: never framed, like every page but the pane
-        for path, excel in (("/privacy", False), ("/excel", True), ("/excel/connect", None)):
+        for path, excel in (("/privacy", False), ("/support", False), ("/excel", True), ("/excel/connect", None)):
             status, headers = fetch(f"{web}{path}", headers=extra)
             if status != 200:
                 found.append(f"web {path} answered {status}, not 200")
