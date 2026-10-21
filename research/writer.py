@@ -239,9 +239,10 @@ def checked(section: str, text, s: Sources, known: Optional[dict] = None) -> Opt
     return " ".join(text.split())
 
 
-def write(s: Sources, provider=None) -> dict:
+def write(s: Sources, provider=None, spent: Optional[list] = None) -> dict:
     """Every section's sentences: the AI's when it keeps the rules, else the template's, saying why.
-    Answers ``{section: {"text", "source"}}`` plus ``_model`` (the AI's model, if any)."""
+    Answers ``{section: {"text", "source"}}`` plus ``_model`` (the AI's model, if any). ``spent`` gets the AI's
+    answer, so what it used can be counted (PLAN.md R9)."""
     from research.reader.providers import ProviderError
 
     known = facts(s)
@@ -253,6 +254,8 @@ def write(s: Sources, provider=None) -> dict:
         try:
             got = provider.write(text)
             answer, model = got.read, got.model
+            if spent is not None:
+                spent.append(got)
         except ProviderError:
             reason = AI_FAILED
     for name, fallback in sections.items():

@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-20 (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-20 (PLAN.md R9 done, so phase R is done: AI pages, requests, tokens and cost counted per person a day in `ai_usage`, priced from Google's paid list; a person's limits from their plan (`FSE_PLAN`) and the service's from the AI's tier (`AI_FREE_TIER`) in `api/plans.py`, the free ones exactly today's; a test proves switching `AI_PROVIDER` on staging changes nothing else; DEPLOY.md "Paid switches" and the store listing steps). Earlier the same day (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1423,14 +1423,14 @@ browser tests are the web's proof.
 equity research workspace for Indian analysts**: results PDF to checked
 statements, a vetted sector model as live Excel formulas, valuation, a
 report draft, next-quarter roll forward, in the app and in an Excel add-in.
-R0, R1a, R1b, R2, R3, R4, R5, R6, R7 and R8 are done (R1b: the held-out filings meet the
-3% amber bar the user set, so production reads; R4's model is "not yet
-vetted" until an analyst reads it); billing with a cap still
-comes before the first showing to analysts
-(PLAN.md R2's "Before the first showing"); the next task is **R9** (ready for the paid switch: pages read and AI cost per user, the paid provider's path on recorded answers, limits per plan as settings, the add-in's store listing as steps), unless what the analysts say after R2
-reorders them; 6.2
-onwards and phases 7 to 12 wait, except what a phase R task pulls forward
-and upkeep that can't wait. Phase R's own rules are at its top in PLAN.md
+**Phase R is done (R0 to R9, 2026-10-20)** (R1b: the held-out filings meet the
+3% amber bar the user set, so production reads; the sector models are "not yet
+vetted" until an analyst reads them); billing with a cap (DEPLOY.md "Paid
+switches") still comes before the first showing to analysts
+(PLAN.md R2's "Before the first showing"). **The next task is 6.2** (upload a
+document, get a deal: the lowest open number; 5.10 is parked), unless what the
+analysts say after the first showing adds phase R work first; then 6.3, 6.4 and
+phases 7 to 12 in PLAN.md's order. Phase R's own rules are at its top in PLAN.md
 (a tool that never picks a rating; one model definition evaluated by the
 server and written as Excel formulas; new code in `research/` only). The
 decisions still the user's are listed there.
@@ -1559,6 +1559,31 @@ hand-solved companies) is written by `python -m tests.research_examples`,
 checked stale. Screen: Coverage -> **Model** (`components/coverage/ModelStep.tsx`,
 `ModelGrid.tsx`, `lib/sectorModel.ts`: the model lives in page memory until
 R5 saves it); add-in `components/excel/ModelInPane.tsx`.
+**R9 is done (2026-10-20): ready for the paid switch** (PLAN.md R9,
+DEPLOY.md "Paid switches"). **The paid provider is Gemini with billing on**
+(`AI_FREE_TIER=0`); another provider is 12.4's, with its own card.
+**Cost per person**: `research/ai_costs.py` (Google's paid list, transcribed
+with `SOURCE`, `CHECKED_ON` and the day each price changes; thinking is
+output; a model with no price costs `None`, and a test fails if the reader or
+writer may ask one) and `db/ai_usage.py` (table `ai_usage`, migration 0023:
+one row per person, UTC day, kind `read`/`write` and tier `free`/`billed`;
+pages, requests, tokens, `unpriced`, `cost_amount` in USD; an upsert matching
+the subject in the statement). The reader's job counts in a `finally` (pages
+charged and every answer received, `read_filing(..., spent=)`), the note
+writer after its request (`writer.write(..., spent)`), both through
+`research/reader/service.py` `count_usage`, which never fails the work.
+`GET /api/account/ai-usage` answers the caller's own rows; the nightly
+`job-maintenance` summary has yesterday's `ai_*` totals (nobody named) and
+deletes rows past `KEEP_DAYS` 400. About 0.09 US dollars a filing.
+**Limits per plan** (`api/plans.py`): a `Rule` with `plan=<field>` takes its
+number from the person's plan (`FSE_PLAN`, `plan_for`: one plan for every
+account until PLAN.md 9 gives each its own) or, for a `service` rule, the AI's
+tier (`AI_FREE_TIER`); `Rule.limit` is the free number, and
+`effective_limit(rule, identity)` resolves it. **The recordings follow
+`AI_FREE_TIER` too** (`Replay.free_tier`), so switching `AI_PROVIDER` changes
+the provider and nothing else: `tests/test_paid_switch.py` answers Gemini's
+own HTTP with the recorded replies (`RecordedGemini`) and compares a whole
+read and a note with `replay`'s.
 **R8 is done (2026-10-20): the results note** (PLAN.md R8). Decided by the
 user: build before the lawyer's view (which waits, below), firm name and
 disclosures as account fields. **Every number comes from the saved model,
@@ -1790,7 +1815,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). **Next is R9** (phase R, the priority above; 6.2 waits).
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). R9 is done (ready for the paid switch, above), so phase R is done. **Next is 6.2**.
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -1978,6 +2003,12 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- PLAN.md R9: **listing the add-in in Microsoft's store** is the user's
+  (DEPLOY.md "Excel add-in", "Listing it in Microsoft's store": a Partner
+  Center account in the Microsoft 365 and Copilot program, then the offer);
+  Claude's part first is a support page, terms of use and the store's icon
+  sizes. And when ready to charge: the switches in DEPLOY.md "Paid switches".
+
 - PLAN.md R8: **a securities lawyer's view** that the tool stays outside
   SEBI's research analyst rules (it drafts; the analyst rates, targets and
   argues), and **the disclosure wording** your testers will type in Coverage
@@ -2095,6 +2126,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/src/app/excel/`, `web/src/components/excel/`, `web/src/lib/excel/`, `api/routers/addin.py`, `db/addin.py`, `ops/addin_manifest.py`, `web/public/excel/`, `web/e2e/excel.spec.ts`, `web/e2e/fake-office.js`, `tests/test_addin*.py`, `tests/addin_cells_check.py` | The Excel add-in (PLAN.md R3): the pane and sign-in dialog pages; their components (sign-in, import, read and review); Office.js loading, the dialog, the pass and the cell writer; the pass endpoints and storage; the manifests' writer and the manifests; the browser tests and their stand-in for Office.js; the pass and manifest tests; the cell-by-cell comparison with the download |
 | `research/coverage.py`, `db/coverage.py`, `api/routers/coverage.py`, `web/src/components/coverage/` (`CompaniesStep`, `Review`, `PageView`), `tests/test_research_coverage*.py`, `tests/coverage_workbook_check.py`, `web/e2e/coverage.spec.ts` | Coverage (PLAN.md R2): a reviewed read made into stored periods and the checked workbook; the rows, owner-matched; the endpoints; the Companies step, the review beside the page and the pdf.js page view; the tests and the browser tests' workbook check |
 | `research/report.py`, `research/writer.py`, `research/report_files.py`, `db/research_reports.py`, `api/routers/research_report.py`, `web/src/lib/report.ts`, `web/src/components/coverage/ReportStep.tsx`, `tests/test_research_report*.py`, `web/e2e/report.spec.ts` | Results notes (PLAN.md R8): the draft and its figure-by-figure check, the AI's linking sentences and their templates, the Word and PDF writers; the notes and the account's firm and disclosures, owner-matched; the endpoints; the browser's side and Coverage -> Report; the tests (every figure against the model, planted numbers and calls refused, no rating until typed) |
+| `research/ai_costs.py`, `db/ai_usage.py`, `api/plans.py`, `tests/test_paid_switch.py` | Ready for the paid switch (PLAN.md R9): the AI's paid price list and a request's cost; what each person's AI use was, a day; limits per plan and per AI tier; the tests (the provider switch on recorded HTTP, the paid tier's path, plans, counts) |
 | `research/valuation.py`, `web/src/components/coverage/ValuationTile.tsx`, `tests/fixtures/research/valuation.json`, `tests/test_research_valuation.py` | Valuation (PLAN.md R6): the discounted cash flow and target multiple rows every model gains, and the country's risk-free rate; the value tiles and the risk-free offer; the cases solved by hand; the tests (hand cases, workbook and LibreOffice, rolls, sheet back, no recommendation words) |
 | `research/rollforward.py`, `research/sheetback.py`, `db/research_models.py`, `api/routers/research_saved.py`, `web/src/lib/savedModel.ts`, `web/src/lib/excel/read.ts`, `web/src/components/coverage/SavedModel.tsx`, `tests/test_research_rollforward.py`, `tests/test_research_sheetback.py`, `tests/test_research_saved_api.py` | Saved models (PLAN.md R5): the roll forward and its comparison, reading a sheet's named cells back (and refusing a restructured one), the saved models and versions, owner-matched; the endpoints; the browser's side, the add-in's sheet reader and the Saved rail group, roll notice and comparison tile; the tests |
 | `research/`, `tests/research_support.py`, `tests/fixtures/research/`, `tests/test_research_*.py` | Equity research, sector models (PLAN.md R4 part b): the formula reader (`formula.py`), the model and company as data (`definition.py`), the evaluator, the Excel writer (`workbook.py`), the shared pieces, model 1 (`models/occupancy.py`); the tests' fixture loader, independent Excel-formula reader and LibreOffice runner; the two hand-solved companies; the tests (formulas, the format by hand, workbook against evaluator, model 1 against the hand workbooks) |
@@ -2626,6 +2658,16 @@ Skills load when a session starts: install first, then open a new session.
   keeps the old shape: the tests pass (each makes a fresh database) and the
   browser tests fail with a 500 (`ProgrammingError`: no such column).
   `python -m db.migrate downgrade -1` then `upgrade` on `DATABASE_URL`.
+- A new request to the AI provider must be counted (PLAN.md R9): collect each
+  `Answer` it gets (the `spent` lists) and pass them to
+  `research/reader/service.py` `count_usage` with its kind, and give any new
+  model a price in `research/ai_costs.py` (`tests/test_paid_switch.py` fails
+  on an unpriced default model). A new kind is a value in `AI_USAGE_KINDS`
+  and a migration changing `ck_ai_usage_kind`.
+- A limit that should differ by plan is a `Rule(..., plan="<field>")` and a
+  field on `api.plans.Plan` (or `Tier` for a `service` rule); its `limit` is
+  then only the free plan's number. Ask for it with `effective_limit(rule,
+  identity)`: without the identity a person's plan can't be found.
 - The results reader's wording is `research/reader/prompt.py`: a change is a
   new `PROMPT_VERSION`, and the held-out filings must be read again with it
   before the card says anything. R0's prompt is kept word for word as `r0`,

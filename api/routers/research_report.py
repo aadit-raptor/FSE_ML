@@ -181,7 +181,12 @@ def post_sentences(company_id: uuid.UUID, user: AuthUser = Depends(require_user)
         provider = get_provider()
         if provider is not None:
             enforce([(USER_WRITES, user.subject), (WRITES_ALL, "all")])
-        written = writer.write(s, provider)
+        spent: list = []
+        written = writer.write(s, provider, spent)
+        if spent:
+            from research.reader.service import count_usage
+
+            count_usage(user.subject, "write", provider, answers=spent)
         rows.save_report(user.subject, company_id, sentences=written)      # the fields as they stand now
         return _draw(user.subject, company_id)
 

@@ -216,7 +216,7 @@ which moved into Foundations (1.9) because later phases need them.
 | R6 | Valuation | R4 | ☑ |
 | R7 | Second and third sector models | R4 | ☑ |
 | R8 | Report draft | R6 | ☑ |
-| R9 | Ready for the paid switch | R5 | ☐ |
+| R9 | Ready for the paid switch | R5 | ☑ |
 
 **Priority since 2026-10-12 (the user's decision): phase R comes before
 everything still open.** 6.1 ships first (the reader stands on it), then R0
@@ -1525,6 +1525,34 @@ or nearly finished to try. So no task waits for an analyst:
   what a store listing of the add-in needs, written as steps for the user.
 - **Done when:** switching `AI_PROVIDER` on staging changes the provider and
   nothing else (test); DEPLOY.md lists each paid switch and what it lifts.
+- **Done (2026-10-20):**
+  - **The paid provider is Gemini with billing on** (the user's decision of
+    2026-10-14 stands): `AI_FREE_TIER=0`. Another provider waits for 12.4,
+    since rule 2 needs its own card before it reads for anyone.
+  - **Cost per person** (`research/ai_costs.py`, `db/ai_usage.py`, table
+    `ai_usage`, migration 0023): pages, requests, tokens and cost at Google's
+    paid list (with the day each price changes: the 3.x flash models double on
+    2027-01-01), per person, UTC day, kind (read, write) and tier; a free
+    request's cost is what it would cost. About 0.09 US dollars a filing on
+    the 38 recordings. `GET /api/account/ai-usage` (the caller's own); the
+    nightly `job-maintenance` summary sums yesterday for everyone, nobody
+    named, and deletes rows past 400 days. `/privacy` says so.
+  - **Limits per plan as settings** (`api/plans.py`): a person's reads, pages
+    and note writings come from their plan (`FSE_PLAN`: `free`, `research`;
+    one plan for every account until PLAN.md 9), the service's from the AI's
+    tier (`AI_FREE_TIER`: free 30 and 10, billed 300 and 300). The free plan
+    and tier are the numbers before R9 (tested); a typo is the free plan.
+  - **The switch, proven** (`tests/test_paid_switch.py`): on staging, a
+    filing read through `replay` and through Gemini's own code (its HTTP
+    answered by the recorded replies) gives the same result, reader answer,
+    limits and counts; so does a results note; the billed tier reads without
+    the public confirmation and counts the recorded tokens' cost. The
+    recordings now follow `AI_FREE_TIER` too, so the switch moves nothing
+    else.
+  - DEPLOY.md "Paid switches" (each switch, what it lifts, what stays) and
+    "Listing it in Microsoft's store" (the user's steps). Left for a
+    follow-up: a support page for the manifest's `SupportUrl` (it is
+    `/privacy`), terms of use, and the store's icon sizes.
 
 ---
 

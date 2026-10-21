@@ -3272,3 +3272,41 @@ class AddinPass(BaseModel):
 
 class AddinSessionOut(BaseModel):
     expires_at: str
+
+
+# ---------------------------------------------------------------------------
+# What the AI used (PLAN.md R9)
+# ---------------------------------------------------------------------------
+class AiUsageMoney(BaseModel):
+    """What the cost figures are in: whole units of the provider's billing currency, not the deal units."""
+    currency: str = Field(description="ISO 4217 code of the provider's price list")
+    unit: Literal["one"] = "one"
+
+
+class AiUsageDay(BaseModel):
+    day: date
+    kind: Literal["read", "write"] = Field(description="read: a results read (R1); write: a note's sentences (R8)")
+    tier: Literal["free", "billed"] = Field(description="free: nothing was charged; cost is what it would cost")
+    requests: int
+    pages: int
+    input_tokens: int
+    output_tokens: int
+    unpriced: int = Field(description="Requests to a model with no price on the list: not in cost")
+    cost: float = Field(description="At the provider's paid list price, in money's currency")
+
+
+class AiPlan(BaseModel):
+    name: str
+    reads_per_day: int
+    pages_per_day: int
+    writes_per_day: int
+
+
+class AiUsageResponse(BaseModel):
+    """The caller's own AI use, a day at a time (newest first), and the plan their limits come from."""
+    days: list[AiUsageDay]
+    total_cost: float
+    money: AiUsageMoney
+    plan: AiPlan
+    prices_source: str
+    prices_checked_on: date

@@ -119,22 +119,41 @@ def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Option
 
 
 def _charge_pages(subject: str, count: int, now: Optional[float] = None) -> None:
-    from api.limits import USER_READ_PAGES, check_for, effective_limit
+    from api.limits import USER_READ_PAGES, check_for
     from api.usage import counters
 
     now = time.time() if now is None else now
     check = check_for(USER_READ_PAGES, subject, now)
-    if counters().usage(check.key) + count > effective_limit(USER_READ_PAGES):
+    if counters().usage(check.key) + count > check.limit:
         raise _refuse(429, PAGE_LIMIT)
     counters().add(check, count)
 
 
 def pages_left(subject: str, now: Optional[float] = None) -> int:
-    from api.limits import USER_READ_PAGES, check_for, effective_limit
+    from api.limits import USER_READ_PAGES, check_for
     from api.usage import counters
 
     check = check_for(USER_READ_PAGES, subject, time.time() if now is None else now)
-    return max(0, effective_limit(USER_READ_PAGES) - counters().usage(check.key))
+    return max(0, check.limit - counters().usage(check.key))
+
+
+def tier_of(reader) -> str:
+    return "free" if getattr(reader, "free_tier", True) else "billed"
+
+
+def count_usage(subject: str, kind: str, reader, *, pages: int = 0, answers=()) -> None:
+    """What the request used, kept per person and day (PLAN.md R9, ``db.ai_usage``). Never fails the read or
+    the writing it counts: a database that can't be reached is logged by kind and the work goes on."""
+    from db.engine import is_configured
+
+    if not is_configured() or (not pages and not answers):
+        return
+    try:
+        from db import ai_usage
+
+        ai_usage.record(subject, kind, tier_of(reader), pages=pages, answers=answers)
+    except Exception as exc:  # noqa: BLE001 -- counting is never worth a lost read
+        log_event("ai_usage_not_recorded", logging.WARNING, kind=kind, error=type(exc).__name__)
 
 
 def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.date], *,
@@ -148,6 +167,7 @@ def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.dat
     record = _clean_pdf(owner, file_id)
     path = uploads.spool() / f"read-{uuid.uuid4().hex}.pdf"
     t0 = time.perf_counter()
+    charged, spent = 0, []
     try:
         try:
             uploads.store().fetch(record.key, path, rules.MAX_FILE_BYTES)
@@ -163,9 +183,10 @@ def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.dat
         if info.pages > pages.MAX_PAGES:
             raise _refuse(422, TOO_LONG)
         _charge_pages(owner, info.pages)
+        charged = info.pages
         try:
             result = read_filing(path, reader, today=today or datetime.date.today(), quarter=quarter_end,
-                                 info=info, kept=_kept(owner, company_id))
+                                 info=info, kept=_kept(owner, company_id), spent=spent)
         except ai.ProviderError as exc:
             log_event("reader_failed", logging.WARNING, provider=reader.name, code=exc.code,
                       http_status=exc.status)
@@ -175,6 +196,7 @@ def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.dat
             raise _refuse(422, "unreadable_pdf") from None
     finally:
         uploads.discard(path)
+        count_usage(owner, "read", reader, pages=charged, answers=spent)
     summary = result["summary"]
     log_event("reader_read", provider=reader.name, pages=info.pages, tables=summary["tables"],
               figures=summary["figures"], amber=summary["amber"],

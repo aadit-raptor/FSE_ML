@@ -28,6 +28,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/account/ai-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ai Usage
+         * @description What the caller's results reads and note sentences used, a day at a time (PLAN.md R9): their own rows
+         *     only, counts and cost, never anything from a document.
+         */
+        get: operations["get_ai_usage_api_account_ai_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/account/history": {
         parameters: {
             query?: never;
@@ -2331,6 +2352,91 @@ export interface components {
         AddinSessionOut: {
             /** Expires At */
             expires_at: string;
+        };
+        /** AiPlan */
+        AiPlan: {
+            /** Name */
+            name: string;
+            /** Pages Per Day */
+            pages_per_day: number;
+            /** Reads Per Day */
+            reads_per_day: number;
+            /** Writes Per Day */
+            writes_per_day: number;
+        };
+        /** AiUsageDay */
+        AiUsageDay: {
+            /**
+             * Cost
+             * @description At the provider's paid list price, in money's currency
+             */
+            cost: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /**
+             * Kind
+             * @description read: a results read (R1); write: a note's sentences (R8)
+             * @enum {string}
+             */
+            kind: "read" | "write";
+            /** Output Tokens */
+            output_tokens: number;
+            /** Pages */
+            pages: number;
+            /** Requests */
+            requests: number;
+            /**
+             * Tier
+             * @description free: nothing was charged; cost is what it would cost
+             * @enum {string}
+             */
+            tier: "free" | "billed";
+            /**
+             * Unpriced
+             * @description Requests to a model with no price on the list: not in cost
+             */
+            unpriced: number;
+        };
+        /**
+         * AiUsageMoney
+         * @description What the cost figures are in: whole units of the provider's billing currency, not the deal units.
+         */
+        AiUsageMoney: {
+            /**
+             * Currency
+             * @description ISO 4217 code of the provider's price list
+             */
+            currency: string;
+            /**
+             * Unit
+             * @default one
+             * @constant
+             */
+            unit: "one";
+        };
+        /**
+         * AiUsageResponse
+         * @description The caller's own AI use, a day at a time (newest first), and the plan their limits come from.
+         */
+        AiUsageResponse: {
+            /** Days */
+            days: components["schemas"]["AiUsageDay"][];
+            money: components["schemas"]["AiUsageMoney"];
+            plan: components["schemas"]["AiPlan"];
+            /**
+             * Prices Checked On
+             * Format: date
+             */
+            prices_checked_on: string;
+            /** Prices Source */
+            prices_source: string;
+            /** Total Cost */
+            total_cost: number;
         };
         /** AnnualByGrade */
         AnnualByGrade: {
@@ -10091,6 +10197,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_ai_usage_api_account_ai_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiUsageResponse"];
                 };
             };
             /** @description Validation Error */
