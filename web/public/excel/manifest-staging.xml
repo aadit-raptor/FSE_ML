@@ -13,7 +13,7 @@
   <Description DefaultValue="Bring checked quarterly results into Excel: statements read from a results filing, reviewed by you, with subtotals as formulas and every figure's page in a note."/>
   <IconUrl DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/brand/addin-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/brand/addin-64.png"/>
-  <SupportUrl DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/privacy"/>
+  <SupportUrl DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/support"/>
   <AppDomains>
     <AppDomain>https://fse-ml-git-staging-aadit7.vercel.app</AppDomain>
     <AppDomain>https://vercel.com</AppDomain>
@@ -77,7 +77,7 @@
         <bt:Image id="Icon.80" DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/brand/addin-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/privacy"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/support"/>
         <bt:Url id="Pane.Url" DefaultValue="https://fse-ml-git-staging-aadit7.vercel.app/excel"/>
       </bt:Urls>
       <bt:ShortStrings>

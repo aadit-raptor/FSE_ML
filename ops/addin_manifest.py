@@ -71,7 +71,7 @@ def manifest(environment: str) -> str:
   <Description DefaultValue={quoteattr(DESCRIPTION)}/>
   <IconUrl DefaultValue={quoteattr(icon(32))}/>
   <HighResolutionIconUrl DefaultValue={quoteattr(f"{origin}/brand/addin-64.png")}/>
-  <SupportUrl DefaultValue={quoteattr(f"{origin}/privacy")}/>
+  <SupportUrl DefaultValue={quoteattr(f"{origin}/support")}/>
   <AppDomains>{domains}
   </AppDomains>
   <Hosts>
@@ -124,7 +124,7 @@ def manifest(environment: str) -> str:
       <bt:Images>{image_resources}
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue={quoteattr(f"{origin}/privacy")}/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue={quoteattr(f"{origin}/support")}/>
         <bt:Url id="Pane.Url" DefaultValue={quoteattr(pane)}/>
       </bt:Urls>
       <bt:ShortStrings>

@@ -34,6 +34,10 @@ PNG_SIZES = {
     BRAND / "addin-64.png": (64, 64),
     BRAND / "addin-80.png": (80, 80),
     BRAND / "addin-128.png": (128, 128),
+    # Microsoft's store listing (DEPLOY.md "Listing it in Microsoft's store")
+    BRAND / "addin-48.png": (48, 48),
+    BRAND / "addin-90.png": (90, 90),
+    BRAND / "addin-300.png": (300, 300),
 }
 
 LOGOS = [
