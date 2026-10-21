@@ -11,7 +11,7 @@ import {
   dealFromAccepted, documentJob, DOCUMENT_ERRORS, readerInfo, splitDeal, startDocumentRead, type DocumentDeal,
   type DocumentFigure, type DocumentJob, type DocumentLabel, type DocumentReaderInfo, type DocumentResult,
 } from "@/lib/documents";
-import { refusedLocally, uploadFile, type FileList } from "@/lib/files";
+import { megabytes, refusedLocally, uploadFile, type FileList, type UploadProblem } from "@/lib/files";
 import { fmtCount, fmtNumber, fmtPct } from "@/lib/format";
 import { formatDateTime } from "@/lib/locale";
 
@@ -24,6 +24,7 @@ import { useDeal } from "../DealProvider";
  * deal. The deal inputs come from the API, worked out from the read's own result and only the accepted values.
  *
  * i18n-keys: documents.error_*
+ * i18n-keys: files.problem_*
  * i18n-keys: documents.amber_*
  * i18n-keys: documents.figure_*
  * i18n-keys: documents.label_*
@@ -45,6 +46,8 @@ export function FromDocumentStep() {
   const [job, setJob] = useState<DocumentJob | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProblem, setUploadProblem] = useState<UploadProblem | null>(null);
+  const tf = useTranslations("files");
 
   const loadFiles = useCallback(async () => {
     const { data } = await api.GET("/api/files");
@@ -92,9 +95,12 @@ export function FromDocumentStep() {
   const upload = async (file: File) => {
     if (!files) return;
     setError(null);
+    setUploadProblem(null);
     const early = refusedLocally(file, files.usage, ["pdf"]);
     if (early) {
-      setError(early === "bad_type" ? "not_pdf" : "failed");
+      // the upload's own reason (too large, past the quota ...), in the Documents step's words
+      if (early === "bad_type") setError("not_pdf");
+      else setUploadProblem(early);
       return;
     }
     setUploading(true);
@@ -103,7 +109,8 @@ export function FromDocumentStep() {
     await loadFiles();
     setConfirmed(false);
     if (result.ok && result.file.status === "clean") setChosen(result.file.id);
-    else setError(result.ok ? "not_clean" : "failed");
+    else if (result.ok) setError("not_clean");
+    else setUploadProblem(result.problem);
   };
 
   const result = job?.status === "succeeded" ? job.result ?? null : null;
@@ -143,9 +150,25 @@ export function FromDocumentStep() {
           {t("closedBody")}
         </Notice>
       )}
-      {info && info.status === "on" && info.open && info.measured.meets_bar !== true && (
+      {info && info.status === "on" && info.open && info.measured.meets_bar === null && (
         <Notice tone="attention" title={t("unmeasuredTitle")} role="note">
           {t("unmeasuredBody", { cases: info.measured.cases })}
+        </Notice>
+      )}
+      {info && info.status === "on" && info.open && info.measured.meets_bar === false && (
+        <Notice tone="attention" title={t("belowBarTitle")} role="note">
+          {t("belowBarBody", { cases: info.measured.cases })}
+        </Notice>
+      )}
+      {uploadProblem && files && (
+        <Notice tone="loss" title={t("notUploaded")} role="alert">
+          <span data-upload-problem={uploadProblem}>
+            {tf(`problem_${uploadProblem}`, {
+              limit: tf("megabytes", { value: fmtNumber(megabytes(files.usage.max_file_bytes).value, 0) }),
+              quota: tf("megabytes", { value: fmtNumber(megabytes(files.usage.quota_bytes).value, 0) }),
+              maxFiles: files.usage.quota_files,
+            })}
+          </span>
         </Notice>
       )}
       {running && (

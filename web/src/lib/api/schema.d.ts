@@ -4396,7 +4396,7 @@ export interface components {
             /** Left Out */
             left_out: components["schemas"]["DocumentDealLeftOut"][];
             /** Notes */
-            notes: ("standard_not_in_deal" | "ebitda_not_positive")[];
+            notes: ("standard_not_in_deal" | "ebitda_not_positive" | "growth_out_of_range" | "tax_out_of_range" | "margin_out_of_range")[];
             /**
              * Used
              * @description The accepted values each input was made from

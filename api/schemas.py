@@ -2867,7 +2867,8 @@ class DocumentDealResponse(BaseModel):
     inputs: DocumentDealInputs
     used: Dict[str, List[str]] = Field(description="The accepted values each input was made from")
     left_out: List[DocumentDealLeftOut]
-    notes: List[Literal["standard_not_in_deal", "ebitda_not_positive"]]
+    notes: List[Literal["standard_not_in_deal", "ebitda_not_positive", "growth_out_of_range", "tax_out_of_range",
+                        "margin_out_of_range"]]
 
 
 # ---------------------------------------------------------------------------

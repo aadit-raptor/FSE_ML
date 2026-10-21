@@ -66,7 +66,7 @@ def check_open() -> None:
         raise _refuse(503, NOT_MEASURED)
 
 
-def _clean_pdf(subject: str, file_id: uuid.UUID):
+def clean_pdf(subject: str, file_id: uuid.UUID):
     from db import files as rows
 
     try:
@@ -100,7 +100,7 @@ def start(subject: str, file_id: uuid.UUID, *, public: bool, quarter_end: Option
     check_open()
     if reader.free_tier and not public:
         raise _refuse(422, CONFIRM_PUBLIC)
-    _clean_pdf(subject, file_id)
+    clean_pdf(subject, file_id)
     if company_id is not None:
         from db import coverage
         from db.engine import is_configured
@@ -164,7 +164,7 @@ def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.dat
     from uploads.store import NotStored, StorageError
 
     reader = provider()
-    record = _clean_pdf(owner, file_id)
+    record = clean_pdf(owner, file_id)
     path = uploads.spool() / f"read-{uuid.uuid4().hex}.pdf"
     t0 = time.perf_counter()
     charged, spent = 0, []

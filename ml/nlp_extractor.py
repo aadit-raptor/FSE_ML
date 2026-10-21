@@ -123,10 +123,13 @@ def prompt_text(*, pictures: bool = False) -> str:
     keys = "\n".join(f'- "{k}": {_MEANINGS[k]}' for k in FIGURES)
     text = _PROMPT % keys
     if pictures:
+        rule = ('- "page" is the 1-based page of the PDF file (count from its first page), not the number printed '
+                'on the page.')
+        if rule not in text:
+            raise ValueError("the page rule the pictures prompt replaces is not in the prompt")
         first = text.index("\nAnswer with JSON")
-        text = _PICTURES + text[first:].replace(
-            '- "page" is the 1-based page of the PDF file (count from its first page), not the number printed on '
-            'the page.', '- "page" is the number of the picture the figure is on (1, 2, ...).')
+        text = _PICTURES + text[first:].replace(rule, '- "page" is the number of the picture the figure is on '
+                                                     '(1, 2, ...).')
     return text
 
 
@@ -214,7 +217,7 @@ def picture_pages(read: dict, sent: Sequence[int]) -> dict:
 
 # ---------------------------------------------------------------- the checks
 
-def _plain(text: str) -> str:
+def plain(text: str) -> str:
     """For comparing a quote with its page: full-width forms folded, case and every space gone."""
     folded = unicodedata.normalize("NFKC", text).casefold()
     folded = folded.replace("−", "-").replace("–", "-").replace("—", "-")
@@ -222,21 +225,21 @@ def _plain(text: str) -> str:
 
 
 def quote_on_text(quote: str, text: str) -> bool:
-    plain = _plain(quote)
-    return bool(plain) and plain in _plain(text)
+    wanted = plain(quote)
+    return bool(wanted) and wanted in plain(text)
 
 
-_NUMBER = re.compile(r"\d(?:[\d.,']*\d)?")
-_SPACED = re.compile(r"\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?")
+NUMBER = re.compile(r"\d(?:[\d.,']*\d)?")
+SPACED = re.compile(r"\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d+)?")
 
 
-def _readings(token: str) -> set[float]:
+def readings(token: str) -> set[float]:
     """What a printed number can mean: its separators as grouping, or the last one as the decimal point."""
-    plain = re.sub(r"[   ]", "", token)
-    found = {float(re.sub(r"[.,']", "", plain))}
-    last = max(plain.rfind("."), plain.rfind(","))
+    bare = re.sub(r"[ \u00a0\u202f]", "", token)
+    found = {float(re.sub(r"[.,']", "", bare))}
+    last = max(bare.rfind("."), bare.rfind(","))
     if last > 0:
-        whole, fraction = re.sub(r"[.,']", "", plain[:last]), plain[last + 1:]
+        whole, fraction = re.sub(r"[.,']", "", bare[:last]), bare[last + 1:]
         if fraction.isdigit():
             found.add(float(f"{whole}.{fraction}"))
     return found
@@ -249,9 +252,9 @@ def number_in_quote(value: Optional[float], quote: str) -> bool:
         return False
     text = unicodedata.normalize("NFKC", quote)
     magnitude = abs(value)
-    tokens = _NUMBER.findall(text) + _SPACED.findall(text)
+    tokens = NUMBER.findall(text) + SPACED.findall(text)
     return any(abs(reading - magnitude) <= 1e-9 * max(1.0, magnitude)
-               for token in tokens for reading in _readings(token))
+               for token in tokens for reading in readings(token))
 
 
 def _same(a: Optional[float], b: Optional[float]) -> bool:
@@ -398,22 +401,25 @@ def deal_inputs(result: Mapping, accepted) -> dict:
                 return _pct((abs(part) if absolute else part) / top * 100)
             return make
 
-        offer("gross_margin", [revenue, need("gross_profit")], share("gross_profit"))
+        offer("gross_margin", [revenue, need("gross_profit")], share("gross_profit"), note="margin_out_of_range")
         offer("opex", [revenue, need("gross_profit"), need("operating_income")],
               lambda: _pct((fig("gross_profit")["value"] - fig("operating_income")["value"])
-                           / fig("revenue")["value"] * 100) if fig("revenue")["value"] > 0 else None)
-        offer("da", [revenue, need("depreciation_amortization")], share("depreciation_amortization", absolute=True))
-        offer("capex", [revenue, need("capital_expenditures")], share("capital_expenditures", absolute=True))
+                           / fig("revenue")["value"] * 100) if fig("revenue")["value"] > 0 else None,
+              note="margin_out_of_range")
+        offer("da", [revenue, need("depreciation_amortization")], share("depreciation_amortization", absolute=True),
+              note="margin_out_of_range")
+        offer("capex", [revenue, need("capital_expenditures")], share("capital_expenditures", absolute=True),
+              note="margin_out_of_range")
         # many statements print expenses negative, so the tax is taken by its size (a credit is rare in a deal)
         offer("tax", [need("profit_before_tax"), need("income_tax")],
               lambda: _pct(abs(fig("income_tax")["value"]) / fig("profit_before_tax")["value"] * 100)
-              if fig("profit_before_tax")["value"] > 0 else None)
+              if fig("profit_before_tax")["value"] > 0 else None, note="tax_out_of_range")
         prior = _prior(latest, (figures.get("revenue") or {}).keys() | {
             f["period_end"] for f in result.get("figures", []) if f["key"] == "revenue"})
         if prior:
             offer("growth", [revenue, need("revenue", prior)],
                   lambda: _bounded((fig("revenue")["value"] / fig("revenue", prior)["value"] - 1) * 100, -50, 100)
-                  if fig("revenue", prior)["value"] > 0 else None)
+                  if fig("revenue", prior)["value"] > 0 else None, note="growth_out_of_range")
 
     standard = labels.get("accounting_standard")
     if standard:

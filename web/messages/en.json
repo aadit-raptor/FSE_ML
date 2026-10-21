@@ -2876,6 +2876,12 @@
     "error_too_long": "The document has more pages than the reader takes (500).",
     "error_read_not_done": "The read has not finished.",
     "error_read_expired": "The read is more than six hours old. Read the document again.",
-    "error_no_read": "That read is gone. Read the document again."
+    "error_no_read": "That read is gone. Read the document again.",
+    "belowBarTitle": "Below its accuracy bar",
+    "belowBarBody": "Measured on {cases} documents, it does not meet its bar here. Check every value.",
+    "notUploaded": "Not uploaded",
+    "note_growth_out_of_range": "Revenue growth from the two years falls outside what a deal takes (-50% to 100%), so it was left out.",
+    "note_tax_out_of_range": "The tax rate could not be worked out (a loss before tax, or tax above the profit), so it was left out.",
+    "note_margin_out_of_range": "A share of revenue fell outside 0% to 100% (or revenue was not positive), so it was left out."
   }
 }

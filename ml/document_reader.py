@@ -35,9 +35,10 @@ from fastapi import HTTPException
 from api.limits import holding_simulation_slot
 from api.observability import deploy_environment, log_event, model_timer
 from ml import nlp_extractor as nx
-from research.reader import pages
+from research.reader import gate, pages
 from research.reader import providers as ai
-from research.reader.service import _clean_pdf, count_usage
+from research.reader.read import usage_of
+from research.reader.service import clean_pdf, count_usage
 
 KIND = "document.extract"
 MAX_PAGES = 500                 # the evaluation set's longest is 448 (L'Oréal's universal registration document)
@@ -59,15 +60,13 @@ def provider():
 
 
 def measured(path: Optional[Path] = None) -> dict:
-    from research.reader import gate
-
     return gate.measured(CARD if path is None else path)
 
 
 def open_to_people(environment: str, path: Optional[Path] = None) -> bool:
     """Production reads documents only while the card's headline set meets its bar (phase R rule 2, held here
     too); staging and local copies read anyway, the card's state shown."""
-    return environment != "production" or measured(path)["meets_bar"] is True
+    return gate.open_to_people(environment, CARD if path is None else path)
 
 
 def _reader():
@@ -86,7 +85,7 @@ def start(subject: str, file_id: uuid.UUID, *, public: bool):
         raise HTTPException(503, NOT_MEASURED)
     if reader.free_tier and not public:
         raise HTTPException(422, CONFIRM_PUBLIC)
-    _clean_pdf(subject, file_id)
+    clean_pdf(subject, file_id)
     enforce([(USER_READS, subject), (READS_ALL, "all")])
     return submit_kind(subject, KIND, {"owner": subject, "file_id": str(file_id)})
 
@@ -107,13 +106,6 @@ def pages_left(subject: str) -> int:
 
     check = check_for(USER_DOCUMENT_PAGES, subject, time.time())
     return max(0, check.limit - counters().usage(check.key))
-
-
-def _usage(answer: ai.Answer) -> dict:
-    usage = answer.usage or {}
-    keep = ("promptTokenCount", "candidatesTokenCount", "thoughtsTokenCount", "totalTokenCount")
-    return {"model": answer.model, "prompt_version": answer.prompt_version, "seconds": answer.seconds,
-            "tokens": {k: int(usage[k]) for k in keep if isinstance(usage.get(k), (int, float))}}
 
 
 def _unwrap(answer: ai.Answer) -> dict:
@@ -166,7 +158,7 @@ def read_document(path: Path, reader, *, info: pages.Info, spent: Optional[list]
     result = nx.assemble(read_a, read_b, quote_on_page=quote_lookup(texts), poor=info.poor)
     result["document"] = {"pages": info.pages, "sha256": digest,
                           "text_pages": sorted(p for p, t in texts.items() if len(t.strip()) >= TEXT_PAGE)}
-    result["reads"] = {"A": _usage(a), "B": _usage(b) if b else None, "seconds": round(time.time() - started, 1)}
+    result["reads"] = {"A": usage_of(a), "B": usage_of(b) if b else None, "seconds": round(time.time() - started, 1)}
     return result
 
 
@@ -176,7 +168,7 @@ def extract_file(owner: str, file_id: uuid.UUID) -> dict:
     from uploads.store import NotStored, StorageError
 
     reader = _reader()
-    record = _clean_pdf(owner, file_id)
+    record = clean_pdf(owner, file_id)
     path = uploads.spool() / f"document-{uuid.uuid4().hex}.pdf"
     t0 = time.perf_counter()
     charged, spent = 0, []
@@ -220,7 +212,7 @@ def extract_file(owner: str, file_id: uuid.UUID) -> dict:
 
 def plain_hash(quote: str) -> str:
     """How a recording keeps which quotes are on their page without keeping the page's text."""
-    return hashlib.sha256(nx._plain(quote).encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha256(nx.plain(quote).encode("utf-8")).hexdigest()[:16]
 
 
 def recorded_lookup(record: dict):
@@ -298,7 +290,7 @@ def record_one(reader, pdf: Path, target: Path, set_name: str) -> str:
 
 
 def main(argv=None) -> int:
-    from research.reader.record import _key
+    from research.reader.record import api_key
 
     parser = argparse.ArgumentParser(prog="python -m ml.document_reader")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -307,7 +299,7 @@ def main(argv=None) -> int:
     live.add_argument("--env-file", type=Path)
     live.add_argument("files", nargs="+", type=Path)
     args = parser.parse_args(argv)
-    reader = ai.Gemini(_key(args.env_file))
+    reader = ai.Gemini(api_key(args.env_file))
     for pdf in args.files:
         target = EXTRACTIONS / args.set / f"{pdf.stem}.json"
         try:

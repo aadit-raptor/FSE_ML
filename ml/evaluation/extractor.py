@@ -117,7 +117,7 @@ def _plant_one(found: dict, rng: random.Random) -> Optional[tuple[float, str]]:
     """A digit changed in the figure's printed number, in its quote and in its value alike."""
     quote = unicodedata.normalize("NFKC", found["quote"])
     magnitude = abs(found["value"])
-    for match in list(nx._NUMBER.finditer(quote)) + list(nx._SPACED.finditer(quote)):
+    for match in list(nx.NUMBER.finditer(quote)) + list(nx.SPACED.finditer(quote)):
         token = match.group()
         for decimal in (False, True):
             reading = _read_as(token, decimal)

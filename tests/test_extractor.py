@@ -377,3 +377,20 @@ def test_a_recording_made_with_another_prompt_is_left_as_it_is(tmp_path):
     target.write_text('{"document": {"name": "old"}, "prompt": "x0", "reads": {}}', encoding="utf-8")
     assert dr.record_one(None, tmp_path / "missing.pdf", target, "evaluation") == \
         "recorded with prompt x0, not x1: left as it is"
+
+
+def test_an_accepted_figure_whose_input_falls_outside_what_a_deal_takes_says_why():
+    a = answer()
+    a["figures"] = [f for f in a["figures"] if not (f["key"] == "revenue" and f["period_end"] == PRIOR)]
+    a["figures"] += [figure("revenue", 700.0, PRIOR)]                   # growth 133%: past the deal's 100%
+    a["figures"] = [f for f in a["figures"] if f["key"] != "profit_before_tax"] + [figure("profit_before_tax", -5.0)]
+    result = assembled(a=a)
+    patch = nx.deal_inputs(result, every_id(result))
+    assert "growth" not in patch["inputs"] and "tax" not in patch["inputs"]
+    assert {"growth_out_of_range", "tax_out_of_range"} <= set(patch["notes"])
+
+
+def test_the_pictures_prompt_refuses_to_be_made_without_its_page_rule(monkeypatch):
+    monkeypatch.setattr(nx, "_PROMPT", nx._PROMPT.replace("1-based page of the PDF file", "page"))
+    with pytest.raises(ValueError):
+        nx.prompt_text(pictures=True)
