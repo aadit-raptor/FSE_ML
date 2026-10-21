@@ -100,7 +100,7 @@ RUN_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
     "/api/ml/deal-risk", "/api/ml/multiples", "/api/ml/growth", "/api/ml/macro-regime",
-    "/api/companies/search", "/api/companies/load", "/api/research/reads",
+    "/api/companies/search", "/api/companies/load", "/api/research/reads", "/api/documents/reads",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
 # The memory-heavy runs: one at a time, with a timeout
@@ -138,6 +138,12 @@ READS_ALL = Rule("reads_per_day", "results reads", "service", 30, 86_400, shared
 USER_READ_PAGES = Rule("user_read_pages_per_day", "pages read", "user", 250, 86_400, shared=True,
                        plan="pages_per_day")
 READS_PATH = "/api/research/reads"
+# A document read for a deal (PLAN.md 6.2) is two requests to the same free
+# allowance, so it counts as a read (USER_READS, READS_ALL); its pages have
+# their own day's limit, because an annual report runs to hundreds of pages
+# (the evaluation set's longest, 448): a thousand is two or three reports
+USER_DOCUMENT_PAGES = Rule("user_document_pages_per_day", "document pages read", "user", 1_000, 86_400,
+                           shared=True, plan="document_pages_per_day")
 # The results note's linking sentences (PLAN.md R8): one request to the same
 # free allowance the reader spends, so few: five a person a day and ten for
 # the service, leaving the reader most of the day's forty-odd requests. A note

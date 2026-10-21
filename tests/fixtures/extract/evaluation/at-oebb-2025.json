@@ -1,0 +1,604 @@
+{
+ "document": {
+  "dpi": [
+   150,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   150
+  ],
+  "name": "at-oebb-2025",
+  "pages": 114,
+  "set": "evaluation",
+  "sha256": "a90d422e7743f130b88ae5e07f3ce08427d03f483ddc4e51274dc80ef6e51a2a",
+  "text_pages": [
+   4,
+   6,
+   7,
+   9
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "4": [
+   "2759b05466342c61",
+   "2763d33990df1600",
+   "388e4148e3227cbd",
+   "38e4e0362cccd9da",
+   "42700c501fbd52a0",
+   "4d7c627030f1bc85",
+   "88c30d5bb9d0878d",
+   "90783cd6a92588f0",
+   "9a79cb3b3248a20e",
+   "abd34c213f61c59e",
+   "ac8ebb3f5fa30fe0",
+   "c87794fde912b5f4",
+   "cb0b509f9267a47d",
+   "d62439169ea43885",
+   "f9633bc256841a35",
+   "fb354c5967a35ad6"
+  ],
+  "6": [
+   "03a57c9977ca084c",
+   "204580f321c1f71c",
+   "2bc1a3dffac572eb",
+   "56aa109126ec4b2a",
+   "5765257330d708aa",
+   "96ff7f47c8ec069b",
+   "9bd994df3c7495d9",
+   "d3c12b4ae58842df",
+   "e89508ecd30c5784"
+  ],
+  "7": [
+   "17e76c72e6add8e8",
+   "326642efc59674f2",
+   "c278357cb2bef621"
+  ],
+  "9": [
+   "45c578cebad1f7ce"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.8-flash",
+   "read": {
+    "company": "ÖBB-Holding AG",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse 4 6.155.526,8 5.707.016,3",
+      "value": 6155526.8
+     },
+     {
+      "key": "revenue",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse 4 6.155.526,8 5.707.016,3",
+      "value": 5707016.3
+     },
+     {
+      "key": "operating_income",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Betriebsergebnis (EBIT ohne Ergebnis aus nach der Equity-Methode bilanzierten \nUnternehmen) 732.678,0 707.808,9",
+      "value": 732678.0
+     },
+     {
+      "key": "operating_income",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Betriebsergebnis (EBIT ohne Ergebnis aus nach der Equity-Methode bilanzierten \nUnternehmen) 732.678,0 707.808,9",
+      "value": 707808.9
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Abschreibungen 9 -1.707.384,1 -1.521.401,8",
+      "value": -1707384.1
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Abschreibungen 9 -1.707.384,1 -1.521.401,8",
+      "value": -1521401.8
+     },
+     {
+      "key": "interest_expense",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Zinsaufwendungen 11 -718.012,1 -664.204,0",
+      "value": -718012.1
+     },
+     {
+      "key": "interest_expense",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Zinsaufwendungen 11 -718.012,1 -664.204,0",
+      "value": -664204.0
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Ertragsteuern (EBT) 68.110,4 113.623,1",
+      "value": 68110.4
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Ertragsteuern (EBT) 68.110,4 113.623,1",
+      "value": 113623.1
+     },
+     {
+      "key": "income_tax",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Ertragsteuern 13 -65.022,5 27.444,4",
+      "value": -65022.5
+     },
+     {
+      "key": "income_tax",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Ertragsteuern 13 -65.022,5 27.444,4",
+      "value": 27444.4
+     },
+     {
+      "key": "net_income",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Konzernjahresergebnis 3.087,9 141.067,5",
+      "value": 3087.9
+     },
+     {
+      "key": "net_income",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Konzernjahresergebnis 3.087,9 141.067,5",
+      "value": 141067.5
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 7,
+      "period_end": "2025-12-31",
+      "quote": "Geldfluss aus der betrieblichen Tätigkeit a) 1.610.788 1.748.839",
+      "value": 1610788.0
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 7,
+      "period_end": "2024-12-31",
+      "quote": "Geldfluss aus der betrieblichen Tätigkeit a) 1.610.788 1.748.839",
+      "value": 1748839.0
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 7,
+      "period_end": "2025-12-31",
+      "quote": "Erwerb von konsolidierten Unternehmen *) 14, 15 -4.914.564 -4.741.585",
+      "value": 4914564.0
+     },
+     {
+      "key": "capital_expenditures",
+      "page": 7,
+      "period_end": "2024-12-31",
+      "quote": "Erwerb von konsolidierten Unternehmen *) 14, 15 -4.914.564 -4.741.585",
+      "value": 4741585.0
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 6,
+      "period_end": "2025-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente 22 189.887,0 288.200,0",
+      "value": 189887.0
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 6,
+      "period_end": "2024-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente 22 189.887,0 288.200,0",
+      "value": 288200.0
+     },
+     {
+      "key": "total_assets",
+      "page": 6,
+      "period_end": "2025-12-31",
+      "quote": "46.875.817,0 44.168.244,8",
+      "value": 46875817.0
+     },
+     {
+      "key": "total_assets",
+      "page": 6,
+      "period_end": "2024-12-31",
+      "quote": "46.875.817,0 44.168.244,8",
+      "value": 44168244.8
+     },
+     {
+      "key": "total_equity",
+      "page": 6,
+      "period_end": "2025-12-31",
+      "quote": "Anteile nicht beherrschender Gesellschafter 23 13.286,8 20.786,4 3.338.587,2 3.387.431,9",
+      "value": 3338587.2
+     },
+     {
+      "key": "total_equity",
+      "page": 6,
+      "period_end": "2024-12-31",
+      "quote": "Anteile nicht beherrschender Gesellschafter 23 13.286,8 20.786,4 3.338.587,2 3.387.431,9",
+      "value": 3387431.9
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 9,
+      "quote": "Konzernabschluss nach IFRS",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 4,
+      "quote": "in TEUR",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 6,
+      "quote": "Konzern-Bilanz per 31.12.2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 4,
+      "quote": "Konzernabschluss",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 4,
+      "quote": "in TEUR",
+      "value": "thousands"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 110.2,
+   "usage": {
+    "candidatesTokenCount": 2640,
+    "promptTokenCount": 61540,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 60667
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 11762,
+    "totalTokenCount": 75942
+   }
+  },
+  "B": {
+   "model": "gemini-3.7-flash",
+   "read": {
+    "company": "ÖBB-Holding AG",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse 4 6.155.526,8",
+      "value": 6155526.8
+     },
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse 4 6.155.526,8 5.707.016,3",
+      "value": 5707016.3
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Abschreibungen 9 -1.707.384,1",
+      "value": -1707384.1
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Abschreibungen 9 -1.707.384,1 -1.521.401,8",
+      "value": -1521401.8
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Betriebsergebnis (EBIT ohne Ergebnis aus nach der Equity-Methode bilanzierten\nUnternehmen) 732.678,0",
+      "value": 732678.0
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Betriebsergebnis (EBIT ohne Ergebnis aus nach der Equity-Methode bilanzierten\nUnternehmen) 732.678,0 707.808,9",
+      "value": 707808.9
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Zinsaufwendungen 11 -718.012,1",
+      "value": -718012.1
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Zinsaufwendungen 11 -718.012,1 -664.204,0",
+      "value": -664204.0
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Ertragsteuern (EBT) 68.110,4",
+      "value": 68110.4
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Ertragsteuern (EBT) 68.110,4 113.623,1",
+      "value": 113623.1
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ertragsteuern 13 -65.022,5",
+      "value": -65022.5
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ertragsteuern 13 -65.022,5 27.444,4",
+      "value": 27444.4
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Konzernjahresergebnis 3.087,9",
+      "value": 3087.9
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Konzernjahresergebnis 3.087,9 141.067,5",
+      "value": 141067.5
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente 22 189.887,0",
+      "value": 189887.0
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Zahlungsmittel und Zahlungsmitteläquivalente 22 189.887,0 288.200,0",
+      "value": 288200.0
+     },
+     {
+      "key": "total_assets",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "46.875.817,0",
+      "value": 46875817.0
+     },
+     {
+      "key": "total_assets",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "46.875.817,0 44.168.244,8",
+      "value": 44168244.8
+     },
+     {
+      "key": "total_equity",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "3.338.587,2",
+      "value": 3338587.2
+     },
+     {
+      "key": "total_equity",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "3.338.587,2 3.387.431,9",
+      "value": 3387431.9
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Geldfluss aus der betrieblichen Tätigkeit a) 1.610.788",
+      "value": 1610788.0
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Geldfluss aus der betrieblichen Tätigkeit a) 1.610.788 1.748.839",
+      "value": 1748839.0
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 4,
+      "quote": "Konzernabschluss nach IFRS",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "in TEUR",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 2,
+      "quote": "31.12.2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 1,
+      "quote": "Konzernabschluss",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "in TEUR",
+      "value": "thousands"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 45.3,
+   "usage": {
+    "candidatesTokenCount": 2233,
+    "promptTokenCount": 5260,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 4368
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 3465,
+    "totalTokenCount": 10958
+   }
+  }
+ }
+}

@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-20 (PLAN.md R9 done, so phase R is done: AI pages, requests, tokens and cost counted per person a day in `ai_usage`, priced from Google's paid list; a person's limits from their plan (`FSE_PLAN`) and the service's from the AI's tier (`AI_FREE_TIER`) in `api/plans.py`, the free ones exactly today's; a test proves switching `AI_PROVIDER` on staging changes nothing else; DEPLOY.md "Paid switches" and the store listing steps). Earlier the same day (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-21 (PLAN.md 6.2 done: Deal -> From a document reads an uploaded PDF in any language twice by two Gemini models, every value with its page and a verbatim quote checked against the page's text, and only the values the person accepts enter the deal; the card meets its bar on eight public documents in five languages; the same day the user set DeepSeek aside, Gemini stays). Before that 2026-10-20 (PLAN.md R9 done, so phase R is done: AI pages, requests, tokens and cost counted per person a day in `ai_usage`, priced from Google's paid list; a person's limits from their plan (`FSE_PLAN`) and the service's from the AI's tier (`AI_FREE_TIER`) in `api/plans.py`, the free ones exactly today's; a test proves switching `AI_PROVIDER` on staging changes nothing else; DEPLOY.md "Paid switches" and the store listing steps). Earlier the same day (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1387,6 +1387,48 @@ checked). `/privacy` says files are stored. Not done here: team sharing
 (7.2), reading a document (6.2), account export and deletion (10.1), a
 signature scan (12.1).
 
+A document to a deal (PLAN.md 6.2, DEPLOY.md "Document reader"): **Deal ->
+From a document** (`/deal/from-document`) reads a clean uploaded PDF (annual
+report, financial statements, information pack; any language) as job
+**`document.extract`** (`ml/document_reader.py`; not in `JobSubmit`, queued by
+`POST /api/documents/reads`). **`ml/nlp_extractor.py`** is the prompt
+(`PROMPT_VERSION` x1: a change is a new version and the set is read again),
+the answer's shape (`FIGURES`, fifteen keys; `LABELS`: currency, unit,
+standard, fiscal year end, scope), `assemble` and `deal_inputs`. It runs on
+**the results reader's provider** (`providers.Instructions` hands `Gemini.read`
+another task's prompt; `Replay` reads `tests/fixtures/extract/` with
+`FSE_EXTRACT_REPLAY_DEFAULT`): read A the whole PDF, read B pictures of the
+pages A cites (at most 12), a different model. Every value has its **PDF page
+and a verbatim quote**; amber reasons: `reads_differ`, `one_read_only`,
+**`quote_not_on_page`** (the cited page's text layer from the page tool's new
+`text` command, in its child process; a scan has none, so nothing is said),
+`number_not_in_quote`, `poor_scan`. **Nothing enters a deal unless accepted**:
+`POST /api/documents/reads/{id}/deal {accepted: [ids]}` works the inputs out of
+the job's own result (never values from the browser; ids are
+`label:<key>` and `figure:<key>:<period end>`), by the engine's definitions
+(EBIT = gross profit - opex, EBITDA = EBIT + D&A unless printed, tax by its
+size over profit before tax, growth from the two years' revenue), money only
+with currency and unit accepted (amounts in full become thousands), a
+standard other than IFRS or US GAAP a note; an input the document can't give
+is not listed as waiting. The web converts the deal to the document's money
+(`setMoney`) before setting the fields. Limits: a document is a read
+(`USER_READS`, `READS_ALL`); its pages `USER_DOCUMENT_PAGES` (plan field
+`document_pages_per_day`: free 1,000, research 4,000), at most 500 pages.
+Free tier: the person confirms the document is public (422 `confirm_public`).
+Counted in `ai_usage` as kind **`extract`** (migration 0024), a failed read
+too. **The card** (`ml/cards/extractor.json`, `ml/evaluation/extractor.py`)
+gates production like the reader's; bar set before reading: no wrong value and
+no planted misread unflagged, at least 80% of the truth figures found. Its set
+is eight public documents (four in German, Nintendo's 有価証券報告書, L'Oréal's
+DEU, Grupo Insur's cuentas anuales, an Indian private company's statements),
+**truth typed by hand** from each document's statements in
+`tests/fixtures/extract/truth.json` (**never change it to agree with a
+read**); recordings keep which quotes are on their page as hashes, never the
+page text. Measured 2026-10-21: 54 of 55 truth figures found, none wrong
+unflagged, no planted misread missed (the one-read baseline misses all),
+8.5% amber. The PDFs are on the Mac only, in `research-samples/documents/` (git-ignored;
+each one's source address is in the truth file), never in the repository.
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1429,14 +1471,19 @@ report draft, next-quarter roll forward, in the app and in an Excel add-in.
 3% amber bar the user set, so production reads; the sector models are "not yet
 vetted" until an analyst reads them); billing with a cap (DEPLOY.md "Paid
 switches") still comes before the first showing to analysts
-(PLAN.md R2's "Before the first showing"). **The next task is 6.2** (upload a
-document, get a deal: the lowest open number; 5.10 is parked), unless what the
-analysts say after the first showing adds phase R work first; then 6.3, 6.4 and
-phases 7 to 12 in PLAN.md's order. Phase R's own rules are at its top in PLAN.md
+(PLAN.md R2's "Before the first showing"). 6.2 is done (2026-10-21, document to
+deal, below). **The next task is 6.3** (the investment memo writer: the lowest
+open number; 5.10 is parked), unless what the analysts say after the first
+showing adds phase R work first; then 6.4 and phases 7 to 12 in PLAN.md's order. Phase R's own rules are at its top in PLAN.md
 (a tool that never picks a rating; one model definition evaluated by the
 server and written as Excel formulas; new code in `research/` only). The
 decisions still the user's are listed there.
 
+**Decided by the user (2026-10-21): Gemini stays the AI provider, two reads by
+two different Gemini models.** DeepSeek was considered (cheaper) and set aside:
+no PDF input, one model that reads pictures, pictures cut to about 384 tokens
+(too few for a dense statement page), servers in China. Don't propose it again
+without one of those changing.
 **R0 is done (2026-10-14): go, with Gemini, two reads by two different full
 models.** Its results, lessons and the final table are under R0 in PLAN.md. The 30 results PDFs, the free Gemini key
 (`research-samples/.env`) and the test scripts (`research-samples/r0/`) are
@@ -1817,7 +1864,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). R9 is done (ready for the paid switch, above), so phase R is done. **Next is 6.2**.
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). R9 is done (ready for the paid switch, above), so phase R is done. 6.2 is done (a document to a deal, below). **Next is 6.3**.
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -2080,7 +2127,6 @@ golden snapshot is untouched and parity tests explain every departure.
   `uploads` to `API_PATHS` in `.github/workflows/staging.yml` (line 35), so
   a change to `uploads/` alone makes the staging check wait for the API.
 
-- Whether to wire up the unused `ml/nlp_extractor.py`; PLAN.md 6.2 rebuilds it.
 
 ---
 
@@ -2127,6 +2173,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/growth_calibrator.py`, `ml/growth_ranges.json`, `ml/evaluation/growth.py`, `components/montecarlo/GrowthCalibration.tsx`, `tests/ml_firm_growth.py`, `tests/e2e_growth.py` | Growth calibrator (PLAN.md 5.5): ranges from SEC filers' revenue growth over their economy's, by region, sector and hold, gated by its card; the served percentiles; the out-of-time card; the Monte Carlo button and tile; the writers of the data (SEC frames, SIC codes, ECB rates, IMF growth) and the browser tests' answers |
 | `core/live.py`, `ml/evaluation/surrogate.py`, `components/montecarlo/MonteCarloML.tsx`, `jobs/drill.py`, `tests/test_live.py`, `web/e2e/live-sliders.spec.ts` | Live sliders (PLAN.md 5.8): the simulation on a small, fixed set of paths with the sliders as inputs; its card on varied regional deals; the Live step; the staging drill's live session and memory read; the tests (the estimate is the run with that input changed) |
 | `ml/macro_regime.py`, `ml/evaluation/regime.py`, `components/montecarlo/EconomicRegime.tsx`, `tests/ml_regime_history.py`, `tests/e2e_regime.py` | Economic regime by region (PLAN.md 5.7): each region's year named from IMF growth and inflation against its own previous five years, the monthly refit, gated by its card; the card on the IMF's past projections; the Scenarios tile; the writers of the card's data, the recorded IMF answers and the browser tests' answers |
+| `ml/nlp_extractor.py`, `ml/document_reader.py`, `api/routers/documents.py`, `ml/evaluation/extractor.py`, `tests/fixtures/extract/`, `web/src/lib/documents.ts`, `web/src/components/deal/steps/FromDocumentStep.tsx`, `tests/test_extractor*.py`, `web/e2e/extract.spec.ts` | A document read for a deal (PLAN.md 6.2): the prompt, the answer's shape, the checks (two reads, the quote on its page, the number in its quote) and the deal inputs from accepted values; the job, the gate and the recorder; the endpoints; its card; the recorded reads and the hand-typed truth file; the browser's side and Deal -> From a document; the tests |
 | `research/reader/`, `api/routers/research.py`, `ml/evaluation/reader.py`, `web/src/components/coverage/`, `web/src/lib/research.ts`, `tests/fixtures/research/reader/`, `tests/test_research_reader*.py`, `web/e2e/reader.spec.ts` | The results reader (PLAN.md R1): the provider switch, prompts, page tool, checks, standard lines, assembly, the job's service, the production gate and the recorder; the endpoints; its card; Coverage -> Results; the recorded answers (R0's 30 as `development`, `held_out` from R1b); the tests |
 | `web/src/app/excel/`, `web/src/components/excel/`, `web/src/lib/excel/`, `api/routers/addin.py`, `db/addin.py`, `ops/addin_manifest.py`, `web/public/excel/`, `web/e2e/excel.spec.ts`, `web/e2e/fake-office.js`, `tests/test_addin*.py`, `tests/addin_cells_check.py` | The Excel add-in (PLAN.md R3): the pane and sign-in dialog pages; their components (sign-in, import, read and review); Office.js loading, the dialog, the pass and the cell writer; the pass endpoints and storage; the manifests' writer and the manifests; the browser tests and their stand-in for Office.js; the pass and manifest tests; the cell-by-cell comparison with the download |
 | `research/coverage.py`, `db/coverage.py`, `api/routers/coverage.py`, `web/src/components/coverage/` (`CompaniesStep`, `Review`, `PageView`), `tests/test_research_coverage*.py`, `tests/coverage_workbook_check.py`, `web/e2e/coverage.spec.ts` | Coverage (PLAN.md R2): a reviewed read made into stored periods and the checked workbook; the rows, owner-matched; the endpoints; the Companies step, the review beside the page and the pdf.js page view; the tests and the browser tests' workbook check |
@@ -2663,6 +2710,8 @@ Skills load when a session starts: install first, then open a new session.
   keeps the old shape: the tests pass (each makes a fresh database) and the
   browser tests fail with a 500 (`ProgrammingError`: no such column).
   `python -m db.migrate downgrade -1` then `upgrade` on `DATABASE_URL`.
+- **Check a model's quote against the page's own text** (PLAN.md 6.2): both Gemini models read LM Manufacturing's cash flow with its two year columns swapped and agreed, so a second read alone would have shown the wrong year as fact; the quote ("7,487 2,853") was not on the page ("2,853 7,487"), which is what flagged it. Many reports print the earlier year first (Bauer, Nintendo). The page tool's `text` command gives the text layer; a scan has none, so the check says nothing there.
+- `research/reader/pages.py` limits `info` to a results filing's 300 pages unless told otherwise (`info(path, limit)`); `render` and `text` open only the pages asked for, whatever the length. An annual report runs to 450 pages.
 - A new request to the AI provider must be counted (PLAN.md R9): collect each
   `Answer` it gets (the `spent` lists) and pass them to
   `research/reader/service.py` `count_usage` with its kind, and give any new

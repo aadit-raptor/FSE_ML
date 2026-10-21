@@ -419,10 +419,11 @@
             "type": "integer"
           },
           "kind": {
-            "description": "read: a results read (R1); write: a note's sentences (R8)",
+            "description": "read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2)",
             "enum": [
               "read",
-              "write"
+              "write",
+              "extract"
             ],
             "title": "Kind",
             "type": "string"
@@ -4777,6 +4778,699 @@
         "title": "DistressCard",
         "type": "object"
       },
+      "DocumentDealInputs": {
+        "description": "Deal inputs from the accepted values only, money in the document's currency and unit.",
+        "properties": {
+          "accounting_standard": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ifrs",
+                  "us_gaap"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accounting Standard"
+          },
+          "capex": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capex"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "description": "ISO 4217, e.g. EUR",
+                "maxLength": 3,
+                "minLength": 3,
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "da": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Da"
+          },
+          "ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda"
+          },
+          "first_fiscal_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Fiscal Year"
+          },
+          "fiscal_year_end_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year End Month"
+          },
+          "gross_margin": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Margin"
+          },
+          "growth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Growth"
+          },
+          "opex": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opex"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "thousands",
+                  "lakhs",
+                  "millions",
+                  "crores",
+                  "billions"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "title": "DocumentDealInputs",
+        "type": "object"
+      },
+      "DocumentDealLeftOut": {
+        "properties": {
+          "input": {
+            "title": "Input",
+            "type": "string"
+          },
+          "needs": {
+            "description": "The values it is made from that were not accepted",
+            "items": {
+              "type": "string"
+            },
+            "title": "Needs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "input",
+          "needs"
+        ],
+        "title": "DocumentDealLeftOut",
+        "type": "object"
+      },
+      "DocumentDealRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "description": "The ids of the values the caller accepted",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Accepted",
+            "type": "array"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "title": "DocumentDealRequest",
+        "type": "object"
+      },
+      "DocumentDealResponse": {
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/DocumentDealInputs"
+          },
+          "left_out": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentDealLeftOut"
+            },
+            "title": "Left Out",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "enum": [
+                "standard_not_in_deal",
+                "ebitda_not_positive",
+                "growth_out_of_range",
+                "tax_out_of_range",
+                "margin_out_of_range"
+              ],
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "used": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "The accepted values each input was made from",
+            "title": "Used",
+            "type": "object"
+          }
+        },
+        "required": [
+          "inputs",
+          "used",
+          "left_out",
+          "notes"
+        ],
+        "title": "DocumentDealResponse",
+        "type": "object"
+      },
+      "DocumentFigure": {
+        "properties": {
+          "amber": {
+            "anyOf": [
+              {
+                "enum": [
+                  "reads_differ",
+                  "one_read_only",
+                  "quote_not_on_page",
+                  "number_not_in_quote",
+                  "poor_scan"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amber"
+          },
+          "id": {
+            "description": "figure:<key>:<period end>, what the caller accepts",
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "enum": [
+              "revenue",
+              "gross_profit",
+              "operating_income",
+              "depreciation_amortization",
+              "ebitda",
+              "interest_expense",
+              "profit_before_tax",
+              "income_tax",
+              "net_income",
+              "capital_expenditures",
+              "cash_from_operations",
+              "cash_and_equivalents",
+              "total_borrowings",
+              "total_assets",
+              "total_equity"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "other": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "quote": {
+            "title": "Quote",
+            "type": "string"
+          },
+          "value": {
+            "description": "As printed, in the document's unit",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "period_end",
+          "value",
+          "page",
+          "quote",
+          "other",
+          "amber"
+        ],
+        "title": "DocumentFigure",
+        "type": "object"
+      },
+      "DocumentLabel": {
+        "properties": {
+          "amber": {
+            "anyOf": [
+              {
+                "enum": [
+                  "reads_differ",
+                  "one_read_only",
+                  "quote_not_on_page",
+                  "number_not_in_quote",
+                  "poor_scan"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why it needs a look; null when it doesn't",
+            "title": "Amber"
+          },
+          "id": {
+            "description": "label:<key>, what the caller accepts",
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "enum": [
+              "currency",
+              "unit",
+              "accounting_standard",
+              "fiscal_year_end",
+              "scope"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "other": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The second read's value",
+            "title": "Other"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The PDF page it is read from",
+            "title": "Page"
+          },
+          "quote": {
+            "description": "The document's own words, verbatim",
+            "title": "Quote",
+            "type": "string"
+          },
+          "value": {
+            "description": "ISO 4217 code, a unit, a standard, YYYY-MM-DD or a scope",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "value",
+          "quote"
+        ],
+        "title": "DocumentLabel",
+        "type": "object"
+      },
+      "DocumentPages": {
+        "properties": {
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "text_pages": {
+            "description": "Cited pages with a text layer, where quotes were looked up",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Text Pages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "pages",
+          "sha256",
+          "text_pages"
+        ],
+        "title": "DocumentPages",
+        "type": "object"
+      },
+      "DocumentReadJobOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A code (documents.error_* on screen) when the read failed",
+            "title": "Error"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Status"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentReadResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_expired": {
+            "default": false,
+            "title": "Result Expired",
+            "type": "boolean"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "progress",
+          "stage"
+        ],
+        "title": "DocumentReadJobOut",
+        "type": "object"
+      },
+      "DocumentReadResult": {
+        "description": "A document read twice and checked; nothing in it is in a deal until accepted.",
+        "properties": {
+          "company": {
+            "title": "Company",
+            "type": "string"
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentPages"
+          },
+          "document_kind": {
+            "enum": [
+              "annual_report",
+              "information_pack",
+              "results",
+              "financial_statements",
+              "other"
+            ],
+            "title": "Document Kind",
+            "type": "string"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentFigure"
+            },
+            "title": "Figures",
+            "type": "array"
+          },
+          "file_id": {
+            "title": "File Id",
+            "type": "string"
+          },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentLabel"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "language": {
+            "description": "ISO 639-1 code of the document's language, as read",
+            "title": "Language",
+            "type": "string"
+          },
+          "reads": {
+            "$ref": "#/components/schemas/ReadReads"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DocumentSummary"
+          }
+        },
+        "required": [
+          "file_id",
+          "company",
+          "language",
+          "document_kind",
+          "labels",
+          "figures",
+          "summary",
+          "document",
+          "reads"
+        ],
+        "title": "DocumentReadResult",
+        "type": "object"
+      },
+      "DocumentReadStart": {
+        "additionalProperties": false,
+        "properties": {
+          "file_id": {
+            "description": "An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)",
+            "format": "uuid",
+            "title": "File Id",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "description": "The caller confirms the document is public (a published annual report, say). Required while the reader runs on a free AI tier, which may use what it is sent to improve its products",
+            "title": "Public",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "file_id"
+        ],
+        "title": "DocumentReadStart",
+        "type": "object"
+      },
+      "DocumentReaderInfo": {
+        "properties": {
+          "confirm_public": {
+            "description": "A read needs the caller to confirm the document is public",
+            "title": "Confirm Public",
+            "type": "boolean"
+          },
+          "max_pages": {
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "measured": {
+            "$ref": "#/components/schemas/ReaderMeasured"
+          },
+          "open": {
+            "description": "This server reads documents for people (production: once the card meets its bar)",
+            "title": "Open",
+            "type": "boolean"
+          },
+          "pages_left": {
+            "title": "Pages Left",
+            "type": "integer"
+          },
+          "pages_per_day": {
+            "title": "Pages Per Day",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "reads_per_day": {
+            "title": "Reads Per Day",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "on",
+              "off"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "provider",
+          "confirm_public",
+          "open",
+          "measured",
+          "pages_per_day",
+          "pages_left",
+          "reads_per_day",
+          "max_pages"
+        ],
+        "title": "DocumentReaderInfo",
+        "type": "object"
+      },
+      "DocumentSummary": {
+        "properties": {
+          "amber": {
+            "title": "Amber",
+            "type": "integer"
+          },
+          "figures": {
+            "title": "Figures",
+            "type": "integer"
+          },
+          "labels": {
+            "title": "Labels",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "figures",
+          "labels",
+          "amber"
+        ],
+        "title": "DocumentSummary",
+        "type": "object"
+      },
       "DrillJob": {
         "properties": {
           "attempts": {
@@ -8113,7 +8807,8 @@
               "montecarlo.scenarios",
               "backtesting.run",
               "forecasting.run",
-              "research.read"
+              "research.read",
+              "document.extract"
             ],
             "title": "Kind",
             "type": "string"
@@ -22827,6 +23522,227 @@
         "summary": "Restore Version",
         "tags": [
           "saved deals"
+        ]
+      }
+    },
+    "/api/documents/reader": {
+      "get": {
+        "operationId": "get_reader_api_documents_reader_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentReaderInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Reader",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/reads": {
+      "post": {
+        "description": "Read a document twice and check every quote, as a background job.",
+        "operationId": "post_read_api_documents_reads_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentReadStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentReadJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Read",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/reads/{job_id}": {
+      "get": {
+        "description": "A read's progress, and its values once done. Another account's read, or another kind of job, is a 404.",
+        "operationId": "get_read_api_documents_reads__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentReadJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Read",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/reads/{job_id}/deal": {
+      "post": {
+        "description": "The deal inputs the caller's accepted values give: from the read's own result, only what was accepted.",
+        "operationId": "post_deal_api_documents_reads__job_id__deal_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentDealRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDealResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Deal",
+        "tags": [
+          "documents"
         ]
       }
     },

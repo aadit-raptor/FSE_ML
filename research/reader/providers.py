@@ -83,6 +83,14 @@ class Answer:
     seconds: float = 0.0
 
 
+@dataclass(frozen=True)
+class Instructions:
+    """Another task's prompt for a read: its version, the words for the whole PDF and for pictures of pages."""
+    version: str
+    pdf: str
+    pictures: str
+
+
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -200,7 +208,10 @@ class Gemini:
         with self._lock:
             return [m for m in models if m not in exclude and self._spent.get(m, 0.0) <= now]
 
-    def read(self, which: str, document: Document, *, exclude: frozenset = frozenset()) -> Answer:
+    def read(self, which: str, document: Document, *, exclude: frozenset = frozenset(),
+             instructions: Optional["Instructions"] = None) -> Answer:
+        """One read; ``instructions`` another task's prompt (PLAN.md 6.2's document reader), else the results
+        reader's."""
         models = self.models_a if which == "A" else self.models_b
         uploaded = None
         if which == "A":
@@ -215,7 +226,9 @@ class Gemini:
         else:
             parts = [{"inline_data": {"mime_type": "image/png", "data": base64.b64encode(p).decode()}}
                      for p in document.pictures]
-        parts.append({"text": prompt.text(prompt.PROMPT_VERSION, pictures=which == "B")})
+        version = instructions.version if instructions else prompt.PROMPT_VERSION
+        parts.append({"text": (instructions.pictures if which == "B" else instructions.pdf) if instructions
+                      else prompt.text(prompt.PROMPT_VERSION, pictures=which == "B")})
         # Every model spent is "try tomorrow"; anything else (busy, a bad
         # answer) is "try again soon", which is what the person is told
         failure = ProviderError(SPENT)
@@ -234,7 +247,7 @@ class Gemini:
                     else:
                         failure = exc
                     continue
-                return Answer(read, model, prompt.PROMPT_VERSION, dict(usage), round(time.time() - started, 1))
+                return Answer(read, model, version, dict(usage), round(time.time() - started, 1))
         finally:
             if uploaded:
                 self._forget(uploaded)
@@ -321,7 +334,8 @@ class Replay:
             raise ProviderError(NOT_RECORDED)
         return json.loads(path.read_text(encoding="utf-8"))
 
-    def read(self, which: str, document: Document, *, exclude: frozenset = frozenset()) -> Answer:
+    def read(self, which: str, document: Document, *, exclude: frozenset = frozenset(),
+             instructions: Optional[Instructions] = None) -> Answer:
         found = self.recording(document.sha256)
         read = (found.get("reads") or {}).get(which)
         if not read:

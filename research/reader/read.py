@@ -27,7 +27,7 @@ class TooLong(ValueError):
     """More pages than a results filing has (``pages.MAX_PAGES``)."""
 
 
-def _usage(answer: Answer) -> dict:
+def usage_of(answer: Answer) -> dict:
     """Token counts only: never the answer's text."""
     usage = answer.usage or {}
     keep = ("promptTokenCount", "candidatesTokenCount", "thoughtsTokenCount", "totalTokenCount")
@@ -92,6 +92,6 @@ def read_filing(path: Path, provider, *, today: datetime.date, quarter: Optional
         result["problems"].append({"statement": None, "column": None, "code": "no_tables", "detail": ""})
     result["document"] = {"pages": info.pages, "poor_pages": [p for p in range(1, info.pages + 1) if info.poor(p)],
                           "sha256": digest}
-    result["reads"] = {"A": _usage(a), "B": _usage(b) if b else None,
+    result["reads"] = {"A": usage_of(a), "B": usage_of(b) if b else None,
                        "seconds": round(time.time() - started, 1)}
     return result

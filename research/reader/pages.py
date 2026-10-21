@@ -13,6 +13,12 @@ line of JSON on its standard output:
   faint, dense pages).
 - ``render``: draws the pages asked for at ``DPI`` (R0's read B used 170)
   as PNG files in a folder the parent made, and answers their names.
+- ``text``: the text layer of the pages asked for (``{"texts": {page: str}}``),
+  each cut to ``MAX_TEXT`` characters: how a document's quotes are checked
+  against the page they cite (PLAN.md 6.2, ``ml/nlp_extractor.py``).
+
+``info`` takes an optional page limit (``MAX_PAGES`` for a results filing; an
+annual report read for a deal may be longer, ``ml/document_reader.py``).
 
 PDFium (``pypdfium2``) draws the pages; the PNG files are written here with
 ``zlib`` so no imaging library is needed.
@@ -40,6 +46,7 @@ CHILD_MEMORY_BYTES = 700 * 1024 * 1024    # as the upload scanner's: the free se
 # The most pixels one page is drawn with: an A4 page at 170 dpi is 4 million.
 # A page whose declared size is huge is drawn smaller rather than filling memory
 MAX_PIXELS = 12_000_000
+MAX_TEXT = 20_000          # characters of one page's text layer (a dense statement page holds about 6,000)
 
 
 class PagesError(RuntimeError):
@@ -80,8 +87,8 @@ def _child(args: Sequence[str], timeout: float = CHILD_TIMEOUT_S) -> dict:
     return answer
 
 
-def info(path: Path) -> Info:
-    answer = _child(["info", str(path)])
+def info(path: Path, limit: int = MAX_PAGES) -> Info:
+    answer = _child(["info", str(path), str(limit)])
     pages, dpi = answer.get("pages"), answer.get("dpi")
     if not isinstance(pages, int) or not isinstance(dpi, list) or len(dpi) != pages:
         raise PagesError("unreadable answer")
@@ -104,6 +111,18 @@ def render(path: Path, pages: Sequence[int]) -> list[bytes]:
             target = Path(folder) / Path(str(name)).name      # never outside the folder
             out.append(target.read_bytes())
         return out
+
+
+def texts(path: Path, pages: Sequence[int]) -> dict[int, str]:
+    """The text layer of the 1-based ``pages`` (an empty string for a page with none)."""
+    wanted = sorted({p for p in pages if isinstance(p, int) and p >= 1})
+    if not wanted:
+        return {}
+    answer = _child(["text", str(path), ",".join(map(str, wanted))])
+    found = answer.get("texts")
+    if not isinstance(found, dict):
+        raise PagesError("unreadable answer")
+    return {int(k): str(v)[:MAX_TEXT] for k, v in found.items() if str(k).isdigit() and int(k) in wanted}
 
 
 # ---------------------------------------------------------------------------
@@ -160,18 +179,26 @@ def main(argv: list[str]) -> int:
     never here: a test calling this in-process must not limit its runner."""
     import pypdfium2 as pdfium
 
-    if len(argv) < 2 or argv[0] not in ("info", "render"):
+    if len(argv) < 2 or argv[0] not in ("info", "render", "text"):
         return 2
     try:
         document = pdfium.PdfDocument(argv[1])
     except Exception:  # noqa: BLE001 -- any failure to open is "unreadable", nothing more
         return 3
     count = len(document)
-    if count > MAX_PAGES:
+    limit = int(argv[2]) if argv[0] == "info" and len(argv) > 2 and argv[2].isdigit() else MAX_PAGES
+    if argv[0] == "info" and count > limit:
         print(json.dumps({"pages": count, "dpi": [None] * count}))
         return 0
     if argv[0] == "info":
         print(json.dumps({"pages": count, "dpi": [_page_dpi(document[i]) for i in range(count)]}))
+        return 0
+    if argv[0] == "text":
+        found = {}
+        for number in [int(p) for p in argv[2].split(",") if p.isdigit()]:
+            if 1 <= number <= count:
+                found[str(number)] = document[number - 1].get_textpage().get_text_range()[:MAX_TEXT]
+        print(json.dumps({"texts": found}, ensure_ascii=False))
         return 0
     folder, wanted = Path(argv[2]), [int(p) for p in argv[3].split(",") if p]
     names = []

@@ -26,7 +26,7 @@ from pydantic import BaseModel, TypeAdapter
 from api.routers import backtesting, forecasting, montecarlo
 from api.schemas import (
     BacktestRequest, BacktestResponse, ForecastRunRequest, ForecastRunResponse,
-    MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
+    DocumentReadResult, MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
 )
 
 
@@ -76,6 +76,17 @@ def _read_results(request: ReadRequest) -> dict:
     return service.read_file(request.owner, request.file_id, request.quarter_end, company_id=request.company_id)
 
 
+class DocumentRequest(BaseModel):
+    owner: str
+    file_id: uuid.UUID
+
+
+def _read_document(request: DocumentRequest) -> dict:
+    from ml import document_reader
+
+    return document_reader.extract_file(request.owner, request.file_id)
+
+
 class ScanRequest(BaseModel):
     file_id: uuid.UUID
 
@@ -115,5 +126,10 @@ KINDS: dict[str, JobKind] = {k.name: k for k in (
     JobKind("research.read", "Results read", ReadRequest, ReadResult, _read_results,
             {"reader.read_a": Stage("Reading the whole filing", 0.55, "Reading the statement pages again"),
              "reader.read_b": Stage("Reading the statement pages again", 0.95, "Checking the figures")},
+            simulation=False),
+    # Queued by POST /api/documents/reads (PLAN.md 6.2), never through /api/jobs, for the same reasons
+    JobKind("document.extract", "Document read", DocumentRequest, DocumentReadResult, _read_document,
+            {"document.read_a": Stage("Reading the whole document", 0.6, "Reading the cited pages again"),
+             "document.read_b": Stage("Reading the cited pages again", 0.95, "Checking every quote")},
             simulation=False),
 )}

@@ -901,6 +901,41 @@ allowance carries on the next day; BSE's table of the same name in `--truth`
 (default `research-samples/xbrl`) is joined as truth, and `--high` records the
 high-resolution trial. Then `python -m ml.evaluation evaluate --model reader`.
 
+## Document reader
+
+PLAN.md 6.2: an annual report, a set of financial statements or an
+information pack a person uploaded (PDF, any language) is read for a deal by
+**the results reader's provider and key** (`AI_PROVIDER`, `GEMINI_API_KEY`,
+`AI_FREE_TIER`, `GEMINI_MODELS_A`/`_B` above: nothing new to set). Deal ->
+From a document starts job `document.extract` (`ml/document_reader.py`,
+`ml/nlp_extractor.py`): read A the whole PDF, read B pictures of the pages
+it cites by a different model, each value with its page and a verbatim
+quote, the quote looked up in the page's text layer. The person accepts each
+value; `POST /api/documents/reads/{id}/deal` works the deal inputs out of the
+read's own result and only the accepted ids.
+
+- **Limits**: a document is two requests to the same free allowance, so it
+  counts as a read (`USER_READS`, `READS_ALL`); its pages have their own day,
+  `USER_DOCUMENT_PAGES` (1,000 a person on the free plan, 4,000 on
+  `research`, `api/plans.py`), and at most 500 pages a document.
+- **Cost**: counted in `ai_usage` with kind `extract` (migration 0024). The
+  evaluation set's eight documents cost about what a results filing does per
+  page; a 450-page report is a few tens of cents at the paid list.
+- **Free tier**: the person confirms the document is public before anything
+  is sent, as for results.
+- **The gate**: production reads documents only while `ml/cards/extractor.json`'s
+  headline set meets its bar (no wrong figure or label and no planted misread
+  left unflagged, at least 80% of the truth file's figures found); otherwise
+  `503 reader_not_measured`.
+- **Recording** (tests, the card): `python -m ml.document_reader record
+  --env-file research-samples/.env FILE.pdf ...` writes
+  `tests/fixtures/extract/evaluation/<file name>.json` (answers saved as they
+  arrive, so a run stopped by the day's allowance carries on; which quotes
+  are on their pages is kept as hashes, never the page text). Add the
+  document's headline figures to `tests/fixtures/extract/truth.json` by hand
+  from its own statements, then `python -m ml.evaluation evaluate --model
+  extractor`. The PDFs are never committed.
+
 ## Coverage
 
 PLAN.md R2: the companies an analyst follows and the quarters they accepted
@@ -1187,7 +1222,7 @@ lifts (PLAN.md R9). The free numbers are what runs today.
 | Switch | What you do | Setting | What it lifts | What stays |
 |---|---|---|---|---|
 | **AI billing** (before the first outside showing) | Google AI Studio, project `variater-reader`: set up billing and a **budget with an alert** (the real backstop) | `AI_FREE_TIER=0` on both Render services | The public-documents confirmation (Google doesn't use paid-tier content to improve its products); the service's day from 30 reads and 10 note writings to **300 and 300** (`TIERS["billed"]` in `api/plans.py`: at about 0.09 dollars a filing, under 30 dollars a day); the cost in `ai_usage` becomes a bill | Each person's plan limits; the accuracy gate; the provider and its models |
-| **A person's plan** | (Until billing, PLAN.md 9, gives each account its own) | `FSE_PLAN=research` on the service | Per person a day: results reads **10 to 40**, pages **250 to 1,000**, note writings **5 to 30** (`PLANS` in `api/plans.py`). An unknown name is the free plan | The service's tier (above) still caps everyone together |
+| **A person's plan** | (Until billing, PLAN.md 9, gives each account its own) | `FSE_PLAN=research` on the service | Per person a day: results reads **10 to 40**, pages **250 to 1,000**, document pages **1,000 to 4,000**, note writings **5 to 30** (`PLANS` in `api/plans.py`). An unknown name is the free plan | The service's tier (above) still caps everyone together |
 | **The AI provider** | A key for the provider | `AI_PROVIDER` (`gemini` today) | Changes the provider and **nothing else** (`tests/test_paid_switch.py`: on staging, every figure, check, limit and the note's words are the same through Gemini's code as through the recordings). A new provider (PLAN.md 12.4, confidential documents) needs its own class in `research/reader/providers.py`, its prices in `research/ai_costs.py` and its own card before it reads for anyone | The tier, plans and gate |
 | **Always-on API** (12.1) | Render, `fse-api`: a paid instance type | none | The minute-long wake after 15 idle minutes (an add-in user feels it). More memory lets the simulation and upload caps rise, but those are code (`api/limits.py`): measure first | Every limit in `api/limits.py` |
 | **Database** (12.2) | Neon: a paid plan | none | 0.5 GB of storage and 100 compute hours a month; longer restore window | The per-feature budgets (coverage 64 MB, companies 64 MB ...) until raised in code; `ops/check_database.py` warns at 80% of the plan |
