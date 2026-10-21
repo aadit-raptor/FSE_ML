@@ -1554,9 +1554,11 @@ or nearly finished to try. So no task waits for an analyst:
     recordings now follow `AI_FREE_TIER` too, so the switch moves nothing
     else.
   - DEPLOY.md "Paid switches" (each switch, what it lifts, what stays) and
-    "Listing it in Microsoft's store" (the user's steps). Left for a
-    follow-up: a support page for the manifest's `SupportUrl` (it is
-    `/privacy`), terms of use, and the store's icon sizes.
+    "Listing it in Microsoft's store" (the user's steps). Its step 1 was
+    done after R9 (2026-10-20): the public `/support` page and the
+    manifests' `SupportUrl`, Microsoft's Standard Contract for terms (the
+    user's choice), the store logos (`addin-48`, `-90`, `-300`), and the
+    privacy page's contact link, which had rendered empty.
 
 ---
 

@@ -372,6 +372,35 @@ def test_the_scan_holds_the_add_ins_dialog_to_the_strict_page_policy():
     assert any("frame-ancestors" in p for p in check_headers.dialog_problems(framed))
 
 
+def test_the_scan_holds_the_support_page_to_the_strict_page_policy(monkeypatch):
+    """The store's support link (/support) must answer signed out with the strict headers, like /privacy."""
+    from ops import check_headers
+    dialog = {**GOOD_PAGE, "Content-Security-Policy": GOOD_PAGE["Content-Security-Policy"].replace(
+        "'strict-dynamic'", "'strict-dynamic' https://appsforoffice.microsoft.com")}
+    pages = {"/excel": GOOD_PANE, "/excel/connect": dialog}
+    support = {"status": 200, "headers": {**GOOD_PAGE, "X-Frame-Options": "SAMEORIGIN"}}
+    nonces = iter(f"n{i}" for i in range(10))
+
+    def fetch(url, *, method="GET", headers=None):
+        path = url.removeprefix("https://web.test")
+        if path == "/sign-in":
+            csp = GOOD_PAGE["Content-Security-Policy"].replace("abc123", next(nonces))
+            return 200, {**GOOD_PAGE, "Content-Security-Policy": csp}
+        if path == "/support":
+            return support["status"], support["headers"]
+        if path == "/api/health":
+            return 200, client.get("/api/health").headers
+        return 200, pages.get(path, GOOD_PAGE)
+
+    monkeypatch.setattr(check_headers, "fetch", fetch)
+    assert any(p.startswith("web /support:") and "X-Frame-Options" in p
+               for p in check_headers.scan("https://web.test", None, None))
+    support.update(status=307, headers=GOOD_PAGE)  # sent to sign in: not public
+    assert "web /support answered 307, not 200" in check_headers.scan("https://web.test", None, None)
+    support.update(status=200)
+    assert check_headers.scan("https://web.test", None, None) == []
+
+
 def test_the_scan_and_the_web_app_name_the_same_office_hosts():
     import re
     from ops import check_headers

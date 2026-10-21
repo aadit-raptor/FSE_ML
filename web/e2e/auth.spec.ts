@@ -151,5 +151,29 @@ test("the privacy policy opens signed out, and says what is stored", async ({ pa
   await expect(page).toHaveURL(/\/privacy$/);
   await expect(page.getByRole("heading", { name: "Privacy policy" })).toBeVisible();
   await expect(page.getByText("never your name or email address", { exact: false })).toBeVisible();
+  // how to have data removed: Microsoft's store requires it, and it once rendered without its link
+  await expect(page.getByRole("link", { name: "github.com/aadit-raptor/FSE_ML/issues" })).toHaveAttribute(
+    "href",
+    "https://github.com/aadit-raptor/FSE_ML/issues",
+  );
+  await expect(page.getByRole("navigation", { name: "Modes" })).toHaveCount(0);
+});
+
+// The Excel add-in's manifest and Microsoft's store listing link to it, so it must open for anyone
+test("the support page opens signed out, with a web address for help and the account it needs", async ({ page }) => {
+  const resp = await page.goto("/support");
+  expect(resp?.status()).toBe(200);
+  expect(resp?.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
+  await expect(page).toHaveURL(/\/support$/);
+  await expect(page.getByRole("heading", { name: "Support", exact: true })).toBeVisible();
+  // the store refuses an email address: help is an https page
+  await expect(page.getByRole("link", { name: "github.com/aadit-raptor/FSE_ML/issues" })).toHaveAttribute(
+    "href",
+    "https://github.com/aadit-raptor/FSE_ML/issues",
+  );
+  await expect(page.locator("article")).not.toContainText("@");
+  await expect(page.getByRole("heading", { name: "You need a Variater account" })).toBeVisible();
+  await expect(page.getByText("The Excel add-in brings that work into your workbook", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "privacy policy" })).toHaveAttribute("href", "/privacy");
   await expect(page.getByRole("navigation", { name: "Modes" })).toHaveCount(0);
 });

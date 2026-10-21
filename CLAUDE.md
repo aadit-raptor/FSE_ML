@@ -71,7 +71,9 @@ staging, previews and local runs keep the free development instance
 Development-instance accounts were **dropped as test data** (decided
 2026-10-01), not mapped. Google sign-in on production uses the Google Cloud project
 `variater`'s own OAuth client (DEPLOY.md "Own domain"); `/privacy` is a public
-page Google's consent screen links to, and every claim on it mirrors the
+page Google's consent screen links to (and `/support`, public too, is the
+Excel add-in's `SupportUrl` for Microsoft's store; `ops/check_headers.py`
+holds both to the strict headers), and every claim on it mirrors the
 code, so a change to what is stored or who handles it changes that page. **Every API call except
 `/api/health*` and the schema needs a signed-in user** — the dependency is on
 `include_router`, so a new route is protected unless it is added to
@@ -2052,9 +2054,12 @@ golden snapshot is untouched and parity tests explain every departure.
 
 - PLAN.md R9: **listing the add-in in Microsoft's store** is the user's
   (DEPLOY.md "Excel add-in", "Listing it in Microsoft's store": a Partner
-  Center account in the Microsoft 365 and Copilot program, then the offer);
-  Claude's part first is a support page, terms of use and the store's icon
-  sizes. And when ready to charge: the switches in DEPLOY.md "Paid switches".
+  Center account in the Microsoft 365 and Copilot program, then the offer,
+  with the Standard Contract ticked and a 1366 x 768 screenshot); Claude's
+  step 1 is done (`/support`, the manifests' `SupportUrl`, the store logos
+  `addin-48/90/300.png`; decided 2026-10-20: **Microsoft's Standard
+  Contract, no Variater terms page** until the lawyer's view). And when ready
+  to charge: the switches in DEPLOY.md "Paid switches".
 
 - PLAN.md R8: **a securities lawyer's view** that the tool stays outside
   SEBI's research analyst rules (it drafts; the analyst rates, targets and
@@ -2768,6 +2773,11 @@ Skills load when a session starts: install first, then open a new session.
   way round and every screen dies in `global-error` with next-intl's "context
   from `NextIntlClientProvider` was not found" -- which the browser tests
   catch, but only `next dev` names the component.
+- next-intl's `t.rich` calls a function only for a **tag** in the message
+  (`<link></link>`), never for a `{value}`: `{link}` with `link: () => <a>`
+  renders nothing, which is how the privacy page's contact link was missing
+  on the live site until 2026-10-20. Give links a tag and test the link by
+  role in the browser test.
 - One `useTranslations` name per namespace per file. `tests/test_translations.py`
   reads `const x = useTranslations("ns")` and the `x("key")` calls that follow,
   so two `const t =` in one file for two namespaces makes it check the wrong

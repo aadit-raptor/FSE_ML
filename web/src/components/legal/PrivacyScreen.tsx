@@ -48,6 +48,7 @@ export function PrivacyScreen() {
         <section className="grid gap-1.5">
           <h2 className="type-control">{t("contactTitle")}</h2>
           <p className="type-body">
+            {/* an empty <link></link> tag: next-intl calls a function only for a tag, never for a {value} */}
             {t.rich("contact", {
               link: () => (
                 <a href={ISSUES} className="text-accent underline" rel="noopener noreferrer" target="_blank">
