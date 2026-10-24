@@ -357,9 +357,12 @@ def gemini(monkeypatch):
     for name in ("GEMINI_MODELS_A", "GEMINI_MODELS_B", "READER_HIGH_RESOLUTION", "AI_FREE_TIER"):
         monkeypatch.delenv(name, raising=False)
 
-    def make(answers):
+    def make(answers, waits=None):
         session = FakeSession(answers)
-        return providers.Gemini("SECRET-KEY-123", session=session), session
+        slept = waits if waits is not None else []
+        provider = providers.Gemini("SECRET-KEY-123", session=session, sleep=slept.append)
+        provider.slept = slept
+        return provider, session
     return make
 
 
@@ -385,16 +388,77 @@ def test_read_b_never_uses_read_as_model_and_says_try_tomorrow_when_all_are_spen
 
 
 def test_busy_models_say_try_again_soon_and_a_refused_key_stops_at_once(gemini):
-    provider, _ = gemini({m: BUSY for m in providers.MODELS_A})
+    provider, session = gemini({m: BUSY for m in providers.MODELS_A})
     with pytest.raises(providers.ProviderError) as busy:
         provider.read("A", providers.Document("x", pdf=b"%PDF"))
     assert busy.value.code == providers.BUSY
+    # every model was asked in each round, with a wait before each round after the first
+    assert provider.slept == list(providers.BUSY_WAITS_S)
+    assert len(session.calls) == len(providers.MODELS_A) * (len(providers.BUSY_WAITS_S) + 1)
     refused = FakeResponse(400, {"error": {"status": "INVALID_ARGUMENT", "details": [{"reason": "API_KEY_INVALID"}]}})
     provider, session = gemini({m: refused for m in providers.MODELS_A})
     with pytest.raises(providers.ProviderError) as stopped:
         provider.read("A", providers.Document("x", pdf=b"%PDF"))
     assert stopped.value.code == providers.KEY_REFUSED and len(session.calls) == 1
     assert "SECRET" not in str(stopped.value)
+
+
+class Sequence(FakeSession):
+    """Answers each model with its replies in turn, the last one again once they run out."""
+
+    def post(self, url, headers=None, json=None, timeout=None, **_):  # noqa: A002
+        self.calls.append((url, headers))
+        model = url.rsplit("/", 1)[1].split(":")[0]
+        replies = self.answers[model]
+        return replies.pop(0) if len(replies) > 1 else replies[0]
+
+
+def test_a_read_waits_out_high_demand_and_is_answered_in_a_later_round(gemini):
+    read = {"tables": []}
+    provider, _ = gemini({})
+    session = Sequence({"gemini-3.8-flash": [BUSY, ok(read)], "gemini-3.7-flash": [BUSY], "gemini-3.6-flash": [BUSY]})
+    provider._http = session
+    answer = provider.read("A", providers.Document("x", pdf=b"%PDF"))
+    assert answer.model == "gemini-3.8-flash" and answer.read == read
+    assert provider.slept == [providers.BUSY_WAITS_S[0]]
+
+
+def test_a_per_minute_limit_is_waited_out_as_long_as_google_asks(gemini):
+    minute = FakeResponse(429, {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "details": [
+        {"@type": "type.googleapis.com/google.rpc.QuotaFailure",
+         "violations": [{"quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier"}]},
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "75s"}]}})
+    read = {"tables": []}
+    provider, _ = gemini({})
+    provider._http = Sequence({"gemini-3.8-flash": [minute, ok(read)], "gemini-3.7-flash": [minute],
+                              "gemini-3.6-flash": [minute]})
+    assert provider.read("A", providers.Document("x", pdf=b"%PDF")).model == "gemini-3.8-flash"
+    assert provider.slept == [75.0]                     # Google's hint, longer than the first wait
+    # a long hint is capped, so a job never sleeps for an hour
+    provider._http = Sequence({m: [FakeResponse(429, {"error": {"status": "RESOURCE_EXHAUSTED", "details": [
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "3600s"}]}}), ok(read)]
+        for m in providers.MODELS_A})
+    provider.slept.clear()
+    provider.read("A", providers.Document("x", pdf=b"%PDF"))
+    assert provider.slept == [providers.MAX_WAIT_S]
+
+
+def test_every_refusal_is_logged_with_googles_reason_and_never_the_key_or_document(gemini, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="fse")
+    minute = FakeResponse(429, {"error": {"status": "RESOURCE_EXHAUSTED", "message": "quota for the document text",
+                                          "details": [{"@type": "type.googleapis.com/google.rpc.QuotaFailure",
+                                                       "violations": [{"quotaId": "InputTokensPerMinute"}]}]}})
+    provider, _ = gemini({"gemini-3.8-flash": BUSY, "gemini-3.7-flash": minute, "gemini-3.6-flash": ok({"tables": []})})
+    provider.read("A", providers.Document("x", pdf=b"%PDF-secret-figures"))
+    refused = [r for r in caplog.records if r.getMessage() == "ai_model_refused"]
+    fields = [getattr(r, "fields", None) or r.__dict__ for r in refused]
+    text = " ".join(json.dumps(f, default=str) for f in fields)
+    assert len(refused) == 2
+    assert "gemini-3.8-flash" in text and "UNAVAILABLE" in text and "503" in text
+    assert "InputTokensPerMinute" in text and "429" in text
+    assert "SECRET" not in text and "secret-figures" not in text and "quota for the document" not in text
 
 
 def test_the_status_lists_the_models_without_spending_or_showing_the_key(gemini):
@@ -863,3 +927,11 @@ def test_calling_the_childs_work_in_process_sets_no_limit_on_the_caller(tmp_path
     pages.main(["info", str(path)])
     capsys.readouterr()
     assert resource.getrlimit(resource.RLIMIT_CPU) == before
+
+
+def test_the_note_writer_never_waits_inside_a_request(gemini):
+    provider, session = gemini({m: BUSY for m in providers.MODELS_A})
+    with pytest.raises(providers.ProviderError) as busy:
+        provider.write("linking sentences")
+    assert busy.value.code == providers.BUSY and provider.slept == []
+    assert len(session.calls) == len(providers.MODELS_A)

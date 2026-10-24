@@ -266,7 +266,7 @@ class UsageCounters:
             for key in [k for k, e in self._entries.items() if e.expires <= now]:
                 del self._entries[key]
             batch = [(key, e.pending, max(60, int(e.expires - now) + 60))
-                     for key, e in self._entries.items() if e.shared and e.pending > 0]
+                     for key, e in self._entries.items() if e.shared and e.pending != 0]   # a refund is negative
         if not batch:
             return None
         for store in self._stores:

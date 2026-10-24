@@ -16,8 +16,13 @@
 Read A and read B go to **two different full models** (R0's decision:
 never one read, never a lite model). Each read tries its list of models in
 order; a model whose day's allowance is spent (a 429 that names a daily
-quota) is skipped for ``SPENT_FOR_S``; "high demand" (a 503) moves on to the
-next model, and spends nothing.
+quota) is skipped for ``SPENT_FOR_S``; "high demand" (a 503) or a per-minute
+limit moves on to the next model, and spends nothing. When every model was
+busy, the read **waits and asks them all again** (``BUSY_WAITS_S``, longer
+when Google says how long, never past ``MAX_WAIT_S``): high demand passes in
+minutes, and a person shouldn't have to press the button again for it. Each
+refusal is logged (``ai_model_refused``: the model, the HTTP status, Google's
+status and quota name, never its message, the key or the document).
 
 **Nothing from a document and no key reaches a message or a log**: errors
 carry a code and the HTTP status only. The key goes in a header, never in a
@@ -28,6 +33,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import logging
 import os
 import threading
 import time
@@ -45,6 +51,10 @@ MODELS_B = ("gemini-3-flash-preview", "gemini-3.7-flash", "gemini-3.6-flash", "g
 INLINE_LIMIT = 13_000_000      # bytes of PDF: base64 adds a third and a request holds about 20 MB
 TIMEOUT_S = 600.0
 SPENT_FOR_S = 6 * 3600         # Google's day is a rolling 24 hours; look again in six
+# Waits before the second and third round when every model said "high demand" or hit a per-minute limit
+# (a background job: two minutes of patience costs the person nothing); Google's own retryDelay wins when longer
+BUSY_WAITS_S = (30.0, 90.0)
+MAX_WAIT_S = 180.0
 STATUS_CACHE_S = 300.0
 RECORDINGS = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "research" / "reader"
 # The report writer's recorded answers (PLAN.md R8), by the SHA-256 of the prompt (research/writer.py)
@@ -61,9 +71,33 @@ BLOCKED = "answer_blocked"
 
 
 class ProviderError(RuntimeError):
-    def __init__(self, code: str, status: Optional[int] = None):
+    def __init__(self, code: str, status: Optional[int] = None, *, reason: str = "", quota: str = "",
+                 retry_after: float = 0.0):
         self.code, self.status = code, status
+        # Google's own words for it, as codes only (never its message): for the log
+        self.reason, self.quota, self.retry_after = reason, quota, retry_after
         super().__init__(code + (f" (HTTP {status})" if status else ""))
+
+
+def _error_facts(error: Mapping) -> dict:
+    """Google's status, the first quota named and its retry delay in seconds, from an error body."""
+    quota, retry = "", 0.0
+    for detail in error.get("details") or []:
+        if not isinstance(detail, dict):
+            continue
+        for violation in detail.get("violations") or []:
+            if isinstance(violation, dict) and violation.get("quotaId") and not quota:
+                quota = str(violation["quotaId"])[:120]
+        if detail.get("quotaId") and not quota:
+            quota = str(detail["quotaId"])[:120]
+        delay = detail.get("retryDelay")
+        if isinstance(delay, str) and delay.endswith("s"):
+            try:
+                retry = max(retry, float(delay[:-1]))
+            except ValueError:
+                pass
+    status = error.get("status")
+    return {"reason": str(status)[:40] if isinstance(status, str) else "", "quota": quota, "retry_after": retry}
 
 
 @dataclass(frozen=True)
@@ -123,10 +157,11 @@ class Gemini:
     _spent: dict[str, float] = {}
     _lock = threading.Lock()
 
-    def __init__(self, key: str, *, session=None, high_resolution: Optional[bool] = None):
+    def __init__(self, key: str, *, session=None, high_resolution: Optional[bool] = None, sleep=None):
         import requests
 
         self._key = key
+        self._sleep = sleep or time.sleep
         self._http = session or requests.Session()
         self.models_a = _models("GEMINI_MODELS_A", MODELS_A)
         self.models_b = _models("GEMINI_MODELS_B", MODELS_B)
@@ -160,13 +195,14 @@ class Gemini:
             text = "".join(p.get("text", "") for p in content.get("parts") or [] if isinstance(p, dict))
             return text, data.get("usageMetadata") or {}
         error = data.get("error") if isinstance(data.get("error"), dict) else {}
+        facts = _error_facts(error)
         if answer.status_code == 429 and "PerDay" in json.dumps(error):
-            raise ProviderError(SPENT, 429)
+            raise ProviderError(SPENT, 429, **facts)
         if answer.status_code in (429, 500, 503, 504):
-            raise ProviderError(BUSY, answer.status_code)
+            raise ProviderError(BUSY, answer.status_code, **facts)
         if answer.status_code in (400, 401, 403) and "API_KEY" in json.dumps(error):
-            raise ProviderError(KEY_REFUSED, answer.status_code)
-        raise ProviderError(NETWORK, answer.status_code)
+            raise ProviderError(KEY_REFUSED, answer.status_code, **facts)
+        raise ProviderError(NETWORK, answer.status_code, **facts)
 
     def _upload(self, pdf: bytes) -> tuple[dict, str]:
         """A PDF too big to send inline goes to Google's file store (kept 48
@@ -208,6 +244,43 @@ class Gemini:
         with self._lock:
             return [m for m in models if m not in exclude and self._spent.get(m, 0.0) <= now]
 
+    def _refused(self, model: str, exc: ProviderError) -> None:
+        from api.observability import log_event
+
+        log_event("ai_model_refused", logging.WARNING, provider=self.name, model=model, code=exc.code,
+                  http_status=exc.status, reason=exc.reason, quota=exc.quota)
+
+    def _ask(self, models: Sequence[str], exclude: frozenset, call, waits: Sequence[float] = BUSY_WAITS_S) -> Answer:
+        """``call(model)`` with each usable model in turn until one answers. Every model spent is "try tomorrow";
+        a round where every model that was asked was busy is waited out and asked again (``BUSY_WAITS_S``);
+        anything else (a bad answer, the network) is "try again soon"."""
+        failure = ProviderError(SPENT)
+        for wait in (0.0, *waits):
+            if wait:
+                self._sleep(min(max(wait, failure.retry_after), MAX_WAIT_S))
+            usable = self._usable(models, exclude)
+            if not usable:
+                break
+            all_busy, failure = True, ProviderError(SPENT)
+            for model in usable:
+                try:
+                    return call(model)
+                except ProviderError as exc:
+                    self._refused(model, exc)
+                    if exc.code == KEY_REFUSED:
+                        raise
+                    if exc.code == SPENT:
+                        with self._lock:
+                            self._spent[model] = time.time() + SPENT_FOR_S
+                        continue
+                    if exc.code != BUSY:
+                        all_busy = False
+                    if failure.code == SPENT or exc.retry_after > failure.retry_after:
+                        failure = exc
+            if failure.code == SPENT or not all_busy:
+                break
+        raise failure
+
     def read(self, which: str, document: Document, *, exclude: frozenset = frozenset(),
              instructions: Optional["Instructions"] = None) -> Answer:
         """One read; ``instructions`` another task's prompt (PLAN.md 6.2's document reader), else the results
@@ -229,51 +302,28 @@ class Gemini:
         version = instructions.version if instructions else prompt.PROMPT_VERSION
         parts.append({"text": (instructions.pictures if which == "B" else instructions.pdf) if instructions
                       else prompt.text(prompt.PROMPT_VERSION, pictures=which == "B")})
-        # Every model spent is "try tomorrow"; anything else (busy, a bad
-        # answer) is "try again soon", which is what the person is told
-        failure = ProviderError(SPENT)
+        def call(model: str) -> Answer:
+            started = time.time()
+            text, usage = self._generate(model, parts)
+            return Answer(parse_json(text), model, version, dict(usage), round(time.time() - started, 1))
+
         try:
-            for model in self._usable(models, exclude):
-                started = time.time()
-                try:
-                    text, usage = self._generate(model, parts)
-                    read = parse_json(text)
-                except ProviderError as exc:
-                    if exc.code == KEY_REFUSED:
-                        raise
-                    if exc.code == SPENT:
-                        with self._lock:
-                            self._spent[model] = time.time() + SPENT_FOR_S
-                    else:
-                        failure = exc
-                    continue
-                return Answer(read, model, version, dict(usage), round(time.time() - started, 1))
+            return self._ask(models, exclude, call)
         finally:
             if uploaded:
                 self._forget(uploaded)
-        raise failure
 
     # -- the report writer's side (PLAN.md R8) --------------------------------
     def write(self, text: str) -> Answer:
         """Linking sentences for a note: `text` is the whole prompt (research/writer.py), which holds no company,
         no figure and nothing from a document. One request, by the first model with allowance left."""
-        failure = ProviderError(SPENT)
-        for model in self._usable(_models("GEMINI_MODELS_WRITE", MODELS_A), frozenset()):
+        def call(model: str) -> Answer:
             started = time.time()
-            try:
-                answer, usage = self._generate(model, [{"text": text}])
-                parsed = parse_json(answer)
-            except ProviderError as exc:
-                if exc.code == KEY_REFUSED:
-                    raise
-                if exc.code == SPENT:
-                    with self._lock:
-                        self._spent[model] = time.time() + SPENT_FOR_S
-                else:
-                    failure = exc
-                continue
-            return Answer(parsed, model, "", dict(usage), round(time.time() - started, 1))
-        raise failure
+            answer, usage = self._generate(model, [{"text": text}])
+            return Answer(parse_json(answer), model, "", dict(usage), round(time.time() - started, 1))
+
+        # asked inside a person's request, not a job: no waiting, the templates write instead
+        return self._ask(_models("GEMINI_MODELS_WRITE", MODELS_A), frozenset(), call, waits=())
 
     def status(self) -> dict:
         """Whether the key works, by listing the models (free: it spends no
