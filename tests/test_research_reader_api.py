@@ -192,3 +192,14 @@ def test_the_health_check_says_which_provider_and_never_the_key(reader, monkeypa
     answer = client.get("/api/health/reader")
     assert answer.status_code == 503 and answer.json()["key"] == "refused"
     assert "AIza" not in answer.text
+
+
+def test_a_read_no_model_answered_gives_its_pages_back(reader, job_queue, monkeypatch):
+    monkeypatch.setenv("FSE_READER_REPLAY_DEFAULT", "")        # nothing recorded for this file: no model answers
+    file_id = clean_pdf(job_queue)
+    before = client.get("/api/research/reader").json()["pages_left"]
+    job = start(file_id).json()
+    run_reads(job_queue)
+    found = client.get(f"/api/research/reads/{job['id']}").json()
+    assert (found["status"], found["error"]) == ("failed", "not_recorded")
+    assert client.get("/api/research/reader").json()["pages_left"] == before

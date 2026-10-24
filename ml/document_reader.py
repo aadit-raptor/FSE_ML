@@ -38,7 +38,7 @@ from ml import nlp_extractor as nx
 from research.reader import gate, pages
 from research.reader import providers as ai
 from research.reader.read import usage_of
-from research.reader.service import clean_pdf, count_usage
+from research.reader.service import clean_pdf, count_usage, refund_pages
 
 KIND = "document.extract"
 MAX_PAGES = 500                 # the evaluation set's longest is 448 (L'Oréal's universal registration document)
@@ -199,6 +199,11 @@ def extract_file(owner: str, file_id: uuid.UUID) -> dict:
             raise HTTPException(422, "unreadable_pdf") from None
     finally:
         uploads.discard(path)
+        if charged and not spent and sys.exc_info()[0] is not None:
+            from api.limits import USER_DOCUMENT_PAGES
+
+            refund_pages(USER_DOCUMENT_PAGES, owner, charged)       # no model answered: nothing was read
+            charged = 0
         count_usage(owner, "extract", reader, pages=charged, answers=spent)
     log_event("document_read", provider=reader.name, pages=info.pages, figures=result["summary"]["figures"],
               amber=result["summary"]["amber"], model_a=result["reads"]["A"]["model"],
