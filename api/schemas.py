@@ -1352,7 +1352,7 @@ JobSubmit = Annotated[Union[MonteCarloJob, ScenariosJob, BacktestJob, ForecastJo
                       Field(discriminator="kind")]
 
 JobKindName = Literal["montecarlo.run", "montecarlo.scenarios", "backtesting.run", "forecasting.run",
-                      "research.read"]
+                      "research.read", "document.extract"]
 JobStatus = Literal["queued", "running", "succeeded", "failed", "cancelled"]
 
 
@@ -2752,6 +2752,126 @@ class ReaderInfo(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# A document read for a deal (PLAN.md 6.2, ml/nlp_extractor.py, ml/document_reader.py)
+# ---------------------------------------------------------------------------
+DocumentAmber = Literal["reads_differ", "one_read_only", "quote_not_on_page", "number_not_in_quote", "poor_scan"]
+DocumentFigureKey = Literal["revenue", "gross_profit", "operating_income", "depreciation_amortization", "ebitda",
+                            "interest_expense", "profit_before_tax", "income_tax", "net_income",
+                            "capital_expenditures", "cash_from_operations", "cash_and_equivalents",
+                            "total_borrowings", "total_assets", "total_equity"]
+DocumentLabelKey = Literal["currency", "unit", "accounting_standard", "fiscal_year_end", "scope"]
+
+
+class DocumentReadStart(Strict):
+    file_id: uuid.UUID = Field(description="An uploaded PDF of the caller's that was scanned clean (PLAN.md 6.1)")
+    public: bool = Field(False, description="The caller confirms the document is public (a published annual "
+                         "report, say). Required while the reader runs on a free AI tier, which may use what "
+                         "it is sent to improve its products")
+
+
+class DocumentLabel(BaseModel):
+    id: str = Field(description="label:<key>, what the caller accepts")
+    key: DocumentLabelKey
+    value: str = Field(description="ISO 4217 code, a unit, a standard, YYYY-MM-DD or a scope")
+    page: Optional[int] = Field(None, description="The PDF page it is read from")
+    quote: str = Field(description="The document's own words, verbatim")
+    other: Optional[str] = Field(None, description="The second read's value")
+    amber: Optional[DocumentAmber] = Field(None, description="Why it needs a look; null when it doesn't")
+
+
+class DocumentFigure(BaseModel):
+    id: str = Field(description="figure:<key>:<period end>, what the caller accepts")
+    key: DocumentFigureKey
+    period_end: str
+    value: float = Field(description="As printed, in the document's unit")
+    page: Optional[int]
+    quote: str
+    other: Optional[float]
+    amber: Optional[DocumentAmber]
+
+
+class DocumentSummary(BaseModel):
+    figures: int
+    labels: int
+    amber: int
+
+
+class DocumentPages(BaseModel):
+    pages: int
+    sha256: str
+    text_pages: List[int] = Field(description="Cited pages with a text layer, where quotes were looked up")
+
+
+class DocumentReadResult(BaseModel):
+    """A document read twice and checked; nothing in it is in a deal until accepted."""
+    file_id: str
+    company: str
+    language: str = Field(description="ISO 639-1 code of the document's language, as read")
+    document_kind: Literal["annual_report", "information_pack", "results", "financial_statements", "other"]
+    labels: List[DocumentLabel]
+    figures: List[DocumentFigure]
+    summary: DocumentSummary
+    document: DocumentPages
+    reads: ReadReads
+
+
+class DocumentReadJobOut(BaseModel):
+    id: str
+    status: JobStatus
+    progress: float
+    stage: Optional[str]
+    error: Optional[str] = Field(None, description="A code (documents.error_* on screen) when the read failed")
+    error_status: Optional[int] = None
+    result_expired: bool = False
+    result: Optional[DocumentReadResult] = None
+
+
+class DocumentReaderInfo(BaseModel):
+    status: Literal["on", "off"]
+    provider: str
+    confirm_public: bool = Field(description="A read needs the caller to confirm the document is public")
+    open: bool = Field(description="This server reads documents for people (production: once the card meets its bar)")
+    measured: ReaderMeasured
+    pages_per_day: int
+    pages_left: int
+    reads_per_day: int
+    max_pages: int
+
+
+class DocumentDealRequest(Strict):
+    accepted: List[str] = Field(max_length=200, description="The ids of the values the caller accepted")
+
+
+class DocumentDealLeftOut(BaseModel):
+    input: str
+    needs: List[str] = Field(description="The values it is made from that were not accepted")
+
+
+class DocumentDealInputs(BaseModel):
+    """Deal inputs from the accepted values only, money in the document's currency and unit."""
+    ebitda: Optional[float] = None
+    gross_margin: Optional[float] = None
+    opex: Optional[float] = None
+    da: Optional[float] = None
+    capex: Optional[float] = None
+    tax: Optional[float] = None
+    growth: Optional[float] = None
+    currency: Optional[CurrencyCode] = None
+    unit: Optional[MoneyUnit] = None
+    accounting_standard: Optional[Literal["ifrs", "us_gaap"]] = None
+    fiscal_year_end_month: Optional[int] = None
+    first_fiscal_year: Optional[int] = None
+
+
+class DocumentDealResponse(BaseModel):
+    inputs: DocumentDealInputs
+    used: Dict[str, List[str]] = Field(description="The accepted values each input was made from")
+    left_out: List[DocumentDealLeftOut]
+    notes: List[Literal["standard_not_in_deal", "ebitda_not_positive", "growth_out_of_range", "tax_out_of_range",
+                        "margin_out_of_range"]]
+
+
+# ---------------------------------------------------------------------------
 # Coverage: companies and their accepted periods (PLAN.md R2)
 # ---------------------------------------------------------------------------
 CoverageUnit = Literal["units", "thousands", "lakhs", "millions", "crores", "billions"]
@@ -3285,7 +3405,8 @@ class AiUsageMoney(BaseModel):
 
 class AiUsageDay(BaseModel):
     day: date
-    kind: Literal["read", "write"] = Field(description="read: a results read (R1); write: a note's sentences (R8)")
+    kind: Literal["read", "write", "extract"] = Field(
+        description="read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2)")
     tier: Literal["free", "billed"] = Field(description="free: nothing was charged; cost is what it would cost")
     requests: int
     pages: int

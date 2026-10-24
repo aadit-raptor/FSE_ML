@@ -94,6 +94,8 @@ export default defineConfig({
             FSE_UPLOADS_DIR: join(tmpdir(), "fse-e2e-uploads"),
             AI_PROVIDER: "replay",
             FSE_READER_REPLAY_DEFAULT: "avenue-supermarts_FY27-Q2",
+            // ... and any document read for a deal as MBB's 2025 annual report (PLAN.md 6.2)
+            FSE_EXTRACT_REPLAY_DEFAULT: "de-mbb-2025",
           },
         },
         {

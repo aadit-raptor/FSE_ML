@@ -1,0 +1,116 @@
+{
+ "about": "The document reader's truth file (PLAN.md 6.2, ml/evaluation/extractor.py). Each document's headline figures and labels, typed by hand from the document's own primary statements (its text layer read with pdftotext -layout, page given), never from either AI read. Values are as printed, in the document's unit; a list holds every value a reader may fairly take (L'Oréal prints two operating results). Never change a figure here to agree with a read.",
+ "documents": {
+  "de-mbb-2025": {
+   "source": "https://www.mbb.com/fileadmin/templates/downloads/finanzberichte/260330-MBB-Geschaeftsbericht-2025-DE-Final.pdf",
+   "country": "DE", "language": "de",
+   "labels": {"currency": "EUR", "unit": "thousands", "accounting_standard": "ifrs", "fiscal_year_end": "2025-12-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-12-31", "value": 1170008, "page": 56},
+    {"key": "revenue", "period_end": "2024-12-31", "value": 1068377, "page": 56},
+    {"key": "ebitda", "period_end": "2025-12-31", "value": 217835, "page": 56},
+    {"key": "operating_income", "period_end": "2025-12-31", "value": 164466, "page": 56},
+    {"key": "profit_before_tax", "period_end": "2025-12-31", "value": 157322, "page": 56},
+    {"key": "net_income", "period_end": "2025-12-31", "value": 104997, "page": 56},
+    {"key": "total_assets", "period_end": "2025-12-31", "value": 1420713, "page": 58}
+   ]
+  },
+  "de-bauer-2025": {
+   "source": "https://www.hauptversammlung.de/fileadmin/public/user_upload/Bauer_GB25.pdf",
+   "country": "DE", "language": "de",
+   "labels": {"currency": "EUR", "unit": "thousands", "accounting_standard": "ifrs", "fiscal_year_end": "2025-12-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-12-31", "value": 1627914, "page": 53},
+    {"key": "revenue", "period_end": "2024-12-31", "value": 2035882, "page": 53},
+    {"key": "ebitda", "period_end": "2025-12-31", "value": 234701, "page": 53},
+    {"key": "operating_income", "period_end": "2025-12-31", "value": 102969, "page": 53},
+    {"key": "profit_before_tax", "period_end": "2025-12-31", "value": 54282, "page": 53},
+    {"key": "net_income", "period_end": "2025-12-31", "value": 12507, "page": 53},
+    {"key": "total_assets", "period_end": "2025-12-31", "value": 1539855, "page": 56},
+    {"key": "cash_and_equivalents", "period_end": "2025-12-31", "value": 55972, "page": 56},
+    {"key": "total_equity", "period_end": "2025-12-31", "value": 501978, "page": 57}
+   ]
+  },
+  "at-oebb-2025": {
+   "source": "https://bericht.oebb.at/dam/jcr:f4873683-ec76-41ca-bd53-965b688fc9b7/oebb-konzernabschluss-2025.pdf",
+   "country": "AT", "language": "de",
+   "labels": {"currency": "EUR", "unit": "thousands", "accounting_standard": "ifrs", "fiscal_year_end": "2025-12-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-12-31", "value": 6155526.8, "page": 4},
+    {"key": "revenue", "period_end": "2024-12-31", "value": 5707016.3, "page": 4},
+    {"key": "operating_income", "period_end": "2025-12-31", "value": 732678.0, "page": 4},
+    {"key": "net_income", "period_end": "2025-12-31", "value": 3087.9, "page": 5}
+   ]
+  },
+  "de-deutsche-boerse-2025": {
+   "source": "https://www.deutsche-boerse.com/resource/blob/4718532/13d3406fb421da9b60af47312dab9e59/data/GDB-Konzernabschluss-und-anhang-GB-2025.pdf",
+   "country": "DE", "language": "de",
+   "labels": {"currency": "EUR", "unit": "millions", "accounting_standard": "ifrs", "fiscal_year_end": "2025-12-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-12-31", "value": 6543, "page": 3},
+    {"key": "revenue", "period_end": "2024-12-31", "value": 5972, "page": 3},
+    {"key": "ebitda", "period_end": "2025-12-31", "value": 3512, "page": 3},
+    {"key": "operating_income", "period_end": "2025-12-31", "value": 3010, "page": 3},
+    {"key": "profit_before_tax", "period_end": "2025-12-31", "value": 2857, "page": 3},
+    {"key": "net_income", "period_end": "2025-12-31", "value": 2104, "page": 3},
+    {"key": "total_assets", "period_end": "2025-12-31", "value": 297156, "page": 5}
+   ]
+  },
+  "jp-nintendo-fy2025": {
+   "source": "https://www.nintendo.co.jp/ir/pdf/2025/security_q2503.pdf",
+   "country": "JP", "language": "ja",
+   "labels": {"currency": "JPY", "unit": "millions", "accounting_standard": "jgaap", "fiscal_year_end": "2025-03-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-03-31", "value": 1164922, "page": 55},
+    {"key": "revenue", "period_end": "2024-03-31", "value": 1671865, "page": 55},
+    {"key": "operating_income", "period_end": "2025-03-31", "value": 282553, "page": 55},
+    {"key": "profit_before_tax", "period_end": "2025-03-31", "value": 372331, "page": 55},
+    {"key": "net_income", "period_end": "2025-03-31", "value": [278852, 278806], "page": 55},
+    {"key": "total_assets", "period_end": "2025-03-31", "value": 3398515, "page": 53},
+    {"key": "total_equity", "period_end": "2025-03-31", "value": 2725446, "page": 54}
+   ]
+  },
+  "fr-loreal-2024": {
+   "source": "https://www.loreal-finance.com/site/URD24/app/fr/uploads/2071/Document/loreal-deu-2024-fr.f4503.pdf",
+   "country": "FR", "language": "fr",
+   "labels": {"currency": "EUR", "unit": "millions", "accounting_standard": "ifrs", "fiscal_year_end": "2024-12-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2024-12-31", "value": 43486.8, "page": 286},
+    {"key": "revenue", "period_end": "2023-12-31", "value": 41182.5, "page": 286},
+    {"key": "gross_profit", "period_end": "2024-12-31", "value": 32259.8, "page": 286},
+    {"key": "operating_income", "period_end": "2024-12-31", "value": [8687.5, 8249.8], "page": 286},
+    {"key": "profit_before_tax", "period_end": "2024-12-31", "value": 8432.9, "page": 286},
+    {"key": "net_income", "period_end": "2024-12-31", "value": [6416.5, 6408.7], "page": 286},
+    {"key": "total_assets", "period_end": "2024-12-31", "value": 56353.4, "page": 297}
+   ]
+  },
+  "es-insur-2025": {
+   "source": "https://grupoinsur.com/storage/Accionistas/InformacionEconmicaFRA/CCAA2025Consolidadas.pdf",
+   "country": "ES", "language": "es",
+   "labels": {"currency": "EUR", "unit": "thousands", "accounting_standard": "ifrs", "fiscal_year_end": "2025-12-31", "scope": "consolidated"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-12-31", "value": 208276, "page": 13},
+    {"key": "revenue", "period_end": "2024-12-31", "value": 164491, "page": 13},
+    {"key": "operating_income", "period_end": "2025-12-31", "value": 56167, "page": 13},
+    {"key": "profit_before_tax", "period_end": "2025-12-31", "value": 49850, "page": 13},
+    {"key": "net_income", "period_end": "2025-12-31", "value": 39620, "page": 13},
+    {"key": "total_assets", "period_end": "2025-12-31", "value": 631705, "page": 12}
+   ]
+  },
+  "in-lm-manufacturing-fy25": {
+   "source": "https://www.zyduslife.com/investor/admin/uploads/14/11/LM-Manufacturing-India-Private-Limited2025_07_16_04_53_23.pdf",
+   "country": "IN", "language": "en",
+   "labels": {"currency": "INR", "unit": "thousands", "accounting_standard": "ind_as", "fiscal_year_end": "2025-03-31", "scope": "standalone"},
+   "figures": [
+    {"key": "revenue", "period_end": "2025-03-31", "value": 64422, "page": 14},
+    {"key": "revenue", "period_end": "2024-03-31", "value": 67303, "page": 14},
+    {"key": "profit_before_tax", "period_end": "2025-03-31", "value": 8545, "page": 14},
+    {"key": "net_income", "period_end": "2025-03-31", "value": 6599, "page": 14},
+    {"key": "cash_from_operations", "period_end": "2025-03-31", "value": 2853, "page": 15},
+    {"key": "cash_and_equivalents", "period_end": "2025-03-31", "value": 6303, "page": 13},
+    {"key": "total_assets", "period_end": "2025-03-31", "value": 33315, "page": 13},
+    {"key": "total_equity", "period_end": "2025-03-31", "value": 15755, "page": 13}
+   ]
+  }
+ }
+}

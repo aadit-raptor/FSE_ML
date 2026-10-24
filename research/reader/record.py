@@ -300,7 +300,7 @@ def read_one(provider: Gemini, pdf: Path, target: Path, set_name: str, quarter: 
     return f"A by {reads['A']['model']}, B by {reads['B']['model']}" + (", truth joined" if joined else "")
 
 
-def _key(env_file: Optional[Path]) -> str:
+def api_key(env_file: Optional[Path]) -> str:
     if env_file is not None:
         for line in env_file.read_text().splitlines():
             if line.startswith("GEMINI_API_KEY="):
@@ -329,7 +329,7 @@ def main(argv=None) -> int:
         for name in from_r0(args.samples):
             print(f"wrote {name}")
         return 0
-    provider = Gemini(_key(args.env_file), high_resolution=args.high or None)
+    provider = Gemini(api_key(args.env_file), high_resolution=args.high or None)
     for pdf in args.files:
         target = RECORDINGS / args.set / f"{short_name(pdf.stem)}.json"
         try:

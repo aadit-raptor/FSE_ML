@@ -1,0 +1,615 @@
+{
+ "document": {
+  "dpi": [
+   300,
+   300,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   300
+  ],
+  "name": "de-deutsche-boerse-2025",
+  "pages": 133,
+  "set": "evaluation",
+  "sha256": "58d61a240e66dc462420594f7177e2dc722c925f54e9c01eefb05c5a30f57b38",
+  "text_pages": [
+   3,
+   5,
+   6,
+   7,
+   11
+  ]
+ },
+ "prompt": "x1",
+ "quotes": {
+  "3": [
+   "00e7cf861c23ae6d",
+   "361576d668ed2021",
+   "3cde229976941b73",
+   "4a75c8262822e784",
+   "5220e114b9175980",
+   "60aa8cba07ffa1d1",
+   "6e070418e50e88a3",
+   "767a3a723b1d4dfe",
+   "7862c3d2f42e7dee",
+   "81e86e492f77ab95",
+   "d046e5a95dd00018",
+   "d280711f168475d5",
+   "e47497624623c0d0"
+  ],
+  "5": [
+   "09e5b603c7541e73",
+   "73846abf38647031",
+   "8af01c782e28f804",
+   "eab3137e79ec61ee"
+  ],
+  "6": [
+   "2537ae896141f12f",
+   "2cedeeef85e1b737"
+  ],
+  "7": [
+   "51f17dd4af560e9a"
+  ]
+ },
+ "reads": {
+  "A": {
+   "model": "gemini-3.7-flash",
+   "read": {
+    "company": "Deutsche Börse AG",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse 4 6.543 5.972",
+      "value": 6543
+     },
+     {
+      "key": "revenue",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse 4 6.543 5.972",
+      "value": 5972
+     },
+     {
+      "key": "ebitda",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibung (EBITDA) 3.512 3.396",
+      "value": 3512
+     },
+     {
+      "key": "ebitda",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibung (EBITDA) 3.512 3.396",
+      "value": 3396
+     },
+     {
+      "key": "operating_income",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 3.010 2.900",
+      "value": 3010
+     },
+     {
+      "key": "operating_income",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 3.010 2.900",
+      "value": 2900
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Periodenergebnis vor Steuern (EBT) 2.857 2.745",
+      "value": 2857
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Periodenergebnis vor Steuern (EBT) 2.857 2.745",
+      "value": 2745
+     },
+     {
+      "key": "income_tax",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Ertragsteuern 9 – 753 – 699",
+      "value": -753
+     },
+     {
+      "key": "income_tax",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Ertragsteuern 9 – 753 – 699",
+      "value": -699
+     },
+     {
+      "key": "net_income",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Periodenüberschuss 2.104 2.046",
+      "value": 2104
+     },
+     {
+      "key": "net_income",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Periodenüberschuss 2.104 2.046",
+      "value": 2046
+     },
+     {
+      "key": "total_assets",
+      "page": 5,
+      "period_end": "2025-12-31",
+      "quote": "Summe Aktiva 297.156 222.112",
+      "value": 297156
+     },
+     {
+      "key": "total_assets",
+      "page": 5,
+      "period_end": "2024-12-31",
+      "quote": "Summe Aktiva 297.156 222.112",
+      "value": 222112
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 5,
+      "period_end": "2025-12-31",
+      "quote": "Kassenbestand und sonstige Bankguthaben 1.782 1.872",
+      "value": 1782
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 5,
+      "period_end": "2024-12-31",
+      "quote": "Kassenbestand und sonstige Bankguthaben 1.782 1.872",
+      "value": 1872
+     },
+     {
+      "key": "total_equity",
+      "page": 6,
+      "period_end": "2025-12-31",
+      "quote": "Summe Eigenkapital 11.829 11.259",
+      "value": 11829
+     },
+     {
+      "key": "total_equity",
+      "page": 6,
+      "period_end": "2024-12-31",
+      "quote": "Summe Eigenkapital 11.829 11.259",
+      "value": 11259
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 7,
+      "period_end": "2025-12-31",
+      "quote": "Abschreibungen und Wertminderungsaufwand 10,11,12 501 496",
+      "value": 501
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 7,
+      "period_end": "2024-12-31",
+      "quote": "Abschreibungen und Wertminderungsaufwand 10,11,12 501 496",
+      "value": 496
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 7,
+      "period_end": "2025-12-31",
+      "quote": "Cashflow aus laufender Geschäftstätigkeit 23 2.810 2.411",
+      "value": 2810
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 7,
+      "period_end": "2024-12-31",
+      "quote": "Cashflow aus laufender Geschäftstätigkeit 23 2.810 2.411",
+      "value": 2411
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 11,
+      "quote": "Der Konzernabschluss 2025 wurde im Einklang mit den International Financial Reporting Standards (IFRS)",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 3,
+      "quote": "in Mio. €",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 3,
+      "quote": "für die Zeit vom 1. Januar bis 31. Dezember 2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 3,
+      "quote": "Konzern-Gewinn- und Verlustrechnung",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 3,
+      "quote": "in Mio. €",
+      "value": "millions"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 102.0,
+   "usage": {
+    "candidatesTokenCount": 2130,
+    "promptTokenCount": 70964,
+    "promptTokensDetails": [
+     {
+      "modality": "IMAGE",
+      "tokenCount": 70091
+     },
+     {
+      "modality": "TEXT",
+      "tokenCount": 873
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 2784,
+    "totalTokenCount": 75878
+   }
+  },
+  "B": {
+   "model": "gemini-3-flash-preview",
+   "read": {
+    "company": "Deutsche Börse Group",
+    "document": "annual_report",
+    "figures": [
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Umsatzerlöse 6.543",
+      "value": 6543
+     },
+     {
+      "key": "revenue",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Umsatzerlöse 5.972",
+      "value": 5972
+     },
+     {
+      "key": "ebitda",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibung (EBITDA) 3.512",
+      "value": 3512
+     },
+     {
+      "key": "ebitda",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen, Steuern und Abschreibung (EBITDA) 3.396",
+      "value": 3396
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 3.010",
+      "value": 3010
+     },
+     {
+      "key": "operating_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ergebnis vor Zinsen und Steuern (EBIT) 2.900",
+      "value": 2900
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Abschreibungen und Wertminderungsaufwand 501",
+      "value": 501
+     },
+     {
+      "key": "depreciation_amortization",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Abschreibungen und Wertminderungsaufwand 496",
+      "value": 496
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Finanzaufwendungen – 200",
+      "value": -200
+     },
+     {
+      "key": "interest_expense",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Finanzaufwendungen – 205",
+      "value": -205
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Periodenergebnis vor Steuern (EBT) 2.857",
+      "value": 2857
+     },
+     {
+      "key": "profit_before_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Periodenergebnis vor Steuern (EBT) 2.745",
+      "value": 2745
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Ertragsteuern – 753",
+      "value": -753
+     },
+     {
+      "key": "income_tax",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Ertragsteuern – 699",
+      "value": -699
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2025-12-31",
+      "quote": "Periodenüberschuss 2.104",
+      "value": 2104
+     },
+     {
+      "key": "net_income",
+      "page": 1,
+      "period_end": "2024-12-31",
+      "quote": "Periodenüberschuss 2.046",
+      "value": 2046
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 4,
+      "period_end": "2025-12-31",
+      "quote": "Cashflow aus laufender Geschäftstätigkeit 2.810",
+      "value": 2810
+     },
+     {
+      "key": "cash_from_operations",
+      "page": 4,
+      "period_end": "2024-12-31",
+      "quote": "Cashflow aus laufender Geschäftstätigkeit 2.411",
+      "value": 2411
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Kassenbestand und sonstige Bankguthaben 1.782",
+      "value": 1782
+     },
+     {
+      "key": "cash_and_equivalents",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Kassenbestand und sonstige Bankguthaben 1.872",
+      "value": 1872
+     },
+     {
+      "key": "total_assets",
+      "page": 2,
+      "period_end": "2025-12-31",
+      "quote": "Summe Aktiva 297.156",
+      "value": 297156
+     },
+     {
+      "key": "total_assets",
+      "page": 2,
+      "period_end": "2024-12-31",
+      "quote": "Summe Aktiva 222.112",
+      "value": 222112
+     },
+     {
+      "key": "total_equity",
+      "page": 3,
+      "period_end": "2025-12-31",
+      "quote": "Summe Eigenkapital 11.829",
+      "value": 11829
+     },
+     {
+      "key": "total_equity",
+      "page": 3,
+      "period_end": "2024-12-31",
+      "quote": "Summe Eigenkapital 11.259",
+      "value": 11259
+     }
+    ],
+    "labels": {
+     "accounting_standard": {
+      "page": 5,
+      "quote": "Der Konzernabschluss 2025 wurde im Einklang mit den International Financial Reporting Standards (IFRS)",
+      "value": "ifrs"
+     },
+     "currency": {
+      "page": 1,
+      "quote": "in Mio. €",
+      "value": "EUR"
+     },
+     "fiscal_year_end": {
+      "page": 1,
+      "quote": "für die Zeit vom 1. Januar bis 31. Dezember 2025",
+      "value": "2025-12-31"
+     },
+     "scope": {
+      "page": 1,
+      "quote": "Konzern-Gewinn- und Verlustrechnung",
+      "value": "consolidated"
+     },
+     "unit": {
+      "page": 1,
+      "quote": "in Mio. €",
+      "value": "millions"
+     }
+    },
+    "language": "de"
+   },
+   "seconds": 59.0,
+   "usage": {
+    "candidatesTokenCount": 2096,
+    "promptTokenCount": 6392,
+    "promptTokensDetails": [
+     {
+      "modality": "TEXT",
+      "tokenCount": 892
+     },
+     {
+      "modality": "IMAGE",
+      "tokenCount": 5500
+     }
+    ],
+    "serviceTier": "standard",
+    "thoughtsTokenCount": 7852,
+    "totalTokenCount": 16340
+   }
+  }
+ }
+}

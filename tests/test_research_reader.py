@@ -753,12 +753,12 @@ def test_the_high_resolution_trial_is_recorded_beside_the_ordinary_reads_and_sco
 def test_the_recorder_reads_its_key_from_a_file_or_the_environment(tmp_path, monkeypatch):
     env = tmp_path / ".env"
     env.write_text("OTHER=1\nGEMINI_API_KEY= abc \n")
-    assert record._key(env) == "abc"
+    assert record.api_key(env) == "abc"
     monkeypatch.setenv("GEMINI_API_KEY", "xyz")
-    assert record._key(None) == "xyz"
+    assert record.api_key(None) == "xyz"
     monkeypatch.delenv("GEMINI_API_KEY")
     with pytest.raises(SystemExit):
-        record._key(None)
+        record.api_key(None)
 
 
 def test_the_recorder_command_stops_for_the_day_when_every_model_is_spent(tmp_path, monkeypatch, capsys):

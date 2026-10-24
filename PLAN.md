@@ -163,7 +163,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 5.10 | Retraining models by hand (parked, not scheduled) | 5.1 | ☐ |
 | **6** | **AI features** | | |
 | 6.1 | File uploads | 1.4, 1.9 | ☑ |
-| 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☐ |
+| 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☑ |
 | 6.3 | Investment memo writer | 3.1, 1.5 | ☐ |
 | 6.4 | Plain-English explanations on screens | 3.1 | ☐ |
 | **7** | **Product features** | | |
@@ -330,6 +330,10 @@ stops for it):
   built on a free Gemini key (project `variater-reader`, no billing yet);
   billing with a spending cap is switched on **before the first outside
   showing after R2** (then `AI_FREE_TIER=0`, DEPLOY.md "Results reader").
+- which AI provider: **settled 2026-10-21**: Gemini stays, two reads by two
+  different Gemini models. DeepSeek was considered (cheaper) and set aside:
+  no PDF input, one picture-reading model, pictures cut to about 384 tokens,
+  servers in China.
 
 **Analysts come after the product (the user's decision, 2026-10-12).** No
 analyst can be approached with a sample page: they need something finished
@@ -2676,6 +2680,39 @@ enough for the free server.
   evaluation set; nothing enters a deal without acceptance; CI runs on recorded
   responses; the confidentiality warning blocks non-public uploads on the free
   provider (e2e).
+- **Done (2026-10-21).** Deal -> **From a document** reads an uploaded PDF
+  (annual report, financial statements, information pack; any language) as
+  job `document.extract`. `ml/nlp_extractor.py` is rebuilt on the results
+  reader's provider switch (`research/reader/providers.py`, which now takes
+  another task's prompt): **two reads by two different Gemini models** (the
+  user's decision of 2026-10-21; DeepSeek set aside), read A the whole PDF,
+  read B pictures of the pages A cites. Each read gives the currency, unit,
+  accounting standard, fiscal year end and scope, and up to fifteen figures
+  for the latest two years, **each with its PDF page and a verbatim quote**.
+  A value is amber when the reads differ, one read alone gives it, **its
+  quote is not on its page** (the page's text layer, read in the page tool's
+  child process), its quote does not hold it, or its page is a poor scan.
+  The person ticks each value; the deal inputs (EBITDA, margins, D&A, capex,
+  tax, growth, currency, unit, standard, fiscal year) are worked out by
+  `POST /api/documents/reads/{id}/deal` from the read's own result and only
+  the accepted ids, money only with its currency and unit accepted. Free
+  tier: the person confirms the document is public (422 otherwise, and the
+  screen keeps the button off). Use is counted in `ai_usage` as kind
+  `extract` (migration 0024); a document counts as a read and has its own
+  pages a day (`USER_DOCUMENT_PAGES`, 1,000; 500 pages a document).
+  **Card** `ml/cards/extractor.json` (bar set before reading: no wrong value
+  and no planted misread unflagged, at least 80% of the truth figures
+  found): eight public documents in German (MBB, Bauer, Deutsche Börse,
+  ÖBB), Japanese (Nintendo), French (L'Oréal), Spanish (Grupo Insur) and
+  English (LM Manufacturing India), 55 truth figures typed by hand from each
+  document's statements: **54 found without amber, none wrong unflagged, no
+  planted misread missed** (the one-read baseline misses all of them),
+  8.5% of values amber; it meets the bar, so production reads. Found on the
+  way: both models read LM Manufacturing's cash flow with its year columns
+  swapped and agreed; only the quote check caught it. Information packs are
+  not in the set (none is public); a scanned report has no text layer for
+  the quote check. CI and the browser tests replay
+  `tests/fixtures/extract/` (`python -m ml.document_reader record`).
 
 ### 6.3 Investment memo writer
 - **Claude does:** memo drafts from a saved version (summary, full metric set,

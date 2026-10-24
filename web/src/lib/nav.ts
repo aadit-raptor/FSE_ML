@@ -35,6 +35,7 @@ export const MODES: Mode[] = [
       { slug: "summary", labelKey: "dealSummary", summaryKey: "dealSummarySummary" },
       { slug: "saved", labelKey: "dealSaved", summaryKey: "dealSavedSummary" },
       { slug: "documents", labelKey: "dealDocuments", summaryKey: "dealDocumentsSummary" },
+      { slug: "from-document", labelKey: "dealFromDocument", summaryKey: "dealFromDocumentSummary" },
     ],
   },
   {

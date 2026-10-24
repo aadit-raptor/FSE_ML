@@ -26,6 +26,7 @@ class Plan:
     reads_per_day: int          # results reads (PLAN.md R1)
     pages_per_day: int          # pages of them
     writes_per_day: int         # a results note's linking sentences (PLAN.md R8)
+    document_pages_per_day: int  # pages of documents read for a deal (PLAN.md 6.2): an annual report is long
 
 
 @dataclass(frozen=True)
@@ -36,9 +37,11 @@ class Tier:
 
 
 PLANS = {
-    "free": Plan("free", reads_per_day=10, pages_per_day=250, writes_per_day=5),
+    "free": Plan("free", reads_per_day=10, pages_per_day=250, writes_per_day=5,
+                 document_pages_per_day=1_000),
     # an analyst covering a sector through results season: about a dozen filings on a heavy day, room to reread
-    "research": Plan("research", reads_per_day=40, pages_per_day=1_000, writes_per_day=30),
+    "research": Plan("research", reads_per_day=40, pages_per_day=1_000, writes_per_day=30,
+                     document_pages_per_day=4_000),
 }
 DEFAULT_PLAN = "free"
 
