@@ -2119,11 +2119,7 @@ golden snapshot is untouched and parity tests explain every departure.
   administrator makes in the app). Until then the library holds none and
   Settings -> Fees offers no sourced fees.
 
-- PLAN.md 6.1: file uploads are **off until the store is set up** (DEPLOY.md
-  "File uploads", "You need to set this up first"): a Supabase project for
-  uploads and `SUPABASE_UPLOADS_URL` / `SUPABASE_UPLOADS_KEY` on both Render
-  services (and, to try it from the staging site, `FSE_CORS_ORIGINS` on
-  `fse-api-staging`). Also one workflow edit Claude's token can't push: add
+- PLAN.md 6.1 (the store is set up: `/api/health/files` answers `supabase`, `sb_secret` on both environments, checked 2026-10-24): one workflow edit Claude's token can't push is still open: add
   `uploads` to `API_PATHS` in `.github/workflows/staging.yml` (line 35), so
   a change to `uploads/` alone makes the staging check wait for the API.
 
@@ -2712,6 +2708,7 @@ Skills load when a session starts: install first, then open a new session.
   `python -m db.migrate downgrade -1` then `upgrade` on `DATABASE_URL`.
 - **Check a model's quote against the page's own text** (PLAN.md 6.2): both Gemini models read LM Manufacturing's cash flow with its two year columns swapped and agreed, so a second read alone would have shown the wrong year as fact; the quote ("7,487 2,853") was not on the page ("2,853 7,487"), which is what flagged it. Many reports print the earlier year first (Bauer, Nintendo). The page tool's `text` command gives the text layer; a scan has none, so the check says nothing there.
 - `research/reader/pages.py` limits `info` to a results filing's 300 pages unless told otherwise (`info(path, limit)`); `render` and `text` open only the pages asked for, whatever the length. An annual report runs to 450 pages.
+- **A read that every model calls "busy" waits and asks again** (2026-10-24: the user's first live read of Tata Steel failed `provider_busy` every time, while the same file and key read fine from the Mac minutes later). `Gemini._ask` retries a round in which every model answered 503 or a per-minute 429 after `BUSY_WAITS_S` (30 s, then 90 s; Google's `retryDelay` when longer, never past `MAX_WAIT_S`), jobs only: the note writer, inside a request, never waits. Each refusal is logged as `ai_model_refused` (model, HTTP status, Google's status and quota name; never its message): read Render's log for it when a read fails. A read no model answered gives its pages back (`service.refund_pages`); one that got an answer keeps the charge, since tokens were spent.
 - A new request to the AI provider must be counted (PLAN.md R9): collect each
   `Answer` it gets (the `spent` lists) and pass them to
   `research/reader/service.py` `count_usage` with its kind, and give any new
