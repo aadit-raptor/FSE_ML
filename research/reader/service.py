@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -129,6 +130,15 @@ def _charge_pages(subject: str, count: int, now: Optional[float] = None) -> None
     counters().add(check, count)
 
 
+def refund_pages(rule, subject: str, count: int) -> None:
+    """Give back pages charged for a read no model answered: nothing was read, so nothing is owed."""
+    from api.limits import check_for
+    from api.usage import counters
+
+    if count:
+        counters().add(check_for(rule, subject, time.time()), -count)
+
+
 def pages_left(subject: str, now: Optional[float] = None) -> int:
     from api.limits import USER_READ_PAGES, check_for
     from api.usage import counters
@@ -196,6 +206,11 @@ def read_file(owner: str, file_id: uuid.UUID, quarter_end: Optional[datetime.dat
             raise _refuse(422, "unreadable_pdf") from None
     finally:
         uploads.discard(path)
+        if charged and not spent and sys.exc_info()[0] is not None:
+            from api.limits import USER_READ_PAGES
+
+            refund_pages(USER_READ_PAGES, owner, charged)
+            charged = 0
         count_usage(owner, "read", reader, pages=charged, answers=spent)
     summary = result["summary"]
     log_event("reader_read", provider=reader.name, pages=info.pages, tables=summary["tables"],

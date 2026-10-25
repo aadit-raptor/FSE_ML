@@ -226,3 +226,14 @@ def test_nothing_from_a_document_reaches_a_log(documents, job_queue, caplog):
     for found in done["result"]["figures"][:5]:
         assert found["quote"] not in logged
     assert done["result"]["company"] not in logged and "annual-report.pdf" not in logged
+
+
+def test_a_read_no_model_answered_gives_its_document_pages_back(documents, job_queue, monkeypatch):
+    monkeypatch.setenv("FSE_EXTRACT_REPLAY_DEFAULT", "")
+    file_id = clean_pdf(job_queue, 3)
+    before = client.get("/api/documents/reader").json()["pages_left"]
+    job = start(file_id).json()
+    run_reads(job_queue)
+    found = client.get(f"/api/documents/reads/{job['id']}").json()
+    assert (found["status"], found["error"]) == ("failed", "not_recorded")
+    assert client.get("/api/documents/reader").json()["pages_left"] == before

@@ -436,3 +436,18 @@ def test_the_settings_range_of_interest_passes_still_runs():
     for passes in (1, 10):
         resp = TestClient(app).post("/api/montecarlo/run", json={"mc": {"n": 1000}, "settings": {"mc_n_passes": passes}})
         assert resp.status_code == 200, resp.text
+
+
+def test_a_refund_after_a_sync_reaches_the_shared_store():
+    store = FakeStore()
+    clock = lambda: 1_700_000_000.0  # noqa: E731
+    counters = usage.UsageCounters([store], clock=clock, background=False)
+    counters.add(daily(), 4)
+    counters.flush()
+    counters.add(daily(), -4)                           # a read no model answered gives its pages back
+    assert counters.flush() == "upstash"
+    assert store.data[daily().key] == 0
+    later = usage.UsageCounters([store], clock=clock, background=False)
+    later.add(daily(), 0)
+    later.flush()
+    assert store.data[daily().key] == 0
