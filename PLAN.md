@@ -164,7 +164,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **6** | **AI features** | | |
 | 6.1 | File uploads | 1.4, 1.9 | ☑ |
 | 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☑ |
-| 6.3 | Investment memo writer | 3.1, 1.5 | ☐ |
+| 6.3 | Investment memo writer | 3.1, 1.5 | ☑ |
 | 6.4 | Plain-English explanations on screens | 3.1 | ☐ |
 | **7** | **Product features** | | |
 | 7.1 | Onboarding and in-app help | 1.5 | ☐ |
@@ -2723,6 +2723,45 @@ enough for the free server.
   by the app.
 - **Done when:** a test checks every figure against its run; a test proves no
   company names or identifiers are sent on the free provider.
+- **Done 2026-10-26.** Built on R8's machinery: its segments and blocks, its
+  rules for the tool's words (no digit, no number word, no rating) and its Word
+  and PDF writers (`research/report_files.py`, which gained the document's
+  language). **Deal -> Memo** drafts a saved version as job `memo.draft`:
+  `ml/memo.py` `run_version` runs the version's inputs and Settings through
+  the screens' own endpoint functions (the deal model, the Monte Carlo
+  simulation with its driver explanations on the screen's seed 42, the four
+  scenarios and, with saved actuals, plan against actual) and keeps what the
+  memo shows (`trim`, about 4 KB) with the model stamp, in table `deal_memos`
+  (migration 0025, one memo per version, at most 40 a person, deleted with its
+  deal). A memo is drawn from that run each time and `check` works every
+  figure out again from it (a `Figure` is a dotted path into the run), so
+  drafting runs the model and drawing never does; the memo says when the
+  engine has moved on since (`current`). Sections: summary and where the gain
+  comes from, the full metric set (IRR, MOIC, probability of loss, downside
+  IRR, median simulated IRR, the hurdle and the chance of beating it, interest
+  cover, implied grade, default risk), the risk warnings with their sources,
+  the drivers of the weakest and strongest paths, the scenarios, plan against
+  actual. **In the reader's language**: every word is in `web/messages`
+  under `memo.doc` (driver names under `engine`, years under `fiscal`), chosen
+  from the account's locale as the web chooses its catalogue; figures follow
+  the account's grouping. **The AI** (`ml/memo_writer.py`) writes linking
+  sentences from slot names, meanings and directions only; slot names hold no
+  digit, so the prompt holds none; it writes English only (another language's
+  memo is the translated templates'); its answers are checked as R8's are; one
+  request spends the notes' allowance (`USER_WRITES`, `WRITES_ALL`) and is
+  counted as `ai_usage` kind `memo`. Audit actions `memo_drafted`,
+  `memo_written`, `memo_deleted` (with the version) and exports `memo_word`,
+  `memo_pdf`. Proof: `tests/test_memo.py` builds memos of three deals (the
+  defaults; one in thousands; one with facilities, tax rules, leases, fiscal
+  years and actuals) and compares every figure with the endpoints' answers
+  asked through the API and read by the test's own map; writes a deal full of
+  names through Gemini's own code and finds none of them, no digit and no
+  figure in any request; plants figures, labels, digits, number words and
+  calls (each refused). `tests/test_memo_api.py` on a real database;
+  `web/e2e/memo.spec.ts`. **Not done here:** a recorded answer of the real AI
+  for a memo (the browser tests replay none, so the templates write there); the
+  PDF's Helvetica can't write a non-Latin catalogue (none exists yet: PLAN.md
+  7.8 adds a font with the first one).
 
 ### 6.4 Plain-English explanations on screens
 - **Claude does:** "explain" on key tiles built mainly from **templates that use

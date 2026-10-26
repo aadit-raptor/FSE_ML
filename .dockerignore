@@ -7,6 +7,8 @@
 **/__pycache__
 **/*.pyc
 web
+# ...except the interface words: an investment memo is written in them (PLAN.md 6.3, ml/memo.py)
+!web/messages
 tests
 test_*.py
 *.md

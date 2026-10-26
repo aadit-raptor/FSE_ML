@@ -38,6 +38,7 @@ services:
         - simulation/**
         - uploads/**
         - validation/**
+        - web/messages/**
     envVars:
       # Browser origins allowed to call the API directly. The web app goes
       # through Vercel's proxy, so this only matters for direct API use.

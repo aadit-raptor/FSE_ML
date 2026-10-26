@@ -164,7 +164,8 @@ function Segments({ parts }: { parts: ReportSegment[] | null | undefined }) {
   );
 }
 
-function Block({ block }: { block: ReportBlock }) {
+/** One block of a checked draft (a results note's, an investment memo's: PLAN.md 6.3 draws memos with it). */
+export function Block({ block, chartLabel }: { block: ReportBlock; chartLabel?: string }) {
   const t = useTranslations("report");
   if (block.type === "heading") {
     return block.level === 1 ? (
@@ -223,7 +224,7 @@ function Block({ block }: { block: ReportBlock }) {
           labelled: true, labels: s.texts,
         }))}
         format={() => ""}
-        label={t("chartLabel", { title: plain(block.title) })}
+        label={chartLabel ?? t("chartLabel", { title: plain(block.title) })}
       />
     </figure>
   );

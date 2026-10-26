@@ -619,6 +619,121 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/deals/{deal_id}/memos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Memos */
+        get: operations["get_memos_api_deals__deal_id__memos_get"];
+        put?: never;
+        /**
+         * Post Memo
+         * @description Draft (or draft again) a version's memo, as a background job: the version runs through the model.
+         */
+        post: operations["post_memo_api_deals__deal_id__memos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/memos/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Memo Job
+         * @description A draft's progress. Another account's job, or another kind, is a 404 (a job is the caller's whatever the
+         *     deal in the address: the queue keeps no payload once it has run).
+         */
+        get: operations["get_memo_job_api_deals__deal_id__memos_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/memos/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Memo */
+        get: operations["get_memo_api_deals__deal_id__memos__version__get"];
+        put?: never;
+        post?: never;
+        /** Delete Memo */
+        delete: operations["delete_memo_api_deals__deal_id__memos__version__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/memos/{version}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pdf */
+        get: operations["get_pdf_api_deals__deal_id__memos__version__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/memos/{version}/sentences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Sentences
+         * @description The linking sentences written again: by the AI when one is set up and the reader reads English (its answer
+         *     checked, a section that breaks a rule written by its template), else by the templates. Kept with the memo.
+         */
+        post: operations["post_sentences_api_deals__deal_id__memos__version__sentences_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/memos/{version}/word": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Word */
+        get: operations["get_word_api_deals__deal_id__memos__version__word_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deals/{deal_id}/validation": {
         parameters: {
             query?: never;
@@ -2457,10 +2572,10 @@ export interface components {
             input_tokens: number;
             /**
              * Kind
-             * @description read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2)
+             * @description read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2); memo: an investment memo's sentences (6.3)
              * @enum {string}
              */
-            kind: "read" | "write" | "extract";
+            kind: "read" | "write" | "extract" | "memo";
             /** Output Tokens */
             output_tokens: number;
             /** Pages */
@@ -2551,7 +2666,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -2578,7 +2693,7 @@ export interface components {
              */
             enabled?: boolean | null;
             /** Export */
-            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel" | "report_word" | "report_pdf") | null;
+            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel" | "report_word" | "report_pdf" | "memo_word" | "memo_pdf") | null;
             /**
              * Fields
              * @description What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's
@@ -5749,7 +5864,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run" | "research.read" | "document.extract";
+            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run" | "research.read" | "document.extract" | "memo.draft";
             /**
              * Progress
              * @description 0 to 1; moves as the run passes its stages
@@ -6101,6 +6216,127 @@ export interface components {
              * @default 1.5
              */
             rate_std: number;
+        };
+        /**
+         * MemoDrafted
+         * @description A memo job's result: the version whose memo was drafted.
+         */
+        MemoDrafted: {
+            /**
+             * Changed
+             * @description False when the run came out exactly as the memo already held it
+             */
+            changed: boolean;
+            /** Version */
+            version: number;
+        };
+        /** MemoJobOut */
+        MemoJobOut: {
+            /**
+             * Error
+             * @description Why it failed, for people
+             */
+            error?: string | null;
+            /** Error Status */
+            error_status?: number | null;
+            /** Id */
+            id: string;
+            /** Progress */
+            progress: number;
+            result?: components["schemas"]["MemoDrafted"] | null;
+            /**
+             * Result Expired
+             * @default false
+             */
+            result_expired: boolean;
+            /** Stage */
+            stage: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
+        /** MemoList */
+        MemoList: {
+            /** Max Memos */
+            max_memos: number;
+            /** Memos */
+            memos: components["schemas"]["MemoSummary"][];
+        };
+        /**
+         * MemoOut
+         * @description An investment memo, drawn from its stored model run and checked figure by figure.
+         */
+        MemoOut: {
+            /** Blocks */
+            blocks: components["schemas"]["ReportBlock"][];
+            /** Current */
+            current: boolean;
+            /** Deal Id */
+            deal_id: string;
+            /** Deal Name */
+            deal_name: string;
+            /** Drafted At */
+            drafted_at: string;
+            /** Engine Version */
+            engine_version?: string | null;
+            /**
+             * Language
+             * @description The catalogue its words are in (web/messages)
+             */
+            language: string;
+            /** Sentences */
+            sentences: components["schemas"]["MemoSentence"][];
+            /** Version */
+            version: number;
+            /**
+             * Written By
+             * @description The AI model that wrote the stored sentences, if one did
+             */
+            written_by?: string | null;
+        };
+        /** MemoSentence */
+        MemoSentence: {
+            /**
+             * Section
+             * @enum {string}
+             */
+            section: "summary" | "metrics" | "drivers" | "scenarios" | "plan";
+            /**
+             * Source
+             * @description Who wrote it: the AI, or the template and why
+             * @enum {string}
+             */
+            source: "ai" | "template" | "ai_off" | "ai_failed" | "ai_refused" | "not_english";
+        };
+        /**
+         * MemoStart
+         * @description Draft the memo of one saved version of a deal (PLAN.md 6.3).
+         */
+        MemoStart: {
+            /**
+             * Version
+             * @description The saved version's number
+             */
+            version: number;
+        };
+        /** MemoSummary */
+        MemoSummary: {
+            /**
+             * Current
+             * @description False when the engine has changed since the run: drafting again moves figures
+             */
+            current: boolean;
+            /**
+             * Drafted At
+             * @description UTC, ISO 8601: when the memo's run was made
+             */
+            drafted_at: string;
+            /** Engine Version */
+            engine_version?: string | null;
+            /** Version */
+            version: number;
         };
         /** ModelBlockOut */
         ModelBlockOut: {
@@ -11931,6 +12167,334 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditHistory"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_memos_api_deals__deal_id__memos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_memo_api_deals__deal_id__memos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemoStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_memo_job_api_deals__deal_id__memos_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_memo_api_deals__deal_id__memos__version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_memo_api_deals__deal_id__memos__version__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_pdf_api_deals__deal_id__memos__version__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The memo as a PDF */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_sentences_api_deals__deal_id__memos__version__sentences_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_word_api_deals__deal_id__memos__version__word_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The memo as a Word file, its chart a native Word chart */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": unknown;
                 };
             };
             /** @description Validation Error */

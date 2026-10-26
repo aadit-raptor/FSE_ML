@@ -1291,7 +1291,7 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "file_uploaded", "file_deleted", "coverage_added", "coverage_removed",
                       "period_accepted", "period_removed",
                       "model_saved", "model_versioned", "model_restored", "model_rolled",
-                      "report_saved", "report_details_saved"]
+                      "report_saved", "report_details_saved", "memo_drafted", "memo_written", "memo_deleted"]
 
 
 class AuditEntry(BaseModel):
@@ -1311,7 +1311,7 @@ class AuditEntry(BaseModel):
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
     export: Optional[Literal["workbook", "simulation_sample", "results_workbook", "results_excel", "report_word",
-                             "report_pdf"]] = None
+                             "report_pdf", "memo_word", "memo_pdf"]] = None
     enabled: Optional[bool] = Field(
         None, description="Whether the reference library was shown or hidden, or suggestions of the "
                           "account's usual figures switched on or off")
@@ -1352,7 +1352,7 @@ JobSubmit = Annotated[Union[MonteCarloJob, ScenariosJob, BacktestJob, ForecastJo
                       Field(discriminator="kind")]
 
 JobKindName = Literal["montecarlo.run", "montecarlo.scenarios", "backtesting.run", "forecasting.run",
-                      "research.read", "document.extract"]
+                      "research.read", "document.extract", "memo.draft"]
 JobStatus = Literal["queued", "running", "succeeded", "failed", "cancelled"]
 
 
@@ -3383,6 +3383,60 @@ class ReportOut(BaseModel):
     blocks: List[ReportBlock]
 
 
+class MemoStart(Strict):
+    """Draft the memo of one saved version of a deal (PLAN.md 6.3)."""
+    version: int = Field(ge=1, description="The saved version's number")
+
+
+class MemoDrafted(BaseModel):
+    """A memo job's result: the version whose memo was drafted."""
+    version: int
+    changed: bool = Field(description="False when the run came out exactly as the memo already held it")
+
+
+class MemoJobOut(BaseModel):
+    id: str
+    status: JobStatus
+    progress: float
+    stage: Optional[str]
+    error: Optional[str] = Field(None, description="Why it failed, for people")
+    error_status: Optional[int] = None
+    result_expired: bool = False
+    result: Optional[MemoDrafted] = None
+
+
+class MemoSummary(BaseModel):
+    version: int
+    drafted_at: str = Field(description="UTC, ISO 8601: when the memo's run was made")
+    engine_version: Optional[str] = None
+    current: bool = Field(description="False when the engine has changed since the run: drafting again moves figures")
+
+
+class MemoList(BaseModel):
+    memos: List[MemoSummary]
+    max_memos: int
+
+
+class MemoSentence(BaseModel):
+    section: Literal["summary", "metrics", "drivers", "scenarios", "plan"]
+    source: Literal["ai", "template", "ai_off", "ai_failed", "ai_refused", "not_english"] = Field(
+        description="Who wrote it: the AI, or the template and why")
+
+
+class MemoOut(BaseModel):
+    """An investment memo, drawn from its stored model run and checked figure by figure."""
+    deal_id: str
+    deal_name: str
+    version: int
+    drafted_at: str
+    engine_version: Optional[str] = None
+    current: bool
+    language: str = Field(description="The catalogue its words are in (web/messages)")
+    sentences: List[MemoSentence]
+    written_by: Optional[str] = Field(None, description="The AI model that wrote the stored sentences, if one did")
+    blocks: List[ReportBlock]
+
+
 class AddinPass(BaseModel):
     """The Excel add-in's pass (PLAN.md R3), answered once: send it as ``Authorization: Bearer <token>``."""
     token: str = Field(description="addin: and 43 characters; only its hash is kept")
@@ -3405,8 +3459,9 @@ class AiUsageMoney(BaseModel):
 
 class AiUsageDay(BaseModel):
     day: date
-    kind: Literal["read", "write", "extract"] = Field(
-        description="read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2)")
+    kind: Literal["read", "write", "extract", "memo"] = Field(
+        description="read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal "
+                    "(6.2); memo: an investment memo's sentences (6.3)")
     tier: Literal["free", "billed"] = Field(description="free: nothing was charged; cost is what it would cost")
     requests: int
     pages: int
