@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 
 import { useProfile } from "@/components/auth/ProfileProvider";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton } from "@/components/ui/Screen";
+import { quote } from "@/components/ui/Explain";
 import { Tile, Tiles } from "@/components/ui/Tile";
 import { fmtCount } from "@/lib/format";
+import { unitNameTerm } from "@/lib/glossary";
 import { listCoverage, type CoverageCompany } from "@/lib/research";
 import { getSaved, savedFrom } from "@/lib/savedModel";
 import {
@@ -14,7 +16,7 @@ import {
   useModelState, withValue, type Block, type Catalogue, type Change, type ModelCompany, type ModelState,
 } from "@/lib/sectorModel";
 
-import { ModelGrid } from "./ModelGrid";
+import { ModelGrid, shown } from "./ModelGrid";
 import { ValuationTiles } from "./ValuationTile";
 import { ComparisonTile, RollNotice, SavedGroup, useVersions } from "./SavedModel";
 
@@ -59,6 +61,7 @@ export function ModelStep() {
   }, []);
 
   const run = model.run;
+  const explained = useModelExplanation(run);
   const edit = (company: ModelCompany) => editCompany(subject, company);
   const [versions, reloadVersions] = useVersions(model.saved?.companyId ?? null, model.saved?.version ?? null);
 
@@ -117,7 +120,15 @@ export function ModelStep() {
         )}
         {run && model.saved && <ComparisonTile versions={versions} />}
         {run && model.company && (
-          <Tile span={12} title={t("gridTitle", { name: model.company.name, model: run.name })} unit={model.company.unit_name}>
+          <Tile
+            span={12}
+            term="sectorModel"
+            title={t("gridTitle", { name: model.company.name, model: run.name })}
+            unit={model.company.unit_name}
+            unitTerm={unitNameTerm(model.company.unit_name)}
+            explain={explained}
+            data={{ "data-model-tile": run.model }}
+          >
             <ModelGrid run={run} onEdit={(row, period, value) => edit(withValue(model.company!, row, period, value))} />
             <ul className="mt-2 grid gap-0.5">
               {run.notes.map((note) => (
@@ -129,6 +140,39 @@ export function ModelStep() {
       </Tiles>
     </Screen>
   );
+}
+
+/** The rows every model shares, in the order the explanation reads them (research/lower.py). */
+const HEADLINE_ROWS = ["rev", "ebitda", "pat_own"];
+
+/**
+ * The model's headline in plain words (PLAN.md 6.4): revenue, EBITDA and profit from the current year to the last
+ * forecast year, each the text its cell shows. A row whose two cells are not both worked out (a figure still to type,
+ * a blank) is left out.
+ */
+function useModelExplanation(run: ModelState["run"]) {
+  const x = useTranslations("explain");
+  if (!run) return undefined;
+  const from = run.periods.find((p) => p.name === "cy");
+  const to = run.periods.at(-1);
+  if (!from || !to || from.name === to.name) return undefined;
+  const lines = HEADLINE_ROWS.flatMap((key) => {
+    const row = run.rows.find((r) => r.key === key);
+    const a = row?.cells?.[from.name];
+    const b = row?.cells?.[to.name];
+    if (!row || a?.kind !== "formula" || b?.kind !== "formula" || a.value == null || b.value == null) return [];
+    return [
+      x.rich("model_row", {
+        row: row.label.trim(),
+        from: shown(row.unit, a.value),
+        fromPeriod: from.label,
+        to: shown(row.unit, b.value),
+        toPeriod: to.label,
+        f: quote,
+      }),
+    ];
+  });
+  return lines.length ? [...lines, x.rich("model_how")] : undefined;
 }
 
 function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | null; companies: CoverageCompany[]; owner: string | null }) {

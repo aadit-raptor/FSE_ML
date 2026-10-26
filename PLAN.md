@@ -165,7 +165,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 6.1 | File uploads | 1.4, 1.9 | ☑ |
 | 6.2 | Upload a document (any language), get a deal | 6.1, 3.1, 2.6 | ☑ |
 | 6.3 | Investment memo writer | 3.1, 1.5 | ☐ |
-| 6.4 | Plain-English explanations on screens | 3.1 | ☐ |
+| 6.4 | Plain-English explanations on screens | 3.1 | ☑ |
 | **7** | **Product features** | | |
 | 7.1 | Onboarding and in-app help | 1.5 | ☐ |
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☐ |
@@ -2731,6 +2731,41 @@ enough for the free server.
   where available.
 - **Done when:** explanations quote displayed numbers exactly (test); the
   glossary covers every label term.
+- **Done (2026-10-26).** An **Explain** button on the key tiles opens a few
+  sentences built from templates (`web/messages/en.json`, namespace
+  `explain`) filled with **the strings the tile itself shows**: each screen
+  formats a figure once and hands the same text to the tile and to the
+  explanation, so rounding and digit grouping can't differ. Tiles: Deal ->
+  Returns (equity bridge: IRR, MOIC, equity in and out, the hurdle, exit
+  value; IRR sensitivity: the outlined cell and the grid's range), Deal ->
+  Debt & cash flow (debt balance: raised, repaid, cash flow, first-year
+  interest; distress by year: cover, leverage, band and, where shown, the
+  chance of default), Monte Carlo -> Distribution (centre, tails, hurdle,
+  wipeout) and Drivers (the strongest and weakest rank correlation; each
+  tail's IRR against the mean and its largest driver), Coverage -> Model
+  (the valuation's two values per share against the price; revenue, EBITDA
+  and profit from the current year to the last forecast year). Nothing is
+  sent anywhere and no AI writes a word (AI wording stays optional for
+  later). **The glossary** (namespace `glossary`, 131 entries) is a pop-up
+  on hover and keyboard focus over every label on those tiles: titles, KPI
+  titles, row and column headings, legend entries, and chart categories (an
+  SVG title there), with the facility kinds, the engine's tranche, bridge
+  and driver names, the money units (lakhs and crores among them), Ind AS,
+  IFRS and US GAAP, and the IFRS statement words (finance costs, profit for
+  the year, EBITDA after lease costs). Other languages follow by adding
+  their file. Proof: `web/e2e/explain.spec.ts` opens each explanation on an
+  account grouping digits in lakhs with a deal in thousands and requires
+  every quoted figure to be, character for character, a figure shown on
+  the screen outside the explanation, and every label holding a word on
+  those tiles to carry a glossary term whose hover shows its definition;
+  `tests/test_explain.py` holds the catalogue to no digit in an
+  explanation's words, one argument per quote, an entry for every term a
+  component or the engine names and no recommendation word on the research
+  tiles. Mutation-checked: a quote rounded to two places, a model figure
+  left unformatted and a glossary entry removed each fail. The coverage
+  model grid's own row labels (model output in the sector's words, each
+  cell's formula on hover) are not glossary terms; its headings and unit
+  are.
 
 ---
 

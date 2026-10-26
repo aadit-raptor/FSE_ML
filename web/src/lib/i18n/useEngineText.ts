@@ -20,7 +20,7 @@ import { useCallback } from "react";
 export type EngineLabelKind = "tranche" | "bridgeAxis" | "bridgeRow" | "driver";
 
 /** "EBITDA\ngrowth" -> "EBITDAGrowth", so an engine label becomes one key. */
-function camel(name: string): string {
+export function camel(name: string): string {
   return name
     .split(/[^A-Za-z0-9]+/)
     .filter(Boolean)

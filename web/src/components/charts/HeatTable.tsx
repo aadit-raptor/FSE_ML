@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { Term } from "@/components/ui/Term";
 import { fmtMultiple, fmtRate, isNum } from "@/lib/format";
 
 /** Background mixed toward gain or loss by distance from `center`. */
@@ -35,7 +36,7 @@ export function SensitivityTable({
       <thead>
         <tr>
           <th scope="col" className="px-2 py-1 text-end font-normal text-muted">
-            {t("exit")}
+            <Term id="exitMultiple">{t("exit")}</Term>
           </th>
           {holds.map((h) => (
             <th key={h} scope="col" className="px-2 py-1 text-end font-normal text-muted">

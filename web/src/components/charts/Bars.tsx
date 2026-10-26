@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { SvgTerm } from "@/components/ui/Term";
 import { fmtAxis } from "@/lib/format";
 
 import { niceScale } from "./scale";
@@ -13,7 +14,8 @@ export function DivergingBars({
   label,
   domain,
 }: {
-  rows: { label: string; value: number }[];
+  /** `term`: the row label's glossary entry (PLAN.md 6.4) */
+  rows: { label: string; value: number; term?: string | null }[];
   format: (v: number) => string;
   label: string;
   /** Symmetric limit; defaults to the largest magnitude */
@@ -36,9 +38,11 @@ export function DivergingBars({
         const cy = 4 + i * rowH + rowH / 2;
         return (
           <g key={r.label}>
-            <text x={0} y={cy + 3} className="chart-category">
-              {r.label}
-            </text>
+            <SvgTerm id={r.term}>
+              <text x={0} y={cy + 3} className="chart-category">
+                {r.label}
+              </text>
+            </SvgTerm>
             <rect
               x={Math.min(x0, x(r.value))}
               y={cy - 6}
