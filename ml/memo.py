@@ -113,7 +113,13 @@ def draft(owner: str, deal_id, version: int) -> dict:
     record = deals.get_version(owner, deal_id, version)
     actuals, _ = deals.get_actuals(owner, deal_id)
     run = run_version(record.inputs or {}, record.settings or {}, actuals)
-    changed = memos.save_memo(owner, deal_id, version, run)
+    try:
+        changed = memos.save_memo(owner, deal_id, version, run)
+    except memos.MemosFull:
+        from fastapi import HTTPException
+
+        # another draft took the last place since the endpoint checked: the job says so, as the endpoint would
+        raise HTTPException(409, "memos_full") from None
     return {"version": version, "changed": changed}
 
 

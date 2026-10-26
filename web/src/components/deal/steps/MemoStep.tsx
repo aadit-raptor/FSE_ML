@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Block } from "@/components/coverage/ReportStep";
 import { useDeal } from "@/components/deal/DealProvider";
+import { DraftBlock } from "@/components/ui/DraftBlock";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton } from "@/components/ui/Screen";
 import { Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
@@ -189,7 +189,7 @@ export function MemoStep() {
           <Tile span={12} title={t("previewTitle", { name: shown.deal_name })}>
             <article className="grid max-w-[760px] gap-2" aria-label={t("previewLabel")}>
               {shown.blocks.map((block, i) => (
-                <Block key={i} block={block} chartLabel={t("chartLabel", { title: plain(block.title) })} />
+                <DraftBlock key={i} block={block} chartLabel={t("chartLabel", { title: plain(block.title) })} />
               ))}
             </article>
           </Tile>
