@@ -1,16 +1,18 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { useProfile } from "@/components/auth/ProfileProvider";
-import { Notice, PrimaryButton, SecondaryButton, Switch } from "@/components/ui/Screen";
+import { EmptyGuide, Notice, PrimaryButton, SecondaryButton, Switch } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api, type Schemas } from "@/lib/api/client";
 import { fmtMultiple, fmtRate } from "@/lib/format";
 
 import { apiMessage, useDeal } from "../DealProvider";
 import { DealScreen, RailGroup, useDealLabel } from "../DealScreen";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 type Summary = Schemas["DealSummary"];
 type Version = Schemas["VersionSummary"];
@@ -99,6 +101,8 @@ function ThisDeal({ onError, onChange }: { onError: (e?: string) => void; onChan
   const e = useTranslations("errors");
   const [name, setName] = useState("");
   const [label, setLabel] = useState("");
+  const nameTip = useTip("dealName");
+  const versionTip = useTip("versionLabel");
   const [busy, setBusy] = useState(false);
 
   // The name box follows the open deal
@@ -148,9 +152,10 @@ function ThisDeal({ onError, onChange }: { onError: (e?: string) => void; onChan
     <>
       <RailGroup title={current ? t("thisDeal") : t("saveThisDeal")}>
         <label className="grid gap-1.5 py-1">
-          <span className="type-input-label">{t("dealName")}</span>
-          <input aria-label={t("dealName")} dir="auto" value={name} maxLength={120} onChange={(ev) => setName(ev.target.value)} className={TEXT_INPUT} />
+          <span className="type-input-label"><TipLabel tip={nameTip}>{t("dealName")}</TipLabel></span>
+          <input aria-describedby={nameTip.id} aria-label={t("dealName")} dir="auto" value={name} maxLength={120} onChange={(ev) => setName(ev.target.value)} className={TEXT_INPUT} />
         </label>
+        <TipText tip={nameTip} />
         <div className="flex gap-2 pt-1.5">
           {current ? (
             <SecondaryButton onClick={rename} disabled={busy || !name.trim() || name.trim() === current.name}>
@@ -168,8 +173,8 @@ function ThisDeal({ onError, onChange }: { onError: (e?: string) => void; onChan
         <RailGroup title={t("versions")}>
           <p className="type-body py-1 text-[10px]">{t("versionsNote")}</p>
           <label className="grid gap-1.5 py-1">
-            <span className="type-input-label">{t("versionLabel")}</span>
-            <input
+            <span className="type-input-label"><TipLabel tip={versionTip}>{t("versionLabel")}</TipLabel></span>
+            <input aria-describedby={versionTip.id}
               aria-label={t("versionLabel")}
               dir="auto"
               value={label}
@@ -179,6 +184,7 @@ function ThisDeal({ onError, onChange }: { onError: (e?: string) => void; onChan
               className={TEXT_INPUT}
             />
           </label>
+          <TipText tip={versionTip} />
           <div className="flex gap-2 pt-1.5">
             <PrimaryButton onClick={keepVersion} disabled={busy}>
               {t("keepVersion")}
@@ -208,6 +214,7 @@ function ThisDeal({ onError, onChange }: { onError: (e?: string) => void; onChan
 function DealList({ bump, onError, onChange }: { bump: number; onError: (e?: string) => void; onChange: () => void }) {
   const { current, openDeal, newDeal, patchCurrent } = useDeal();
   const t = useTranslations("deal");
+  const guide = useTranslations("guides");
   const e = useTranslations("errors");
   const when = useWhen();
   const [showArchived, setShowArchived] = useState(false);
@@ -264,15 +271,33 @@ function DealList({ bump, onError, onChange }: { bump: number; onError: (e?: str
     });
 
   return (
-    <Tile span={12} title={t("savedDeals")} aside={<Switch checked={showArchived} onChange={setShowArchived} label={t("showArchived")} />}>
+    <Tile span={12} title={t("savedDeals")} aside={<Switch checked={showArchived} onChange={setShowArchived} label={t("showArchived")} tip="showArchived" />}>
       {deals === null ? (
         <p className="type-body" role="note">
           {t("loadingDeals")}
         </p>
-      ) : deals.length === 0 ? (
+      ) : deals.length === 0 && showArchived ? (
         <p className="type-body" role="note">
-          {showArchived ? t("noDealsArchived") : t("noDeals")}
+          {t("noDealsArchived")}
         </p>
+      ) : deals.length === 0 ? (
+        <EmptyGuide
+          id="saved-deals"
+          title={guide("savedTitle")}
+          steps={[guide("savedStep1"), guide("savedStep2"), guide("savedStep3")]}
+          actions={
+            <>
+              <Link href="/deal/guided" className="type-action-secondary px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
+                {guide("firstDeal")}
+              </Link>
+              <Link href="/deal/inputs" className="type-action-secondary px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
+                {guide("savedEdit")}
+              </Link>
+            </>
+          }
+        >
+          {t("noDeals")}
+        </EmptyGuide>
       ) : (
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={t("savedDeals")}>
           <thead>
@@ -491,7 +516,7 @@ function Activity({ bump, onError }: { bump: number; onError: (e?: string) => vo
     <Tile
       span={12}
       title={account ? t("activityAccount") : t("activityOf", { name: current!.name })}
-      aside={current ? <Switch checked={whole} onChange={setWhole} label={t("activityWholeAccount")} /> : undefined}
+      aside={current ? <Switch checked={whole} onChange={setWhole} label={t("activityWholeAccount")} tip="activityWholeAccount" /> : undefined}
     >
       <p className="type-body pb-2 text-[10px]">{t("activityNote")}</p>
       {entries === null ? (

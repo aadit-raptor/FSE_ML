@@ -1,9 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Notice, SecondaryButton } from "@/components/ui/Screen";
+import { EmptyGuide, Notice, SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { api } from "@/lib/api/client";
 import { acceptedExtensions, megabytes, refusalCode, refusedLocally, uploadFile, type FileList, type StoredFile, type UploadProblem } from "@/lib/files";
@@ -11,6 +12,7 @@ import { fmtCount, fmtNumber } from "@/lib/format";
 import { formatDateTime } from "@/lib/locale";
 
 import { DealScreen, RailGroup } from "../DealScreen";
+import { TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * i18n-keys: files.problem_*
@@ -155,10 +157,11 @@ function UploadRail({ list, busy, onChoose, size }: { list: FileList | null; bus
   const usage = list?.usage;
   const off = !list?.enabled || busy || !!usage?.full;
   const share = usage ? Math.min(1, usage.bytes / usage.quota_bytes) : 0;
+  const uploadTip = useTip("uploadFiles");
   return (
     <>
       <RailGroup title={t("uploadGroup")}>
-        <input
+        <input aria-describedby={uploadTip.id}
           ref={input}
           type="file"
           multiple
@@ -174,7 +177,8 @@ function UploadRail({ list, busy, onChoose, size }: { list: FileList | null; bus
             if (files.length) onChoose(files);
           }}
         />
-        <button type="button" disabled={off} onClick={() => input.current?.click()} className="type-action bg-accent px-3 py-2 text-bg disabled:opacity-50">
+        <TipText tip={uploadTip} />
+        <button type="button" disabled={off} aria-describedby={uploadTip.id} onClick={() => input.current?.click()} className="type-action bg-accent px-3 py-2 text-bg disabled:opacity-50">
           {busy ? t("uploading") : t("chooseFiles")}
         </button>
         <p className="type-body mt-2 text-[10px]">{t("accepted", { limit: usage ? size(usage.max_file_bytes) : "" })}</p>
@@ -194,6 +198,7 @@ function UploadRail({ list, busy, onChoose, size }: { list: FileList | null; bus
 
 function Documents({ list, onChange, size }: { list: FileList | null; onChange: () => void; size: (bytes: number) => string }) {
   const t = useTranslations("files");
+  const guide = useTranslations("guides");
   const [confirming, setConfirming] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
 
@@ -227,10 +232,23 @@ function Documents({ list, onChange, size }: { list: FileList | null; onChange: 
         <p className="type-body" role="note">
           {t("loading")}
         </p>
-      ) : files.length === 0 ? (
+      ) : files.length === 0 && !list.enabled ? (
         <p className="type-body" role="note">
-          {list.enabled ? t("empty") : t("notSetUpBody")}
+          {t("notSetUpBody")}
         </p>
+      ) : files.length === 0 ? (
+        <EmptyGuide
+          id="documents"
+          title={guide("documentsTitle")}
+          steps={[guide("documentsStep1"), guide("documentsStep2"), guide("documentsStep3")]}
+          actions={
+            <Link href="/deal/from-document" className="type-action-secondary px-2.5 py-1.5 text-accent shadow-[inset_0_0_0_1px_var(--color-accent)]">
+              {guide("documentsRead")}
+            </Link>
+          }
+        >
+          {t("empty")}
+        </EmptyGuide>
       ) : (
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={t("listTitle")}>
           <thead>

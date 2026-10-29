@@ -21,8 +21,11 @@ export function DocumentTitle() {
   const nav = useTranslations("nav");
   const app = useTranslations("app");
   const account = useTranslations("account");
+  const help = useTranslations("help");
 
   useEffect(() => {
+    // A help article names its own tab (components/help/Help.tsx), from the article it shows
+    if (pathname.startsWith("/help/") && pathname !== "/help/whats-new") return;
     const { mode, step } = parsePath(pathname);
     const brand = app("brand");
     const parts =
@@ -32,9 +35,13 @@ export function DocumentTitle() {
           ? [account("title")]
           : pathname === LAUNCHER_HREF
             ? [nav("launcher")]
-            : [];
+            : pathname === "/help/whats-new"
+              ? [help("whatsNew"), help("title")]
+              : pathname === "/help"
+                ? [help("title")]
+                : [];
     document.title = [...parts, brand].join(" · ");
-  }, [pathname, nav, app, account]);
+  }, [pathname, nav, app, account, help]);
 
   return null;
 }

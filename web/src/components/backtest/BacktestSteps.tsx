@@ -26,6 +26,7 @@ import { stepHref } from "@/lib/nav";
 
 import { BACKTEST_PATHS, type PlanActualResult, sameRef, useBacktest } from "./BacktestProvider";
 import { ValidationConsent } from "./Validation";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /** "Burger King (3G Capital, 2010)" -> name, sponsor, year */
 export function splitDealName(full: string) {
@@ -37,6 +38,7 @@ const RADIO = "grid px-2.5 py-2 text-start";
 const radioClass = (on: boolean) => `${RADIO} ${on ? "bg-raised shadow-[inset_2px_0_0_var(--color-accent)]" : "bg-panel hover:bg-raised"}`;
 
 function Rail() {
+  const yearsTip = useTip("actualYears");
   const { deals, examples, selected, select, plan, actuals, setActuals, saveState, status } = useBacktest();
   const t = useTranslations("backtest");
   const { label: mu } = useMoney();
@@ -91,8 +93,8 @@ function Rail() {
       {plan && actuals && (
         <RailGroup title={t("groupActuals")} aside={<SaveChip state={saveState} />}>
           <label className="grid gap-1">
-            <span className="type-input-label">{t("yearsWithResults")}</span>
-            <select
+            <span className="type-input-label"><TipLabel tip={yearsTip}>{t("yearsWithResults")}</TipLabel></span>
+            <select aria-describedby={yearsTip.id}
               value={actuals.years.length}
               onChange={(e) => setActuals(resizeYears(actuals, Number(e.target.value)))}
               className="border border-line bg-field px-1.5 py-1 font-mono text-[11px] text-ink"
@@ -104,6 +106,7 @@ function Rail() {
               ))}
             </select>
           </label>
+          <TipText tip={yearsTip} />
           <p className="type-body text-[9px]">{t("planIn", { money: mu, hold: String(plan.hold) })}</p>
         </RailGroup>
       )}
@@ -219,6 +222,7 @@ function ActualsEditor() {
   const t = useTranslations("backtest");
   const years = useYears();
   const file = useRef<HTMLInputElement>(null);
+  const csvTip = useTip("actualsCsv");
   const [upload, setUpload] = useState<{ tone: "info" | "loss"; text: string } | null>(null);
   if (!plan || !actuals) return <LoadingTiles />;
 
@@ -267,8 +271,9 @@ function ActualsEditor() {
           unit={mu}
           action={
             <span className="flex items-center gap-2">
-              <input ref={file} type="file" accept=".csv,text/csv,text/plain" className="sr-only" aria-label={t("csvUpload")} onChange={(e) => void onFile(e.target.files?.[0])} />
-              <SecondaryButton onClick={() => file.current?.click()}>{t("csvUpload")}</SecondaryButton>
+              <input aria-describedby={csvTip.id} ref={file} type="file" accept=".csv,text/csv,text/plain" className="sr-only" aria-label={t("csvUpload")} onChange={(e) => void onFile(e.target.files?.[0])} />
+              <TipText tip={csvTip} />
+              <SecondaryButton onClick={() => file.current?.click()} describedBy={csvTip.id}>{t("csvUpload")}</SecondaryButton>
               <DownloadButton label={t("csvDownload")} onDownload={async () => downloadText(t("csvFile"), actualsCsv(actuals, years))} />
             </span>
           }
@@ -296,6 +301,7 @@ function ActualsEditor() {
                       <td key={i} className="border-b border-grid px-1 py-0.5">
                         <CellInput
                           label={t("cellLabel", { line: t(line.labelKey), year: years[i] ?? String(i + 1) })}
+                          tip={`actual_${line.key}`}
                           value={y[line.key] ?? NaN}
                           onCommit={(v) => setYear(i, line.key, v)}
                           onClear={() => setYear(i, line.key, null)}
@@ -314,6 +320,7 @@ function ActualsEditor() {
             checked={actuals.exit !== null}
             onChange={(on) => setActuals({ ...actuals, exit: on ? blankExit() : null })}
             label={t("exitSold", { year: years.at(-1) ?? "" })}
+            tip="actualExitSold"
           />
           {actuals.exit && (
             <dl className="grid grid-cols-[1fr_120px] items-center gap-x-3 gap-y-1">
@@ -323,6 +330,7 @@ function ActualsEditor() {
                   <dd>
                     <CellInput
                       label={t(f.labelKey)}
+                      tip={`actualExit_${f.key}`}
                       decimals={f.key === "moic" ? 2 : 1}
                       value={actuals.exit![f.key] ?? NaN}
                       onCommit={(v) => setExit(f.key, v)}

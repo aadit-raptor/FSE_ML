@@ -10,6 +10,7 @@ import { fmtMoney } from "@/lib/format";
 import { moneyLabel } from "@/lib/money";
 
 import { type Company, type CompanyRef, companyKey, useCompanies } from "./CompanyProvider";
+import { TipText, useTip } from "@/components/ui/Tip";
 
 /** i18n-keys: companies.source_*, companies.standard_*, companies.reason_*, companies.matched_*, companies.note_* */
 const SOURCE_ID: Record<string, string> = {
@@ -27,6 +28,7 @@ function shownId(ref: CompanyRef): string {
  * company's "Use in deal" and "Use in forecast".
  */
 export function CompanyPanel() {
+  const searchTip = useTip("companySearch");
   const { query, setQuery, search, searchState, load, loading, loadError, company } = useCompanies();
   const t = useTranslations("companies");
   const answer = searchState.answer;
@@ -43,7 +45,7 @@ export function CompanyPanel() {
         <label className="sr-only" htmlFor="company-query">
           {t("searchLabel")}
         </label>
-        <input
+        <input aria-describedby={searchTip.id}
           id="company-query"
           value={query}
           onChange={(ev) => setQuery(ev.target.value)}
@@ -52,6 +54,7 @@ export function CompanyPanel() {
           maxLength={100}
           className="min-w-0 border border-line bg-field px-2 py-1 font-mono text-[11.5px] text-ink outline-none placeholder:text-dim focus:border-accent"
         />
+        <TipText tip={searchTip} />
         <button
           type="submit"
           disabled={searchState.status === "loading" || query.trim().length < 2}

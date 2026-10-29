@@ -167,7 +167,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 6.3 | Investment memo writer | 3.1, 1.5 | ☐ |
 | 6.4 | Plain-English explanations on screens | 3.1 | ☑ |
 | **7** | **Product features** | | |
-| 7.1 | Onboarding and in-app help | 1.5 | ☐ |
+| 7.1 | Onboarding and in-app help | 1.5 | ☑ |
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☐ |
 | 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☐ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
@@ -2777,6 +2777,35 @@ enough for the free server.
   input tips; help articles from the methodology; "what's new".
 - **Done when:** a new test user completes the guided deal (e2e); every input has
   a tip.
+- **Done (2026-10-29).** **Deal -> Guided deal** asks the company's country,
+  its industry, its size (EBITDA and the unit) and its currency (the
+  country's own offered), one question at a time, then shows the figures
+  4.3's sources give for those answers, each with its source, and saves the
+  deal under the name given and opens it on Inputs; nothing is saved if the
+  figures can't be read. **Six sample deals** (a US software company, a
+  German machinery maker, a UK services firm, an Indian hospital chain in
+  crores, a Japanese electronics maker in billions of yen, a Brazilian food
+  processor) are the same four answers given in advance, from four of S&P's
+  regions, so only their size is made up. The launcher offers the guided deal
+  to an account with no deal. **Empty screens** (Saved deals, Documents,
+  Coverage -> Companies) say what belongs there and the steps that fill them.
+  **Every input has a tip** (255): read as the control's description and
+  shown on hovering its label; the shared inputs require one, so TypeScript
+  finds a use without, and `tests/test_onboarding.py` holds every control
+  written into a component and every table of fields to one.
+  **Help** is the methodology, a section an article, written from
+  `docs/methodology.md` by `python -m ops.help_articles` (stale is a test
+  failure), with a summary each, links between sections kept in the help, and
+  Ctrl K finding them; **What's new** lists the releases, newest first, and
+  marks the top bar's Help link until seen. Proof: `web/e2e/onboarding.spec.ts`
+  takes a new account through the guided deal (Germany, machinery, 80 million,
+  euros) and requires the saved deal's inputs to be the recorded sourced
+  figures and its enterprise value 80 x 14.98x; `web/e2e/tips.spec.ts` visits
+  every step of every mode, plus a deal with tax rules, IFRS and listed
+  facilities, and fails on any reachable control without a tip of five words
+  or more. Mutation-checked: the sourced figures left out of a guided deal, a
+  tip unlinked from `NumberField`, a tip's words deleted, a select without its
+  tip and a methodology edit without rerunning the writer each fail.
 
 ### 7.2 Teams: sharing, permissions, comments
 - **You first:** enable Clerk organizations (free tier); create a free Resend

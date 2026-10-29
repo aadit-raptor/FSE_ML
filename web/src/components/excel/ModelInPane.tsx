@@ -11,6 +11,7 @@ import {
   getSaved, putSaved, refusalKey, rollForward, saveSheet, savedCells, savedReference,
 } from "@/lib/savedModel";
 import { UNIT_RUPEES, blankCompany, fillFromCoverage, loadCatalogue, modelCells, type Catalogue } from "@/lib/sectorModel";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * "Load model" in the Excel add-in (PLAN.md R4): a sector model written into the open workbook as live formulas
@@ -35,6 +36,8 @@ type Outcome = { tone: "status" | "alert"; text: string; detail?: string };
 export function ModelInPane({ companies, support }: { companies: CoverageCompany[]; support: { notes: boolean; comments: boolean } }) {
   const t = useTranslations("excel");
   const words = useTranslations("models");
+  const startTip = useTip("modelStartFrom");
+  const sectorTip = useTip("modelSector");
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [from, setFrom] = useState("");
   const [sector, setSector] = useState("");
@@ -164,8 +167,8 @@ export function ModelInPane({ companies, support }: { companies: CoverageCompany
       <h2 className="type-input-group">{t("modelTitle")}</h2>
       <p className="type-body text-muted">{t("modelHint")}</p>
       <label className="grid gap-1">
-        <span className="type-input-label">{t("modelFrom")}</span>
-        <select value={start} onChange={(e) => setFrom(e.target.value)} className={select}>
+        <span className="type-input-label"><TipLabel tip={startTip}>{t("modelFrom")}</TipLabel></span>
+        <select aria-describedby={startTip.id} value={start} onChange={(e) => setFrom(e.target.value)} className={select}>
           {companies.map((c) => (
             <option key={c.id} value={`company:${c.id}`}>{c.name}</option>
           ))}
@@ -174,15 +177,19 @@ export function ModelInPane({ companies, support }: { companies: CoverageCompany
           ))}
         </select>
       </label>
+      <TipText tip={startTip} />
       {start.startsWith("company:") && (
+        <>
         <label className="grid gap-1">
-          <span className="type-input-label">{t("modelSector")}</span>
-          <select value={chosen?.sector ?? ""} onChange={(e) => setSector(e.target.value)} className={select}>
+          <span className="type-input-label"><TipLabel tip={sectorTip}>{t("modelSector")}</TipLabel></span>
+          <select aria-describedby={sectorTip.id} value={chosen?.sector ?? ""} onChange={(e) => setSector(e.target.value)} className={select}>
             {sectors.map((s) => (
               <option key={s.sector} value={s.sector}>{words(`sector_${s.sector}`)}</option>
             ))}
           </select>
         </label>
+        <TipText tip={sectorTip} />
+        </>
       )}
       <div>
         <PrimaryButton disabled={writing} onClick={() => void load()}>{t("loadModel")}</PrimaryButton>

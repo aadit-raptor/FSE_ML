@@ -7,6 +7,7 @@ import type { DealInputs } from "@/lib/deal/fields";
 
 import { useDeal } from "../DealProvider";
 import { DealField } from "../DealScreen";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 type Standard = DealInputs["accounting_standard"];
 type LeaseView = DealInputs["lease_view"];
@@ -27,12 +28,14 @@ export function LeaseRules() {
   const { inputs, setFields } = useDeal();
   const t = useTranslations("deal");
   const fields = useTranslations("fields");
+  const viewTip = useTip("field_lease_view");
+  const standardTip = useTip("field_accounting_standard");
   const own = inputs.accounting_standard === "ifrs" ? t("leaseView_post_ifrs16") : t("leaseView_pre_ifrs16");
   return (
     <>
       <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{fields("accounting_standard")}</span>
-        <select
+        <span className="type-input-label"><TipLabel tip={standardTip}>{fields("accounting_standard")}</TipLabel></span>
+        <select aria-describedby={standardTip.id}
           value={inputs.accounting_standard}
           onChange={(e) => setFields({ accounting_standard: e.target.value as Standard })}
           className={SELECT_CLASS}
@@ -44,11 +47,12 @@ export function LeaseRules() {
           ))}
         </select>
       </label>
+      <TipText tip={standardTip} />
       <DealField name="lease_cost" />
       <DealField name="lease_liability" />
       <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{fields("lease_view")}</span>
-        <select value={inputs.lease_view} onChange={(e) => setFields({ lease_view: e.target.value as LeaseView })} className={SELECT_CLASS}>
+        <span className="type-input-label"><TipLabel tip={viewTip}>{fields("lease_view")}</TipLabel></span>
+        <select aria-describedby={viewTip.id} value={inputs.lease_view} onChange={(e) => setFields({ lease_view: e.target.value as LeaseView })} className={SELECT_CLASS}>
           {VIEWS.map((v) => (
             <option key={v} value={v}>
               {v ? t(`leaseView_${v}`) : t("leaseView_", { own })}
@@ -56,6 +60,7 @@ export function LeaseRules() {
           ))}
         </select>
       </label>
+      <TipText tip={viewTip} />
       <p className="type-body pt-1.5 text-[9px]" role="note">
         {t("leaseNote")}
       </p>

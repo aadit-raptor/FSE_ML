@@ -53,7 +53,7 @@ function RailHeader() {
           : t("stateLoading");
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-b border-line px-3.5 py-2">
-      <Switch checked={autoUpdate} onChange={setAutoUpdate} label={t("autoUpdate")} />
+      <Switch checked={autoUpdate} onChange={setAutoUpdate} label={t("autoUpdate")} tip="autoUpdate" />
       <span
         role="status"
         className={`font-mono text-[10px] whitespace-nowrap ${run.status === "error" ? "text-loss" : run.status === "running" ? "text-attention" : "text-dim"}`}
@@ -79,7 +79,8 @@ function RailHeader() {
 const SAVE_KEY: Record<DealSaveState, string> = { unsaved: "saveNotSaved", saving: "saveSaving", saved: "saveSaved", error: "saveFailed" };
 const SAVE_TONE: Record<DealSaveState, string> = { unsaved: "text-attention", saving: "text-dim", saved: "text-dim", error: "text-loss" };
 
-/** i18n-keys: fields.* */
+/** i18n-keys: fields.*
+ *  The tip of each field is `tips.field_<name>` (tests/test_onboarding.py holds every field to one). */
 export function DealField({ name, disabled, label }: { name: NumericDealKey; disabled?: boolean; label?: string }) {
   const { inputs, setField, pending, autoUpdate } = useDeal();
   const fields = useTranslations("fields");
@@ -87,6 +88,7 @@ export function DealField({ name, disabled, label }: { name: NumericDealKey; dis
     <NumberField
       spec={FIELDS[name]}
       label={label ?? fields(name)}
+      tip={`field_${name}`}
       value={inputs[name]}
       onCommit={(v) => setField(name, v)}
       disabled={disabled}
@@ -107,6 +109,7 @@ export function DebtMultipleField({ tranche }: { tranche: "senior" | "mezz" }) {
     <NumberField
       spec={MULTIPLE_SPEC}
       label={tranche === "senior" ? fields("seniorDebt") : fields("mezzanineDebt")}
+      tip={tranche === "senior" ? "seniorDebtMultiple" : "mezzDebtMultiple"}
       value={Number(value.toFixed(4))}
       onCommit={(v) => {
         const next = tranche === "senior" ? pctFromMultiples(inputs.entry_mult, v, mezzX) : pctFromMultiples(inputs.entry_mult, seniorX, v);
@@ -138,6 +141,7 @@ export function FiscalFields() {
       onChange={(f) => setFields({ fiscal_year_end_month: f.endMonth, first_fiscal_year: f.year })}
       of={t("of")}
       yearLabel={fiscal("firstFiscalYear")}
+      yearTip="firstFiscalYear"
     />
   );
 }
@@ -147,7 +151,7 @@ export function WspToggle() {
   const fields = useTranslations("fields");
   return (
     <div className="py-1">
-      <Switch checked={inputs.wsp_mode} onChange={(v) => setField("wsp_mode", v)} label={fields("wsp_mode")} />
+      <Switch checked={inputs.wsp_mode} onChange={(v) => setField("wsp_mode", v)} label={fields("wsp_mode")} tip="wspMode" />
     </div>
   );
 }

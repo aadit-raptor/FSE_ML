@@ -12,6 +12,7 @@ import {
   ACCEPT_ERRORS, acceptRead, addCompany, amberCells, cellKey, decimalsOf, readJob, startRead, type CellRef, type Correction,
   type CoverageCompany, READER_ERRORS, type ReaderInfo, type ReadJob,
 } from "@/lib/research";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Reading a results PDF from the Excel add-in's pane (PLAN.md R3): the same road as Coverage -> Results
@@ -39,6 +40,11 @@ export function ReadInPane({
   const t = useTranslations("excel");
   const reader = useTranslations("reader");
   const coverage = useTranslations("coverage");
+  const companyTip = useTip("readCompany");
+  const newNameTip = useTip("readNewCompany");
+  const fileTip = useTip("readFile");
+  const quarterTip = useTip("readQuarter");
+  const publicTip = useTip("confirmPublic");
   const [info, setInfo] = useState<ReaderInfo | null>(null);
   const [companyId, setCompanyId] = useState("");
   const [newName, setNewName] = useState("");
@@ -138,8 +144,8 @@ export function ReadInPane({
       <h2 className="type-input-group">{t("readTitle")}</h2>
       {info && !open && <p className="type-body">{reader("error_reader_not_measured")}</p>}
       <label className="grid gap-1">
-        <span className="type-input-label">{t("company")}</span>
-        <select
+        <span className="type-input-label"><TipLabel tip={companyTip}>{t("company")}</TipLabel></span>
+        <select aria-describedby={companyTip.id}
           value={company?.id ?? ""}
           onChange={(e) => setCompanyId(e.target.value)}
           className="border border-line bg-field px-2 py-1.5 text-[12px] text-ink"
@@ -152,41 +158,48 @@ export function ReadInPane({
           ))}
         </select>
       </label>
+      <TipText tip={companyTip} />
       <div className="flex gap-2">
-        <input
+        <input aria-describedby={newNameTip.id}
           aria-label={t("newCompany")}
           placeholder={t("newCompany")}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           className="min-w-0 flex-1 border border-line bg-field px-2 py-1.5 text-[12px] text-ink"
         />
+        <TipText tip={newNameTip} />
         <SecondaryButton disabled={!newName.trim()} onClick={() => void add()}>
           {t("addCompany")}
         </SecondaryButton>
       </div>
       <label className="grid gap-1">
-        <span className="type-input-label">{t("pdf")}</span>
-        <input
+        <span className="type-input-label"><TipLabel tip={fileTip}>{t("pdf")}</TipLabel></span>
+        <input aria-describedby={fileTip.id}
           type="file"
           accept=".pdf,application/pdf"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="text-[11px] text-ink"
         />
       </label>
+      <TipText tip={fileTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("quarterEnd")}</span>
-        <input
+        <span className="type-input-label"><TipLabel tip={quarterTip}>{t("quarterEnd")}</TipLabel></span>
+        <input aria-describedby={quarterTip.id}
           type="date"
           value={quarter}
           onChange={(e) => setQuarter(e.target.value)}
           className="border border-line bg-field px-2 py-1.5 font-mono text-[12px] text-ink"
         />
       </label>
+      <TipText tip={quarterTip} />
       {needsConfirm && (
+        <>
         <label className="flex items-start gap-2">
-          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+          <input aria-describedby={publicTip.id} type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
           <span className="type-body">{t("confirmPublic")}</span>
         </label>
+        <TipText tip={publicTip} />
+        </>
       )}
       <div>
         <PrimaryButton disabled={!canRead} onClick={() => void read()}>
@@ -247,6 +260,7 @@ function AmberFigure({
   onAnswer: (answer: Answer) => void;
 }) {
   const t = useTranslations("excel");
+  const correctTip = useTip("correctFigure");
   const [text, setText] = useState("");
   const value = text.trim() === "" ? null : parseNumber(text);
   return (
@@ -266,12 +280,13 @@ function AmberFigure({
       )}
       <div className="flex flex-wrap gap-2">
         <SecondaryButton onClick={() => onAnswer({ do: "accepted" })}>{t("acceptAsRead")}</SecondaryButton>
-        <input
+        <input aria-describedby={correctTip.id}
           aria-label={t("correctFigure")}
           value={text}
           onChange={(e) => setText(e.target.value)}
           className="w-28 border border-line bg-field px-2 py-1 font-mono text-[12px] text-ink"
         />
+        <TipText tip={correctTip} />
         <SecondaryButton
           disabled={text.trim() !== "" && (value === null || Number.isNaN(value))}
           onClick={() => onAnswer({ do: "corrected", value })}

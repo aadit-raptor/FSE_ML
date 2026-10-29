@@ -13,6 +13,7 @@ import {
 } from "@/lib/report";
 import { listCoverage, type CoverageCompany } from "@/lib/research";
 import { listVersions, type ModelVersion } from "@/lib/savedModel";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Coverage -> Report (PLAN.md R8): a results note drafted from a covered company's saved sector model. The API
@@ -29,6 +30,7 @@ const field = "border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
 const SERIES_COLOURS = ["var(--color-accent)", "var(--color-soft)", "var(--color-gain)"];
 
 export function ReportStep() {
+  const companyTip = useTip("reportCompany");
   const t = useTranslations("report");
   const [companies, setCompanies] = useState<CoverageCompany[] | null>(null);
   const [companyId, setCompanyId] = useState("");
@@ -77,14 +79,15 @@ export function ReportStep() {
       rail={
         <>
           <RailGroup title={t("companyGroup")}>
+          <TipText tip={companyTip} />
             {companies === null ? (
               <p className="type-step">{t("loading")}</p>
             ) : companies.length === 0 ? (
               <p className="type-body text-[10.5px]">{t("noCompanies")}</p>
             ) : (
               <label className="grid gap-1">
-                <span className="type-input-label">{t("company")}</span>
-                <select className={field} value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+                <span className="type-input-label"><TipLabel tip={companyTip}>{t("company")}</TipLabel></span>
+                <select aria-describedby={companyTip.id} className={field} value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
                   {companies.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -233,6 +236,11 @@ function ViewGroup({ report, versions, onSave }: {
   report: Report; versions: ModelVersion[]; onSave: (fields: ReportFields) => Promise<void>;
 }) {
   const t = useTranslations("report");
+  const ratingTip = useTip("reportRating");
+  const targetTip = useTip("reportTarget");
+  const dateTip = useTip("reportDate");
+  const compareTip = useTip("reportCompare");
+  const argumentTip = useTip("reportArgument");
   const start = fieldsFrom(report);
   const [rating, setRating] = useState(start.rating ?? "");
   const [target, setTarget] = useState(start.target == null ? "" : String(start.target));
@@ -259,22 +267,25 @@ function ViewGroup({ report, versions, onSave }: {
     <RailGroup title={t("viewGroup")}>
       <p className="type-body mb-1.5 text-[10.5px]">{t("viewHint")}</p>
       <label className="grid gap-1">
-        <span className="type-input-label">{t("ratingLabel")}</span>
-        <input className={field} value={rating} maxLength={40} onChange={(e) => setRating(e.target.value)} />
+        <span className="type-input-label"><TipLabel tip={ratingTip}>{t("ratingLabel")}</TipLabel></span>
+        <input aria-describedby={ratingTip.id} className={field} value={rating} maxLength={40} onChange={(e) => setRating(e.target.value)} />
       </label>
+      <TipText tip={ratingTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("targetLabel")}</span>
-        <input className={field} value={target} inputMode="decimal" onChange={(e) => setTarget(e.target.value)}
+        <span className="type-input-label"><TipLabel tip={targetTip}>{t("targetLabel")}</TipLabel></span>
+        <input aria-describedby={targetTip.id} className={field} value={target} inputMode="decimal" onChange={(e) => setTarget(e.target.value)}
           aria-invalid={badTarget} />
       </label>
+      <TipText tip={targetTip} />
       {badTarget && <p className="type-body text-[10px] text-loss">{t("targetInvalid")}</p>}
       <label className="grid gap-1">
-        <span className="type-input-label">{t("dateLabel")}</span>
-        <input className={field} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <span className="type-input-label"><TipLabel tip={dateTip}>{t("dateLabel")}</TipLabel></span>
+        <input aria-describedby={dateTip.id} className={field} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       </label>
+      <TipText tip={dateTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("compareLabel")}</span>
-        <select className={field} value={compare} onChange={(e) => setCompare(e.target.value)}>
+        <span className="type-input-label"><TipLabel tip={compareTip}>{t("compareLabel")}</TipLabel></span>
+        <select aria-describedby={compareTip.id} className={field} value={compare} onChange={(e) => setCompare(e.target.value)}>
           <option value="">{t("compareNone")}</option>
           {versions.map((v) => (
             <option key={v.number} value={String(v.number)}>
@@ -283,11 +294,13 @@ function ViewGroup({ report, versions, onSave }: {
           ))}
         </select>
       </label>
+      <TipText tip={compareTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("argumentLabel")}</span>
-        <textarea className={`${field} min-h-[110px]`} value={argument} maxLength={20000}
+        <span className="type-input-label"><TipLabel tip={argumentTip}>{t("argumentLabel")}</TipLabel></span>
+        <textarea aria-describedby={argumentTip.id} className={`${field} min-h-[110px]`} value={argument} maxLength={20000}
           onChange={(e) => setArgument(e.target.value)} />
       </label>
+      <TipText tip={argumentTip} />
       <div className="mt-1.5">
         <PrimaryButton onClick={() => void save()} disabled={busy || badTarget}>{t("saveView")}</PrimaryButton>
       </div>
@@ -320,6 +333,8 @@ function SentencesGroup({ report, onWrite }: { report: Report; onWrite: () => Pr
 }
 
 function DetailsGroup({ details, onSave }: { details: ReportDetails; onSave: (d: ReportDetails) => Promise<boolean> }) {
+  const firmTip = useTip("reportFirm");
+  const disclosuresTip = useTip("reportDisclosures");
   const t = useTranslations("report");
   const [firm, setFirm] = useState(details.firm);
   const [disclosures, setDisclosures] = useState(details.disclosures);
@@ -329,14 +344,16 @@ function DetailsGroup({ details, onSave }: { details: ReportDetails; onSave: (d:
     <RailGroup title={t("detailsGroup")}>
       <p className="type-body mb-1.5 text-[10.5px]">{t("detailsHint")}</p>
       <label className="grid gap-1">
-        <span className="type-input-label">{t("firmLabel")}</span>
-        <input className={field} value={firm} maxLength={200} onChange={(e) => setFirm(e.target.value)} />
+        <span className="type-input-label"><TipLabel tip={firmTip}>{t("firmLabel")}</TipLabel></span>
+        <input aria-describedby={firmTip.id} className={field} value={firm} maxLength={200} onChange={(e) => setFirm(e.target.value)} />
       </label>
+      <TipText tip={firmTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("disclosuresLabel")}</span>
-        <textarea className={`${field} min-h-[90px]`} value={disclosures} maxLength={8000}
+        <span className="type-input-label"><TipLabel tip={disclosuresTip}>{t("disclosuresLabel")}</TipLabel></span>
+        <textarea aria-describedby={disclosuresTip.id} className={`${field} min-h-[90px]`} value={disclosures} maxLength={8000}
           onChange={(e) => setDisclosures(e.target.value)} />
       </label>
+      <TipText tip={disclosuresTip} />
       <div className="mt-1.5">
         <SecondaryButton disabled={busy} onClick={() => {
           setBusy(true);

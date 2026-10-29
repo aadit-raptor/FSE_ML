@@ -5,11 +5,13 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import helpIndex from "@/lib/help/index.json";
 import { stepHref, workspaceOf } from "@/lib/nav";
 
 import { useModes } from "./useModes";
 
 import { useWorkspace } from "./workspace";
+import { TipText, useTip } from "@/components/ui/Tip";
 
 type Entry = { href: string; workspace: string; mode: string; step: string; summary: string };
 
@@ -23,13 +25,19 @@ function searchEntries(query: string, entries: Entry[]): Entry[] {
   });
 }
 
-/** Every screen of every workspace, in the account's language, so search matches what is on screen. */
+/**
+ * Every screen of every workspace, in the account's language, so search matches what is on screen, and
+ * every help article (PLAN.md 7.1) by its title and summary.
+ *
+ * i18n-keys: help.summary_*
+ */
 function useEntries(): Entry[] {
   const nav = useTranslations("nav");
+  const help = useTranslations("help");
   const modes = useModes();
   return useMemo(
-    () =>
-      modes.flatMap((m) => {
+    () => [
+      ...modes.flatMap((m) => {
         const workspace = workspaceOf(m);
         return m.steps.map((s) => ({
           href: stepHref(m.slug, s.slug),
@@ -39,7 +47,16 @@ function useEntries(): Entry[] {
           summary: nav(s.summaryKey),
         }));
       }),
-    [nav, modes],
+      { href: "/help/whats-new", workspace: "", mode: help("searchGroup"), step: help("whatsNew"), summary: help("whatsNewSummary") },
+      ...helpIndex.articles.map((a) => ({
+        href: `/help/${a.slug}`,
+        workspace: "",
+        mode: help("searchGroup"),
+        step: a.title,
+        summary: help(`summary_${a.slug}`),
+      })),
+    ],
+    [nav, help, modes],
   );
 }
 
@@ -68,6 +85,7 @@ function SearchBody({ onDone }: { onDone: () => void }) {
   const t = useTranslations("shell");
   const entries = useEntries();
   const [query, setQuery] = useState("");
+  const searchTip = useTip("commandSearch");
   const [active, setActive] = useState(0);
   const results = useMemo(() => searchEntries(query, entries), [query, entries]);
 
@@ -79,7 +97,7 @@ function SearchBody({ onDone }: { onDone: () => void }) {
 
   return (
     <>
-      <input
+      <input aria-describedby={searchTip.id}
         autoFocus
         value={query}
         onChange={(e) => {
@@ -106,6 +124,7 @@ function SearchBody({ onDone }: { onDone: () => void }) {
         aria-activedescendant={results[active] ? `cmd-${active}` : undefined}
         className="type-input-label w-full border-b border-line bg-transparent px-4 py-3 text-[12px] outline-none placeholder:text-dim"
       />
+      <TipText tip={searchTip} />
       <ul id="command-results" role="listbox" className="max-h-[360px] overflow-y-auto py-1">
         {results.map((r, i) => (
           <li

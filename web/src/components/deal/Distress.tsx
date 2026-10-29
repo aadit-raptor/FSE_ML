@@ -10,6 +10,7 @@ import type { components } from "@/lib/api/schema";
 import { fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 
 import { useDeal } from "./DealProvider";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 type DealDistress = components["schemas"]["DealDistress"];
 type SimulatedDistress = components["schemas"]["SimulatedDistress"];
@@ -38,11 +39,12 @@ export function BusinessRiskSelect() {
   const { inputs, setFields } = useDeal();
   const t = useTranslations("distress");
   const fields = useTranslations("fields");
+  const riskTip = useTip("field_business_risk");
   return (
     <>
       <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{fields("business_risk")}</span>
-        <select
+        <span className="type-input-label"><TipLabel tip={riskTip}>{fields("business_risk")}</TipLabel></span>
+        <select aria-describedby={riskTip.id}
           value={inputs.business_risk}
           onChange={(e) => setFields({ business_risk: Number(e.target.value) })}
           className={SELECT_CLASS}
@@ -54,6 +56,7 @@ export function BusinessRiskSelect() {
           ))}
         </select>
       </label>
+      <TipText tip={riskTip} />
       <p className="type-body pt-1.5 text-[9px]" role="note">
         {t("businessRiskNote")}
       </p>

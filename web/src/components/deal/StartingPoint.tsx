@@ -17,6 +17,7 @@ import { setUsualEnabled, type Usual, type UsualFigure, useUsual, useUsualLoader
 
 import { useDeal } from "./DealProvider";
 import { DealField, MoneyFields, useDealLabel } from "./DealScreen";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 const ALL = "all";
 
@@ -30,6 +31,8 @@ export function StartingPointFields() {
   const { inputs, setFields, current } = useDeal();
   const { profile } = useProfile();
   const t = useTranslations("starting");
+  const countryTip = useTip("startCountry");
+  const industryTip = useTip("startIndustry");
   const industries = useIndustries();
   const countries = useMemo(() => countryOptions(), []);
   const [country, setCountry] = useState(inputs.country || profile?.country || "");
@@ -57,8 +60,8 @@ export function StartingPointFields() {
   return (
     <>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{t("country")}</span>
-        <select aria-label={t("countryOf")} value={country} onChange={(e) => setCountry(e.target.value)} className={SELECT_CLASS}>
+        <span className="type-input-label"><TipLabel tip={countryTip}>{t("country")}</TipLabel></span>
+        <select aria-describedby={countryTip.id} aria-label={t("countryOf")} value={country} onChange={(e) => setCountry(e.target.value)} className={SELECT_CLASS}>
           <option value="">{t("choose")}</option>
           {countries.map((c) => (
             <option key={c.code} value={c.code}>
@@ -67,9 +70,10 @@ export function StartingPointFields() {
           ))}
         </select>
       </label>
+      <TipText tip={countryTip} />
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{t("industry")}</span>
-        <select aria-label={t("industryOf")} value={industry} onChange={(e) => setIndustry(e.target.value)} className={SELECT_CLASS}>
+        <span className="type-input-label"><TipLabel tip={industryTip}>{t("industry")}</TipLabel></span>
+        <select aria-describedby={industryTip.id} aria-label={t("industryOf")} value={industry} onChange={(e) => setIndustry(e.target.value)} className={SELECT_CLASS}>
           {(industries?.industries.length ? industries.industries : [{ id: ALL, name: "", firms: 0 }]).map((i) => (
             <option key={i.id} value={i.id}>
               {i.id === ALL ? t("allIndustries") : i.name}
@@ -77,6 +81,7 @@ export function StartingPointFields() {
           ))}
         </select>
       </label>
+      <TipText tip={industryTip} />
       <MoneyFields />
       <DealField name="ebitda" />
       <p className="type-body py-1 text-[10px]">{t("sizeNote")}</p>
@@ -117,7 +122,7 @@ function UsualSwitch({ country, industry, dealId }: { country: string; industry:
   };
   return (
     <div className="grid gap-1 pt-2">
-      <Switch checked={usual.enabled} onChange={(v) => void change(v)} label={t("usualSwitch")} />
+      <Switch checked={usual.enabled} onChange={(v) => void change(v)} label={t("usualSwitch")} tip="usualSwitch" />
       <p className="type-body text-[9px]">{t("usualSwitchNote")}</p>
       {failed && (
         <p className="type-body text-[9px] text-loss" role="alert">
@@ -130,7 +135,7 @@ function UsualSwitch({ country, industry, dealId }: { country: string; industry:
 
 /** i18n-keys: starting.area_*, starting.source_*, starting.reason_*, starting.note_*, starting.kind_* */
 /** i18n-keys: library.region_*, library.sector_* */
-function useFigureText() {
+export function useFigureText() {
   const t = useTranslations("starting");
   const areaName = (area: string) => (t.has(`area_${area}`) ? t(`area_${area}`) : /^[A-Z]{2}$/.test(area) ? regionName(area) : area);
   const value = (field: StartingField, v: number) => {
@@ -323,7 +328,7 @@ function industryName(s: Starting, id: string): string {
   return s.industry_name ?? id;
 }
 
-function SourceLine({ f, area, sample }: { f: StartingFigure; area: string; sample: string }) {
+export function SourceLine({ f, area, sample }: { f: StartingFigure; area: string; sample: string }) {
   const t = useTranslations("starting");
   const date = f.as_of ? periodLabel(f.as_of) : "";
   const text = [t(`source_${f.source}`), area, sample, date].filter(Boolean).join(" · ");

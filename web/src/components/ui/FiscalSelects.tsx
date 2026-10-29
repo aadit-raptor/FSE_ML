@@ -7,6 +7,8 @@ import { type Fiscal, MONTHS } from "@/lib/fiscal";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { monthName } from "@/lib/locale";
 
+import { TipLabel, TipText, useTip } from "./Tip";
+
 const CONTROL =
   "min-w-0 border bg-field px-1 py-0.5 font-mono text-[11px] text-ink outline-none focus:border-accent";
 
@@ -26,20 +28,25 @@ function parseYear(text: string): number | null {
  * The month a fiscal year ends and which fiscal year a column starts at (PLAN.md 2.3a). `of` names what
  * they belong to, for screen readers ("Deal fiscal year end"); `yearLabel` says which column the year is
  * ("First fiscal year" for a deal's projection, "Latest fiscal year" for a company's history). An empty
- * year keeps the plain labels (Y1, LTM).
+ * year keeps the plain labels (Y1, LTM). `yearTip` is the year's tip key (PLAN.md 7.1), since what the year
+ * means differs between a deal and a company.
  */
 export function FiscalSelects({
   fiscal,
   onChange,
   of,
   yearLabel,
+  yearTip,
 }: {
   fiscal: Fiscal;
   onChange: (fiscal: Fiscal) => void;
   of: string;
   yearLabel: string;
+  yearTip: string;
 }) {
   const t = useTranslations("fiscal");
+  const endTip = useTip("fiscalYearEnd");
+  const yearTipHandle = useTip(yearTip);
   const labels = useFiscalLabels();
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (fiscal.year === null ? "" : String(fiscal.year));
@@ -47,9 +54,12 @@ export function FiscalSelects({
   return (
     <>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{t("yearEndsIn")}</span>
+        <span className="type-input-label">
+          <TipLabel tip={endTip}>{t("yearEndsIn")}</TipLabel>
+        </span>
         <select
           aria-label={t("endOf", { of })}
+          aria-describedby={endTip.id}
           value={fiscal.endMonth}
           onChange={(e) => onChange({ ...fiscal, endMonth: Number(e.target.value) })}
           className={`${CONTROL} border-line`}
@@ -62,9 +72,12 @@ export function FiscalSelects({
         </select>
       </label>
       <label className="grid grid-cols-[1fr_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{yearLabel}</span>
+        <span className="type-input-label">
+          <TipLabel tip={yearTipHandle}>{yearLabel}</TipLabel>
+        </span>
         <input
           aria-label={t("yearOf", { of, label: yearLabel.toLowerCase() })}
+          aria-describedby={yearTipHandle.id}
           aria-invalid={invalid}
           inputMode="numeric"
           autoComplete="off"
@@ -79,6 +92,8 @@ export function FiscalSelects({
           className={`${CONTROL} ${invalid ? "border-loss text-loss" : "border-line"}`}
         />
       </label>
+      <TipText tip={endTip} />
+      <TipText tip={yearTipHandle} />
       <p className="font-mono text-[9.5px] text-muted">
         {invalid ? t("yearRange", { min: String(MIN_YEAR), max: String(MAX_YEAR) }) : labels.note(fiscal.endMonth)}
       </p>

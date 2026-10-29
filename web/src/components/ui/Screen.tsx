@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { TipLabel, TipText, useTip } from "./Tip";
+
 /** Input rail on the left, a status bar slot and results on the right. */
 export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNode; children: ReactNode }) {
   const t = useTranslations("ui");
@@ -71,12 +73,24 @@ export function PrimaryButton({ children, onClick, disabled }: { children: React
   );
 }
 
-export function SecondaryButton({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+export function SecondaryButton({
+  children,
+  onClick,
+  disabled,
+  describedBy,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  /** A tip's id, for a button that stands in for a hidden file picker (PLAN.md 7.1) */
+  describedBy?: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-describedby={describedBy}
       className="type-action-secondary px-2.5 py-1.5 whitespace-nowrap text-muted shadow-[inset_0_0_0_1px_#2a343a] hover:text-ink disabled:opacity-50"
     >
       {children}
@@ -84,15 +98,28 @@ export function SecondaryButton({ children, onClick, disabled }: { children: Rea
   );
 }
 
-/** Two-state switch with a visible label. */
-export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+/** Two-state switch with a visible label and its tip (PLAN.md 7.1: `tip` is the key under `tips`). */
+export function Switch({ checked, onChange, label, tip }: { checked: boolean; onChange: (v: boolean) => void; label: string; tip: string }) {
+  const handle = useTip(tip);
   return (
-    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className="flex items-center gap-2">
-      <span className={`relative inline-block h-3.5 w-[26px] flex-none ${checked ? "bg-accent" : "bg-line-strong"}`} aria-hidden>
-        <span className={`absolute top-0.5 size-2.5 bg-bg transition-[left] duration-150 ${checked ? "left-[14px]" : "left-0.5"}`} />
-      </span>
-      <span className="type-input-label">{label}</span>
-    </button>
+    <>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-describedby={handle.id}
+        onClick={() => onChange(!checked)}
+        className="flex items-center gap-2"
+      >
+        <span className={`relative inline-block h-3.5 w-[26px] flex-none ${checked ? "bg-accent" : "bg-line-strong"}`} aria-hidden>
+          <span className={`absolute top-0.5 size-2.5 bg-bg transition-[left] duration-150 ${checked ? "left-[14px]" : "left-0.5"}`} />
+        </span>
+        <span className="type-input-label">
+          <TipLabel tip={handle}>{label}</TipLabel>
+        </span>
+      </button>
+      <TipText tip={handle} />
+    </>
   );
 }
 
@@ -103,6 +130,33 @@ export function EmptyState({ title, children, action }: { title: string; childre
       <h2 className="type-result-title text-[14px]">{title}</h2>
       <p className="type-body text-[10.5px]">{children}</p>
       {action && <div>{action}</div>}
+    </div>
+  );
+}
+
+/**
+ * An empty screen's guide (PLAN.md 7.1): what belongs here, the steps that fill it and the links that
+ * start them. `id` marks it for the browser tests.
+ */
+export function EmptyGuide({ id, title, steps, children, actions }: {
+  id: string;
+  title: string;
+  steps: ReactNode[];
+  children: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="grid max-w-[640px] content-start gap-3 py-2" data-guide={id}>
+      <h2 className="type-result-title text-[14px]">{title}</h2>
+      <p className="type-body text-[10.5px]">{children}</p>
+      <ol className="grid list-decimal gap-1 ps-5 marker:font-mono marker:text-dim">
+        {steps.map((step, i) => (
+          <li key={i} className="type-body text-[10.5px]">
+            {step}
+          </li>
+        ))}
+      </ol>
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
