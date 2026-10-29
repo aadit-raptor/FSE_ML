@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { Term } from "@/components/ui/Term";
 import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
 import { formatDateTime, formatInput, parseNumber } from "@/lib/locale";
 import { excelDay, isoOfExcelDay, type ModelCell, type ModelRow, type ModelRun } from "@/lib/sectorModel";
@@ -14,7 +15,8 @@ import { excelDay, isoOfExcelDay, type ModelCell, type ModelRow, type ModelRun }
  */
 const DECIMALS: Record<string, number> = { money: 2, count: 0, count3: 3, days: 0, rupees: 0, rupees2: 2, check: 2, factor: 4 };
 
-function shown(unit: string | null | undefined, v: number | null | undefined): string {
+/** What a worked-out (formula) cell shows; the explanation quotes the same text (PLAN.md 6.4). */
+export function shown(unit: string | null | undefined, v: number | null | undefined): string {
   if (unit === "share") return fmtRate(v, 1);
   if (unit === "date") {                       // a day number, as Excel holds a date (the price's date, PLAN.md R6)
     const day = isoOfExcelDay(v);
@@ -31,8 +33,12 @@ export function ModelGrid({ run, onEdit }: { run: ModelRun; onEdit: (row: string
       <table className="w-full border-collapse font-mono text-[10.5px]" data-model-grid={run.model}>
         <thead>
           <tr className="border-b border-line">
-            <th className="type-input-label sticky start-0 bg-canvas px-2 py-1 text-start">{t("row")}</th>
-            <th className="type-input-label px-2 py-1 text-start">{t("unit")}</th>
+            <th className="type-input-label sticky start-0 bg-canvas px-2 py-1 text-start">
+              <Term id="modelRow">{t("row")}</Term>
+            </th>
+            <th className="type-input-label px-2 py-1 text-start">
+              <Term id="modelUnit">{t("unit")}</Term>
+            </th>
             {run.periods.map((p) => (
               <th key={p.name} className="type-input-label px-2 py-1 text-end" data-period={p.name}>
                 {p.label}

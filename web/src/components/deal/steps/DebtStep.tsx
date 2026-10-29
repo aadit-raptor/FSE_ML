@@ -5,12 +5,15 @@ import { useTranslations } from "next-intl";
 import { DataTable, type Row } from "@/components/charts/DataTable";
 import { StackedBars } from "@/components/charts/StackedBars";
 import { DownloadButton } from "@/components/ui/DownloadButton";
+import { quote } from "@/components/ui/Explain";
+import { Term } from "@/components/ui/Term";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { debtShareOfEv } from "@/lib/deal/capital";
 import { dealFiscal, type DealRun } from "@/lib/deal/fields";
 import { downloadWorkbook, sheet } from "@/lib/export";
 import { fmtMoney, fmtMultiple, fmtPct, fmtRate, isNum } from "@/lib/format";
+import { statementTerm, trancheTerm, unitTerm } from "@/lib/glossary";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
@@ -18,7 +21,7 @@ import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
 import { useDeal } from "../DealProvider";
 import { BusinessRiskSelect, DealDistressTile } from "../Distress";
 import { DealField, DealScreen, LoadingTiles, RailGroup, WspToggle } from "../DealScreen";
-import { debtSeries, debtYears, totals } from "./shared";
+import { debtSeries, debtYears, facilityTerm, totals } from "./shared";
 import { TrancheList, UseTranchesButton } from "./TrancheList";
 
 type ScheduleRow = NonNullable<DealRun["tranches"][string]>[number];
@@ -36,8 +39,16 @@ function detailRows(
 ): Row[] {
   return wanted
     .filter(([key, , , when]) => rows.some((r) => (when ? when(r) : (r[key] ?? 0) !== 0)))
-    .map(([key, label, kind]) => ({ label, values: rows.map((r) => r[key]), kind }));
+    .map(([key, label, kind]) => ({ label, values: rows.map((r) => r[key]), kind, term: DETAIL_TERMS[key] }));
 }
+
+/** Each detail row's glossary entry (PLAN.md 6.4) */
+const DETAIL_TERMS: Record<DetailKey, string> = {
+  cash_interest: "cashInterest",
+  pik_interest: "pikAccrued",
+  commitment_fee: "commitmentFee",
+  redrawn: "redrawn",
+};
 
 /** One row per facility: what it is, how big, how priced, when it is due, what it sweeps and accrues. */
 function CapitalStructureTable({ rows }: { rows: NonNullable<DealRun["capital_structure"]> }) {
@@ -45,16 +56,24 @@ function CapitalStructureTable({ rows }: { rows: NonNullable<DealRun["capital_st
   const kinds = useTranslations("trancheKinds");
   const rates = useTranslations("referenceRates");
   const trancheName = useEngineLabel("tranche");
-  const head = [t("colFacility"), t("colAmount"), t("colTimesEbitda"), t("colRate"), t("colMaturity"), t("colSweep"), t("colPik")];
+  const head: [string, string][] = [
+    [t("colFacility"), "facility"],
+    [t("colAmount"), "facilityAmount"],
+    [t("colTimesEbitda"), "timesEbitda"],
+    [t("colRate"), "facilityRate"],
+    [t("colMaturity"), "maturity"],
+    [t("colSweep"), "sweepShare"],
+    [t("colPik"), "pikShare"],
+  ];
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse font-mono text-[11px]">
         <caption className="sr-only">{t("tileCapitalStructure")}</caption>
         <thead>
           <tr>
-            {head.map((h, i) => (
+            {head.map(([h, term], i) => (
               <th key={h} scope="col" className={`border-b border-grid px-2 py-1 font-normal text-muted ${i === 0 ? "text-start" : "text-end"}`}>
-                {h}
+                <Term id={term}>{h}</Term>
               </th>
             ))}
           </tr>
@@ -63,7 +82,9 @@ function CapitalStructureTable({ rows }: { rows: NonNullable<DealRun["capital_st
           {rows.map((r) => (
             <tr key={r.name} className="text-ink" data-facility={r.name}>
               <th scope="row" className="border-b border-grid px-2 py-1 text-start font-normal">
-                <span className="type-input-label block text-soft">{trancheName(r.name)}</span>
+                <span className="type-input-label block text-soft">
+                  <Term id={trancheTerm(r.name, r.kind)}>{trancheName(r.name)}</Term>
+                </span>
                 {/* i18n-keys: trancheKinds.*, referenceRates.* */}
                 <span className="block text-[9.5px] text-dim">
                   {!r.floating
@@ -158,35 +179,53 @@ function DebtResults() {
   // the interest loop iterates until this is under a cent
   const plInterest = res.operating_model.interest_expense ?? [];
   const interestGap = Math.max(0, ...interest.map((v, i) => Math.abs(v - (plInterest[i] ?? v))));
+  const x2 = useTranslations("explain");
+  // Every figure once, as the tiles show it, for the KPIs and the explanation alike (PLAN.md 6.4)
+  const shown = {
+    atClose: fmtMoney(atClose),
+    share: fmtPct(debtShareOfEv(inputs)),
+    atExit: fmtMoney(lastEnd),
+    repaid: fmtPct(repaidPct),
+    interest: fmtMoney(interest[0]),
+    cumFcf: fmtMoney(cumFcf),
+    years: String(end.length),
+  };
+  // A sentence is said only when every figure it quotes exists (an unlevered deal repays nothing)
+  const debtExplained = [
+    ...(atClose > 0 ? [x2.rich("debt_raise", { ...shown, f: quote })] : []),
+    ...([lastEnd, repaidPct, cumFcf].every(isNum) ? [x2.rich("debt_repay", { ...shown, f: quote })] : []),
+    ...(isNum(interest[0]) ? [x2.rich("debt_interest", { ...shown, f: quote })] : []),
+  ];
 
   return (
     <Tiles>
-      <Kpi title={t("kpiDebtAtClose")} value={fmtMoney(atClose)} sub={t("debtAtCloseSub", { share: fmtPct(debtShareOfEv(inputs)), money: mu })} lead />
-      <Kpi title={t("kpiDebtAtExit")} value={fmtMoney(lastEnd)} sub={t("repaidSub", { share: fmtPct(repaidPct) })} />
-      <Kpi title={t("kpiNetDebtAtExit")} value={fmtMoney(res.returns.net_debt_at_exit)} sub={t("afterCash", { money: mu })} />
-      <Kpi title={t("kpiInterestYear1")} value={fmtMoney(interest[0])} sub={mu} />
-      <Kpi title={t("kpiCumulativeFcf")} value={fmtMoney(cumFcf)} sub={t("leveredYears", { years: end.length })} />
+      <Kpi term="debtAtClose" title={t("kpiDebtAtClose")} value={shown.atClose} sub={t("debtAtCloseSub", { share: shown.share, money: mu })} lead />
+      <Kpi term="debtAtExit" title={t("kpiDebtAtExit")} value={shown.atExit} sub={t("repaidSub", { share: shown.repaid })} />
+      <Kpi term="netDebtAtExit" title={t("kpiNetDebtAtExit")} value={fmtMoney(res.returns.net_debt_at_exit)} sub={t("afterCash", { money: mu })} />
+      <Kpi term="interestYear1" title={t("kpiInterestYear1")} value={shown.interest} sub={mu} />
+      <Kpi term="cumulativeFcf" title={t("kpiCumulativeFcf")} value={shown.cumFcf} sub={t("leveredYears", { years: end.length })} />
       <Kpi
+        term="interestLoop"
         title={t("kpiInterestLoop")}
         value={res.interest_converged ? t("converged") : t("notConverged")}
         sub={t("interestGapSub", { gap: fmtMoney(interestGap), money: mu })}
         tone={res.interest_converged ? "gain" : "attention"}
       />
 
-      <Tile span={6} title={t("tileDebtBalance")} unit={t("byTranche", { money: mu })}>
+      <Tile span={6} term="debtBalance" title={t("tileDebtBalance")} unit={t("byTranche", { money: mu })} explain={debtExplained}>
         <StackedBars {...debtSeries(res, fiscalLabels.deal(debtYears(res), fiscal), { close: t("close"), chart: t("debtBalanceByTranche"), trancheName })} />
       </Tile>
-      <Tile span={6} title={t("tileCashFlow")} unit={mu}>
+      <Tile span={6} term="cashFlow" title={t("tileCashFlow")} unit={mu} unitTerm={unitTerm(money.unit)}>
         <DataTable
           caption={t("leveredFcfByYear")}
           columns={years}
           rows={[
-            { label: std("rowNetIncome", t("rowNetIncome")), values: cf.net_income ?? [] },
-            { label: t("rowDa"), values: cf.da ?? [] },
-            { label: t("rowCapex"), values: cf.capex ?? [], kind: "outflow" },
-            { label: t("rowChangeInNwc"), values: cf.delta_nwc ?? [], kind: "outflow" },
-            { label: t("rowLeveredFcf"), values: cf.levered_fcf ?? [], total: true },
-            { label: t("rowCumulativeFcf"), values: cf.cumulative_fcf ?? [] },
+            { label: std("rowNetIncome", t("rowNetIncome")), values: cf.net_income ?? [], term: statementTerm("netIncome", inputs.accounting_standard) },
+            { label: t("rowDa"), values: cf.da ?? [], term: "da" },
+            { label: t("rowCapex"), values: cf.capex ?? [], kind: "outflow", term: "capex" },
+            { label: t("rowChangeInNwc"), values: cf.delta_nwc ?? [], kind: "outflow", term: "changeInNwc" },
+            { label: t("rowLeveredFcf"), values: cf.levered_fcf ?? [], total: true, term: "leveredFcf" },
+            { label: t("rowCumulativeFcf"), values: cf.cumulative_fcf ?? [], term: "cumulativeFcf" },
           ]}
         />
       </Tile>
@@ -194,7 +233,7 @@ function DebtResults() {
       <DealDistressTile d={res.distress} years={years} />
 
       {(res.capital_structure?.length ?? 0) > 0 && (
-        <Tile span={6} title={t("tileCapitalStructure")} unit={mu}>
+        <Tile span={6} term="capitalStructure" title={t("tileCapitalStructure")} unit={mu} unitTerm={unitTerm(money.unit)}>
           <CapitalStructureTable rows={res.capital_structure ?? []} />
         </Tile>
       )}
@@ -203,6 +242,8 @@ function DebtResults() {
         <Tile
           key={name}
           span={6}
+          term={facilityTerm(res, name)}
+          data={{ "data-facility-tile": name }}
           title={trancheName(name)}
           unit={t("rateAndMoney", { rate: fmtPct((rows[0]?.interest_rate ?? NaN) * 100, 2), money: mu })}
           action={
@@ -237,11 +278,11 @@ function DebtResults() {
             caption={t("trancheSchedule", { tranche: trancheName(name) })}
             columns={rows.map((r) => years[r.year - 1] ?? String(r.year))}
             rows={[
-              { label: t("rowOpening"), values: rows.map((r) => r.beginning_balance) },
-              { label: t("rowMandatory"), values: rows.map((r) => r.mandatory_repayment), kind: "outflow" },
-              { label: t("rowCashSweep"), values: rows.map((r) => r.cash_sweep), kind: "outflow" },
-              { label: t("rowClosing"), values: rows.map((r) => r.ending_balance), total: true },
-              { label: t("rowInterest"), values: rows.map((r) => r.interest_expense), kind: "outflow" },
+              { label: t("rowOpening"), values: rows.map((r) => r.beginning_balance), term: "opening" },
+              { label: t("rowMandatory"), values: rows.map((r) => r.mandatory_repayment), kind: "outflow", term: "mandatory" },
+              { label: t("rowCashSweep"), values: rows.map((r) => r.cash_sweep), kind: "outflow", term: "cashSweep" },
+              { label: t("rowClosing"), values: rows.map((r) => r.ending_balance), total: true, term: "closing" },
+              { label: t("rowInterest"), values: rows.map((r) => r.interest_expense), kind: "outflow", term: "interest" },
               // Shown only when the facility has them, so a plain loan's table is as it always was
               ...detailRows(rows, [
                 ["cash_interest", t("rowCashInterest"), "outflow", (r) => (r.pik_interest ?? 0) !== 0 || (r.commitment_fee ?? 0) !== 0],

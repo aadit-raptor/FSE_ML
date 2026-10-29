@@ -6,18 +6,23 @@ import { useCallback } from "react";
 import type { StackedBars } from "@/components/charts/StackedBars";
 import { type DealRun } from "@/lib/deal/fields";
 import { fmtNumber, fmtRate, isNum } from "@/lib/format";
+import { trancheTerm } from "@/lib/glossary";
+
+/** The IRR against the hurdle as the screen writes it: "+1.2" points and "20%", or null without an IRR. */
+export function hurdleFigures(irr: number | null | undefined, hurdle: number) {
+  if (!isNum(irr)) return null;
+  const diff = (irr - hurdle) * 100;
+  return { diff: fmtNumber(diff, 1, true), hurdle: fmtRate(hurdle, 0), clears: diff >= 0 };
+}
 
 /** "+1.2 pts vs 20% hurdle" with gain / loss tone. */
 export function useHurdleSub(): (irr: number | null | undefined, hurdle: number) => { sub?: string; tone?: "gain" | "loss" } {
   const t = useTranslations("deal");
   return useCallback(
     (irr, hurdle) => {
-      if (!isNum(irr)) return {};
-      const diff = (irr - hurdle) * 100;
-      return {
-        sub: t("hurdleSub", { diff: fmtNumber(diff, 1, true), hurdle: fmtRate(hurdle, 0) }),
-        tone: diff >= 0 ? "gain" : "loss",
-      };
+      const f = hurdleFigures(irr, hurdle);
+      if (!f) return {};
+      return { sub: t("hurdleSub", { diff: f.diff, hurdle: f.hurdle }), tone: f.clears ? "gain" : "loss" };
     },
     [t],
   );
@@ -38,13 +43,20 @@ export function debtSeries(
   const tranches = Object.entries(result.tranches);
   return {
     categories: [labels.close, ...years],
+    categoryTerms: { [labels.close]: "close" },
     series: tranches.map(([name, rows], i) => ({
       name: labels.trancheName(name),
+      term: facilityTerm(result, name),
       color: TRANCHE_COLORS[i % TRANCHE_COLORS.length],
       values: [rows[0]?.beginning_balance ?? 0, ...rows.map((r) => r.ending_balance ?? 0)],
     })),
     label: labels.chart,
   };
+}
+
+/** A facility's glossary entry: its kind's when the deal lists its facilities, else the engine's name's. */
+export function facilityTerm(result: DealRun, name: string): string | null {
+  return trancheTerm(name, result.capital_structure?.find((c) => c.name === name)?.kind);
 }
 
 /** How many year columns the debt schedule has. */

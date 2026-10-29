@@ -1,8 +1,10 @@
+import { SvgTerm } from "@/components/ui/Term";
 import { fmtAxis, fmtDelta, fmtMoney } from "@/lib/format";
 
 import { niceScale } from "./scale";
 
-export type WaterfallStep = { label: string; value: number; isTotal: boolean };
+/** `term`: the step's glossary entry (PLAN.md 6.4) */
+export type WaterfallStep = { label: string; value: number; isTotal: boolean; term?: string | null };
 
 const W = 560;
 const H = 236;
@@ -52,11 +54,13 @@ export function Waterfall({ steps, label }: { steps: WaterfallStep[]; label: str
             {i < bars.length - 1 && (
               <line x1={x + w} x2={x + band} y1={y(b.end)} y2={y(b.end)} stroke="var(--color-muted)" strokeDasharray="2 2" />
             )}
-            {[words.slice(0, 1).join(" "), words.slice(1).join(" ")].filter(Boolean).map((ln, k) => (
-              <text key={k} x={x + w / 2} y={H - BOTTOM + 16 + k * 12} textAnchor="middle" className="chart-category">
-                {ln}
-              </text>
-            ))}
+            <SvgTerm id={b.term}>
+              {[words.slice(0, 1).join(" "), words.slice(1).join(" ")].filter(Boolean).map((ln, k) => (
+                <text key={k} x={x + w / 2} y={H - BOTTOM + 16 + k * 12} textAnchor="middle" className="chart-category">
+                  {ln}
+                </text>
+              ))}
+            </SvgTerm>
           </g>
         );
       })}
