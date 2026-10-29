@@ -1,8 +1,10 @@
+import { SvgTerm, Term } from "@/components/ui/Term";
 import { fmtAxis, fmtMoney } from "@/lib/format";
 
 import { niceScale } from "./scale";
 
-export type Series = { name: string; values: number[]; color: string };
+/** `term`: the series name's glossary entry (PLAN.md 6.4) */
+export type Series = { name: string; values: number[]; color: string; term?: string | null };
 
 const W = 560;
 const H = 210;
@@ -12,7 +14,18 @@ const TOP = 22;
 const BOTTOM = 24;
 
 /** Stacked columns with the stack total labelled on top. */
-export function StackedBars({ categories, series, label }: { categories: string[]; series: Series[]; label: string }) {
+export function StackedBars({
+  categories,
+  series,
+  label,
+  categoryTerms,
+}: {
+  categories: string[];
+  series: Series[];
+  label: string;
+  /** Glossary entries for the categories that are words, by category */
+  categoryTerms?: Record<string, string>;
+}) {
   const totals = categories.map((_, i) => series.reduce((s, x) => s + (x.values[i] ?? 0), 0));
   const { max, ticks } = niceScale(Math.max(...totals, 1));
   const y = (v: number) => TOP + (H - TOP - BOTTOM) * (1 - v / max);
@@ -23,9 +36,9 @@ export function StackedBars({ categories, series, label }: { categories: string[
     <div className="grid gap-2">
       <div className="flex gap-4">
         {series.map((s) => (
-          <span key={s.name} className="type-input-label flex items-center gap-1.5 text-[8.5px] text-soft">
+          <span key={s.name} data-legend className="type-input-label flex items-center gap-1.5 text-[8.5px] text-soft">
             <i className="inline-block size-2.5" style={{ background: s.color }} aria-hidden />
-            {s.name}
+            <Term id={s.term}>{s.name}</Term>
           </span>
         ))}
       </div>
@@ -51,9 +64,11 @@ export function StackedBars({ categories, series, label }: { categories: string[
               <text x={x + w / 2} y={y(totals[i]) - 6} textAnchor="middle" className="chart-value">
                 {fmtMoney(totals[i])}
               </text>
-              <text x={x + w / 2} y={H - 7} textAnchor="middle" className="chart-category">
-                {c}
-              </text>
+              <SvgTerm id={categoryTerms?.[c]}>
+                <text x={x + w / 2} y={H - 7} textAnchor="middle" className="chart-category">
+                  {c}
+                </text>
+              </SvgTerm>
             </g>
           );
         })}

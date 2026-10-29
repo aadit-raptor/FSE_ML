@@ -2,10 +2,12 @@
 
 import { useTranslations } from "next-intl";
 
+import { quote } from "@/components/ui/Explain";
 import { SELECT_CLASS } from "@/components/ui/MoneySelects";
+import { Term } from "@/components/ui/Term";
 import { Tile } from "@/components/ui/Tile";
 import type { components } from "@/lib/api/schema";
-import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
+import { fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 
 import { useDeal } from "./DealProvider";
 
@@ -116,37 +118,66 @@ function Header({ years }: { years: string[] }) {
   );
 }
 
+/** A row heading with its glossary entry (PLAN.md 6.4). */
+function RowHead({ term, children }: { term: string; children: string }) {
+  return (
+    <th scope="row" className={HEAD}>
+      <Term id={term}>{children}</Term>
+    </th>
+  );
+}
+
 /** Deal -> Debt: each year's coverage, leverage, rating band and, where its card allows, chance of default. */
 export function DealDistressTile({ d, years }: { d: DealDistress; years: string[] }) {
   const t = useTranslations("distress");
+  const x = useTranslations("explain");
   const rows = d.years;
   const cols = years.slice(0, rows.length);
   const shown = (v: number | null | undefined) => (d.shown ? fmtRate(v, 2) : t("notShown"));
+  // The first and last years as the table shows them (PLAN.md 6.4)
+  const first = rows[0];
+  const last = rows.at(-1);
+  const explained =
+    first && last
+      ? [
+          ...(isNum(first.coverage) && isNum(first.leverage) ? [x.rich("credit_first", {
+            year: cols[0] ?? "",
+            coverage: fmtMultiple(first.coverage, 2),
+            leverage: fmtMultiple(first.leverage, 2),
+            band: first.band,
+            f: quote,
+          })] : []),
+          x.rich("credit_last", { year: cols[rows.length - 1] ?? "", band: last.band, f: quote }),
+          d.shown
+            ? x.rich("credit_shown", { year: cols[rows.length - 1] ?? "", cumulative: shown(last.cumulative), f: quote })
+            : x.rich("credit_hidden"),
+        ]
+      : undefined;
   return (
-    <Tile span={12} title={t("tile")} unit={t("unitDeal")}>
+    <Tile span={12} term="distress" title={t("tile")} unit={t("unitDeal")} explain={explained}>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse font-mono text-[11px]" data-distress="deal">
           <caption className="sr-only">{t("tile")}</caption>
           <Header years={cols} />
           <tbody>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowCoverage")}</th>
+              <RowHead term="interestCover">{t("rowCoverage")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{fmtMultiple(r.coverage, 2)}</td>)}
             </tr>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowLeverage")}</th>
+              <RowHead term="leverage">{t("rowLeverage")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{fmtMultiple(r.leverage, 2)}</td>)}
             </tr>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowCoverageBand")}</th>
+              <RowHead term="coverageBand">{t("rowCoverageBand")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{r.coverage_band}</td>)}
             </tr>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowLeverageBand")}</th>
+              <RowHead term="leverageBand">{t("rowLeverageBand")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{r.leverage_band}</td>)}
             </tr>
             <tr className="text-bright">
-              <th scope="row" className={HEAD}>{t("rowBand")}</th>
+              <RowHead term="ratingBand">{t("rowBand")}</RowHead>
               {rows.map((r) => (
                 <td key={r.year} className={`${CELL} font-semibold ${bandTone(r.band)}`} data-band-year={r.year}>
                   {r.band}
@@ -154,11 +185,11 @@ export function DealDistressTile({ d, years }: { d: DealDistress; years: string[
               ))}
             </tr>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowProbability")}</th>
+              <RowHead term="defaultChance">{t("rowProbability")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{shown(r.probability)}</td>)}
             </tr>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowCumulative")}</th>
+              <RowHead term="defaultCumulative">{t("rowCumulative")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{shown(r.cumulative)}</td>)}
             </tr>
           </tbody>
@@ -178,7 +209,7 @@ export function SimulatedDistressTile({ d, years }: { d: SimulatedDistress; year
   const bands = BANDS.filter((b) => rows.some((r) => (r.band_shares[b] ?? 0) > 0));
   const shown = (v: number | null | undefined) => (d.shown ? fmtRate(v, 2) : t("notShown"));
   return (
-    <Tile span={12} title={t("tile")} unit={t("unitSimulated")}>
+    <Tile span={12} term="distressSimulated" title={t("tile")} unit={t("unitSimulated")}>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse font-mono text-[11px]" data-distress="simulated">
           <caption className="sr-only">{t("tile")}</caption>
@@ -186,7 +217,7 @@ export function SimulatedDistressTile({ d, years }: { d: SimulatedDistress; year
           <tbody>
             {bands.map((b) => (
               <tr key={b} className="text-ink" data-band={b}>
-                <th scope="row" className={HEAD}>{t("rowPathsAt", { band: b })}</th>
+                <RowHead term="pathsAt">{t("rowPathsAt", { band: b })}</RowHead>
                 {rows.map((r) => (
                   <td key={r.year} className={`${CELL} ${bandTone(b)}`}>
                     {fmtRate(r.band_shares[b] ?? 0, 1)}
@@ -195,11 +226,11 @@ export function SimulatedDistressTile({ d, years }: { d: SimulatedDistress; year
               </tr>
             ))}
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowMeanProbability")}</th>
+              <RowHead term="meanDefaultChance">{t("rowMeanProbability")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{shown(r.probability)}</td>)}
             </tr>
             <tr className="text-ink">
-              <th scope="row" className={HEAD}>{t("rowMeanCumulative")}</th>
+              <RowHead term="meanDefaultCumulative">{t("rowMeanCumulative")}</RowHead>
               {rows.map((r) => <td key={r.year} className={CELL}>{shown(r.cumulative)}</td>)}
             </tr>
           </tbody>

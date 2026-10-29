@@ -3,9 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
+import { quote } from "@/components/ui/Explain";
 import { SecondaryButton } from "@/components/ui/Screen";
 import { Kpi, Tile } from "@/components/ui/Tile";
 import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
+import { unitNameTerm } from "@/lib/glossary";
 import { formatDateTime, regionName } from "@/lib/locale";
 import {
   isoOfExcelDay, riskFree, valuationValue, withValue, type ModelCompany, type ModelRun, type RiskFree,
@@ -22,6 +24,7 @@ import {
  *
  * i18n-keys: models.valuationMultiple_*
  * i18n-keys: models.riskFree_*
+ * i18n-keys: explain.value_multiple_*
  */
 export function ValuationTiles({
   run, company, companyId, onChange,
@@ -32,6 +35,7 @@ export function ValuationTiles({
   onChange: (company: ModelCompany) => void;
 }) {
   const t = useTranslations("models");
+  const x = useTranslations("explain");
   const [offer, setOffer] = useState<{ id: string; answer: RiskFree | null } | null>(null);
 
   useEffect(() => {
@@ -57,16 +61,36 @@ export function ValuationTiles({
     gap !== null ? t("valuationAgainst", { gap: fmtRate(gap, 1) }) : price === null ? t("valuationNoPrice") : t("valuationNoValue");
   const shown = companyId && offer?.id === companyId ? offer.answer : null;     // never another company's answer
   const rate = shown?.status === "ok" && typeof shown.value === "number" ? shown.value : null;
+  // Every figure once, as the KPIs show it, for the KPIs and the explanation alike (PLAN.md 6.4)
+  const figures = {
+    dcf: fmtNumber(v("v_ps"), 2),
+    rate: fmtRate(v("v_rate"), 1),
+    growth: fmtRate(v("v_g"), 1),
+    mps: fmtNumber(v("v_mps"), 2),
+    multiple: fmtMultiple(v("v_mult"), 1),
+    year: yearLabel,
+    price: fmtNumber(price, 2),
+  };
+  const gapDcf = v("v_gap_dcf");
+  const gapMult = v("v_gap_mult");
+  const explained = [
+    ...(v("v_ps") !== null ? [x.rich("value_dcf", { ...figures, f: quote })] : []),
+    ...(v("v_mps") !== null ? [x.rich(`value_multiple_${multiple === "pe" ? "pe" : "ev_ebitda"}`, { ...figures, f: quote })] : []),
+    price !== null && gapDcf !== null && gapMult !== null
+      ? x.rich("value_price", { price: figures.price, gapDcf: fmtRate(gapDcf, 1), gapMult: fmtRate(gapMult, 1), f: quote })
+      : x.rich("value_noPrice"),
+    x.rich("value_none"),
+  ];
 
   return (
     <>
-      <Kpi span={4} lead title={t("valuationDcf")} value={fmtNumber(v("v_ps"), 2)}
-        sub={`${t("valuationDcfSub", { rate: fmtRate(v("v_rate"), 1), growth: fmtRate(v("v_g"), 1) })} · ${against(v("v_gap_dcf"))}`} />
-      <Kpi span={4} lead title={t("valuationMultiple")} value={fmtNumber(v("v_mps"), 2)}
-        sub={`${t(`valuationMultiple_${multiple}`, { multiple: fmtMultiple(v("v_mult"), 1), year: yearLabel })} · ${against(v("v_gap_mult"))}`} />
-      <Kpi span={4} title={t("valuationPrice")} value={fmtNumber(price, 2)}
+      <Kpi span={4} lead term="valueDcf" title={t("valuationDcf")} value={figures.dcf}
+        sub={`${t("valuationDcfSub", { rate: figures.rate, growth: figures.growth })} · ${against(gapDcf)}`} />
+      <Kpi span={4} lead term="valueMultiple" title={t("valuationMultiple")} value={figures.mps}
+        sub={`${t(`valuationMultiple_${multiple}`, { multiple: figures.multiple, year: yearLabel })} · ${against(gapMult)}`} />
+      <Kpi span={4} term="priceTyped" title={t("valuationPrice")} value={figures.price}
         sub={price === null ? t("valuationTypePrice") : dated ? t("valuationPriceOn", { date: dated }) : t("valuationNoDate")} />
-      <Tile span={12} title={t("valuationTitle")} unit={company.unit_name}>
+      <Tile span={12} term="valuation" title={t("valuationTitle")} unit={company.unit_name} unitTerm={unitNameTerm(company.unit_name)} explain={explained}>
         <p className="type-body text-[10.5px]">{t("valuationHow")}</p>
         {shown && rate !== null ? (
           <div className="flex flex-wrap items-center gap-3" data-risk-free={shown.country}>
