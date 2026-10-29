@@ -3,13 +3,13 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-import { GroupedBars } from "@/components/charts/Bars";
+import { DraftBlock } from "@/components/ui/DraftBlock";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton } from "@/components/ui/Screen";
 import { Tile, Tiles } from "@/components/ui/Tile";
 import { parseNumber } from "@/lib/locale";
 import {
   downloadNote, fieldsFrom, getDetails, getReport, plain, putDetails, putReport, refusedKey, writeSentences,
-  type Report, type ReportBlock, type ReportDetails, type ReportFields, type ReportSegment,
+  type Report, type ReportDetails, type ReportFields,
 } from "@/lib/report";
 import { listCoverage, type CoverageCompany } from "@/lib/research";
 import { listVersions, type ModelVersion } from "@/lib/savedModel";
@@ -26,7 +26,6 @@ import { listVersions, type ModelVersion } from "@/lib/savedModel";
  * i18n-keys: report.section_*
  */
 const field = "border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
-const SERIES_COLOURS = ["var(--color-accent)", "var(--color-soft)", "var(--color-gain)"];
 
 export function ReportStep() {
   const t = useTranslations("report");
@@ -138,94 +137,13 @@ export function ReportStep() {
           <Tile span={12} title={t("previewTitle", { name: report.company_name })}>
             <article className="grid max-w-[760px] gap-2" aria-label={t("previewLabel")}>
               {report.blocks.map((block, i) => (
-                <Block key={i} block={block} />
+                <DraftBlock key={i} block={block} chartLabel={t("chartLabel", { title: plain(block.title) })} />
               ))}
             </article>
           </Tile>
         )}
       </Tiles>
     </Screen>
-  );
-}
-
-function Segments({ parts }: { parts: ReportSegment[] | null | undefined }) {
-  return (
-    <>
-      {(parts ?? []).map((p, i) =>
-        p.kind === "figure" ? (
-          <span key={i} className="font-mono text-ink" data-figure={p.source ?? ""}>{p.text}</span>
-        ) : p.kind === "typed" ? (
-          <span key={i} className="whitespace-pre-wrap text-ink" data-typed="">{p.text}</span>
-        ) : (
-          <span key={i}>{p.text}</span>
-        ),
-      )}
-    </>
-  );
-}
-
-function Block({ block }: { block: ReportBlock }) {
-  const t = useTranslations("report");
-  if (block.type === "heading") {
-    return block.level === 1 ? (
-      <h2 className="type-result-title text-[15px] text-bright"><Segments parts={block.parts} /></h2>
-    ) : (
-      <h3 className="type-result-title mt-2 text-[11px] text-accent"><Segments parts={block.parts} /></h3>
-    );
-  }
-  if (block.type === "paragraph") {
-    const tone = block.kind === "note" ? "text-muted text-[10px]" : "text-soft text-[11px]";
-    return (
-      <p className={`type-body ${tone}`} data-kind={block.kind ?? ""}>
-        <Segments parts={block.parts} />
-      </p>
-    );
-  }
-  if (block.type === "table") {
-    return (
-      <table className="w-full border-collapse text-[10.5px]">
-        <thead>
-          <tr className="border-b border-line">
-            {(block.header ?? []).map((cell, i) => (
-              <th key={i} scope="col" className={`type-input-label py-1 ${i ? "text-end" : "text-start"}`}>
-                <Segments parts={cell} />
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {(block.rows ?? []).map((row, r) => (
-            <tr key={r} className="border-b border-line/60">
-              {row.map((cell, i) =>
-                i === 0 ? (
-                  <th key={i} scope="row" className="type-body py-0.5 text-start font-normal text-soft">
-                    <Segments parts={cell} />
-                  </th>
-                ) : (
-                  <td key={i} className="py-0.5 text-end"><Segments parts={cell} /></td>
-                ),
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
-  const series = block.series ?? [];
-  return (
-    <figure className="grid gap-1">
-      <figcaption className="type-input-label">{plain(block.title)}</figcaption>
-      <GroupedBars
-        categories={block.categories ?? []}
-        series={series.map((s, k) => ({
-          // a figure the model doesn't hold is a gap with its dash, never a bar of nought
-          name: s.name, values: s.values.map((v) => v ?? 0), color: SERIES_COLOURS[k % SERIES_COLOURS.length],
-          labelled: true, labels: s.texts,
-        }))}
-        format={() => ""}
-        label={t("chartLabel", { title: plain(block.title) })}
-      />
-    </figure>
   );
 }
 
