@@ -1,3 +1,4 @@
+import { Term } from "@/components/ui/Term";
 import { fmtMoney, fmtRate, isNum } from "@/lib/format";
 
 export type Row = {
@@ -6,6 +7,8 @@ export type Row = {
   /** money (default), rate (fraction), or money shown as an outflow */
   kind?: "money" | "rate" | "outflow";
   total?: boolean;
+  /** The label's glossary entry (PLAN.md 6.4) */
+  term?: string | null;
 };
 
 function cell(v: number | null | undefined, kind: Row["kind"]) {
@@ -35,7 +38,7 @@ export function DataTable({ columns, rows, caption }: { columns: string[]; rows:
           {rows.map((r) => (
             <tr key={r.label} className={r.total ? "text-bright" : "text-ink"}>
               <th scope="row" className="type-input-label border-b border-grid px-2 py-1 text-start text-[9px] font-normal text-soft">
-                {r.label}
+                <Term id={r.term}>{r.label}</Term>
               </th>
               {r.values.map((v, i) => {
                 const c = cell(v, r.kind);

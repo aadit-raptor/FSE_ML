@@ -10,12 +10,15 @@ import { heat } from "@/components/charts/HeatTable";
 import { Histogram } from "@/components/charts/Histogram";
 import { LineChart } from "@/components/charts/LineChart";
 import { DownloadButton } from "@/components/ui/DownloadButton";
+import { quote } from "@/components/ui/Explain";
+import { Term } from "@/components/ui/Term";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { floatingCount } from "@/lib/deal/capital";
 import { apiInputs, dealFiscal } from "@/lib/deal/fields";
 import { downloadMonteCarloSample, downloadWorkbook, fraction, sheet } from "@/lib/export";
 import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
+import { driverTerm } from "@/lib/glossary";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 
@@ -53,42 +56,68 @@ function Distribution() {
   const fiscalLabels = useFiscalLabels();
   const p = r.params as Record<string, number>;
   const count = (share: number | null | undefined, n: number) => (isNum(share) ? fmtCount(share * n) : fmtCount(null));
-  const assumptions: [string, string][] = [
-    [t("assumptionGrowth"), t("plusMinus", { mean: fmtRate(p.growth_mean), std: fmtRate(p.growth_std) })],
-    [t("assumptionExit"), t("plusMinus", { mean: fmtMultiple(p.exit_mean, 1), std: fmtMultiple(p.exit_std, 2) })],
-    [t("assumptionRate"), t("plusMinus", { mean: fmtRate(p.interest_mean, 2), std: fmtRate(p.interest_std, 2) })],
-    [t("assumptionMargin"), t("plusMinus", { mean: fmtRate(p.gross_margin_mean), std: fmtRate(p.gross_margin_std) })],
+  const assumptions: [string, string, string][] = [
+    [t("assumptionGrowth"), t("plusMinus", { mean: fmtRate(p.growth_mean), std: fmtRate(p.growth_std) }), "simGrowth"],
+    [t("assumptionExit"), t("plusMinus", { mean: fmtMultiple(p.exit_mean, 1), std: fmtMultiple(p.exit_std, 2) }), "simExit"],
+    [t("assumptionRate"), t("plusMinus", { mean: fmtRate(p.interest_mean, 2), std: fmtRate(p.interest_std, 2) }), "simRate"],
+    [t("assumptionMargin"), t("plusMinus", { mean: fmtRate(p.gross_margin_mean), std: fmtRate(p.gross_margin_std) }), "simMargin"],
     // A deal listing its facilities is financed by them; the percentages are not read
     ranFor.deal.tranches.length
-      ? [t("assumptionFacilities"), t("facilitiesValue", { count: ranFor.deal.tranches.length, floating: floatingCount(ranFor.deal.tranches) })]
-      : [t("assumptionDebt"), t("twoValues", { first: fmtRate(p.debt_pct), second: fmtRate(p.senior_pct) })],
-    [t("assumptionFees"), t("twoValues", { first: fmtRate(p.transaction_fees_pct, 2), second: fmtRate(p.financing_fees_pct, 2) })],
+      ? [
+          t("assumptionFacilities"),
+          t("facilitiesValue", { count: ranFor.deal.tranches.length, floating: floatingCount(ranFor.deal.tranches) }),
+          "simFacilities",
+        ]
+      : [t("assumptionDebt"), t("twoValues", { first: fmtRate(p.debt_pct), second: fmtRate(p.senior_pct) }), "simDebt"],
+    [t("assumptionFees"), t("twoValues", { first: fmtRate(p.transaction_fees_pct, 2), second: fmtRate(p.financing_fees_pct, 2) }), "simFees"],
     [
       t("assumptionCosts"),
       t("fourValues", { first: fmtRate(p.opex_pct), second: fmtRate(p.da_pct), third: fmtRate(p.capex_pct), fourth: fmtRate(p.nwc_pct) }),
+      "simCosts",
     ],
-    [t("assumptionTax"), fmtRate(p.tax_rate)],
+    [t("assumptionTax"), fmtRate(p.tax_rate), "simTax"],
+  ];
+  const ex = useTranslations("explain");
+  // Every figure once, as the KPIs show it, for the KPIs and the explanation alike (PLAN.md 6.4)
+  const shown = {
+    paths: fmtCount(r.n),
+    mean: fmtRate(s.mean_irr),
+    median: fmtRate(s.median_irr),
+    p5: fmtRate(s.p5_irr),
+    p95: fmtRate(s.p95_irr),
+    above: fmtRate(s.p_above_hurdle),
+    hurdle: pct0(hurdle),
+    wipeout: fmtRate(s.wipeout_rate, 3),
+  };
+  const distributionExplained = [
+    ex.rich("mc_centre", { ...shown, f: quote }),
+    ex.rich("mc_tails", { ...shown, f: quote }),
+    ex.rich("mc_hurdle", { ...shown, f: quote }),
+    ex.rich("mc_wipeout", { ...shown, f: quote }),
   ];
   const presetName = r.scenario ? t(SCENARIOS.find((x) => x.id === r.scenario)?.labelKey ?? "noPreset") : t("noPreset");
 
   return (
     <div className={staleClass}>
       <Tiles>
-        <Kpi title={t("kpiMeanIrr")} value={fmtRate(s.mean_irr)} sub={t("kpiMedianSub", { median: fmtRate(s.median_irr) })} lead />
+        <Kpi term="meanIrr" title={t("kpiMeanIrr")} value={shown.mean} sub={t("kpiMedianSub", { median: shown.median })} lead />
         <Kpi
-          title={t("kpiAboveHurdle", { hurdle: pct0(hurdle) })}
-          value={fmtRate(s.p_above_hurdle)}
-          sub={t("kpiAboveHurdleSub", { count: count(s.p_above_hurdle, r.n), total: fmtCount(r.n) })}
+          term="aboveHurdle"
+          title={t("kpiAboveHurdle", { hurdle: shown.hurdle })}
+          value={shown.above}
+          sub={t("kpiAboveHurdleSub", { count: count(s.p_above_hurdle, r.n), total: shown.paths })}
         />
-        <Kpi title={t("kpiP5")} value={fmtRate(s.p5_irr)} sub={t("oneInTwentyBelow")} />
-        <Kpi title={t("kpiP95")} value={fmtRate(s.p95_irr)} sub={t("oneInTwentyAbove")} />
+        <Kpi term="p5" title={t("kpiP5")} value={shown.p5} sub={t("oneInTwentyBelow")} />
+        <Kpi term="p95" title={t("kpiP95")} value={shown.p95} sub={t("oneInTwentyAbove")} />
         <Kpi
+          term="wipeout"
           title={t("kpiWipeout")}
-          value={fmtRate(s.wipeout_rate, 3)}
+          value={shown.wipeout}
           sub={t("wipeoutSub", { count: count(s.wipeout_rate, r.n) })}
           tone={(s.wipeout_rate ?? 0) > 0.05 ? "loss" : undefined}
         />
         <Kpi
+          term="runTime"
           title={t("kpiRunTime")}
           value={t("runTimeValue", { ms: Math.round(r.elapsed_ms) })}
           sub={t("runTimeSub", {
@@ -99,8 +128,10 @@ function Distribution() {
 
         <Tile
           span={7}
+          term="irrDistribution"
           title={t("tileIrrDistribution")}
-          unit={t("pathsUnit", { count: fmtCount(r.n) })}
+          unit={t("pathsUnit", { count: shown.paths })}
+          explain={distributionExplained}
           action={
             <DownloadButton
               label={t("sample10k")}
@@ -130,7 +161,7 @@ function Distribution() {
             ]}
           />
         </Tile>
-        <Tile span={5} title={t("tileIrrByPercentile")} unit={t("shareBelow")}>
+        <Tile span={5} term="irrByPercentile" title={t("tileIrrByPercentile")} unit={t("shareBelow")}>
           <LineChart
             label={t("chartIrrPercentile")}
             xLabels={r.irr_cdf.percentiles.map((q) => t("percentile", { value: fmtNumber(q, 0) }))}
@@ -141,7 +172,7 @@ function Distribution() {
             endLabels={false}
           />
         </Tile>
-        <Tile span={6} title={t("tileMoicDistribution")} unit="x">
+        <Tile span={6} term="moicDistribution" title={t("tileMoicDistribution")} unit="x">
           <Histogram
             label={t("chartMoicDistribution")}
             edges={r.moic_histogram.edges}
@@ -151,13 +182,13 @@ function Distribution() {
             markers={[{ value: 1, label: t("markerMoneyBack"), tone: "attention", dashed: true }]}
           />
         </Tile>
-        <Tile span={6} title={t("tileWhatSimulated")} unit={t("meanPlusMinus")}>
+        <Tile span={6} term="whatSimulated" title={t("tileWhatSimulated")} unit={t("meanPlusMinus")}>
           <table className="w-full border-collapse font-mono text-[11px]">
             <tbody>
-              {assumptions.map(([k, v]) => (
+              {assumptions.map(([k, v, term]) => (
                 <tr key={k}>
                   <th scope="row" className="type-input-label border-b border-grid py-1.5 text-start text-[9px] font-normal text-soft">
-                    {k}
+                    <Term id={term}>{k}</Term>
                   </th>
                   <td className="border-b border-grid py-1.5 text-end text-ink">{v}</td>
                 </tr>
@@ -308,6 +339,7 @@ export function DriversStep() {
   );
 }
 
+/** i18n-keys: explain.drivers_strongest_up, explain.drivers_strongest_down */
 function Drivers() {
   const { r } = useResult();
   const t = useTranslations("montecarlo");
@@ -319,21 +351,40 @@ function Drivers() {
   const fit = r.driver_fits[driver];
   const corr = r.correlations as { labels: string[]; matrix: number[][] };
   const xFormat = driver === "Exit Multiple" ? (v: number) => fmtMultiple(v, 1) : (v: number) => fmtRate(v, 1);
+  const ex = useTranslations("explain");
+  // The bars as the chart labels them: the strongest and the weakest by size of the rank correlation (PLAN.md 6.4)
+  const rho = (v: number) => fmtNumber(v, 2, v > 0);
+  const ranked = r.drivers.filter((d) => isNum(d.spearman_rho)).sort((a, b) => Math.abs(b.spearman_rho!) - Math.abs(a.spearman_rho!));
+  const strongest = ranked[0];
+  const weakest = ranked.at(-1);
+  const driversExplained =
+    strongest && weakest
+      ? [
+          ex.rich(strongest.spearman_rho! >= 0 ? "drivers_strongest_up" : "drivers_strongest_down", {
+            driver: driverName(strongest.driver),
+            rho: rho(strongest.spearman_rho!),
+            f: quote,
+          }),
+          ...(ranked.length > 1 ? [ex.rich("drivers_weakest", { driver: driverName(weakest.driver), rho: rho(weakest.spearman_rho!), f: quote })] : []),
+          ex.rich("drivers_meaning"),
+        ]
+      : undefined;
 
   return (
     <div className={staleClass}>
       <Tiles>
-        <Tile span={5} title={t("tileWhatMovesIrr")} unit={t("rankCorrelation")}>
+        <Tile span={5} term="whatMovesIrr" title={t("tileWhatMovesIrr")} unit={t("rankCorrelation")} explain={driversExplained}>
           <DivergingBars
             label={t("chartSpearman")}
             domain={1}
-            format={(v) => fmtNumber(v, 2, v > 0)}
-            rows={r.drivers.map((d) => ({ label: driverName(d.driver), value: d.spearman_rho ?? 0 }))}
+            format={rho}
+            rows={r.drivers.map((d) => ({ label: driverName(d.driver), value: d.spearman_rho ?? 0, term: driverTerm(d.driver) }))}
           />
           <p className="type-body text-[9px]">{t("spearmanNote")}</p>
         </Tile>
         <Tile
           span={7}
+          term="irrAgainst"
           title={t("tileIrrAgainst", { driver: driverName(driver).toLowerCase() })}
           aside={
             <span className="flex gap-px bg-line" role="radiogroup" aria-label={t("driver")}>
@@ -368,14 +419,14 @@ function Drivers() {
           </p>
         </Tile>
         <DriverExplanationTiles explanations={r.explanations} />
-        <Tile span={12} title={t("tileCorrelations")} unit={t("pearson")}>
+        <Tile span={12} term="correlations" title={t("tileCorrelations")} unit={t("pearson")}>
           <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
             <thead>
               <tr>
                 <th />
                 {corr.labels.map((l) => (
                   <th key={l} scope="col" className="px-2 py-1 text-end font-normal text-muted">
-                    {driverName(l)}
+                    <Term id={driverTerm(l)}>{driverName(l)}</Term>
                   </th>
                 ))}
               </tr>
@@ -384,7 +435,7 @@ function Drivers() {
               {corr.matrix.map((row, i) => (
                 <tr key={corr.labels[i]}>
                   <th scope="row" className="type-input-label px-2 py-1 text-start text-[9px] font-normal text-soft">
-                    {driverName(corr.labels[i])}
+                    <Term id={driverTerm(corr.labels[i])}>{driverName(corr.labels[i])}</Term>
                   </th>
                   {row.map((v, j) => (
                     <td key={j} className="px-2 py-1 text-end" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
