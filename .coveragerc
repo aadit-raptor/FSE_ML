@@ -17,6 +17,7 @@ source =
     ops
     research
     simulation
+    teams
     uploads
 # The jobs runner works in a thread; count its lines too
 concurrency = thread

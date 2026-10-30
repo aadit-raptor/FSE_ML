@@ -36,10 +36,24 @@ services:
         - ml/**
         - research/**
         - simulation/**
+        - teams/**
         - uploads/**
         - validation/**
         - web/messages/**
     envVars:
+      # Teams (PLAN.md 7.2, DEPLOY.md "Teams"): Clerk's secret key reads a
+      # teammate's name for a team's screens and a mentioned person's address
+      # for their email, never stored; Resend sends those emails, from
+      # FSE_MAIL_FROM, linking to FSE_APP_URL. Unset = no names shown, and
+      # mentions wait until set (dropped after a week)
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FSE_MAIL_FROM
+        sync: false
+      - key: FSE_APP_URL
+        sync: false
       # Browser origins allowed to call the API directly. The web app goes
       # through Vercel's proxy, so this only matters for direct API use.
       - key: FSE_CORS_ORIGINS

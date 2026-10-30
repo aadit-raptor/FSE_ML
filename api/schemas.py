@@ -1240,10 +1240,16 @@ class DealDuplicate(Strict):
                                 description="Defaults to the original's name with (copy)")
 
 
+DealAccess = Literal["owner", "editor", "viewer"]
+
+
 class DealSummary(BaseModel):
     id: str
     name: str
     archived: bool
+    access: DealAccess = Field(
+        "owner", description="The caller's: their own deal, or one shared with a team they edit or only read "
+                             "(PLAN.md 7.2)")
     latest_version: int = Field(description="Number of the newest version")
     created_at: str = Field(description="UTC, ISO 8601")
     updated_at: str = Field(description="UTC, ISO 8601")
@@ -1291,7 +1297,9 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "file_uploaded", "file_deleted", "coverage_added", "coverage_removed",
                       "period_accepted", "period_removed",
                       "model_saved", "model_versioned", "model_restored", "model_rolled",
-                      "report_saved", "report_details_saved", "memo_drafted", "memo_written", "memo_deleted"]
+                      "report_saved", "report_details_saved", "memo_drafted", "memo_written", "memo_deleted",
+                      "unshared", "commented", "comment_deleted", "team_created", "team_renamed", "team_deleted",
+                      "team_invited", "team_joined", "team_left", "team_member_removed", "team_role_changed"]
 
 
 class AuditEntry(BaseModel):
@@ -1317,10 +1325,122 @@ class AuditEntry(BaseModel):
                           "account's usual figures switched on or off")
     reference: Optional[str] = Field(None, description="The reference transaction proposed or reviewed")
     verdict: Optional[Literal["approve", "reject"]] = Field(None, description="The review given")
+    team: Optional[str] = Field(None, description="The team a sharing or team action concerned (PLAN.md 7.2)")
+    member: Optional[int] = Field(None, description="The person a team action concerned")
+    role: Optional[Literal["owner", "editor", "viewer"]] = Field(None, description="The role given or joined in")
+    by: Optional[int] = Field(None, description="Who did it, on a deal's history (a member id)")
+    by_name: Optional[str] = Field(None, description="Their name now, from the sign-in provider; null if unknown")
+    by_you: Optional[bool] = Field(None, description="Whether the caller did it, on a deal's history")
 
 
 class AuditHistory(BaseModel):
     entries: List[AuditEntry] = Field(description="Newest first")
+
+
+# ---------------------------------------------------------------------------
+# Teams, sharing and comments (PLAN.md 7.2)
+# ---------------------------------------------------------------------------
+TeamRole = Literal["owner", "editor", "viewer"]
+
+
+class TeamName(Strict):
+    name: str = Field(min_length=1, max_length=80)
+
+
+class TeamSummary(BaseModel):
+    id: str
+    name: str
+    role: TeamRole = Field(description="The caller's role in the team")
+    members: int
+    created_at: str = Field(description="UTC, ISO 8601")
+
+
+class TeamList(BaseModel):
+    teams: List[TeamSummary]
+    directory: Literal["clerk", "dev", "none"] = Field(
+        description="Where people's names come from: none means names aren't shown on this server")
+    mail: Literal["resend", "folder", "outbox", "none"] = Field(
+        description="How mentions are emailed: none means they wait until mail is set up")
+
+
+class TeamPerson(BaseModel):
+    member_id: int
+    name: Optional[str] = Field(None, description="From the sign-in provider, never stored; null if unknown")
+    you: bool
+
+
+class TeamMemberOut(TeamPerson):
+    role: TeamRole
+    joined_at: str = Field(description="UTC, ISO 8601")
+
+
+class TeamDetail(TeamSummary):
+    people: List[TeamMemberOut] = Field(description="Owners first, then by when they joined")
+
+
+class RoleChange(Strict):
+    role: TeamRole
+
+
+class InviteCreate(Strict):
+    role: Literal["editor", "viewer"]
+    uses: int = Field(10, ge=1, le=50, description="How many people may join by it")
+
+
+class InviteOut(BaseModel):
+    id: str
+    role: Literal["editor", "viewer"]
+    uses_left: int
+    expires_at: str = Field(description="UTC, ISO 8601")
+    token: Optional[str] = Field(None, description="Only when made: it is never shown again")
+
+
+class InviteList(BaseModel):
+    invites: List[InviteOut]
+
+
+class JoinRequest(Strict):
+    token: str = Field(min_length=8, max_length=100)
+
+
+class ShareRequest(Strict):
+    team_id: uuid.UUID
+
+
+class DealShareOut(BaseModel):
+    team_id: str
+    name: Optional[str] = Field(None, description="The team's name, if the caller is in it")
+
+
+class DealShares(BaseModel):
+    teams: List[DealShareOut]
+
+
+class DealPerson(TeamPerson):
+    access: DealAccess
+
+
+class DealPeople(BaseModel):
+    people: List[DealPerson] = Field(description="Who can read the deal: its owner first")
+
+
+class CommentCreate(Strict):
+    body: str = Field(min_length=1, max_length=2000)
+    mentions: List[int] = Field(default_factory=list, max_length=10,
+                                description="Member ids of people who can read the deal")
+
+
+class CommentOut(BaseModel):
+    id: str
+    author: TeamPerson
+    body: str
+    mentions: List[TeamPerson]
+    created_at: str = Field(description="UTC, ISO 8601")
+    can_delete: bool
+
+
+class CommentList(BaseModel):
+    comments: List[CommentOut] = Field(description="Oldest first")
 
 
 # ---------------------------------------------------------------------------

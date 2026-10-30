@@ -19,6 +19,7 @@ type Version = Schemas["VersionSummary"];
 type AuditEntry = Schemas["AuditEntry"];
 
 /** i18n-keys: deal.kind* */
+/** i18n-keys: deal.chipShared_* */
 const KIND_KEY: Record<Version["kind"], string> = {
   created: "kindCreated",
   saved: "kindSaved",
@@ -325,6 +326,7 @@ function DealList({ bump, onError, onChange }: { bump: number; onError: (e?: str
                     {d.name}
                     {isOpen && <span className="chip ms-2 text-accent">{t("chipOpen")}</span>}
                     {d.archived && <span className="chip ms-2 text-attention">{t("chipArchived")}</span>}
+                    {d.access !== "owner" && <span className="chip ms-2 text-muted" data-shared={d.access}>{t(`chipShared_${d.access}`)}</span>}
                   </th>
                   <td className="border-b border-grid px-2 py-1.5 text-muted">{when(d.updated_at)}</td>
                   <td className="border-b border-grid px-2 py-1.5 text-end">{d.latest_version}</td>
@@ -340,8 +342,12 @@ function DealList({ bump, onError, onChange }: { bump: number; onError: (e?: str
                         <>
                           {!isOpen && <SecondaryButton onClick={() => void open(d.id)}>{t("open")}</SecondaryButton>}
                           <SecondaryButton onClick={() => void duplicate(d)}>{t("duplicate")}</SecondaryButton>
-                          <SecondaryButton onClick={() => void archive(d, !d.archived)}>{d.archived ? t("unarchive") : t("archive")}</SecondaryButton>
-                          <SecondaryButton onClick={() => setConfirming(d.id)}>{t("delete")}</SecondaryButton>
+                          {d.access === "owner" && (
+                            <>
+                              <SecondaryButton onClick={() => void archive(d, !d.archived)}>{d.archived ? t("unarchive") : t("archive")}</SecondaryButton>
+                              <SecondaryButton onClick={() => setConfirming(d.id)}>{t("delete")}</SecondaryButton>
+                            </>
+                          )}
                         </>
                       )}
                     </span>
@@ -534,9 +540,13 @@ function Activity({ bump, onError }: { bump: number; onError: (e?: string) => vo
               <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
                 {t("colWhen")}
               </th>
-              {account && (
+              {account ? (
                 <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
                   {t("colDeal")}
+                </th>
+              ) : (
+                <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
+                  {t("colWho")}
                 </th>
               )}
               <th scope="col" className="border-b border-grid px-2 py-1 font-normal">
@@ -553,9 +563,13 @@ function Activity({ bump, onError }: { bump: number; onError: (e?: string) => vo
                 <td className="border-b border-grid px-2 py-1.5 text-muted">
                   {entry.until ? t("activitySpan", { from: when(entry.at), until: when(entry.until) }) : when(entry.at)}
                 </td>
-                {account && (
+                {account ? (
                   <td dir="auto" className="border-b border-grid px-2 py-1.5">
                     {dealCell(entry)}
+                  </td>
+                ) : (
+                  <td dir="auto" className="border-b border-grid px-2 py-1.5 text-muted" data-by={entry.by_name ?? ""}>
+                    {entry.by_you ? t("activityYou") : (entry.by_name ?? t("activitySomeone"))}
                   </td>
                 )}
                 <th scope="row" className="border-b border-grid px-2 py-1.5 text-start font-normal">
