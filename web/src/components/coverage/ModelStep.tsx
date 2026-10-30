@@ -19,6 +19,7 @@ import {
 import { ModelGrid, shown } from "./ModelGrid";
 import { ValuationTiles } from "./ValuationTile";
 import { ComparisonTile, RollNotice, SavedGroup, useVersions } from "./SavedModel";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Coverage -> Model (PLAN.md R4): pick a sector (which picks the model and its words), or open one of the
@@ -176,6 +177,13 @@ function useModelExplanation(run: ModelState["run"]) {
 }
 
 function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | null; companies: CoverageCompany[]; owner: string | null }) {
+  const fromTip = useTip("modelStartFrom");
+  const sectorTip = useTip("modelSector");
+  const coveredTip = useTip("modelCoveredCompany");
+  const scopeTip = useTip("modelScope");
+  const nameTip = useTip("modelCompanyName");
+  const currencyTip = useTip("modelCurrency");
+  const unitTip = useTip("modelUnit");
   const t = useTranslations("models");
   const [from, setFrom] = useState("new");
   const [name, setName] = useState("");
@@ -235,60 +243,69 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
   return (
     <RailGroup title={t("startGroup")}>
       <label className="grid gap-1">
-        <span className="type-input-label">{t("startFrom")}</span>
-        <select className={field} value={from} onChange={(e) => setFrom(e.target.value)}>
+        <span className="type-input-label"><TipLabel tip={fromTip}>{t("startFrom")}</TipLabel></span>
+        <select aria-describedby={fromTip.id} className={field} value={from} onChange={(e) => setFrom(e.target.value)}>
           <option value="new">{t("newCompany")}</option>
           {catalogue.examples.map((e) => (
             <option key={e.id} value={e.id}>{t(`example_${e.id.replace(/-/g, "_")}`)}</option>
           ))}
         </select>
       </label>
+      <TipText tip={fromTip} />
       {from === "new" && (
         <>
           <label className="grid gap-1">
-            <span className="type-input-label">{t("sector")}</span>
-            <select className={field} value={chosen?.sector ?? ""} onChange={(e) => setSector(e.target.value)}>
+            <span className="type-input-label"><TipLabel tip={sectorTip}>{t("sector")}</TipLabel></span>
+            <select aria-describedby={sectorTip.id} className={field} value={chosen?.sector ?? ""} onChange={(e) => setSector(e.target.value)}>
               {sectors.map((s) => (
                 <option key={s.sector} value={s.sector}>{t(`sector_${s.sector}`)}</option>
               ))}
             </select>
           </label>
+          <TipText tip={sectorTip} />
           <label className="grid gap-1">
-            <span className="type-input-label">{t("coveredCompany")}</span>
-            <select className={field} value={covered} onChange={(e) => setCovered(e.target.value)}>
+            <span className="type-input-label"><TipLabel tip={coveredTip}>{t("coveredCompany")}</TipLabel></span>
+            <select aria-describedby={coveredTip.id} className={field} value={covered} onChange={(e) => setCovered(e.target.value)}>
               <option value="">{t("noCoveredCompany")}</option>
               {companies.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </label>
+          <TipText tip={coveredTip} />
           {covered && (
+            <>
             <label className="grid gap-1">
-              <span className="type-input-label">{t("scope")}</span>
-              <select className={field} value={scope} onChange={(e) => setScope(e.target.value as typeof scope)}>
+              <span className="type-input-label"><TipLabel tip={scopeTip}>{t("scope")}</TipLabel></span>
+              <select aria-describedby={scopeTip.id} className={field} value={scope} onChange={(e) => setScope(e.target.value as typeof scope)}>
                 <option value="consolidated">{t("scopeConsolidated")}</option>
                 <option value="standalone">{t("scopeStandalone")}</option>
               </select>
             </label>
+            <TipText tip={scopeTip} />
+            </>
           )}
           <label className="grid gap-1">
-            <span className="type-input-label">{t("companyName")}</span>
-            <input className={field} value={name} maxLength={200} onChange={(e) => setName(e.target.value)} />
+            <span className="type-input-label"><TipLabel tip={nameTip}>{t("companyName")}</TipLabel></span>
+            <input aria-describedby={nameTip.id} className={field} value={name} maxLength={200} onChange={(e) => setName(e.target.value)} />
           </label>
+          <TipText tip={nameTip} />
           {!covered && (
             <div className="grid grid-cols-2 gap-1.5">
               <label className="grid gap-1">
-                <span className="type-input-label">{t("currency")}</span>
-                <input className={field} value={currency} maxLength={12} onChange={(e) => setCurrency(e.target.value)} />
+                <span className="type-input-label"><TipLabel tip={currencyTip}>{t("currency")}</TipLabel></span>
+                <input aria-describedby={currencyTip.id} className={field} value={currency} maxLength={12} onChange={(e) => setCurrency(e.target.value)} />
               </label>
+              <TipText tip={currencyTip} />
               <label className="grid gap-1">
-                <span className="type-input-label">{t("moneyUnit")}</span>
-                <select className={field} value={unit} onChange={(e) => setUnit(e.target.value)}>
+                <span className="type-input-label"><TipLabel tip={unitTip}>{t("moneyUnit")}</TipLabel></span>
+                <select aria-describedby={unitTip.id} className={field} value={unit} onChange={(e) => setUnit(e.target.value)}>
                   {UNITS.map((u) => (
                     <option key={u} value={u}>{t(`unit_${u}`)}</option>
                   ))}
                 </select>
               </label>
+              <TipText tip={unitTip} />
             </div>
           )}
         </>
@@ -304,6 +321,9 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
 }
 
 function LinesGroup({ model, catalogue, owner }: { model: ModelState; catalogue: Catalogue; owner: string | null }) {
+  const lineTip = useTip("modelLine");
+  const addTip = useTip("modelAddLine");
+  const placesTip = useTip("modelPlaces");
   const t = useTranslations("models");
   const [adding, setAdding] = useState<Block>("growth");
   const structure = model.structure!;
@@ -314,11 +334,12 @@ function LinesGroup({ model, catalogue, owner }: { model: ModelState; catalogue:
   };
   return (
     <RailGroup title={t("linesGroup")}>
+    <TipText tip={lineTip} />
       {structure.segments.map((seg, i) => (
         <div key={seg.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-1.5" data-line={seg.key}>
           <label className="grid min-w-0 gap-1">
-            <span className="type-input-label">{t("line", { n: String(i + 1) })}</span>
-            <select className={field} value={seg.block} onChange={(e) => void change("swap", seg.key, e.target.value as Block)}>
+            <span className="type-input-label"><TipLabel tip={lineTip}>{t("line", { n: String(i + 1) })}</TipLabel></span>
+            <select aria-describedby={lineTip.id} className={field} value={seg.block} onChange={(e) => void change("swap", seg.key, e.target.value as Block)}>
               {catalogue.blocks.map((b) => (
                 <option key={b.id} value={b.id}>{t(`block_${b.id}`)}</option>
               ))}
@@ -331,20 +352,21 @@ function LinesGroup({ model, catalogue, owner }: { model: ModelState; catalogue:
       ))}
       <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-1.5">
         <label className="grid min-w-0 gap-1">
-          <span className="type-input-label">{t("addLine")}</span>
-          <select className={field} value={adding} onChange={(e) => setAdding(e.target.value as Block)}>
+          <span className="type-input-label"><TipLabel tip={addTip}>{t("addLine")}</TipLabel></span>
+          <select aria-describedby={addTip.id} className={field} value={adding} onChange={(e) => setAdding(e.target.value as Block)}>
             {catalogue.blocks.map((b) => (
               <option key={b.id} value={b.id}>{t(`block_${b.id}`)}</option>
             ))}
           </select>
         </label>
+        <TipText tip={addTip} />
         <SecondaryButton disabled={structure.segments.length >= 8} onClick={() => void change("add", null, adding)}>
           {t("add")}
         </SecondaryButton>
       </div>
       <label className="mt-1.5 grid gap-1">
-        <span className="type-input-label">{t("places")}</span>
-        <select className={field} value={structure.places ?? ""} onChange={(e) => void change("places", e.target.value || null, null)}>
+        <span className="type-input-label"><TipLabel tip={placesTip}>{t("places")}</TipLabel></span>
+        <select aria-describedby={placesTip.id} className={field} value={structure.places ?? ""} onChange={(e) => void change("places", e.target.value || null, null)}>
           <option value="">{t("placesNone")}</option>
           {structure.segments.map((seg, i) =>
             counting.has(seg.block) ? (
@@ -353,29 +375,40 @@ function LinesGroup({ model, catalogue, owner }: { model: ModelState; catalogue:
           )}
         </select>
       </label>
+      <TipText tip={placesTip} />
     </RailGroup>
   );
 }
 
 function CompanyGroup({ model, onChange }: { model: ModelState; onChange: (company: ModelCompany) => void }) {
+  const companyNameTip = useTip("modelCompanyName");
+  const unitNameTip = useTip("modelUnitName");
+  const constantTip = useTip("modelConstant");
+  const choiceTip = useTip("modelChoice");
+  const offTip = useTip("modelLineOff");
   const t = useTranslations("models");
   const company = model.company!;
   const run = model.run!;
   const line = (choice: string) => /^line(\d)_/.exec(choice)?.[1] ?? "";
   return (
     <RailGroup title={t("companyGroup")}>
+    <TipText tip={constantTip} />
+    <TipText tip={choiceTip} />
+    <TipText tip={offTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("companyName")}</span>
-        <input className={field} value={company.name} maxLength={200} onChange={(e) => onChange({ ...company, name: e.target.value })} />
+        <span className="type-input-label"><TipLabel tip={companyNameTip}>{t("companyName")}</TipLabel></span>
+        <input aria-describedby={companyNameTip.id} className={field} value={company.name} maxLength={200} onChange={(e) => onChange({ ...company, name: e.target.value })} />
       </label>
+      <TipText tip={companyNameTip} />
       <label className="grid gap-1">
-        <span className="type-input-label">{t("unitName")}</span>
-        <input className={field} value={company.unit_name} maxLength={200} onChange={(e) => onChange({ ...company, unit_name: e.target.value })} />
+        <span className="type-input-label"><TipLabel tip={unitNameTip}>{t("unitName")}</TipLabel></span>
+        <input aria-describedby={unitNameTip.id} className={field} value={company.unit_name} maxLength={200} onChange={(e) => onChange({ ...company, unit_name: e.target.value })} />
       </label>
+      <TipText tip={unitNameTip} />
       {run.constants.map((c) => (
         <label key={c.key} className="grid gap-1">
-          <span className="type-input-label">{c.label}</span>
-          <select className={field} value={String(company.constants?.[c.key] ?? "")}
+          <span className="type-input-label"><TipLabel tip={constantTip}>{c.label}</TipLabel></span>
+          <select aria-describedby={constantTip.id} className={field} value={String(company.constants?.[c.key] ?? "")}
             onChange={(e) => onChange({ ...company, constants: { ...company.constants, [c.key]: Number(e.target.value) } })}>
             {Object.entries(UNIT_RUPEES).map(([u, n]) => (
               <option key={u} value={String(n)}>{t("unitRupees", { unit: t(`unit_${u}`), count: fmtCount(n) })}</option>
@@ -385,8 +418,8 @@ function CompanyGroup({ model, onChange }: { model: ModelState; onChange: (compa
       ))}
       {Object.entries(run.choices).map(([choice, options]) => (
         <label key={choice} className="grid gap-1">
-          <span className="type-input-label">{t(`choice_${choice.replace(/^line\d_/, "")}`, { line: line(choice) })}</span>
-          <select className={field} value={run.choices_made[choice] ?? options[0]}
+          <span className="type-input-label"><TipLabel tip={choiceTip}>{t(`choice_${choice.replace(/^line\d_/, "")}`, { line: line(choice) })}</TipLabel></span>
+          <select aria-describedby={choiceTip.id} className={field} value={run.choices_made[choice] ?? options[0]}
             onChange={(e) => onChange({ ...company, choices: { ...run.choices_made, [choice]: e.target.value } })}>
             {options.map((o) => (
               <option key={o} value={o}>
@@ -401,7 +434,7 @@ function CompanyGroup({ model, onChange }: { model: ModelState; onChange: (compa
         const off = (company.off ?? []).includes(seg);
         return (
           <label key={seg} className="mt-1 flex items-center gap-2">
-            <input type="checkbox" checked={off}
+            <input aria-describedby={offTip.id} type="checkbox" checked={off}
               onChange={() => onChange({ ...company, off: off ? (company.off ?? []).filter((s) => s !== seg) : [...(company.off ?? []), seg] })} />
             <span className="type-input-label">{t("lineOff", { n: String(n) })}</span>
           </label>

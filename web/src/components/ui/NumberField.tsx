@@ -8,11 +8,14 @@ import { validate, type FieldSpec } from "@/lib/fields";
 import { useFieldProblem, useUnitLabel } from "@/lib/i18n/useFieldText";
 
 import { useMoney } from "./MoneyScope";
+import { describedBy, TipLabel, TipText, useTip } from "./Tip";
 
 type Props = {
   spec: FieldSpec;
   /** The visible label, from the translation files (PLAN.md 2.3b) */
   label: string;
+  /** Its tip's key under `tips` in the translation files (PLAN.md 7.1) */
+  tip: string;
   value: number;
   onCommit: (value: number) => void;
   disabled?: boolean;
@@ -27,8 +30,9 @@ type Props = {
  * reflect a half-typed number (typing "20" into Hold must not run hold 2).
  * Arrow up/down step by spec.step.
  */
-export function NumberField({ spec, label, value, onCommit, disabled, changed }: Props) {
+export function NumberField({ spec, label, tip, value, onCommit, disabled, changed }: Props) {
   const id = useId();
+  const tipHandle = useTip(tip);
   const { money } = useMoney();
   const problemText = useFieldProblem();
   const unitLabel = useUnitLabel();
@@ -58,7 +62,7 @@ export function NumberField({ spec, label, value, onCommit, disabled, changed }:
     <div className="grid gap-0.5 py-px">
       <div className="grid grid-cols-[1fr_68px_minmax(24px,auto)] items-center gap-1.5">
         <label htmlFor={id} className={`type-input-label ${disabled ? "opacity-45" : ""}`}>
-          {label}
+          <TipLabel tip={tipHandle}>{label}</TipLabel>
         </label>
         <input
           id={id}
@@ -67,7 +71,7 @@ export function NumberField({ spec, label, value, onCommit, disabled, changed }:
           disabled={disabled}
           value={shown}
           aria-invalid={!!error}
-          aria-describedby={error ? `${id}-err` : undefined}
+          aria-describedby={describedBy(tipHandle.id, error && `${id}-err`)}
           onFocus={() => {
             beforeEdit.current = value;
           }}
@@ -87,6 +91,7 @@ export function NumberField({ spec, label, value, onCommit, disabled, changed }:
         />
         <span className={`font-mono text-[10px] text-[#56636a] ${disabled ? "opacity-45" : ""}`}>{unitLabel(spec.unit, money)}</span>
       </div>
+      <TipText tip={tipHandle} />
       {error && (
         <p id={`${id}-err`} className="text-end font-mono text-[10px] text-loss">
           {error}

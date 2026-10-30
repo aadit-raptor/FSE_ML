@@ -19,7 +19,7 @@ const SEED_SPEC: FieldSpec = { unit: "", step: 1, decimals: 0, min: 0, integer: 
 function SimField({ name }: { name: SimKey }) {
   const { sim, setSim } = useMonteCarlo();
   const t = useTranslations("montecarlo");
-  return <NumberField spec={SIM_FIELDS[name]} label={t(SIM_LABEL_KEY[name])} value={sim[name]} onCommit={(v) => setSim(name, v)} />;
+  return <NumberField spec={SIM_FIELDS[name]} label={t(SIM_LABEL_KEY[name])} tip={`mc_${name}`} value={sim[name]} onCommit={(v) => setSim(name, v)} />;
 }
 
 /** i18n-keys: montecarlo.presetNone */
@@ -38,9 +38,9 @@ function Rail() {
         <SimField name="n" />
         <SimField name="hurdle" />
         <div className="grid grid-cols-[1fr_auto] items-center gap-2 py-1">
-          <Switch checked={seed !== null} onChange={(on) => setSeed(on ? 42 : null)} label={t("fixedSeed")} />
+          <Switch checked={seed !== null} onChange={(on) => setSeed(on ? 42 : null)} label={t("fixedSeed")} tip="mcFixedSeed" />
         </div>
-        {seed !== null && <NumberField spec={SEED_SPEC} label={t("seed")} value={seed} onCommit={setSeed} />}
+        {seed !== null && <NumberField spec={SEED_SPEC} label={t("seed")} tip="mcSeed" value={seed} onCommit={setSeed} />}
       </RailGroup>
       <RailGroup title={t("groupScenarioPreset")}>
         <div className="grid grid-cols-2 gap-px bg-line" role="radiogroup" aria-label={t("groupScenarioPreset")}>

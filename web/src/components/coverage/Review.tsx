@@ -15,6 +15,7 @@ import {
 } from "@/lib/research";
 
 import { PageView } from "./PageView";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * The review of a read (PLAN.md R2): the filing's page beside its figures. Every amber figure is answered --
@@ -40,6 +41,7 @@ export function Review({
 }) {
   const t = useTranslations("coverage");
   const tr = useTranslations("reader");
+  const correctTip = useTip("correctFigure");
   const amber = useMemo(() => amberCells(result), [result]);
   const [answers, setAnswers] = useState<Map<string, Answer>>(new Map());
   const [selected, setSelected] = useState<CellRef | null>(amber[0] ?? null);
@@ -183,14 +185,15 @@ export function Review({
                   </button>
                 )}
                 <label className="grid gap-0.5">
-                  <span className="type-input-label">{t("correctLabel")}</span>
-                  <input
+                  <span className="type-input-label"><TipLabel tip={correctTip}>{t("correctLabel")}</TipLabel></span>
+                  <input aria-describedby={correctTip.id}
                     className="w-32 border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
                     inputMode="decimal"
                     value={draft}
                     onChange={(event) => setDraft(event.target.value)}
                   />
                 </label>
+                <TipText tip={correctTip} />
                 <button
                   type="button"
                   className="type-action border border-line px-2 py-1 text-ink disabled:opacity-40"

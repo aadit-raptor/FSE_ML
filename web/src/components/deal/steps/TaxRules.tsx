@@ -12,6 +12,7 @@ import { unitFactor } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
 import { DealField } from "../DealScreen";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 type Preset = Schemas["TaxPresetOut"];
 type InterestLimit = DealInputs["tax_interest_limit"];
@@ -60,6 +61,8 @@ export function TaxRules() {
   const { inputs, setFields } = useDeal();
   const t = useTranslations("deal");
   const fields = useTranslations("fields");
+  const limitTip = useTip("field_tax_interest_limit");
+  const presetTip = useTip("field_tax_preset");
   const presets = usePresets();
   const preset = presets.find((p) => p.code === inputs.tax_preset);
   const limit = inputs.tax_interest_limit;
@@ -94,8 +97,8 @@ export function TaxRules() {
   return (
     <>
       <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{fields("tax_preset")}</span>
-        <select value={inputs.tax_preset} onChange={(e) => apply(e.target.value)} className={SELECT_CLASS}>
+        <span className="type-input-label"><TipLabel tip={presetTip}>{fields("tax_preset")}</TipLabel></span>
+        <select aria-describedby={presetTip.id} value={inputs.tax_preset} onChange={(e) => apply(e.target.value)} className={SELECT_CLASS}>
           <option value="">{t("taxPresetNone")}</option>
           {/* A saved deal's preset, named even before the list arrives (or if it never does) */}
           {inputs.tax_preset && !preset && <option value={inputs.tax_preset}>{regionName(inputs.tax_preset)}</option>}
@@ -106,10 +109,11 @@ export function TaxRules() {
           ))}
         </select>
       </label>
+      <TipText tip={presetTip} />
       <DealField name="tax" />
       <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{fields("tax_interest_limit")}</span>
-        <select value={limit} onChange={(e) => setFields({ tax_interest_limit: e.target.value as InterestLimit })} className={SELECT_CLASS}>
+        <span className="type-input-label"><TipLabel tip={limitTip}>{fields("tax_interest_limit")}</TipLabel></span>
+        <select aria-describedby={limitTip.id} value={limit} onChange={(e) => setFields({ tax_interest_limit: e.target.value as InterestLimit })} className={SELECT_CLASS}>
           {INTEREST_LIMITS.map((l) => (
             <option key={l} value={l}>
               {t(`taxLimit_${l}`)}
@@ -117,6 +121,7 @@ export function TaxRules() {
           ))}
         </select>
       </label>
+      <TipText tip={limitTip} />
       <DealField name="tax_interest_limit_pct" disabled={limit !== "ebitda_share"} />
       <DealField
         name="tax_interest_limit_amount"
@@ -124,7 +129,7 @@ export function TaxRules() {
         label={limit === "fixed" ? fields("tax_interest_limit_cap") : fields("tax_interest_limit_amount")}
       />
       <div className="py-1">
-        <Switch checked={carry} onChange={(v) => setFields({ tax_loss_carryforward: v })} label={fields("tax_loss_carryforward")} />
+        <Switch checked={carry} onChange={(v) => setFields({ tax_loss_carryforward: v })} label={fields("tax_loss_carryforward")} tip="field_tax_loss_carryforward" />
       </div>
       <DealField name="tax_loss_limit_amount" disabled={!carry} />
       <DealField name="tax_loss_limit_pct" disabled={!carry} />

@@ -15,6 +15,7 @@ import { fmtCount, fmtNumber, fmtRate } from "@/lib/format";
 
 import { useMonteCarlo } from "./MonteCarloProvider";
 import { MonteCarloScreen } from "./MonteCarloScreen";
+import { TipLabel, TipText, useTips } from "@/components/ui/Tip";
 
 type Sliders = Schemas["LiveSliders"];
 type Estimate = Schemas["LiveResponse"];
@@ -23,13 +24,13 @@ type Estimate = Schemas["LiveResponse"];
  * Where each slider's track usually runs. The simulation takes any value the inputs do (LiveSliders in
  * api/schemas.py), so a deal outside a track widens it rather than being clamped to it. i18n-keys: montecarlo.slider*
  */
-const SLIDERS: { key: keyof Sliders; labelKey: string; min: number; max: number; lowest: number; highest: number; step: number; unit: string }[] = [
-  { key: "growth_mean", labelKey: "sliderGrowthMean", min: -5, max: 20, lowest: -50, highest: 100, step: 0.1, unit: "%" },
-  { key: "exit_mean", labelKey: "sliderExitMean", min: 4, max: 20, lowest: 1, highest: 100, step: 0.1, unit: "x" },
-  { key: "interest_mean", labelKey: "sliderInterestMean", min: 1, max: 15, lowest: 0, highest: 50, step: 0.1, unit: "%" },
-  { key: "gross_margin_mean", labelKey: "sliderGrossMarginMean", min: 10, max: 80, lowest: 1, highest: 99, step: 0.5, unit: "%" },
-  { key: "debt_pct", labelKey: "sliderDebtPct", min: 20, max: 90, lowest: 0, highest: 99, step: 1, unit: "%" },
-  { key: "exit_std", labelKey: "sliderExitStd", min: 0.3, max: 5, lowest: 0.1, highest: 50, step: 0.1, unit: "x" },
+const SLIDERS: { key: keyof Sliders; labelKey: string; tipKey: string; min: number; max: number; lowest: number; highest: number; step: number; unit: string }[] = [
+  { key: "growth_mean", labelKey: "sliderGrowthMean", tipKey: "live_growth_mean", min: -5, max: 20, lowest: -50, highest: 100, step: 0.1, unit: "%" },
+  { key: "exit_mean", labelKey: "sliderExitMean", tipKey: "live_exit_mean", min: 4, max: 20, lowest: 1, highest: 100, step: 0.1, unit: "x" },
+  { key: "interest_mean", labelKey: "sliderInterestMean", tipKey: "live_interest_mean", min: 1, max: 15, lowest: 0, highest: 50, step: 0.1, unit: "%" },
+  { key: "gross_margin_mean", labelKey: "sliderGrossMarginMean", tipKey: "live_gross_margin_mean", min: 10, max: 80, lowest: 1, highest: 99, step: 0.5, unit: "%" },
+  { key: "debt_pct", labelKey: "sliderDebtPct", tipKey: "live_debt_pct", min: 20, max: 90, lowest: 0, highest: 99, step: 1, unit: "%" },
+  { key: "exit_std", labelKey: "sliderExitStd", tipKey: "live_exit_std", min: 0.3, max: 5, lowest: 0.1, highest: 50, step: 0.1, unit: "x" },
 ];
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -57,6 +58,7 @@ function Live() {
   const { overrides } = useSettings();
   const t = useTranslations("montecarlo");
   const e = useTranslations("errors");
+  const tips = useTips(SLIDERS.map((s) => s.tipKey));
   /** The deal's own assumptions: where the sliders start, and what "Reset to rail" goes back to. */
   const own = useMemo(
     (): Sliders => ({
@@ -152,13 +154,16 @@ function Live() {
             const fixed = s.key === "debt_pct" && nothingDrawn;
             return (
               <label key={s.key} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1">
-                <span className="type-input-label">{t(s.labelKey)}</span>
+                <span className="type-input-label">
+                  <TipLabel tip={tips[s.tipKey]}>{t(s.labelKey)}</TipLabel>
+                </span>
                 <span className="font-mono text-[11.5px] text-ink">
                   {fmtNumber(sliders[s.key], s.step < 1 ? 1 : 0)} {s.unit}
                 </span>
                 <input
                   type="range"
                   aria-label={t(s.labelKey)}
+                  aria-describedby={tips[s.tipKey].id}
                   min={min}
                   max={max}
                   step={s.step}
@@ -168,6 +173,7 @@ function Live() {
                   className="col-span-2 accent-[var(--color-accent)]"
                 />
                 {fixed && <span className="type-body col-span-2 text-[9px]">{t("liveNothingDrawn")}</span>}
+                <TipText tip={tips[s.tipKey]} />
               </label>
             );
           })}

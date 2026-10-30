@@ -1,0 +1,15 @@
+{
+  "samples": [
+    { "id": "us_software", "country": "US", "industry": "software_system_application", "currency": "USD", "unit": "millions", "ebitda": 150 },
+    { "id": "de_machinery", "country": "DE", "industry": "machinery", "currency": "EUR", "unit": "millions", "ebitda": 80 },
+    { "id": "gb_services", "country": "GB", "industry": "business_consumer_services", "currency": "GBP", "unit": "millions", "ebitda": 40 },
+    { "id": "in_hospitals", "country": "IN", "industry": "hospitals_healthcare_facilities", "currency": "INR", "unit": "crores", "ebitda": 250 },
+    { "id": "jp_electronics", "country": "JP", "industry": "electronics_general", "currency": "JPY", "unit": "billions", "ebitda": 12 },
+    { "id": "br_food", "country": "BR", "industry": "food_processing", "currency": "BRL", "unit": "millions", "ebitda": 300 }
+  ],
+  "currencies": {
+    "US": "USD", "GB": "GBP", "DE": "EUR", "FR": "EUR", "IT": "EUR", "ES": "EUR", "NL": "EUR", "CH": "CHF",
+    "SE": "SEK", "NO": "NOK", "PL": "PLN", "JP": "JPY", "CN": "CNY", "IN": "INR", "KR": "KRW", "AU": "AUD",
+    "CA": "CAD", "BR": "BRL", "MX": "MXN", "ZA": "ZAR", "SG": "SGD", "SA": "SAR", "TR": "TRY", "ID": "IDR"
+  }
+}

@@ -1,0 +1,84 @@
+{
+ "articles": [
+  {
+   "slug": "conventions",
+   "title": "1. Conventions"
+  },
+  {
+   "slug": "inputs-units-and-settings",
+   "title": "2. Inputs, units and Settings"
+  },
+  {
+   "slug": "the-deal-model",
+   "title": "3. The deal model"
+  },
+  {
+   "slug": "the-deal-around-the-engine",
+   "title": "4. The deal around the engine"
+  },
+  {
+   "slug": "debt-structures-and-interest-rates",
+   "title": "5. Debt structures and interest rates"
+  },
+  {
+   "slug": "accounting-standards-and-leases",
+   "title": "6. Accounting standards and leases"
+  },
+  {
+   "slug": "tax-rules",
+   "title": "7. Tax rules"
+  },
+  {
+   "slug": "risk-warnings",
+   "title": "8. Risk warnings"
+  },
+  {
+   "slug": "monte-carlo-simulation",
+   "title": "9. Monte Carlo simulation"
+  },
+  {
+   "slug": "plan-vs-actual",
+   "title": "10. Plan vs actual"
+  },
+  {
+   "slug": "three-statement-forecast",
+   "title": "11. Three-statement forecast"
+  },
+  {
+   "slug": "model-version",
+   "title": "12. Model version"
+  },
+  {
+   "slug": "estimates-the-ml-panels-and-filings",
+   "title": "13. Estimates: the ML panels and filings"
+  },
+  {
+   "slug": "figures-made-for-display",
+   "title": "14. Figures made for display"
+  },
+  {
+   "slug": "regional-differences-at-a-glance",
+   "title": "15. Regional differences at a glance"
+  },
+  {
+   "slug": "model-validation",
+   "title": "Model validation"
+  },
+  {
+   "slug": "ml-evaluation-and-model-cards",
+   "title": "ML evaluation and model cards"
+  },
+  {
+   "slug": "known-limitations",
+   "title": "Known limitations"
+  },
+  {
+   "slug": "constants",
+   "title": "17. Constants"
+  },
+  {
+   "slug": "settings-defaults",
+   "title": "18. Settings defaults"
+  }
+ ]
+}

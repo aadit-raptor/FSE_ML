@@ -1,0 +1,15 @@
+{
+  "entries": [
+    { "id": "onboarding", "date": "2026-10-29", "href": "/deal/guided" },
+    { "id": "memo", "date": "2026-10-29", "href": "/deal/memo" },
+    { "id": "explanations", "date": "2026-10-26", "href": "/deal/returns" },
+    { "id": "documentToDeal", "date": "2026-10-21", "href": "/deal/from-document" },
+    { "id": "resultsNote", "date": "2026-10-20", "href": "/coverage/report" },
+    { "id": "valuation", "date": "2026-10-19", "href": "/coverage/model" },
+    { "id": "sectorModels", "date": "2026-10-18", "href": "/coverage/model" },
+    { "id": "excelAddin", "date": "2026-10-15", "href": "/coverage/results" },
+    { "id": "documents", "date": "2026-10-12", "href": "/deal/documents" },
+    { "id": "liveSliders", "date": "2026-10-11", "href": "/monte-carlo/live" },
+    { "id": "usualFigures", "date": "2026-10-11", "href": "/deal/inputs" }
+  ]
+}

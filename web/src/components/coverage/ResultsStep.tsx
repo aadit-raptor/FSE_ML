@@ -15,6 +15,7 @@ import {
 } from "@/lib/research";
 
 import { Review } from "./Review";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Coverage -> Results (PLAN.md R1, R2): read a results filing twice and check it, for a covered company, then
@@ -221,14 +222,20 @@ function ReadRail(props: {
   const t = useTranslations("reader");
   const tc = useTranslations("coverage");
   const input = useRef<HTMLInputElement>(null);
+  const companyTip = useTip("readCompany");
+  const newCompanyTip = useTip("readNewCompany");
+  const fileTip = useTip("readFile");
+  const uploadTip = useTip("uploadPdf");
+  const quarterTip = useTip("readQuarter");
+  const publicTip = useTip("confirmPublic");
   const [name, setName] = useState("");
   const { info } = props;
   return (
     <>
       <RailGroup title={tc("companyGroup")}>
         <label className="grid gap-1">
-          <span className="type-input-label">{tc("companyLabel")}</span>
-          <select
+          <span className="type-input-label"><TipLabel tip={companyTip}>{tc("companyLabel")}</TipLabel></span>
+          <select aria-describedby={companyTip.id}
             className="border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
             value={props.company}
             onChange={(event) => props.onCompany(event.target.value)}
@@ -242,6 +249,7 @@ function ReadRail(props: {
             ))}
           </select>
         </label>
+        <TipText tip={companyTip} />
         <form
           className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-1.5"
           onSubmit={(event) => {
@@ -251,14 +259,15 @@ function ReadRail(props: {
           }}
         >
           <label className="grid min-w-0 gap-1">
-            <span className="type-input-label">{tc("newCompany")}</span>
-            <input
+            <span className="type-input-label"><TipLabel tip={newCompanyTip}>{tc("newCompany")}</TipLabel></span>
+            <input aria-describedby={newCompanyTip.id}
               className="min-w-0 border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
               value={name}
               maxLength={120}
               onChange={(event) => setName(event.target.value)}
             />
           </label>
+          <TipText tip={newCompanyTip} />
           <button type="submit" disabled={!name.trim()} className="type-action border border-line px-2 py-1 text-ink disabled:opacity-50">
             {tc("addCompany")}
           </button>
@@ -266,8 +275,8 @@ function ReadRail(props: {
       </RailGroup>
       <RailGroup title={t("fileGroup")}>
         <label className="grid gap-1">
-          <span className="type-input-label">{t("fileLabel")}</span>
-          <select
+          <span className="type-input-label"><TipLabel tip={fileTip}>{t("fileLabel")}</TipLabel></span>
+          <select aria-describedby={fileTip.id}
             className="border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
             value={props.selected}
             onChange={(event) => props.onChoose(event.target.value)}
@@ -281,7 +290,8 @@ function ReadRail(props: {
             ))}
           </select>
         </label>
-        <input
+        <TipText tip={fileTip} />
+        <input aria-describedby={uploadTip.id}
           ref={input}
           type="file"
           className="sr-only"
@@ -294,31 +304,35 @@ function ReadRail(props: {
             if (file) props.onUpload(file);
           }}
         />
+        <TipText tip={uploadTip} />
         <button
           type="button"
           disabled={props.uploading || props.running}
+          aria-describedby={uploadTip.id}
           onClick={() => input.current?.click()}
           className="type-action mt-1.5 border border-line px-3 py-1.5 text-ink disabled:opacity-50"
         >
           {props.uploading ? t("uploading") : t("uploadPdf")}
         </button>
         <label className="mt-2 grid gap-1">
-          <span className="type-input-label">{t("quarterLabel")}</span>
-          <input
+          <span className="type-input-label"><TipLabel tip={quarterTip}>{t("quarterLabel")}</TipLabel></span>
+          <input aria-describedby={quarterTip.id}
             type="date"
             className="border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
             value={props.quarter}
             onChange={(event) => props.onQuarter(event.target.value)}
           />
         </label>
+        <TipText tip={quarterTip} />
         <p className="type-body text-[10px]">{t("quarterHelp")}</p>
       </RailGroup>
       {props.needsConfirm && (
         <RailGroup title={t("publicGroup")}>
           <label className="flex items-start gap-2">
-            <input type="checkbox" className="mt-0.5" checked={props.confirmed} onChange={(event) => props.onConfirm(event.target.checked)} />
+            <input aria-describedby={publicTip.id} type="checkbox" className="mt-0.5" checked={props.confirmed} onChange={(event) => props.onConfirm(event.target.checked)} />
             <span className="type-input-label">{t("publicConfirm")}</span>
           </label>
+          <TipText tip={publicTip} />
           <p className="type-body text-[10px]" data-public-warning>
             {t("publicWarning")}
           </p>

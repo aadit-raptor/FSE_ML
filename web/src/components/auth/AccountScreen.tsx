@@ -9,6 +9,7 @@ import { type Profile, useProfile } from "@/components/auth/ProfileProvider";
 import { Notice, PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
 import { AFTER_SIGN_IN } from "@/lib/auth/mode";
 import { countryOptions, DIGIT_GROUPINGS, type DigitGrouping, formatNumber, LOCALE_SUGGESTIONS } from "@/lib/locale";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * The account screen (PLAN.md 1.4): who is signed in, and the answers every
@@ -61,6 +62,11 @@ export function AccountScreen() {
   const { profile, subject, loaded, needsProfile, save, error } = useProfile();
   const t = useTranslations("account");
   const localeText = useTranslations("locale");
+  const groupingTip = useTip("accountGrouping");
+  const localeTip = useTip("accountLocale");
+  const timeZoneTip = useTip("accountTimeZone");
+  const currencyTip = useTip("accountCurrency");
+  const countryTip = useTip("accountCountry");
   const router = useRouter();
 
   // Edits sit on top of what the account already has (or, for a new account,
@@ -121,8 +127,8 @@ export function AccountScreen() {
 
       <div className="grid grid-cols-2 gap-3">
         <label className="grid gap-1.5">
-          <span className="type-input-group">{t("country")}</span>
-          <select aria-label={t("country")} value={draft.country} onChange={(e) => set("country")(e.target.value)} className={FIELD}>
+          <span className="type-input-group"><TipLabel tip={countryTip}>{t("country")}</TipLabel></span>
+          <select aria-describedby={countryTip.id} aria-label={t("country")} value={draft.country} onChange={(e) => set("country")(e.target.value)} className={FIELD}>
             <option value="">{t("chooseCountry")}</option>
             {countryList.map((c) => (
               <option key={c.code} value={c.code}>
@@ -131,10 +137,11 @@ export function AccountScreen() {
             ))}
           </select>
         </label>
+          <TipText tip={countryTip} />
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">{t("currency")}</span>
-          <select aria-label={t("currency")} value={draft.preferred_currency} onChange={(e) => set("preferred_currency")(e.target.value)} className={FIELD}>
+          <span className="type-input-group"><TipLabel tip={currencyTip}>{t("currency")}</TipLabel></span>
+          <select aria-describedby={currencyTip.id} aria-label={t("currency")} value={draft.preferred_currency} onChange={(e) => set("preferred_currency")(e.target.value)} className={FIELD}>
             <option value="">{t("chooseCurrency")}</option>
             {currencyList.map((code) => (
               <option key={code} value={code}>
@@ -143,10 +150,11 @@ export function AccountScreen() {
             ))}
           </select>
         </label>
+          <TipText tip={currencyTip} />
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">{t("numberFormat")}</span>
-          <input
+          <span className="type-input-group"><TipLabel tip={localeTip}>{t("numberFormat")}</TipLabel></span>
+          <input aria-describedby={localeTip.id}
             aria-label={t("numberFormat")}
             list="locale-options"
             value={draft.locale}
@@ -163,10 +171,11 @@ export function AccountScreen() {
             ))}
           </datalist>
         </label>
+        <TipText tip={localeTip} />
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">{t("digitGrouping")}</span>
-          <select
+          <span className="type-input-group"><TipLabel tip={groupingTip}>{t("digitGrouping")}</TipLabel></span>
+          <select aria-describedby={groupingTip.id}
             aria-label={t("digitGrouping")}
             value={draft.digit_grouping}
             onChange={(e) => set("digit_grouping")(e.target.value as DigitGrouping)}
@@ -179,10 +188,11 @@ export function AccountScreen() {
             ))}
           </select>
         </label>
+        <TipText tip={groupingTip} />
 
         <label className="grid gap-1.5">
-          <span className="type-input-group">{t("timeZone")}</span>
-          <select aria-label={t("timeZone")} value={draft.time_zone} onChange={(e) => set("time_zone")(e.target.value)} className={FIELD}>
+          <span className="type-input-group"><TipLabel tip={timeZoneTip}>{t("timeZone")}</TipLabel></span>
+          <select aria-describedby={timeZoneTip.id} aria-label={t("timeZone")} value={draft.time_zone} onChange={(e) => set("time_zone")(e.target.value)} className={FIELD}>
             {!zoneList.includes(draft.time_zone) && draft.time_zone && <option value={draft.time_zone}>{draft.time_zone}</option>}
             {zoneList.map((zone) => (
               <option key={zone} value={zone}>
@@ -191,6 +201,7 @@ export function AccountScreen() {
             ))}
           </select>
         </label>
+        <TipText tip={timeZoneTip} />
       </div>
 
       <p className="type-body" data-account="preview">

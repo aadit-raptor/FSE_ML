@@ -1,6 +1,6 @@
 "use client";
 
-import { MagnifyingGlassIcon, UserIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, QuestionIcon, UserIcon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "@/components/auth/AuthProvider";
 import { BrandLockup } from "@/components/brand/BrandMark";
 import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
+import { useUnseenNews } from "@/lib/help/whatsNew";
 import { LAUNCHER_HREF, parsePath, stepHref, WORKSPACES, workspaceModes } from "@/lib/nav";
 
 import { useCurrentWorkspace, useModes, useWorkspaceModes } from "./useModes";
@@ -26,6 +27,9 @@ export function TopBar() {
   const nav = useTranslations("nav");
   const app = useTranslations("app");
   const mcText = useTranslations("montecarlo");
+  const help = useTranslations("help");
+  const unseen = useUnseenNews();
+  const inHelp = pathname === "/help" || pathname.startsWith("/help/");
   // Modes whose results no longer match their inputs, and runs in progress
   // (a Monte Carlo run carries on while you work elsewhere)
   const mc = useMonteCarlo();
@@ -97,6 +101,18 @@ export function TopBar() {
         <span className="type-step flex-1">{t("searchPlaceholderShort")}</span>
         <kbd>Ctrl K</kbd>
       </button>
+
+      {/* Help (PLAN.md 7.1): the methodology as articles, and what's new, marked while something is unseen */}
+      <Link
+        href="/help"
+        aria-current={inHelp ? "page" : undefined}
+        title={unseen ? help("unseen") : undefined}
+        className={`type-tab relative flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap hover:text-ink ${inHelp ? "bg-raised" : ""}`}
+      >
+        <QuestionIcon size={13} weight="bold" aria-hidden />
+        <span>{help("topBarLink")}</span>
+        {unseen && <span data-unseen aria-hidden className="absolute top-2 end-2 size-1.5 bg-accent" />}
+      </Link>
 
       <Link
         href="/account"
