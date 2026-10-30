@@ -558,6 +558,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/deals/{deal_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Comments */
+        get: operations["list_comments_api_deals__deal_id__comments_get"];
+        put?: never;
+        /** Add Comment */
+        post: operations["add_comment_api_deals__deal_id__comments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/comments/{comment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Comment */
+        delete: operations["delete_comment_api_deals__deal_id__comments__comment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deals/{deal_id}/draft": {
         parameters: {
             query?: never;
@@ -729,6 +764,58 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Deal People */
+        get: operations["deal_people_api_deals__deal_id__people_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Deal Shares */
+        get: operations["deal_shares_api_deals__deal_id__shares_get"];
+        /** Share Deal */
+        put: operations["share_deal_api_deals__deal_id__shares_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/shares/{team_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unshare Deal */
+        delete: operations["unshare_deal_api_deals__deal_id__shares__team_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2349,6 +2436,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Teams */
+        get: operations["list_teams_api_teams_get"];
+        put?: never;
+        /** Create Team */
+        post: operations["create_team_api_teams_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teams/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join Team */
+        post: operations["join_team_api_teams_join_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teams/{team_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Team */
+        get: operations["get_team_api_teams__team_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Team */
+        delete: operations["delete_team_api_teams__team_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Team */
+        patch: operations["rename_team_api_teams__team_id__patch"];
+        trace?: never;
+    };
+    "/api/teams/{team_id}/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Invites */
+        get: operations["list_invites_api_teams__team_id__invites_get"];
+        put?: never;
+        /** Create Invite */
+        post: operations["create_invite_api_teams__team_id__invites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teams/{team_id}/invites/{invite_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Withdraw Invite */
+        delete: operations["withdraw_invite_api_teams__team_id__invites__invite_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/teams/{team_id}/members/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Role */
+        put: operations["set_role_api_teams__team_id__members__member_id__put"];
+        post?: never;
+        /** Remove Member */
+        delete: operations["remove_member_api_teams__team_id__members__member_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/validation/report": {
         parameters: {
             query?: never;
@@ -2666,12 +2860,27 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted" | "unshared" | "commented" | "comment_deleted" | "team_created" | "team_renamed" | "team_deleted" | "team_invited" | "team_joined" | "team_left" | "team_member_removed" | "team_role_changed";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
              */
             at: string;
+            /**
+             * By
+             * @description Who did it, on a deal's history (a member id)
+             */
+            by?: number | null;
+            /**
+             * By Name
+             * @description Their name now, from the sign-in provider; null if unknown
+             */
+            by_name?: string | null;
+            /**
+             * By You
+             * @description Whether the caller did it, on a deal's history
+             */
+            by_you?: boolean | null;
             /**
              * Count
              * @description How many actions this entry stands for: old edits are merged one per day
@@ -2702,15 +2911,30 @@ export interface components {
             /** Id */
             id: number;
             /**
+             * Member
+             * @description The person a team action concerned
+             */
+            member?: number | null;
+            /**
              * Reference
              * @description The reference transaction proposed or reviewed
              */
             reference?: string | null;
             /**
+             * Role
+             * @description The role given or joined in
+             */
+            role?: ("owner" | "editor" | "viewer") | null;
+            /**
              * Source Deal
              * @description The deal a duplicate was made from
              */
             source_deal?: string | null;
+            /**
+             * Team
+             * @description The team a sharing or team action concerned (PLAN.md 7.2)
+             */
+            team?: string | null;
             /**
              * Until
              * @description The last of the merged actions (UTC), when count > 1
@@ -3199,6 +3423,41 @@ export interface components {
             non_cash_interest?: (number | null)[];
             /** Years */
             years?: number[];
+        };
+        /** CommentCreate */
+        CommentCreate: {
+            /** Body */
+            body: string;
+            /**
+             * Mentions
+             * @description Member ids of people who can read the deal
+             */
+            mentions?: number[];
+        };
+        /** CommentList */
+        CommentList: {
+            /**
+             * Comments
+             * @description Oldest first
+             */
+            comments: components["schemas"]["CommentOut"][];
+        };
+        /** CommentOut */
+        CommentOut: {
+            author: components["schemas"]["TeamPerson"];
+            /** Body */
+            body: string;
+            /** Can Delete */
+            can_delete: boolean;
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Mentions */
+            mentions: components["schemas"]["TeamPerson"][];
         };
         /**
          * CompanyDealInputs
@@ -3781,6 +4040,13 @@ export interface components {
         };
         /** DealDetail */
         DealDetail: {
+            /**
+             * Access
+             * @description The caller's: their own deal, or one shared with a team they edit or only read (PLAN.md 7.2)
+             * @default owner
+             * @enum {string}
+             */
+            access: "owner" | "editor" | "viewer";
             /** Archived */
             archived: boolean;
             /**
@@ -4164,6 +4430,31 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** DealPeople */
+        DealPeople: {
+            /**
+             * People
+             * @description Who can read the deal: its owner first
+             */
+            people: components["schemas"]["DealPerson"][];
+        };
+        /** DealPerson */
+        DealPerson: {
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "owner" | "editor" | "viewer";
+            /** Member Id */
+            member_id: number;
+            /**
+             * Name
+             * @description From the sign-in provider, never stored; null if unknown
+             */
+            name?: string | null;
+            /** You */
+            you: boolean;
+        };
         /** DealRiskRequest */
         DealRiskRequest: {
             /**
@@ -4400,8 +4691,30 @@ export interface components {
                 [key: string]: components["schemas"]["TrancheYear"][];
             };
         };
+        /** DealShareOut */
+        DealShareOut: {
+            /**
+             * Name
+             * @description The team's name, if the caller is in it
+             */
+            name?: string | null;
+            /** Team Id */
+            team_id: string;
+        };
+        /** DealShares */
+        DealShares: {
+            /** Teams */
+            teams: components["schemas"]["DealShareOut"][];
+        };
         /** DealSummary */
         DealSummary: {
+            /**
+             * Access
+             * @description The caller's: their own deal, or one shared with a team they edit or only read (PLAN.md 7.2)
+             * @default owner
+             * @enum {string}
+             */
+            access: "owner" | "editor" | "viewer";
             /** Archived */
             archived: boolean;
             /**
@@ -5822,6 +6135,47 @@ export interface components {
              */
             money: components["schemas"]["Money"];
         };
+        /** InviteCreate */
+        InviteCreate: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "editor" | "viewer";
+            /**
+             * Uses
+             * @description How many people may join by it
+             * @default 10
+             */
+            uses: number;
+        };
+        /** InviteList */
+        InviteList: {
+            /** Invites */
+            invites: components["schemas"]["InviteOut"][];
+        };
+        /** InviteOut */
+        InviteOut: {
+            /**
+             * Expires At
+             * @description UTC, ISO 8601
+             */
+            expires_at: string;
+            /** Id */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "editor" | "viewer";
+            /**
+             * Token
+             * @description Only when made: it is never shown again
+             */
+            token?: string | null;
+            /** Uses Left */
+            uses_left: number;
+        };
         /** JobList */
         JobList: {
             /** Jobs */
@@ -5895,6 +6249,11 @@ export interface components {
              * @enum {string}
              */
             status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
+        /** JoinRequest */
+        JoinRequest: {
+            /** Token */
+            token: string;
         };
         /** LeaseSummary */
         LeaseSummary: {
@@ -9213,6 +9572,14 @@ export interface components {
             /** Sources */
             sources: components["schemas"]["RiskSource"][];
         };
+        /** RoleChange */
+        RoleChange: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "editor" | "viewer";
+        };
         /**
          * RollComparison
          * @description The estimate made before new results, set beside them line by line, as it stood when the model rolled.
@@ -9476,6 +9843,14 @@ export interface components {
             settings: {
                 [key: string]: number | boolean;
             };
+        };
+        /** ShareRequest */
+        ShareRequest: {
+            /**
+             * Team Id
+             * Format: uuid
+             */
+            team_id: string;
         };
         /**
          * SheetCell
@@ -10202,6 +10577,107 @@ export interface components {
             taxes?: (number | null)[];
             /** Years */
             years?: number[];
+        };
+        /** TeamDetail */
+        TeamDetail: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Members */
+            members: number;
+            /** Name */
+            name: string;
+            /**
+             * People
+             * @description Owners first, then by when they joined
+             */
+            people: components["schemas"]["TeamMemberOut"][];
+            /**
+             * Role
+             * @description The caller's role in the team
+             * @enum {string}
+             */
+            role: "owner" | "editor" | "viewer";
+        };
+        /** TeamList */
+        TeamList: {
+            /**
+             * Directory
+             * @description Where people's names come from: none means names aren't shown on this server
+             * @enum {string}
+             */
+            directory: "clerk" | "dev" | "none";
+            /**
+             * Mail
+             * @description How mentions are emailed: none means they wait until mail is set up
+             * @enum {string}
+             */
+            mail: "resend" | "folder" | "outbox" | "none";
+            /** Teams */
+            teams: components["schemas"]["TeamSummary"][];
+        };
+        /** TeamMemberOut */
+        TeamMemberOut: {
+            /**
+             * Joined At
+             * @description UTC, ISO 8601
+             */
+            joined_at: string;
+            /** Member Id */
+            member_id: number;
+            /**
+             * Name
+             * @description From the sign-in provider, never stored; null if unknown
+             */
+            name?: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "editor" | "viewer";
+            /** You */
+            you: boolean;
+        };
+        /** TeamName */
+        TeamName: {
+            /** Name */
+            name: string;
+        };
+        /** TeamPerson */
+        TeamPerson: {
+            /** Member Id */
+            member_id: number;
+            /**
+             * Name
+             * @description From the sign-in provider, never stored; null if unknown
+             */
+            name?: string | null;
+            /** You */
+            you: boolean;
+        };
+        /** TeamSummary */
+        TeamSummary: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Members */
+            members: number;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @description The caller's role in the team
+             * @enum {string}
+             */
+            role: "owner" | "editor" | "viewer";
         };
         /**
          * TrancheIn
@@ -12058,6 +12534,129 @@ export interface operations {
             };
         };
     };
+    list_comments_api_deals__deal_id__comments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    add_comment_api_deals__deal_id__comments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_comment_api_deals__deal_id__comments__comment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                comment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     save_draft_api_deals__deal_id__draft_put: {
         parameters: {
             query?: never;
@@ -12495,6 +13094,171 @@ export interface operations {
                 };
                 content: {
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    deal_people_api_deals__deal_id__people_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealPeople"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    deal_shares_api_deals__deal_id__shares_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealShares"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    share_deal_api_deals__deal_id__shares_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealShares"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    unshare_deal_api_deals__deal_id__shares__team_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealShares"];
                 };
             };
             /** @description Validation Error */
@@ -16185,6 +16949,444 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SettingsResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    list_teams_api_teams_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamList"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    create_team_api_teams_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamName"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    join_team_api_teams_join_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_team_api_teams__team_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_team_api_teams__team_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    rename_team_api_teams__team_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamName"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    list_invites_api_teams__team_id__invites_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    create_invite_api_teams__team_id__invites_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    withdraw_invite_api_teams__team_id__invites__invite_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+                invite_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    set_role_api_teams__team_id__members__member_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    remove_member_api_teams__team_id__members__member_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

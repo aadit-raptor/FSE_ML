@@ -44,7 +44,9 @@ EXPORTS = ("workbook", "simulation_sample", "results_workbook", "results_excel",
            "memo_word", "memo_pdf")
 # Keys ``detail`` may hold, and nothing else
 # ("reference" is a reference transaction's id, "verdict" an administrator's review of it)
-DETAIL_KEYS = ("fields", "version", "source_deal", "export", "enabled", "reference", "verdict")
+# ("team" is a team's id, "member" a member's user id and "role" a team role: PLAN.md 7.2)
+DETAIL_KEYS = ("fields", "version", "source_deal", "export", "enabled", "reference", "verdict",
+               "team", "member", "role")
 
 
 @dataclass(frozen=True)
@@ -57,6 +59,8 @@ class Entry:
     occurred_at: datetime
     last_at: Optional[datetime]
     deal_name: Optional[str] = None
+    # Who did it (a user id), on a deal's history, which a team reads together (PLAN.md 7.2)
+    user_id: Optional[int] = None
 
 
 _MISSING = object()
@@ -104,7 +108,7 @@ _ENTRY_COLUMNS = (AuditEvent.id, AuditEvent.action, AuditEvent.deal_id, AuditEve
 def entry(row, *, named: bool = False) -> Entry:
     return Entry(id=row.id, action=row.action, deal_id=row.deal_id, detail=row.detail or {},
                  count=row.count, occurred_at=row.occurred_at, last_at=row.last_at,
-                 deal_name=row.deal_name if named else None)
+                 deal_name=row.deal_name if named else None, user_id=getattr(row, "user_id", None))
 
 
 def newest_first(query, limit: int):

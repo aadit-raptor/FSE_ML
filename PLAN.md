@@ -168,7 +168,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 6.4 | Plain-English explanations on screens | 3.1 | ☑ |
 | **7** | **Product features** | | |
 | 7.1 | Onboarding and in-app help | 1.5 | ☑ |
-| 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☐ |
+| 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☑ |
 | 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☐ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
 | 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☐ |
@@ -2853,6 +2853,33 @@ enough for the free server.
   and @mentions emailed in the recipient's time zone and language (batched to
   stay inside free send limits); activity from audit history.
 - **Done when:** permission tests pass; mentions email correctly.
+- **Done (2026-10-30).** **Decided in the session (the user chose "build now,
+  switch on later"): teams live in this database, not in Clerk
+  organizations.** Clerk's free organizations allow 5 people a team and two
+  roles, and its tokens carry only the active organization; the app's own
+  tables give three roles, any number of teams at once and tests on the
+  development sign-in. So "enable Clerk organizations" is no longer needed;
+  instead the API takes `CLERK_SECRET_KEY` to read names and a mentioned
+  person's address when needed, never stored. Tables `teams`,
+  `team_members`, `team_invites` (SHA-256 only), `deal_shares`,
+  `deal_comments`, `mention_notices` (migration 0026); `db/teams.py`;
+  `db/deals.py` reaches a shared deal by role in the same statement as every
+  read and write (`_reachable`, `_access`): team owners and editors edit,
+  viewers read, the deal's owner alone archives, deletes, shares and opts it
+  into validation; a reader without the right gets 403, anyone else 404.
+  `api/routers/teams.py`; `teams/` (directory, mail, notices): mentions emailed
+  in batches (one email a person an hour, 90 a day and 2,900 a month inside
+  Resend's free 100 and 3,000, dropped after a week) in the recipient's
+  language and time zone, saying who and when, never the comment or the deal.
+  The deal's history names who did each thing. Screens: Deal -> Team
+  (`/deal/team`, sharing, people, comments with mentions), Teams (`/teams`,
+  top bar), joining by link (`/teams/join#<token>`), "View only" for viewers,
+  shared chips on Saved deals. Evidence: `tests/test_teams.py` (36 tests,
+  the permission matrix by role, nine mutations caught), `e2e/teams.spec.ts`
+  (two browsers, an email written by the API). Live on production once the
+  user sets `CLERK_SECRET_KEY`, `RESEND_API_KEY` and Resend's domain records
+  (DEPLOY.md "Teams"); without them teams work, names show as "A team
+  member" and mentions wait.
 
 ### 7.3 Excel: live-formula workbooks, then add-in
 - **Claude does:**

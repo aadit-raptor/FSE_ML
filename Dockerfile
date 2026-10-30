@@ -31,6 +31,7 @@ COPY library ./library
 COPY ml ./ml
 COPY research ./research
 COPY simulation ./simulation
+COPY teams ./teams
 COPY uploads ./uploads
 COPY validation ./validation
 # The words of an investment memo, in every language the web has (PLAN.md 6.3)

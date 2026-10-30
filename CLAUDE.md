@@ -14,7 +14,7 @@ PR** as the work.
 
 ## Current status — read this first
 
-Last updated: 2026-10-29 (PLAN.md 7.1 done: a guided first deal on Deal -> Guided deal (country, industry, EBITDA, currency, then the sourced figures with their sources, saved and opened), six sample deals from four of S&P's regions, guides on empty screens, a tip on every input (TypeScript and two tests hold every control to one), the methodology as help articles at /help and "What's new" with a mark on the top bar's Help link). The same day (PLAN.md 6.3 done: Deal -> Memo drafts an investment memo of a saved version as a job that runs it through the screens' own endpoints and keeps the run; every figure of the memo is checked against that run, its words are in the account's language, the AI writes only linking sentences from slot names with no digit, and Word and PDF follow; migration 0025). Before that 2026-10-26 (PLAN.md 6.4 done: an Explain button on the key tiles of Deal, Monte Carlo and Coverage -> Model, sentences from templates filled with the strings the tile shows, and a glossary on hover for every label on them, lakhs, crores and Ind AS included; no AI, nothing sent). Before that 2026-10-21 (PLAN.md 6.2 done: Deal -> From a document reads an uploaded PDF in any language twice by two Gemini models, every value with its page and a verbatim quote checked against the page's text, and only the values the person accepts enter the deal; the card meets its bar on eight public documents in five languages; the same day the user set DeepSeek aside, Gemini stays). Before that 2026-10-20 (PLAN.md R9 done, so phase R is done: AI pages, requests, tokens and cost counted per person a day in `ai_usage`, priced from Google's paid list; a person's limits from their plan (`FSE_PLAN`) and the service's from the AI's tier (`AI_FREE_TIER`) in `api/plans.py`, the free ones exactly today's; a test proves switching `AI_PROVIDER` on staging changes nothing else; DEPLOY.md "Paid switches" and the store listing steps). Earlier the same day (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
+Last updated: 2026-10-30 (PLAN.md 7.2 done: teams in this database with owner, editor and viewer roles, invitation links, deals shared with a team and reached by role in the same statement as every read and write, comments with mentions emailed in batches inside Resend's free plan in the recipient's language and time zone, and the deal's history naming who did what; migration 0026; live names and emails wait on `CLERK_SECRET_KEY` and `RESEND_API_KEY`, DEPLOY.md "Teams"). Before that 2026-10-29 (PLAN.md 7.1 done: a guided first deal on Deal -> Guided deal (country, industry, EBITDA, currency, then the sourced figures with their sources, saved and opened), six sample deals from four of S&P's regions, guides on empty screens, a tip on every input (TypeScript and two tests hold every control to one), the methodology as help articles at /help and "What's new" with a mark on the top bar's Help link). The same day (PLAN.md 6.3 done: Deal -> Memo drafts an investment memo of a saved version as a job that runs it through the screens' own endpoints and keeps the run; every figure of the memo is checked against that run, its words are in the account's language, the AI writes only linking sentences from slot names with no digit, and Word and PDF follow; migration 0025). Before that 2026-10-26 (PLAN.md 6.4 done: an Explain button on the key tiles of Deal, Monte Carlo and Coverage -> Model, sentences from templates filled with the strings the tile shows, and a glossary on hover for every label on them, lakhs, crores and Ind AS included; no AI, nothing sent). Before that 2026-10-21 (PLAN.md 6.2 done: Deal -> From a document reads an uploaded PDF in any language twice by two Gemini models, every value with its page and a verbatim quote checked against the page's text, and only the values the person accepts enter the deal; the card meets its bar on eight public documents in five languages; the same day the user set DeepSeek aside, Gemini stays). Before that 2026-10-20 (PLAN.md R9 done, so phase R is done: AI pages, requests, tokens and cost counted per person a day in `ai_usage`, priced from Google's paid list; a person's limits from their plan (`FSE_PLAN`) and the service's from the AI's tier (`AI_FREE_TIER`) in `api/plans.py`, the free ones exactly today's; a test proves switching `AI_PROVIDER` on staging changes nothing else; DEPLOY.md "Paid switches" and the store listing steps). Earlier the same day (PLAN.md R8 done: a results note drafted from a covered company's saved model on Coverage -> Report, every figure filled from the model and checked against its cell, the AI writing only linking sentences from slot names, the rating, target and argument the analyst's own fields, the firm name and disclosures typed once for the account, as Word and PDF; the securities lawyer's view waits on the user). Before that 2026-10-19 (PLAN.md R7 done: model 2, Per tonne (cement, steel, chemicals) and model 3, Stores (retail, restaurants), each solved by hand for two companies from their filings and offered, not yet vetted; the format gained the plant and stores blocks, costs per unit sold and a model's own cost lines. Earlier the same day R6 done: a discounted cash flow and a target multiple inside every sector model, as formulas in the workbook too, valued as at last year's balance sheet, with the price and its date typed and the country's 10-year yield offered as the discount rate's start; the same day R5 done: a covered company's sector model saved with versions, saved back from Excel by its named cells (a restructured sheet refused) and rolled forward on newer accepted results with the estimate kept beside them). Before that 2026-10-18 (PLAN.md R4 done: the eight revenue blocks, models built from a structure the analyst can change, quarterly actuals filling the past, Coverage -> Model and the add-in's Load model; LibreOffice agrees with the server on the Mac, in CI it waits on the user's workflow edit). Before that 2026-10-16 (PLAN.md R1b done: the user set the reader's amber bar at 3%, which the eight held-out filings meet, so production reads; the day before R1b measured them, and PLAN.md R3: the Excel add-in, sign-in and importing results; before it the same day R2: coverage, the review screen and the checked workbook; the same day R1a: the results reader, built and measured on R0's filings; R1b, the held-out filings, waits on the user's files). Before that 2026-10-14 (PLAN.md R0 closed: go, with Gemini). Before that 2026-10-12 (PLAN.md R4 part b, first slice: the model format, evaluator, Excel writer and model 1; the same day R4 part a: model 1 by hand, and 6.1: file uploads). Before that 2026-10-11 (PLAN.md 5.9: personalized defaults; the same day 5.8: live sliders for any deal, and 5.7: economic regime by region). Before that 2026-10-10 (PLAN.md 5.6: driver explanations; the same day development moved to a Mac: Commands, Tooling and Gotchas below). Steps 1–5 and the model finding fixes are merged
 (PR #5). Step 6 is on `feat/deploy`: Streamlit parity (Excel downloads,
 schedules, ML panels), Streamlit removed, and deploy config for the user's
 choice of **Vercel (web) + Render (API)**. The user must create the accounts
@@ -1489,6 +1489,54 @@ every quote against the screen on a lakh-grouped account in thousands and
 every label for a term. Not done: AI wording (optional, later); the model
 grid's own row labels (model output) are not terms.
 
+Teams (PLAN.md 7.2, DEPLOY.md "Teams"): **teams are this database's, not
+Clerk organizations** (decided in the session: Clerk's free organizations allow
+5 people and two roles, and a token carries only the active one). Tables
+`teams`, `team_members` (role `owner`/`editor`/`viewer`), `team_invites`
+(SHA-256 of the token only; a week, a number of uses), `deal_shares`,
+`deal_comments`, `mention_notices` (migration 0026); `db/teams.py`. **A shared
+deal is reached by role in the same statement** as every read and write
+(`db/deals.py` `_reachable`, `_access`, `_lock_reachable`, `_allowed`): team
+owners and editors edit (autosave, versions, restore, rename, actuals),
+viewers read (versions, history, exports, duplicate), and **archiving,
+deleting, sharing and the validation opt-in stay the deal's owner's**; a reader
+without the right gets **403** (`NotPermitted`), anyone else 404 as before.
+Every deal answer carries `access`. `_owned`/`_lock_deal` are kept for what
+stays the owner's alone (memos, `db/memos.py`). A team always keeps an owner
+(`LastOwner`, 409); leaving or being removed unshares the person's deals from
+the team. Comments are deal content: never logged, never in an audit entry or
+an email; a mention must be someone else who can read the deal. **People**
+(`teams/directory.py`): names from Clerk's Backend API per request
+(`CLERK_SECRET_KEY` on the API; cached ten minutes in memory), the
+development sign-in's name locally, else none; a mentioned person's verified
+primary address only when an email is sent, never kept. **Mentions**
+(`teams/notices.py`, job `mentions.send` after a comment that mentions,
+`system:mentions`, and the nightly `job-maintenance` for leftovers): one email
+a person per `BATCH_HOURS` (1), at most `DAILY_EMAILS` 90 and
+`MONTHLY_EMAILS` 2,900 (Resend free: 100 and 3,000), dropped after
+`EXPIRE_DAYS` 7, in the recipient's language (`email.*` in
+`web/messages/<language>.json`) and time zone, saying who and when with a link
+(`FSE_APP_URL` + `/deal/team?deal=<id>`), **never the comment or the deal's
+name**. `teams/mail.py`: `ResendMail` (`RESEND_API_KEY`, `FSE_MAIL_FROM`,
+an idempotency key per batch), `FolderMail` (`FSE_MAIL_DIR`, not in
+production; the browser tests read it), `OutboxMail` (tests). Audit actions
+`shared` (reserved since 3.3), `unshared`, `commented`, `comment_deleted`,
+`team_*` (detail `team`, `member`, `role`); a deal's history answers `by`,
+`by_name`, `by_you`. Endpoints `api/routers/teams.py` (refusals `{code}`,
+words `teams.problem_<code>`). Screens: Deal -> **Team** (`/deal/team`,
+`?deal=` opens one), **Teams** (`/teams`, top bar), `/teams/join#<token>`
+(the token after `#`), "View only" in a viewer's rail (their autosave is
+off), shared chips and "Who" in Saved deals' activity. Files stay private to
+their owner (6.1) and memos to the deal's owner. Known and left (the 7.2 review): a mention
+held back by the hour's window goes out with the next comment's run or the
+nightly one, so up to a day late; two send runs at once could send a batch
+twice (Resend's idempotency key stops it there); opening a shared deal
+replaces the reader's account Settings with the deal's, as opening any deal
+does (so its IRR matches); a viewer still sees the version, restore and
+actuals controls, which answer 403. The endpoints that read names from Clerk
+are not in `RUN_PATHS` (decided: names are batched and cached ten minutes, and
+the deal history reloads on every autosave, which would spend model runs).
+
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,
 Monte Carlo, Backtest, Settings, Library) and **Equity research**
@@ -1579,9 +1627,9 @@ vetted" until an analyst reads them); billing with a cap (DEPLOY.md "Paid
 switches") still comes before the first showing to analysts
 (PLAN.md R2's "Before the first showing"). 6.2 is done (2026-10-21, document to
 deal, below), 6.3 (2026-10-29, investment memos, below), 6.4 (2026-10-26, explanations and the
-glossary, below) and 7.1 (2026-10-29, onboarding and help, below). **The next task is 7.2**
-(teams: sharing, permissions, comments; 5.10 is parked), unless what the analysts say after the
-first showing adds phase R work first; then the rest of
+glossary, below), 7.1 (2026-10-29, onboarding and help, below) and 7.2 (2026-10-30, teams, below).
+**The next task is 7.3** (Excel: live-formula workbooks, then the add-in; 5.10 is parked), unless what
+the analysts say after the first showing adds phase R work first; then the rest of
 phases 7 to 12 in PLAN.md's order. Phase R's own rules are at its top in PLAN.md
 (a tool that never picks a rating; one model definition evaluated by the
 server and written as Excel formulas; new code in `research/` only). The
@@ -1972,7 +2020,7 @@ right to left), both below. 2.4 was split the same way and is done: **2.4a**
 rules, below). 0.2 is done (own domain, below). 2.6a is done (accounting
 standards, the model, below) and 2.6b is done (the screen, below), so 2.6 is done.
 2.7 is done (plan vs actual, below). 2.8 is done (risk warnings, below).
-3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). R9 is done (ready for the paid switch, above), so phase R is done. 6.2 is done (a document to a deal, below). 6.3 is done (investment memos, below). 6.4 is done (explanations and the glossary, above). 7.1 is done (onboarding and in-app help, above). **Next is 7.2**.
+3.1 is done (model version, below). 3.2 is done (methodology, below). 3.3 is done (audit history, below). 3.4 is done (reference cases, below). 4.1 is done: **4.1a** (company filings, the data layer) and **4.1b** (the screen), both below. 4.2 is done (economic data and exchange rates, below). 4.3 is done (sourced starting figures, below). 4.4 is done (risk ranges, below). 4.5 is done: **4.5a** (the library's switch, base rates and coverage) and **4.5b** (reference transactions, two-person review, fees and amortisation), both below. 4.6 is done (model validation, below). 5.1 is done (ML evaluation and model cards, below). 5.2 is done (deal risk score, below). 5.3 is done (distress predictor, below). 5.4 is done (multiple predictor, below). 5.5 is done (growth calibrator, below). 5.6 is done (driver explanations, below). 5.7 is done (economic regime by region, below). 5.8 is done (live sliders for any deal, below). 5.9 is done (personalized defaults, below), so phase 5 is done but for the parked 5.10. 6.1 is done (file uploads, below). R0 is done (reader accuracy: go, with Gemini). R1a is done (the results reader, above); R1b is done (held-out filings, the 3% bar). R2 is done (coverage, the review screen and the checked workbook, above). R3 is done (the Excel add-in, above). R4 is done (sector models, above). R5 is done (save back and roll forward, above). R6 is done (valuation, above). R7 is done (models 2 and 3, above). R8 is done (the results note, above). R9 is done (ready for the paid switch, above), so phase R is done. 6.2 is done (a document to a deal, below). 6.3 is done (investment memos, below). 6.4 is done (explanations and the glossary, above). 7.1 is done (onboarding and in-app help, above). 7.2 is done (teams, below). **Next is 7.3**.
 
 Own domain and name (PLAN.md 0.2, DEPLOY.md "Own domain"): the product is
 **Variater**; production is `https://variater.com` and
@@ -2160,6 +2208,15 @@ golden snapshot is untouched and parity tests explain every departure.
 
 ### Waiting on the user
 
+- PLAN.md 7.2: **names and mention emails on the live site** (DEPLOY.md
+  "Teams"): `CLERK_SECRET_KEY` on both Render services (each instance's own),
+  a free Resend account with `send.variater.com` verified at Cloudflare (DNS
+  only), then `RESEND_API_KEY` and `FSE_MAIL_FROM` on both (and `FSE_APP_URL`
+  on staging). Until then teams work, names read "A team member" and mentions
+  wait a week. Clerk organizations are **not** needed. And one workflow edit
+  Claude's token can't push: add `teams` to `API_PATHS` in
+  `.github/workflows/staging.yml`.
+
 - PLAN.md R9: **listing the add-in in Microsoft's store** is the user's
   (DEPLOY.md "Excel add-in", "Listing it in Microsoft's store": a Partner
   Center account in the Microsoft 365 and Copilot program, then the offer,
@@ -2280,6 +2337,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `ml/memo.py`, `ml/memo_writer.py`, `db/memos.py`, `api/routers/memos.py`, `web/src/lib/memo.ts`, `web/src/components/deal/steps/MemoStep.tsx`, `tests/test_memo*.py`, `web/e2e/memo.spec.ts` | Investment memos (PLAN.md 6.3): the run of a version and the memo drawn and checked from it, in the reader's language; the linking sentences, their templates and the AI's anonymised prompt; the memos, owner-matched; the endpoints and the job; the browser's side and Deal -> Memo; the tests |
 | `ml/nlp_extractor.py`, `ml/document_reader.py`, `api/routers/documents.py`, `ml/evaluation/extractor.py`, `tests/fixtures/extract/`, `web/src/lib/documents.ts`, `web/src/components/deal/steps/FromDocumentStep.tsx`, `tests/test_extractor*.py`, `web/e2e/extract.spec.ts` | A document read for a deal (PLAN.md 6.2): the prompt, the answer's shape, the checks (two reads, the quote on its page, the number in its quote) and the deal inputs from accepted values; the job, the gate and the recorder; the endpoints; its card; the recorded reads and the hand-typed truth file; the browser's side and Deal -> From a document; the tests |
 | `web/src/components/onboarding/`, `web/src/lib/onboarding/`, `web/src/components/ui/Tip.tsx`, `web/src/components/help/`, `web/src/lib/help/`, `ops/help_articles.py`, `tests/test_onboarding.py`, `web/e2e/onboarding.spec.ts`, `web/e2e/tips.spec.ts` | Onboarding and in-app help (PLAN.md 7.1): the guided deal and samples; their answers and the countries' currencies; input tips; the help articles and what's new; the writer of the articles from the methodology; the checks (every control has a tip, samples, articles current); the guided deal, samples, guides, help; every reachable control's tip |
+| `db/teams.py`, `teams/`, `api/routers/teams.py`, `web/src/lib/teams.ts`, `web/src/components/teams/`, `web/src/components/deal/steps/TeamStep.tsx`, `tests/test_teams.py`, `web/e2e/teams.spec.ts` | Teams (PLAN.md 7.2): teams, invitations, shares and comments, owner- and role-matched; who people are (Clerk's names and addresses, never stored), the mail senders and the batched mention emails; the endpoints; the browser's side, the Teams and join pages and Deal -> Team; the tests (the permission matrix by role, mentions emailed) |
 | `web/src/components/ui/Explain.tsx`, `web/src/components/ui/Term.tsx`, `web/src/lib/glossary.ts`, `tests/test_explain.py`, `web/e2e/explain.spec.ts` | Plain-English explanations and the glossary (PLAN.md 6.4): the Explain button and quote marker, the glossary pop-up (HTML and SVG), the run-time term ids; the catalogue checks; every quote against the screen and every label for a term |
 | `research/reader/`, `api/routers/research.py`, `ml/evaluation/reader.py`, `web/src/components/coverage/`, `web/src/lib/research.ts`, `tests/fixtures/research/reader/`, `tests/test_research_reader*.py`, `web/e2e/reader.spec.ts` | The results reader (PLAN.md R1): the provider switch, prompts, page tool, checks, standard lines, assembly, the job's service, the production gate and the recorder; the endpoints; its card; Coverage -> Results; the recorded answers (R0's 30 as `development`, `held_out` from R1b); the tests |
 | `web/src/app/excel/`, `web/src/components/excel/`, `web/src/lib/excel/`, `api/routers/addin.py`, `db/addin.py`, `ops/addin_manifest.py`, `web/public/excel/`, `web/e2e/excel.spec.ts`, `web/e2e/fake-office.js`, `tests/test_addin*.py`, `tests/addin_cells_check.py` | The Excel add-in (PLAN.md R3): the pane and sign-in dialog pages; their components (sign-in, import, read and review); Office.js loading, the dialog, the pass and the cell writer; the pass endpoints and storage; the manifests' writer and the manifests; the browser tests and their stand-in for Office.js; the pass and manifest tests; the cell-by-cell comparison with the download |
@@ -2834,6 +2892,20 @@ Skills load when a session starts: install first, then open a new session.
   outside the loop, one `TipText`), so ids stay unique.
 - A change to `docs/methodology.md` is a change to the help articles: run
   `python -m ops.help_articles` and commit `web/src/lib/help/` in the same PR.
+- A new deal endpoint chooses its access (PLAN.md 7.2): read through
+  `db/deals.py` `_reachable` + `_allowed(row, id, READ|EDIT|OWN)` (or
+  `_lock_reachable` to write), never `_owned`, unless it is the owner's alone
+  (memos); and `store_errors` turns `NotPermitted` into 403. A new deal answer
+  passes `access` through `_summary`.
+- `pytest -p no:logging` (to quiet the output) removes the `caplog` fixture, so
+  every test that checks what is logged errors: run the full suite without it.
+- The React lint forbids a `setState` straight in an effect (and in a function
+  the effect calls before an `await`): fetch in a plain function and set state
+  in its `.then`, behind a `cancelled` flag (`TeamStep.tsx`, `MemoStep.tsx`), or
+  reset state with a `key` instead.
+- `tests/test_no_hardcoded_text.py` reads `>...<` in a TypeScript generic
+  (`attempt<T>(call: Call<T>): Promise<Result<T>>`) as JSX text: end that line
+  with `// text-ok`.
 - A new request to the AI provider must be counted (PLAN.md R9): collect each
   `Answer` it gets (the `spent` lists) and pass them to
   `research/reader/service.py` `count_usage` with its kind, and give any new

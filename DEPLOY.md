@@ -1212,6 +1212,47 @@ fails the run. After the nightly run, `/api/health/jobs` shows
 which raises the usual alert. Locally, `FSE_UPLOADS_DIR=<a directory>` stands
 in for the bucket (refused in production); the browser tests use it.
 
+## Teams
+
+PLAN.md 7.2. Teams, sharing and comments need only the database. Two outside
+services make them complete; without them names show as "A team member" and
+mentions wait (for a week, then they are dropped, so switching mail on later
+never sends a backlog). `GET /api/teams` answers `directory` and `mail`,
+which say what this server has.
+
+**Names and addresses: Clerk's secret key on the API.** Teams are this app's
+own (not Clerk organizations, which do not need switching on). The API reads a
+teammate's name for the team screens, and a mentioned person's verified
+primary address when it sends them an email, from Clerk's Backend API; it
+stores neither.
+
+1. Clerk dashboard -> the **production** instance (`variater.com`) -> API keys
+   -> copy the **Secret key** (`sk_live_...`).
+2. Render -> `fse-api` -> Environment -> add `CLERK_SECRET_KEY` with it -> Save.
+3. Clerk -> the **development** instance -> its secret key (`sk_test_...`) ->
+   Render -> `fse-api-staging` -> `CLERK_SECRET_KEY`.
+
+**Mention emails: Resend (free: 100 a day, 3,000 a month).** The sender keeps
+to 90 a day and 2,900 a month, one email a person an hour at most.
+
+1. resend.com -> sign up -> Domains -> Add domain -> `send.variater.com`.
+2. Cloudflare -> `variater.com` -> DNS -> add the records Resend lists (an
+   `MX`, an SPF `TXT` and a DKIM `TXT`), each **DNS only** (grey cloud) -> back
+   in Resend, Verify.
+3. Resend -> API keys -> Create (permission **Sending access**, domain
+   `send.variater.com`) -> copy it.
+4. Render -> `fse-api` and `fse-api-staging` -> add `RESEND_API_KEY` (the
+   key) and `FSE_MAIL_FROM` = `Variater <notify@send.variater.com>`. On
+   staging also set `FSE_APP_URL` to the staging site's address, so the
+   email's link opens staging.
+5. Check: `GET /api/teams` (signed in) answers `"directory": "clerk"` and
+   `"mail": "resend"`. Mention yourself from a second account and look for the
+   email; the nightly `job-maintenance` summary counts `mentions_*`.
+
+Locally and in the browser tests the development sign-in names people by their
+development name, and `FSE_MAIL_DIR` writes each email as a JSON file
+(refused in production).
+
 ## Paid switches
 
 Phase R's rule 8: **free now, paid by a switch**. Each paid step is an

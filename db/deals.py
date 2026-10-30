@@ -5,6 +5,15 @@ token, never from a request body) and matches it in the same statement that
 reads or writes the deal. A deal someone else owns is indistinguishable from
 one that doesn't exist: both raise ``DealNotFound``, so ids can't be probed.
 
+**Shared deals** (PLAN.md 7.2): a deal its owner shared with a team
+(``deal_shares``) is reached by the team's members too, in the same
+statement: a team owner or editor may edit it (autosave, versions, restore,
+rename, actuals), a viewer may read it (its versions, history and exports).
+Archiving, deleting, sharing and the validation opt-in stay the owner's.
+Someone who can read a deal but not do what they asked gets ``NotPermitted``
+(403); anyone else still gets ``DealNotFound``. Every answer says the
+caller's ``access``: ``owner``, ``editor`` or ``viewer``.
+
 **What a deal holds.** The deal inputs, complete, and the Settings overrides in
 effect: together they decide every number the deal screens show, so a deal
 reopened on another device -- or a version restored -- gives the same IRR.
@@ -39,19 +48,19 @@ from __future__ import annotations
 
 import math
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 from typing import Any, Mapping, Optional
 
 from pydantic import ValidationError
-from sqlalchemy import and_, delete, insert, select, update
+from sqlalchemy import and_, case, delete, exists, insert, or_, select, update
 
 from core.config import DEFAULTS
 from core.model_version import content_fingerprint
 from core.tax import RULE_DEFAULTS
 from db import audit
 from db.engine import connect, transaction
-from db.models import AuditEvent, Deal, DealVersion, User, utc_now
+from db.models import AuditEvent, Deal, DealShare, DealVersion, TeamMember, User, utc_now
 
 MAX_NAME_LENGTH = 120
 MAX_LABEL_LENGTH = 120
@@ -67,6 +76,10 @@ class NoAccount(LookupError):
 
 class DealNotFound(LookupError):
     """No such deal for this caller (it may exist and belong to someone else)."""
+
+
+class NotPermitted(PermissionError):
+    """The caller can read this deal but may not do this to it (a viewer editing, an editor deleting)."""
 
 
 class VersionNotFound(LookupError):
@@ -88,6 +101,8 @@ class DealRecord:
     inputs: Optional[dict] = None
     settings: Optional[dict] = None
     model: Optional[dict] = None
+    # The caller's: "owner", "editor" or "viewer" (PLAN.md 7.2)
+    access: str = "owner"
 
 
 @dataclass(frozen=True)
@@ -193,12 +208,53 @@ def _owned(subject: str, deal_id: uuid.UUID):
     return and_(Deal.id == deal_id, Deal.owner_id == _owner_id(subject))
 
 
+# What a caller needs: to read the deal, to edit it, or to be its owner
+READ, EDIT, OWN = "read", "edit", "own"
+# Team roles that read, and that edit, a deal shared with the team
+READ_ROLES = ("owner", "editor", "viewer")
+EDIT_ROLES = ("owner", "editor")
+
+
+def _shared(subject: str, roles: tuple[str, ...]):
+    """The deal row is shared with a team in which the caller has one of ``roles``."""
+    return exists().where(DealShare.deal_id == Deal.id, TeamMember.team_id == DealShare.team_id,
+                          TeamMember.user_id == _owner_id(subject), TeamMember.role.in_(roles))
+
+
+def _access(subject: str):
+    """The caller's access to the deal row, as SQL: owner, editor, viewer or null."""
+    return case((Deal.owner_id == _owner_id(subject), "owner"),
+                (_shared(subject, EDIT_ROLES), "editor"),
+                (_shared(subject, READ_ROLES), "viewer"), else_=None).label("access")
+
+
+def _reachable(subject: str, deal_id: uuid.UUID):
+    """The deal, if the caller owns it or it is shared with one of their teams."""
+    return and_(Deal.id == deal_id, or_(Deal.owner_id == _owner_id(subject), _shared(subject, READ_ROLES)))
+
+
+def _allowed(row, deal_id: uuid.UUID, need: str):
+    """``row`` if the caller's access suffices for ``need``; else ``DealNotFound`` or ``NotPermitted``."""
+    if row is None or row.access is None:
+        raise DealNotFound(str(deal_id))
+    if (need == EDIT and row.access == "viewer") or (need == OWN and row.access != "owner"):
+        raise NotPermitted(need)
+    return row
+
+
+def _lock_reachable(conn, subject: str, deal_id: uuid.UUID, need: str, *columns):
+    """The deal row with the caller's access, locked for this transaction, if they may do ``need``."""
+    row = conn.execute(select(*(columns or _DEAL_COLUMNS), _access(subject))
+                       .where(_reachable(subject, deal_id)).with_for_update(of=Deal)).first()
+    return _allowed(row, deal_id, need)
+
+
 def _record(row, *, content: bool = True) -> DealRecord:
     return DealRecord(
         id=row.id, name=row.name, latest_version=row.latest_version,
         archived=row.archived_at is not None, created_at=row.created_at, updated_at=row.updated_at,
         inputs=row.inputs if content else None, settings=row.settings if content else None,
-        model=row.model if content else None,
+        model=row.model if content else None, access=getattr(row, "access", None) or "owner",
     )
 
 
@@ -259,8 +315,9 @@ def _prune_auto_versions(conn, deal_id: uuid.UUID) -> None:
 
 
 def list_deals(subject: str, *, include_archived: bool = False) -> list[DealRecord]:
-    """The caller's deals, most recently edited first (no contents)."""
-    query = select(*_DEAL_COLUMNS).where(Deal.owner_id == _owner_id(subject))
+    """The caller's deals and those shared with their teams, most recently edited first (no contents)."""
+    query = select(*_DEAL_COLUMNS, _access(subject)).where(
+        or_(Deal.owner_id == _owner_id(subject), _shared(subject, READ_ROLES)))
     if not include_archived:
         query = query.where(Deal.archived_at.is_(None))
     with connect() as conn:
@@ -296,20 +353,19 @@ def create_deal(subject: str, name: str, inputs: Mapping, settings: Optional[Map
 
 def get_deal(subject: str, deal_id: uuid.UUID) -> DealRecord:
     with connect() as conn:
-        row = conn.execute(select(*_DEAL_COLUMNS).where(_owned(subject, deal_id))).first()
-    if row is None:
-        raise DealNotFound(str(deal_id))
-    return _record(row)
+        row = conn.execute(select(*_DEAL_COLUMNS, _access(subject)).where(_reachable(subject, deal_id))).first()
+    return _record(_allowed(row, deal_id, READ))
 
 
 def update_deal(subject: str, deal_id: uuid.UUID, *, name: Optional[str] = None,
                 archived: Optional[bool] = None, now: Optional[datetime] = None) -> DealRecord:
     """Rename, archive or unarchive. Neither touches the content or its
-    versions; each that changes something is one entry in the history."""
+    versions; each that changes something is one entry in the history.
+    Renaming needs edit access, archiving the owner's."""
     now = now or utc_now()
     name = clean_name(name) if name is not None else None
     with transaction() as conn:
-        row = _lock_deal(conn, subject, deal_id)
+        row = _lock_reachable(conn, subject, deal_id, READ)
         values: dict = {}
         actions = []
         if name is not None and name != row.name:
@@ -321,21 +377,23 @@ def update_deal(subject: str, deal_id: uuid.UUID, *, name: Optional[str] = None,
             actions.append("archived" if archived else "unarchived")
         if not values:
             return _record(row)
+        # What the change needs: archiving is the owner's, renaming an editor's
+        _allowed(row, deal_id, OWN if "archived_at" in values else EDIT)
+        access = row.access
         row = conn.execute(update(Deal).where(Deal.id == deal_id)
                            .values(**values, updated_at=now).returning(*_DEAL_COLUMNS)).one()
         for action in actions:
             audit.record(conn, audit.subject_id(subject), action, deal_id=deal_id, now=now)
-    return _record(row)
+    return replace(_record(row), access=access)
 
 
 def delete_deal(subject: str, deal_id: uuid.UUID, *, now: Optional[datetime] = None) -> None:
     """Delete the deal and every version of it, for good. Its history stays,
     ending in a ``deleted`` entry: entries hold no figures, names or labels."""
     with transaction() as conn:
+        _lock_reachable(conn, subject, deal_id, OWN, Deal.id)
         gone = conn.execute(delete(Deal).where(_owned(subject, deal_id))
                             .returning(Deal.id, Deal.owner_id)).first()
-        if gone is None:
-            raise DealNotFound(str(deal_id))
         audit.record(conn, gone.owner_id, "deleted", deal_id=deal_id, now=now)
 
 
@@ -349,7 +407,7 @@ def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Opti
     inputs, settings = clean_content(inputs, settings)
     now = now or utc_now()
     with transaction() as conn:
-        row = _lock_deal(conn, subject, deal_id)
+        row = _lock_reachable(conn, subject, deal_id, EDIT)
         if row.inputs == inputs and row.settings == settings:
             return _record(row)  # nothing changed: no write, no new time
         conn.execute(update(Deal).where(Deal.id == deal_id)
@@ -362,7 +420,7 @@ def save_draft(subject: str, deal_id: uuid.UUID, inputs: Mapping, settings: Opti
         if differs and due:
             _add_version(conn, deal_id, "auto", None, inputs, settings, now, model)
             _prune_auto_versions(conn, deal_id)
-        row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
+        row = conn.execute(select(*_DEAL_COLUMNS, _access(subject)).where(Deal.id == deal_id)).one()
     return _record(row)
 
 
@@ -398,10 +456,9 @@ def clean_actuals(actuals: Mapping) -> dict:
 def get_actuals(subject: str, deal_id: uuid.UUID) -> tuple[Optional[dict], Optional[datetime]]:
     """The deal's actuals and when they were saved, or two Nones."""
     with connect() as conn:
-        row = conn.execute(select(Deal.actuals, Deal.actuals_updated_at)
-                           .where(_owned(subject, deal_id))).first()
-    if row is None:
-        raise DealNotFound(str(deal_id))
+        row = conn.execute(select(Deal.actuals, Deal.actuals_updated_at, _access(subject))
+                           .where(_reachable(subject, deal_id))).first()
+    _allowed(row, deal_id, READ)
     return row.actuals, row.actuals_updated_at
 
 
@@ -413,10 +470,8 @@ def save_actuals(subject: str, deal_id: uuid.UUID, actuals: Optional[Mapping],
     cleaned = None if actuals is None else clean_actuals(actuals)
     now = now or utc_now()
     with transaction() as conn:
-        held = conn.execute(select(Deal.actuals, Deal.actuals_updated_at, Deal.actuals_first_saved_at)
-                            .where(_owned(subject, deal_id)).with_for_update()).first()
-        if held is None:
-            raise DealNotFound(str(deal_id))
+        held = _lock_reachable(conn, subject, deal_id, EDIT,
+                               Deal.actuals, Deal.actuals_updated_at, Deal.actuals_first_saved_at)
         if held.actuals == cleaned:
             return held.actuals, held.actuals_updated_at
         # The first save is kept through a clear: what the owner saw then stays seen
@@ -433,10 +488,9 @@ def save_actuals(subject: str, deal_id: uuid.UUID, actuals: Optional[Mapping],
 def validation_opt_in(subject: str, deal_id: uuid.UUID) -> bool:
     """Whether the owner lets this deal count in model validation (PLAN.md 4.6)."""
     with connect() as conn:
-        row = conn.execute(select(Deal.validation_opt_in).where(_owned(subject, deal_id))).first()
-    if row is None:
-        raise DealNotFound(str(deal_id))
-    return row.validation_opt_in
+        row = conn.execute(select(Deal.validation_opt_in, _access(subject))
+                           .where(_reachable(subject, deal_id))).first()
+    return _allowed(row, deal_id, READ).validation_opt_in
 
 
 def set_validation_opt_in(subject: str, deal_id: uuid.UUID, opt_in: bool,
@@ -447,10 +501,7 @@ def set_validation_opt_in(subject: str, deal_id: uuid.UUID, opt_in: bool,
     the choice when it is next generated, so stopping takes the deal out of
     every report from then on."""
     with transaction() as conn:
-        held = conn.execute(select(Deal.validation_opt_in)
-                            .where(_owned(subject, deal_id)).with_for_update()).first()
-        if held is None:
-            raise DealNotFound(str(deal_id))
+        held = _lock_reachable(conn, subject, deal_id, OWN, Deal.validation_opt_in)
         if held.validation_opt_in == opt_in:
             return opt_in
         conn.execute(update(Deal).where(Deal.id == deal_id).values(validation_opt_in=opt_in))
@@ -465,7 +516,7 @@ def list_versions(subject: str, deal_id: uuid.UUID) -> list[VersionRecord]:
         rows = conn.execute(
             select(*_VERSION_SUMMARY, Deal.id.label("owned"))
             .select_from(Deal).outerjoin(DealVersion, DealVersion.deal_id == Deal.id)
-            .where(_owned(subject, deal_id))
+            .where(_reachable(subject, deal_id))
             .order_by(DealVersion.number.desc())
         ).all()
     if not rows:
@@ -482,7 +533,7 @@ def get_version(subject: str, deal_id: uuid.UUID, number: int) -> VersionRecord:
                    DealVersion.model)
             .select_from(Deal)
             .outerjoin(DealVersion, and_(DealVersion.deal_id == Deal.id, DealVersion.number == number))
-            .where(_owned(subject, deal_id))
+            .where(_reachable(subject, deal_id))
         ).all()
     if not rows:
         raise DealNotFound(str(deal_id))
@@ -503,7 +554,7 @@ def save_version(subject: str, deal_id: uuid.UUID, label: Optional[str] = None,
     label = clean_name(label, what="label", limit=MAX_LABEL_LENGTH) if label is not None else None
     now = now or utc_now()
     with transaction() as conn:
-        row = _lock_deal(conn, subject, deal_id)
+        row = _lock_reachable(conn, subject, deal_id, EDIT)
         latest = _latest_version(conn, deal_id)
         if latest is not None and latest.inputs == row.inputs and latest.settings == row.settings:
             if label is None and latest.kind != "auto":
@@ -533,7 +584,7 @@ def restore_version(subject: str, deal_id: uuid.UUID, number: int,
     """
     now = now or utc_now()
     with transaction() as conn:
-        row = _lock_deal(conn, subject, deal_id)
+        row = _lock_reachable(conn, subject, deal_id, EDIT)
         target = conn.execute(
             select(DealVersion.inputs, DealVersion.settings, DealVersion.model)
             .where(DealVersion.deal_id == deal_id, DealVersion.number == number)
@@ -552,7 +603,7 @@ def restore_version(subject: str, deal_id: uuid.UUID, number: int,
                      target.inputs, target.settings, now, target.model)
         audit.record(conn, audit.subject_id(subject), "restored", deal_id=deal_id, now=now,
                      detail={"version": number})
-        row = conn.execute(select(*_DEAL_COLUMNS).where(Deal.id == deal_id)).one()
+        row = conn.execute(select(*_DEAL_COLUMNS, _access(subject)).where(Deal.id == deal_id)).one()
     return _record(row)
 
 
@@ -628,11 +679,13 @@ def set_suggestions(subject: str, enabled: bool, *, now: Optional[datetime] = No
 # Audit history (PLAN.md 3.3): a deal's, and the one action recorded from outside
 # ---------------------------------------------------------------------------
 def deal_history(subject: str, deal_id: uuid.UUID, *, limit: int = 200) -> list[audit.Entry]:
-    """The deal's history, newest first; ``DealNotFound`` unless it is the caller's."""
+    """The deal's history by everyone who worked on it, newest first; ``DealNotFound`` unless the caller
+    can read it."""
     query = (select(Deal.id.label("owned"), AuditEvent.id, AuditEvent.action, AuditEvent.deal_id,
-                    AuditEvent.detail, AuditEvent.count, AuditEvent.occurred_at, AuditEvent.last_at)
+                    AuditEvent.detail, AuditEvent.count, AuditEvent.occurred_at, AuditEvent.last_at,
+                    AuditEvent.user_id)
              .select_from(Deal).outerjoin(AuditEvent, AuditEvent.deal_id == Deal.id)
-             .where(_owned(subject, deal_id)))
+             .where(_reachable(subject, deal_id)))
     with connect() as conn:
         found = conn.execute(audit.newest_first(query, limit)).all()
     if not found:
@@ -640,11 +693,18 @@ def deal_history(subject: str, deal_id: uuid.UUID, *, limit: int = 200) -> list[
     return [audit.entry(r) for r in found if r.id is not None]
 
 
+def access_of(subject: str, deal_id: uuid.UUID) -> str:
+    """The caller's access to the deal: owner, editor or viewer; ``DealNotFound`` if none."""
+    with connect() as conn:
+        row = conn.execute(select(Deal.id, _access(subject)).where(_reachable(subject, deal_id))).first()
+    return _allowed(row, deal_id, READ).access
+
+
 def record_export(subject: str, deal_id: uuid.UUID, export: str,
                   *, now: Optional[datetime] = None) -> None:
-    """An export from the caller's deal; ``DealNotFound`` if it isn't theirs."""
+    """An export from a deal the caller can read; ``DealNotFound`` if they can't."""
     with transaction() as conn:
-        owner = conn.execute(select(Deal.owner_id).where(_owned(subject, deal_id))).scalar()
-        if owner is None:
-            raise DealNotFound(str(deal_id))
-        audit.record(conn, owner, "exported", deal_id=deal_id, now=now, detail={"export": export})
+        row = conn.execute(select(Deal.id, _access(subject)).where(_reachable(subject, deal_id))).first()
+        _allowed(row, deal_id, READ)
+        audit.record(conn, audit.subject_id(subject), "exported", deal_id=deal_id, now=now,
+                     detail={"export": export})

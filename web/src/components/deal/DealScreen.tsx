@@ -67,8 +67,9 @@ function RailHeader() {
         data-deal-save={saveState}
       >
         <span className="type-input-label min-w-0 truncate">{current?.name ?? t("unsavedDeal")}</span>
-        <span className={`font-mono text-[10px] whitespace-nowrap ${SAVE_TONE[saveState]}`} aria-live="polite">
-          {t(SAVE_KEY[saveState])}
+        <span className={`font-mono text-[10px] whitespace-nowrap ${current?.access === "viewer" ? "text-attention" : SAVE_TONE[saveState]}`}
+          aria-live="polite" data-view-only={current?.access === "viewer" ? "" : undefined}>
+          {current?.access === "viewer" ? t("saveViewOnly") : t(SAVE_KEY[saveState])}
         </span>
       </Link>
     </div>

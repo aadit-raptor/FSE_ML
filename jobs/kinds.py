@@ -114,6 +114,25 @@ def _scan_upload(request: ScanRequest) -> dict:
     return service.scan_file(request.file_id)
 
 
+class MentionsRequest(BaseModel):
+    pass
+
+
+class MentionsSent(BaseModel):
+    mentions_mail: str
+    mentions_emails_sent: int
+    mentions_expired: int
+    mentions_no_address: int
+    mentions_failed: int
+    mentions_waiting: int
+
+
+def _send_mentions(_request: MentionsRequest) -> dict:
+    from teams import notices
+
+    return notices.send_pending()
+
+
 KINDS: dict[str, JobKind] = {k.name: k for k in (
     JobKind("montecarlo.run", "Monte Carlo simulation", MonteCarloRequest, MonteCarloResponse,
             _unwrapped(montecarlo.post_run),
@@ -146,6 +165,9 @@ KINDS: dict[str, JobKind] = {k.name: k for k in (
             simulation=False),
     # Queued by POST /api/deals/{id}/memos (PLAN.md 6.3), never through /api/jobs: its endpoint checks the
     # version is the caller's first. Three simulations of the deal, so it takes the simulation slot
+    # Queued by a comment that mentions someone (PLAN.md 7.2), never through /api/jobs: emails the people
+    # mentioned, in batches (teams/notices.py). A few requests, no memory to speak of
+    JobKind("mentions.send", "Mention emails", MentionsRequest, MentionsSent, _send_mentions, simulation=False),
     JobKind("memo.draft", "Investment memo", MemoRequest, MemoDrafted, _draft_memo,
             {"montecarlo.run": Stage("Simulating the deal", 0.5, "Simulating the scenarios"),
              "montecarlo.scenarios": Stage("Simulating the scenarios", 0.85, "Setting the plan against actual"),
