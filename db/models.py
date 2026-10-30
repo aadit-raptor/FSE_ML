@@ -292,7 +292,10 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  "model_saved", "model_versioned", "model_restored", "model_rolled",
                  # The person changed a covered company's results note, or the account's firm name and
                  # disclosures every note carries (PLAN.md R8)
-                 "report_saved", "report_details_saved")
+                 "report_saved", "report_details_saved",
+                 # The person drafted an investment memo of a deal's version, had its sentences written, or
+                 # deleted it (PLAN.md 6.3)
+                 "memo_drafted", "memo_written", "memo_deleted")
 
 
 class AuditEvent(Base):
@@ -940,7 +943,34 @@ class ResearchReportDetails(Base):
 
 
 
-AI_USAGE_KINDS = ("read", "write", "extract")
+class DealMemo(Base):
+    """An investment memo of one saved version of a deal (PLAN.md 6.3): one per version, drafting it again
+    replaces it.
+
+    ``run`` is the version's model run as the memo reads it (ml/memo.py ``trim``: the figures it shows and the
+    model stamp they came from, a few kilobytes); every figure in the memo is checked against it when it is
+    drawn. ``sentences`` are the linking sentences last written (ml/memo_writer.py: text with slots, never a
+    figure). Private to its owner (db/memos.py); deleting the deal deletes its memos.
+    """
+
+    __tablename__ = "deal_memos"
+    __table_args__ = (
+        UniqueConstraint("deal_id", "version", name="uq_deal_memos_deal_id_version"),
+        Index("ix_deal_memos_owner_id", "owner_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    deal_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("deals.id", ondelete="CASCADE"), nullable=False)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    run: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    sentences: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+AI_USAGE_KINDS = ("read", "write", "extract", "memo")
 AI_TIERS = ("free", "billed")
 
 
@@ -948,7 +978,8 @@ class AiUsage(Base):
     """What a person's AI requests used, a day (PLAN.md R9): pages read, requests, tokens and their cost.
 
     One row per person, UTC day, kind (``read``: a results read, PLAN.md R1; ``write``: a note's linking
-    sentences, R8; ``extract``: a document read for a deal, PLAN.md 6.2) and tier (``free`` or ``billed``, research/reader/providers.py ``AI_FREE_TIER``). The cost
+    sentences, R8; ``extract``: a document read for a deal, PLAN.md 6.2; ``memo``: an investment memo's linking
+    sentences, PLAN.md 6.3) and tier (``free`` or ``billed``, research/reader/providers.py ``AI_FREE_TIER``). The cost
     is the provider's paid list price for the tokens (research/ai_costs.py): on the free tier, what it would
     cost. Counts only: never anything from a document, a model's answer or a file's name. Rows older than
     ``db.ai_usage.KEEP_DAYS`` are deleted by the nightly ``job-maintenance`` task.
@@ -956,7 +987,7 @@ class AiUsage(Base):
 
     __tablename__ = "ai_usage"
     __table_args__ = (
-        CheckConstraint("kind IN ('read', 'write', 'extract')", name="kind"),
+        CheckConstraint("kind IN ('read', 'write', 'extract', 'memo')", name="kind"),
         CheckConstraint("tier IN ('free', 'billed')", name="tier"),
         Index("ix_ai_usage_day", "day"),
     )

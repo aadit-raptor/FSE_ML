@@ -53,8 +53,10 @@ def test_a_range_by_hand():
     g = mp.group_series(t, "us")
     assert mp.market_median(g, 2020) == 9.0
     points = sorted(mp.moves(g, 1))
-    assert points == pytest.approx(sorted((math.log(s[2020] / 9.0), math.log(s[2021] / s[2020]))
-                                          for s in rows.values()))
+    expected = sorted((math.log(s[2020] / 9.0), math.log(s[2021] / s[2020])) for s in rows.values())
+    # pairs compared flat: pytest 9.2 refuses approx on nested sequences
+    assert len(points) == len(expected)
+    assert [v for p in points for v in p] == pytest.approx([v for p in expected for v in p])
     with mock.patch.object(mp, "MIN_PAIRS", 4):
         f = mp.fit(points)
         xs, ys = [p[0] for p in points], [p[1] for p in points]

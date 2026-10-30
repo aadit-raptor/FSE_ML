@@ -26,7 +26,7 @@ from pydantic import BaseModel, TypeAdapter
 from api.routers import backtesting, forecasting, montecarlo
 from api.schemas import (
     BacktestRequest, BacktestResponse, ForecastRunRequest, ForecastRunResponse,
-    DocumentReadResult, MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
+    DocumentReadResult, MemoDrafted, MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
 )
 
 
@@ -87,6 +87,18 @@ def _read_document(request: DocumentRequest) -> dict:
     return document_reader.extract_file(request.owner, request.file_id)
 
 
+class MemoRequest(BaseModel):
+    owner: str
+    deal_id: uuid.UUID
+    version: int
+
+
+def _draft_memo(request: MemoRequest) -> dict:
+    from ml import memo
+
+    return memo.draft(request.owner, request.deal_id, request.version)
+
+
 class ScanRequest(BaseModel):
     file_id: uuid.UUID
 
@@ -132,4 +144,10 @@ KINDS: dict[str, JobKind] = {k.name: k for k in (
             {"document.read_a": Stage("Reading the whole document", 0.6, "Reading the cited pages again"),
              "document.read_b": Stage("Reading the cited pages again", 0.95, "Checking every quote")},
             simulation=False),
+    # Queued by POST /api/deals/{id}/memos (PLAN.md 6.3), never through /api/jobs: its endpoint checks the
+    # version is the caller's first. Three simulations of the deal, so it takes the simulation slot
+    JobKind("memo.draft", "Investment memo", MemoRequest, MemoDrafted, _draft_memo,
+            {"montecarlo.run": Stage("Simulating the deal", 0.5, "Simulating the scenarios"),
+             "montecarlo.scenarios": Stage("Simulating the scenarios", 0.85, "Setting the plan against actual"),
+             "backtest.plan_vs_actual": Stage("Setting the plan against actual", 0.95, "Keeping the memo")}),
 )}

@@ -33,6 +33,8 @@ COPY research ./research
 COPY simulation ./simulation
 COPY uploads ./uploads
 COPY validation ./validation
+# The words of an investment memo, in every language the web has (PLAN.md 6.3)
+COPY web/messages ./web/messages
 
 RUN useradd --create-home --uid 10001 app && chown -R app /app
 USER app

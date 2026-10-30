@@ -151,6 +151,10 @@ USER_DOCUMENT_PAGES = Rule("user_document_pages_per_day", "document pages read",
 # The endpoint that asks the AI for them: a run (it calls an outside source)
 _NOTE_SENTENCES = re.compile(r"/api/research/companies/[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}"
                              r"/report/sentences")
+# An investment memo (PLAN.md 6.3): drafting one queues three simulations of the deal, and its sentences spend
+# the same AI allowance as a note's (``USER_WRITES``, ``WRITES_ALL``)
+_UUID = r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}"
+_MEMO_RUNS = re.compile(r"/api/deals/" + _UUID + r"/memos(?:/[0-9]+/sentences)?")
 USER_WRITES = Rule("user_writes_per_day", "note sentences written", "user", 5, 86_400, shared=True,
                    plan="writes_per_day")
 WRITES_ALL = Rule("writes_per_day", "note sentences written", "service", 10, 86_400, shared=True,
@@ -180,7 +184,7 @@ def is_run_request(method: str, path: str) -> bool:
     # fetching a file's bytes from the outside store is a run too (PLAN.md R2)
     return is_run_path(path) or (method == "POST" and path == JOBS_PATH) or (
         method == "GET" and _FILE_CONTENT.fullmatch(path) is not None) or (
-        method == "POST" and _NOTE_SENTENCES.fullmatch(path) is not None)
+        method == "POST" and (_NOTE_SENTENCES.fullmatch(path) is not None or _MEMO_RUNS.fullmatch(path) is not None))
 
 
 def limit_multiplier() -> float:
