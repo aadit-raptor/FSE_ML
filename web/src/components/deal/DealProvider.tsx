@@ -31,7 +31,11 @@ type RunState = {
 };
 
 /** The saved deal being edited. */
-export type OpenDeal = { id: string; name: string; latestVersion: number; archived: boolean; updatedAt: string };
+/** `access`: the caller's own deal, or one shared with their team that they edit or only read (PLAN.md 7.2). */
+export type OpenDeal = {
+  id: string; name: string; latestVersion: number; archived: boolean; updatedAt: string;
+  access: Schemas["DealSummary"]["access"];
+};
 /** Whether the open deal's latest edits are in the database. */
 export type DealSaveState = "unsaved" | "saving" | "saved" | "error";
 type DealDetail = Schemas["DealDetail"];
@@ -112,7 +116,7 @@ function contentKey(inputs: DealInputs, settings: Settings): string {
 }
 
 function toOpenDeal(d: Schemas["DealSummary"]): OpenDeal {
-  return { id: d.id, name: d.name, latestVersion: d.latest_version, archived: d.archived, updatedAt: d.updated_at };
+  return { id: d.id, name: d.name, latestVersion: d.latest_version, archived: d.archived, updatedAt: d.updated_at, access: d.access ?? "owner" };
 }
 
 function rememberDeal(id: string | null) {
@@ -325,7 +329,8 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   }, [settingsLoaded, adopt]);
 
   // Autosave the open deal shortly after each edit to its inputs or settings
-  const currentId = current?.id;
+  // A viewer's edits stay on their screen: the deal is not theirs to change (PLAN.md 7.2)
+  const currentId = current?.access === "viewer" ? undefined : current?.id;
   const latest = useRef({ inputs, overrides });
   useEffect(() => {
     latest.current = { inputs, overrides };

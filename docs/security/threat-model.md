@@ -79,7 +79,7 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 
 | Threat | Protection | Status |
 |---|---|---|
-| No record of who did what | JSON request logs with request ID, route template, status and timing (no bodies or query strings); deal versions record changes per deal | Partial: no audit log of account actions (sign-in history is in Clerk) — PLAN.md 7.2 (teams) should add one |
+| No record of who did what | JSON request logs with request ID, route template, status and timing (no bodies or query strings); deal versions record changes per deal | Done: an append-only audit history of deal, account and team actions (PLAN.md 3.3, 7.2: sharing, comments, invitations, roles), shown per deal with who did it; sign-in history is in Clerk |
 
 ### Information disclosure
 
@@ -137,6 +137,15 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | The container running as root | The image runs as user `app` (checked by CI's `docker` job) | Done |
 | Workflow token abuse from a pull request | `permissions: contents: read` on every workflow; secrets are not given to forks' pull requests by GitHub. `scheduled.yml` and `staging.yml` also have `id-token: write`, which only mints the OIDC token above; the API accepts it only from those workflows on `main`/`staging` | Done |
 
+## Shared deals (PLAN.md 7.2)
+
+| Threat | Control |
+|---|---|
+| A member reaches a deal not shared with their team, or does more than their role allows | Access is worked out in the same SQL statement as each read and write (`db/deals.py` `_reachable`, `_access`); a reader without the right gets 403, anyone else 404, as for a missing deal. `tests/test_teams.py` runs every deal endpoint for owner, team owner, editor, viewer, removed member and stranger |
+| An invitation link leaks or is reused | Kept only as a SHA-256 hash; ends after a week or its number of uses; owners withdraw it; the token travels after `#`, so no server log sees the page request |
+| A mention email leaks deal contents | It says who mentioned you and when, with a link; never the comment, the deal's name or a figure (tested) |
+| Names or addresses stored or logged | Neither: read from Clerk per request (names cached in memory ten minutes, addresses never), and the secret key goes in a header only |
+
 ## Open items, by plan task
 
 | Item | Task |
@@ -144,7 +153,6 @@ Status: **Done** (in place and tested), **Partial**, **Open**.
 | Automated security testing against staging (DAST, dependency review gate) | 10.2 |
 | Record trained-model hashes; prefer non-pickle formats | 5.1 |
 | Hash-pinned Python lockfile | 11.3 |
-| Audit log of account and team actions | 7.2 |
 | Clerk production instance on a custom domain | 12.3 |
 | Neon IP allow list, longer restore window | 12.2 |
 | Paid AI provider with no training on inputs, for confidential documents | 12.4 |

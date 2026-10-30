@@ -1,6 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import messages from "../messages/en.json";
+import whatsNew from "../src/lib/help/whats-new.json";
 import { asUser, dealSettled, field, kpi, recordedBenchmarks, replayBenchmarks, signInAs } from "./helpers";
+
+/** The newest release's title, as What's new shows it first. */
+const newestTitle = (messages.whatsNew as Record<string, string>)[`${whatsNew.entries[0].id}Title`];
 
 /**
  * Onboarding and in-app help (PLAN.md 7.1), through the real screens, API and database, each test as
@@ -166,7 +171,7 @@ test.describe("Help", () => {
     await expect(help.locator("[data-unseen]")).toBeVisible();
     await page.goto("/help/whats-new");
     const entries = page.locator("[data-whats-new]");
-    await expect(entries.first()).toContainText("Guided first deal");
+    await expect(entries.first()).toContainText(newestTitle);
     const dates = await entries.evaluateAll((els) => els.map((e) => e.getAttribute("data-whats-new")));
     expect(dates).toEqual([...dates].sort().reverse());
     // Seen now: the marker goes

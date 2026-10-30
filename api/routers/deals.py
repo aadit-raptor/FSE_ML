@@ -34,6 +34,8 @@ router = APIRouter(tags=["saved deals"])
 
 NO_DATABASE = ("Saved deals need a database: set DATABASE_URL "
                "(python -m db.local locally). See CLAUDE.md.")
+NOT_PERMITTED = {"edit": "You can read this deal but not change it: your role in its team is viewer.",
+                 "own": "Only the deal's owner can do this."}
 NO_ACCOUNT = "Finish your account (country, currency, format and time zone) before saving."
 
 
@@ -46,6 +48,10 @@ def store_errors():
         yield
     except store.DealNotFound:
         raise HTTPException(status_code=404, detail="Deal not found") from None
+    except store.NotPermitted as exc:
+        # A deal shared with the caller's team (PLAN.md 7.2) that their role can't change this way
+        raise HTTPException(status_code=403, detail=NOT_PERMITTED.get(exc.args[0] if exc.args else "",
+                                                                      NOT_PERMITTED["edit"])) from None
     except store.VersionNotFound:
         raise HTTPException(status_code=404, detail="Version not found") from None
     except store.NoAccount:
@@ -59,7 +65,7 @@ def _iso(value) -> str:
 
 
 def _summary(deal: store.DealRecord) -> dict:
-    return {"id": str(deal.id), "name": deal.name, "archived": deal.archived,
+    return {"id": str(deal.id), "name": deal.name, "archived": deal.archived, "access": deal.access,
             "latest_version": deal.latest_version,
             "created_at": _iso(deal.created_at), "updated_at": _iso(deal.updated_at)}
 
@@ -261,9 +267,16 @@ def _entry(e: audit.Entry, *, named: bool = False) -> dict:
 def deal_history(deal_id: uuid.UUID, limit: int = HistoryLimit, user: AuthUser = Depends(require_user)):
     """What was done to the deal and when, newest first: one entry per action
     (old edits merged one per day)."""
+    from db import teams
+    from teams import directory
+
     with store_errors():
         entries = store.deal_history(user.subject, deal_id, limit=limit)
-    return {"entries": [_entry(e) for e in entries]}
+    # A shared deal's history is everyone's (PLAN.md 7.2): each entry says who, by name when known
+    subjects = teams.subjects_of(e.user_id for e in entries)
+    names = directory.get_directory().names(subjects.values())
+    return {"entries": [{**_entry(e), "by": e.user_id, "by_name": names.get(subjects.get(e.user_id, "")),
+                         "by_you": subjects.get(e.user_id) == user.subject} for e in entries]}
 
 
 @router.get("/account/history", response_model=AuditHistory)

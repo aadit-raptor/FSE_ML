@@ -652,7 +652,18 @@
               "report_details_saved",
               "memo_drafted",
               "memo_written",
-              "memo_deleted"
+              "memo_deleted",
+              "unshared",
+              "commented",
+              "comment_deleted",
+              "team_created",
+              "team_renamed",
+              "team_deleted",
+              "team_invited",
+              "team_joined",
+              "team_left",
+              "team_member_removed",
+              "team_role_changed"
             ],
             "title": "Action",
             "type": "string"
@@ -661,6 +672,42 @@
             "description": "UTC, ISO 8601; the first of the merged actions when count > 1",
             "title": "At",
             "type": "string"
+          },
+          "by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who did it, on a deal's history (a member id)",
+            "title": "By"
+          },
+          "by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Their name now, from the sign-in provider; null if unknown",
+            "title": "By Name"
+          },
+          "by_you": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the caller did it, on a deal's history",
+            "title": "By You"
           },
           "count": {
             "description": "How many actions this entry stands for: old edits are merged one per day",
@@ -743,6 +790,18 @@
             "title": "Id",
             "type": "integer"
           },
+          "member": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The person a team action concerned",
+            "title": "Member"
+          },
           "reference": {
             "anyOf": [
               {
@@ -755,6 +814,23 @@
             "description": "The reference transaction proposed or reviewed",
             "title": "Reference"
           },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "owner",
+                  "editor",
+                  "viewer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The role given or joined in",
+            "title": "Role"
+          },
           "source_deal": {
             "anyOf": [
               {
@@ -766,6 +842,18 @@
             ],
             "description": "The deal a duplicate was made from",
             "title": "Source Deal"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The team a sharing or team action concerned (PLAN.md 7.2)",
+            "title": "Team"
           },
           "until": {
             "anyOf": [
@@ -2074,6 +2162,89 @@
           }
         },
         "title": "CashFlowResult",
+        "type": "object"
+      },
+      "CommentCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "mentions": {
+            "description": "Member ids of people who can read the deal",
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 10,
+            "title": "Mentions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "title": "CommentCreate",
+        "type": "object"
+      },
+      "CommentList": {
+        "properties": {
+          "comments": {
+            "description": "Oldest first",
+            "items": {
+              "$ref": "#/components/schemas/CommentOut"
+            },
+            "title": "Comments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "comments"
+        ],
+        "title": "CommentList",
+        "type": "object"
+      },
+      "CommentOut": {
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/TeamPerson"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "can_delete": {
+            "title": "Can Delete",
+            "type": "boolean"
+          },
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mentions": {
+            "items": {
+              "$ref": "#/components/schemas/TeamPerson"
+            },
+            "title": "Mentions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "author",
+          "body",
+          "mentions",
+          "created_at",
+          "can_delete"
+        ],
+        "title": "CommentOut",
         "type": "object"
       },
       "CompanyDealInputs": {
@@ -3508,6 +3679,17 @@
       },
       "DealDetail": {
         "properties": {
+          "access": {
+            "default": "owner",
+            "description": "The caller's: their own deal, or one shared with a team they edit or only read (PLAN.md 7.2)",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
           "archived": {
             "title": "Archived",
             "type": "boolean"
@@ -4182,6 +4364,63 @@
         "title": "DealPatch",
         "type": "object"
       },
+      "DealPeople": {
+        "properties": {
+          "people": {
+            "description": "Who can read the deal: its owner first",
+            "items": {
+              "$ref": "#/components/schemas/DealPerson"
+            },
+            "title": "People",
+            "type": "array"
+          }
+        },
+        "required": [
+          "people"
+        ],
+        "title": "DealPeople",
+        "type": "object"
+      },
+      "DealPerson": {
+        "properties": {
+          "access": {
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "member_id": {
+            "title": "Member Id",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "From the sign-in provider, never stored; null if unknown",
+            "title": "Name"
+          },
+          "you": {
+            "title": "You",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "member_id",
+          "you",
+          "access"
+        ],
+        "title": "DealPerson",
+        "type": "object"
+      },
       "DealRiskRequest": {
         "additionalProperties": false,
         "properties": {
@@ -4650,8 +4889,60 @@
         "title": "DealRunResponse",
         "type": "object"
       },
+      "DealShareOut": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The team's name, if the caller is in it",
+            "title": "Name"
+          },
+          "team_id": {
+            "title": "Team Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "team_id"
+        ],
+        "title": "DealShareOut",
+        "type": "object"
+      },
+      "DealShares": {
+        "properties": {
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/DealShareOut"
+            },
+            "title": "Teams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "teams"
+        ],
+        "title": "DealShares",
+        "type": "object"
+      },
       "DealSummary": {
         "properties": {
+          "access": {
+            "default": "owner",
+            "description": "The caller's: their own deal, or one shared with a team they edit or only read (PLAN.md 7.2)",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
           "archived": {
             "title": "Archived",
             "type": "boolean"
@@ -8724,6 +9015,93 @@
         "title": "HistoryRequest",
         "type": "object"
       },
+      "InviteCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "uses": {
+            "default": 10,
+            "description": "How many people may join by it",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Uses",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "InviteCreate",
+        "type": "object"
+      },
+      "InviteList": {
+        "properties": {
+          "invites": {
+            "items": {
+              "$ref": "#/components/schemas/InviteOut"
+            },
+            "title": "Invites",
+            "type": "array"
+          }
+        },
+        "required": [
+          "invites"
+        ],
+        "title": "InviteList",
+        "type": "object"
+      },
+      "InviteOut": {
+        "properties": {
+          "expires_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only when made: it is never shown again",
+            "title": "Token"
+          },
+          "uses_left": {
+            "title": "Uses Left",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "uses_left",
+          "expires_at"
+        ],
+        "title": "InviteOut",
+        "type": "object"
+      },
       "JobList": {
         "properties": {
           "jobs": {
@@ -8889,6 +9267,22 @@
           "created_at"
         ],
         "title": "JobOut",
+        "type": "object"
+      },
+      "JoinRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "maxLength": 100,
+            "minLength": 8,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "JoinRequest",
         "type": "object"
       },
       "LeaseSummary": {
@@ -17565,6 +17959,25 @@
         "title": "RiskWarning",
         "type": "object"
       },
+      "RoleChange": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "RoleChange",
+        "type": "object"
+      },
       "RollComparison": {
         "description": "The estimate made before new results, set beside them line by line, as it stood when the model rolled.",
         "properties": {
@@ -18214,6 +18627,21 @@
           }
         },
         "title": "SettingsValidateRequest",
+        "type": "object"
+      },
+      "ShareRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "team_id": {
+            "format": "uuid",
+            "title": "Team Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "team_id"
+        ],
+        "title": "ShareRequest",
         "type": "object"
       },
       "SheetCell": {
@@ -20050,6 +20478,226 @@
           }
         },
         "title": "TaxSchedule",
+        "type": "object"
+      },
+      "TeamDetail": {
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "people": {
+            "description": "Owners first, then by when they joined",
+            "items": {
+              "$ref": "#/components/schemas/TeamMemberOut"
+            },
+            "title": "People",
+            "type": "array"
+          },
+          "role": {
+            "description": "The caller's role in the team",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "members",
+          "created_at",
+          "people"
+        ],
+        "title": "TeamDetail",
+        "type": "object"
+      },
+      "TeamList": {
+        "properties": {
+          "directory": {
+            "description": "Where people's names come from: none means names aren't shown on this server",
+            "enum": [
+              "clerk",
+              "dev",
+              "none"
+            ],
+            "title": "Directory",
+            "type": "string"
+          },
+          "mail": {
+            "description": "How mentions are emailed: none means they wait until mail is set up",
+            "enum": [
+              "resend",
+              "folder",
+              "outbox",
+              "none"
+            ],
+            "title": "Mail",
+            "type": "string"
+          },
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/TeamSummary"
+            },
+            "title": "Teams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "teams",
+          "directory",
+          "mail"
+        ],
+        "title": "TeamList",
+        "type": "object"
+      },
+      "TeamMemberOut": {
+        "properties": {
+          "joined_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Joined At",
+            "type": "string"
+          },
+          "member_id": {
+            "title": "Member Id",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "From the sign-in provider, never stored; null if unknown",
+            "title": "Name"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "you": {
+            "title": "You",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "member_id",
+          "you",
+          "role",
+          "joined_at"
+        ],
+        "title": "TeamMemberOut",
+        "type": "object"
+      },
+      "TeamName": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "TeamName",
+        "type": "object"
+      },
+      "TeamPerson": {
+        "properties": {
+          "member_id": {
+            "title": "Member Id",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "From the sign-in provider, never stored; null if unknown",
+            "title": "Name"
+          },
+          "you": {
+            "title": "You",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "member_id",
+          "you"
+        ],
+        "title": "TeamPerson",
+        "type": "object"
+      },
+      "TeamSummary": {
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "description": "The caller's role in the team",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "members",
+          "created_at"
+        ],
+        "title": "TeamSummary",
         "type": "object"
       },
       "TrancheIn": {
@@ -23206,6 +23854,191 @@
         ]
       }
     },
+    "/api/deals/{deal_id}/comments": {
+      "get": {
+        "operationId": "list_comments_api_deals__deal_id__comments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Comments",
+        "tags": [
+          "teams"
+        ]
+      },
+      "post": {
+        "operationId": "add_comment_api_deals__deal_id__comments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Comment",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/comments/{comment_id}": {
+      "delete": {
+        "operationId": "delete_comment_api_deals__deal_id__comments__comment_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "comment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Comment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Comment",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
     "/api/deals/{deal_id}/draft": {
       "put": {
         "description": "Autosave the working copy (adds an automatic checkpoint now and then).",
@@ -23934,6 +24767,256 @@
         "summary": "Get Word",
         "tags": [
           "memos"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/people": {
+      "get": {
+        "operationId": "deal_people_api_deals__deal_id__people_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealPeople"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Deal People",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/shares": {
+      "get": {
+        "operationId": "deal_shares_api_deals__deal_id__shares_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealShares"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Deal Shares",
+        "tags": [
+          "teams"
+        ]
+      },
+      "put": {
+        "operationId": "share_deal_api_deals__deal_id__shares_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealShares"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Share Deal",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/shares/{team_id}": {
+      "delete": {
+        "operationId": "unshare_deal_api_deals__deal_id__shares__team_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealShares"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Unshare Deal",
+        "tags": [
+          "teams"
         ]
       }
     },
@@ -29097,6 +30180,631 @@
         "summary": "Post Settings Validate",
         "tags": [
           "settings & integrations"
+        ]
+      }
+    },
+    "/api/teams": {
+      "get": {
+        "operationId": "list_teams_api_teams_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Teams",
+        "tags": [
+          "teams"
+        ]
+      },
+      "post": {
+        "operationId": "create_team_api_teams_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamName"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Team",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/teams/join": {
+      "post": {
+        "operationId": "join_team_api_teams_join_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Join Team",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/teams/{team_id}": {
+      "delete": {
+        "operationId": "delete_team_api_teams__team_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Team",
+        "tags": [
+          "teams"
+        ]
+      },
+      "get": {
+        "operationId": "get_team_api_teams__team_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Team",
+        "tags": [
+          "teams"
+        ]
+      },
+      "patch": {
+        "operationId": "rename_team_api_teams__team_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamName"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rename Team",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/teams/{team_id}/invites": {
+      "get": {
+        "operationId": "list_invites_api_teams__team_id__invites_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Invites",
+        "tags": [
+          "teams"
+        ]
+      },
+      "post": {
+        "operationId": "create_invite_api_teams__team_id__invites_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Invite",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/teams/{team_id}/invites/{invite_id}": {
+      "delete": {
+        "operationId": "withdraw_invite_api_teams__team_id__invites__invite_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Invite Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Withdraw Invite",
+        "tags": [
+          "teams"
+        ]
+      }
+    },
+    "/api/teams/{team_id}/members/{member_id}": {
+      "delete": {
+        "operationId": "remove_member_api_teams__team_id__members__member_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "title": "Member Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Member",
+        "tags": [
+          "teams"
+        ]
+      },
+      "put": {
+        "operationId": "set_role_api_teams__team_id__members__member_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Team Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "title": "Member Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Role",
+        "tags": [
+          "teams"
         ]
       }
     },

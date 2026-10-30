@@ -1,6 +1,6 @@
 "use client";
 
-import { MagnifyingGlassIcon, QuestionIcon, UserIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, QuestionIcon, UserIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -112,6 +112,16 @@ export function TopBar() {
         <QuestionIcon size={13} weight="bold" aria-hidden />
         <span>{help("topBarLink")}</span>
         {unseen && <span data-unseen aria-hidden className="absolute top-2 end-2 size-1.5 bg-accent" />}
+      </Link>
+
+      {/* Teams (PLAN.md 7.2): the caller's teams, their people and invitation links */}
+      <Link
+        href="/teams"
+        aria-current={pathname.startsWith("/teams") ? "page" : undefined}
+        className={`type-tab flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap hover:text-ink ${pathname.startsWith("/teams") ? "bg-raised" : ""}`}
+      >
+        <UsersThreeIcon size={13} weight="bold" aria-hidden />
+        <span>{t("teamsLink")}</span>
       </Link>
 
       <Link

@@ -295,7 +295,13 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  "report_saved", "report_details_saved",
                  # The person drafted an investment memo of a deal's version, had its sentences written, or
                  # deleted it (PLAN.md 6.3)
-                 "memo_drafted", "memo_written", "memo_deleted")
+                 "memo_drafted", "memo_written", "memo_deleted",
+                 # Teams (PLAN.md 7.2): a deal shared with a team or no longer; a comment on a deal written or
+                 # deleted; a team made, renamed or deleted, an invitation made, a person joining or leaving,
+                 # removed, or given another role. "shared" (reserved since 3.3) is the first of them
+                 "unshared", "commented", "comment_deleted",
+                 "team_created", "team_renamed", "team_deleted", "team_invited", "team_joined", "team_left",
+                 "team_member_removed", "team_role_changed")
 
 
 class AuditEvent(Base):
@@ -1005,3 +1011,121 @@ class AiUsage(Base):
     cost_amount: Mapped[Decimal] = mapped_column(MoneyAmount, nullable=False, server_default="0")
     cost_currency: Mapped[str] = mapped_column(CurrencyCode, nullable=False, server_default="USD")
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+TEAM_ROLES = ("owner", "editor", "viewer")
+INVITE_ROLES = ("editor", "viewer")
+NOTICE_OUTCOMES = ("sent", "no_address", "expired", "failed")
+
+
+class Team(Base):
+    """A team (PLAN.md 7.2): people who share deals, each with a role in it.
+
+    The name is the team's, typed by an owner (like a deal's name); who is in it is ``team_members``, by user id
+    only. Names and email addresses of the people stay with the identity provider (teams/directory.py reads them
+    when a screen or an email needs them, and keeps nothing).
+    """
+
+    __tablename__ = "teams"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class TeamMember(Base):
+    """One person in one team, and their role: ``owner`` runs the team and edits its deals, ``editor`` edits its
+    deals, ``viewer`` reads them. Both may comment. A team always keeps an owner (db/teams.py)."""
+
+    __tablename__ = "team_members"
+    __table_args__ = (
+        CheckConstraint("role IN ('owner', 'editor', 'viewer')", name="role"),
+        Index("ix_team_members_user_id", "user_id"),
+    )
+
+    team_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("teams.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    role: Mapped[str] = mapped_column(String(10), nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class TeamInvite(Base):
+    """A link that lets whoever opens it, signed in, join a team as an editor or a viewer (PLAN.md 7.2).
+
+    Only the SHA-256 of its token is kept, so the database can't hand a link out again; it ends at
+    ``expires_at`` or when ``uses_left`` reaches nought, and an owner can withdraw it.
+    """
+
+    __tablename__ = "team_invites"
+    __table_args__ = (
+        CheckConstraint("role IN ('editor', 'viewer')", name="role"),
+        CheckConstraint("uses_left >= 0", name="uses_left"),
+        Index("ix_team_invites_team_id", "team_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    team_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    role: Mapped[str] = mapped_column(String(10), nullable=False)
+    uses_left: Mapped[int] = mapped_column(Integer, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class DealShare(Base):
+    """A deal its owner shared with one of their teams (PLAN.md 7.2): its members read or edit it by their role
+    in that team. Unsharing, the owner leaving the team, or deleting the deal or the team removes the row."""
+
+    __tablename__ = "deal_shares"
+    __table_args__ = (
+        Index("ix_deal_shares_team_id", "team_id"),
+    )
+
+    deal_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("deals.id", ondelete="CASCADE"), primary_key=True)
+    team_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("teams.id", ondelete="CASCADE"), primary_key=True)
+    shared_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class DealComment(Base):
+    """A comment on a deal by someone who can read it (PLAN.md 7.2).
+
+    ``body`` is the person's own words, up to 2,000 characters: deal content, so never logged, never in an audit
+    entry and never in an email. ``mentions`` lists the user ids it names; each gets a ``mention_notices`` row.
+    """
+
+    __tablename__ = "deal_comments"
+    __table_args__ = (
+        CheckConstraint("char_length(body) BETWEEN 1 AND 2000", name="body"),
+        Index("ix_deal_comments_deal_id_created_at", "deal_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    deal_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("deals.id", ondelete="CASCADE"), nullable=False)
+    author_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    mentions: Mapped[list] = mapped_column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+class MentionNotice(Base):
+    """An email owed to someone mentioned in a comment (PLAN.md 7.2). Sent in batches (teams/notices.py): one email
+    per person at most every ``BATCH_HOURS``, within the mail service's free daily and monthly sends; ``outcome``
+    says what became of it, and a notice not sent within ``EXPIRE_DAYS`` is dropped as ``expired``."""
+
+    __tablename__ = "mention_notices"
+    __table_args__ = (
+        CheckConstraint("outcome IN ('sent', 'no_address', 'expired', 'failed')", name="outcome"),
+        Index("ix_mention_notices_recipient_id_sent_at", "recipient_id", "sent_at"),
+        Index("ix_mention_notices_sent_at", "sent_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    comment_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("deal_comments.id", ondelete="CASCADE"), nullable=False)
+    recipient_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    sent_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    outcome: Mapped[Optional[str]] = mapped_column(String(12), nullable=True)

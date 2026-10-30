@@ -60,7 +60,7 @@ def task(name: str, description: str):
 @task("job-maintenance", "Requeue or fail jobs whose runner went silent; apply retention; "
                           "merge old audit edits (PLAN.md 3.3); delete uploaded files past their time "
                           "(PLAN.md 6.1); end the Excel add-in's expired sign-ins (PLAN.md R3); sum yesterday's "
-                          "AI use and delete old counts (PLAN.md R9).")
+                          "AI use and delete old counts (PLAN.md R9); email mentions left waiting (PLAN.md 7.2).")
 def job_maintenance() -> dict:
     queue = config.get_queue()
     recovered = queue.recover()
@@ -77,6 +77,9 @@ def job_maintenance() -> dict:
                "ai_requests_yesterday": yesterday["requests"], "ai_pages_yesterday": yesterday["pages"],
                "ai_cost_usd_yesterday": float(yesterday["cost"]), "ai_people_yesterday": yesterday["people"],
                "ai_usage_rows_deleted": ai_usage.sweep()}
+    # Mentions left waiting by their batch window or a mail outage (PLAN.md 7.2)
+    from teams import notices
+    summary.update(notices.send_pending())
     # Uploaded files (PLAN.md 6.1) last: a file store that can't be reached
     # fails the run, so it alerts, after everything else was done
     from uploads import service
