@@ -163,7 +163,7 @@ def _chart_ref(number: int) -> str:
             f'</a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>')
 
 
-def word(draft: Draft, title: str, now: datetime.datetime | None = None) -> bytes:
+def word(draft: Draft, title: str, now: datetime.datetime | None = None, lang: str = "en-GB") -> bytes:
     """The checked draft as a .docx file."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     body, charts = [], []
@@ -206,7 +206,7 @@ def word(draft: Draft, title: str, now: datetime.datetime | None = None) -> byte
             f'openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStyles" Type="{R}/styles" '
             f'Target="styles.xml"/>{chart_rels}</Relationships>'),
         "word/document.xml": document,
-        "word/styles.xml": STYLES,
+        "word/styles.xml": STYLES.replace('w:val="en-GB"', 'w:val="%s"' % _x(lang)),
         "docProps/core.xml": (
             '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.'
             'openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" '

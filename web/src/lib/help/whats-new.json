@@ -1,6 +1,7 @@
 {
   "entries": [
     { "id": "onboarding", "date": "2026-10-29", "href": "/deal/guided" },
+    { "id": "memo", "date": "2026-10-29", "href": "/deal/memo" },
     { "id": "explanations", "date": "2026-10-26", "href": "/deal/returns" },
     { "id": "documentToDeal", "date": "2026-10-21", "href": "/deal/from-document" },
     { "id": "resultsNote", "date": "2026-10-20", "href": "/coverage/report" },

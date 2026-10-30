@@ -36,6 +36,7 @@ export const MODES: Mode[] = [
       { slug: "saved", labelKey: "dealSaved", summaryKey: "dealSavedSummary" },
       { slug: "documents", labelKey: "dealDocuments", summaryKey: "dealDocumentsSummary" },
       { slug: "from-document", labelKey: "dealFromDocument", summaryKey: "dealFromDocumentSummary" },
+      { slug: "memo", labelKey: "dealMemo", summaryKey: "dealMemoSummary" },
       // Onboarding (PLAN.md 7.1): a first deal from four answers, or a sample deal
       { slug: "guided", labelKey: "dealGuided", summaryKey: "dealGuidedSummary" },
     ],

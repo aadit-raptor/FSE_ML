@@ -419,11 +419,12 @@
             "type": "integer"
           },
           "kind": {
-            "description": "read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2)",
+            "description": "read: a results read (R1); write: a note's sentences (R8); extract: a document read for a deal (6.2); memo: an investment memo's sentences (6.3)",
             "enum": [
               "read",
               "write",
-              "extract"
+              "extract",
+              "memo"
             ],
             "title": "Kind",
             "type": "string"
@@ -648,7 +649,10 @@
               "model_restored",
               "model_rolled",
               "report_saved",
-              "report_details_saved"
+              "report_details_saved",
+              "memo_drafted",
+              "memo_written",
+              "memo_deleted"
             ],
             "title": "Action",
             "type": "string"
@@ -708,7 +712,9 @@
                   "results_workbook",
                   "results_excel",
                   "report_word",
-                  "report_pdf"
+                  "report_pdf",
+                  "memo_word",
+                  "memo_pdf"
                 ],
                 "type": "string"
               },
@@ -8808,7 +8814,8 @@
               "backtesting.run",
               "forecasting.run",
               "research.read",
-              "document.extract"
+              "document.extract",
+              "memo.draft"
             ],
             "title": "Kind",
             "type": "string"
@@ -9393,6 +9400,293 @@
           }
         },
         "title": "MCInputsIn",
+        "type": "object"
+      },
+      "MemoDrafted": {
+        "description": "A memo job's result: the version whose memo was drafted.",
+        "properties": {
+          "changed": {
+            "description": "False when the run came out exactly as the memo already held it",
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "changed"
+        ],
+        "title": "MemoDrafted",
+        "type": "object"
+      },
+      "MemoJobOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why it failed, for people",
+            "title": "Error"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Status"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemoDrafted"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_expired": {
+            "default": false,
+            "title": "Result Expired",
+            "type": "boolean"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "progress",
+          "stage"
+        ],
+        "title": "MemoJobOut",
+        "type": "object"
+      },
+      "MemoList": {
+        "properties": {
+          "max_memos": {
+            "title": "Max Memos",
+            "type": "integer"
+          },
+          "memos": {
+            "items": {
+              "$ref": "#/components/schemas/MemoSummary"
+            },
+            "title": "Memos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "memos",
+          "max_memos"
+        ],
+        "title": "MemoList",
+        "type": "object"
+      },
+      "MemoOut": {
+        "description": "An investment memo, drawn from its stored model run and checked figure by figure.",
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/ReportBlock"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "current": {
+            "title": "Current",
+            "type": "boolean"
+          },
+          "deal_id": {
+            "title": "Deal Id",
+            "type": "string"
+          },
+          "deal_name": {
+            "title": "Deal Name",
+            "type": "string"
+          },
+          "drafted_at": {
+            "title": "Drafted At",
+            "type": "string"
+          },
+          "engine_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Version"
+          },
+          "language": {
+            "description": "The catalogue its words are in (web/messages)",
+            "title": "Language",
+            "type": "string"
+          },
+          "sentences": {
+            "items": {
+              "$ref": "#/components/schemas/MemoSentence"
+            },
+            "title": "Sentences",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "written_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The AI model that wrote the stored sentences, if one did",
+            "title": "Written By"
+          }
+        },
+        "required": [
+          "deal_id",
+          "deal_name",
+          "version",
+          "drafted_at",
+          "current",
+          "language",
+          "sentences",
+          "blocks"
+        ],
+        "title": "MemoOut",
+        "type": "object"
+      },
+      "MemoSentence": {
+        "properties": {
+          "section": {
+            "enum": [
+              "summary",
+              "metrics",
+              "drivers",
+              "scenarios",
+              "plan"
+            ],
+            "title": "Section",
+            "type": "string"
+          },
+          "source": {
+            "description": "Who wrote it: the AI, or the template and why",
+            "enum": [
+              "ai",
+              "template",
+              "ai_off",
+              "ai_failed",
+              "ai_refused",
+              "not_english"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "section",
+          "source"
+        ],
+        "title": "MemoSentence",
+        "type": "object"
+      },
+      "MemoStart": {
+        "additionalProperties": false,
+        "description": "Draft the memo of one saved version of a deal (PLAN.md 6.3).",
+        "properties": {
+          "version": {
+            "description": "The saved version's number",
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "MemoStart",
+        "type": "object"
+      },
+      "MemoSummary": {
+        "properties": {
+          "current": {
+            "description": "False when the engine has changed since the run: drafting again moves figures",
+            "title": "Current",
+            "type": "boolean"
+          },
+          "drafted_at": {
+            "description": "UTC, ISO 8601: when the memo's run was made",
+            "title": "Drafted At",
+            "type": "string"
+          },
+          "engine_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Version"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "drafted_at",
+          "current"
+        ],
+        "title": "MemoSummary",
         "type": "object"
       },
       "ModelBlockOut": {
@@ -23127,6 +23421,519 @@
         "summary": "Deal History",
         "tags": [
           "saved deals"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/memos": {
+      "get": {
+        "operationId": "get_memos_api_deals__deal_id__memos_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Memos",
+        "tags": [
+          "memos"
+        ]
+      },
+      "post": {
+        "description": "Draft (or draft again) a version's memo, as a background job: the version runs through the model.",
+        "operationId": "post_memo_api_deals__deal_id__memos_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemoStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Memo",
+        "tags": [
+          "memos"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/memos/jobs/{job_id}": {
+      "get": {
+        "description": "A draft's progress. Another account's job, or another kind, is a 404 (a job is the caller's whatever the\ndeal in the address: the queue keeps no payload once it has run).",
+        "operationId": "get_memo_job_api_deals__deal_id__memos_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Memo Job",
+        "tags": [
+          "memos"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/memos/{version}": {
+      "delete": {
+        "operationId": "delete_memo_api_deals__deal_id__memos__version__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Memo",
+        "tags": [
+          "memos"
+        ]
+      },
+      "get": {
+        "operationId": "get_memo_api_deals__deal_id__memos__version__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Memo",
+        "tags": [
+          "memos"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/memos/{version}/pdf": {
+      "get": {
+        "operationId": "get_pdf_api_deals__deal_id__memos__version__pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "The memo as a PDF"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Pdf",
+        "tags": [
+          "memos"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/memos/{version}/sentences": {
+      "post": {
+        "description": "The linking sentences written again: by the AI when one is set up and the reader reads English (its answer\nchecked, a section that breaks a rule written by its template), else by the templates. Kept with the memo.",
+        "operationId": "post_sentences_api_deals__deal_id__memos__version__sentences_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Sentences",
+        "tags": [
+          "memos"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/memos/{version}/word": {
+      "get": {
+        "operationId": "get_word_api_deals__deal_id__memos__version__word_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {}
+            },
+            "description": "The memo as a Word file, its chart a native Word chart"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Word",
+        "tags": [
+          "memos"
         ]
       }
     },
