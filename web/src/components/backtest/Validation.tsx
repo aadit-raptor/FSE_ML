@@ -284,7 +284,7 @@ export function ValidationConsent({ dealId }: { dealId: string }) {
   };
   return (
     <RailGroup title={t("groupConsent")}>
-      {optIn !== null && <Switch checked={optIn} onChange={(v) => void change(v)} label={t("consentLabel")} />}
+      {optIn !== null && <Switch checked={optIn} onChange={(v) => void change(v)} label={t("consentLabel")} tip="validationConsent" />}
       <p className="type-body text-[9px]">{t("consentNote")}</p>
       {failed && (
         <p className="type-body text-[9px] text-loss" role="alert">

@@ -117,14 +117,14 @@ function SettingField({ def }: { def: Def }) {
   if (typeof v === "boolean") {
     return (
       <div className="flex items-center justify-between py-1">
-        <Switch checked={v} onChange={(on) => set(def.key, on)} label={label} />
+        <Switch checked={v} onChange={(on) => set(def.key, on)} label={label} tip={`settings_${def.key}`} />
       </div>
     );
   }
   if (typeof v !== "number") return null;
   return (
     <div className="grid grid-cols-[1fr_auto] items-start gap-2">
-      <NumberField spec={def.spec} label={label} value={v} onCommit={(n) => set(def.key, n)} changed={changed} />
+      <NumberField spec={def.spec} label={label} tip={`settings_${def.key}`} value={v} onCommit={(n) => set(def.key, n)} changed={changed} />
       <span className="flex h-[22px] w-[74px] items-center justify-end gap-1.5">
         {changed && defaults && (
           <button
@@ -352,6 +352,7 @@ function Correlations() {
                     <td key={col.id} className="px-1 py-0.5">
                       <CellInput
                         label={t("correlationCell", { row: t(row.labelKey), column: t(col.labelKey) })}
+                        tip="correlation"
                         value={v}
                         decimals={2}
                         onCommit={(n) => set(k, Math.max(-1, Math.min(1, n)))}
@@ -430,6 +431,7 @@ function Presets() {
                     <div className="grid grid-cols-[1fr_24px] items-center gap-1">
                       <CellInput
                         label={t("presetCell", { preset: t(p.labelKey), column: headers[i] })}
+                        tip={`settings_${k}`}
                         value={Number(effective[k])}
                         decimals={2}
                         onCommit={(n) => set(k, n)}
@@ -443,6 +445,7 @@ function Presets() {
                     <div className="grid grid-cols-[1fr_24px] items-center gap-1">
                       <CellInput
                         label={t("presetFloorCell", { preset: t(p.labelKey) })}
+                        tip={`settings_${p.floor}`}
                         value={Number(effective[p.floor])}
                         decimals={1}
                         onCommit={(n) => set(p.floor, n)}

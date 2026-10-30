@@ -9,6 +9,7 @@ import { useSession } from "@/components/auth/AuthProvider";
 import { PrimaryButton } from "@/components/ui/Screen";
 import { DEV_USER, isDevUserName } from "@/lib/auth/dev";
 import { AFTER_SIGN_IN, AFTER_SIGN_UP, AUTH_MODE } from "@/lib/auth/mode";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Sign-in and sign-up (PLAN.md 1.4).
@@ -64,6 +65,7 @@ function DeveloperSignIn({ heading }: { heading: string }) {
   const params = useSearchParams();
   const [name, setName] = useState(DEV_USER);
   const valid = isDevUserName(name);
+  const userTip = useTip("devUser");
 
   return (
     <Frame
@@ -71,15 +73,17 @@ function DeveloperSignIn({ heading }: { heading: string }) {
       hint={t("devHint")}
     >
       <label className="grid gap-1.5">
-        <span className="type-input-group">{t("devUser")}</span>
-        <input
+        <span className="type-input-group"><TipLabel tip={userTip}>{t("devUser")}</TipLabel></span>
+        <input aria-describedby={userTip.id}
           aria-label={t("devUser")}
+          data-dev-user="page"
           value={name}
           autoComplete="off"
           onChange={(e) => setName(e.target.value)}
           className="border border-line bg-field px-2 py-1.5 font-mono text-[12px] text-ink outline-none focus:border-accent"
         />
       </label>
+        <TipText tip={userTip} />
       {!valid && (
         <p role="alert" className="font-mono text-[10px] text-loss">
           {t("devNameRule")}
@@ -143,6 +147,7 @@ export function SignUpScreen() {
 export function DialogSignIn({ redirectTo }: { redirectTo: string }) {
   const t = useTranslations("auth");
   const { signInAsDeveloper } = useSession();
+  const userTip = useTip("devUser");
   const [name, setName] = useState(DEV_USER);
   if (AUTH_MODE !== "clerk") {
     const valid = isDevUserName(name);
@@ -150,15 +155,17 @@ export function DialogSignIn({ redirectTo }: { redirectTo: string }) {
       <div className="grid gap-3">
         <p className="type-body">{t("devHint")}</p>
         <label className="grid gap-1.5">
-          <span className="type-input-group">{t("devUser")}</span>
-          <input
+          <span className="type-input-group"><TipLabel tip={userTip}>{t("devUser")}</TipLabel></span>
+          <input aria-describedby={userTip.id}
             aria-label={t("devUser")}
+            data-dev-user="dialog"
             value={name}
             autoComplete="off"
             onChange={(e) => setName(e.target.value)}
             className="border border-line bg-field px-2 py-1.5 font-mono text-[12px] text-ink outline-none focus:border-accent"
           />
         </label>
+          <TipText tip={userTip} />
         <div>
           <PrimaryButton disabled={!valid} onClick={() => signInAsDeveloper?.(name)}>
             {t("signIn")}

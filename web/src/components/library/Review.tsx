@@ -22,6 +22,7 @@ import { formatDateTime } from "@/lib/locale";
 
 import { LibraryGate } from "./LibraryGate";
 import { ReferenceDealTile } from "./References";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 type Problem = Schemas["RuleProblem"];
 type Outcome = { tone: "info" | "loss" | "attention"; text: string };
@@ -130,6 +131,7 @@ function ApprovalChip({ proposal }: { proposal: ReviewProposal }) {
 
 /** i18n-keys: library.problem_*, library.dimension_*, library.reason_*, library.reviewRefused_*, library.reviewAdminsOnly, library.reviewNoDatabase */
 function Decision({ proposal, onAnswer }: { proposal: ReviewProposal; onAnswer: (a: ReviewAnswer, done: string) => void }) {
+  const reasonTip = useTip("rejectReason");
   const t = useTranslations("library");
   const [reason, setReason] = useState<RejectReason>("figure_wrong");
   const [busy, setBusy] = useState(false);
@@ -177,8 +179,8 @@ function Decision({ proposal, onAnswer }: { proposal: ReviewProposal; onAnswer: 
                 {t("approve")}
               </PrimaryButton>
               <label className="grid grid-cols-[minmax(0,1fr)_160px] items-center gap-1.5">
-                <span className="type-input-label">{t("rejectReason")}</span>
-                <select value={reason} onChange={(e) => setReason(e.target.value as RejectReason)} className={SELECT_CLASS}>
+                <span className="type-input-label"><TipLabel tip={reasonTip}>{t("rejectReason")}</TipLabel></span>
+                <select aria-describedby={reasonTip.id} value={reason} onChange={(e) => setReason(e.target.value as RejectReason)} className={SELECT_CLASS}>
                   {REJECT_REASONS.map((r) => (
                     <option key={r} value={r}>
                       {t(`reason_${r}`)}
@@ -186,6 +188,7 @@ function Decision({ proposal, onAnswer }: { proposal: ReviewProposal; onAnswer: 
                   ))}
                 </select>
               </label>
+              <TipText tip={reasonTip} />
               <SecondaryButton onClick={() => void send("reject")} disabled={busy}>
                 {t("reject")}
               </SecondaryButton>
@@ -252,6 +255,7 @@ function Decided({ proposals }: { proposals: ReviewProposal[] }) {
 function ProposeFromFile({ onAnswer }: { onAnswer: (a: ReviewAnswer, done: string) => void }) {
   const t = useTranslations("library");
   const file = useRef<HTMLInputElement>(null);
+  const fileTip = useTip("proposeFile");
   const [failed, setFailed] = useState(false);
   const onFile = async (f: File | undefined) => {
     if (!f) return;
@@ -269,9 +273,10 @@ function ProposeFromFile({ onAnswer }: { onAnswer: (a: ReviewAnswer, done: strin
   return (
     <RailGroup title={t("groupPropose")}>
       <p className="type-body text-[9px]">{t("proposeRail")}</p>
-      <input ref={file} type="file" accept=".json,application/json" className="sr-only" aria-label={t("proposeFile")} onChange={(e) => void onFile(e.target.files?.[0])} />
+      <input aria-describedby={fileTip.id} ref={file} type="file" accept=".json,application/json" className="sr-only" aria-label={t("proposeFile")} onChange={(e) => void onFile(e.target.files?.[0])} />
+      <TipText tip={fileTip} />
       <div>
-        <SecondaryButton onClick={() => file.current?.click()}>{t("proposeFile")}</SecondaryButton>
+        <SecondaryButton onClick={() => file.current?.click()} describedBy={fileTip.id}>{t("proposeFile")}</SecondaryButton>
       </div>
       {failed && <p className="font-mono text-[10px] text-loss">{t("proposeNotJson")}</p>}
     </RailGroup>

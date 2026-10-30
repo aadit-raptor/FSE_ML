@@ -11,6 +11,7 @@ import { listCoverage, type CoverageCompany } from "@/lib/research";
 
 import { ModelInPane } from "./ModelInPane";
 import { ReadInPane } from "./ReadInPane";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * The Excel add-in's task pane (PLAN.md R3, /excel): sign in through Office's dialog, then import a covered
@@ -129,6 +130,8 @@ function Pane({ children }: { children: React.ReactNode }) {
 function SignedIn({ office }: { office: Office }) {
   const t = useTranslations("excel");
   const reader = useTranslations("reader");
+  const companyTip = useTip("paneCompany");
+  const periodTip = useTip("panePeriod");
   const [companies, setCompanies] = useState<CoverageCompany[] | null>(null);
   const [companyId, setCompanyId] = useState("");
   const [periodId, setPeriodId] = useState("");
@@ -184,12 +187,13 @@ function SignedIn({ office }: { office: Office }) {
     <>
       <section className="grid gap-2.5">
         <h2 className="type-input-group">{t("importTitle")}</h2>
+        <TipText tip={periodTip} />
         {companies !== null && companies.length === 0 && <p className="type-body">{t("noCompanies")}</p>}
         {companies !== null && companies.length > 0 && (
           <>
             <label className="grid gap-1">
-              <span className="type-input-label">{t("company")}</span>
-              <select
+              <span className="type-input-label"><TipLabel tip={companyTip}>{t("company")}</TipLabel></span>
+              <select aria-describedby={companyTip.id}
                 value={company?.id ?? ""}
                 onChange={(e) => {
                   setCompanyId(e.target.value);
@@ -204,12 +208,13 @@ function SignedIn({ office }: { office: Office }) {
                 ))}
               </select>
             </label>
+            <TipText tip={companyTip} />
             {periods.length === 0 ? (
               <p className="type-body">{t("noPeriods")}</p>
             ) : (
               <label className="grid gap-1">
-                <span className="type-input-label">{t("period")}</span>
-                <select
+                <span className="type-input-label"><TipLabel tip={periodTip}>{t("period")}</TipLabel></span>
+                <select aria-describedby={periodTip.id}
                   value={period?.id ?? ""}
                   onChange={(e) => setPeriodId(e.target.value)}
                   className="border border-line bg-field px-2 py-1.5 text-[12px] text-ink"

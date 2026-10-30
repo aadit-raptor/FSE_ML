@@ -47,7 +47,7 @@ export function LibrarySwitch() {
   };
   return (
     <div className="grid gap-1.5" aria-busy={busy}>
-      <Switch checked={state.enabled} onChange={(on) => void change(on)} label={t("switchLabel")} />
+      <Switch checked={state.enabled} onChange={(on) => void change(on)} label={t("switchLabel")} tip="librarySwitch" />
       <p className="type-body text-[9px]" data-testid="library-switch-state">
         {state.enabled ? t("shownToEveryone") : t("hiddenFromEveryone")}
         {state.updated_at ? ` ${t("switchedAt", { at: formatDateTime(new Date(state.updated_at)) })}` : ""}

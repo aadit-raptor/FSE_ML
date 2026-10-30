@@ -23,6 +23,7 @@ import { CompanyFiguresTile } from "@/components/companies/CompanyFigures";
 import { CompanyPanel } from "@/components/companies/CompanyPanel";
 
 import { type ForecastRun, type Standard, useForecast } from "./ForecastProvider";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 function Rail() {
   const { source, resetSample, metrics, status, result, money, setMoney, fiscal, setFiscal, histLabels, standard, setStandard } =
@@ -31,6 +32,7 @@ function Rail() {
   const dealText = useTranslations("deal");
   const fiscalText = useTranslations("fiscal");
   const companyText = useTranslations("companies");
+  const standardTip = useTip("forecastStandard");
   const latest = metrics?.at(-1);
   return (
     <>
@@ -45,8 +47,8 @@ function Rail() {
       </RailGroup>
       <RailGroup title={t("groupStandard")}>
         <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-          <span className="type-input-label">{t("groupStandard")}</span>
-          <select value={standard} onChange={(e) => setStandard(e.target.value as Standard)} className={SELECT_CLASS}>
+          <span className="type-input-label"><TipLabel tip={standardTip}>{t("groupStandard")}</TipLabel></span>
+          <select aria-describedby={standardTip.id} value={standard} onChange={(e) => setStandard(e.target.value as Standard)} className={SELECT_CLASS}>
             {STANDARDS.map((s) => (
               <option key={s} value={s}>
                 {dealText(`standard_${s}`)}
@@ -54,6 +56,7 @@ function Rail() {
             ))}
           </select>
         </label>
+        <TipText tip={standardTip} />
       </RailGroup>
       <RailGroup title={companyText("group")}>
         <CompanyPanel />
@@ -77,7 +80,7 @@ function Rail() {
         </div>
       </RailGroup>
       <RailGroup title={t("groupFiscal")}>
-        <FiscalSelects fiscal={fiscal} onChange={setFiscal} of={t("of")} yearLabel={fiscalText("latestFiscalYear")} />
+        <FiscalSelects fiscal={fiscal} onChange={setFiscal} of={t("of")} yearLabel={fiscalText("latestFiscalYear")} yearTip="latestFiscalYear" />
       </RailGroup>
       {latest && (
         <RailGroup title={t("groupRatios")}>
@@ -239,7 +242,7 @@ function EditableGrid({
               </th>
               {columns.map((c, i) => (
                 <td key={c} className="px-1 py-0.5">
-                  <CellInput label={t("cellLabel", { row: rowLabel(key), column: c })} value={values[key]?.[i] ?? NaN} onCommit={(v) => onCommit(key, i, v)} />
+                  <CellInput label={t("cellLabel", { row: rowLabel(key), column: c })} tip={`forecast_${key}`} value={values[key]?.[i] ?? NaN} onCommit={(v) => onCommit(key, i, v)} />
                 </td>
               ))}
               {extra && <td className="py-0.5 ps-2 whitespace-nowrap">{extra(key)}</td>}

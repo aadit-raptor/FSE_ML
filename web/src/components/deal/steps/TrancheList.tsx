@@ -27,6 +27,7 @@ import { periodLabel } from "@/lib/locale";
 import { MONEY } from "@/lib/money";
 
 import { useDeal } from "../DealProvider";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 // Bounds mirror TrancheIn in api/schemas.py
 const pct = (max: number, min = 0, step = 0.25): FieldSpec => ({ unit: "%", step, decimals: 2, min, max });
@@ -79,6 +80,7 @@ export function TrancheList() {
   const [adding, setAdding] = useState<TrancheKind>("senior_notes");
   const rates = useReferenceRates();
   const listId = useId();
+  const addTip = useTip("addTrancheKind");
   const tranches = inputs.tranches.map(fullTranche);
   // Rows are keyed by position, so a move or a removal remounts them: put the
   // keyboard back on the row that moved (or the one that took its place)
@@ -153,13 +155,14 @@ export function TrancheList() {
         ))}
       </ol>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 pt-2">
-        <select aria-label={t("addTrancheKind")} value={adding} onChange={(e) => setAdding(e.target.value as TrancheKind)} className={SELECT_CLASS}>
+        <select aria-describedby={addTip.id} aria-label={t("addTrancheKind")} value={adding} onChange={(e) => setAdding(e.target.value as TrancheKind)} className={SELECT_CLASS}>
           {TRANCHE_KINDS.map((k) => (
             <option key={k} value={k}>
               {kinds(k)}
             </option>
           ))}
         </select>
+        <TipText tip={addTip} />
         <SecondaryButton
           onClick={() => {
             write([...tranches, startOnBenchmark(rates, inputs.currency ?? "", newTranche(adding, kinds(adding)))]);
@@ -193,6 +196,9 @@ function TrancheFields({
   const kinds = useTranslations("trancheKinds");
   const rates = useTranslations("referenceRates");
   const nameId = useId();
+  const nameTip = useTip("tranche_name");
+  const kindTip = useTip("tranche_kind");
+  const referenceTip = useTip("tranche_reference_rate");
   // The API needs a name: an emptied field waits for the next letter, and
   // leaving it empty puts the last name back
   const [nameDraft, setNameDraft] = useState<string | null>(null);
@@ -200,6 +206,7 @@ function TrancheFields({
     <NumberField
       spec={SPECS[key]}
       label={fields(`tranche_${key}`)}
+      tip={`tranche_${key}`}
       value={tr[key] as number}
       onCommit={(v) => onChange({ [key]: v })}
       disabled={disabled}
@@ -210,9 +217,9 @@ function TrancheFields({
     <div id={id} className="grid grid-cols-[minmax(0,1fr)] gap-0.5 ps-2">
       <div className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
         <label htmlFor={nameId} className="type-input-label">
-          {fields("tranche_name")}
+          <TipLabel tip={nameTip}>{fields("tranche_name")}</TipLabel>
         </label>
-        <input
+        <input aria-describedby={nameTip.id}
           id={nameId}
           value={nameDraft ?? tr.name}
           maxLength={60}
@@ -224,10 +231,11 @@ function TrancheFields({
           onBlur={() => setNameDraft(null)}
           className="min-w-0 border border-line bg-field px-1.5 py-0.5 font-mono text-[11px] text-ink outline-none focus:border-accent"
         />
+        <TipText tip={nameTip} />
       </div>
       <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-        <span className="type-input-label">{fields("tranche_kind")}</span>
-        <select value={tr.kind} onChange={(e) => onKind(e.target.value as TrancheKind)} className={SELECT_CLASS}>
+        <span className="type-input-label"><TipLabel tip={kindTip}>{fields("tranche_kind")}</TipLabel></span>
+        <select aria-describedby={kindTip.id} value={tr.kind} onChange={(e) => onKind(e.target.value as TrancheKind)} className={SELECT_CLASS}>
           {TRANCHE_KINDS.map((k) => (
             <option key={k} value={k}>
               {kinds(k)}
@@ -235,16 +243,17 @@ function TrancheFields({
           ))}
         </select>
       </label>
+      <TipText tip={kindTip} />
       {field("amount")}
       {field("drawn_pct")}
       <div className="py-1">
-        <Switch checked={tr.floating} onChange={(v) => onChange({ floating: v })} label={fields("tranche_floating")} />
+        <Switch checked={tr.floating} onChange={(v) => onChange({ floating: v })} label={fields("tranche_floating")} tip="tranche_floating" />
       </div>
       {tr.floating ? (
         <>
           <label className="grid grid-cols-[minmax(0,1fr)_128px] items-center gap-1.5 py-px">
-            <span className="type-input-label">{fields("tranche_reference_rate")}</span>
-            <select value={tr.reference_rate} onChange={(e) => onChange(chooseBenchmark(current, tr, e.target.value as ReferenceRate))} className={SELECT_CLASS}>
+            <span className="type-input-label"><TipLabel tip={referenceTip}>{fields("tranche_reference_rate")}</TipLabel></span>
+            <select aria-describedby={referenceTip.id} value={tr.reference_rate} onChange={(e) => onChange(chooseBenchmark(current, tr, e.target.value as ReferenceRate))} className={SELECT_CLASS}>
               {REFERENCE_RATES.map((r) => (
                 <option key={r} value={r}>
                   {rates(r)}
@@ -252,6 +261,7 @@ function TrancheFields({
               ))}
             </select>
           </label>
+          <TipText tip={referenceTip} />
           <CurrentReference tranche={tr} rates={current} onChange={onChange} />
           <RatePath tranche={tr} onChange={onChange} />
           {field("floor")}
@@ -265,12 +275,12 @@ function TrancheFields({
       {field("upfront_fee_pct")}
       {field("commitment_fee_pct")}
       <div className="py-1">
-        <Switch checked={tr.sweep} onChange={(v) => onChange({ sweep: v })} label={fields("tranche_sweep")} />
+        <Switch checked={tr.sweep} onChange={(v) => onChange({ sweep: v })} label={fields("tranche_sweep")} tip="tranche_sweep" />
       </div>
       {field("sweep_share", !tr.sweep)}
       {field("pik_share")}
       <div className="py-1">
-        <Switch checked={tr.allow_redraw} onChange={(v) => onChange({ allow_redraw: v })} label={fields("tranche_allow_redraw")} />
+        <Switch checked={tr.allow_redraw} onChange={(v) => onChange({ allow_redraw: v })} label={fields("tranche_allow_redraw")} tip="tranche_allow_redraw" />
       </div>
       {actions}
     </div>
@@ -332,6 +342,7 @@ function RatePath({ tranche: tr, onChange }: { tranche: FullTranche; onChange: (
           key={year}
           spec={SPECS.reference}
           label={fields("tranche_reference_year", { year })}
+          tip="tranche_reference_year"
           value={at(i)}
           onCommit={(v) => {
             const next = years.map((_, j) => (j === i ? v : at(j)));

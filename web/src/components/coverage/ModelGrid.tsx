@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Term } from "@/components/ui/Term";
+import { TipText, useTips } from "@/components/ui/Tip";
 import { fmtMultiple, fmtNumber, fmtRate } from "@/lib/format";
 import { formatDateTime, formatInput, parseNumber } from "@/lib/locale";
 import { excelDay, isoOfExcelDay, type ModelCell, type ModelRow, type ModelRun } from "@/lib/sectorModel";
@@ -28,8 +29,13 @@ export function shown(unit: string | null | undefined, v: number | null | undefi
 
 export function ModelGrid({ run, onEdit }: { run: ModelRun; onEdit: (row: string, period: string, value: number | null) => void }) {
   const t = useTranslations("models");
+  // One tip for every typed figure and one for every assumption (PLAN.md 7.1), not one per cell
+  const tips = useTips(["modelFigureCell", "modelAssumptionCell"]);
+  const described = { figure: tips.modelFigureCell.id, assumption: tips.modelAssumptionCell.id };
   return (
     <div className="overflow-x-auto">
+      <TipText tip={tips.modelFigureCell} />
+      <TipText tip={tips.modelAssumptionCell} />
       <table className="w-full border-collapse font-mono text-[10.5px]" data-model-grid={run.model}>
         <thead>
           <tr className="border-b border-line">
@@ -60,7 +66,7 @@ export function ModelGrid({ run, onEdit }: { run: ModelRun; onEdit: (row: string
                 <td className="px-2 py-0.5 text-dim">{row.unit_text}</td>
                 {run.periods.map((p) => (
                   <td key={p.name} className="px-1 py-0.5 text-end" data-cell={`${row.key}:${p.name}`}>
-                    <Cell row={row} cell={row.cells?.[p.name]} onEdit={(v) => onEdit(row.key as string, p.name, v)} />
+                    <Cell row={row} cell={row.cells?.[p.name]} described={described} onEdit={(v) => onEdit(row.key as string, p.name, v)} />
                   </td>
                 ))}
               </tr>
@@ -72,7 +78,9 @@ export function ModelGrid({ run, onEdit }: { run: ModelRun; onEdit: (row: string
   );
 }
 
-function Cell({ row, cell, onEdit }: { row: ModelRow; cell: ModelCell | undefined; onEdit: (v: number | null) => void }) {
+function Cell({ row, cell, described, onEdit }: {
+  row: ModelRow; cell: ModelCell | undefined; described: { figure: string; assumption: string }; onEdit: (v: number | null) => void;
+}) {
   const t = useTranslations("models");
   if (!cell) return null;
   if (cell.kind === "formula") {
@@ -85,12 +93,14 @@ function Cell({ row, cell, onEdit }: { row: ModelRow; cell: ModelCell | undefine
   const assumption = cell.kind === "assumption";
   const ring = cell.mark ? (cell.mark.level === "red" ? "ring-1 ring-loss" : "ring-1 ring-attention") : "";
   const label = assumption ? t("assumptionCell", { row: row.label.trim() }) : t("figureCell", { row: row.label.trim() });
+  const tip = assumption ? described.assumption : described.figure;
   if (row.unit === "date") {
     return (
       <input
         type="date"
         key={String(cell.value)}
         aria-label={label}
+        aria-describedby={tip}
         title={cell.mark?.why || undefined}
         defaultValue={isoOfExcelDay(cell.value)}
         onBlur={(e) => {
@@ -110,6 +120,7 @@ function Cell({ row, cell, onEdit }: { row: ModelRow; cell: ModelCell | undefine
       value={cell.value ?? null}
       share={row.unit === "share"}
       label={label}
+      tip={tip}
       title={cell.mark?.why || undefined}
       className={`${assumption ? "bg-[#2a2614]" : "bg-transparent"} ${ring} text-accent`}
       onCommit={onEdit}
@@ -118,11 +129,13 @@ function Cell({ row, cell, onEdit }: { row: ModelRow; cell: ModelCell | undefine
 }
 
 function TypedInput({
-  value, share, label, title, className, onCommit,
+  value, share, label, tip, title, className, onCommit,
 }: {
   value: number | null;
   share: boolean;
   label: string;
+  /** The id of the tip it shares with the other cells of its kind */
+  tip: string;
   title?: string;
   className: string;
   onCommit: (v: number | null) => void;
@@ -147,6 +160,7 @@ function TypedInput({
   return (
     <input
       aria-label={label}
+      aria-describedby={tip}
       title={title}
       inputMode="decimal"
       value={draft}

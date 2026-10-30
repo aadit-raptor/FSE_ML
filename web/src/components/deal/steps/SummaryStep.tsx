@@ -384,7 +384,7 @@ function SummaryResults() {
         action={<DownloadButton onDownload={() => downloadWorkbook(x("fileAdjEbitda"), [tableSheet(x("sheetAdjustedEbitda"), years, adjRows)], money, run.result?.model, savedId)} />}
       >
         <div className="max-w-[260px]">
-          <NumberField spec={SBC_SPEC} label={t("rowStockBasedComp")} value={sbcPct} onCommit={setSbcPct} />
+          <NumberField spec={SBC_SPEC} label={t("rowStockBasedComp")} tip="stockBasedComp" value={sbcPct} onCommit={setSbcPct} />
         </div>
         <DataTable caption={t("adjustedEbitdaByYear")} columns={years} rows={adjRows} />
         <p className="type-body text-[9px]">{t("sbcNote")}</p>

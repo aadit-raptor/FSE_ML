@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
-import { Notice, RailGroup, Screen } from "@/components/ui/Screen";
+import { EmptyGuide, Notice, RailGroup, Screen } from "@/components/ui/Screen";
 import { Tile, Tiles } from "@/components/ui/Tile";
 import { downloadFile } from "@/lib/export";
 import { fmtCount, fmtNumber } from "@/lib/format";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/research";
 
 import { PageView } from "./PageView";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Coverage -> Companies (PLAN.md R2): the companies an analyst follows and the quarters they accepted, each
@@ -30,6 +31,8 @@ const day = (iso: string) => formatDateTime(new Date(`${iso.slice(0, 10)}T00:00:
 
 export function CompaniesStep() {
   const t = useTranslations("coverage");
+  const guide = useTranslations("guides");
+  const nameTip = useTip("coverageNewCompany");
   const [list, setList] = useState<CoverageList | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -70,14 +73,15 @@ export function CompaniesStep() {
             }}
           >
             <label className="grid gap-1">
-              <span className="type-input-label">{t("newCompany")}</span>
-              <input
+              <span className="type-input-label"><TipLabel tip={nameTip}>{t("newCompany")}</TipLabel></span>
+              <input aria-describedby={nameTip.id}
                 className="border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
                 value={name}
                 maxLength={120}
                 onChange={(event) => setName(event.target.value)}
               />
             </label>
+            <TipText tip={nameTip} />
             <button type="submit" disabled={!name.trim()} className="type-action bg-accent px-3 py-2 text-bg disabled:opacity-50">
               {t("addCompany")}
             </button>
@@ -98,7 +102,13 @@ export function CompaniesStep() {
       <Tiles>
         {list && list.companies.length === 0 && (
           <Tile span={12} title={t("emptyTitle")}>
-            <p className="type-body text-[10.5px]">{t("emptyBody")}</p>
+            <EmptyGuide
+              id="coverage"
+              title={guide("coverageTitle")}
+              steps={[guide("coverageStep1"), guide("coverageStep2"), guide("coverageStep3"), guide("coverageStep4")]}
+            >
+              {t("emptyBody")}
+            </EmptyGuide>
           </Tile>
         )}
         {list?.companies.map((company) => (

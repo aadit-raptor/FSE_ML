@@ -7,6 +7,7 @@ import { useDeal } from "@/components/deal/DealProvider";
 import { DraftBlock } from "@/components/ui/DraftBlock";
 import { Notice, PrimaryButton, RailGroup, Screen, SecondaryButton } from "@/components/ui/Screen";
 import { Tile, Tiles } from "@/components/ui/Tile";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 import { api, type Schemas } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/locale";
 import {
@@ -38,6 +39,7 @@ const field = "border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
 
 export function MemoStep() {
   const t = useTranslations("memo");
+  const versionTip = useTip("memoVersion");
   const { current } = useDeal();
   const dealId = current?.id ?? null;
   const [versions, setVersions] = useState<Version[] | null>(null);
@@ -126,8 +128,8 @@ export function MemoStep() {
             ) : (
               <>
                 <label className="grid gap-1">
-                  <span className="type-input-label">{t("versionLabel")}</span>
-                  <select className={field} value={chosen ?? ""} onChange={(e) => setChosen(Number(e.target.value))}>
+                  <span className="type-input-label"><TipLabel tip={versionTip}>{t("versionLabel")}</TipLabel></span>
+                  <select aria-describedby={versionTip.id} className={field} value={chosen ?? ""} onChange={(e) => setChosen(Number(e.target.value))}>
                     {versions.map((v) => (
                       <option key={v.number} value={String(v.number)}>
                         {v.label ? t("versionNamed", { number: String(v.number), label: v.label })
@@ -136,6 +138,7 @@ export function MemoStep() {
                     ))}
                   </select>
                 </label>
+                <TipText tip={versionTip} />
                 <div className="mt-1.5">
                   <PrimaryButton onClick={() => void draft()} disabled={stage !== null || chosen === null}>
                     {hasMemo ? t("redraft") : t("draft")}

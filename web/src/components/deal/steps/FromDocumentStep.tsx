@@ -17,6 +17,7 @@ import { formatDateTime } from "@/lib/locale";
 
 import { DealScreen, RailGroup } from "../DealScreen";
 import { useDeal } from "../DealProvider";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * Deal -> From a document (PLAN.md 6.2): read an annual report or an information pack, any language, twice by two
@@ -214,13 +215,16 @@ function Rail(props: {
 }) {
   const t = useTranslations("documents");
   const input = useRef<HTMLInputElement>(null);
+  const fileTip = useTip("documentFile");
+  const uploadTip = useTip("uploadPdf");
+  const publicTip = useTip("confirmPublic");
   const { info } = props;
   return (
     <>
       <RailGroup title={t("fileGroup")}>
         <label className="grid gap-1">
-          <span className="type-input-label">{t("fileLabel")}</span>
-          <select
+          <span className="type-input-label"><TipLabel tip={fileTip}>{t("fileLabel")}</TipLabel></span>
+          <select aria-describedby={fileTip.id}
             className="border border-line bg-canvas px-2 py-1 font-mono text-[11px] text-ink"
             value={props.selected}
             onChange={(event) => props.onChoose(event.target.value)}
@@ -234,7 +238,8 @@ function Rail(props: {
             ))}
           </select>
         </label>
-        <input
+        <TipText tip={fileTip} />
+        <input aria-describedby={uploadTip.id}
           ref={input}
           type="file"
           className="sr-only"
@@ -247,9 +252,11 @@ function Rail(props: {
             if (file) props.onUpload(file);
           }}
         />
+        <TipText tip={uploadTip} />
         <button
           type="button"
           disabled={!props.ready || props.uploading || props.running}
+          aria-describedby={uploadTip.id}
           onClick={() => input.current?.click()}
           className="type-action mt-1.5 border border-line px-3 py-1.5 text-ink disabled:opacity-50"
         >
@@ -259,9 +266,10 @@ function Rail(props: {
       {props.needsConfirm && (
         <RailGroup title={t("publicGroup")}>
           <label className="flex items-start gap-2">
-            <input type="checkbox" className="mt-0.5" checked={props.confirmed} onChange={(event) => props.onConfirm(event.target.checked)} />
+            <input aria-describedby={publicTip.id} type="checkbox" className="mt-0.5" checked={props.confirmed} onChange={(event) => props.onConfirm(event.target.checked)} />
             <span className="type-input-label">{t("publicConfirm")}</span>
           </label>
+          <TipText tip={publicTip} />
           <p className="type-body text-[10px]" data-public-warning>
             {t("publicWarning")}
           </p>
@@ -396,8 +404,10 @@ type Row = { id: string; what: string; period: string; value: string; other: str
 
 function ValueTable({ rows, accepted, onToggle }: { rows: Row[]; accepted: Set<string>; onToggle: (id: string, on: boolean) => void }) {
   const t = useTranslations("documents");
+  const acceptTip = useTip("acceptValue");
   if (rows.length === 0) return <p className="type-body" role="note">{t("noValues")}</p>;
   return (
+    <>
     <table className="w-full table-fixed border-collapse font-mono text-[11px]">
       <thead>
         <tr className="text-muted">
@@ -416,7 +426,7 @@ function ValueTable({ rows, accepted, onToggle }: { rows: Row[]; accepted: Set<s
         {rows.map((row) => (
           <tr key={row.id} data-item={row.id} data-amber={row.amber ?? ""} className="text-ink">
             <td className="border-b border-grid px-2 py-1">
-              <input
+              <input aria-describedby={acceptTip.id}
                 type="checkbox"
                 aria-label={t("acceptOne", { what: row.what, period: row.period })}
                 checked={accepted.has(row.id)}
@@ -441,6 +451,8 @@ function ValueTable({ rows, accepted, onToggle }: { rows: Row[]; accepted: Set<s
         ))}
       </tbody>
     </table>
+    <TipText tip={acceptTip} />
+    </>
   );
 }
 

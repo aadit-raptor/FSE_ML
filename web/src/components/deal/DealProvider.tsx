@@ -38,6 +38,7 @@ type DealDetail = Schemas["DealDetail"];
 /** Whether an opened deal's results changed since it was saved (PLAN.md 3.1). */
 export type ModelCheck = Schemas["ModelCheck"];
 type Outcome = { ok: boolean; error?: string };
+type InputsPatch = Partial<DealInputs>;
 
 type DealContext = {
   inputs: DealInputs;
@@ -64,6 +65,8 @@ type DealContext = {
   openDeal: (id: string) => Promise<Outcome>;
   /** Save what's on screen as a new deal and carry on editing it */
   saveAs: (name: string) => Promise<Outcome>;
+  /** Save a new deal from the starting inputs with `patch` on top, and open it (the guided deal, a sample: PLAN.md 7.1) */
+  createDeal: (name: string, patch: Partial<DealInputs>) => Promise<Outcome>;
   /** Start again from the default inputs, not attached to a saved deal */
   newDeal: () => void;
   /** Show a deal the API returned (after a restore) as the open, saved deal */
@@ -257,6 +260,17 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
     [adopt, inputs, overrides, e],
   );
 
+  const createDeal = useCallback(
+    async (name: string, patch: InputsPatch): Promise<Outcome> => {
+      const body = { name, inputs: apiInputs({ ...startInputs, ...patch }), settings: overrides };
+      const { data, error } = await api.POST("/api/deals", { body });
+      if (!data) return { ok: false, error: apiMessage(error, e("dealSaveFailed")) };
+      adopt(data);
+      return { ok: true };
+    },
+    [adopt, startInputs, overrides, e],
+  );
+
   const newDeal = useCallback(() => {
     savedKey.current = null;
     setCurrent(null);
@@ -349,10 +363,10 @@ export function DealProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       inputs, setField, setFields, money, setMoney, autoUpdate, setAutoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
-      current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush, modelCheck, dismissModelCheck,
+      current, saveState, openDeal, saveAs, createDeal, newDeal, adopt, patchCurrent, flush, modelCheck, dismissModelCheck,
     }),
     [inputs, setField, setFields, money, setMoney, autoUpdate, run, pending, settingsChanged, runNow, discard, hurdle,
-      current, saveState, openDeal, saveAs, newDeal, adopt, patchCurrent, flush, modelCheck, dismissModelCheck],
+      current, saveState, openDeal, saveAs, createDeal, newDeal, adopt, patchCurrent, flush, modelCheck, dismissModelCheck],
   );
   return (
     <Ctx.Provider value={value}>

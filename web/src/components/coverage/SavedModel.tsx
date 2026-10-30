@@ -13,6 +13,7 @@ import {
   type ModelVersion, type RollAnswer, type RollComparison,
 } from "@/lib/savedModel";
 import { flushSave, keepAs, setModel, workbookFilename, type ModelState } from "@/lib/sectorModel";
+import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
 
 /**
  * A covered company's saved model (PLAN.md R5): saved as it is typed, its versions kept and restorable, rolled
@@ -47,6 +48,7 @@ export function SavedGroup({ model, owner, versions, reload }: {
 }) {
   const t = useTranslations("models");
   const [label, setLabel] = useState("");
+  const labelTip = useTip("modelVersionLabel");
   const [busy, setBusy] = useState(false);
   const saved = model.saved;
   const company = model.company!;
@@ -96,9 +98,10 @@ export function SavedGroup({ model, owner, versions, reload }: {
           : t("savedAt", { version: String(saved.version) })}
       </p>
       <label className="grid gap-1">
-        <span className="type-input-label">{t("versionLabel")}</span>
-        <input className={field} value={label} maxLength={120} onChange={(e) => setLabel(e.target.value)} />
+        <span className="type-input-label"><TipLabel tip={labelTip}>{t("versionLabel")}</TipLabel></span>
+        <input aria-describedby={labelTip.id} className={field} value={label} maxLength={120} onChange={(e) => setLabel(e.target.value)} />
       </label>
+      <TipText tip={labelTip} />
       <div className="mt-1 flex flex-wrap gap-1.5">
         <SecondaryButton disabled={busy} onClick={() => void keep()}>{t("keepVersion")}</SecondaryButton>
         <SecondaryButton onClick={() => void downloadSaved(saved.companyId, workbookFilename(company, model.structure!.model))}>
@@ -163,6 +166,7 @@ export function RollNotice({ model, owner, onRolled }: { model: ModelState; owne
 
 /** The estimate made before results, beside them, line by line: the newest roll's by default. */
 export function ComparisonTile({ versions }: { versions: ModelVersion[] }) {
+  const pickTip = useTip("modelComparison");
   const t = useTranslations("models");
   const rolls = versions.filter((v) => v.kind === "rolled" && v.comparison);
   const [picked, setPicked] = useState<number | null>(null);
@@ -173,14 +177,17 @@ export function ComparisonTile({ versions }: { versions: ModelVersion[] }) {
     <Tile span={12} title={t("comparisonTitle", { period: c.period })}>
       <div className="mb-1.5 flex flex-wrap items-end gap-3">
         {rolls.length > 1 && (
+          <>
           <label className="grid gap-1">
-            <span className="type-input-label">{t("comparisonPick")}</span>
-            <select className={field} value={chosen.number} onChange={(e) => setPicked(Number(e.target.value))}>
+            <span className="type-input-label"><TipLabel tip={pickTip}>{t("comparisonPick")}</TipLabel></span>
+            <select aria-describedby={pickTip.id} className={field} value={chosen.number} onChange={(e) => setPicked(Number(e.target.value))}>
               {rolls.map((v) => (
                 <option key={v.number} value={v.number}>{v.comparison!.period}</option>
               ))}
             </select>
           </label>
+          <TipText tip={pickTip} />
+          </>
         )}
         <p className="type-body text-[10.5px] text-muted">{t(`basis_${c.basis}`, { from: c.estimate_label })}</p>
       </div>
