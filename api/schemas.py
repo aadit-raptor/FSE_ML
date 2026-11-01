@@ -974,6 +974,174 @@ class DealActuals(Strict):
     exit: Optional[ActualExitIn] = Field(None, description="Left out while the deal is still held")
 
 
+class QuarterIn(Strict):
+    """One quarter's reported results (PLAN.md 7.4), plan vs actual's lines on the same basis as the deal's
+    EBITDA. Flows are the quarter's own, debt is at the quarter's end; a figure left out is not known."""
+    year: int = Field(ge=1, le=15, description="The plan's year, from 1")
+    quarter: int = Field(ge=1, le=4)
+    revenue: ActualFigure = None
+    ebitda: ActualFigure = None
+    net_income: ActualFigure = None
+    fcf: ActualFigure = Field(None, description="Free cash flow after interest and tax, before debt repayment")
+    total_debt: ActualFigure = Field(None, description="Debt at the quarter's end")
+
+
+class QuarterlyActuals(Strict):
+    """An owned deal's quarterly results, in the deal's currency (any unit)."""
+    currency: CurrencyCode = Field(description="The currency the figures are in; must be the deal's")
+    unit: MoneyUnit = Field(description="thousands, lakhs, millions, crores or billions")
+    quarters: List[QuarterIn] = Field(min_length=1, max_length=60)
+
+    @model_validator(mode="after")
+    def _one_of_each(self):
+        keys = [(q.year, q.quarter) for q in self.quarters]
+        if len(set(keys)) != len(keys):
+            raise PydanticCustomError("duplicate_quarter", "each quarter may be given once")
+        return self
+
+
+class HoldingIn(Strict):
+    """A deal marked as owned (PLAN.md 7.4)."""
+    since: Optional[date] = Field(None, description="When the deal closed (a label)")
+    tolerance: float = Field(5.0, ge=0, le=100,
+                             description="How far (%) below the plan revenue or EBITDA, or above it debt, may be "
+                                         "before it is an alert")
+
+
+class DriftGap(BaseModel):
+    actual: float
+    plan: float
+    gap_pct: Optional[float] = Field(description="Actual against plan, % of the plan; None when the plan is zero")
+
+
+class DriftAlert(DriftGap):
+    id: Literal["revenue_below_plan", "ebitda_below_plan", "debt_above_plan"]
+
+
+class QuarterRef(BaseModel):
+    year: int
+    quarter: int
+
+
+class Drift(BaseModel):
+    """The latest quarter's results against the plan: the year so far and the debt, and the alerts they raise."""
+    year: int
+    quarter: int
+    tolerance: float
+    ytd: Dict[str, Optional[DriftGap]] = Field(description="Revenue and EBITDA, the latest year's quarters so far")
+    debt: Optional[DriftGap]
+    alerts: List[DriftAlert]
+
+
+class ReforecastReturns(BaseModel):
+    irr: float
+    moic: float
+    entry_equity: float
+    exit_ebitda: float
+    exit_multiple: float
+    exit_ev: float
+    net_debt_at_exit: float
+    exit_equity: float
+
+
+class ReforecastSimulated(BaseModel):
+    paths: int
+    p5: float
+    p50: float
+    p95: float
+    below_plan: float = Field(description="Share of simulated paths whose IRR is below the plan's")
+
+
+class ReforecastYear(BaseModel):
+    year: int
+    plan_ebitda: float
+    reforecast_ebitda: float
+    actual_ebitda: Optional[float]
+
+
+class ReforecastResult(BaseModel):
+    """The plan run again with the growth the last four quarters show (core/portfolio.py). IRRs are fractions."""
+    deal_id: str
+    based_on: QuarterRef
+    plan_growth: float
+    reforecast_growth: float
+    ltm_ebitda_actual: float
+    ltm_ebitda_plan: float
+    plan: ReforecastReturns
+    reforecast: ReforecastReturns
+    simulated: ReforecastSimulated
+    years: List[ReforecastYear]
+    quarters_updated_at: datetime = Field(description="When the quarters it read were saved")
+    run_at: datetime
+    money: Money
+    model: ModelStamp
+
+
+QuartersProblem = Literal["beyond_hold", "other_currency"]
+
+
+class HoldingOut(BaseModel):
+    deal_id: str
+    name: str
+    access: Literal["owner", "editor", "viewer"]
+    owned: bool
+    since: Optional[date]
+    tolerance: Optional[float]
+    quarters: Optional[QuarterlyActuals]
+    quarters_updated_at: Optional[datetime]
+    quarters_problem: Optional[QuartersProblem] = Field(
+        description="Why the saved quarters can't be set against the plan now (the deal changed since)")
+    drift: Optional[Drift]
+    reforecast: Optional[ReforecastResult]
+    reforecast_current: bool = Field(description="False when the quarters changed after the reforecast ran")
+    money: Money
+
+
+class BoardFigures(BaseModel):
+    entry_ev: Optional[float]
+    entry_equity: Optional[float]
+    plan_exit_equity: Optional[float]
+    ltm_revenue: Optional[float] = Field(description="The last four quarters, when all are given")
+    ltm_ebitda: Optional[float]
+    latest_debt: Optional[float]
+    reforecast_exit_equity: Optional[float]
+
+
+class BoardTotal(BaseModel):
+    value: Optional[float]
+    holdings: int = Field(description="How many holdings the total adds up")
+
+
+class PortfolioHolding(BaseModel):
+    deal_id: str
+    name: str
+    access: Literal["owner", "editor", "viewer"]
+    since: Optional[date]
+    money: Money
+    local: BoardFigures = Field(description="In the deal's own currency and unit")
+    converted: Optional[BoardFigures] = Field(description="In the reporting currency; None without a rate")
+    plan_irr: float
+    plan_moic: float
+    reforecast_irr: Optional[float]
+    reforecast_current: bool
+    as_of: Optional[QuarterRef]
+    alerts: List[DriftAlert] = Field(description="Money in the deal's own currency and unit")
+    quarters_problem: Optional[QuartersProblem]
+
+
+class PortfolioResponse(BaseModel):
+    money: Money = Field(description="The reporting currency and unit")
+    published_on: Optional[date] = Field(description="The ECB day whose reference rates converted the figures")
+    rates: Dict[str, float] = Field(description="Units of each holding's currency per one of the reporting currency")
+    rates_url: str
+    missing_rates: List[str] = Field(description="Currencies the ECB doesn't quote: their holdings are left out of "
+                                                 "the totals")
+    holdings: List[PortfolioHolding]
+    totals: Dict[str, BoardTotal]
+    alerts: int
+    model: ModelStamp
+
+
 class PlanActualRequest(Strict):
     plan: DealInputsIn = Field(description="The deal that is the plan: a saved deal's inputs")
     settings: Dict[str, SettingValue] = Field({}, description="The plan's Settings overrides")
@@ -1299,7 +1467,9 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "model_saved", "model_versioned", "model_restored", "model_rolled",
                       "report_saved", "report_details_saved", "memo_drafted", "memo_written", "memo_deleted",
                       "unshared", "commented", "comment_deleted", "team_created", "team_renamed", "team_deleted",
-                      "team_invited", "team_joined", "team_left", "team_member_removed", "team_role_changed"]
+                      "team_invited", "team_joined", "team_left", "team_member_removed", "team_role_changed",
+                      "portfolio_added", "portfolio_changed", "portfolio_removed", "quarters_saved",
+                      "quarters_cleared", "reforecast_run"]
 
 
 class AuditEntry(BaseModel):
@@ -3543,6 +3713,17 @@ class MemoJobOut(BaseModel):
     error_status: Optional[int] = None
     result_expired: bool = False
     result: Optional[MemoDrafted] = None
+
+
+class ReforecastJobOut(BaseModel):
+    id: str
+    status: JobStatus
+    progress: float
+    stage: Optional[str]
+    error: Optional[str] = Field(None, description="Why it failed, for people")
+    error_status: Optional[int] = None
+    result_expired: bool = False
+    result: Optional[ReforecastResult] = None
 
 
 class MemoSummary(BaseModel):

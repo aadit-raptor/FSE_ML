@@ -804,6 +804,57 @@ The old backtest (`backtest_summary`, kept as the golden parity record):
 model for the predicted exit (finding 5), and the attribution uses the same
 three-way split.
 
+### Portfolio tracking
+
+[core/portfolio.py](../core/portfolio.py). Tests:
+[tests/test_portfolio.py](../tests/test_portfolio.py),
+[tests/test_portfolio_api.py](../tests/test_portfolio_api.py).
+
+An owned deal's quarterly results set against its plan, in any currency.
+Nothing here is a new model: the plan is `_run`'s answer for the saved deal,
+and a quarter's lines are plan vs actual's (`LINES`, `FLOWS`).
+
+- **Quarters.** `quarters_from` reads them oldest first (`Quarter`, whose
+  `Quarter.index` counts quarters since close) and refuses one given twice;
+  `check_hold` refuses a quarter after the plan's hold;
+  `quarters_in_millions` converts another unit (`QuartersRefused` carries the
+  reason as a code).
+- **A quarter of the plan.** `plan_path` (`PlanPath`) takes the plan's yearly
+  revenue, EBITDA, net income, levered FCF, closing debt and the debt at
+  close. `plan_quarter`: a flow's quarter is a quarter of its year (no
+  seasonality); debt at a quarter's end is the straight line from the end of
+  the year before (at close in year 1) to the end of its year: debt(j, q) =
+  debt(j − 1) + (debt(j) − debt(j − 1)) × q / 4.
+- **Year to date and the last twelve months.** `year_to_date` adds the latest
+  year's quarters so far (all of them there and given) and the plan's for the
+  same quarters; `ltm` the last four, one after another; `_summed` and `_gap`
+  give the gap in % of the plan. `full_years` turns complete years into plan vs
+  actual's yearly actuals (flows added, debt the fourth quarter's).
+- **Drift alerts** (`drift`). Revenue or EBITDA year to date below the plan by
+  more than the holding's tolerance (`DEFAULT_TOLERANCE` %, the person's
+  choice), or the latest debt above the plan's at that quarter by more than it,
+  is an alert. On the default deal, EBITDA of 21.0 in each of year 1's first two
+  quarters against a plan of 105.0 / 4 = 26.25 is 42.0 against 52.5, a gap of
+  −20%: an alert at 5%.
+- **Reforecast** (`reforecast`, a background job). The last four quarters'
+  EBITDA against the plan's gives the growth the deal has shown:
+  `reforecast_growth` = (1 + g) × (actual / plan)^(1 / t) − 1, with t the years
+  since close at the latest quarter. The deal model and `plan_irr_paths` then
+  run the plan with that growth (`REFORECAST_PATHS` paths); the entry price,
+  debt, margins, exit multiple and hold are as planned. At a year end the
+  reforecast's EBITDA for the year is the actual one: on the default deal, a
+  first year of 94.5 (90% of 105.0) gives g = 1.05 × 0.9 − 1 = −5.5%. The
+  answer adds the 5th, 50th and 95th percentile IRRs and the share of paths
+  below the plan's IRR.
+- **Currency** (`board`). Each holding keeps its own currency and unit; the
+  dashboard converts with one day's ECB reference rates (units per euro),
+  crossed through the euro (`_per_euro`): `stated_rate` = units of the deal's
+  currency per one of the reporting currency, and `fx_factor` = unit scale ÷
+  reporting unit scale ÷ that rate. 250 million pounds at 0.85 pounds and 1.08
+  dollars a euro is 250 / 0.85 × 1.08 = 317.6 million dollars. A currency the
+  ECB doesn't quote is left out of the totals and named. The day is the one
+  asked for, or the last the ECB published before it.
+
 ## 11. Three-statement forecast
 
 [core/forecasting.py](../core/forecasting.py). Tests:
@@ -1607,6 +1658,8 @@ The values quoted in this document, checked against the code by
 | `ml.macro_regime.SAME_YEAR_FROM_MONTH` | 5 | the month from which the current year is named (the IMF's April figures are in) |
 | `ml.macro_regime.MAX_AGE_DAYS` | 100 | a stored fit older than this is not shown |
 | `api.limits.MAX_FORECAST_PATHS` | 200000 | most forecast simulation paths |
+| `core.portfolio.DEFAULT_TOLERANCE` | 5.0 | % below plan (above, for debt) that raises a portfolio alert, unless the holding says otherwise |
+| `core.portfolio.REFORECAST_PATHS` | 20000 | paths simulated around a reforecast |
 | `ml.edgar_extractor._FIRST_WEEK` | 7 | a year ending on or before this day counts as the month before |
 
 ## 18. Settings defaults

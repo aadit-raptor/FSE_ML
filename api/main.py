@@ -32,7 +32,7 @@ from api.routers import (
     forecasting,
     integrations, jobs,
     library, memos,
-    montecarlo, research, research_models, research_report, research_saved, scheduled, teams, validation,
+    montecarlo, portfolio, research, research_models, research_report, research_saved, scheduled, teams, validation,
 )
 from db import DatabaseUnavailable
 from db import health as db_health
@@ -212,7 +212,8 @@ def create_app() -> FastAPI:
     # default -- forgetting is impossible rather than unlikely.
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
                    jobs, companies, economy, benchmarks, library, validation, files, research, coverage,
-                   research_models, research_saved, research_report, addin, documents, memos, teams):
+                   research_models, research_saved, research_report, addin, documents, memos, teams,
+                   portfolio):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,

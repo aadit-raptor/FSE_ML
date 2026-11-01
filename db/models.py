@@ -234,6 +234,14 @@ class Deal(Base):
     # The owner agreed to this deal's plan-vs-actual result counting, anonymised,
     # in the model validation report (PLAN.md 4.6, ``validation/``)
     validation_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false())
+    # Portfolio tracking (PLAN.md 7.4): the holding when the deal is owned ({"since": date or null,
+    # "tolerance": % below plan that raises an alert}; NULL = not in the portfolio), its quarterly results in
+    # api.schemas.QuarterlyActuals' shape (plan vs actual's lines, a quarter at a time) and the latest
+    # reforecast's answer. Like actuals, none of it is part of the plan: not versioned, not duplicated.
+    portfolio: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    quarters: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    quarters_updated_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    reforecast: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     # Which model the working copy was saved with and the IRR and MOIC it gave
     # (PLAN.md 3.1, core/model_version.py); NULL for a deal saved before 3.1
     model: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
@@ -301,7 +309,12 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  # removed, or given another role. "shared" (reserved since 3.3) is the first of them
                  "unshared", "commented", "comment_deleted",
                  "team_created", "team_renamed", "team_deleted", "team_invited", "team_joined", "team_left",
-                 "team_member_removed", "team_role_changed")
+                 "team_member_removed", "team_role_changed",
+                 # Portfolio tracking (PLAN.md 7.4): a deal marked as owned, its holding changed (when it was
+                 # bought, its alert tolerance) or taken out of the portfolio; its quarterly results saved or
+                 # cleared; a reforecast from them run
+                 "portfolio_added", "portfolio_changed", "portfolio_removed", "quarters_saved", "quarters_cleared",
+                 "reforecast_run")
 
 
 class AuditEvent(Base):
