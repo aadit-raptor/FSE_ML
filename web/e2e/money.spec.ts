@@ -1,3 +1,7 @@
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
 import { expect, type Page, test } from "@playwright/test";
 
 import { dealSettled, field, kpi, modeTab, simulationSettled, stepLink } from "./helpers";
@@ -74,6 +78,24 @@ test.describe("Currency and money units", () => {
     const body = (await request).postDataJSON();
     expect(body.money).toEqual({ currency: "EUR", unit: "thousands" });
     expect(JSON.stringify(body.sheets)).not.toContain("$");
+  });
+
+  test("the live workbook recalculates to the IRR on screen, its money in the deal's currency and unit", async ({ page }, info) => {
+    await dealInEuroThousands(page);
+    await stepLink(page, "Summary").click();
+    await dealSettled(page);
+    const shown = await kpi(page, "IRR").textContent();
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Live workbook" }).click();
+    const file = info.outputPath("deal.xlsx");
+    await (await downloading).saveAs(file);
+    // worked out by the tests' own Excel reader from the file's formulas (PLAN.md 7.3a)
+    const root = join(__dirname, "..", "..");
+    const venv = join(root, ".venv", "bin", "python");
+    const python = process.env.PYTHON ?? (existsSync(venv) ? venv : "python");
+    const worked = JSON.parse(execFileSync(python, ["-m", "tests.deal_workbook_check", file], { cwd: root }).toString());
+    expect(worked.money).toBe("EUR thousands");
+    expect(`${(worked.irr * 100).toFixed(1)}%`).toBe(shown?.trim()); // locale-ok: compared with an en-US screen
   });
 
   test("changing the unit back gives the original deal", async ({ page }) => {

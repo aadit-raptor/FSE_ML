@@ -341,6 +341,17 @@ screens show beside the engine's. Tests:
   D&A) and the blended rate (amount-weighted year-one rate of the tranches, or
   of senior and mezzanine).
 
+**The live workbook (PLAN.md 7.3).** Deal -> Summary's "Live workbook" and
+the Excel add-in write this chapter and sections 3, 5, 6 and 7 as one sheet of
+Excel formulas ([api/deal_workbook.py](../api/deal_workbook.py)), from the
+parameters `build_lbo_params` gives for the deal in its own unit: the
+spreadsheet, not Variater, works the answer out, and it matches the app's IRR
+to a hundredth of a percentage point
+([tests/test_deal_workbook.py](../tests/test_deal_workbook.py)). It needs no
+convergence loop, because interest is charged on opening balances, so each
+year reads only the year before; and it does not round money (finding 10), so
+very small deals can differ in the last digits.
+
 ## 5. Debt structures and interest rates
 
 [core/debt.py](../core/debt.py) owns the market conventions; the engine gets a

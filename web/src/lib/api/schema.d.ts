@@ -769,6 +769,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/deals/{deal_id}/model/cells": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Deal Model Cells
+         * @description A saved deal as its live-formula workbook's cells, for the Excel add-in (PLAN.md 7.3b): the
+         *     working copy as last saved, run now, written as the download writes it.
+         */
+        get: operations["get_deal_model_cells_api_deals__deal_id__model_cells_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deals/{deal_id}/people": {
         parameters: {
             query?: never;
@@ -1055,6 +1076,27 @@ export interface paths {
         get: operations["get_edgar_api_edgar__ticker__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/deal-model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Deal Model
+         * @description The deal as a workbook whose cells are working formulas (PLAN.md 7.3a): every debt type, the tax
+         *     rules and the money in the deal's own currency and unit; recalculated, it gives the app's IRR.
+         */
+        post: operations["post_deal_model_api_export_deal_model_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2902,7 +2944,7 @@ export interface components {
              */
             enabled?: boolean | null;
             /** Export */
-            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel" | "report_word" | "report_pdf" | "memo_word" | "memo_pdf") | null;
+            export?: ("workbook" | "simulation_sample" | "results_workbook" | "results_excel" | "report_word" | "report_pdf" | "memo_word" | "memo_pdf" | "deal_model" | "deal_model_addin") | null;
             /**
              * Fields
              * @description What an edit or settings change touched: input field names, settings.<key> for a deal's settings, setting keys for the account's
@@ -4419,6 +4461,98 @@ export interface components {
         DealList: {
             /** Deals */
             deals: components["schemas"]["DealSummary"][];
+        };
+        /**
+         * DealModelCells
+         * @description A saved deal as the live-formula workbook's cells, for the Excel add-in (PLAN.md 7.3b): the same
+         *     cells the download holds, and the app's answer for the same run.
+         */
+        DealModelCells: {
+            /** Deal Id */
+            deal_id: string;
+            /**
+             * Irr
+             * @description The app's IRR for the deal, a fraction
+             */
+            irr: number | null;
+            model: components["schemas"]["ModelStamp"];
+            /** Moic */
+            moic: number | null;
+            money: components["schemas"]["Money"];
+            /** Name */
+            name: string;
+            /** Sheets */
+            sheets: components["schemas"]["SheetOut"][];
+        };
+        /**
+         * DealModelRequest
+         * @description A deal to write as a workbook of live formulas (PLAN.md 7.3a): the same body as /api/deal/run.
+         */
+        DealModelRequest: {
+            /**
+             * Grouping
+             * @description Lakh and crore patterns when 'lakh'
+             * @default locale
+             * @enum {string}
+             */
+            grouping: "locale" | "thousands" | "lakh";
+            /**
+             * @default {
+             *       "accounting_standard": "",
+             *       "ap_days": 60,
+             *       "ar_days": 45,
+             *       "base_rate": 6.5,
+             *       "business_risk": 4,
+             *       "capex": 4,
+             *       "country": "",
+             *       "currency": "USD",
+             *       "da": 4,
+             *       "debt_pct": 60,
+             *       "ebitda": 100,
+             *       "entry_mult": 10,
+             *       "exit_mult": 11,
+             *       "fiscal_year_end_month": 12,
+             *       "gross_margin": 40,
+             *       "growth": 5,
+             *       "hold": 5,
+             *       "industry": "",
+             *       "inv_days": 30,
+             *       "lease_cost": 0,
+             *       "lease_liability": 0,
+             *       "lease_view": "",
+             *       "mezz_spread": 4,
+             *       "mincash": 0,
+             *       "nwc": 1,
+             *       "opex": 18,
+             *       "senior_pct": 70,
+             *       "tax": 25,
+             *       "tax_interest_limit": "none",
+             *       "tax_interest_limit_amount": 0,
+             *       "tax_interest_limit_pct": 30,
+             *       "tax_loss_carryforward": false,
+             *       "tax_loss_limit_amount": 0,
+             *       "tax_loss_limit_pct": 100,
+             *       "tax_minimum_pct": 0,
+             *       "tax_preset": "",
+             *       "tranches": [],
+             *       "unit": "millions",
+             *       "wsp_mode": false
+             *     }
+             */
+            inputs: components["schemas"]["DealInputsIn"];
+            /**
+             * Name
+             * @description The deal's name, for the sheet's title
+             * @default Deal
+             */
+            name: string;
+            /**
+             * Settings
+             * @default {}
+             */
+            settings: {
+                [key: string]: number | boolean;
+            };
         };
         /**
          * DealPatch
@@ -13116,6 +13250,48 @@ export interface operations {
             };
         };
     };
+    get_deal_model_cells_api_deals__deal_id__model_cells_get: {
+        parameters: {
+            query?: {
+                grouping?: "locale" | "thousands" | "lakh";
+            };
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealModelCells"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     deal_people_api_deals__deal_id__people_get: {
         parameters: {
             query?: never;
@@ -13804,6 +13980,51 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EdgarResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_deal_model_api_export_deal_model_post: {
+        parameters: {
+            query?: {
+                /** @description The saved deal the figures come from: the export is then an entry in its history (PLAN.md 3.3). Must be the caller's. */
+                deal_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealModelRequest"];
+            };
+        };
+        responses: {
+            /** @description Excel workbook of live formulas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
                 };
             };
             /** @description Validation Error */

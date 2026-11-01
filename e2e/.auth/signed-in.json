@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "fse_dev_user",
+      "value": "e2e",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1793605655.715736,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "variater.lastScreen",
+          "value": "/deal/inputs"
+        }
+      ]
+    }
+  ]
+}

@@ -49,6 +49,8 @@ export type ExcelWorksheet = {
   };
   activate(): void;
   load?(what: string): void;
+  /** ExcelApi 1.1: removes the sheet (a deal's refresh, PLAN.md 7.3b) */
+  delete?(): void;
 };
 
 export type ExcelContext = {

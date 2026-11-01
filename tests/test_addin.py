@@ -68,7 +68,10 @@ def test_a_pass_reaches_coverage_as_the_person_who_made_it(site):  # noqa: ARG00
 
 
 @pytest.mark.parametrize("method, path", [
-    ("get", "/api/deals"), ("post", "/api/deal/run"), ("get", "/api/account"), ("get", "/api/account/settings"),
+    ("get", "/api/deals/00000000-0000-4000-8000-000000000000"),
+    ("put", "/api/deals/00000000-0000-4000-8000-000000000000/draft"),
+    ("get", "/api/deals/00000000-0000-4000-8000-000000000000/history"),
+    ("post", "/api/export/deal-model"), ("post", "/api/deal/run"), ("get", "/api/account"), ("get", "/api/account/settings"),
     ("get", "/api/account/history"), ("post", "/api/montecarlo/run"), ("post", "/api/addin/sessions"),
     ("get", "/api/companies/sources"), ("get", "/api/jobs/00000000-0000-4000-8000-000000000000"),
     # the person's files beyond the PDF it uploads: the list, download links, deleting
@@ -79,6 +82,23 @@ def test_a_pass_reaches_coverage_as_the_person_who_made_it(site):  # noqa: ARG00
 def test_a_pass_reaches_nothing_but_research(site, method, path):  # noqa: ARG001
     refused = client.request(method.upper(), path, json={}, headers=bearer(new_pass()))
     assert (refused.status_code, refused.json()["detail"]) == (403, "addin_scope")
+
+
+def test_a_pass_lists_the_persons_deals_and_reads_a_deals_cells(site):  # noqa: ARG001
+    """PLAN.md 7.3b: the pane opens a saved deal and refreshes it, and reads nothing else of it."""
+    made = client.post("/api/deals", json={"name": "Project Wren", "inputs": {"hold": 5}, "settings": {}},
+                       headers=bearer("dev:alice"))
+    assert made.status_code == 201, made.text
+    deal = made.json()["id"]
+    token = new_pass()
+    listed = client.get("/api/deals", headers=bearer(token))
+    assert [d["name"] for d in listed.json()["deals"]] == ["Project Wren"]
+    cells = client.get(f"/api/deals/{deal}/model/cells", headers=bearer(token))
+    assert cells.status_code == 200 and cells.json()["sheets"][0]["title"] == "Deal model"
+    # someone else's pass gets no deal of hers
+    other = new_pass("bob")
+    assert client.get("/api/deals", headers=bearer(other)).json()["deals"] == []
+    assert client.get(f"/api/deals/{deal}/model/cells", headers=bearer(other)).status_code == 404
 
 
 def test_a_pass_cannot_make_another(site):  # noqa: ARG001

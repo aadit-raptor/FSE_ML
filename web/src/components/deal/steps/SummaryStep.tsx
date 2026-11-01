@@ -10,8 +10,8 @@ import { NumberField } from "@/components/ui/NumberField";
 import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { multiplesFromPct } from "@/lib/deal/capital";
-import { dealFiscal, FIELDS, type NumericDealKey } from "@/lib/deal/fields";
-import { downloadWorkbook, fraction, sheet, tableSheet } from "@/lib/export";
+import { apiInputs, dealFiscal, FIELDS, type NumericDealKey } from "@/lib/deal/fields";
+import { downloadDealModel, downloadWorkbook, fraction, sheet, tableSheet } from "@/lib/export";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
@@ -21,6 +21,8 @@ import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { MONEY } from "@/lib/money";
 
 import { useMonteCarlo } from "@/components/montecarlo/MonteCarloProvider";
+
+import { useSettings } from "@/components/settings/SettingsProvider";
 
 import { useDeal } from "../DealProvider";
 import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
@@ -130,6 +132,7 @@ function SummaryResults() {
   const { run, hurdle, inputs, current } = useDeal();
   // The saved deal the tables come from: each download goes in its history (PLAN.md 3.3)
   const savedId = current?.id ?? null;
+  const { overrides } = useSettings();
   const t = useTranslations("deal");
   const x = useTranslations("export");
   const units = useTranslations("units");
@@ -297,6 +300,13 @@ function SummaryResults() {
       <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2">
         <p className="type-body">{t("allTablesNote")}</p>
         <DownloadButton label={t("allTables")} onDownload={() => downloadWorkbook(x("fileSummary"), allSheets(), money, run.result?.model, savedId)} />
+      </div>
+      <div className="col-span-12 flex items-center justify-between gap-4 bg-canvas px-3 py-2" data-live-workbook>
+        <p className="type-body">{t("liveWorkbookNote")}</p>
+        <DownloadButton
+          label={t("liveWorkbook")}
+          onDownload={() => downloadDealModel(apiInputs(inputs), overrides, current?.name ?? x("fileDealModel"), savedId)}
+        />
       </div>
 
       <Tile

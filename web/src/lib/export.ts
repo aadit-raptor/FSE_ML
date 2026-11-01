@@ -128,6 +128,17 @@ export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money
   );
 }
 
+/**
+ * The deal as a workbook of live formulas (PLAN.md 7.3a): the API writes every line of the model as Excel formulas
+ * from the same inputs and Settings a run takes, so the spreadsheet recalculates the app's IRR by itself. `name`
+ * titles the sheet and the file; `dealId` puts the export in a saved deal's history.
+ */
+export function downloadDealModel(inputs: unknown, settings: unknown, name: string, dealId: string | null) {
+  const { grouping } = numberStyle();
+  return postForFile("/api/export/deal-model", { inputs, settings, name, ...(grouping === "locale" ? {} : { grouping }) },
+    `${name}.xlsx`, dealId);
+}
+
 /** Up to 10,000 simulated paths for the given Monte Carlo request. */
 export function downloadMonteCarloSample(body: unknown, dealId: string | null) {
   return postForFile("/api/export/montecarlo-sample", body, "mc_simulation.xlsx", dealId);

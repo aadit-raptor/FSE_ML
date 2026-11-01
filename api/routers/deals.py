@@ -20,7 +20,7 @@ from api.auth import AuthUser, require_user
 from api.observability import log_event
 from api.schemas import (
     AccountSettings, AuditHistory, DealActuals, DealContent, DealCreate, DealDetail, DealDuplicate,
-    DealList, DealPatch, StoredActuals, ValidationConsent, VersionDetail, VersionList, VersionSave,
+    DealInputsIn, DealList, DealModelCells, DealPatch, DigitGrouping, StoredActuals, ValidationConsent, VersionDetail, VersionList, VersionSave,
     VersionSummary,
 )
 from core import model_version
@@ -130,6 +130,23 @@ def get_deal(deal_id: uuid.UUID, user: AuthUser = Depends(require_user)):
     with store_errors():
         deal = store.get_deal(user.subject, deal_id)
     return _detail(deal, check=True)
+
+
+@router.get("/deals/{deal_id}/model/cells", response_model=DealModelCells)
+def get_deal_model_cells(deal_id: uuid.UUID, grouping: DigitGrouping = "locale",
+                         user: AuthUser = Depends(require_user)):
+    """A saved deal as its live-formula workbook's cells, for the Excel add-in (PLAN.md 7.3b): the
+    working copy as last saved, run now, written as the download writes it."""
+    from api.routers.export import deal_model      # export imports this module
+
+    with store_errors():
+        deal = store.get_deal(user.subject, deal_id)
+    sheets, result, money, model = deal_model(DealInputsIn(**(deal.inputs or {})), deal.settings or {},
+                                              name=deal.name, grouping=grouping, saved=str(deal.id))
+    with store_errors():
+        store.record_export(user.subject, deal_id, "deal_model_addin")
+    return {"deal_id": str(deal.id), "name": deal.name, "sheets": sheets, "irr": result.irr,
+            "moic": result.moic, "money": money, "model": model}
 
 
 @router.patch("/deals/{deal_id}", response_model=DealDetail)

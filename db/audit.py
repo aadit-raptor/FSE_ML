@@ -41,7 +41,7 @@ COMPACT_AFTER_DAYS = 7
 # Entries one history request answers at most
 MAX_ENTRIES = 500
 EXPORTS = ("workbook", "simulation_sample", "results_workbook", "results_excel", "report_word", "report_pdf",
-           "memo_word", "memo_pdf")
+           "memo_word", "memo_pdf", "deal_model", "deal_model_addin")
 # Keys ``detail`` may hold, and nothing else
 # ("reference" is a reference transaction's id, "verdict" an administrator's review of it)
 # ("team" is a team's id, "member" a member's user id and "role" a team role: PLAN.md 7.2)

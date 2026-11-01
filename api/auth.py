@@ -28,8 +28,11 @@ instance, so ``FSE_AUTH_DEV=1`` accepts ``Bearer dev:<name>`` as the user
 **The Excel add-in** (PLAN.md R3) sends ``Bearer addin:<pass>``: a pass the
 API made for a signed-in user (``db/addin.py``, ``api/routers/addin.py``),
 looked up by its hash. It works in every sign-in mode but reaches only
-``ADDIN_PATHS``, the research endpoints the pane uses; anywhere else it is a
-403, so a pass taken from a pane can't open the person's deals or settings.
+``ADDIN_PATHS``, the research endpoints the pane uses and, since PLAN.md 7.3,
+the list of the person's deals and a deal's live-formula cells (read only:
+never a deal's stored inputs, a change, a share or a delete); anywhere else it
+is a 403, so a pass taken from a pane can't change the person's deals or
+settings.
 
 ``tests/test_auth.py`` pins all of this, including that every route outside
 ``PUBLIC_PATHS`` answers 401 without a token.
@@ -75,6 +78,9 @@ ADDIN_PATHS = (
     ("GET", re.compile(r"/api/files/[0-9a-fA-F-]{36}")),
     ("PUT", re.compile(r"/api/files/[0-9a-fA-F-]{36}/content")),
     ("GET DELETE", re.compile(r"/api/addin/session")),
+    # PLAN.md 7.3b: open a saved deal in Excel and refresh it, reading only
+    ("GET", re.compile(r"/api/deals")),
+    ("GET", re.compile(r"/api/deals/[0-9a-fA-F-]{36}/model/cells")),
 )
 # How long a looked-up pass is trusted before the database is asked again
 ADDIN_CACHE_S = 60

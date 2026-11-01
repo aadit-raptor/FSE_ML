@@ -109,7 +109,9 @@ def company(fixture: dict, **changes) -> Company:
 # MAX, MIN and IF(a=b, x, y). Anything else is an error, which is itself a
 # test: the workbook may hold nothing more.
 # ---------------------------------------------------------------------------
-_XL = re.compile(r"\s*(?:(?P<cell>(?:[A-Za-z_]+!)?\$?[A-Z]{1,3}\$?\d+)|(?P<num>\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)|(?P<fn>[A-Z]+)(?=\()|(?P<op>[-+*/(),=]))")
+_XL = re.compile(r"\s*(?:(?P<cell>(?:[A-Za-z_]+!)?\$?[A-Z]{1,3}\$?\d+)|(?P<num>\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)|(?P<fn>[A-Z]+)(?=\()|(?P<str>\"[^\"]*\")|(?P<op><=|>=|<>|[-+*/(),=<>^]))")
+_COMPARE = {"=": lambda a, b: a == b, "<>": lambda a, b: a != b, "<": lambda a, b: a < b,
+            ">": lambda a, b: a > b, "<=": lambda a, b: a <= b, ">=": lambda a, b: a >= b}
 
 
 class _Excel:
@@ -150,10 +152,25 @@ class _Excel:
         return v
 
     def term(self):
-        v = self.unary()
+        v = self.power()
         while self.peek() in ("*", "/"):
-            v = v * self.unary() if self.take()[1] == "*" else v / self.unary()
+            v = v * self.power() if self.take()[1] == "*" else v / self.power()
         return v
+
+    def power(self):
+        v = self.unary()
+        while self.peek() == "^":
+            self.take()
+            v = v ** self.unary()
+        return v
+
+    def comparison(self):
+        """An IF's test: an expression, or two compared (deal workbooks, PLAN.md 7.3)."""
+        left = self.expression()
+        if self.peek() in _COMPARE:
+            op = self.take()[1]
+            return _COMPARE[op](left, self.expression())
+        return bool(left)
 
     def unary(self):
         if self.peek() == "-":
@@ -162,6 +179,8 @@ class _Excel:
         kind, v = self.take()
         if kind == "num":
             return float(v)
+        if kind == "str":
+            return v[1:-1]
         if kind == "cell":
             return self.cell(v.replace("$", ""))
         if kind == "fn":
@@ -174,9 +193,7 @@ class _Excel:
     def function(self, name):
         self.take("(")
         if name == "IF":
-            left = self.expression()
-            self.take("=")
-            holds = left == self.expression()
+            holds = self.comparison()
             self.take(",")
             if holds:
                 v = self.expression()
