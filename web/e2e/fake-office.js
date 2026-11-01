@@ -109,6 +109,12 @@
         sheets.forEach(function (s) { s.active = false; });
         sheet.active = true;
       },
+      // a deal's refresh (PLAN.md 7.3b) removes its old sheet; Excel refuses to remove the last one
+      delete: function () {
+        if (sheets.length < 2) throw new Error("fake Excel: a workbook keeps one sheet");
+        sheets.splice(sheets.indexOf(sheet), 1);
+        worksheets.items.splice(worksheets.items.indexOf(ws), 1);
+      },
       load: function () {},
       getUsedRange: function () {
         var rows = 0, cols = 0;

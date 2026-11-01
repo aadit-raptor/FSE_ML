@@ -214,11 +214,17 @@ def _notes(model: Model, marked: list) -> dict:
 
 def write(model: Model, company: Company, allow_missing: bool = False, saved: str | None = None) -> Workbook:
     """The model for one company as a workbook, written from `sheets`: a Model sheet of live formulas and a Notes sheet."""
+    return write_sheets(sheets(model, company, allow_missing=allow_missing, saved=saved))
+
+
+def write_sheets(sheet_list: list) -> Workbook:
+    """Sheets of cells (`sheets`' shape) as a workbook of live formulas. A deal's
+    workbook (api/deal_workbook.py, PLAN.md 7.3) is written by this too."""
     wb = Workbook()
     wb.remove(wb.active)
     wb.properties.creator = wb.properties.lastModifiedBy = SOURCE
     wb.calculation = CalcProperties(fullCalcOnLoad=True)      # no values are stored: work everything out on opening
-    for sheet in sheets(model, company, allow_missing=allow_missing, saved=saved):
+    for sheet in sheet_list:
         ws = wb.create_sheet(sheet["title"])
         for spec in sheet["cells"]:
             if "text" in spec:

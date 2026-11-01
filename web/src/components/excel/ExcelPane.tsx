@@ -9,6 +9,7 @@ import { applyPass, endPass, parsePassMessage, savePass, storedPass, type AddinP
 import { periodCells, writeCells, type Written } from "@/lib/excel/write";
 import { listCoverage, type CoverageCompany } from "@/lib/research";
 
+import { DealInPane } from "./DealInPane";
 import { ModelInPane } from "./ModelInPane";
 import { ReadInPane } from "./ReadInPane";
 import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
@@ -246,6 +247,12 @@ function SignedIn({ office }: { office: Office }) {
         )}
         {problem && <p className="type-alert" role="alert">{problem}</p>}
       </section>
+      <DealInPane
+        support={{
+          notes: office.context.requirements.isSetSupported("ExcelApi", "1.18"),
+          comments: office.context.requirements.isSetSupported("ExcelApi", "1.10"),
+        }}
+      />
       <ModelInPane
         companies={companies ?? []}
         support={{

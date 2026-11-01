@@ -1319,7 +1319,7 @@ class AuditEntry(BaseModel):
     version: Optional[int] = Field(None, description="The version kept or restored")
     source_deal: Optional[str] = Field(None, description="The deal a duplicate was made from")
     export: Optional[Literal["workbook", "simulation_sample", "results_workbook", "results_excel", "report_word",
-                             "report_pdf", "memo_word", "memo_pdf"]] = None
+                             "report_pdf", "memo_word", "memo_pdf", "deal_model", "deal_model_addin"]] = None
     enabled: Optional[bool] = Field(
         None, description="Whether the reference library was shown or hidden, or suggestions of the "
                           "account's usual figures switched on or off")
@@ -3120,6 +3120,26 @@ class SheetOut(BaseModel):
     names: Dict[str, str] = Field(default_factory=dict, description="Defined name to an absolute address on "
                                   "this sheet ('$C$12'): every assumption cell and constant of a sector model")  # currency-ok
     heights: Dict[str, float] = Field(default_factory=dict, description="Row number to height in points")
+
+
+class DealModelRequest(Strict):
+    """A deal to write as a workbook of live formulas (PLAN.md 7.3a): the same body as /api/deal/run."""
+    inputs: DealInputsIn = DealInputsIn()
+    settings: Dict[str, SettingValue] = {}
+    name: str = Field("Deal", max_length=120, description="The deal's name, for the sheet's title")
+    grouping: DigitGrouping = Field("locale", description="Lakh and crore patterns when 'lakh'")
+
+
+class DealModelCells(BaseModel):
+    """A saved deal as the live-formula workbook's cells, for the Excel add-in (PLAN.md 7.3b): the same
+    cells the download holds, and the app's answer for the same run."""
+    deal_id: str
+    name: str
+    sheets: List[SheetOut]
+    irr: Optional[float] = Field(description="The app's IRR for the deal, a fraction")
+    moic: Optional[float]
+    money: Money
+    model: ModelStamp
 
 
 class PeriodCells(BaseModel):
