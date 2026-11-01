@@ -19,8 +19,10 @@ from api.auth import AuthUser, require_user
 from api.deps import resolve_settings
 from api.limits import simulation_slot
 from api.routers.deals import store_errors
-from api.schemas import MonteCarloRequest, WorkbookRequest
-from core.deal import DealInputs
+from api import deal_workbook
+from api.schemas import DealInputsIn, DealModelRequest, MonteCarloRequest, WorkbookRequest
+from core.deal import DealInputs, in_millions, run_deal
+from core.money import in_unit
 from core.model_version import stamp
 from core.montecarlo import MCInputs, apply_scenario, build_sim_params, mc_in_millions
 from db import deals as deals_store
@@ -205,6 +207,51 @@ def post_workbook(req: WorkbookRequest, deal_id: Optional[uuid.UUID] = DealFrom,
     data = workbook_bytes(frames, req.grouping)
     _record_export(user, deal_id, "workbook")
     return _xlsx_response(data, req.filename)
+
+
+# What the About sheet of a deal's live workbook says beside the usual rows
+DEAL_MODEL_NOTES = (
+    ("What this is", "The deal model as live formulas: change a blue input on the Deal model sheet and every "
+                     "line follows, worked out by the spreadsheet program, not by Variater."),
+    ("Rounding", "Variater rounds money to two decimals of a million at each line; this sheet does not, so "
+                 "a very small deal can differ in the last digits."),
+    ("Hold", "The columns are laid out for the deal's holding period; another hold needs a new download."),
+)
+
+
+def deal_model(inputs: DealInputsIn, settings: dict, *, name: str, grouping: str = "locale",
+               saved: Optional[str] = None):
+    """A deal's live-formula workbook as cells (api/deal_workbook.py), the app's
+    run of the same deal beside it, the money and the model stamp."""
+    cfg = resolve_settings(settings)
+    model = stamp(cfg)
+    deal = DealInputs(**inputs.model_dump())
+    result = run_deal(*in_millions(deal, cfg))
+    money = inputs.money()
+    label = "%s %s" % (money.currency, UNIT_WORDS[money.unit])
+    source_items, source_values = source_rows()
+    money_items, money_values = money_rows(money)
+    model_items, model_values = model_rows(model)
+    about = ([*source_items, "Deal", *money_items, *(k for k, _ in DEAL_MODEL_NOTES), *model_items],
+             [*source_values, name, *money_values, *(v for _, v in DEAL_MODEL_NOTES), *model_values])
+    sheets = deal_workbook.sheets(deal, cfg, title=name, money_label=label, result=result,
+                                  factor=in_unit(1.0, inputs.unit), app_irr=result.irr, grouping=grouping,
+                                  saved=saved, about=about)
+    return sheets, result, money, model
+
+
+@router.post("/deal-model", response_class=Response,
+             responses={200: {"content": {XLSX: {}}, "description": "Excel workbook of live formulas"}})
+def post_deal_model(req: DealModelRequest, deal_id: Optional[uuid.UUID] = DealFrom,
+                    user: AuthUser = Depends(require_user)):
+    """The deal as a workbook whose cells are working formulas (PLAN.md 7.3a): every debt type, the tax
+    rules and the money in the deal's own currency and unit; recalculated, it gives the app's IRR."""
+    sheets, *_ = deal_model(req.inputs, req.settings, name=req.name, grouping=req.grouping,
+                            saved=str(deal_id) if deal_id else None)
+    buf = io.BytesIO()
+    deal_workbook.write(sheets).save(buf)
+    _record_export(user, deal_id, "deal_model")
+    return _xlsx_response(buf.getvalue(), "%s model.xlsx" % req.name)
 
 
 @router.post("/montecarlo-sample", response_class=Response,

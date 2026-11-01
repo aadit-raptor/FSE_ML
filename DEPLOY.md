@@ -974,7 +974,9 @@ any tab; signed in, that page asks `POST /api/addin/sessions` for an
 **add-in pass** and hands it to the pane. A pass (`addin:` and 43 random
 characters) reaches only `/api/research/*`, the three upload steps for the
 PDF it reads (`POST /api/files`, `PUT .../content`, `GET /api/files/{id}`)
-and its own `/api/addin/session` (`api.auth.ADDIN_PATHS`, by method;
+its own `/api/addin/session`, and, since PLAN.md 7.3, the list of the
+person's deals and a deal's live-formula cells (`GET /api/deals`,
+`GET /api/deals/{id}/model/cells`, read only) (`api.auth.ADDIN_PATHS`, by method;
 anything else is a 403, so not the file list, download links or deleting,
 which would reach the person's deal documents too), lasts
 12 hours, is one of at most five per person, and ends when the pane signs

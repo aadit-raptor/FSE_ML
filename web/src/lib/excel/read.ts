@@ -20,6 +20,15 @@ function plain(value: unknown): number | string | boolean | null {
   return null;
 }
 
+/**
+ * What the cell a sheet-scoped name points at holds (`fallback` when the sheet has no such name): a saved model's
+ * or a saved deal's marker beside its title, which says which one the sheet is.
+ */
+export function namedValue(sheet: SheetRead, name: string, fallback: string): number | string | boolean | null {
+  const [row, column] = start(sheet.names[name] ?? fallback);
+  return sheet.grid[row - 1]?.[column - 1] ?? null;
+}
+
 type Batch = (context: ExcelContext) => Promise<SheetRead>;
 type Runner = (batch: Batch) => Promise<SheetRead>;
 

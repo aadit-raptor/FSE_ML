@@ -88,8 +88,8 @@ test.describe("Excel add-in", () => {
     // every call carried the add-in's pass, which reaches research only
     const pass = await page.evaluate(() => JSON.parse(window.localStorage.getItem("fse.excel.pass") ?? "{}").token as string);
     expect(pass).toMatch(/^addin:/);
-    const deals = await page.request.get("/api/deals", { headers: { Authorization: `Bearer ${pass}` } });
-    expect(deals.status()).toBe(403);
+    const deal = await page.request.get("/api/deals/00000000-0000-4000-8000-000000000000", { headers: { Authorization: `Bearer ${pass}` } });
+    expect(deal.status()).toBe(403);
 
     // signing out ends the pass on the server too
     await page.getByRole("button", { name: "Sign out" }).click();
@@ -142,6 +142,62 @@ test.describe("Excel add-in", () => {
     const written = await page.evaluate(() => (window as unknown as { __excelWritten: () => unknown }).__excelWritten());
     const download = await page.request.get(`/api/research/periods/${summary.id}/workbook`, { headers: auth });
     expect(compare(info, await download.body(), written).differences).toEqual([]);
+  });
+
+  test("a saved deal opens as the live workbook's own cells, and Refresh brings an edit made on the site", async ({ page, context }, info) => {
+    await fakeOffice(context);
+    await signInAs(page, `excel-deal-${run}`, "en-GB");
+    const headers = await asUser(page);
+    // a euro deal in thousands on a floating EURIBOR loan with a floor, beside fixed notes (PLAN.md 7.3)
+    const inputs = {
+      ebitda: 85000, entry_mult: 9.5, exit_mult: 10, hold: 6, currency: "EUR", unit: "thousands",
+      tranches: [
+        { name: "Term loan B", kind: "institutional_term_loan", amount: 330000, floating: true, reference_rate: "EURIBOR",
+          reference_path: [2.4, 2.1, 1.8], floor: 2.0, margin: 4.25, maturity_years: 7, amort_pct: 1, sweep: true },
+        { name: "Senior notes", kind: "senior_notes", amount: 70000, fixed_rate: 6.5, maturity_years: 8 },
+      ],
+    };
+    const made = await page.request.post("/api/deals", { headers, data: { name: "Project Kestrel", inputs, settings: {} } });
+    expect(made.status()).toBe(201);
+    const dealId = (await made.json()).id as string;
+
+    await page.goto("/excel");
+    await signInThroughDialog(page);
+    await expect(page.getByRole("combobox", { name: "Deal" })).toContainText("Project Kestrel");
+    await page.getByRole("button", { name: "Open in Excel" }).click();
+    await expect(page.locator('[data-deal-outcome="status"]')).toContainText("IRR in Variater");
+    type Sheet = { name: string; active: boolean; names: Record<string, string>; cells: Record<string, { value?: unknown }> };
+    const written = await page.evaluate(() => (window as unknown as { __excelWritten: () => { sheets: Sheet[] } }).__excelWritten());
+    expect(written.sheets.map((s) => s.name)).toEqual(["Deal model", "About"]);
+    expect(written.sheets[0].active).toBe(true);
+    expect(written.sheets[0].names.variater_deal).toBe("$B$1");
+
+    // cell for cell the Summary step's "Live workbook" download of the same deal
+    const download = await page.request.post(`/api/export/deal-model?deal_id=${dealId}`, {
+      headers, data: { inputs, settings: {}, name: "Project Kestrel" },
+    });
+    const checked = compare(info, await download.body(), written);
+    expect(checked.differences).toEqual([]);
+    expect(checked.cells).toBeGreaterThan(800);
+
+    // an edit on the site, then Refresh on the deal's sheet: the same sheet, now holding the new exit multiple
+    const saved = await page.request.put(`/api/deals/${dealId}/draft`, { headers, data: { inputs: { ...inputs, exit_mult: 11.5 }, settings: {} } });
+    expect(saved.ok()).toBe(true);
+    const app = await (await page.request.post("/api/deal/run", { headers, data: { inputs: { ...inputs, exit_mult: 11.5 }, settings: {} } })).json();
+    await page.getByRole("button", { name: "Refresh" }).click();
+    await expect(page.locator('[data-deal-outcome="status"]')).toContainText("Project Kestrel refreshed from Variater");
+    const irr = new Intl.NumberFormat("en-GB", { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(app.returns.irr);
+    await expect(page.locator('[data-deal-outcome="status"]')).toContainText(irr);
+    const refreshed = await page.evaluate(() => (window as unknown as { __excelWritten: () => { sheets: Sheet[] } }).__excelWritten());
+    expect(refreshed.sheets.map((s) => s.name)).toEqual(["About", "Deal model"]);
+    const model = refreshed.sheets.find((s) => s.name === "Deal model")!;
+    expect(model.cells[model.names.exit_multiple.replace(/\$/g, "")].value).toBe(11.5);
+
+    // a sheet that is no deal's says so
+    await page.evaluate(() => (window as unknown as { Excel: { run: (b: (c: { workbook: { worksheets: { items: { name: string; activate: () => void }[] } } }) => void) => void } })
+      .Excel.run((c) => c.workbook.worksheets.items.find((w) => w.name === "About")!.activate()));
+    await page.getByRole("button", { name: "Refresh" }).click();
+    await expect(page.locator('[data-deal-outcome="alert"]')).toContainText("not a deal from Variater");
   });
 
   test("Load model writes a sector model as the download's own cells, its assumptions named", async ({ page, context }, info) => {

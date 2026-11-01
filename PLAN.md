@@ -169,7 +169,7 @@ which moved into Foundations (1.9) because later phases need them.
 | **7** | **Product features** | | |
 | 7.1 | Onboarding and in-app help | 1.5 | ☑ |
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☑ |
-| 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☐ |
+| 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☑ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
 | 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☐ |
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
@@ -2891,6 +2891,35 @@ enough for the free server.
   - (a) the recalculated workbook matches the app's IRR to 0.01pp for a
     non-USD floating-rate deal;
   - (b) the sideloaded add-in refreshes a saved deal.
+- **Done (2026-11-01).** **Part a:** `api/deal_workbook.py` writes the deal as
+  one sheet of live formulas from the same resolved parameters the engine runs
+  on (`build_lbo_params` on the deal in its own unit): inputs in blue and named
+  (`ebitda`, `exit_multiple`, `t1_margin` ...), every facility's terms and its
+  rate each year (`MAX(reference, floor) + margin`), the operating model, the
+  income statement, the tax rules' lines (interest limit, losses, minimum tax),
+  levered FCF, the cash sweep in priority order with each facility's share,
+  PIK, commitment fee, mandatory repayment (amortising, bullet, own schedule)
+  and revolver draw, the shortfall finding 11 leaves unfunded, and the returns
+  (`irr`, `moic`); money in the deal's currency and unit, lakh grouping sized
+  per cell. A percentage deal's two facilities are formulas of its debt share,
+  senior share, rate and spread. No convergence loop is needed (interest is on
+  opening balances) and no money is rounded (finding 10), which the sheet and
+  its About say. Download: Deal -> Summary, "Live workbook"
+  (`POST /api/export/deal-model`, audit export `deal_model`). **Part b:** the
+  add-in's "Open a saved deal" (`components/excel/DealInPane.tsx`) runs the
+  saved deal (`GET /api/deals/{id}/model/cells`, audit `deal_model_addin`) and
+  writes the download's own cells with the app's IRR and MOIC beside; the model
+  sheet names its deal in B1 (`variater_deal`), so "Refresh" writes it over
+  under the same name with the deal as saved now. The add-in's pass now also
+  reaches `GET /api/deals` and that cells endpoint (read only). Evidence:
+  `tests/test_deal_workbook.py` (a euro floating-rate deal in thousands with all
+  five mechanics, tax rules and IFRS leases matches the app's IRR to 0.01pp by
+  the tests' own Excel reader and by LibreOffice; 13 more structures; edited
+  input cells move the IRR as the app does; 13 formula mutations caught),
+  `e2e/excel.spec.ts` (open a saved deal, cells equal the download, an edit on
+  the site then Refresh), `e2e/money.spec.ts` (the downloaded file recalculates
+  to the IRR on screen). The real Excel on Windows, the Mac and the web is still
+  the user's to try, as for R3.
 
 ### 7.4 Portfolio tracking in any currency
 - **Claude does:** mark deals as owned; quarterly actuals (reusing 2.7); drift

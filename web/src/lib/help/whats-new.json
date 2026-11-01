@@ -1,5 +1,6 @@
 {
   "entries": [
+    { "id": "liveWorkbook", "date": "2026-11-01", "href": "/deal/summary" },
     { "id": "teams", "date": "2026-10-30", "href": "/teams" },
     { "id": "onboarding", "date": "2026-10-29", "href": "/deal/guided" },
     { "id": "memo", "date": "2026-10-29", "href": "/deal/memo" },

@@ -653,7 +653,11 @@
     "activity_team_joined": "Joined a team",
     "activity_team_left": "Left a team",
     "activity_team_member_removed": "Removed someone from a team",
-    "activity_team_role_changed": "Gave someone in a team another role"
+    "activity_team_role_changed": "Gave someone in a team another role",
+    "liveWorkbook": "Live workbook",
+    "liveWorkbookNote": "The whole model as working Excel formulas, every facility and tax rule included: change an input in the file and the IRR follows, worked out by your spreadsheet.",
+    "activityExport_deal_model": "Live workbook of formulas",
+    "activityExport_deal_model_addin": "Live workbook, into Excel by the add-in"
   },
   "montecarlo": {
     "groupFromDeal": "From the deal",
@@ -1430,7 +1434,8 @@
     "fileThreeStatement": "{company}_3statement_model.xlsx",
     "fileHistoricals": "{company}_historicals.xlsx",
     "colLine": "Line",
-    "colPlan": "Plan"
+    "colPlan": "Plan",
+    "fileDealModel": "Deal model"
   },
   "format": {
     "missing": "n/a"
@@ -2738,7 +2743,18 @@
     "connectError_no_account": "Finish your account on variater.com first (country, currency, format and time zone).",
     "connectError_no_database": "This server keeps no accounts (no database).",
     "connectError_failed": "Excel couldn't be signed in. Close this window and try again.",
-    "connectOutsideOffice": "This window is opened by the Variater add-in in Excel. Sign in from the add-in's task pane."
+    "connectOutsideOffice": "This window is opened by the Variater add-in in Excel. Sign in from the add-in's task pane.",
+    "dealTitle": "Open a saved deal",
+    "dealHint": "The deal as last saved, run and written in as live formulas: change a blue input and the IRR follows in Excel. Refresh writes the active deal sheet over with the deal as it is saved now.",
+    "deal": "Deal",
+    "noDeals": "No saved deals yet. Save one on the site first.",
+    "openDeal": "Open in Excel",
+    "refreshDeal": "Refresh",
+    "dealWritten": "Written to: {names}.",
+    "dealRefreshed": "{name} refreshed from Variater.",
+    "dealResult": "IRR in Variater {irr}, MOIC {moic}.",
+    "dealNotASheet": "The active sheet is not a deal from Variater. Open the deal's sheet and refresh again.",
+    "dealFailed": "The deal couldn't be written. Try again in a new workbook."
   },
   "models": {
     "startGroup": "Start",
@@ -3520,7 +3536,8 @@
     "memberRole": "Owners run the team and edit its deals, editors edit its deals, viewers only read them.",
     "inviteRole": "The role people joining by this link get: editors change shared deals, viewers only read them.",
     "inviteUses": "How many people may join by this link before it stops working; it also ends after a week.",
-    "teamRename": "The team's name, as everyone in it sees it."
+    "teamRename": "The team's name, as everyone in it sees it.",
+    "paneDeal": "The saved deal to write into this workbook as working formulas."
   },
   "onboarding": {
     "guideTitle": "Guided first deal",
@@ -3671,7 +3688,9 @@
     "usualFiguresTitle": "Your usual figures",
     "usualFiguresBody": "Beside the sourced figures, the medians of your own saved deals in the same region and sector.",
     "teamsTitle": "Teams, sharing and comments",
-    "teamsBody": "Make a team, invite people by a link, share a deal for them to edit or read, and comment on it, mentioning people, who are emailed."
+    "teamsBody": "Make a team, invite people by a link, share a deal for them to edit or read, and comment on it, mentioning people, who are emailed.",
+    "liveWorkbookTitle": "Deals as live Excel formulas, and in the add-in",
+    "liveWorkbookBody": "Download any deal as a workbook whose cells are working formulas, every facility and tax rule included, from the Summary step, or open a saved deal from the Excel add-in and refresh it after an edit."
   },
   "email": {
     "subjectOne": "You were mentioned in a comment on Variater",

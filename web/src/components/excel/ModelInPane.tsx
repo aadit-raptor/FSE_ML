@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/Screen";
-import { readActiveSheet } from "@/lib/excel/read";
+import { namedValue, readActiveSheet } from "@/lib/excel/read";
 import { writeCells, type Written } from "@/lib/excel/write";
 import type { CoverageCompany } from "@/lib/research";
 import {
@@ -108,10 +108,7 @@ export function ModelInPane({ companies, support }: { companies: CoverageCompany
     const excel = run();
     if (!excel) throw new Error("excel");
     const sheet = await readActiveSheet((batch) => excel(batch));
-    const at = sheet.names.variater_model?.split("!").pop()?.replace(/\$/g, "") ?? "B1";
-    const match = /^([A-Z]+)(\d+)$/.exec(at);
-    const column = match ? match[1].split("").reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) : 2;
-    const reference = savedReference(sheet.grid[(match ? Number(match[2]) : 1) - 1]?.[column - 1]);
+    const reference = savedReference(namedValue(sheet, "variater_model", "B1"));
     return { sheet, reference };
   };
 

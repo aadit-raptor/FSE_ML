@@ -9,6 +9,8 @@ __pycache__/
 .localdb/
 # Signed-in browser state saved by web/e2e/auth.setup.ts
 web/e2e/.auth/
+# the same, when Playwright is run from the repository root (-c web)
+e2e/.auth/
 # Local secrets (PLAN.md 1.7): keys live in Render, Vercel and GitHub secrets
 .env
 .env.*
