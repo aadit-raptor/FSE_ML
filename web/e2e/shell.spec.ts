@@ -27,7 +27,7 @@ test("the launcher opens each workspace, and the brand mark leads back to it", a
 
   const lbo = page.locator('[data-workspace="lbo"]');
   await expect(lbo.getByRole("navigation", { name: "LBO screens" }).getByRole("link")).toHaveText(
-    ["Deal", "Monte Carlo", "Backtest", "Settings", "Library"],
+    ["Deal", "Monte Carlo", "Backtest", "Portfolio", "Settings", "Library"],
   );
   await lbo.getByRole("link", { name: "Backtest" }).click();
   await expect(page).toHaveURL(/\/backtest\/actuals$/);
@@ -41,7 +41,7 @@ test("the launcher opens each workspace, and the brand mark leads back to it", a
 test("each workspace shows only its own mode tabs, and the switcher moves between them", async ({ page }) => {
   await page.goto("/deal/inputs");
   const tabs = page.getByRole("navigation", { name: "Modes" }).getByRole("link");
-  await expect(tabs).toHaveText([/^Deal/, /^Monte Carlo/, /^Backtest/, /^Settings/, /^Library/]);
+  await expect(tabs).toHaveText([/^Deal/, /^Monte Carlo/, /^Backtest/, /^Portfolio/, /^Settings/, /^Library/]);
   await expect(workspaces(page).getByRole("link", { name: "LBO" })).toHaveAttribute("aria-current", "true");
 
   await workspaces(page).getByRole("link", { name: "Equity research" }).click();
@@ -71,8 +71,8 @@ test("keyboard: Alt+number switches mode, ] moves to the next step", async ({ pa
   await expect(page).toHaveURL(/\/monte-carlo\/distribution$/);
   await page.keyboard.press("]");
   await expect(page).toHaveURL(/\/monte-carlo\/scenarios$/);
-  // Settings is the LBO workspace's fourth mode
-  await page.keyboard.press("Alt+4");
+  // Settings is the LBO workspace's fifth mode (after Portfolio, PLAN.md 7.4)
+  await page.keyboard.press("Alt+5");
   await expect(page).toHaveURL(/\/settings\/deal$/);
 });
 

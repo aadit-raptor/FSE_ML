@@ -170,7 +170,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.1 | Onboarding and in-app help | 1.5 | ☑ |
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☑ |
 | 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☑ |
-| 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☐ |
+| 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☑ |
 | 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☐ |
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
@@ -2927,6 +2927,32 @@ enough for the free server.
   rates, with local figures alongside; reforecast from actuals as a job.
 - **Done when:** a GBP and EUR portfolio totals correctly in USD at stated rates
   (test); below-plan actuals trigger an alert.
+- **Done (2026-11-01).** A saved deal is **marked as owned** on Portfolio ->
+  Quarterly results (`deals.portfolio`: when it closed, a label, and an alert
+  tolerance, default 5%); **quarterly results** reuse plan vs actual's five
+  lines a quarter at a time (`deals.quarters`, in the deal's currency, any
+  unit). `core/portfolio.py` sets them against the plan, which is the deal
+  model's answer for the saved deal: a quarter of each year's flows, debt on a
+  straight line through the year. **Drift alerts**: revenue or EBITDA year to
+  date below the plan, or the latest debt above it, by more than the
+  tolerance (ids and figures; words in `portfolio.alert_*`). **Reforecast as a
+  job** (`portfolio.reforecast`, `POST /api/deals/{id}/reforecast`): the last
+  four quarters' EBITDA against the plan's gives the growth shown since close,
+  (1 + g') = (1 + g) x (actual / plan)^(1/t); the deal model and the simulation
+  rerun the plan with it, everything else as planned; the answer is kept on the
+  deal (`deals.reforecast`) and marked out of date when the quarters change.
+  **Dashboard** (`GET /api/portfolio?currency=&unit=&on=`, Portfolio ->
+  Dashboard): every owned deal the person can read (their own and their
+  teams'), each in its own money and converted to a reporting currency at one
+  day's ECB reference rates crossed through the euro, the rates and their day
+  stated, a currency the ECB doesn't quote named and left out of the totals.
+  Migration 0027; six audit actions. Evidence: `tests/test_portfolio_api.py`
+  (a GBP holding in thousands and a EUR one total in USD to the dollar at 0.85
+  and 1.08 a euro, the rates stated, on the last ECB day before a Sunday;
+  quarters 15% below plan raise `ebitda_below_plan`, 3% below none),
+  `tests/test_portfolio.py` (the arithmetic by hand, 17 mutations caught),
+  `e2e/portfolio.spec.ts` (the alert, the tolerance, the reforecast's growth,
+  the dashboard against the deal model).
 
 ### 7.5 Lender view with regional conventions
 - **Claude does:** covenants per tranche (leverage, interest cover, fixed-charge

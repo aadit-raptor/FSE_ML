@@ -66,6 +66,15 @@ export const MODES: Mode[] = [
     ],
   },
   {
+    // Portfolio tracking (PLAN.md 7.4): owned deals in a reporting currency, and the open deal's quarterly results
+    slug: "portfolio",
+    labelKey: "modePortfolio",
+    steps: [
+      { slug: "dashboard", labelKey: "portfolioDashboard", summaryKey: "portfolioDashboardSummary" },
+      { slug: "quarters", labelKey: "portfolioQuarters", summaryKey: "portfolioQuartersSummary" },
+    ],
+  },
+  {
     slug: "forecast",
     labelKey: "modeForecast",
     steps: [
@@ -136,7 +145,7 @@ export const WORKSPACES: Workspace[] = [
     slug: "lbo",
     labelKey: "workspaceLbo",
     summaryKey: "workspaceLboSummary",
-    modes: ["deal", "monte-carlo", "backtest", "settings", "library"],
+    modes: ["deal", "monte-carlo", "backtest", "portfolio", "settings", "library"],
   },
   {
     slug: "research",
