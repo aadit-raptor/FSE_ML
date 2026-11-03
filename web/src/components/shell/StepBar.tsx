@@ -13,14 +13,22 @@ export function StepBar() {
   const nav = useTranslations("nav");
   const bar = useRef<HTMLElement>(null);
   // On a phone the row scrolls sideways (PLAN.md 7.6): keep the current step in sight
-  // (scrolled by hand, not with scrollIntoView, which would also move where the Tab key starts from)
+  // (scrolled by hand, not with scrollIntoView, which would also move where the Tab key starts from), and
+  // again whenever the row's width changes: a phone turned on its side, a window resized
   useEffect(() => {
     const row = bar.current;
-    const step = row?.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!row || !step || row.scrollWidth <= row.clientWidth) return;
-    const start = step.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
-    row.scrollLeft = Math.max(0, start - (row.clientWidth - step.offsetWidth) / 2);
-  }, [current?.slug]);
+    if (!row) return;
+    const show = () => {
+      const step = row.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!step || row.scrollWidth <= row.clientWidth) return;
+      const start = step.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+      row.scrollLeft = Math.max(0, start - (row.clientWidth - step.offsetWidth) / 2);
+    };
+    show();
+    const resized = new ResizeObserver(show);
+    resized.observe(row);
+    return () => resized.disconnect();
+  }, [mode?.slug, current?.slug]);
   if (!mode) return <div className="min-h-[34px] flex-none border-b border-line bg-[#0f1417]" />;
 
   return (

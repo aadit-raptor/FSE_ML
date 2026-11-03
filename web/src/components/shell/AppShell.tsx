@@ -112,7 +112,7 @@ function Shell({ children }: { children: React.ReactNode }) {
                             <SkipLink />
                             <TopBar />
                             <StepBar />
-                            <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-auto focus:outline-none">
+                            <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-auto focus-visible:outline-offset-[-2px]">
                               <ScreenHeading />
                               {children}
                             </main>
@@ -171,7 +171,8 @@ function SkipLink() {
 /**
  * Every screen of a mode has one top-level heading, its mode and step ("Deal: Inputs"), for screen
  * readers: the step row shows the same words, but a heading is how a reader finds where a page starts.
- * Screens outside the modes (account, help, teams) carry a visible heading of their own.
+ * Screens outside the modes (account, help, teams) carry a visible heading of their own; a mode's screen
+ * starts its own headings at h2.
  */
 function ScreenHeading() {
   const { mode, step } = parsePath(usePathname());

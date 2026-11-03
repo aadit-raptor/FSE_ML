@@ -1634,14 +1634,16 @@ one, the other `max-md:hidden` so its state stays. **`Tile` spans** are full
 from `lg` and smaller below (2 -> a half on a phone, a third on a tablet; 4 ->
 a half on a tablet; 5-8 -> the row); a component that lays out tiles itself
 follows the same rule. Grids of fixed columns in the results stack below `md`.
-**A wide table goes in `<div className="overflow-x-auto" tabIndex={0}>`** (the
-tab stop is how a keyboard scrolls it; axe's `scrollable-region-focusable`),
-and nothing else may scroll sideways: the results pane, the help panes and the
-page are checked at 820 and 390 pixels. `html, body` have `overflow-x: clip`,
-because a positioned `sr-only` tip inside a wide table otherwise widens the
-page. **Accessibility**: `--color-dim` is #77858d (from #65737b) so the
+**A wide table goes in `<div className="relative overflow-x-auto" tabIndex={0}>`**
+(the tab stop is how a keyboard scrolls it, axe's `scrollable-region-focusable`;
+`relative` is required: without it a positioned `sr-only` tip inside the table
+escapes the box and widens the whole page), and nothing else may scroll
+sideways: the results pane, the help panes and the page are checked at 820 and
+390 pixels. On a phone the deal's run and save state stand above both views
+(`Screen`'s `phoneBar`, `PhoneDealState`), since the rail that says it may be
+hidden; the view each address last showed is kept for the visit. **Accessibility**: `--color-dim` is #77858d (from #65737b) so the
 faintest text, the step row and the top menu reach 4.5:1 on every panel; a mode's
-screen has a hidden `h1` ("Deal: Returns", `shell.screenHeading`); the first tab
+screen has a hidden `h1` ("Deal: Returns", `shell.screenHeading`) and starts its own headings at `h2`; the first tab
 stop is "Skip to content", which focuses `#content`; the results pane is a
 focusable region named "Results"; an empty header cell is a `td aria-hidden`; a
 link inside a sentence is underlined. **`e2e/accessibility.spec.ts`** runs

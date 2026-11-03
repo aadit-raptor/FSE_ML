@@ -111,7 +111,7 @@ function Guide() {
   return (
     <section aria-label={t("guideTitle")} className="grid content-start gap-4 border border-line bg-panel p-5">
       <header className="grid gap-1">
-        <h1 className="type-result-title text-[16px]">{t("guideTitle")}</h1>
+        <h2 className="type-result-title text-[16px]">{t("guideTitle")}</h2>
         <p className="type-body">{t("guideIntro")}</p>
       </header>
       <ol className="flex flex-wrap gap-x-4 gap-y-1" aria-label={t("progress")}>

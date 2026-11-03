@@ -48,9 +48,6 @@
   html,
   body {
     height: 100%;
-    /* The shell scrolls inside its own panes; a visually hidden description (`sr-only`, positioned) in
-       a wide table must not give the whole page a sideways scroll on a phone (PLAN.md 7.6) */
-    overflow-x: clip;
   }
   body {
     background: var(--color-canvas);

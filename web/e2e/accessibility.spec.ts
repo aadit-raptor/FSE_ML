@@ -49,15 +49,6 @@ async function sideways(page: Page): Promise<string[]> {
   });
 }
 
-/**
- * The deal has its answer. On a phone the rail, which says so, may be the hidden view, so its status
- * is looked for whether shown or not.
- */
-async function phoneDealSettled(page: Page) {
-  await expect(page.getByRole("status", { includeHidden: true }).filter({ hasText: /^Up to date/ })).toBeAttached();
-  await expect(page.getByRole("status", { includeHidden: true }).filter({ hasText: /^Updating/ })).toHaveCount(0);
-}
-
 /** The screens outside the modes. */
 const OTHER = ["/start", "/account", "/help", "/help/whats-new", "/teams"];
 
@@ -138,7 +129,7 @@ test.describe("Key journeys on a phone", () => {
   test("edit a deal, see its returns, then run the simulation", async ({ page }) => {
     await signInAs(page, `phone-${Date.now().toString(36)}`, "en-GB");
     await page.goto("/deal/returns");
-    await phoneDealSettled(page);
+    await dealSettled(page);
     const irr = kpi(page, "IRR");
     await expect(irr).toHaveText("21.2%");
     await expect(irr).toBeInViewport();
@@ -149,7 +140,7 @@ test.describe("Key journeys on a phone", () => {
     await expect(irr).toBeHidden();
     await setField(page, "Exit multiple", "13");
     await page.getByRole("button", { name: "Results", exact: true }).tap();
-    await phoneDealSettled(page);
+    await dealSettled(page);
     await expect(irr).not.toHaveText("21.2%");
     const edited = await irr.textContent();
 
@@ -162,7 +153,7 @@ test.describe("Key journeys on a phone", () => {
     // Back on the deal the edit is still there
     await page.getByRole("navigation", { name: "Modes" }).getByRole("link", { name: /^Deal/ }).tap();
     await page.locator('nav[aria-label$="steps"]').getByRole("link", { name: "Returns", exact: true }).tap();
-    await phoneDealSettled(page);
+    await dealSettled(page);
     await expect(irr).toHaveText(edited!);
     expect(await sideways(page)).toEqual([]);
   });
@@ -170,7 +161,7 @@ test.describe("Key journeys on a phone", () => {
   test("the top bar fits, and search, help and the account are reached by their icons", async ({ page }) => {
     await signInAs(page, `phone-bar-${Date.now().toString(36)}`, "en-GB");
     await page.goto("/deal/inputs");
-    await phoneDealSettled(page);
+    await dealSettled(page);
     const header = page.locator("header").first();
     expect(await header.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
 
@@ -192,7 +183,7 @@ test.describe("Key journeys on a phone", () => {
   test("a right-to-left account on a phone: mirrored, readable, and nothing serious for axe", async ({ page }) => {
     await signInAs(page, `phone-rtl-${Date.now().toString(36)}`, "ar-EG");
     await page.goto("/deal/returns");
-    await phoneDealSettled(page);
+    await dealSettled(page);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     expect(await serious(page)).toEqual([]);
     expect(await sideways(page)).toEqual([]);

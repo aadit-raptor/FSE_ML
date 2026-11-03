@@ -1,20 +1,30 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { TipLabel, TipText, useTip } from "./Tip";
 
+/** The view each address last showed on a phone, so a screen that draws itself again (loading, then loaded) keeps it. */
+const lastView = new Map<string, "rail" | "results">();
+
 /**
  * Input rail on the left, a status bar slot and results on the right. On a phone (PLAN.md 7.6) the two
  * don't fit side by side: a switch above them shows one at a time, results first, and the inputs keep
- * their state while hidden, so an edit made there is in the results on switching back.
+ * their state while hidden, so an edit made there is in the results on switching back. `phoneBar` is
+ * drawn under the switch on a phone only, for what the rail says that must not be hidden with it.
  */
-export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNode; children: ReactNode }) {
+export function Screen({ rail, bar, phoneBar, children }: { rail: ReactNode; bar?: ReactNode; phoneBar?: ReactNode; children: ReactNode }) {
   const t = useTranslations("ui");
-  const [view, setView] = useState<"rail" | "results">("results");
+  const path = usePathname();
+  const [view, setShown] = useState<"rail" | "results">(() => lastView.get(path) ?? "results");
+  const setView = (v: "rail" | "results") => {
+    lastView.set(path, v);
+    setShown(v);
+  };
   return (
-    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[270px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
+    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_minmax(0,1fr)] md:grid-cols-[270px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
       <div role="group" aria-label={t("screenView")} className="grid grid-cols-2 border-b border-line bg-panel md:hidden" data-screen-view>
         {(["rail", "results"] as const).map((v) => (
           <button
@@ -28,6 +38,7 @@ export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNo
           </button>
         ))}
       </div>
+      <div className="md:hidden">{phoneBar}</div>
       <aside
         className={`flex min-h-0 flex-col overflow-y-auto border-e border-line bg-panel max-md:border-e-0 ${view === "rail" ? "" : "max-md:hidden"}`}
         aria-label={t("inputs")}
