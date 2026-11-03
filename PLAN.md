@@ -178,7 +178,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.9 | Charts in every Excel download | 2.3a | ☐ |
 | 7.10 | Workspaces: LBO and equity research, launcher after sign-in | 1.4 | ☑ |
 | **8** | **Ready to scale** | | |
-| 8.1 | Result caching | 1.9 | ☐ |
+| 8.1 | Result caching | 1.9 | ☑ |
 | 8.2 | Speed budgets (web and API) | 1.2 | ☐ |
 | 8.3 | Load testing and a scaling plan | 8.1, 8.2 | ☐ |
 | **9** | **Subscriptions machinery (test mode)** | | |
@@ -3090,6 +3090,23 @@ inputs.
   data changes clear it; cache writes budgeted against the free command limit.
 - **Done when:** a repeated seeded run returns in under 100 ms identically; a
   version bump misses (test); command usage stays in budget in the load test.
+- **Done (2026-11-04).** `api/result_cache.py`: a seeded Monte Carlo run or
+  scenario run, by endpoint or as a job, asked again by the same person answers
+  from the cache without the simulation slot (`@cached` outside
+  `@simulation_slot`; the job runner looks up before taking the slot). The key
+  is SHA-256 over the kind, the person, the whole request and the model stamp
+  (engine version, commit, Settings and data fingerprints), so nothing is ever
+  cleared: a change misses. Unseeded runs and `system:` callers skip it. Values
+  are AES-256-GCM sealed with a second hash of the same material, which is kept
+  nowhere: the stores hold nothing readable and no account can open another's.
+  Memory (16 MB) first, then Upstash (6 hours), else table `result_cache`
+  (migration 0028, 32 MB). Upstash spend is budgeted per environment a day,
+  commands and bytes, counted on the usage counters' shared daily counters; the
+  month's ceiling with the counters' budgets is 480,500 commands and 5.6 GB of
+  the free 10 GB. Measured locally: a repeated 20,000-path run answers in
+  about 23 ms (115 KB sealed), identical to the byte
+  (`tests/test_result_cache.py`). The load test itself is 8.3's; its budget
+  check there reads `/api/health/limits` `result_cache`.
 
 ### 8.2 Speed budgets (web and API)
 - **Claude does:** page-load and interaction budgets (Lighthouse in CI);

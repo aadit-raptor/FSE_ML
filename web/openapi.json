@@ -29365,7 +29365,7 @@
     },
     "/api/health/limits": {
       "get": {
-        "description": "Where usage counters are shared (Upstash, the database or memory\nonly), whether Upstash answers, and today's Redis command use. Never\nqueries the database; the Upstash check is a PING (not billed),\nreused for 10 minutes.",
+        "description": "Where usage counters are shared (Upstash, the database or memory\nonly), whether Upstash answers, and today's Redis command use. Never\nqueries the database; the Upstash check is a PING (not billed),\nreused for 10 minutes. ``result_cache`` is the result cache (PLAN.md\n8.1): its store, today's Upstash spend and this process's hits.",
         "operationId": "health_limits_api_health_limits_get",
         "responses": {
           "200": {

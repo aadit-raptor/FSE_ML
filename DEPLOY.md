@@ -1317,16 +1317,18 @@ target traffic (`python -m api.usage`, pinned by
 
 | | Daily active users (45 active minutes each) | Commands a month |
 |---|---|---|
-| Production | 200 | 124,992 |
-| Staging | 20 | 24,552 |
+| Production | 200 | 142,848 |
+| Staging | 20 | 42,408 |
 | CI | | 3,000 |
-| **Total** | | **152,544 (31% of 500,000)** |
+| **Total** | | **188,256 (38% of 500,000)** |
+
+(Each sync also carries the result cache's two daily counters, below.)
 
 Whatever the traffic, a hard **daily budget** holds: each sync also counts
 its commands in Redis (conservatively, every command inside the script), and
 past 8,000 a day on production, 2,000 on staging, 1,000 anywhere else, that
 process uses the database for the rest of the UTC day. The budgets add up to
-341,000 a month at most. `/api/health/limits` shows the store in use, whether
+341,000 a month at most (480,500 with the result cache's, below). `/api/health/limits` shows the store in use, whether
 Upstash answers (a PING, not billed, reused for 10 minutes) and today's
 command count as last seen.
 
@@ -1335,6 +1337,27 @@ table in Neon instead; if that fails too they wait in memory for the next
 sync. Limits keep working throughout: one free instance enforces them
 exactly from memory. With several instances (phase 12), per-minute limits
 become per instance and daily ones are shared within 5 minutes.
+
+**Result cache** (PLAN.md 8.1, `api/result_cache.py`, `db/result_cache.py`):
+a seeded Monte Carlo run or scenario run (endpoint or job) asked again by the
+same person with the same request answers from a cache, without the
+simulation slot. The key is a hash of the request, the person and the model
+stamp (engine version, commit, Settings and data fingerprints), so a new
+release, engine version or data edition misses by itself; unseeded runs and
+`system:` callers are never cached. The answer is stored **encrypted** with a
+second hash of the same material, so Upstash and the table hold nothing
+readable and one account can't read another's. Order: this process's memory
+(16 MB), then Upstash (keys `fse:<environment>:result:<hash>`, kept 6 hours),
+else the `result_cache` table (migration 0028, held to 32 MB). Its Upstash
+spend has its own **daily budgets**, counted on the usage counters' shared
+daily counters (`cache-commands:<day>`, `cache-bytes:<day>`): 3,000 commands
+and 120 MB on production, 1,000 and 40 MB on staging, 500 and 20 MB anywhere
+else, so with the counters' budgets the month's ceiling is 480,500 commands
+and 5.6 GB of Upstash's free 10 GB of traffic, and at most a day's bytes
+(180 MB of the free 256 MB) are stored at once. Past a budget the cache uses
+the table until the next UTC day. `/api/health/limits` shows it under
+`result_cache` (store, today's spend, this process's hits and misses).
+Nothing to set: it uses the Upstash variables above.
 
 **Browser tests** raise every count limit with `FSE_LIMITS_MULTIPLIER=20`
 (`web/playwright.config.ts`); the API ignores it in production.
