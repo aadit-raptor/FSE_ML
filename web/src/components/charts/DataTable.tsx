@@ -21,7 +21,7 @@ function cell(v: number | null | undefined, kind: Row["kind"]) {
 /** Year-by-year financial table. Labels in thickened Michroma, figures mono. */
 export function DataTable({ columns, rows, caption }: { columns: string[]; rows: Row[]; caption: string }) {
   return (
-    <div className="overflow-x-auto" tabIndex={0}>
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse font-mono text-[11px]">
         <caption className="sr-only">{caption}</caption>
         <thead>

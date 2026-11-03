@@ -49,6 +49,15 @@ async function sideways(page: Page): Promise<string[]> {
   });
 }
 
+/**
+ * The deal has its answer. On a phone the rail, which says so, may be the hidden view, so its status
+ * is looked for whether shown or not.
+ */
+async function phoneDealSettled(page: Page) {
+  await expect(page.getByRole("status", { includeHidden: true }).filter({ hasText: /^Up to date/ })).toBeAttached();
+  await expect(page.getByRole("status", { includeHidden: true }).filter({ hasText: /^Updating/ })).toHaveCount(0);
+}
+
 /** The screens outside the modes. */
 const OTHER = ["/start", "/account", "/help", "/help/whats-new", "/teams"];
 
@@ -95,6 +104,8 @@ test.describe("Accessibility, the shell", () => {
   test("the first tab stop skips to the screen, which has a heading", async ({ page }) => {
     await page.goto("/deal/returns");
     await dealSettled(page);
+    // From the top of the page, as on arriving: nothing has focus
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.keyboard.press("Tab");
     const skip = page.getByRole("link", { name: "Skip to content" });
     await expect(skip).toBeFocused();
@@ -106,11 +117,15 @@ test.describe("Accessibility, the shell", () => {
 
   test("a wide table is reached and scrolled from the keyboard", async ({ page }) => {
     await page.setViewportSize(SIZES.phone);
-    await page.goto("/deal/summary");
-    const table = page.getByRole("region", { name: "Income statement" }).locator(".overflow-x-auto");
-    await expect(table).toHaveAttribute("tabindex", "0");
-    expect(await table.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+    await page.goto("/forecast/assumptions");
+    await page.waitForLoadState("networkidle");
+    const boxes = page.locator('#content .overflow-x-auto[tabindex="0"]');
+    await expect(boxes.first()).toBeAttached();
+    const wide = await boxes.evaluateAll((els) => els.findIndex((el) => el.scrollWidth > el.clientWidth + 1));
+    expect(wide).toBeGreaterThanOrEqual(0);
+    const table = boxes.nth(wide);
     await table.focus();
+    await expect(table).toBeFocused();
     await page.keyboard.press("ArrowRight");
     await expect.poll(() => table.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
   });
@@ -123,7 +138,7 @@ test.describe("Key journeys on a phone", () => {
   test("edit a deal, see its returns, then run the simulation", async ({ page }) => {
     await signInAs(page, `phone-${Date.now().toString(36)}`, "en-GB");
     await page.goto("/deal/returns");
-    await dealSettled(page);
+    await phoneDealSettled(page);
     const irr = kpi(page, "IRR");
     await expect(irr).toHaveText("21.2%");
     await expect(irr).toBeInViewport();
@@ -134,7 +149,7 @@ test.describe("Key journeys on a phone", () => {
     await expect(irr).toBeHidden();
     await setField(page, "Exit multiple", "13");
     await page.getByRole("button", { name: "Results", exact: true }).tap();
-    await dealSettled(page);
+    await phoneDealSettled(page);
     await expect(irr).not.toHaveText("21.2%");
     const edited = await irr.textContent();
 
@@ -147,7 +162,7 @@ test.describe("Key journeys on a phone", () => {
     // Back on the deal the edit is still there
     await page.getByRole("navigation", { name: "Modes" }).getByRole("link", { name: /^Deal/ }).tap();
     await page.locator('nav[aria-label$="steps"]').getByRole("link", { name: "Returns", exact: true }).tap();
-    await dealSettled(page);
+    await phoneDealSettled(page);
     await expect(irr).toHaveText(edited!);
     expect(await sideways(page)).toEqual([]);
   });
@@ -155,7 +170,7 @@ test.describe("Key journeys on a phone", () => {
   test("the top bar fits, and search, help and the account are reached by their icons", async ({ page }) => {
     await signInAs(page, `phone-bar-${Date.now().toString(36)}`, "en-GB");
     await page.goto("/deal/inputs");
-    await dealSettled(page);
+    await phoneDealSettled(page);
     const header = page.locator("header").first();
     expect(await header.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
 
@@ -177,7 +192,7 @@ test.describe("Key journeys on a phone", () => {
   test("a right-to-left account on a phone: mirrored, readable, and nothing serious for axe", async ({ page }) => {
     await signInAs(page, `phone-rtl-${Date.now().toString(36)}`, "ar-EG");
     await page.goto("/deal/returns");
-    await dealSettled(page);
+    await phoneDealSettled(page);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     expect(await serious(page)).toEqual([]);
     expect(await sideways(page)).toEqual([]);

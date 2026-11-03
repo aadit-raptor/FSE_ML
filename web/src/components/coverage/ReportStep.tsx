@@ -26,7 +26,7 @@ import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
  * i18n-keys: report.source_*
  * i18n-keys: report.section_*
  */
-const field = "border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
+const field = "min-w-0 border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
 
 export function ReportStep() {
   const companyTip = useTip("reportCompany");
@@ -84,7 +84,7 @@ export function ReportStep() {
             ) : companies.length === 0 ? (
               <p className="type-body text-[10.5px]">{t("noCompanies")}</p>
             ) : (
-              <label className="grid gap-1">
+              <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 <span className="type-input-label"><TipLabel tip={companyTip}>{t("company")}</TipLabel></span>
                 <select aria-describedby={companyTip.id} className={field} value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
                   {companies.map((c) => (
@@ -184,24 +184,24 @@ function ViewGroup({ report, versions, onSave }: {
   return (
     <RailGroup title={t("viewGroup")}>
       <p className="type-body mb-1.5 text-[10.5px]">{t("viewHint")}</p>
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={ratingTip}>{t("ratingLabel")}</TipLabel></span>
         <input aria-describedby={ratingTip.id} className={field} value={rating} maxLength={40} onChange={(e) => setRating(e.target.value)} />
       </label>
       <TipText tip={ratingTip} />
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={targetTip}>{t("targetLabel")}</TipLabel></span>
         <input aria-describedby={targetTip.id} className={field} value={target} inputMode="decimal" onChange={(e) => setTarget(e.target.value)}
           aria-invalid={badTarget} />
       </label>
       <TipText tip={targetTip} />
       {badTarget && <p className="type-body text-[10px] text-loss">{t("targetInvalid")}</p>}
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={dateTip}>{t("dateLabel")}</TipLabel></span>
         <input aria-describedby={dateTip.id} className={field} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       </label>
       <TipText tip={dateTip} />
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={compareTip}>{t("compareLabel")}</TipLabel></span>
         <select aria-describedby={compareTip.id} className={field} value={compare} onChange={(e) => setCompare(e.target.value)}>
           <option value="">{t("compareNone")}</option>
@@ -213,7 +213,7 @@ function ViewGroup({ report, versions, onSave }: {
         </select>
       </label>
       <TipText tip={compareTip} />
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={argumentTip}>{t("argumentLabel")}</TipLabel></span>
         <textarea aria-describedby={argumentTip.id} className={`${field} min-h-[110px]`} value={argument} maxLength={20000}
           onChange={(e) => setArgument(e.target.value)} />
@@ -261,12 +261,12 @@ function DetailsGroup({ details, onSave }: { details: ReportDetails; onSave: (d:
   return (
     <RailGroup title={t("detailsGroup")}>
       <p className="type-body mb-1.5 text-[10.5px]">{t("detailsHint")}</p>
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={firmTip}>{t("firmLabel")}</TipLabel></span>
         <input aria-describedby={firmTip.id} className={field} value={firm} maxLength={200} onChange={(e) => setFirm(e.target.value)} />
       </label>
       <TipText tip={firmTip} />
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={disclosuresTip}>{t("disclosuresLabel")}</TipLabel></span>
         <textarea aria-describedby={disclosuresTip.id} className={`${field} min-h-[90px]`} value={disclosures} maxLength={8000}
           onChange={(e) => setDisclosures(e.target.value)} />

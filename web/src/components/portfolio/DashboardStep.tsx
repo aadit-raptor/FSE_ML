@@ -101,7 +101,7 @@ function Board({ board }: { board: Portfolio }) {
         <Kpi span={3} title={t("alertsKpi")} value={String(board.alerts)}
           tone={board.alerts > 0 ? "loss" : "gain"} sub={board.alerts > 0 ? t("alertsSome") : t("alertsNone")} />
         <Tile span={12} title={t("holdingsTitle")} unit={label}>
-          <div className="overflow-x-auto" tabIndex={0}>
+          <div className="relative overflow-x-auto" tabIndex={0}>
             <table className="w-full border-collapse text-[11px]" aria-label={t("holdingsTitle")}>
               <thead>
                 <tr>

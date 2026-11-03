@@ -221,7 +221,7 @@ function EditableGrid({
   const t = useTranslations("forecast");
   const rowLabel = (key: string) => withMoney(t(key), mu);
   return (
-    <div className="overflow-x-auto" tabIndex={0}>
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse">
         <thead>
           <tr>

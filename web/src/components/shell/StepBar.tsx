@@ -13,8 +13,13 @@ export function StepBar() {
   const nav = useTranslations("nav");
   const bar = useRef<HTMLElement>(null);
   // On a phone the row scrolls sideways (PLAN.md 7.6): keep the current step in sight
+  // (scrolled by hand, not with scrollIntoView, which would also move where the Tab key starts from)
   useEffect(() => {
-    bar.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    const row = bar.current;
+    const step = row?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!row || !step || row.scrollWidth <= row.clientWidth) return;
+    const start = step.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+    row.scrollLeft = Math.max(0, start - (row.clientWidth - step.offsetWidth) / 2);
   }, [current?.slug]);
   if (!mode) return <div className="min-h-[34px] flex-none border-b border-line bg-[#0f1417]" />;
 

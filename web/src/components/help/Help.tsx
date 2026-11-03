@@ -148,10 +148,10 @@ function BlockView({ block }: { block: Block }) {
       return block.ordered ? <ol className="grid list-decimal gap-1 ps-5">{items}</ol> : <ul className="grid list-disc gap-1 ps-5">{items}</ul>;
     }
     case "code":
-      return <pre tabIndex={0} className="overflow-x-auto border border-line bg-canvas px-3 py-2 font-mono text-[11px] leading-relaxed text-ink">{block.text}</pre>;
+      return <pre tabIndex={0} className="relative overflow-x-auto border border-line bg-canvas px-3 py-2 font-mono text-[11px] leading-relaxed text-ink">{block.text}</pre>;
     case "table":
       return (
-        <div className="overflow-x-auto" tabIndex={0}>
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-collapse font-mono text-[10.5px]">
             <thead>
               <tr>

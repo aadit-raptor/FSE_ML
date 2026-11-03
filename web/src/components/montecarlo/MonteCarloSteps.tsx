@@ -420,7 +420,7 @@ function Drivers() {
         </Tile>
         <DriverExplanationTiles explanations={r.explanations} />
         <Tile span={12} term="correlations" title={t("tileCorrelations")} unit={t("pearson")}>
-          <div className="overflow-x-auto" tabIndex={0}>
+          <div className="relative overflow-x-auto" tabIndex={0}>
             <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
               <thead>
                 <tr>
@@ -472,7 +472,7 @@ function Heatmap() {
       <Tiles>
         <p className="type-body col-span-12 bg-canvas px-3 py-2 text-[9.5px]">{h.note}</p>
         <Tile span={12} title={t("tileHeatmap")} unit={t("heatmapUnit")}>
-          <div className="overflow-x-auto" tabIndex={0}>
+          <div className="relative overflow-x-auto" tabIndex={0}>
             <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
               <thead>
                 <tr>

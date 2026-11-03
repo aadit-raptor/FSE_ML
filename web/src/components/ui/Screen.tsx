@@ -45,7 +45,7 @@ export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNo
 
 export function RailGroup({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <fieldset className="grid gap-0.5 border-b border-line px-3.5 pt-2.5 pb-3">
+    <fieldset className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-0.5 border-b border-line px-3.5 pt-2.5 pb-3">
       <legend className="type-input-group float-left mb-1.5 flex w-full items-center justify-between gap-2">
         {title}
         {aside}
@@ -81,7 +81,8 @@ export function Notice({
   return (
     <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-1 px-3 py-2 ${t.bg} ${t.rule} ${className}`} role={role}>
       <span className={`${t.titleClass} min-w-0 [overflow-wrap:anywhere]`}>{title}</span>
-      {children && <span className="type-body min-w-0 flex-1">{children}</span>}
+      {/* At least a short line wide, so on a phone it wraps under the title rather than into a sliver beside it */}
+      {children && <span className="type-body min-w-[min(100%,16rem)] flex-1">{children}</span>}
       {actions && <span className="ms-auto flex items-center gap-2">{actions}</span>}
     </div>
   );
@@ -187,7 +188,7 @@ export function EmptyGuide({ id, title, steps, children, actions }: {
 export function LoadingTiles() {
   const t = useTranslations("ui");
   return (
-    <div className="grid grid-cols-12 content-start gap-px bg-line" aria-busy="true" aria-label={t("loadingResults")}>
+    <div role="progressbar" className="grid grid-cols-12 content-start gap-px bg-line" aria-busy="true" aria-label={t("loadingResults")}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="col-span-6 md:col-span-4 lg:col-span-2 grid h-[86px] content-start gap-2 bg-canvas px-3 py-2.5">
           <div className="h-2.5 w-16 bg-raised" />

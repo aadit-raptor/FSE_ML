@@ -25,7 +25,7 @@ import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
  * i18n-keys: models.basis_*
  * i18n-keys: models.rolled*
  */
-const field = "border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
+const field = "min-w-0 border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
 
 export function useVersions(companyId: string | null, version: number | null): [ModelVersion[], () => void] {
   const [versions, setVersions] = useState<ModelVersion[]>([]);
@@ -97,7 +97,7 @@ export function SavedGroup({ model, owner, versions, reload }: {
         {model.saving === "saving" ? t("saving") : model.saving === "failed" ? t(refusalKey(model.saveRefused?.code ?? "failed"))
           : t("savedAt", { version: String(saved.version) })}
       </p>
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={labelTip}>{t("versionLabel")}</TipLabel></span>
         <input aria-describedby={labelTip.id} className={field} value={label} maxLength={120} onChange={(e) => setLabel(e.target.value)} />
       </label>
@@ -178,7 +178,7 @@ export function ComparisonTile({ versions }: { versions: ModelVersion[] }) {
       <div className="mb-1.5 flex flex-wrap items-end gap-3">
         {rolls.length > 1 && (
           <>
-          <label className="grid gap-1">
+          <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
             <span className="type-input-label"><TipLabel tip={pickTip}>{t("comparisonPick")}</TipLabel></span>
             <select aria-describedby={pickTip.id} className={field} value={chosen.number} onChange={(e) => setPicked(Number(e.target.value))}>
               {rolls.map((v) => (

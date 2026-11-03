@@ -200,7 +200,7 @@ function QuarterEditor({ drafts, hold, fiscal, readOnly, onSave }: {
         </span>
       )}>
       {rows.length === 0 ? <p className="type-body text-[10.5px]">{t("noQuarters")}</p> : (
-        <div className="overflow-x-auto" tabIndex={0}>
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-collapse text-[11px]" aria-label={t("quartersTitle")}>
             <thead>
               <tr>

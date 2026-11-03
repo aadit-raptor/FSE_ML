@@ -321,7 +321,7 @@ function Correlations() {
         </Notice>
       )}
       <Tile span={7} title={t("tileDriverCorrelations")} unit={t("editAboveDiagonal")}>
-        <div className="overflow-x-auto" tabIndex={0}>
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-separate border-spacing-px">
             <thead>
               <tr>
@@ -373,7 +373,7 @@ function Correlations() {
       </Tile>
       <Tile span={5} title={t("tileMatrixUsed")} unit={t("fromTheApi")}>
         {correlation && (
-          <div className="overflow-x-auto" tabIndex={0}>
+          <div className="relative overflow-x-auto" tabIndex={0}>
             <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
               <tbody>
                 {correlation.matrix.map((r, i) => (
@@ -413,7 +413,7 @@ function Presets() {
   return (
     <Tiles>
       <Tile span={12} title={t("tilePresets")} unit={t("presetsUnit")}>
-        <div className="overflow-x-auto" tabIndex={0}>
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0.5">
             <thead>
               <tr>

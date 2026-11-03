@@ -66,7 +66,7 @@ function CapitalStructureTable({ rows }: { rows: NonNullable<DealRun["capital_st
     [t("colPik"), "pikShare"],
   ];
   return (
-    <div className="overflow-x-auto" tabIndex={0}>
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse font-mono text-[11px]">
         <caption className="sr-only">{t("tileCapitalStructure")}</caption>
         <thead>

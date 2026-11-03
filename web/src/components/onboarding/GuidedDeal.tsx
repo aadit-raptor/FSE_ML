@@ -286,7 +286,7 @@ function Figures({ starting, answers }: { starting: Starting | null | "failed"; 
           count: starting.figures.length,
         })}
       </p>
-      <div className="overflow-x-auto" tabIndex={0}>
+      <div className="relative overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={t("figuresTitle")}>
           <thead>
             <tr className="type-input-label">

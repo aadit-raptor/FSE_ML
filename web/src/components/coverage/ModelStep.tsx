@@ -40,7 +40,8 @@ import { TipLabel, TipText, useTip } from "@/components/ui/Tip";
  */
 const UNITS = ["lakhs", "crores", "millions", "thousands", "billions", "units"];
 const ERRORS = ["model_refused", "company_refused", "cannot_work_out"];
-const field = "border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
+// `min-w-0`: a select is otherwise as wide as its longest option, wider than the rail (PLAN.md 7.6)
+const field = "min-w-0 border border-line bg-canvas px-2 py-1 text-[11px] text-ink";
 
 export function ModelStep() {
   const t = useTranslations("models");
@@ -242,7 +243,7 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
 
   return (
     <RailGroup title={t("startGroup")}>
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={fromTip}>{t("startFrom")}</TipLabel></span>
         <select aria-describedby={fromTip.id} className={field} value={from} onChange={(e) => setFrom(e.target.value)}>
           <option value="new">{t("newCompany")}</option>
@@ -254,7 +255,7 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
       <TipText tip={fromTip} />
       {from === "new" && (
         <>
-          <label className="grid gap-1">
+          <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
             <span className="type-input-label"><TipLabel tip={sectorTip}>{t("sector")}</TipLabel></span>
             <select aria-describedby={sectorTip.id} className={field} value={chosen?.sector ?? ""} onChange={(e) => setSector(e.target.value)}>
               {sectors.map((s) => (
@@ -263,7 +264,7 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
             </select>
           </label>
           <TipText tip={sectorTip} />
-          <label className="grid gap-1">
+          <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
             <span className="type-input-label"><TipLabel tip={coveredTip}>{t("coveredCompany")}</TipLabel></span>
             <select aria-describedby={coveredTip.id} className={field} value={covered} onChange={(e) => setCovered(e.target.value)}>
               <option value="">{t("noCoveredCompany")}</option>
@@ -275,7 +276,7 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
           <TipText tip={coveredTip} />
           {covered && (
             <>
-            <label className="grid gap-1">
+            <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
               <span className="type-input-label"><TipLabel tip={scopeTip}>{t("scope")}</TipLabel></span>
               <select aria-describedby={scopeTip.id} className={field} value={scope} onChange={(e) => setScope(e.target.value as typeof scope)}>
                 <option value="consolidated">{t("scopeConsolidated")}</option>
@@ -285,19 +286,19 @@ function StartGroup({ catalogue, companies, owner }: { catalogue: Catalogue | nu
             <TipText tip={scopeTip} />
             </>
           )}
-          <label className="grid gap-1">
+          <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
             <span className="type-input-label"><TipLabel tip={nameTip}>{t("companyName")}</TipLabel></span>
             <input aria-describedby={nameTip.id} className={field} value={name} maxLength={200} onChange={(e) => setName(e.target.value)} />
           </label>
           <TipText tip={nameTip} />
           {!covered && (
             <div className="grid grid-cols-2 gap-1.5">
-              <label className="grid gap-1">
+              <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 <span className="type-input-label"><TipLabel tip={currencyTip}>{t("currency")}</TipLabel></span>
                 <input aria-describedby={currencyTip.id} className={field} value={currency} maxLength={12} onChange={(e) => setCurrency(e.target.value)} />
               </label>
               <TipText tip={currencyTip} />
-              <label className="grid gap-1">
+              <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 <span className="type-input-label"><TipLabel tip={unitTip}>{t("moneyUnit")}</TipLabel></span>
                 <select aria-describedby={unitTip.id} className={field} value={unit} onChange={(e) => setUnit(e.target.value)}>
                   {UNITS.map((u) => (
@@ -395,12 +396,12 @@ function CompanyGroup({ model, onChange }: { model: ModelState; onChange: (compa
     <TipText tip={constantTip} />
     <TipText tip={choiceTip} />
     <TipText tip={offTip} />
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={companyNameTip}>{t("companyName")}</TipLabel></span>
         <input aria-describedby={companyNameTip.id} className={field} value={company.name} maxLength={200} onChange={(e) => onChange({ ...company, name: e.target.value })} />
       </label>
       <TipText tip={companyNameTip} />
-      <label className="grid gap-1">
+      <label className="grid grid-cols-[minmax(0,1fr)] gap-1">
         <span className="type-input-label"><TipLabel tip={unitNameTip}>{t("unitName")}</TipLabel></span>
         <input aria-describedby={unitNameTip.id} className={field} value={company.unit_name} maxLength={200} onChange={(e) => onChange({ ...company, unit_name: e.target.value })} />
       </label>
