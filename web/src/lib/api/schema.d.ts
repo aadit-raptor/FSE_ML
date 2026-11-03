@@ -807,6 +807,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/deals/{deal_id}/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Holding */
+        get: operations["get_holding_api_deals__deal_id__portfolio_get"];
+        /** Put Holding */
+        put: operations["put_holding_api_deals__deal_id__portfolio_put"];
+        post?: never;
+        /** Delete Holding */
+        delete: operations["delete_holding_api_deals__deal_id__portfolio_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/quarters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Quarters */
+        put: operations["put_quarters_api_deals__deal_id__quarters_put"];
+        post?: never;
+        /** Delete Quarters */
+        delete: operations["delete_quarters_api_deals__deal_id__quarters_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/reforecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Reforecast
+         * @description Reforecast the deal from its last four quarters, as a background job (it simulates).
+         */
+        post: operations["post_reforecast_api_deals__deal_id__reforecast_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/deals/{deal_id}/reforecast/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reforecast Job
+         * @description A reforecast's progress. Another account's job, or another kind, is a 404.
+         */
+        get: operations["get_reforecast_job_api_deals__deal_id__reforecast_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/deals/{deal_id}/shares": {
         parameters: {
             query?: never;
@@ -1811,6 +1888,23 @@ export interface paths {
          * @description Run all four scenario presets from the same inputs.
          */
         post: operations["post_scenarios_api_montecarlo_scenarios_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Portfolio */
+        get: operations["get_portfolio_api_portfolio_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2902,7 +2996,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted" | "unshared" | "commented" | "comment_deleted" | "team_created" | "team_renamed" | "team_deleted" | "team_invited" | "team_joined" | "team_left" | "team_member_removed" | "team_role_changed";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted" | "unshared" | "commented" | "comment_deleted" | "team_created" | "team_renamed" | "team_deleted" | "team_invited" | "team_joined" | "team_left" | "team_member_removed" | "team_role_changed" | "portfolio_added" | "portfolio_changed" | "portfolio_removed" | "quarters_saved" | "quarters_cleared" | "reforecast_run";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -3410,6 +3504,36 @@ export interface components {
             url: string;
             /** Usage */
             usage: string;
+        };
+        /** BoardFigures */
+        BoardFigures: {
+            /** Entry Equity */
+            entry_equity: number | null;
+            /** Entry Ev */
+            entry_ev: number | null;
+            /** Latest Debt */
+            latest_debt: number | null;
+            /** Ltm Ebitda */
+            ltm_ebitda: number | null;
+            /**
+             * Ltm Revenue
+             * @description The last four quarters, when all are given
+             */
+            ltm_revenue: number | null;
+            /** Plan Exit Equity */
+            plan_exit_equity: number | null;
+            /** Reforecast Exit Equity */
+            reforecast_exit_equity: number | null;
+        };
+        /** BoardTotal */
+        BoardTotal: {
+            /**
+             * Holdings
+             * @description How many holdings the total adds up
+             */
+            holdings: number;
+            /** Value */
+            value: number | null;
         };
         /** BridgeStep */
         BridgeStep: {
@@ -5152,6 +5276,57 @@ export interface components {
             /** Labels */
             labels: number;
         };
+        /**
+         * Drift
+         * @description The latest quarter's results against the plan: the year so far and the debt, and the alerts they raise.
+         */
+        Drift: {
+            /** Alerts */
+            alerts: components["schemas"]["DriftAlert"][];
+            debt: components["schemas"]["DriftGap"] | null;
+            /** Quarter */
+            quarter: number;
+            /** Tolerance */
+            tolerance: number;
+            /** Year */
+            year: number;
+            /**
+             * Ytd
+             * @description Revenue and EBITDA, the latest year's quarters so far
+             */
+            ytd: {
+                [key: string]: components["schemas"]["DriftGap"] | null;
+            };
+        };
+        /** DriftAlert */
+        DriftAlert: {
+            /** Actual */
+            actual: number;
+            /**
+             * Gap Pct
+             * @description Actual against plan, % of the plan; None when the plan is zero
+             */
+            gap_pct: number | null;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "revenue_below_plan" | "ebitda_below_plan" | "debt_above_plan";
+            /** Plan */
+            plan: number;
+        };
+        /** DriftGap */
+        DriftGap: {
+            /** Actual */
+            actual: number;
+            /**
+             * Gap Pct
+             * @description Actual against plan, % of the plan; None when the plan is zero
+             */
+            gap_pct: number | null;
+            /** Plan */
+            plan: number;
+        };
         /** DrillJob */
         DrillJob: {
             /** Attempts */
@@ -6268,6 +6443,57 @@ export interface components {
              *     }
              */
             money: components["schemas"]["Money"];
+        };
+        /**
+         * HoldingIn
+         * @description A deal marked as owned (PLAN.md 7.4).
+         */
+        HoldingIn: {
+            /**
+             * Since
+             * @description When the deal closed (a label)
+             */
+            since?: string | null;
+            /**
+             * Tolerance
+             * @description How far (%) below the plan revenue or EBITDA, or above it debt, may be before it is an alert
+             * @default 5
+             */
+            tolerance: number;
+        };
+        /** HoldingOut */
+        HoldingOut: {
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "owner" | "editor" | "viewer";
+            /** Deal Id */
+            deal_id: string;
+            drift: components["schemas"]["Drift"] | null;
+            money: components["schemas"]["Money"];
+            /** Name */
+            name: string;
+            /** Owned */
+            owned: boolean;
+            quarters: components["schemas"]["QuarterlyActuals"] | null;
+            /**
+             * Quarters Problem
+             * @description Why the saved quarters can't be set against the plan now (the deal changed since)
+             */
+            quarters_problem: ("beyond_hold" | "other_currency") | null;
+            /** Quarters Updated At */
+            quarters_updated_at: string | null;
+            reforecast: components["schemas"]["ReforecastResult"] | null;
+            /**
+             * Reforecast Current
+             * @description False when the quarters changed after the reforecast ran
+             */
+            reforecast_current: boolean;
+            /** Since */
+            since: string | null;
+            /** Tolerance */
+            tolerance: number | null;
         };
         /** InviteCreate */
         InviteCreate: {
@@ -8003,6 +8229,74 @@ export interface components {
             /** Net Debt At Exit */
             net_debt_at_exit: number;
         };
+        /** PortfolioHolding */
+        PortfolioHolding: {
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "owner" | "editor" | "viewer";
+            /**
+             * Alerts
+             * @description Money in the deal's own currency and unit
+             */
+            alerts: components["schemas"]["DriftAlert"][];
+            as_of: components["schemas"]["QuarterRef"] | null;
+            /** @description In the reporting currency; None without a rate */
+            converted: components["schemas"]["BoardFigures"] | null;
+            /** Deal Id */
+            deal_id: string;
+            /** @description In the deal's own currency and unit */
+            local: components["schemas"]["BoardFigures"];
+            money: components["schemas"]["Money"];
+            /** Name */
+            name: string;
+            /** Plan Irr */
+            plan_irr: number;
+            /** Plan Moic */
+            plan_moic: number;
+            /** Quarters Problem */
+            quarters_problem: ("beyond_hold" | "other_currency") | null;
+            /** Reforecast Current */
+            reforecast_current: boolean;
+            /** Reforecast Irr */
+            reforecast_irr: number | null;
+            /** Since */
+            since: string | null;
+        };
+        /** PortfolioResponse */
+        PortfolioResponse: {
+            /** Alerts */
+            alerts: number;
+            /** Holdings */
+            holdings: components["schemas"]["PortfolioHolding"][];
+            /**
+             * Missing Rates
+             * @description Currencies the ECB doesn't quote: their holdings are left out of the totals
+             */
+            missing_rates: string[];
+            model: components["schemas"]["ModelStamp"];
+            /** @description The reporting currency and unit */
+            money: components["schemas"]["Money"];
+            /**
+             * Published On
+             * @description The ECB day whose reference rates converted the figures
+             */
+            published_on: string | null;
+            /**
+             * Rates
+             * @description Units of each holding's currency per one of the reporting currency
+             */
+            rates: {
+                [key: string]: number;
+            };
+            /** Rates Url */
+            rates_url: string;
+            /** Totals */
+            totals: {
+                [key: string]: components["schemas"]["BoardTotal"];
+            };
+        };
         /** PreloadedDeal */
         PreloadedDeal: {
             /**
@@ -8082,6 +8376,62 @@ export interface components {
              * @description (observed - expected) / its standard deviation
              */
             z: number | null;
+        };
+        /**
+         * QuarterIn
+         * @description One quarter's reported results (PLAN.md 7.4), plan vs actual's lines on the same basis as the deal's
+         *     EBITDA. Flows are the quarter's own, debt is at the quarter's end; a figure left out is not known.
+         */
+        QuarterIn: {
+            /** Ebitda */
+            ebitda?: number | null;
+            /**
+             * Fcf
+             * @description Free cash flow after interest and tax, before debt repayment
+             */
+            fcf?: number | null;
+            /** Net Income */
+            net_income?: number | null;
+            /** Quarter */
+            quarter: number;
+            /** Revenue */
+            revenue?: number | null;
+            /**
+             * Total Debt
+             * @description Debt at the quarter's end
+             */
+            total_debt?: number | null;
+            /**
+             * Year
+             * @description The plan's year, from 1
+             */
+            year: number;
+        };
+        /** QuarterRef */
+        QuarterRef: {
+            /** Quarter */
+            quarter: number;
+            /** Year */
+            year: number;
+        };
+        /**
+         * QuarterlyActuals
+         * @description An owned deal's quarterly results, in the deal's currency (any unit).
+         */
+        QuarterlyActuals: {
+            /**
+             * Currency
+             * @description The currency the figures are in; must be the deal's
+             */
+            currency: string;
+            /** Quarters */
+            quarters: components["schemas"]["QuarterIn"][];
+            /**
+             * Unit
+             * @description thousands, lakhs, millions, crores or billions
+             * @enum {string}
+             */
+            unit: "thousands" | "lakhs" | "millions" | "crores" | "billions";
         };
         /** RangeLevel */
         RangeLevel: {
@@ -8704,6 +9054,114 @@ export interface components {
             /** Where */
             where?: string | null;
         };
+        /** ReforecastJobOut */
+        ReforecastJobOut: {
+            /**
+             * Error
+             * @description Why it failed, for people
+             */
+            error?: string | null;
+            /** Error Status */
+            error_status?: number | null;
+            /** Id */
+            id: string;
+            /** Progress */
+            progress: number;
+            result?: components["schemas"]["ReforecastResult"] | null;
+            /**
+             * Result Expired
+             * @default false
+             */
+            result_expired: boolean;
+            /** Stage */
+            stage: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        };
+        /**
+         * ReforecastResult
+         * @description The plan run again with the growth the last four quarters show (core/portfolio.py). IRRs are fractions.
+         */
+        ReforecastResult: {
+            based_on: components["schemas"]["QuarterRef"];
+            /** Deal Id */
+            deal_id: string;
+            /** Ltm Ebitda Actual */
+            ltm_ebitda_actual: number;
+            /** Ltm Ebitda Plan */
+            ltm_ebitda_plan: number;
+            model: components["schemas"]["ModelStamp"];
+            money: components["schemas"]["Money"];
+            plan: components["schemas"]["ReforecastReturns"];
+            /** Plan Growth */
+            plan_growth: number;
+            /**
+             * Quarters Updated At
+             * Format: date-time
+             * @description When the quarters it read were saved
+             */
+            quarters_updated_at: string;
+            reforecast: components["schemas"]["ReforecastReturns"];
+            /** Reforecast Growth */
+            reforecast_growth: number;
+            /**
+             * Run At
+             * Format: date-time
+             */
+            run_at: string;
+            simulated: components["schemas"]["ReforecastSimulated"];
+            /** Years */
+            years: components["schemas"]["ReforecastYear"][];
+        };
+        /** ReforecastReturns */
+        ReforecastReturns: {
+            /** Entry Equity */
+            entry_equity: number;
+            /** Exit Ebitda */
+            exit_ebitda: number;
+            /** Exit Equity */
+            exit_equity: number;
+            /** Exit Ev */
+            exit_ev: number;
+            /** Exit Multiple */
+            exit_multiple: number;
+            /** Irr */
+            irr: number;
+            /** Moic */
+            moic: number;
+            /** Net Debt At Exit */
+            net_debt_at_exit: number;
+        };
+        /** ReforecastSimulated */
+        ReforecastSimulated: {
+            /**
+             * Below Plan
+             * @description Share of simulated paths whose IRR is below the plan's
+             */
+            below_plan: number;
+            /** P5 */
+            p5: number;
+            /** P50 */
+            p50: number;
+            /** P95 */
+            p95: number;
+            /** Paths */
+            paths: number;
+        };
+        /** ReforecastYear */
+        ReforecastYear: {
+            /** Actual Ebitda */
+            actual_ebitda: number | null;
+            /** Plan Ebitda */
+            plan_ebitda: number;
+            /** Reforecast Ebitda */
+            reforecast_ebitda: number;
+            /** Year */
+            year: number;
+        };
         /** RegimeCardResult */
         RegimeCardResult: {
             /**
@@ -8823,7 +9281,7 @@ export interface components {
              * Regime
              * @description Only when shown
              */
-            regime?: ("recession" | "base" | "bull" | "stagflation") | null;
+            regime?: ("recession" | "stagflation" | "bull" | "base") | null;
             /**
              * Region
              * @enum {string}
@@ -13332,6 +13790,295 @@ export interface operations {
             };
         };
     };
+    get_holding_api_deals__deal_id__portfolio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_holding_api_deals__deal_id__portfolio_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HoldingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_holding_api_deals__deal_id__portfolio_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    put_quarters_api_deals__deal_id__quarters_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuarterlyActuals"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_quarters_api_deals__deal_id__quarters_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_reforecast_api_deals__deal_id__reforecast_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReforecastJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_reforecast_job_api_deals__deal_id__reforecast_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReforecastJobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
     deal_shares_api_deals__deal_id__shares_get: {
         parameters: {
             query?: never;
@@ -15650,6 +16397,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScenariosResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_portfolio_api_portfolio_get: {
+        parameters: {
+            query?: {
+                /** @description The reporting currency; the account's by default */
+                currency?: string | null;
+                unit?: "thousands" | "lakhs" | "millions" | "crores" | "billions";
+                /** @description The ECB rates of this day, or the last publication before it; the latest by default */
+                on?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioResponse"];
                 };
             };
             /** @description Validation Error */

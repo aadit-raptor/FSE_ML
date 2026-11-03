@@ -26,7 +26,7 @@ from pydantic import BaseModel, TypeAdapter
 from api.routers import backtesting, forecasting, montecarlo
 from api.schemas import (
     BacktestRequest, BacktestResponse, ForecastRunRequest, ForecastRunResponse,
-    DocumentReadResult, MemoDrafted, MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
+    DocumentReadResult, MemoDrafted, ReforecastResult, MonteCarloRequest, MonteCarloResponse, ReadResult, ScenariosRequest, ScenariosResponse,
 )
 
 
@@ -97,6 +97,17 @@ def _draft_memo(request: MemoRequest) -> dict:
     from ml import memo
 
     return memo.draft(request.owner, request.deal_id, request.version)
+
+
+class ReforecastRequest(BaseModel):
+    owner: str
+    deal_id: uuid.UUID
+
+
+def _reforecast(request: ReforecastRequest) -> dict:
+    from api.routers import portfolio
+
+    return portfolio.run_reforecast(request.owner, request.deal_id)
 
 
 class ScanRequest(BaseModel):
@@ -172,4 +183,7 @@ KINDS: dict[str, JobKind] = {k.name: k for k in (
             {"montecarlo.run": Stage("Simulating the deal", 0.5, "Simulating the scenarios"),
              "montecarlo.scenarios": Stage("Simulating the scenarios", 0.85, "Setting the plan against actual"),
              "backtest.plan_vs_actual": Stage("Setting the plan against actual", 0.95, "Keeping the memo")}),
+    # Queued by POST /api/deals/{id}/reforecast (PLAN.md 7.4), never through /api/jobs: its endpoint checks the
+    # caller may edit the deal and that its quarters can be read first. A simulation, so it takes the slot
+    JobKind("portfolio.reforecast", "Reforecast", ReforecastRequest, ReforecastResult, _reforecast),
 )}

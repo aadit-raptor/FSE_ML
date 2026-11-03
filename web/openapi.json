@@ -663,7 +663,13 @@
               "team_joined",
               "team_left",
               "team_member_removed",
-              "team_role_changed"
+              "team_role_changed",
+              "portfolio_added",
+              "portfolio_changed",
+              "portfolio_removed",
+              "quarters_saved",
+              "quarters_cleared",
+              "reforecast_run"
             ],
             "title": "Action",
             "type": "string"
@@ -1935,6 +1941,125 @@
           "usage"
         ],
         "title": "BenchmarkSourceOut",
+        "type": "object"
+      },
+      "BoardFigures": {
+        "properties": {
+          "entry_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Equity"
+          },
+          "entry_ev": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Ev"
+          },
+          "latest_debt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Debt"
+          },
+          "ltm_ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ltm Ebitda"
+          },
+          "ltm_revenue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The last four quarters, when all are given",
+            "title": "Ltm Revenue"
+          },
+          "plan_exit_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Exit Equity"
+          },
+          "reforecast_exit_equity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reforecast Exit Equity"
+          }
+        },
+        "required": [
+          "entry_ev",
+          "entry_equity",
+          "plan_exit_equity",
+          "ltm_revenue",
+          "ltm_ebitda",
+          "latest_debt",
+          "reforecast_exit_equity"
+        ],
+        "title": "BoardFigures",
+        "type": "object"
+      },
+      "BoardTotal": {
+        "properties": {
+          "holdings": {
+            "description": "How many holdings the total adds up",
+            "title": "Holdings",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "holdings"
+        ],
+        "title": "BoardTotal",
         "type": "object"
       },
       "BridgeStep": {
@@ -5918,6 +6043,137 @@
         "title": "DocumentSummary",
         "type": "object"
       },
+      "Drift": {
+        "description": "The latest quarter's results against the plan: the year so far and the debt, and the alerts they raise.",
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/DriftAlert"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "debt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DriftGap"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quarter": {
+            "title": "Quarter",
+            "type": "integer"
+          },
+          "tolerance": {
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          },
+          "ytd": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DriftGap"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "Revenue and EBITDA, the latest year's quarters so far",
+            "title": "Ytd",
+            "type": "object"
+          }
+        },
+        "required": [
+          "year",
+          "quarter",
+          "tolerance",
+          "ytd",
+          "debt",
+          "alerts"
+        ],
+        "title": "Drift",
+        "type": "object"
+      },
+      "DriftAlert": {
+        "properties": {
+          "actual": {
+            "title": "Actual",
+            "type": "number"
+          },
+          "gap_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Actual against plan, % of the plan; None when the plan is zero",
+            "title": "Gap Pct"
+          },
+          "id": {
+            "enum": [
+              "revenue_below_plan",
+              "ebitda_below_plan",
+              "debt_above_plan"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "number"
+          }
+        },
+        "required": [
+          "actual",
+          "plan",
+          "gap_pct",
+          "id"
+        ],
+        "title": "DriftAlert",
+        "type": "object"
+      },
+      "DriftGap": {
+        "properties": {
+          "actual": {
+            "title": "Actual",
+            "type": "number"
+          },
+          "gap_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Actual against plan, % of the plan; None when the plan is zero",
+            "title": "Gap Pct"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "number"
+          }
+        },
+        "required": [
+          "actual",
+          "plan",
+          "gap_pct"
+        ],
+        "title": "DriftGap",
+        "type": "object"
+      },
       "DrillJob": {
         "properties": {
           "attempts": {
@@ -9163,6 +9419,166 @@
           "history"
         ],
         "title": "HistoryRequest",
+        "type": "object"
+      },
+      "HoldingIn": {
+        "additionalProperties": false,
+        "description": "A deal marked as owned (PLAN.md 7.4).",
+        "properties": {
+          "since": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the deal closed (a label)",
+            "title": "Since"
+          },
+          "tolerance": {
+            "default": 5.0,
+            "description": "How far (%) below the plan revenue or EBITDA, or above it debt, may be before it is an alert",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tolerance",
+            "type": "number"
+          }
+        },
+        "title": "HoldingIn",
+        "type": "object"
+      },
+      "HoldingOut": {
+        "properties": {
+          "access": {
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "deal_id": {
+            "title": "Deal Id",
+            "type": "string"
+          },
+          "drift": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Drift"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owned": {
+            "title": "Owned",
+            "type": "boolean"
+          },
+          "quarters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuarterlyActuals"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quarters_problem": {
+            "anyOf": [
+              {
+                "enum": [
+                  "beyond_hold",
+                  "other_currency"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the saved quarters can't be set against the plan now (the deal changed since)",
+            "title": "Quarters Problem"
+          },
+          "quarters_updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarters Updated At"
+          },
+          "reforecast": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReforecastResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reforecast_current": {
+            "description": "False when the quarters changed after the reforecast ran",
+            "title": "Reforecast Current",
+            "type": "boolean"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
+          },
+          "tolerance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance"
+          }
+        },
+        "required": [
+          "deal_id",
+          "name",
+          "access",
+          "owned",
+          "since",
+          "tolerance",
+          "quarters",
+          "quarters_updated_at",
+          "quarters_problem",
+          "drift",
+          "reforecast",
+          "reforecast_current",
+          "money"
+        ],
+        "title": "HoldingOut",
         "type": "object"
       },
       "InviteCreate": {
@@ -13387,6 +13803,206 @@
         "title": "PlanReturns",
         "type": "object"
       },
+      "PortfolioHolding": {
+        "properties": {
+          "access": {
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "alerts": {
+            "description": "Money in the deal's own currency and unit",
+            "items": {
+              "$ref": "#/components/schemas/DriftAlert"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuarterRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "converted": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoardFigures"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "In the reporting currency; None without a rate"
+          },
+          "deal_id": {
+            "title": "Deal Id",
+            "type": "string"
+          },
+          "local": {
+            "$ref": "#/components/schemas/BoardFigures",
+            "description": "In the deal's own currency and unit"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "plan_irr": {
+            "title": "Plan Irr",
+            "type": "number"
+          },
+          "plan_moic": {
+            "title": "Plan Moic",
+            "type": "number"
+          },
+          "quarters_problem": {
+            "anyOf": [
+              {
+                "enum": [
+                  "beyond_hold",
+                  "other_currency"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarters Problem"
+          },
+          "reforecast_current": {
+            "title": "Reforecast Current",
+            "type": "boolean"
+          },
+          "reforecast_irr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reforecast Irr"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
+          }
+        },
+        "required": [
+          "deal_id",
+          "name",
+          "access",
+          "since",
+          "money",
+          "local",
+          "converted",
+          "plan_irr",
+          "plan_moic",
+          "reforecast_irr",
+          "reforecast_current",
+          "as_of",
+          "alerts",
+          "quarters_problem"
+        ],
+        "title": "PortfolioHolding",
+        "type": "object"
+      },
+      "PortfolioResponse": {
+        "properties": {
+          "alerts": {
+            "title": "Alerts",
+            "type": "integer"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioHolding"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "missing_rates": {
+            "description": "Currencies the ECB doesn't quote: their holdings are left out of the totals",
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Rates",
+            "type": "array"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The reporting currency and unit"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The ECB day whose reference rates converted the figures",
+            "title": "Published On"
+          },
+          "rates": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Units of each holding's currency per one of the reporting currency",
+            "title": "Rates",
+            "type": "object"
+          },
+          "rates_url": {
+            "title": "Rates Url",
+            "type": "string"
+          },
+          "totals": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BoardTotal"
+            },
+            "title": "Totals",
+            "type": "object"
+          }
+        },
+        "required": [
+          "money",
+          "published_on",
+          "rates",
+          "rates_url",
+          "missing_rates",
+          "holdings",
+          "totals",
+          "alerts",
+          "model"
+        ],
+        "title": "PortfolioResponse",
+        "type": "object"
+      },
       "PreloadedDeal": {
         "properties": {
           "actual": {
@@ -13586,6 +14202,158 @@
           "consistent"
         ],
         "title": "ProbabilityStats",
+        "type": "object"
+      },
+      "QuarterIn": {
+        "additionalProperties": false,
+        "description": "One quarter's reported results (PLAN.md 7.4), plan vs actual's lines on the same basis as the deal's\nEBITDA. Flows are the quarter's own, debt is at the quarter's end; a figure left out is not known.",
+        "properties": {
+          "ebitda": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ebitda"
+          },
+          "fcf": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Free cash flow after interest and tax, before debt repayment",
+            "title": "Fcf"
+          },
+          "net_income": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Income"
+          },
+          "quarter": {
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Quarter",
+            "type": "integer"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "total_debt": {
+            "anyOf": [
+              {
+                "maximum": 1000000000000000.0,
+                "minimum": -1000000000000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Debt at the quarter's end",
+            "title": "Total Debt"
+          },
+          "year": {
+            "description": "The plan's year, from 1",
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "quarter"
+        ],
+        "title": "QuarterIn",
+        "type": "object"
+      },
+      "QuarterRef": {
+        "properties": {
+          "quarter": {
+            "title": "Quarter",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "quarter"
+        ],
+        "title": "QuarterRef",
+        "type": "object"
+      },
+      "QuarterlyActuals": {
+        "additionalProperties": false,
+        "description": "An owned deal's quarterly results, in the deal's currency (any unit).",
+        "properties": {
+          "currency": {
+            "description": "The currency the figures are in; must be the deal's",
+            "maxLength": 3,
+            "minLength": 3,
+            "pattern": "^[A-Z]{3}$",
+            "title": "Currency",
+            "type": "string"
+          },
+          "quarters": {
+            "items": {
+              "$ref": "#/components/schemas/QuarterIn"
+            },
+            "maxItems": 60,
+            "minItems": 1,
+            "title": "Quarters",
+            "type": "array"
+          },
+          "unit": {
+            "description": "thousands, lakhs, millions, crores or billions",
+            "enum": [
+              "thousands",
+              "lakhs",
+              "millions",
+              "crores",
+              "billions"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "unit",
+          "quarters"
+        ],
+        "title": "QuarterlyActuals",
         "type": "object"
       },
       "RangeLevel": {
@@ -15465,6 +16233,282 @@
         "title": "ReferenceValue",
         "type": "object"
       },
+      "ReforecastJobOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why it failed, for people",
+            "title": "Error"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Status"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReforecastResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_expired": {
+            "default": false,
+            "title": "Result Expired",
+            "type": "boolean"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "progress",
+          "stage"
+        ],
+        "title": "ReforecastJobOut",
+        "type": "object"
+      },
+      "ReforecastResult": {
+        "description": "The plan run again with the growth the last four quarters show (core/portfolio.py). IRRs are fractions.",
+        "properties": {
+          "based_on": {
+            "$ref": "#/components/schemas/QuarterRef"
+          },
+          "deal_id": {
+            "title": "Deal Id",
+            "type": "string"
+          },
+          "ltm_ebitda_actual": {
+            "title": "Ltm Ebitda Actual",
+            "type": "number"
+          },
+          "ltm_ebitda_plan": {
+            "title": "Ltm Ebitda Plan",
+            "type": "number"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelStamp"
+          },
+          "money": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/ReforecastReturns"
+          },
+          "plan_growth": {
+            "title": "Plan Growth",
+            "type": "number"
+          },
+          "quarters_updated_at": {
+            "description": "When the quarters it read were saved",
+            "format": "date-time",
+            "title": "Quarters Updated At",
+            "type": "string"
+          },
+          "reforecast": {
+            "$ref": "#/components/schemas/ReforecastReturns"
+          },
+          "reforecast_growth": {
+            "title": "Reforecast Growth",
+            "type": "number"
+          },
+          "run_at": {
+            "format": "date-time",
+            "title": "Run At",
+            "type": "string"
+          },
+          "simulated": {
+            "$ref": "#/components/schemas/ReforecastSimulated"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/ReforecastYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "deal_id",
+          "based_on",
+          "plan_growth",
+          "reforecast_growth",
+          "ltm_ebitda_actual",
+          "ltm_ebitda_plan",
+          "plan",
+          "reforecast",
+          "simulated",
+          "years",
+          "quarters_updated_at",
+          "run_at",
+          "money",
+          "model"
+        ],
+        "title": "ReforecastResult",
+        "type": "object"
+      },
+      "ReforecastReturns": {
+        "properties": {
+          "entry_equity": {
+            "title": "Entry Equity",
+            "type": "number"
+          },
+          "exit_ebitda": {
+            "title": "Exit Ebitda",
+            "type": "number"
+          },
+          "exit_equity": {
+            "title": "Exit Equity",
+            "type": "number"
+          },
+          "exit_ev": {
+            "title": "Exit Ev",
+            "type": "number"
+          },
+          "exit_multiple": {
+            "title": "Exit Multiple",
+            "type": "number"
+          },
+          "irr": {
+            "title": "Irr",
+            "type": "number"
+          },
+          "moic": {
+            "title": "Moic",
+            "type": "number"
+          },
+          "net_debt_at_exit": {
+            "title": "Net Debt At Exit",
+            "type": "number"
+          }
+        },
+        "required": [
+          "irr",
+          "moic",
+          "entry_equity",
+          "exit_ebitda",
+          "exit_multiple",
+          "exit_ev",
+          "net_debt_at_exit",
+          "exit_equity"
+        ],
+        "title": "ReforecastReturns",
+        "type": "object"
+      },
+      "ReforecastSimulated": {
+        "properties": {
+          "below_plan": {
+            "description": "Share of simulated paths whose IRR is below the plan's",
+            "title": "Below Plan",
+            "type": "number"
+          },
+          "p5": {
+            "title": "P5",
+            "type": "number"
+          },
+          "p50": {
+            "title": "P50",
+            "type": "number"
+          },
+          "p95": {
+            "title": "P95",
+            "type": "number"
+          },
+          "paths": {
+            "title": "Paths",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "paths",
+          "p5",
+          "p50",
+          "p95",
+          "below_plan"
+        ],
+        "title": "ReforecastSimulated",
+        "type": "object"
+      },
+      "ReforecastYear": {
+        "properties": {
+          "actual_ebitda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Ebitda"
+          },
+          "plan_ebitda": {
+            "title": "Plan Ebitda",
+            "type": "number"
+          },
+          "reforecast_ebitda": {
+            "title": "Reforecast Ebitda",
+            "type": "number"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "plan_ebitda",
+          "reforecast_ebitda",
+          "actual_ebitda"
+        ],
+        "title": "ReforecastYear",
+        "type": "object"
+      },
       "RegimeCardResult": {
         "properties": {
           "baseline": {
@@ -15685,9 +16729,9 @@
               {
                 "enum": [
                   "recession",
-                  "base",
+                  "stagflation",
                   "bull",
-                  "stagflation"
+                  "base"
                 ],
                 "type": "string"
               },
@@ -25052,6 +26096,438 @@
         ]
       }
     },
+    "/api/deals/{deal_id}/portfolio": {
+      "delete": {
+        "operationId": "delete_holding_api_deals__deal_id__portfolio_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Holding",
+        "tags": [
+          "portfolio"
+        ]
+      },
+      "get": {
+        "operationId": "get_holding_api_deals__deal_id__portfolio_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Holding",
+        "tags": [
+          "portfolio"
+        ]
+      },
+      "put": {
+        "operationId": "put_holding_api_deals__deal_id__portfolio_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoldingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Holding",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/quarters": {
+      "delete": {
+        "operationId": "delete_quarters_api_deals__deal_id__quarters_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Quarters",
+        "tags": [
+          "portfolio"
+        ]
+      },
+      "put": {
+        "operationId": "put_quarters_api_deals__deal_id__quarters_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuarterlyActuals"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Quarters",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/reforecast": {
+      "post": {
+        "description": "Reforecast the deal from its last four quarters, as a background job (it simulates).",
+        "operationId": "post_reforecast_api_deals__deal_id__reforecast_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReforecastJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Reforecast",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/api/deals/{deal_id}/reforecast/jobs/{job_id}": {
+      "get": {
+        "description": "A reforecast's progress. Another account's job, or another kind, is a 404.",
+        "operationId": "get_reforecast_job_api_deals__deal_id__reforecast_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReforecastJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Reforecast Job",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
     "/api/deals/{deal_id}/shares": {
       "get": {
         "operationId": "deal_shares_api_deals__deal_id__shares_get",
@@ -28305,6 +29781,109 @@
         "summary": "Post Scenarios",
         "tags": [
           "monte carlo"
+        ]
+      }
+    },
+    "/api/portfolio": {
+      "get": {
+        "operationId": "get_portfolio_api_portfolio_get",
+        "parameters": [
+          {
+            "description": "The reporting currency; the account's by default",
+            "in": "query",
+            "name": "currency",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Z]{3}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The reporting currency; the account's by default",
+              "title": "Currency"
+            }
+          },
+          {
+            "in": "query",
+            "name": "unit",
+            "required": false,
+            "schema": {
+              "default": "millions",
+              "enum": [
+                "thousands",
+                "lakhs",
+                "millions",
+                "crores",
+                "billions"
+              ],
+              "title": "Unit",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The ECB rates of this day, or the last publication before it; the latest by default",
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The ECB rates of this day, or the last publication before it; the latest by default",
+              "title": "On"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Portfolio",
+        "tags": [
+          "portfolio"
         ]
       }
     },
