@@ -3098,7 +3098,10 @@ inputs.
   (engine version, commit, Settings and data fingerprints), so nothing is ever
   cleared: a change misses. Unseeded runs and `system:` callers skip it. Values
   are AES-256-GCM sealed with a second hash of the same material, which is kept
-  nowhere: the stores hold nothing readable and no account can open another's.
+  nowhere, and both hashes are HMAC under a server secret (the security
+  review's finding): the stores hold nothing readable, a copy can't be tested
+  against guessed inputs and no account can open another's. An answer cut short
+  (too slow to explain) is not kept.
   Memory (16 MB) first, then Upstash (6 hours), else table `result_cache`
   (migration 0028, 32 MB). Upstash spend is budgeted per environment a day,
   commands and bytes, counted on the usage counters' shared daily counters; the

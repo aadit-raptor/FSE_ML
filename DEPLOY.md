@@ -1343,10 +1343,14 @@ a seeded Monte Carlo run or scenario run (endpoint or job) asked again by the
 same person with the same request answers from a cache, without the
 simulation slot. The key is a hash of the request, the person and the model
 stamp (engine version, commit, Settings and data fingerprints), so a new
-release, engine version or data edition misses by itself; unseeded runs and
-`system:` callers are never cached. The answer is stored **encrypted** with a
-second hash of the same material, so Upstash and the table hold nothing
-readable and one account can't read another's. Order: this process's memory
+release, engine version or data edition misses by itself; unseeded runs,
+`system:` callers and a run too slow to explain itself are never cached. The
+answer is stored **encrypted** with a second hash of the same material, and
+both hashes are keyed with a secret only the server holds (`FSE_CACHE_KEY` if
+set, else the server's other secrets together), so Upstash and the table hold
+nothing readable, a copy of either can't be tested against guessed inputs and
+one account can't read another's. Changing that secret simply misses every
+entry. Order: this process's memory
 (16 MB), then Upstash (keys `fse:<environment>:result:<hash>`, kept 6 hours),
 else the `result_cache` table (migration 0028, held to 32 MB). Its Upstash
 spend has its own **daily budgets**, counted on the usage counters' shared
@@ -1356,8 +1360,9 @@ else, so with the counters' budgets the month's ceiling is 480,500 commands
 and 5.6 GB of Upstash's free 10 GB of traffic, and at most a day's bytes
 (180 MB of the free 256 MB) are stored at once. Past a budget the cache uses
 the table until the next UTC day. `/api/health/limits` shows it under
-`result_cache` (store, today's spend, this process's hits and misses).
-Nothing to set: it uses the Upstash variables above.
+`result_cache` (on or off, and the store in use; it is public, so nothing
+about use). Nothing to set: it uses the Upstash variables above;
+`FSE_CACHE_KEY` (any long random text) is optional.
 
 **Browser tests** raise every count limit with `FSE_LIMITS_MULTIPLIER=20`
 (`web/playwright.config.ts`); the API ignores it in production.

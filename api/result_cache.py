@@ -13,11 +13,14 @@ seed draws new paths each time and is never cached, nor is a system caller's
 (``system:drill`` exists to load the server).
 
 **Nothing readable leaves the process.** Both the store's key and the key the
-answer is encrypted with (AES-256-GCM) are SHA-256 hashes of that material
-under different labels, and the material itself is kept nowhere. Upstash and
-the table hold a hash and ciphertext only: reading an entry takes the exact
-inputs and the caller's user id, so one account can't read another's results
-even with the store in hand, and no key or value can tell a log anything.
+answer is encrypted with (AES-256-GCM) are HMAC-SHA-256 of that material under
+different labels, keyed with a secret only the server holds (``_pepper``), and
+the material itself is kept nowhere. Upstash and the table hold a hash and
+ciphertext only: reading an entry takes the exact inputs, the caller's user id
+and the server's secret, so one account can't read another's results, a copy
+of a store can't be tested against guessed inputs, and no key or value can
+tell a log anything. Without a known commit (locally), the build in the key is
+a per-process token, so a code change can never be answered from an old entry.
 
 **Where it lives.** First a small cache in this process (``MEMORY_BUDGET_BYTES``),
 which costs nothing; then Upstash Redis while it answers and is within its
@@ -40,6 +43,7 @@ from __future__ import annotations
 import base64
 import functools
 import hashlib
+import hmac
 import inspect
 import json
 import logging
@@ -76,6 +80,17 @@ OTHER_DAILY_COMMAND_BUDGET = 500
 DAILY_BYTE_BUDGET = {"production": 120_000_000, "staging": 40_000_000}
 OTHER_DAILY_BYTE_BUDGET = 20_000_000
 SYSTEM_OWNER_PREFIX = "system:"
+# The server's own secrets: either one turns the hashes below into keyed ones (``_pepper``)
+PEPPER_SOURCES = ("FSE_CACHE_KEY", "DATABASE_URL", "UPSTASH_REDIS_REST_TOKEN", "CLERK_SECRET_KEY",
+                  "SUPABASE_UPLOADS_KEY", "GEMINI_API_KEY")
+# Stands in for the commit where none is known (locally, a container without Render's variable):
+# the cache then lasts one process, since this process's code may differ from the last one's
+_PROCESS_BUILD = os.urandom(16).hex()
+# An answer the run cut short is not kept: the next ask may get the whole one
+INCOMPLETE: dict[str, Callable[[Any], bool]] = {
+    # explanations are null when the run was too slow to explain (api/limits.py EXPLAIN_RUN_LIMIT_S)
+    "montecarlo.run": lambda answer: isinstance(answer, dict) and answer.get("explanations") is None,
+}
 
 
 class CacheError(RuntimeError):
@@ -94,12 +109,24 @@ def _day_end(now: float) -> float:
 # ---------------------------------------------------------------------------
 # Keys and values
 # ---------------------------------------------------------------------------
+def _pepper() -> bytes:
+    """A secret only this server holds, so that someone who can read a store (or a
+    backup of the table) can't test guessed inputs against it: ``FSE_CACHE_KEY`` when
+    set, else the server's own secrets together. Changing any of them misses every
+    entry, which is all a cache needs."""
+    if os.environ.get("FSE_CACHE_KEY"):
+        return hashlib.sha256(b"fse-result-cache:key\0" + os.environ["FSE_CACHE_KEY"].encode()).digest()
+    parts = [f"{name}={os.environ.get(name) or ''}" for name in PEPPER_SOURCES[1:]]
+    return hashlib.sha256("\0".join(["fse-result-cache:pepper", *parts]).encode("utf-8")).digest()
+
+
 class Entry:
     """Where one request's answer is kept, and the key it is sealed with."""
 
-    def __init__(self, material: bytes):
-        self.key = hashlib.sha256(b"fse-result-cache:lookup\0" + material).hexdigest()
-        self._secret = hashlib.sha256(b"fse-result-cache:seal\0" + material).digest()
+    def __init__(self, material: bytes, pepper: Optional[bytes] = None):
+        pepper = _pepper() if pepper is None else pepper
+        self.key = hmac.new(pepper, b"lookup\0" + material, hashlib.sha256).hexdigest()
+        self._secret = hmac.new(pepper, b"seal\0" + material, hashlib.sha256).digest()
 
     def seal(self, answer: Any) -> bytes:
         nonce = os.urandom(12)
@@ -120,8 +147,8 @@ def entry_for(kind: str, owner: str, request: BaseModel, model: dict) -> Entry:
     material = json.dumps({
         "format": FORMAT, "kind": kind, "owner": owner,
         "request": request.model_dump(mode="json"),
-        "model": {k: model.get(k) for k in ("engine_version", "commit", "settings_fingerprint",
-                                            "data_fingerprint")},
+        "model": {k: model.get(k) for k in ("engine_version", "settings_fingerprint", "data_fingerprint")},
+        "build": model.get("commit") or _PROCESS_BUILD,
     }, sort_keys=True, separators=(",", ":"), allow_nan=True)
     return Entry(material.encode("utf-8"))
 
@@ -435,23 +462,24 @@ class ResultCache:
         answer = compute()
         try:
             adapter = TypeAdapter(response)
+            if INCOMPLETE.get(kind, lambda _a: False)(answer):
+                return answer
             self.put(entry, adapter.dump_python(adapter.validate_python(answer), mode="json"))
         except Exception as exc:  # noqa: BLE001 - a cache never fails a run
             log_event("result_cache_failed", logging.WARNING, store="all", op="put", error=type(exc).__name__)
         return answer
 
     def status(self) -> dict:
-        upstash = next((s for s in self._stores if isinstance(s, UpstashCache)), None)
+        """What the public ``/api/health/limits`` shows: whether it is on and where
+        it keeps answers, nothing about how much it is used."""
         usable = self._usable()
-        return {
-            "enabled": self.enabled,
-            "store": usable[0].name if usable else "memory",
-            "upstash": {"configured": upstash is not None,
-                        "daily_commands": upstash.daily_commands if upstash else None,
-                        "daily_bytes": upstash.daily_bytes if upstash else None,
-                        "spent_today": upstash.spent() if upstash else None},
-            "hits": self.hits, "misses": self.misses, "writes": self.writes,
-        }
+        return {"enabled": self.enabled, "store": usable[0].name if usable else "memory"}
+
+    def spent_today(self) -> Optional[dict]:
+        """Today's Upstash spend as this process counts it (8.3's load test reads it)."""
+        upstash = next((s for s in self._stores if isinstance(s, UpstashCache)), None)
+        return {**upstash.spent(), "daily_commands": upstash.daily_commands,
+                "daily_bytes": upstash.daily_bytes} if upstash else None
 
 
 _cache: Optional[ResultCache] = None

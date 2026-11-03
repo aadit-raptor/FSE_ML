@@ -289,11 +289,52 @@ def test_the_daily_ceilings_stay_under_the_free_plan():
     assert rc.TTL_S <= 24 * 3600
 
 
-def test_the_health_check_reports_the_cache(fresh_cache):
+def test_the_public_health_check_says_where_and_nothing_about_use(fresh_cache):
     run()
     run()
     body = client.get("/api/health/limits").json()["result_cache"]
-    assert body["enabled"] and body["store"] == "memory" and body["hits"] == 1
+    assert body == {"enabled": True, "store": "memory"}
+    assert fresh_cache.spent_today() is None     # no Upstash here
+
+
+def test_the_hashes_are_keyed_with_the_servers_secret(monkeypatch):
+    request = MonteCarloRequest.model_validate(MC)
+    stamp = model_version.stamp({"a": 1})
+    monkeypatch.setenv("FSE_CACHE_KEY", "one")
+    one = rc.entry_for("montecarlo.run", "user_a", request, stamp)
+    monkeypatch.setenv("FSE_CACHE_KEY", "two")
+    two = rc.entry_for("montecarlo.run", "user_a", request, stamp)
+    assert one.key != two.key                    # a copy of a store can't be tested by guessing
+    with pytest.raises(rc.CacheError):
+        two.open(one.seal({"a": 1}))
+    monkeypatch.delenv("FSE_CACHE_KEY")
+    monkeypatch.setenv("UPSTASH_REDIS_REST_TOKEN", "t1")
+    three = rc.entry_for("montecarlo.run", "user_a", request, stamp)
+    monkeypatch.setenv("UPSTASH_REDIS_REST_TOKEN", "t2")
+    assert rc.entry_for("montecarlo.run", "user_a", request, stamp).key != three.key
+
+
+def test_without_a_known_commit_an_entry_lasts_one_process(monkeypatch):
+    request = MonteCarloRequest.model_validate(MC)
+    stamp = {**model_version.stamp({"a": 1}), "commit": None}
+    here = rc.entry_for("montecarlo.run", "user_a", request, stamp).key
+    monkeypatch.setattr(rc, "_PROCESS_BUILD", "another process")
+    assert rc.entry_for("montecarlo.run", "user_a", request, stamp).key != here
+    released = {**stamp, "commit": "a" * 40}
+    assert rc.entry_for("montecarlo.run", "user_a", request, released).key == \
+        rc.entry_for("montecarlo.run", "user_a", request, released).key
+
+
+def test_an_answer_without_its_explanations_is_not_kept(fresh_cache, monkeypatch):
+    from api import limits
+    monkeypatch.setattr(limits, "EXPLAIN_RUN_LIMIT_S", 0.0)   # too slow to explain
+    first, _ = run()
+    assert first["explanations"] is None
+    monkeypatch.setattr(limits, "EXPLAIN_RUN_LIMIT_S", 20.0)
+    second, _ = run()
+    assert second["explanations"] is not None and fresh_cache.hits == 0
+    third, _ = run()
+    assert third == second and fresh_cache.hits == 1
 
 
 # ---------------------------------------------------------------------------
