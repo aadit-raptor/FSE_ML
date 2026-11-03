@@ -55,7 +55,7 @@ export function sheet(
 
 /** A native Excel chart drawn from its sheet's own cells (PLAN.md 7.9). */
 export type Chart = Schemas["ChartSpec"];
-type ChartInput = Omit<Chart, "by" | "categories" | "horizontal"> & Partial<Pick<Chart, "by" | "categories" | "horizontal">>;
+type ChartInput = Omit<Chart, "by" | "categories" | "horizontal"> & Partial<Pick<Chart, "by" | "categories" | "horizontal">>; // text-ok: a TypeScript type, not words
 
 /**
  * A chart for a sheet, as the screen draws it. `by: "rows"` (the default) reads a table laid out as `tableSheet`
