@@ -12,6 +12,7 @@ from core.debt import (
     blended_rate as tranche_rate, build_capital_structure, check_specs, coerce, financing_fees, summary,
     total_debt as tranche_debt, unique_names,
 )
+from core.covenants import coerce as coerce_covenants
 from core.accounting import LeaseTerms, lease_terms, valuation_ebitda
 from core.money import DEFAULT_CURRENCY, DEFAULT_UNIT, to_millions
 from core.tax import TAX_MONEY_INPUTS, rules_from_deal
@@ -80,12 +81,18 @@ class DealInputs:
     # read only by the distress predictor (ml/distress_model.py), with
     # leverage, for each year's rating band. A choice, not a sourced figure.
     business_risk: int = 4
+    # Covenants (PLAN.md 7.5, core/covenants.py): yearly tests a lender reads;
+    # they change no figure of the model. "" tests them the way the deal's
+    # country writes its agreements.
+    covenants: tuple = ()
+    covenant_convention: str = ""
 
     def __post_init__(self):
         # Routers build DealInputs(**model_dump()), so tranches arrive as
         # dicts; replace() runs this again on the way to millions, so it has
         # to leave specs it has already built alone.
         self.tranches = coerce(self.tranches)
+        self.covenants = coerce_covenants(self.covenants)
 
 
 # Money inputs, in the deal's unit
@@ -101,6 +108,7 @@ def in_millions(d: DealInputs, cfg: Mapping) -> tuple[DealInputs, dict]:
     moved = {k: to_millions(getattr(d, k), d.unit) for k in MONEY_INPUTS}
     cfg = {**cfg, **{k: to_millions(cfg[k], d.unit) for k in MONEY_SETTINGS if k in cfg}}
     moved["tranches"] = tuple(t.in_millions(d.unit) for t in d.tranches)
+    moved["covenants"] = tuple(c.in_millions(d.unit) for c in d.covenants)
     return replace(d, **moved, unit="millions"), cfg
 
 
@@ -132,6 +140,8 @@ DEAL_MONEY_KEYS = frozenset({
     "net_debt_at_entry",
     # Risk warnings (PLAN.md 2.8): core.risk_warnings.WARNING_MONEY_KEYS
     "unfunded", "unfunded_total", "repayment_due",
+    # The lender's view (PLAN.md 7.5): core.lender.LENDER_MONEY_KEYS
+    "exposure", "expected_loss", "expected_recovery", "liquidity", "minimum_liquidity",
     # equity bridge
     "entry_costs", "ebitda_growth", "multiple_expansion", "deleveraging", "exit_equity",
     "total_gain", "residual", "value",

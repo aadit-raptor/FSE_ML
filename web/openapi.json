@@ -2062,6 +2062,31 @@
         "title": "BoardTotal",
         "type": "object"
       },
+      "BreachYear": {
+        "properties": {
+          "breach": {
+            "description": "Share of paths breaching in this year",
+            "title": "Breach",
+            "type": "number"
+          },
+          "breached_by": {
+            "description": "Share of paths that have breached by the end of this year",
+            "title": "Breached By",
+            "type": "number"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "breach",
+          "breached_by"
+        ],
+        "title": "BreachYear",
+        "type": "object"
+      },
       "BridgeStep": {
         "properties": {
           "is_total": {
@@ -3143,6 +3168,202 @@
         "title": "ComparisonLine",
         "type": "object"
       },
+      "CovenantIn": {
+        "additionalProperties": false,
+        "description": "A yearly test in one facility's agreement (PLAN.md 7.5, core/covenants.py).\n\n``levels`` is the maximum (leverage, x) or minimum (interest and\nfixed-charge cover, x; liquidity, money in the deal's currency and unit)\nyear by year; a path shorter than the hold repeats its last year. A\ncovenant changes no figure of the model: it only reads them.",
+        "properties": {
+          "facility": {
+            "description": "The facility whose agreement holds it, by its name in the debt schedule",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Facility",
+            "type": "string"
+          },
+          "levels": {
+            "description": "The level a year",
+            "items": {
+              "maximum": 1000000000000000.0,
+              "minimum": -1000000.0,
+              "type": "number"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Levels",
+            "type": "array"
+          },
+          "metric": {
+            "enum": [
+              "leverage",
+              "interest_cover",
+              "fixed_charge_cover",
+              "liquidity"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "scope": {
+            "default": "total",
+            "description": "Leverage only: every lender's debt, or the senior secured facilities' alone",
+            "enum": [
+              "total",
+              "senior"
+            ],
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "facility",
+          "metric",
+          "levels"
+        ],
+        "title": "CovenantIn",
+        "type": "object"
+      },
+      "CovenantTest": {
+        "properties": {
+          "facility": {
+            "title": "Facility",
+            "type": "string"
+          },
+          "first_breach": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Breach"
+          },
+          "index": {
+            "description": "The covenant's place in the deal's list",
+            "title": "Index",
+            "type": "integer"
+          },
+          "metric": {
+            "enum": [
+              "leverage",
+              "interest_cover",
+              "fixed_charge_cover",
+              "liquidity"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "total",
+              "senior"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/CovenantYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "facility",
+          "metric",
+          "scope",
+          "years",
+          "first_breach"
+        ],
+        "title": "CovenantTest",
+        "type": "object"
+      },
+      "CovenantYear": {
+        "properties": {
+          "breach": {
+            "title": "Breach",
+            "type": "boolean"
+          },
+          "headroom": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Distance from the level as a share of it (negative when breached); null when untested or unlimited",
+            "title": "Headroom"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A ratio's level (x)",
+            "title": "Level"
+          },
+          "liquidity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Liquidity's figure (in the deal's currency and unit)",
+            "title": "Liquidity"
+          },
+          "minimum_liquidity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Liquidity's level (in currency and unit)",
+            "title": "Minimum Liquidity"
+          },
+          "tested": {
+            "description": "Whether the facility is outstanding or committed that year",
+            "title": "Tested",
+            "type": "boolean"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A ratio's figure (x); null when unlimited",
+            "title": "Value"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "tested",
+          "breach",
+          "headroom"
+        ],
+        "title": "CovenantYear",
+        "type": "object"
+      },
       "CoverageBucket": {
         "properties": {
           "bucket": {
@@ -4167,6 +4388,27 @@
             "title": "Country",
             "type": "string"
           },
+          "covenant_convention": {
+            "default": "",
+            "description": "How the covenants are defined: US credit agreements, the LMA's, Indian bank lending, or '' for the deal's country's",
+            "enum": [
+              "",
+              "us",
+              "lma",
+              "india"
+            ],
+            "title": "Covenant Convention",
+            "type": "string"
+          },
+          "covenants": {
+            "description": "Covenants a lender tests each year (core/covenants.py); they change no figure",
+            "items": {
+              "$ref": "#/components/schemas/CovenantIn"
+            },
+            "maxItems": 24,
+            "title": "Covenants",
+            "type": "array"
+          },
           "currency": {
             "default": "USD",
             "description": "The deal's currency (ISO 4217)",
@@ -4544,6 +4786,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -4709,6 +4953,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -4995,6 +5241,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -5104,6 +5352,9 @@
             ],
             "description": "What the deal's leases did to its value (PLAN.md 2.6); none without leases"
           },
+          "lender": {
+            "$ref": "#/components/schemas/LenderView"
+          },
           "model": {
             "$ref": "#/components/schemas/ModelStamp"
           },
@@ -5158,6 +5409,7 @@
           "interest_converged",
           "credit",
           "distress",
+          "lender",
           "money",
           "model"
         ],
@@ -8555,6 +8807,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -9913,6 +10167,330 @@
         "title": "LeaseSummary",
         "type": "object"
       },
+      "LenderFacility": {
+        "properties": {
+          "default_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "S&P's cumulative default rate (%) over the hold",
+            "title": "Default Pct"
+          },
+          "expected_loss": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Default probability x LGD x exposure (in currency and unit)",
+            "title": "Expected Loss"
+          },
+          "expected_recovery": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exposure x (1 - LGD) (in currency and unit)",
+            "title": "Expected Recovery"
+          },
+          "exposure": {
+            "description": "Drawn at close; a revolver's whole commitment (in currency and unit)",
+            "title": "Exposure",
+            "type": "number"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "amortising_term_loan",
+                  "institutional_term_loan",
+                  "unitranche",
+                  "second_lien",
+                  "senior_notes",
+                  "pik_notes",
+                  "vendor_loan",
+                  "revolver",
+                  "shareholder_loan"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "None for a deal sized by percentages",
+            "title": "Kind"
+          },
+          "lender": {
+            "description": "False for the sponsor's own loan, which no lender holds",
+            "title": "Lender",
+            "type": "boolean"
+          },
+          "lgd_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Loss given default (%), Global Credit Data's Table 2",
+            "title": "Lgd Pct"
+          },
+          "lgd_row": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The row of that table read",
+            "title": "Lgd Row"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "seniority": {
+            "enum": [
+              "senior_secured",
+              "second_lien",
+              "senior_unsecured",
+              "subordinated",
+              "sponsor"
+            ],
+            "title": "Seniority",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "seniority",
+          "lender",
+          "exposure",
+          "lgd_pct",
+          "lgd_row",
+          "default_pct",
+          "expected_loss",
+          "expected_recovery"
+        ],
+        "title": "LenderFacility",
+        "type": "object"
+      },
+      "LenderView": {
+        "description": "The deal as its lenders see it (PLAN.md 7.5): the covenants' yearly\ntests and each facility's expected loss from regional base rates.",
+        "properties": {
+          "band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "AAA",
+                  "AA",
+                  "A",
+                  "BBB",
+                  "BB",
+                  "B",
+                  "CCC/C"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band"
+          },
+          "chosen": {
+            "description": "False when the convention follows the deal's country",
+            "title": "Chosen",
+            "type": "boolean"
+          },
+          "convention": {
+            "enum": [
+              "us",
+              "lma",
+              "india"
+            ],
+            "title": "Convention",
+            "type": "string"
+          },
+          "covenants": {
+            "items": {
+              "$ref": "#/components/schemas/CovenantTest"
+            },
+            "title": "Covenants",
+            "type": "array"
+          },
+          "default_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Pct"
+          },
+          "expected_loss": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Loss"
+          },
+          "exposure": {
+            "title": "Exposure",
+            "type": "number"
+          },
+          "facilities": {
+            "items": {
+              "$ref": "#/components/schemas/LenderFacility"
+            },
+            "title": "Facilities",
+            "type": "array"
+          },
+          "first_breach": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The first year any covenant is breached",
+            "title": "First Breach"
+          },
+          "loss_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Expected loss over exposure (fraction)",
+            "title": "Loss Rate"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The implied rating from year-one coverage (the summary's)",
+            "title": "Rating"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "enum": [
+                  "us",
+                  "europe",
+                  "emerging",
+                  "other_developed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RiskSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "table": {
+            "description": "S&P's table read: Table 25's region, else Table 24 (global)",
+            "enum": [
+              "us",
+              "europe",
+              "emerging",
+              "global"
+            ],
+            "title": "Table",
+            "type": "string"
+          },
+          "year_one": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "Each test's year-one figure under the convention (liquidity in currency and unit); where a new covenant's level starts",
+            "propertyNames": {
+              "enum": [
+                "leverage",
+                "senior_leverage",
+                "interest_cover",
+                "fixed_charge_cover",
+                "liquidity"
+              ]
+            },
+            "title": "Year One",
+            "type": "object"
+          },
+          "years": {
+            "title": "Years",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "convention",
+          "chosen",
+          "covenants",
+          "first_breach",
+          "year_one",
+          "rating",
+          "band",
+          "region",
+          "table",
+          "years",
+          "default_pct",
+          "facilities",
+          "exposure",
+          "expected_loss",
+          "loss_rate",
+          "sources"
+        ],
+        "title": "LenderView",
+        "type": "object"
+      },
       "LgdRow": {
         "properties": {
           "defaults": {
@@ -10074,6 +10652,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -11803,6 +12383,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -11926,6 +12508,17 @@
             "additionalProperties": true,
             "title": "Correlations",
             "type": "object"
+          },
+          "covenants": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SimulatedCovenants"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Breach odds of the deal's covenants; null for a deal without any"
           },
           "distress": {
             "$ref": "#/components/schemas/SimulatedDistress"
@@ -12333,6 +12926,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -19600,6 +20195,8 @@
               "business_risk": 4,
               "capex": 4.0,
               "country": "",
+              "covenant_convention": "",
+              "covenants": [],
               "currency": "USD",
               "da": 4.0,
               "debt_pct": 60.0,
@@ -20189,6 +20786,94 @@
           "deals"
         ],
         "title": "SimilarDeals",
+        "type": "object"
+      },
+      "SimulatedCovenant": {
+        "properties": {
+          "facility": {
+            "title": "Facility",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "metric": {
+            "enum": [
+              "leverage",
+              "interest_cover",
+              "fixed_charge_cover",
+              "liquidity"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "tested": {
+            "description": "Share of paths on which it tests, a year",
+            "items": {
+              "type": "number"
+            },
+            "title": "Tested",
+            "type": "array"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/BreachYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "facility",
+          "metric",
+          "tested",
+          "years"
+        ],
+        "title": "SimulatedCovenant",
+        "type": "object"
+      },
+      "SimulatedCovenants": {
+        "description": "Covenant breach odds over the simulated paths (PLAN.md 7.5).",
+        "properties": {
+          "any": {
+            "description": "Any covenant breached",
+            "items": {
+              "$ref": "#/components/schemas/BreachYear"
+            },
+            "title": "Any",
+            "type": "array"
+          },
+          "convention": {
+            "enum": [
+              "us",
+              "lma",
+              "india"
+            ],
+            "title": "Convention",
+            "type": "string"
+          },
+          "covenants": {
+            "items": {
+              "$ref": "#/components/schemas/SimulatedCovenant"
+            },
+            "title": "Covenants",
+            "type": "array"
+          },
+          "paths": {
+            "description": "How many of the run's paths were read (the first ones)",
+            "title": "Paths",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "convention",
+          "paths",
+          "covenants",
+          "any"
+        ],
+        "title": "SimulatedCovenants",
         "type": "object"
       },
       "SimulatedDistress": {

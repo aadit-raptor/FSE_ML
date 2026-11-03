@@ -156,6 +156,9 @@ OMIT_WHEN_DEFAULT = {
     "lease_liability": 0.0,
     # Business risk profile (PLAN.md 5.3), stored only when changed
     "business_risk": 4,
+    # Covenants (PLAN.md 7.5), stored only when set
+    "covenants": [],
+    "covenant_convention": "",
 }
 
 

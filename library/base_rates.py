@@ -5,7 +5,9 @@ hidden with it (``library.switch``). Nothing in the deal model, the simulation
 or the risk warnings reads these tables, so switching the library off changes
 no result. The distress predictor (``ml/distress_model.py``, PLAN.md 5.3)
 reads the cumulative tables (``CUMULATIVE``) whatever the switch says: they
-are published data, not the library's deals.
+are published data, not the library's deals. So does the lender view's
+expected loss (``core/lender.py``, PLAN.md 7.5), with the recovery table by
+seniority (``LGD_BY_SENIORITY``).
 
 Every figure is **transcribed** from a published table named in ``TABLES``,
 never estimated: to change one, transcribe a newer edition of its source and

@@ -33,6 +33,8 @@ export const MODES: Mode[] = [
       { slug: "debt", labelKey: "dealDebt", summaryKey: "dealDebtSummary" },
       { slug: "returns", labelKey: "dealReturns", summaryKey: "dealReturnsSummary" },
       { slug: "summary", labelKey: "dealSummary", summaryKey: "dealSummarySummary" },
+      // The lender view (PLAN.md 7.5): covenants by year, breach odds, expected loss
+      { slug: "lender", labelKey: "dealLender", summaryKey: "dealLenderSummary" },
       { slug: "saved", labelKey: "dealSaved", summaryKey: "dealSavedSummary" },
       { slug: "documents", labelKey: "dealDocuments", summaryKey: "dealDocumentsSummary" },
       { slug: "from-document", labelKey: "dealFromDocument", summaryKey: "dealFromDocumentSummary" },
