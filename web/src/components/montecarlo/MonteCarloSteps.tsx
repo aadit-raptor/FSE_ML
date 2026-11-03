@@ -289,7 +289,7 @@ function Scenarios() {
           <table className="w-full border-collapse font-mono text-[11px]">
             <thead>
               <tr className="text-muted">
-                <th />
+                <td aria-hidden />
                 {[t("colMean"), t("kpiP5"), t("kpiP95"), t("colWipeout"), t("colMoicP50")].map((h) => (
                   <th key={h} scope="col" className="border-b border-grid px-1.5 py-1 text-end font-normal">
                     {h}
@@ -420,32 +420,34 @@ function Drivers() {
         </Tile>
         <DriverExplanationTiles explanations={r.explanations} />
         <Tile span={12} term="correlations" title={t("tileCorrelations")} unit={t("pearson")}>
-          <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
-            <thead>
-              <tr>
-                <th />
-                {corr.labels.map((l) => (
-                  <th key={l} scope="col" className="px-2 py-1 text-end font-normal text-muted">
-                    <Term id={driverTerm(l)}>{driverName(l)}</Term>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {corr.matrix.map((row, i) => (
-                <tr key={corr.labels[i]}>
-                  <th scope="row" className="type-input-label px-2 py-1 text-start text-[9px] font-normal text-soft">
-                    <Term id={driverTerm(corr.labels[i])}>{driverName(corr.labels[i])}</Term>
-                  </th>
-                  {row.map((v, j) => (
-                    <td key={j} className="px-2 py-1 text-end" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
-                      {fmtNumber(v, 2)}
-                    </td>
+          <div className="overflow-x-auto" tabIndex={0}>
+            <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
+              <thead>
+                <tr>
+                  <td aria-hidden />
+                  {corr.labels.map((l) => (
+                    <th key={l} scope="col" className="px-2 py-1 text-end font-normal text-muted">
+                      <Term id={driverTerm(l)}>{driverName(l)}</Term>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {corr.matrix.map((row, i) => (
+                  <tr key={corr.labels[i]}>
+                    <th scope="row" className="type-input-label px-2 py-1 text-start text-[9px] font-normal text-soft">
+                      <Term id={driverTerm(corr.labels[i])}>{driverName(corr.labels[i])}</Term>
+                    </th>
+                    {row.map((v, j) => (
+                      <td key={j} className="px-2 py-1 text-end" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
+                        {fmtNumber(v, 2)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Tile>
       </Tiles>
     </div>
@@ -470,7 +472,7 @@ function Heatmap() {
       <Tiles>
         <p className="type-body col-span-12 bg-canvas px-3 py-2 text-[9.5px]">{h.note}</p>
         <Tile span={12} title={t("tileHeatmap")} unit={t("heatmapUnit")}>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
               <thead>
                 <tr>

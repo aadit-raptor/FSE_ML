@@ -321,69 +321,73 @@ function Correlations() {
         </Notice>
       )}
       <Tile span={7} title={t("tileDriverCorrelations")} unit={t("editAboveDiagonal")}>
-        <table className="w-full border-separate border-spacing-px">
-          <thead>
-            <tr>
-              <th />
-              {DRIVERS.map((d) => (
-                <th key={d.id} scope="col" className="px-1 py-1 text-end font-mono text-[10.5px] font-normal text-muted">
-                  {t(d.labelKey)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {DRIVERS.map((row, i) => (
-              <tr key={row.id}>
-                <th scope="row" className="type-input-label pe-2 text-start text-[9px] font-normal whitespace-nowrap">
-                  {t(row.labelKey)}
-                </th>
-                {DRIVERS.map((col, j) => {
-                  if (i === j)
-                    return (
-                      <td key={col.id} className="px-2 py-1 text-end font-mono text-[11px] text-dim">
-                        {fmtNumber(1, 2)}
+        <div className="overflow-x-auto" tabIndex={0}>
+          <table className="w-full border-separate border-spacing-px">
+            <thead>
+              <tr>
+                <td aria-hidden />
+                {DRIVERS.map((d) => (
+                  <th key={d.id} scope="col" className="px-1 py-1 text-end font-mono text-[10.5px] font-normal text-muted">
+                    {t(d.labelKey)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {DRIVERS.map((row, i) => (
+                <tr key={row.id}>
+                  <th scope="row" className="type-input-label pe-2 text-start text-[9px] font-normal whitespace-nowrap">
+                    {t(row.labelKey)}
+                  </th>
+                  {DRIVERS.map((col, j) => {
+                    if (i === j)
+                      return (
+                        <td key={col.id} className="px-2 py-1 text-end font-mono text-[11px] text-dim">
+                          {fmtNumber(1, 2)}
+                        </td>
+                      );
+                    const k = key(row.id, col.id);
+                    const v = effective[k];
+                    if (typeof v !== "number") return <td key={col.id} />;
+                    return j > i ? (
+                      <td key={col.id} className="px-1 py-0.5">
+                        <CellInput
+                          label={t("correlationCell", { row: t(row.labelKey), column: t(col.labelKey) })}
+                          tip="correlation"
+                          value={v}
+                          decimals={2}
+                          onCommit={(n) => set(k, Math.max(-1, Math.min(1, n)))}
+                        />
+                      </td>
+                    ) : (
+                      <td key={col.id} className="px-2 py-1 text-end font-mono text-[11px] text-ink" style={{ background: heat(v, 0, 1) }}>
+                        {fmtInput(v, 2)}
                       </td>
                     );
-                  const k = key(row.id, col.id);
-                  const v = effective[k];
-                  if (typeof v !== "number") return <td key={col.id} />;
-                  return j > i ? (
-                    <td key={col.id} className="px-1 py-0.5">
-                      <CellInput
-                        label={t("correlationCell", { row: t(row.labelKey), column: t(col.labelKey) })}
-                        tip="correlation"
-                        value={v}
-                        decimals={2}
-                        onCommit={(n) => set(k, Math.max(-1, Math.min(1, n)))}
-                      />
-                    </td>
-                  ) : (
-                    <td key={col.id} className="px-2 py-1 text-end font-mono text-[11px] text-ink" style={{ background: heat(v, 0, 1) }}>
-                      {fmtInput(v, 2)}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Tile>
-      <Tile span={5} title={t("tileMatrixUsed")} unit={t("fromTheApi")}>
-        {correlation && (
-          <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
-            <tbody>
-              {correlation.matrix.map((r, i) => (
-                <tr key={i}>
-                  {r.map((v, j) => (
-                    <td key={j} className="px-2 py-1 text-end" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
-                      {fmtNumber(v, 2)}
-                    </td>
-                  ))}
+                  })}
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      </Tile>
+      <Tile span={5} title={t("tileMatrixUsed")} unit={t("fromTheApi")}>
+        {correlation && (
+          <div className="overflow-x-auto" tabIndex={0}>
+            <table className="w-full border-separate border-spacing-px font-mono text-[11px]">
+              <tbody>
+                {correlation.matrix.map((r, i) => (
+                  <tr key={i}>
+                    {r.map((v, j) => (
+                      <td key={j} className="px-2 py-1 text-end" style={i === j ? { color: "var(--color-dim)" } : { background: heat(v, 0, 1) }}>
+                        {fmtNumber(v, 2)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         <p className="type-body text-[9px]">{t("matrixOrder")}</p>
       </Tile>
@@ -409,57 +413,59 @@ function Presets() {
   return (
     <Tiles>
       <Tile span={12} title={t("tilePresets")} unit={t("presetsUnit")}>
-        <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0.5">
-          <thead>
-            <tr>
-              <th />
-              {headers.map((h) => (
-                <th key={h} scope="col" className="px-1 py-1 text-end font-mono text-[10.5px] font-normal text-muted">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {PRESETS.map((p) => (
-              <tr key={p.id}>
-                <th scope="row" className="type-input-label pe-2 text-start text-[9.5px] font-normal">
-                  {t(p.labelKey)}
-                </th>
-                {p.cols.map(([k, unit], i) => (
-                  <td key={k}>
-                    <div className="grid grid-cols-[1fr_24px] items-center gap-1">
-                      <CellInput
-                        label={t("presetCell", { preset: t(p.labelKey), column: headers[i] })}
-                        tip={`settings_${k}`}
-                        value={Number(effective[k])}
-                        decimals={2}
-                        onCommit={(n) => set(k, n)}
-                      />
-                      <span className="font-mono text-[10px] text-[#56636a]">{unitLabel(unit)}</span>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto" tabIndex={0}>
+          <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0.5">
+            <thead>
+              <tr>
+                <td aria-hidden />
+                {headers.map((h) => (
+                  <th key={h} scope="col" className="px-1 py-1 text-end font-mono text-[10.5px] font-normal text-muted">
+                    {h}
+                  </th>
                 ))}
-                <td>
-                  {"floor" in p ? (
-                    <div className="grid grid-cols-[1fr_24px] items-center gap-1">
-                      <CellInput
-                        label={t("presetFloorCell", { preset: t(p.labelKey) })}
-                        tip={`settings_${p.floor}`}
-                        value={Number(effective[p.floor])}
-                        decimals={1}
-                        onCommit={(n) => set(p.floor, n)}
-                      />
-                      <span className="font-mono text-[10px] text-[#56636a]">%</span>
-                    </div>
-                  ) : (
-                    <span className="block pe-7 text-end font-mono text-[10px] text-dim">{t("presetNoFloor")}</span>
-                  )}
-                </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {PRESETS.map((p) => (
+                <tr key={p.id}>
+                  <th scope="row" className="type-input-label pe-2 text-start text-[9.5px] font-normal">
+                    {t(p.labelKey)}
+                  </th>
+                  {p.cols.map(([k, unit], i) => (
+                    <td key={k}>
+                      <div className="grid grid-cols-[1fr_24px] items-center gap-1">
+                        <CellInput
+                          label={t("presetCell", { preset: t(p.labelKey), column: headers[i] })}
+                          tip={`settings_${k}`}
+                          value={Number(effective[k])}
+                          decimals={2}
+                          onCommit={(n) => set(k, n)}
+                        />
+                        <span className="font-mono text-[10px] text-dim">{unitLabel(unit)}</span>
+                      </div>
+                    </td>
+                  ))}
+                  <td>
+                    {"floor" in p ? (
+                      <div className="grid grid-cols-[1fr_24px] items-center gap-1">
+                        <CellInput
+                          label={t("presetFloorCell", { preset: t(p.labelKey) })}
+                          tip={`settings_${p.floor}`}
+                          value={Number(effective[p.floor])}
+                          decimals={1}
+                          onCommit={(n) => set(p.floor, n)}
+                        />
+                        <span className="font-mono text-[10px] text-dim">%</span>
+                      </div>
+                    ) : (
+                      <span className="block pe-7 text-end font-mono text-[10px] text-dim">{t("presetNoFloor")}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="type-body text-[9px]">{t("presetsNote")}</p>
       </Tile>
     </Tiles>

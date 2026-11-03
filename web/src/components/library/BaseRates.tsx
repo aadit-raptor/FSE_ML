@@ -193,7 +193,7 @@ function Cumulative({ rates, region }: { rates: BaseRates; region: CumulativeReg
   const title = t("cumulativeTitle", { region: regionText(region) });
   return (
     <Tile span={12} title={title} unit={t("unitPctIssuers")}>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={title} data-region={region}>
           <thead>
             <tr>

@@ -15,6 +15,7 @@ import { LibraryProvider } from "@/components/library/LibraryProvider";
 import { MonteCarloProvider } from "@/components/montecarlo/MonteCarloProvider";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { isPublicRoute } from "@/lib/auth/mode";
+import { parsePath } from "@/lib/nav";
 import { EXCEL_PATH, isExcelPath } from "@/lib/security/headers";
 import { setNumberStyle } from "@/lib/locale";
 
@@ -108,9 +109,11 @@ function Shell({ children }: { children: React.ReactNode }) {
                       <CompanyProvider>
                         <LocaleScope>
                           <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
+                            <SkipLink />
                             <TopBar />
                             <StepBar />
-                            <main id="content" className="min-h-0 flex-1 overflow-auto">
+                            <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-auto focus:outline-none">
+                              <ScreenHeading />
                               {children}
                             </main>
                             <StatusBar />
@@ -147,6 +150,35 @@ function PublicShell({ children }: { children: React.ReactNode }) {
       <StatusBar />
     </div>
   );
+}
+
+/**
+ * Accessibility (PLAN.md 7.6): the first thing a keyboard reaches is a link past the top bar and the
+ * step row to the screen itself, shown only while it has focus.
+ */
+function SkipLink() {
+  const ui = useTranslations("ui");
+  return (
+    <a
+      href="#content"
+      className="type-action sr-only bg-accent text-bg focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-50 focus:px-3 focus:py-2"
+    >
+      {ui("skipToContent")}
+    </a>
+  );
+}
+
+/**
+ * Every screen of a mode has one top-level heading, its mode and step ("Deal: Inputs"), for screen
+ * readers: the step row shows the same words, but a heading is how a reader finds where a page starts.
+ * Screens outside the modes (account, help, teams) carry a visible heading of their own.
+ */
+function ScreenHeading() {
+  const { mode, step } = parsePath(usePathname());
+  const nav = useTranslations("nav");
+  const t = useTranslations("shell");
+  if (!mode || !step) return null;
+  return <h1 className="sr-only">{t("screenHeading", { mode: nav(mode.labelKey), step: nav(step.labelKey) })}</h1>;
 }
 
 /** Notes the workspace and screen as the visitor moves (useModes.ts). */

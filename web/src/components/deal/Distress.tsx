@@ -110,7 +110,7 @@ function Header({ years }: { years: string[] }) {
   return (
     <thead>
       <tr>
-        <th scope="col" className="w-[30%]" />
+        <td className="w-[30%]" aria-hidden />
         {years.map((y) => (
           <th key={y} scope="col" className="border-b border-grid px-2 py-1 text-end font-normal text-muted">
             {y}
@@ -158,7 +158,7 @@ export function DealDistressTile({ d, years }: { d: DealDistress; years: string[
       : undefined;
   return (
     <Tile span={12} term="distress" title={t("tile")} unit={t("unitDeal")} explain={explained}>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" data-distress="deal">
           <caption className="sr-only">{t("tile")}</caption>
           <Header years={cols} />
@@ -213,7 +213,7 @@ export function SimulatedDistressTile({ d, years }: { d: SimulatedDistress; year
   const shown = (v: number | null | undefined) => (d.shown ? fmtRate(v, 2) : t("notShown"));
   return (
     <Tile span={12} term="distressSimulated" title={t("tile")} unit={t("unitSimulated")}>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" data-distress="simulated">
           <caption className="sr-only">{t("tile")}</caption>
           <Header years={cols} />

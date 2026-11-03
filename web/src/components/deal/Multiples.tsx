@@ -105,7 +105,7 @@ function Body({ answer }: { answer: Answer }) {
         })}
       </p>
       <RangesTable answer={answer} />
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Regions answer={answer} />
         <Sector answer={answer} />
       </div>

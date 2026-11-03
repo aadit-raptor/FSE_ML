@@ -195,7 +195,7 @@ function RiskTable({ risk }: { risk: Risk }) {
           );
         })}
       </ul>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={title}>
           <thead>
             <tr className="type-input-label">
