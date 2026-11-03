@@ -269,6 +269,9 @@ class SimulationResult:
     # Each path's yearly EBITDA, EBIT, interest and opening debt, when the
     # run was asked for them (``credit=True``, PLAN.md 5.3)
     credit_paths: Optional[dict] = None
+    # The first paths' yearly figures a lender's covenants read, when the run
+    # was asked for them (``lender``, PLAN.md 7.5)
+    lender_paths: Optional[dict] = None
 
     @property
     def irr(self) -> np.ndarray:
@@ -426,6 +429,7 @@ def _run_vectorized_core(
     params: SimulationParams,
     draws: dict,
     credit: bool = False,
+    lender: int = 0,
 ) -> dict:
     """
     Core vectorized LBO computation.
@@ -449,9 +453,13 @@ def _run_vectorized_core(
     ``credit`` also returns ``credit_paths``: each path's EBITDA, EBIT,
     interest and debt at the start of each year, shape (N, years), for the
     distress predictor (PLAN.md 5.3). It changes no other figure.
+
+    ``lender`` (a number of paths) also returns ``lender_paths``: the first
+    that many paths' yearly figures a lender's covenants read
+    (``core/covenants.py``, PLAN.md 7.5). Recording them changes no figure.
     """
     if params.tranches:
-        return _run_tranche_core(params, draws, credit)
+        return _run_tranche_core(params, draws, credit, lender)
 
     N = params.n
     n_yr = params.holding_period
@@ -529,6 +537,7 @@ def _run_vectorized_core(
         # each year's tax from the whole schedule (PLAN.md 2.5).
         net_income_yr = np.zeros((N, n_yr))
         ebit_yr       = np.zeros((N, n_yr))
+        taxes_yr      = np.zeros((lender, n_yr)) if lender else None
         ruled = _ruled_taxes(p, ebitda_yr, da_yr, interest_expense)
 
         for t in range(n_yr):
@@ -537,6 +546,8 @@ def _run_vectorized_core(
             taxes = np.maximum(ebt, 0.0) * p.tax_rate if ruled is None else ruled[t]
             net_income_yr[:, t] = ebt - taxes
             ebit_yr[:, t] = ebit
+            if taxes_yr is not None:
+                taxes_yr[:, t] = taxes[:lender]
 
         # ---- Cash flow model ----
         # FCF = Net Income + D&A - Capex - ΔNWC
@@ -558,12 +569,20 @@ def _run_vectorized_core(
         cash_bal   = np.full(N, minimum_cash, dtype=float)
         interest_new = np.zeros((N, n_yr), dtype=float)
         debt_yr = np.zeros((N, n_yr), dtype=float) if credit else None
+        if lender:
+            # (paths, facilities, years): the senior loan, then the mezzanine
+            opening_l = np.zeros((lender, 2, n_yr))
+            closing_l = np.zeros((lender, 2, n_yr))
+            scheduled_l = np.zeros((lender, 2, n_yr))
+            cash_l = np.zeros((lender, n_yr))
 
         senior_amort_annual = senior_debt * p.senior_amort_pct   # scalar
 
         for t in range(n_yr):
             if debt_yr is not None:
                 debt_yr[:, t] = senior_bal + mezz_bal
+            if lender:
+                opening_l[:, 0, t], opening_l[:, 1, t] = senior_bal[:lender], mezz_bal[:lender]
             # Interest on beginning balance
             int_s = senior_bal * senior_rate   # (N,)
             int_m = mezz_bal   * mezz_rate     # (N,)
@@ -596,6 +615,10 @@ def _run_vectorized_core(
 
             # Update cash balance
             cash_bal = np.full(N, minimum_cash)
+            if lender:
+                closing_l[:, 0, t], closing_l[:, 1, t] = senior_bal[:lender], mezz_bal[:lender]
+                scheduled_l[:, 0, t], scheduled_l[:, 1, t] = mandatory_s[:lender], mandatory_m[:lender]
+                cash_l[:, t] = cash_bal[:lender]
 
         interest_expense = interest_new   # use for next pass
 
@@ -631,6 +654,14 @@ def _run_vectorized_core(
     if credit:
         out["credit_paths"] = {"ebitda": ebitda_yr, "ebit": ebit_yr, "interest": interest_expense,
                                "debt": debt_yr}
+    if lender:
+        k = slice(0, lender)
+        out["lender_paths"] = {
+            "ebitda": ebitda_yr[k].copy(), "net_income": net_income_yr[k].copy(), "da": da_yr[k].copy(),
+            "interest": interest_expense[k].copy(), "cash_interest": interest_expense[k].copy(),
+            "taxes": taxes_yr, "capex": revenue_yr[k] * p.capex_pct, "delta_nwc": revenue_yr[k] * p.nwc_pct,
+            "cash": cash_l, "opening": opening_l, "closing": closing_l, "scheduled": scheduled_l,
+        }
     return out
 
 
@@ -671,7 +702,7 @@ def _operating_paths(p: SimulationParams, draws: dict):
     return revenue_yr, ebitda_yr, da_yr
 
 
-def _run_tranche_core(p: SimulationParams, draws: dict, credit: bool = False) -> dict:
+def _run_tranche_core(p: SimulationParams, draws: dict, credit: bool = False, lender: int = 0) -> dict:
     """The simulation for a deal financed tranche by tranche (PLAN.md 2.4b).
 
     The operating model, taxes, cash flow, interest passes, exit and returns
@@ -712,7 +743,8 @@ def _run_tranche_core(p: SimulationParams, draws: dict, credit: bool = False) ->
         net_income = ebt - taxes
         fcf = (net_income + da_yr - revenue_yr * p.capex_pct - revenue_yr * p.nwc_pct
                + non_cash)
-        schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash, track_debt=credit)
+        schedule = run_tranche_schedule(p.tranches, shock, fcf, minimum_cash, track_debt=credit,
+                                        track_paths=lender)
         interest, non_cash = schedule.interest, schedule.non_cash
 
     net_debt_at_exit = schedule.ending_debt - schedule.ending_cash + p.lease_liability
@@ -741,6 +773,16 @@ def _run_tranche_core(p: SimulationParams, draws: dict, credit: bool = False) ->
     if credit:
         out["credit_paths"] = {"ebitda": ebitda_yr, "ebit": ebitda_yr - da_yr, "interest": interest,
                                "debt": schedule.beginning_debt}
+    if lender:
+        # The figures the last pass's schedule was run on, as its cash flow read them
+        k = slice(0, lender)
+        out["lender_paths"] = {
+            "ebitda": ebitda_yr[k].copy(), "net_income": net_income[k].copy(), "da": da_yr[k].copy(),
+            "interest": schedule.interest[k].copy(),
+            "cash_interest": schedule.interest[k] - schedule.non_cash[k],
+            "taxes": taxes[k].copy(), "capex": revenue_yr[k] * p.capex_pct,
+            "delta_nwc": revenue_yr[k] * p.nwc_pct, **schedule.tracked,
+        }
     return out
 
 
@@ -856,6 +898,7 @@ def run_vectorized_simulation_full(
     params: SimulationParams,
     seed: Optional[int] = None,
     credit: bool = False,
+    lender: int = 0,
 ) -> SimulationResult:
     """
     Full simulation returning a SimulationResult object.
@@ -872,8 +915,9 @@ def run_vectorized_simulation_full(
     SimulationResult
     """
     draws  = _draw_correlated_inputs(params, seed=seed)
-    output = _run_vectorized_core(params, draws, credit=credit)
+    output = _run_vectorized_core(params, draws, credit=credit, lender=min(int(lender), params.n))
     credit_paths = output.pop("credit_paths", None)
+    lender_paths = output.pop("lender_paths", None)
 
     df = pd.DataFrame(output)
 
@@ -886,6 +930,7 @@ def run_vectorized_simulation_full(
         n_wiped=n_wiped,
         params=params,
         credit_paths=credit_paths,
+        lender_paths=lender_paths,
     )
 
 

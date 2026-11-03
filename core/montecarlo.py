@@ -163,6 +163,25 @@ def simulated_distress(sim, deal: DealInputs) -> dict:
                           paths["debt"] + p.lease_liability, country=deal.country, business=deal.business_risk)
 
 
+# Covenant breach odds (PLAN.md 7.5) are read on the first paths of a run:
+# at most LENDER_PATHS, fewer when the deal has many facilities and years, so
+# the tracked arrays stay under LENDER_CELLS cells each (4 MB) on the free
+# server's 512 MB. Paths are drawn independently, so the first ones are a fair
+# sample of the run; the answer says how many were read.
+LENDER_PATHS = 10_000
+MIN_LENDER_PATHS = 2_000
+LENDER_CELLS = 500_000
+
+
+def lender_paths(deal: DealInputs, params: SimulationParams) -> int:
+    """How many paths a run tracks for the deal's covenants (0 without any)."""
+    if not deal.covenants:
+        return 0
+    facilities = max(len(params.tranches), 2)
+    cap = max(LENDER_CELLS // (facilities * int(params.holding_period)), MIN_LENDER_PATHS)
+    return min(int(params.n), LENDER_PATHS, cap)
+
+
 def probability_of_loss(moic) -> float:
     """Share of paths returning less than the equity put in (MOIC below 1),
     the deal summary's probability of loss (PLAN.md 4.6)."""

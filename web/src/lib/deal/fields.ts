@@ -45,11 +45,16 @@ export const LEASE_MONEY_KEYS = ["lease_cost", "lease_liability"] as const;
 export const START_LABEL_DEFAULTS = { country: "", industry: "" } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
 /** S&P's business risk profile (PLAN.md 5.3), read only by the distress predictor: sent only when changed */
 export const DISTRESS_DEFAULTS = { business_risk: 4 } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
+/** Covenants (PLAN.md 7.5): how they are defined, "" for the deal's country's; sent only when chosen */
+export const COVENANT_DEFAULTS = { covenant_convention: "" } as const satisfies Partial<Required<Schemas["DealInputsIn"]>>;
+/** One covenant in a facility's agreement, as the API takes it (core/covenants.py) */
+export type Covenant = Schemas["CovenantIn"];
 const OMITTED_AT_DEFAULT: Record<string, unknown> = {
   ...TAX_RULE_DEFAULTS,
   ...LEASE_DEFAULTS,
   ...START_LABEL_DEFAULTS,
   ...DISTRESS_DEFAULTS,
+  ...COVENANT_DEFAULTS,
 };
 export type NumericDealKey = Exclude<{ [K in keyof DealInputs]: DealInputs[K] extends number ? K : never }[keyof DealInputs], FiscalDealKey>;
 
@@ -84,6 +89,8 @@ export const DEFAULT_INPUTS: DealInputs = {
   ...LEASE_DEFAULTS,
   ...START_LABEL_DEFAULTS,
   ...DISTRESS_DEFAULTS,
+  covenants: [],
+  ...COVENANT_DEFAULTS,
 };
 
 /**
@@ -92,7 +99,7 @@ export const DEFAULT_INPUTS: DealInputs = {
  * answering every deal that doesn't use them.
  */
 export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
-  const { fiscal_year_end_month, first_fiscal_year, tranches, ...all } = inputs;
+  const { fiscal_year_end_month, first_fiscal_year, tranches, covenants, ...all } = inputs;
   const rest = Object.fromEntries(
     Object.entries(all).filter(([k, v]) => !(k in OMITTED_AT_DEFAULT) || v !== OMITTED_AT_DEFAULT[k]),
   );
@@ -102,6 +109,7 @@ export function apiInputs(inputs: DealInputs): Schemas["DealInputsIn"] {
     ...(fiscal_year_end_month !== DEFAULT_INPUTS.fiscal_year_end_month ? { fiscal_year_end_month } : {}),
     ...(first_fiscal_year !== null ? { first_fiscal_year } : {}),
     ...(tranches.length ? { tranches } : {}),
+    ...(covenants.length ? { covenants } : {}),
   } as Schemas["DealInputsIn"];
 }
 
@@ -122,6 +130,12 @@ export function tranchesInUnit(tranches: Tranche[], k: number): Tranche[] {
     amount: (t.amount ?? 0) * k,
     ...(t.amort_schedule?.length ? { amort_schedule: t.amort_schedule.map((x) => x * k) } : {}),
   }));
+}
+
+/** Covenants with every liquidity level in a new unit (the ratios are not money), so a deal keeps its size. */
+export function covenantsInUnit(covenants: Covenant[], k: number): Covenant[] {
+  if (k === 1) return covenants;
+  return covenants.map((c) => (c.metric === "liquidity" ? { ...c, levels: c.levels.map((x) => x * k) } : c));
 }
 
 /** The deal's fiscal years, for labels. */

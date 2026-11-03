@@ -106,6 +106,10 @@ class ScheduleResult:
     # (N, n_years): every facility's balance at the start of each year, when
     # asked for (``track_debt``, the distress predictor, PLAN.md 5.3)
     beginning_debt: Optional[np.ndarray] = None
+    # The first ``track_paths`` paths' balances, repayments and cash a year,
+    # for a lender's covenants (PLAN.md 7.5): opening, closing and scheduled
+    # are (paths, facilities, years), cash (paths, years)
+    tracked: Optional[dict] = None
 
 
 def run_tranche_schedule(
@@ -114,6 +118,7 @@ def run_tranche_schedule(
     fcf: np.ndarray,
     minimum_cash: float,
     track_debt: bool = False,
+    track_paths: int = 0,
 ) -> ScheduleResult:
     """The year-by-year schedule on every path at once.
 
@@ -128,6 +133,9 @@ def run_tranche_schedule(
     interest = np.zeros((N, n_years))
     non_cash = np.zeros((N, n_years))
     beginning_debt = np.zeros((N, n_years)) if track_debt else None
+    k, F = int(track_paths), len(tranches)
+    tracked = ({"opening": np.zeros((k, F, n_years)), "closing": np.zeros((k, F, n_years)),
+                "scheduled": np.zeros((k, F, n_years)), "cash": np.zeros((k, n_years))} if k else None)
     sweep_order = sorted((i for i, t in enumerate(tranches) if t.sweep),
                          key=lambda i: tranches[i].sweep_priority)
 
@@ -150,6 +158,10 @@ def run_tranche_schedule(
             owed = beginning[i] + pik[i]
             mandatory.append(np.minimum(_scheduled(t, year, owed), owed))
         total_mandatory = sum(mandatory) if tranches else np.zeros(N)
+        if tracked is not None:
+            for i in range(F):
+                tracked["opening"][:, i, y] = beginning[i][:k]
+                tracked["scheduled"][:, i, y] = mandatory[i][:k]
 
         cash_in_hand = cash + fcf[:, y]
         available = np.maximum(cash_in_hand - total_mandatory - minimum_cash, 0.0)
@@ -180,6 +192,10 @@ def run_tranche_schedule(
         # shortfall nobody funds is still restored to the minimum (finding 11).
         cash = minimum_cash + remaining
         balances = ending
+        if tracked is not None:
+            for i in range(F):
+                tracked["closing"][:, i, y] = ending[i][:k]
+            tracked["cash"][:, y] = cash[:k]
 
     return ScheduleResult(
         interest=interest,
@@ -187,4 +203,5 @@ def run_tranche_schedule(
         ending_debt=sum(balances) if tranches else np.zeros(N),
         ending_cash=cash,
         beginning_debt=beginning_debt,
+        tracked=tracked,
     )

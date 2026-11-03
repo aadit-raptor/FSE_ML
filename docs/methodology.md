@@ -31,7 +31,7 @@ deal model to match to 0.01.
 5. [Debt structures and interest rates](#5-debt-structures-and-interest-rates)
 6. [Accounting standards and leases](#6-accounting-standards-and-leases)
 7. [Tax rules](#7-tax-rules)
-8. [Risk warnings](#8-risk-warnings)
+8. [Risk warnings](#8-risk-warnings) and [the lender view](#the-lender-view)
 9. [Monte Carlo simulation](#9-monte-carlo-simulation)
 10. [Plan vs actual](#10-plan-vs-actual)
 11. [Three-statement forecast](#11-three-statement-forecast)
@@ -529,6 +529,94 @@ downside (§9).
 United States'; the rating and default tables are US-based global studies.
 Each source is listed with its publisher, date, table and sample in
 `core/risk_sources.py` and shown beside the warning.
+
+## The lender view
+
+[core/covenants.py](../core/covenants.py), [core/lender.py](../core/lender.py).
+Tests: [tests/test_covenants.py](../tests/test_covenants.py) (a deal built to
+breach in year 2, every convention's definition worked out again from the
+answer's tables, a path at the mean against the deal model, expected loss by
+hand). PLAN.md 7.5.
+
+**Covenants** are deal inputs (`DealInputs.covenants`): a facility, a test
+and a level a year (`Covenant.level_in_year`; a short path repeats its last
+year, a liquidity level is money and moves with the unit,
+`Covenant.in_millions`). They change no figure of the model or the
+simulation; they read them. Four tests, each at the year end:
+
+- **Leverage**, a maximum: lenders' debt at the year end / EBITDA
+  (`_leverage`: no debt is 0x; debt against an EBITDA that is not positive is
+  unlimited). The `scope` counts every lender's facility (`total`) or the
+  senior secured ones only (`senior`: revolvers, term loans, unitranche).
+- **Interest cover**, a minimum: EBITDA / interest (`_ratio`: a charge of
+  nothing is covered without limit).
+- **Fixed-charge cover**, a minimum: cash flow / (cash interest + regular
+  amortisation). A bullet, or what is left at maturity, is refinanced, not
+  paid from the year's cash, so debt service counts each facility's regular
+  amortisation only (`regular_amortisation`, from the engine's amortisation
+  fields), capped at what was repaid.
+- **Minimum liquidity**: cash at the year end + what each committed line
+  (a revolver) still offers.
+
+`metric_values` works each out under the deal's **convention**
+(`convention_for`: the deal's choice, else its country's -- US credit
+agreements for the US and its tax havens, Indian bank lending for India, the
+Loan Market Association's everywhere else, whose definitions the Asia Pacific
+association's documents follow):
+
+| | `us` | `lma` | `india` |
+|---|---|---|---|
+| Debt | net of cash | net of cash | gross |
+| Leases (post-IFRS 16 deal) | not debt, no add-back | frozen before IFRS 16: not debt, no add-back | as the deal prices them: liability counted, cost added back |
+| Interest | paid in cash, commitment fees with it | paid in cash | as the P&L books it (PIK too) |
+| Fixed charge | FCCR: EBITDA − capex − tax | cashflow cover: EBITDA − capex − tax − change in working capital | DSCR: profit after tax + D&A + interest |
+
+A shareholder loan is the sponsor's money and is never a lender's debt or
+debt service. A covenant `tested` in a year only while its facility has a
+balance at the start of it, or is a committed line not yet at maturity; a
+breach is a tested year past its level, and `headroom` is the distance from
+the level as a share of it (negative when breached). `evaluate` runs the
+tests on one deal's arrays of years and on the simulation's arrays of paths
+alike. `deal_facilities` lists the deal's facilities in the schedule's order
+(`_facility` builds one from the engine's or the simulation's tranche; a deal
+sized by percentages has a senior secured loan and a subordinated
+mezzanine), `deal_figures` takes the deal model's year-end figures, and
+`deal_view` answers each test year by year with the first breach, and `year_one` each test's year-one figure whatever covenants the deal has (where the screen starts a new covenant: that figure with 30% headroom, rounded to a quarter turn). The
+default deal under the LMA's definitions: debt of 572.05 at the end of year
+one over EBITDA of 105.00 is 5.45x, 539.61 over 110.25 is 4.89x in year two,
+so a maximum of 4.5x in year two alone is breached in year two only.
+
+**Breach odds** (`breach_odds`) read the simulation's own paths by the same
+definitions. A run asked for them (`lender_paths` in
+[core/montecarlo.py](../core/montecarlo.py): the deal has covenants) records
+its first paths' yearly figures -- EBITDA, net income, D&A, interest, cash
+interest, tax, capex, the change in working capital, cash and each facility's
+balances and repayments -- as `lender_paths` (`simulated_figures`,
+`simulation_facilities`; the two-bucket path's facilities are the senior loan
+and the mezzanine). Recording them moves no simulated figure. At most
+`LENDER_PATHS` paths, fewer when facilities × years would pass `LENDER_CELLS`
+cells an array, never under `MIN_LENDER_PATHS`: paths are drawn
+independently, so the first are a fair sample, and the answer says how many.
+Each covenant's yearly figure is the share of paths breaching that year, and
+the share that has breached by its end; the same for any covenant. The
+simulation keeps no minimum cash (finding 13) and fills a shortfall from
+nowhere (findings 11 and 12), as the deal model does, so liquidity reads the
+cash they leave.
+
+**Expected loss** (`expected_loss`): each facility's exposure (its drawn
+amount; a revolver's whole commitment), the deal's default probability
+(`default_pct`: the implied rating from year-one coverage that the summary
+shows, `credit_view`, folded to S&P's letter grade and read at the hold in
+the 2024 study's Table 25 for the US, Europe and emerging markets, Table 24
+for other developed markets and a deal with no country), the loss given
+default from Global Credit Data's 2020 report, Table 2 (secured 22%, senior
+unsecured 26%, subordinated 38%; the report does not split secured loans by
+lien, so a second lien reads the secured row), expected loss = probability
+× LGD × exposure and the expected recovery, exposure × (1 − LGD). A
+shareholder loan has no lender's loss. `_sources` lists the tables. The
+default deal in the US: B+ is a B, whose US five-year rate is 17.08%; the
+senior loan of 420 loses 17.08% × 22% × 420 = 15.78 and the mezzanine of 180
+loses 17.08% × 38% × 180 = 11.68.
 
 ## 9. Monte Carlo simulation
 
@@ -1369,6 +1457,7 @@ warnings reads it**, so switching it off (`library/switch.py`) moves no result.
 | Accounting | IFRS 16 leases in EBITDA and net debt (IFRS) or not (US GAAP) | §6 |
 | Tax | Rate, interest limit, loss rules, minimum tax per country preset | §7 |
 | Risk thresholds | ECB/US leverage guidance; US-based rating and default studies | §8 |
+| Covenants | Definitions as US, LMA or Indian agreements write them; default rates by S&P region | [Lender view](#the-lender-view) |
 | Base rates | Default rates for the U.S., Europe, emerging and other developed markets; recovery for six regions | §14 |
 | Filings | SEC EDGAR only (US GAAP and IFRS filers) | §13 |
 | Starting figures | Industry averages by region, growth and tax by country, rate by currency | §14 |
@@ -1660,6 +1749,9 @@ The values quoted in this document, checked against the code by
 | `api.limits.MAX_FORECAST_PATHS` | 200000 | most forecast simulation paths |
 | `core.portfolio.DEFAULT_TOLERANCE` | 5.0 | % below plan (above, for debt) that raises a portfolio alert, unless the holding says otherwise |
 | `core.portfolio.REFORECAST_PATHS` | 20000 | paths simulated around a reforecast |
+| `core.montecarlo.LENDER_PATHS` | 10000 | most simulated paths read for covenant breach odds |
+| `core.montecarlo.MIN_LENDER_PATHS` | 2000 | the fewest, for the largest deals |
+| `core.montecarlo.LENDER_CELLS` | 500000 | most cells in each array of tracked paths |
 | `ml.edgar_extractor._FIRST_WEEK` | 7 | a year ending on or before this day counts as the month before |
 
 ## 18. Settings defaults

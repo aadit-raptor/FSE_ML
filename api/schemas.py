@@ -190,6 +190,28 @@ class TrancheIn(Strict):
     allow_redraw: bool = Field(False, description="Draws to cover a cash shortfall (revolver)")
 
 
+CovenantMetric = Literal["leverage", "interest_cover", "fixed_charge_cover", "liquidity"]
+CovenantConvention = Literal["us", "lma", "india"]
+# More than any real agreement holds: four tests on each of six facilities
+MAX_COVENANTS = 24
+
+
+class CovenantIn(Strict):
+    """A yearly test in one facility's agreement (PLAN.md 7.5, core/covenants.py).
+
+    ``levels`` is the maximum (leverage, x) or minimum (interest and
+    fixed-charge cover, x; liquidity, money in the deal's currency and unit)
+    year by year; a path shorter than the hold repeats its last year. A
+    covenant changes no figure of the model: it only reads them."""
+    facility: str = Field(min_length=1, max_length=64,
+                          description="The facility whose agreement holds it, by its name in the debt schedule")
+    metric: CovenantMetric
+    scope: Literal["total", "senior"] = Field(
+        "total", description="Leverage only: every lender's debt, or the senior secured facilities' alone")
+    levels: List[Annotated[float, Field(ge=-1e6, le=MAX_MONEY)]] = Field(
+        min_length=1, max_length=MAX_TRANCHE_YEARS, description="The level a year")
+
+
 # Each tranche multiplies the work of a run: the exit-sensitivity grid reruns
 # the whole model once per holding period, so the schedule is built five times
 # over. Twelve facilities is more than any real structure and keeps a run well
@@ -285,6 +307,13 @@ class DealInputsIn(Strict):
     business_risk: int = Field(
         4, ge=1, le=6, description="S&P's business risk profile, 1 (excellent) to 6 (vulnerable); with "
                                    "leverage it gives each year's rating band (Corporate Methodology, Table 3)")
+    # PLAN.md 7.5: a lender's yearly tests; stored only when set
+    covenants: List[CovenantIn] = Field(
+        default_factory=list, max_length=MAX_COVENANTS,
+        description="Covenants a lender tests each year (core/covenants.py); they change no figure")
+    covenant_convention: Literal["", "us", "lma", "india"] = Field(
+        "", description="How the covenants are defined: US credit agreements, the LMA's, Indian bank "
+                        "lending, or '' for the deal's country's")
 
     @model_validator(mode="after")
     def _only_a_committed_line_is_partly_drawn(self) -> "DealInputsIn":
@@ -577,6 +606,65 @@ class SimulatedDistress(DistressContext):
     years: List[SimulatedDistressYear]
 
 
+class CovenantYear(BaseModel):
+    year: int
+    value: Optional[float] = Field(None, description="A ratio's figure (x); null when unlimited")
+    level: Optional[float] = Field(None, description="A ratio's level (x)")
+    liquidity: Optional[float] = Field(None, description="Liquidity's figure (in the deal's currency and unit)")
+    minimum_liquidity: Optional[float] = Field(None, description="Liquidity's level (in currency and unit)")
+    tested: bool = Field(description="Whether the facility is outstanding or committed that year")
+    breach: bool
+    headroom: Optional[float] = Field(description="Distance from the level as a share of it (negative when "
+                                                  "breached); null when untested or unlimited")
+
+
+class CovenantTest(BaseModel):
+    index: int = Field(description="The covenant's place in the deal's list")
+    facility: str
+    metric: CovenantMetric
+    scope: Literal["total", "senior"]
+    years: List[CovenantYear]
+    first_breach: Optional[int]
+
+
+class LenderFacility(BaseModel):
+    name: str
+    kind: Optional[TrancheKind] = Field(description="None for a deal sized by percentages")
+    seniority: Literal["senior_secured", "second_lien", "senior_unsecured", "subordinated", "sponsor"]
+    lender: bool = Field(description="False for the sponsor's own loan, which no lender holds")
+    exposure: float = Field(description="Drawn at close; a revolver's whole commitment (in currency and unit)")
+    lgd_pct: Optional[float] = Field(description="Loss given default (%), Global Credit Data's Table 2")
+    lgd_row: Optional[str] = Field(description="The row of that table read")
+    default_pct: Optional[float] = Field(description="S&P's cumulative default rate (%) over the hold")
+    expected_loss: Optional[float] = Field(description="Default probability x LGD x exposure (in currency and unit)")
+    expected_recovery: Optional[float] = Field(description="Exposure x (1 - LGD) (in currency and unit)")
+
+
+class LenderView(BaseModel):
+    """The deal as its lenders see it (PLAN.md 7.5): the covenants' yearly
+    tests and each facility's expected loss from regional base rates."""
+    convention: CovenantConvention
+    chosen: bool = Field(description="False when the convention follows the deal's country")
+    covenants: List[CovenantTest]
+    first_breach: Optional[int] = Field(description="The first year any covenant is breached")
+    year_one: Dict[Literal["leverage", "senior_leverage", "interest_cover", "fixed_charge_cover", "liquidity"],
+                   Optional[float]] = Field(
+        description="Each test's year-one figure under the convention (liquidity in currency and unit); where "
+                    "a new covenant's level starts")
+    rating: Optional[str] = Field(description="The implied rating from year-one coverage (the summary's)")
+    band: Optional[RatingBand]
+    region: Optional[Literal["us", "europe", "emerging", "other_developed"]]
+    table: Literal["us", "europe", "emerging", "global"] = Field(
+        description="S&P's table read: Table 25's region, else Table 24 (global)")
+    years: int
+    default_pct: Optional[float]
+    facilities: List[LenderFacility]
+    exposure: float
+    expected_loss: Optional[float]
+    loss_rate: Optional[float] = Field(description="Expected loss over exposure (fraction)")
+    sources: List[RiskSource]
+
+
 class DealRunResponse(BaseModel):
     returns: model_from_dataclass(ReturnsResult)
     operating_model: model_from_dataclass(OperatingModelResult)
@@ -601,6 +689,7 @@ class DealRunResponse(BaseModel):
         description="Risk warnings the deal's own figures raise, each with its sources (PLAN.md 2.8)")
     credit: CreditView
     distress: DealDistress
+    lender: LenderView
     money: Money
     model: ModelStamp
 
@@ -700,6 +789,28 @@ class Heatmap(BaseModel):
     note: str
 
 
+class BreachYear(BaseModel):
+    year: int
+    breach: float = Field(description="Share of paths breaching in this year")
+    breached_by: float = Field(description="Share of paths that have breached by the end of this year")
+
+
+class SimulatedCovenant(BaseModel):
+    index: int
+    facility: str
+    metric: CovenantMetric
+    tested: List[float] = Field(description="Share of paths on which it tests, a year")
+    years: List[BreachYear]
+
+
+class SimulatedCovenants(BaseModel):
+    """Covenant breach odds over the simulated paths (PLAN.md 7.5)."""
+    convention: CovenantConvention
+    paths: int = Field(description="How many of the run's paths were read (the first ones)")
+    covenants: List[SimulatedCovenant]
+    any: List[BreachYear] = Field(description="Any covenant breached")
+
+
 class MonteCarloResponse(BaseModel):
     n: int
     elapsed_ms: float
@@ -715,6 +826,8 @@ class MonteCarloResponse(BaseModel):
     scatter: Dict[str, List[Optional[float]]]
     heatmap: Heatmap
     distress: SimulatedDistress
+    covenants: Optional[SimulatedCovenants] = Field(
+        None, description="Breach odds of the deal's covenants; null for a deal without any")
     explanations: Optional[DriverExplanations] = Field(
         None, description="Left out when the run itself took too long to explain within the timeout")
     money: Money

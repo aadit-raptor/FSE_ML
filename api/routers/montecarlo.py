@@ -19,8 +19,9 @@ from core.money import in_unit, rescale
 from core.montecarlo import (
     MC_MONEY_KEYS, MCInputs, analysis_sample, mc_in_millions, apply_scenario, build_sim_params, driver_fits,
     driver_sensitivity, empirical_correlations, growth_exit_heatmap, risk_summary,
-    run_scenarios, scenario_stats, simulated_distress,
+    lender_paths, run_scenarios, scenario_stats, simulated_distress,
 )
+from core.covenants import breach_odds
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
 ECHO_LEFT_OUT = ("tranches", "tax_rules", "lease_ebitda_addback", "lease_liability")
@@ -48,10 +49,12 @@ def post_run(req: MonteCarloRequest):
 
     t0 = time.perf_counter()
     with model_timer("montecarlo.run"):
-        sim = run_vectorized_simulation_full(params, seed=req.seed, credit=True)
+        sim = run_vectorized_simulation_full(params, seed=req.seed, credit=True,
+                                             lender=lender_paths(deal, params))
     elapsed_ms = (time.perf_counter() - t0) * 1000
 
     distress = simulated_distress(sim, deal)
+    covenants = breach_odds(deal, sim)
     # Why the tails are where they are (PLAN.md 5.6), unless the run was slow enough that
     # explaining it could run into the timeout
     explanations = None
@@ -85,6 +88,7 @@ def post_run(req: MonteCarloRequest):
                     "assumptions for that growth and exit multiple.",
         },
         "distress": distress,
+        "covenants": covenants,
         "explanations": to_json(explanations),
         "money": req.deal.money(),
         "model": model,

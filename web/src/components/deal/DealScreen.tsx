@@ -179,9 +179,13 @@ export function TranchesOnDebtStep() {
 export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof DealInputs]) => string {
   const fields = useTranslations("fields");
   const t = useTranslations("deal");
+  const lender = useTranslations("lender");
   return useCallback(
     (key, v) => {
+      if (key === "covenants" && Array.isArray(v)) return t("covenantCount", { count: v.length });
       if (Array.isArray(v)) return t("facilityCount", { count: v.length });
+      // i18n-keys: lender.convention_*
+      if (key === "covenant_convention" && typeof v === "string") return v ? lender(`convention_${v}`) : lender("conventionFromCountry");
       // i18n-keys: deal.taxLimit_*
       if (key === "tax_interest_limit" && typeof v === "string") return t(`taxLimit_${v}`);
       if (key === "tax_preset" && typeof v === "string") return v ? regionName(v) : t("taxPresetNone");
@@ -193,7 +197,7 @@ export function useDealChange(): (key: keyof DealInputs, value: DealInputs[keyof
       const spec = FIELDS[key as NumericDealKey];
       return spec ? `${fmtInput(v, spec.decimals)}${spec.unit === "%" ? "%" : spec.unit === "x" ? "x" : ""}` : String(v);
     },
-    [fields, t],
+    [fields, t, lender],
   );
 }
 

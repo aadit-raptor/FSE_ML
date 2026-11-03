@@ -3535,6 +3535,21 @@ export interface components {
             /** Value */
             value: number | null;
         };
+        /** BreachYear */
+        BreachYear: {
+            /**
+             * Breach
+             * @description Share of paths breaching in this year
+             */
+            breach: number;
+            /**
+             * Breached By
+             * @description Share of paths that have breached by the end of this year
+             */
+            breached_by: number;
+            /** Year */
+            year: number;
+        };
         /** BridgeStep */
         BridgeStep: {
             /** Is Total */
@@ -3937,6 +3952,100 @@ export interface components {
              * @description difference / estimate; null when the estimate is 0
              */
             share?: number | null;
+        };
+        /**
+         * CovenantIn
+         * @description A yearly test in one facility's agreement (PLAN.md 7.5, core/covenants.py).
+         *
+         *     ``levels`` is the maximum (leverage, x) or minimum (interest and
+         *     fixed-charge cover, x; liquidity, money in the deal's currency and unit)
+         *     year by year; a path shorter than the hold repeats its last year. A
+         *     covenant changes no figure of the model: it only reads them.
+         */
+        CovenantIn: {
+            /**
+             * Facility
+             * @description The facility whose agreement holds it, by its name in the debt schedule
+             */
+            facility: string;
+            /**
+             * Levels
+             * @description The level a year
+             */
+            levels: number[];
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "leverage" | "interest_cover" | "fixed_charge_cover" | "liquidity";
+            /**
+             * Scope
+             * @description Leverage only: every lender's debt, or the senior secured facilities' alone
+             * @default total
+             * @enum {string}
+             */
+            scope: "total" | "senior";
+        };
+        /** CovenantTest */
+        CovenantTest: {
+            /** Facility */
+            facility: string;
+            /** First Breach */
+            first_breach: number | null;
+            /**
+             * Index
+             * @description The covenant's place in the deal's list
+             */
+            index: number;
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "leverage" | "interest_cover" | "fixed_charge_cover" | "liquidity";
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "total" | "senior";
+            /** Years */
+            years: components["schemas"]["CovenantYear"][];
+        };
+        /** CovenantYear */
+        CovenantYear: {
+            /** Breach */
+            breach: boolean;
+            /**
+             * Headroom
+             * @description Distance from the level as a share of it (negative when breached); null when untested or unlimited
+             */
+            headroom: number | null;
+            /**
+             * Level
+             * @description A ratio's level (x)
+             */
+            level?: number | null;
+            /**
+             * Liquidity
+             * @description Liquidity's figure (in the deal's currency and unit)
+             */
+            liquidity?: number | null;
+            /**
+             * Minimum Liquidity
+             * @description Liquidity's level (in currency and unit)
+             */
+            minimum_liquidity?: number | null;
+            /**
+             * Tested
+             * @description Whether the facility is outstanding or committed that year
+             */
+            tested: boolean;
+            /**
+             * Value
+             * @description A ratio's figure (x); null when unlimited
+             */
+            value?: number | null;
+            /** Year */
+            year: number;
         };
         /** CoverageBucket */
         CoverageBucket: {
@@ -4383,6 +4492,18 @@ export interface components {
              */
             country: string;
             /**
+             * Covenant Convention
+             * @description How the covenants are defined: US credit agreements, the LMA's, Indian bank lending, or '' for the deal's country's
+             * @default
+             * @enum {string}
+             */
+            covenant_convention: "" | "us" | "lma" | "india";
+            /**
+             * Covenants
+             * @description Covenants a lender tests each year (core/covenants.py); they change no figure
+             */
+            covenants?: components["schemas"]["CovenantIn"][];
+            /**
              * Currency
              * @description The deal's currency (ISO 4217)
              * @default USD
@@ -4629,6 +4750,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -4724,6 +4847,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -4865,6 +4990,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -4933,6 +5060,7 @@ export interface components {
             interest_converged: boolean;
             /** @description What the deal's leases did to its value (PLAN.md 2.6); none without leases */
             leases?: components["schemas"]["LeaseSummary"] | null;
+            lender: components["schemas"]["LenderView"];
             model: components["schemas"]["ModelStamp"];
             money: components["schemas"]["Money"];
             operating_model: components["schemas"]["OperatingModelResult"];
@@ -6171,6 +6299,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -6651,6 +6781,119 @@ export interface components {
              */
             view: "" | "pre_ifrs16" | "post_ifrs16";
         };
+        /** LenderFacility */
+        LenderFacility: {
+            /**
+             * Default Pct
+             * @description S&P's cumulative default rate (%) over the hold
+             */
+            default_pct: number | null;
+            /**
+             * Expected Loss
+             * @description Default probability x LGD x exposure (in currency and unit)
+             */
+            expected_loss: number | null;
+            /**
+             * Expected Recovery
+             * @description Exposure x (1 - LGD) (in currency and unit)
+             */
+            expected_recovery: number | null;
+            /**
+             * Exposure
+             * @description Drawn at close; a revolver's whole commitment (in currency and unit)
+             */
+            exposure: number;
+            /**
+             * Kind
+             * @description None for a deal sized by percentages
+             */
+            kind: ("amortising_term_loan" | "institutional_term_loan" | "unitranche" | "second_lien" | "senior_notes" | "pik_notes" | "vendor_loan" | "revolver" | "shareholder_loan") | null;
+            /**
+             * Lender
+             * @description False for the sponsor's own loan, which no lender holds
+             */
+            lender: boolean;
+            /**
+             * Lgd Pct
+             * @description Loss given default (%), Global Credit Data's Table 2
+             */
+            lgd_pct: number | null;
+            /**
+             * Lgd Row
+             * @description The row of that table read
+             */
+            lgd_row: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Seniority
+             * @enum {string}
+             */
+            seniority: "senior_secured" | "second_lien" | "senior_unsecured" | "subordinated" | "sponsor";
+        };
+        /**
+         * LenderView
+         * @description The deal as its lenders see it (PLAN.md 7.5): the covenants' yearly
+         *     tests and each facility's expected loss from regional base rates.
+         */
+        LenderView: {
+            /** Band */
+            band: ("AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC/C") | null;
+            /**
+             * Chosen
+             * @description False when the convention follows the deal's country
+             */
+            chosen: boolean;
+            /**
+             * Convention
+             * @enum {string}
+             */
+            convention: "us" | "lma" | "india";
+            /** Covenants */
+            covenants: components["schemas"]["CovenantTest"][];
+            /** Default Pct */
+            default_pct: number | null;
+            /** Expected Loss */
+            expected_loss: number | null;
+            /** Exposure */
+            exposure: number;
+            /** Facilities */
+            facilities: components["schemas"]["LenderFacility"][];
+            /**
+             * First Breach
+             * @description The first year any covenant is breached
+             */
+            first_breach: number | null;
+            /**
+             * Loss Rate
+             * @description Expected loss over exposure (fraction)
+             */
+            loss_rate: number | null;
+            /**
+             * Rating
+             * @description The implied rating from year-one coverage (the summary's)
+             */
+            rating: string | null;
+            /** Region */
+            region: ("us" | "europe" | "emerging" | "other_developed") | null;
+            /** Sources */
+            sources: components["schemas"]["RiskSource"][];
+            /**
+             * Table
+             * @description S&P's table read: Table 25's region, else Table 24 (global)
+             * @enum {string}
+             */
+            table: "us" | "europe" | "emerging" | "global";
+            /**
+             * Year One
+             * @description Each test's year-one figure under the convention (liquidity in currency and unit); where a new covenant's level starts
+             */
+            year_one: {
+                [key: string]: number | null;
+            };
+            /** Years */
+            years: number;
+        };
         /** LgdRow */
         LgdRow: {
             /**
@@ -6737,6 +6980,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -7511,6 +7756,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -7595,6 +7842,8 @@ export interface components {
             correlations: {
                 [key: string]: unknown;
             };
+            /** @description Breach odds of the deal's covenants; null for a deal without any */
+            covenants?: components["schemas"]["SimulatedCovenants"] | null;
             distress: components["schemas"]["SimulatedDistress"];
             /** Driver Fits */
             driver_fits: {
@@ -7762,6 +8011,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -10324,6 +10575,8 @@ export interface components {
              *       "business_risk": 4,
              *       "capex": 4,
              *       "country": "",
+             *       "covenant_convention": "",
+             *       "covenants": [],
              *       "currency": "USD",
              *       "da": 4,
              *       "debt_pct": 60,
@@ -10594,6 +10847,48 @@ export interface components {
              * @description The deal's size bucket (entry value in US dollars), when known
              */
             size?: string | null;
+        };
+        /** SimulatedCovenant */
+        SimulatedCovenant: {
+            /** Facility */
+            facility: string;
+            /** Index */
+            index: number;
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "leverage" | "interest_cover" | "fixed_charge_cover" | "liquidity";
+            /**
+             * Tested
+             * @description Share of paths on which it tests, a year
+             */
+            tested: number[];
+            /** Years */
+            years: components["schemas"]["BreachYear"][];
+        };
+        /**
+         * SimulatedCovenants
+         * @description Covenant breach odds over the simulated paths (PLAN.md 7.5).
+         */
+        SimulatedCovenants: {
+            /**
+             * Any
+             * @description Any covenant breached
+             */
+            any: components["schemas"]["BreachYear"][];
+            /**
+             * Convention
+             * @enum {string}
+             */
+            convention: "us" | "lma" | "india";
+            /** Covenants */
+            covenants: components["schemas"]["SimulatedCovenant"][];
+            /**
+             * Paths
+             * @description How many of the run's paths were read (the first ones)
+             */
+            paths: number;
         };
         /**
          * SimulatedDistress
