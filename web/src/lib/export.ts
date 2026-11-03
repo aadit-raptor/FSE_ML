@@ -53,6 +53,24 @@ export function sheet(
   };
 }
 
+/** A native Excel chart drawn from its sheet's own cells (PLAN.md 7.9). */
+export type Chart = Schemas["ChartSpec"];
+type ChartInput = Omit<Chart, "by" | "categories" | "horizontal"> & Partial<Pick<Chart, "by" | "categories" | "horizontal">>;
+
+/**
+ * A chart for a sheet, as the screen draws it. `by: "rows"` (the default) reads a table laid out as `tableSheet`
+ * writes one: each series a row (0 = the first row under the header), the years the categories. `by: "columns"`
+ * reads one column per series, with the categories from column `categories`. Titles come from the catalogue.
+ */
+export function chart(c: ChartInput): Chart {
+  return { by: "rows", categories: 0, horizontal: false, ...c };
+}
+
+/** The same sheet with charts over its cells. */
+export function withCharts(s: Sheet, ...charts: Chart[]): Sheet {
+  return charts.length ? { ...s, charts } : s;
+}
+
 /** An engine rate kept as a fraction for a percent cell; null when missing. */
 export const fraction = (v: number | null | undefined, per = 1): number | null => (typeof v === "number" && Number.isFinite(v) ? v / per : null);
 
@@ -85,7 +103,7 @@ export async function downloadFile(path: string, filename: string) {
   save(await res.blob(), filename);
 }
 
-async function postForFile(path: string, body: unknown, filename: string, dealId: string | null) {
+async function postForFile(path: string, body: unknown, filename: string, dealId: string | null, fallback?: unknown) {
   const requestId = newRequestId();
   // The saved deal the figures come from: the export goes in its history (PLAN.md 3.3)
   if (dealId) path = `${path}?deal_id=${encodeURIComponent(dealId)}`;
@@ -96,6 +114,8 @@ async function postForFile(path: string, body: unknown, filename: string, dealId
     throw e;
   });
   if (res.status >= 500) reportApiError(path, res.status, requestId);
+  // An API from before charts (a deploy rolling out, a rollback) refuses them: the tables alone, then
+  if (res.status === 422 && fallback !== undefined) return postForFile(path.split("?")[0], fallback, filename, dealId);
   if (!res.ok) {
     const detail = await res.json().then((j) => (typeof j?.detail === "string" ? j.detail : null)).catch(() => null);
     throw new Error(detail ?? downloadFailed(res.status));
@@ -120,12 +140,10 @@ export type ModelStamp = Schemas["ModelStamp"];
 export function downloadWorkbook(filename: string, sheets: Sheet[], money: Money, model: ModelStamp | undefined, dealId: string | null) {
   // Lakh and crore need patterns of their own; the other groupings are Excel's standard formats
   const { grouping } = numberStyle();
-  return postForFile(
-    "/api/export/workbook",
-    { filename, sheets, money, ...(model ? { model } : {}), ...(grouping === "locale" ? {} : { grouping }) },
-    filename,
-    dealId,
-  );
+  const body = { filename, sheets, money, ...(model ? { model } : {}), ...(grouping === "locale" ? {} : { grouping }) };
+  const charted = sheets.some((s) => s.charts?.length);
+  const plain = { ...body, sheets: sheets.map(({ charts: _charts, ...s }) => s) }; // eslint-disable-line @typescript-eslint/no-unused-vars
+  return postForFile("/api/export/workbook", body, filename, dealId, charted ? plain : undefined);
 }
 
 /**

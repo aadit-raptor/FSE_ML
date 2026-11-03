@@ -175,7 +175,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
 | 7.8 | More languages | 2.3b | ☐ |
-| 7.9 | Charts in every Excel download | 2.3a | ☐ |
+| 7.9 | Charts in every Excel download | 2.3a | ☑ |
 | 7.10 | Workspaces: LBO and equity research, launcher after sign-in | 1.4 | ☑ |
 | **8** | **Ready to scale** | | |
 | 8.1 | Result caching | 1.9 | ☐ |
@@ -3041,6 +3041,38 @@ workbooks.
   same chart over the same cells (a test reads the chart's series ranges back
   with openpyxl and checks they point at the right cells), and changing a
   cell moves the chart.
+- **Done (2026-11-04).** One builder, `api/charts.py`: openpyxl chart objects
+  over the sheet's own cells, placed beside the table. A sheet sent to
+  `/api/export/workbook` may carry `charts` (`ChartSpec`: kind, title, rows or
+  columns, which series, tones from the Tape palette), checked against the
+  sheet before anything is written (422). Kinds: bar, stacked bar, line,
+  histogram, horizontal bars coloured by sign, a range (P5, mean, P95 joined
+  by a high-low line), a sampled scatter, and three Excel lacks, said on the
+  sheet: the **waterfall** is stacked columns on hidden bases and the **fan**
+  stacked areas between percentile rows, both from helper cells that are
+  formulas over the table (a step crossing zero is split at zero; up/down
+  bars were tried and LibreOffice doesn't draw them); the **heatmap** is the
+  table with a colour scale. Charted: Deal -> Summary (revenue and EBITDA,
+  debt paydown by facility on a new sheet, each facility's balance, the
+  equity bridge), Debt (each facility), Returns (the sensitivity's colour
+  scale), Monte Carlo's 10k-paths download (the API adds the IRR and MOIC
+  distributions, IRR by percentile, the drivers' rank correlations, the
+  growth x exit heatmap and two sampled scatters, the run's own figures),
+  Scenarios (the range), Backtest -> Year by year (EBITDA plan vs actual, a
+  new margin sheet, where the IRR landed, the attribution), Forecast
+  (revenue and EBITDA on the income statement, the net income bridge as a
+  new schedules sheet, both fans with the plan as a new row, the targets).
+  Titles are the screen's words from `en.json`; the helper notes the API
+  writes are English, like the About sheet. An API from before charts
+  refuses them, so the web sends the tables alone on a 422. Evidence:
+  `tests/test_export_charts.py` (every kind's series ranges read back with
+  openpyxl and from the chart XML; the waterfall and fan helpers worked out
+  by the tests' own Excel reader and by LibreOffice; editing a table cell
+  moves them; the simulation download's cells equal `/api/montecarlo/run`'s;
+  6 mutations caught), `e2e/charts.spec.ts` (each screen's download read
+  back by `tests/chart_check.py`; the equity bridge ends at Equity out on
+  screen; a moved P&L series caught). Not done: the screen's markers (P5,
+  hurdle) on the histograms; the Lender view has no chart on screen.
 
 ### 7.10 Workspaces: LBO and equity research, launcher after sign-in
 Asked for by the user (2026-10-08), done out of turn after 4.6: the modes are
