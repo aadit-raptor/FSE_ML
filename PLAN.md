@@ -194,7 +194,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 11.1 | Release routine and rollback | 1.1, 3.1 | ☐ |
 | 11.2 | Incident routine and runbooks | 1.2 | ☐ |
 | 11.3 | Free-limit, data-freshness and dependency upkeep | 1.9, 4.3 | ☐ |
-| 11.4 | Owner's handbook: running it without Claude | 1.9 | ☐ |
+| 11.4 | Owner's handbook: running it without Claude | 1.9 | ◐ |
 | **12** | **Paid tiers (only once the product is functional)** | | |
 | 12.1 | Always-on hosting and dedicated workers with autoscaling | 8.3 | ☐ |
 | 12.2 | Paid database with longer backups | 12.1 | ☐ |
@@ -3252,6 +3252,16 @@ inputs.
   - refreshed whenever a later task changes how the app is run.
 - **Done when:** following only the handbook, you set up a clean checkout,
   ship a one-line change to staging and handle a simulated staging alert.
+- **Done (2026-11-04), except the "Done when" line, which is yours:**
+  `docs/MAINTAINING.md` (new Mac, local runs, shipping a change by hand,
+  dependencies, what each alert and workflow means, rotating each secret,
+  restoring a backup, the accounts table, the monthly 15-minute checklist) and
+  `docs/ARCHITECTURE.md` (Mermaid diagrams, the design decisions and why).
+  Every command and variable name was checked against the code. Tick the row
+  above (change ◐ to ☑) once you have followed the handbook yourself on a clean
+  checkout. Keep both pages current when a task changes how the app is run;
+  11.3's dashboard and its enabled-workflows check, when built, replace
+  checklist items 1 and 4 of MAINTAINING.md section 9.
 
 ---
 

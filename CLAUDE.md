@@ -5,6 +5,8 @@ historical deals, 3-statement forecasting (with SEC EDGAR autofill) and settings
 A FastAPI backend (`api/`) and a Next.js frontend (`web/`); the original
 Streamlit app is retired. Deployed on Render (API) and Vercel (web): see DEPLOY.md.
 
+**The owner's handbook is `docs/MAINTAINING.md`** (run, ship, rotate, restore without Claude; accounts table; monthly checklist) and **`docs/ARCHITECTURE.md`** (how it fits, why): PLAN.md 11.4, written 2026-11-04, its "Done when" waits for the user to follow it on a clean checkout.
+
 **Keep this file current.** It is how a new session (or a new device) knows where
 the project stands. When you finish a step, fix a finding, or make a decision
 the user should not have to repeat, update the relevant section **in the same
@@ -2415,6 +2417,7 @@ golden snapshot is untouched and parity tests explain every departure.
 | `web/` | Next.js 16 frontend. `src/proxy.ts` sends signed-out visitors to `/sign-in`; `components/auth/` holds the session, the account screen and the sign-in pages; `lib/auth/` decides Clerk or development sign-in. `src/lib/nav.ts` lists every mode and step (tabs, step row, search). `src/app/<mode>/<step>/page.tsx` are thin route files; screens live in `src/components/<mode>/`. State per mode sits in a provider mounted in `components/shell/AppShell.tsx` (Settings → Deal → Monte Carlo → Backtest → Forecast), so it survives mode switches. Settings overrides are saved to the account (`/api/account/settings`) and go into every run; the open deal (`DealProvider`) autosaves to `/api/deals/{id}/draft`, and the last one opened is reopened on the next visit. `components/charts/` and `components/ui/` are shared; `src/lib/api/` the typed client |
 | `web/openapi.json` | Snapshot of the API schema; `src/lib/api/schema.d.ts` is generated from it |
 | `Dockerfile`, `render.yaml` | API image and Render blueprint. One image runs everything (no ML build argument since PLAN.md 5.8), the upload scanner's child process included |
+| `docs/MAINTAINING.md`, `docs/ARCHITECTURE.md` | The owner's handbook (PLAN.md 11.4): new Mac, local runs, shipping by hand, dependencies, alerts and failing workflows, rotating secrets, restoring a backup, the accounts table, the monthly checklist; how the pieces fit and why (Mermaid). **Update them in the same PR as any change to how the app is built, run, deployed or monitored, or to an outside service, secret or variable** |
 | `docs/WORKFLOW.md`, `.github/pull_request_template.md` | The development cycle every change follows, and the PR form that records it |
 | `.coverage-floor`, `.coveragerc`, `ops/coverage_gate.py`, `ops/pr_title.py`, `.github/workflows/pr.yml` | CI gates (PLAN.md 0.3): coverage floors per job (only rise), what coverage measures, the floor check, the PR title check |
 | `DEPLOY.md` | Vercel + Render setup steps, environments, rollback, monitoring |
