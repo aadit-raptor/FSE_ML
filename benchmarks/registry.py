@@ -62,6 +62,9 @@ DEAL_INPUTS: Mapping[str, dict] = {
     "wsp_mode": {"basis": "choice", "reason": "flat working capital unless days are chosen"},
     "business_risk": {"basis": "choice", "reason": "S&P's business risk profile, 4 (fair) unless chosen; read "
                                                    "only by the distress predictor (PLAN.md 5.3)"},
+    "covenants": {"basis": "deal", "reason": "none unless the deal's agreements set them (PLAN.md 7.5)"},
+    "covenant_convention": {"basis": "choice", "reason": "the deal's country's way of writing covenants "
+                                                         "unless chosen (PLAN.md 7.5)"},
 }
 
 _TEMPLATE = {"basis": "template", "reason": "Settings' starting values: applied only when asked"}

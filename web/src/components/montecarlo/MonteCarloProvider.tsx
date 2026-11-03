@@ -102,6 +102,8 @@ const SIM_DEAL_KEYS: (keyof DealInputs)[] = [
   "tax_loss_limit_pct", "tax_loss_limit_amount", "tax_minimum_pct",
   // The distress predictor's region and business risk (PLAN.md 5.3, the answer's distress block)
   "country", "business_risk",
+  // Covenants (PLAN.md 7.5): the run's breach odds read them
+  "covenants", "covenant_convention",
 ];
 
 /** What a run was for; `dealId` is the saved deal it ran on (null if unsaved), so its downloads go in that deal's history. */

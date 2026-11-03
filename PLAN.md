@@ -171,7 +171,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.2 | Teams: sharing, permissions, comments | 1.5, 3.3 | ☑ |
 | 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☑ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☑ |
-| 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☐ |
+| 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☑ |
 | 7.6 | Phones, tablets and accessibility | — | ☐ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
 | 7.8 | More languages | 2.3b | ☐ |
@@ -2961,6 +2961,28 @@ enough for the free server.
   expected loss and recovery with regional base rates; lender export.
 - **Done when:** a deal built to breach in year 2 is flagged in year 2 (test);
   breach odds come from the simulation.
+- **Done (2026-11-04).** Deal -> **Lender view**. Covenants are deal inputs
+  (`covenants`, `covenant_convention`, stored only when set): a facility, one of
+  the four tests and a level a year; they change no figure, they read them
+  (`core/covenants.py`). Three conventions, the deal's choice or its country's:
+  US credit agreements (net debt, FCCR), the LMA's (net debt, accounts frozen
+  before IFRS 16, cashflow cover; the APLMA's documents follow it) and Indian
+  bank lending (gross debt, Ind AS 116 as reported, DSCR); debt service counts
+  regular amortisation, not a bullet; a shareholder loan is never a lender's
+  debt. Breach odds read the simulation's own first paths (at most 10,000,
+  fewer for big structures: 2,777 at 12 facilities and 15 years, about 25 MB
+  more traced at the caps) by the same function; recording them moves no
+  simulated figure. Expected loss = S&P's cumulative rate for the implied
+  rating's letter grade in the region's table (Table 25, else 24) x Global
+  Credit Data's LGD by seniority x exposure (a revolver's whole commitment).
+  The distress tile (5.3) sits beside it; the export is three sheets. Evidence:
+  `tests/test_covenants.py` (the stepped covenant breached in year 2 only;
+  every convention's figures worked out again from the answer's tables; a path
+  at the mean equals the deal model for every test in all three conventions and
+  five structures; breach odds from the run; expected loss by hand; 15
+  mutations caught), `e2e/lender.spec.ts`. Not done: covenant cures, equity
+  cures and cash traps (a breach changes nothing in the model), a lender's
+  own recovery from the deal's enterprise value at default.
 
 ### 7.6 Phones, tablets and accessibility
 - **Claude does:** smaller-screen layouts; accessibility audit and fixes;
