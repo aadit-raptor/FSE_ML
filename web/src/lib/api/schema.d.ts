@@ -49,6 +49,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/account/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Keys */
+        get: operations["get_keys_api_account_api_keys_get"];
+        put?: never;
+        /**
+         * Post Key
+         * @description A new key, answered once: only its hash is kept, so it can't be shown again.
+         */
+        post: operations["post_key_api_account_api_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/api-keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Key */
+        delete: operations["delete_key_api_account_api_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/account/history": {
         parameters: {
             query?: never;
@@ -132,6 +170,64 @@ export interface paths {
          */
         put: operations["put_suggestions_api_account_suggestions_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Webhooks */
+        get: operations["get_webhooks_api_account_webhooks_get"];
+        put?: never;
+        /**
+         * Post Webhook
+         * @description A new webhook and its signing secret, answered once.
+         */
+        post: operations["post_webhook_api_account_webhooks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/webhooks/{webhook_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Webhook */
+        delete: operations["delete_webhook_api_account_webhooks__webhook_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/webhooks/{webhook_id}/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ping Webhook
+         * @description Send a signed ``ping`` now (in the background); the list shows how it went.
+         */
+        post: operations["ping_webhook_api_account_webhooks__webhook_id__ping_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2679,6 +2775,248 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/deal/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Deal Run
+         * @description Run the LBO model on a deal: the same answer as the site's ``POST /api/deal/run``.
+         */
+        post: operations["post_deal_run_api_v1_deal_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Deals
+         * @description Your saved deals and those shared with your teams, most recently edited first.
+         */
+        get: operations["get_deals_api_v1_deals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deals/{deal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Deal
+         * @description A saved deal's working copy: its inputs and Settings, as last saved.
+         */
+        get: operations["get_deal_api_v1_deals__deal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deals/{deal_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Saved Deal Run
+         * @description Run a saved deal's working copy with its own Settings: what its screen shows.
+         */
+        post: operations["post_saved_deal_run_api_v1_deals__deal_id__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/defaults/industries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Industries
+         * @description The industries the market defaults cover (Damodaran's published averages).
+         */
+        get: operations["get_industries_api_v1_defaults_industries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/defaults/risk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Risk
+         * @description The simulation's sourced ranges, correlations and scenarios for a country and industry.
+         */
+        get: operations["get_risk_api_v1_defaults_risk_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/defaults/starting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Starting
+         * @description A deal's sourced starting figures for a country and industry, each with its source, sample and date.
+         */
+        get: operations["get_starting_api_v1_defaults_starting_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Job
+         * @description Queue a long run (``montecarlo.run``, ``montecarlo.scenarios``, ``backtesting.run``,
+         *     ``forecasting.run``). Each of your webhooks is sent a signed ``job.finished`` message when it ends.
+         */
+        post: operations["post_job_api_v1_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Job
+         * @description A job's progress, and its result once it succeeded: what the matching endpoint answers.
+         */
+        get: operations["get_job_api_v1_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Job
+         * @description Cancel a job: at once if it is waiting (its webhooks are told), else when its run notices.
+         */
+        post: operations["cancel_job_api_v1_jobs__job_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Me
+         * @description The API version, how you are signed in and the limits that apply to you.
+         */
+        get: operations["get_me_api_v1_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/montecarlo/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Montecarlo Run
+         * @description Simulate a deal (one simulation at a time on the server): the site's ``POST /api/montecarlo/run``.
+         *     For a long run, queue it as a job instead and let a webhook say when it is done.
+         */
+        post: operations["post_montecarlo_run_api_v1_montecarlo_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/validation/report": {
         parameters: {
             query?: never;
@@ -2986,6 +3324,76 @@ export interface components {
             /** Years */
             years: number[];
         };
+        /** ApiKeyCreate */
+        ApiKeyCreate: {
+            /**
+             * Name
+             * @description What the key is for, so you can tell keys apart
+             */
+            name: string;
+        };
+        /** ApiKeyList */
+        ApiKeyList: {
+            /** Keys */
+            keys: components["schemas"]["ApiKeyOut"][];
+            /**
+             * Max
+             * @description How many keys a person may hold
+             */
+            max: number;
+        };
+        /**
+         * ApiKeyMade
+         * @description A new key, answered once: send it as ``Authorization: Bearer <token>`` to ``/api/v1``.
+         */
+        ApiKeyMade: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /**
+             * Hint
+             * @description The key's last four characters
+             */
+            hint: string;
+            /** Id */
+            id: string;
+            /**
+             * Last Used At
+             * @description UTC, ISO 8601, to the minute; null until used
+             */
+            last_used_at?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Token
+             * @description vk_ and 43 characters; only its hash is kept
+             */
+            token: string;
+        };
+        /** ApiKeyOut */
+        ApiKeyOut: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /**
+             * Hint
+             * @description The key's last four characters
+             */
+            hint: string;
+            /** Id */
+            id: string;
+            /**
+             * Last Used At
+             * @description UTC, ISO 8601, to the minute; null until used
+             */
+            last_used_at?: string | null;
+            /** Name */
+            name: string;
+        };
         /**
          * AuditEntry
          * @description One thing done to a deal or the account's settings (PLAN.md 3.3). Holds
@@ -2996,7 +3404,7 @@ export interface components {
              * Action
              * @enum {string}
              */
-            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted" | "unshared" | "commented" | "comment_deleted" | "team_created" | "team_renamed" | "team_deleted" | "team_invited" | "team_joined" | "team_left" | "team_member_removed" | "team_role_changed" | "portfolio_added" | "portfolio_changed" | "portfolio_removed" | "quarters_saved" | "quarters_cleared" | "reforecast_run";
+            action: "created" | "edited" | "renamed" | "archived" | "unarchived" | "versioned" | "restored" | "actuals_saved" | "actuals_cleared" | "exported" | "deleted" | "settings_changed" | "shared" | "library_switched" | "reference_proposed" | "reference_reviewed" | "validation_opted_in" | "validation_opted_out" | "suggestions_switched" | "file_uploaded" | "file_deleted" | "coverage_added" | "coverage_removed" | "period_accepted" | "period_removed" | "model_saved" | "model_versioned" | "model_restored" | "model_rolled" | "report_saved" | "report_details_saved" | "memo_drafted" | "memo_written" | "memo_deleted" | "unshared" | "commented" | "comment_deleted" | "team_created" | "team_renamed" | "team_deleted" | "team_invited" | "team_joined" | "team_left" | "team_member_removed" | "team_role_changed" | "portfolio_added" | "portfolio_changed" | "portfolio_removed" | "quarters_saved" | "quarters_cleared" | "reforecast_run" | "api_key_created" | "api_key_revoked" | "webhook_added" | "webhook_removed";
             /**
              * At
              * @description UTC, ISO 8601; the first of the merged actions when count > 1
@@ -11829,6 +12237,117 @@ export interface components {
              */
             value: number;
         };
+        /** V1Job */
+        V1Job: {
+            /**
+             * Ahead
+             * @description Queued jobs ahead of this one (queued only)
+             */
+            ahead?: number | null;
+            /**
+             * Attempts
+             * @description Runs so far; above 1 means it was resumed after a restart
+             */
+            attempts: number;
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /**
+             * Error
+             * @description Why it failed, for people
+             */
+            error?: string | null;
+            /**
+             * Error Status
+             * @description The HTTP status the same request would have got (422: bad input)
+             */
+            error_status?: number | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "montecarlo.run" | "montecarlo.scenarios" | "backtesting.run" | "forecasting.run" | "research.read" | "document.extract" | "memo.draft";
+            /**
+             * Progress
+             * @description 0 to 1; moves as the run passes its stages
+             */
+            progress: number;
+            /**
+             * Result
+             * @description Once succeeded: exactly what the matching endpoint answers (MonteCarloResponse for montecarlo.run, and so on)
+             */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Result Expired
+             * @description It succeeded, but the result has been deleted; run it again
+             * @default false
+             */
+            result_expired: boolean;
+            /**
+             * Stage
+             * @description What the run is doing now, for people
+             */
+            stage?: string | null;
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+            /**
+             * Webhooks
+             * @description Messages that will be sent when it ends (one per webhook)
+             * @default 0
+             */
+            webhooks: number;
+        };
+        /** V1Limits */
+        V1Limits: {
+            /** Key Requests Per Minute */
+            key_requests_per_minute: number;
+            /** Key Runs Per Day */
+            key_runs_per_day: number;
+            /** Max Simulation Paths */
+            max_simulation_paths: number;
+            /** User Runs Per Day */
+            user_runs_per_day: number;
+        };
+        /**
+         * V1Me
+         * @description Who the API sees: the version and the limits that apply.
+         */
+        V1Me: {
+            /**
+             * Api Version
+             * @constant
+             */
+            api_version: "1";
+            /** Key Id */
+            key_id?: string | null;
+            limits: components["schemas"]["V1Limits"];
+            /**
+             * Via
+             * @description An API key, or the site's own sign-in
+             * @enum {string}
+             */
+            via: "key" | "site";
+            /**
+             * Webhooks
+             * @description How many webhooks are told when a job ends
+             */
+            webhooks: number;
+        };
         /** ValidationBucket */
         ValidationBucket: {
             /** Bucket */
@@ -12023,6 +12542,82 @@ export interface components {
             /** Number */
             number: number;
         };
+        /** WebhookCreate */
+        WebhookCreate: {
+            /**
+             * Url
+             * @description https address on the public internet
+             */
+            url: string;
+        };
+        /** WebhookList */
+        WebhookList: {
+            /** Max */
+            max: number;
+            /** Webhooks */
+            webhooks: components["schemas"]["WebhookOut"][];
+        };
+        /**
+         * WebhookMade
+         * @description A new webhook, with its signing secret, answered once.
+         */
+        WebhookMade: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Last At */
+            last_at?: string | null;
+            /**
+             * Last State
+             * @description How the newest message went; null before any
+             */
+            last_state?: ("due" | "delivered" | "failed") | null;
+            /**
+             * Last Status
+             * @description The HTTP status it got (0: no answer)
+             */
+            last_status?: number | null;
+            /**
+             * Secret
+             * @description whsec_ and base64: the key of every message's HMAC-SHA256 signature
+             */
+            secret: string;
+            /** Url */
+            url: string;
+        };
+        /** WebhookOut */
+        WebhookOut: {
+            /**
+             * Created At
+             * @description UTC, ISO 8601
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Last At */
+            last_at?: string | null;
+            /**
+             * Last State
+             * @description How the newest message went; null before any
+             */
+            last_state?: ("due" | "delivered" | "failed") | null;
+            /**
+             * Last Status
+             * @description The HTTP status it got (0: no answer)
+             */
+            last_status?: number | null;
+            /** Url */
+            url: string;
+        };
+        /** WebhookPing */
+        WebhookPing: {
+            /** Message Id */
+            message_id: string;
+        };
         /** WorkbookRequest */
         WorkbookRequest: {
             /**
@@ -12162,6 +12757,115 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AiUsageResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_keys_api_account_api_keys_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyList"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_key_api_account_api_keys_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyMade"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_key_api_account_api_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -12431,6 +13135,155 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuggestionsSwitch"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_webhooks_api_account_webhooks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookList"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_webhook_api_account_webhooks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookMade"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    delete_webhook_api_account_webhooks__webhook_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    ping_webhook_api_account_webhooks__webhook_id__ping_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookPing"];
                 };
             };
             /** @description Validation Error */
@@ -18694,6 +19547,480 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_deal_run_api_v1_deal_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DealRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealRunResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_deals_api_v1_deals_get: {
+        parameters: {
+            query?: {
+                archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_deal_api_v1_deals__deal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_saved_deal_run_api_v1_deals__deal_id__run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealRunResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_industries_api_v1_defaults_industries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkIndustriesResponse"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_risk_api_v1_defaults_risk_get: {
+        parameters: {
+            query: {
+                /** @description ISO 3166-1 alpha-2 */
+                country: string;
+                /** @description An id from /api/v1/defaults/industries */
+                industry?: string;
+                /** @description ISO 4217 */
+                currency: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiskAssumptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_starting_api_v1_defaults_starting_get: {
+        parameters: {
+            query: {
+                /** @description ISO 3166-1 alpha-2 */
+                country: string;
+                /** @description An id from /api/v1/defaults/industries */
+                industry?: string;
+                /** @description ISO 4217 */
+                currency: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartingAssumptionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_job_api_v1_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonteCarloJob"] | components["schemas"]["ScenariosJob"] | components["schemas"]["BacktestJob"] | components["schemas"]["ForecastJob"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["V1Job"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_job_api_v1_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["V1Job"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    cancel_job_api_v1_jobs__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["V1Job"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    get_me_api_v1_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["V1Me"];
+                };
+            };
+            /** @description A usage limit was reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LimitRefusal"];
+                };
+            };
+        };
+    };
+    post_montecarlo_run_api_v1_montecarlo_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonteCarloRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonteCarloResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

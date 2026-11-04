@@ -47,8 +47,8 @@ test.describe("Every input has a tip", () => {
     });
   }
 
-  test("on the launcher, the account, help and the guided deal", async ({ page }) => {
-    for (const path of ["/start", "/account", "/help", "/deal/guided"]) {
+  test("on the launcher, the account, the developer API, help and the guided deal", async ({ page }) => {
+    for (const path of ["/start", "/account", "/account/developer", "/help", "/deal/guided"]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       expect(await untipped(page), path).toEqual([]);

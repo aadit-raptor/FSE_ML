@@ -34,6 +34,13 @@ never a deal's stored inputs, a change, a share or a delete); anywhere else it
 is a 403, so a pass taken from a pane can't change the person's deals or
 settings.
 
+**API keys** (PLAN.md 7.7) are ``Bearer vk_<key>``: made by a signed-in user
+on the site (``db/api_keys.py``, ``api/routers/api_keys.py``), looked up by
+their hash **on every request** (no cache), so a revoked key is refused by the
+very next request. A key reaches ``/api/v1/*`` only (``KEY_PATH``); anywhere
+else it is a 403, so a key can't make another key, change the person's account
+or reach anything the site's own sign-in reaches beyond the public API.
+
 ``tests/test_auth.py`` pins all of this, including that every route outside
 ``PUBLIC_PATHS`` answers 401 without a token.
 """
@@ -84,6 +91,9 @@ ADDIN_PATHS = (
 )
 # How long a looked-up pass is trusted before the database is asked again
 ADDIN_CACHE_S = 60
+# The public API (PLAN.md 7.7): what an API key may reach
+KEY_TOKEN_PREFIX = "vk_"
+KEY_PATH = re.compile(r"/api/v1(?:/.*)?")
 
 _bearer = HTTPBearer(auto_error=False, description="Clerk session token")
 
@@ -102,6 +112,13 @@ class AuthUser:
     is_dev: bool = False
     # Signed in through the Excel add-in's pass, not the site's own sign-in
     via_addin: bool = False
+    # Signed in with an API key (PLAN.md 7.7): the key's id
+    via_key: Optional[str] = None
+
+    @property
+    def on_site(self) -> bool:
+        """Signed in on the site itself: not through the add-in's pass or an API key."""
+        return not self.via_addin and self.via_key is None
 
 
 def deploy_environment() -> str:
@@ -294,6 +311,22 @@ def verify_addin_token(token: str, method: str, path: str) -> AuthUser:
     return AuthUser(subject=holder.subject, via_addin=True)
 
 
+def verify_api_key(token: str, path: str) -> AuthUser:
+    """The user an API key stands for, on a route it may reach; else 401 or 403. Looked up every time."""
+    from db import api_keys
+    from db.engine import is_configured as database_configured
+    if not KEY_PATH.fullmatch(path):
+        raise HTTPException(status_code=403, detail="key_scope")
+    if not api_keys.looks_like_key(token):
+        raise _unauthorized("API key not recognised")
+    if not database_configured():
+        raise HTTPException(status_code=503, detail="no_database")
+    holder = api_keys.lookup(token)
+    if holder is None:
+        raise _unauthorized("API key not recognised or revoked")
+    return AuthUser(subject=holder.subject, via_key=str(holder.key_id))
+
+
 def require_user(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
@@ -302,6 +335,8 @@ def require_user(
     token = credentials.credentials if credentials else None
     if token and token.startswith(ADDIN_TOKEN_PREFIX):
         user = verify_addin_token(token, request.method, request.url.path)
+    elif token and token.startswith(KEY_TOKEN_PREFIX):
+        user = verify_api_key(token, request.url.path)
     else:
         user = authenticate(token)
     # Routes read it from the request too (middleware and handlers)

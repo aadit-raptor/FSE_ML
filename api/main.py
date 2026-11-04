@@ -28,11 +28,12 @@ from api.github_oidc import require_workflow
 from core.debt import UnfinanceableStructure
 from core.model_version import ENGINE_VERSION
 from api.routers import (
-    account, addin, backtesting, benchmarks, companies, coverage, deal, deals, documents, economy, export, files,
-    forecasting,
+    account, addin, api_keys, backtesting, benchmarks, companies, coverage, deal, deals, documents, economy, export,
+    files, forecasting,
     integrations, jobs,
     library, memos,
-    montecarlo, portfolio, research, research_models, research_report, research_saved, scheduled, teams, validation,
+    montecarlo, portfolio, research, research_models, research_report, research_saved, scheduled, teams, v1,
+    validation,
 )
 from db import DatabaseUnavailable
 from db import health as db_health
@@ -213,7 +214,7 @@ def create_app() -> FastAPI:
     for module in (deal, deals, montecarlo, forecasting, backtesting, integrations, export, account,
                    jobs, companies, economy, benchmarks, library, validation, files, research, coverage,
                    research_models, research_saved, research_report, addin, documents, memos, teams,
-                   portfolio):
+                   portfolio, api_keys, v1):
         app.include_router(module.router, prefix="/api",
                            dependencies=[Depends(require_user), Depends(enforce_user_limits)],
                            responses={429: {"model": LimitRefusal,

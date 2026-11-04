@@ -1582,7 +1582,8 @@ AuditAction = Literal["created", "edited", "renamed", "archived", "unarchived", 
                       "unshared", "commented", "comment_deleted", "team_created", "team_renamed", "team_deleted",
                       "team_invited", "team_joined", "team_left", "team_member_removed", "team_role_changed",
                       "portfolio_added", "portfolio_changed", "portfolio_removed", "quarters_saved",
-                      "quarters_cleared", "reforecast_run"]
+                      "quarters_cleared", "reforecast_run",
+                      "api_key_created", "api_key_revoked", "webhook_added", "webhook_removed"]
 
 
 class AuditEntry(BaseModel):
@@ -3920,3 +3921,78 @@ class AiUsageResponse(BaseModel):
     plan: AiPlan
     prices_source: str
     prices_checked_on: date
+
+
+# ---------------------------------------------------------------------------
+# The public API (PLAN.md 7.7): API keys, webhooks, /api/v1
+# ---------------------------------------------------------------------------
+class ApiKeyCreate(Strict):
+    name: str = Field(min_length=1, max_length=60, description="What the key is for, so you can tell keys apart")
+
+
+class ApiKeyOut(BaseModel):
+    id: str
+    name: str
+    hint: str = Field(description="The key's last four characters")
+    created_at: str = Field(description="UTC, ISO 8601")
+    last_used_at: Optional[str] = Field(None, description="UTC, ISO 8601, to the minute; null until used")
+
+
+class ApiKeyMade(ApiKeyOut):
+    """A new key, answered once: send it as ``Authorization: Bearer <token>`` to ``/api/v1``."""
+    token: str = Field(description="vk_ and 43 characters; only its hash is kept")
+
+
+class ApiKeyList(BaseModel):
+    keys: List[ApiKeyOut]
+    max: int = Field(description="How many keys a person may hold")
+
+
+WebhookState = Literal["due", "delivered", "failed"]
+
+
+class WebhookCreate(Strict):
+    url: str = Field(min_length=1, max_length=500, description="https address on the public internet")
+
+
+class WebhookOut(BaseModel):
+    id: str
+    url: str
+    created_at: str = Field(description="UTC, ISO 8601")
+    last_state: Optional[WebhookState] = Field(None, description="How the newest message went; null before any")
+    last_status: Optional[int] = Field(None, description="The HTTP status it got (0: no answer)")
+    last_at: Optional[str] = None
+
+
+class WebhookMade(WebhookOut):
+    """A new webhook, with its signing secret, answered once."""
+    secret: str = Field(description="whsec_ and base64: the key of every message's HMAC-SHA256 signature")
+
+
+class WebhookList(BaseModel):
+    webhooks: List[WebhookOut]
+    max: int
+
+
+class WebhookPing(BaseModel):
+    message_id: str
+
+
+class V1Limits(BaseModel):
+    key_requests_per_minute: int
+    key_runs_per_day: int
+    user_runs_per_day: int
+    max_simulation_paths: int
+
+
+class V1Me(BaseModel):
+    """Who the API sees: the version and the limits that apply."""
+    api_version: Literal["1"]
+    via: Literal["key", "site"] = Field(description="An API key, or the site's own sign-in")
+    key_id: Optional[str] = None
+    limits: V1Limits
+    webhooks: int = Field(description="How many webhooks are told when a job ends")
+
+
+class V1Job(JobOut):
+    webhooks: int = Field(0, description="Messages that will be sent when it ends (one per webhook)")
