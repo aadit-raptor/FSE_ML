@@ -1568,7 +1568,8 @@ export interface paths {
          * @description Where usage counters are shared (Upstash, the database or memory
          *     only), whether Upstash answers, and today's Redis command use. Never
          *     queries the database; the Upstash check is a PING (not billed),
-         *     reused for 10 minutes.
+         *     reused for 10 minutes. ``result_cache`` is the result cache (PLAN.md
+         *     8.1): its store, today's Upstash spend and this process's hits.
          */
         get: operations["health_limits_api_health_limits_get"];
         put?: never;

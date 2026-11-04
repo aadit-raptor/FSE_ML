@@ -48,6 +48,8 @@ class JobKind:
     # Takes the one simulation slot while it runs (api/limits.py): the slot is
     # "one memory-heavy thing at a time", which a file scan is too
     simulation: bool = True
+    # A seeded run is answered from api/result_cache.py when it can be (PLAN.md 8.1)
+    cached: bool = False
 
     def parse(self, payload: dict) -> BaseModel:
         return self.request.model_validate(payload)
@@ -147,10 +149,10 @@ def _send_mentions(_request: MentionsRequest) -> dict:
 KINDS: dict[str, JobKind] = {k.name: k for k in (
     JobKind("montecarlo.run", "Monte Carlo simulation", MonteCarloRequest, MonteCarloResponse,
             _unwrapped(montecarlo.post_run),
-            {"montecarlo.run": Stage("Simulating paths", 0.8, "Summarising results")}),
+            {"montecarlo.run": Stage("Simulating paths", 0.8, "Summarising results")}, cached=True),
     JobKind("montecarlo.scenarios", "Scenario simulations", ScenariosRequest, ScenariosResponse,
             _unwrapped(montecarlo.post_scenarios),
-            {"montecarlo.scenarios": Stage("Simulating four scenarios", 0.9, "Summarising results")}),
+            {"montecarlo.scenarios": Stage("Simulating four scenarios", 0.9, "Summarising results")}, cached=True),
     JobKind("backtesting.run", "Backtest", BacktestRequest, BacktestResponse,
             _unwrapped(backtesting.post_run),
             {"backtest.run": Stage("Running the backtest", 0.9, "Summarising results")}),

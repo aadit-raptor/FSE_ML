@@ -24,7 +24,7 @@ from typing import Optional
 
 from sqlalchemy import (
     BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Identity, Index, Integer,
-    MetaData, Numeric, SmallInteger, String, Text, UniqueConstraint, Uuid, false, func, text, true,
+    LargeBinary, MetaData, Numeric, SmallInteger, String, Text, UniqueConstraint, Uuid, false, func, text, true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -374,6 +374,26 @@ class UsageCounter(Base):
     expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
 
 
+class CachedResult(Base):
+    """A cached model result, when Upstash Redis can't be used (PLAN.md 8.1).
+
+    The fallback store for api/result_cache.py. ``key`` is a SHA-256 over the
+    request, its user and the model stamp, never any of them; ``value`` is the
+    answer encrypted with a key derived from the same material, which nothing
+    stores, so a row can be read only by someone who already holds the exact
+    inputs and is that user. Rows past ``expires_at`` are deleted on every
+    write, and the oldest beyond ``api.result_cache.DATABASE_BUDGET_BYTES``.
+    """
+
+    __tablename__ = "result_cache"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    size: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
+
+
 JOB_STATUSES = ("queued", "running", "succeeded", "failed", "cancelled")
 
 
@@ -672,7 +692,7 @@ class ReferenceReview(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
 
 
-__all__ = ["AUDIT_ACTIONS", "AppFlag", "COVERAGE_MONTHS", "COVERAGE_SCOPES", "COVERAGE_UNITS", "CoveredCompany",
+__all__ = ["AUDIT_ACTIONS", "AppFlag", "CachedResult", "COVERAGE_MONTHS", "COVERAGE_SCOPES", "COVERAGE_UNITS", "CoveredCompany",
            "CoveredPeriod", "FILE_KINDS", "FILE_REASONS", "FILE_STATUSES", "StoredFile", "AuditEvent", "REFERENCE_ORIGINS", "REFERENCE_STATUSES", "REJECT_REASONS",
            "REVIEW_VERDICTS", "ReferenceDeal", "ReferenceReview", "Base", "BenchmarkTable", "COMPANY_SOURCES", "Company", "CompanyYear", "CurrencyCode", "Deal",
            "DealVersion", "EconomicSeries", "EdinetReport", "ExchangeRateDay", "JOB_STATUSES", "Job", "MoneyAmount", "SourceCursor",

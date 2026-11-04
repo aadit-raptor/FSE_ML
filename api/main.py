@@ -116,8 +116,10 @@ def create_app() -> FastAPI:
         """Where usage counters are shared (Upstash, the database or memory
         only), whether Upstash answers, and today's Redis command use. Never
         queries the database; the Upstash check is a PING (not billed),
-        reused for 10 minutes."""
-        return usage.status()
+        reused for 10 minutes. ``result_cache`` is the result cache (PLAN.md
+        8.1): its store, today's Upstash spend and this process's hits."""
+        from api import result_cache
+        return {**usage.status(), "result_cache": result_cache.cache().status()}
 
     @app.get("/api/health/files", tags=["meta"])
     def health_files(response: Response):

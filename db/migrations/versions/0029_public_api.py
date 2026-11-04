@@ -1,7 +1,7 @@
 """public_api: API keys, webhooks and their deliveries (PLAN.md 7.7)
 
-Revision ID: 0028
-Revises: 0027
+Revision ID: 0029
+Revises: 0028
 Created: 2026-11-04
 
 Three new tables and four more audit actions. The previous release never reads the tables or writes the actions,
@@ -18,8 +18,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = '0028'
-down_revision: Union[str, None] = '0027'
+revision: str = '0029'
+down_revision: Union[str, None] = '0028'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
