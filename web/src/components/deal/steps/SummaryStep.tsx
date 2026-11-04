@@ -11,7 +11,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { multiplesFromPct } from "@/lib/deal/capital";
 import { apiInputs, dealFiscal, FIELDS, type NumericDealKey } from "@/lib/deal/fields";
-import { downloadDealModel, downloadWorkbook, fraction, sheet, tableSheet } from "@/lib/export";
+import { chart, downloadDealModel, downloadWorkbook, fraction, sheet, tableSheet, withCharts } from "@/lib/export";
 import type { FieldSpec } from "@/lib/fields";
 import { fmtDelta, fmtInput, fmtMoney, fmtMultiple, fmtPct, fmtRate } from "@/lib/format";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
@@ -26,7 +26,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 
 import { useDeal } from "../DealProvider";
 import { DealScreen, LoadingTiles, RailGroup } from "../DealScreen";
-import { totals, useHurdleSub } from "./shared";
+import { debtSeries, debtYears, totals, useHurdleSub } from "./shared";
 
 const SBC_SPEC: FieldSpec = { unit: "%", step: 0.5, decimals: 1, min: 0, max: 50 };
 
@@ -235,18 +235,49 @@ function SummaryResults() {
     { label: t("rowAdjustedMargin"), values: adj.map((v, i) => (revenue[i] ? v / revenue[i] : NaN)), kind: "rate" },
   ];
 
-  const bridgeSheet = sheet(
-    x("sheetEquityBridge"),
-    [x("colComponent"), x("colValue", { money: mu }), x("colShareOfGain")],
-    res.bridge_steps.map((s) => [bridgeRow(s.label), s.value ?? null, fraction(s.pct_of_gain, 100)]),
-    { columns: ["text", "money", "percent"] },
+  // Each download carries the screen's charts as native Excel charts over its own cells (PLAN.md 7.9)
+  const bridgeSheet = withCharts(
+    sheet(
+      x("sheetEquityBridge"),
+      [x("colComponent"), x("colValue", { money: mu }), x("colShareOfGain")],
+      res.bridge_steps.map((s) => [bridgeRow(s.label), s.value ?? null, fraction(s.pct_of_gain, 100)]),
+      { columns: ["text", "money", "percent"] },
+    ),
+    chart({
+      kind: "waterfall",
+      by: "columns",
+      title: t("tileEquityBridge"),
+      series: [{ index: 1 }],
+      totals: res.bridge_steps.map((s) => s.is_total),
+      y_title: mu,
+      y_format: "money",
+    }),
   );
-  const allSheets = () => [
+  const plSheet = withCharts(
     tableSheet(x("sheetPl"), years, incomeRows),
-    ...(taxRows ? [tableSheet(x("sheetTax"), years, taxRows)] : []),
-    tableSheet(x("sheetCashFlow"), years, cashRows),
-    tableSheet(x("sheetDebtSchedule"), years, debtRows),
-    ...Object.entries(res.tranches).map(([name, rows]) =>
+    chart({
+      kind: "bar",
+      title: x("chartRevenueEbitda"),
+      series: [
+        { index: 0, tone: "context" },
+        { index: incomeRows.findIndex((row) => row.label === ebitdaLabel), tone: "answer" },
+      ],
+      y_title: mu,
+      y_format: "money",
+    }),
+  );
+  const debt = debtSeries(res, fiscalLabels.deal(debtYears(res), dealFiscal(inputs)), { close: t("close"), chart: t("debtBalanceByTranche"), trancheName });
+  const debtByFacility = withCharts(
+    sheet(
+      x("sheetDebtByFacility"),
+      ["", ...debt.categories],
+      debt.series.map((s) => [s.name, ...s.values]),
+      { columns: [null, ...debt.categories.map(() => "money" as const)] },
+    ),
+    chart({ kind: "stacked_bar", title: t("tileDebtPaydown"), series: debt.series.map((_, i) => ({ index: i })), y_title: mu, y_format: "money" }),
+  );
+  const trancheSheet = (name: string, rows: (typeof res.tranches)[string]) =>
+    withCharts(
       sheet(
         trancheName(name),
         [x("colYear"), x("colOpening"), x("colMandatory"), x("colCashSweep"), x("colClosing"), x("colInterest"), x("colRate")],
@@ -261,7 +292,22 @@ function SummaryResults() {
         ]),
         { columns: ["text", "money", "money", "money", "money", "money", "percent"] },
       ),
-    ),
+      chart({
+        kind: "bar",
+        by: "columns",
+        title: x("chartClosingBalance", { name: trancheName(name) }),
+        series: [{ index: 4, tone: "answer" }],
+        y_title: mu,
+        y_format: "money",
+      }),
+    );
+  const allSheets = () => [
+    plSheet,
+    ...(taxRows ? [tableSheet(x("sheetTax"), years, taxRows)] : []),
+    tableSheet(x("sheetCashFlow"), years, cashRows),
+    tableSheet(x("sheetDebtSchedule"), years, debtRows),
+    debtByFacility,
+    ...Object.entries(res.tranches).map(([name, rows]) => trancheSheet(name, rows)),
     bridgeSheet,
     tableSheet(x("sheetPpe"), years, ppeRows),
     ...(inputs.wsp_mode ? [tableSheet(x("sheetWorkingCapital"), years, wcRows)] : []),
@@ -313,7 +359,7 @@ function SummaryResults() {
         span={12}
         title={t("tileIncomeStatement")}
         unit={mu}
-        action={<DownloadButton onDownload={() => downloadWorkbook(x("filePl"), [tableSheet(x("sheetPl"), years, incomeRows)], money, run.result?.model, savedId)} />}
+        action={<DownloadButton onDownload={() => downloadWorkbook(x("filePl"), [plSheet], money, run.result?.model, savedId)} />}
       >
         <DataTable caption={t("incomeStatementByYear")} columns={years} rows={incomeRows} />
       </Tile>
@@ -340,7 +386,7 @@ function SummaryResults() {
         title={t("tileDebt")}
         unit={t("allTranches", { money: mu })}
         action={
-          <DownloadButton onDownload={() => downloadWorkbook(x("fileDebtSchedule"), [tableSheet(x("sheetDebtSchedule"), years, debtRows)], money, run.result?.model, savedId)} />
+          <DownloadButton onDownload={() => downloadWorkbook(x("fileDebtSchedule"), [tableSheet(x("sheetDebtSchedule"), years, debtRows), debtByFacility], money, run.result?.model, savedId)} />
         }
       >
         <DataTable caption={t("debtTotalsByYear")} columns={years} rows={debtRows} />

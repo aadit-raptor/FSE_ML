@@ -16,7 +16,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { floatingCount } from "@/lib/deal/capital";
 import { apiInputs, dealFiscal } from "@/lib/deal/fields";
-import { downloadMonteCarloSample, downloadWorkbook, fraction, sheet } from "@/lib/export";
+import { chart, downloadMonteCarloSample, downloadWorkbook, fraction, sheet, withCharts } from "@/lib/export";
 import { fmtCount, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 import { driverTerm } from "@/lib/glossary";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
@@ -258,6 +258,7 @@ function Scenarios() {
                 downloadWorkbook(
                   x("fileScenarios"),
                   [
+                    withCharts(
                     sheet(
                       x("sheetScenarios"),
                       [
@@ -276,6 +277,15 @@ function Scenarios() {
                         st.moic_box.p50,
                       ]),
                       { columns: ["text", "percent", "percent", "percent", "percent", "percent", "percent", "multiple"] },
+                    ),
+                    // The IRR range tile: P5 to P95 with the mean (PLAN.md 7.9)
+                    chart({
+                      kind: "range",
+                      by: "columns",
+                      title: x("chartScenarioRange"),
+                      series: [{ index: 3 }, { index: 1, tone: "answer" }, { index: 4 }],
+                      y_format: "percent",
+                    }),
                     ),
                   ],
                   money,

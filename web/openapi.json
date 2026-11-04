@@ -2316,6 +2316,215 @@
         "title": "CashFlowResult",
         "type": "object"
       },
+      "ChartSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "description": "The series' row of data (by 'rows', 0 = the first row under the header) or its column (by 'columns', 0 = the first)",
+            "maximum": 50000.0,
+            "minimum": 0.0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The legend's name; else the row's label or the column's header",
+            "title": "Name"
+          },
+          "tone": {
+            "anyOf": [
+              {
+                "enum": [
+                  "answer",
+                  "gain",
+                  "loss",
+                  "attention",
+                  "plan",
+                  "context"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tone"
+          }
+        },
+        "required": [
+          "index"
+        ],
+        "title": "ChartSeries",
+        "type": "object"
+      },
+      "ChartSpec": {
+        "additionalProperties": false,
+        "description": "A native Excel chart over the sheet's own cells (PLAN.md 7.9): edit a cell and the chart moves.\n\n`by: rows` reads a table laid out as the screen's: labels in the first column, one row per series,\nthe header's other columns the categories (years). `by: columns` reads one column per series and\nthe categories from column `categories`.",
+        "properties": {
+          "by": {
+            "default": "rows",
+            "enum": [
+              "rows",
+              "columns"
+            ],
+            "title": "By",
+            "type": "string"
+          },
+          "categories": {
+            "default": 0,
+            "description": "By 'columns': the column holding the categories",
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "title": "Categories",
+            "type": "integer"
+          },
+          "horizontal": {
+            "default": false,
+            "description": "Bars drawn across, as the screen's diverging bars",
+            "title": "Horizontal",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "bar",
+              "stacked_bar",
+              "line",
+              "waterfall",
+              "fan",
+              "histogram",
+              "range",
+              "scatter",
+              "heatmap"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "lines": {
+            "description": "A fan's lines drawn over its bands (the median, the plan)",
+            "items": {
+              "$ref": "#/components/schemas/ChartSeries"
+            },
+            "maxItems": 4,
+            "title": "Lines",
+            "type": "array"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 400,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Words written beside the chart: where Excel has no form of its own, what was drawn instead",
+            "title": "Note"
+          },
+          "points": {
+            "anyOf": [
+              {
+                "maximum": 50000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Draw only the first rows (a sampled scatter of simulated paths)",
+            "title": "Points"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/ChartSeries"
+            },
+            "maxItems": 20,
+            "title": "Series",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "totals": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "boolean"
+                },
+                "maxItems": 200,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A waterfall's steps that are totals (drawn from zero); the rest move from the running total",
+            "title": "Totals"
+          },
+          "x_title": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X Title"
+          },
+          "y_format": {
+            "anyOf": [
+              {
+                "enum": [
+                  "money",
+                  "percent",
+                  "multiple",
+                  "integer",
+                  "number",
+                  "text"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The value axis's number format",
+            "title": "Y Format"
+          },
+          "y_title": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y Title"
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ],
+        "title": "ChartSpec",
+        "type": "object"
+      },
       "CommentCreate": {
         "additionalProperties": false,
         "properties": {
@@ -23679,6 +23888,15 @@
       "WorkbookSheet": {
         "additionalProperties": false,
         "properties": {
+          "charts": {
+            "description": "Native Excel charts drawn from this sheet's cells (PLAN.md 7.9)",
+            "items": {
+              "$ref": "#/components/schemas/ChartSpec"
+            },
+            "maxItems": 6,
+            "title": "Charts",
+            "type": "array"
+          },
           "column_formats": {
             "anyOf": [
               {

@@ -19,12 +19,15 @@ from api.auth import AuthUser, require_user
 from api.deps import resolve_settings
 from api.limits import simulation_slot
 from api.routers.deals import store_errors
-from api import deal_workbook
-from api.schemas import DealInputsIn, DealModelRequest, MonteCarloRequest, WorkbookRequest
+from api import charts, deal_workbook
+from api.schemas import (ChartSeries, ChartSpec, DealInputsIn, DealModelRequest, MonteCarloRequest,
+                         WorkbookRequest)
+from api.serialize import histogram, percentile_curve
 from core.deal import DealInputs, in_millions, run_deal
 from core.money import in_unit
 from core.model_version import stamp
-from core.montecarlo import MCInputs, apply_scenario, build_sim_params, mc_in_millions
+from core.montecarlo import (MCInputs, analysis_sample, apply_scenario, build_sim_params, driver_sensitivity,
+                             growth_exit_heatmap, mc_in_millions)
 from db import deals as deals_store
 from simulation.vectorized_simulation import run_vectorized_simulation_full
 
@@ -34,6 +37,7 @@ XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # Who made every workbook: the About sheet's first row and the file's author
 SOURCE = "variater.com"
 SAMPLE_ROWS = 10_000
+SCATTER_POINTS = 2_000        # the Drivers step's scatter shows as many
 # Excel forbids these in sheet names
 _BAD_SHEET_CHARS = re.compile(r"[\[\]:*?/\\]")
 
@@ -116,17 +120,21 @@ def _apply_formats(ws, df: pd.DataFrame, column_formats, row_formats, grouping: 
 
 
 def workbook_bytes(sheets, grouping: str = "locale") -> bytes:
-    """sheets: iterable of (name, DataFrame) or (name, DataFrame, column
-    formats, row formats). Always writes at least one sheet."""
+    """sheets: iterable of (name, DataFrame), (name, DataFrame, column
+    formats, row formats) or that and a list of charts (api/charts.py, PLAN.md
+    7.9) drawn from the sheet's own cells. Always writes at least one sheet."""
     buf = io.BytesIO()
     used: set = set()
     with pd.ExcelWriter(buf, engine="openpyxl") as w:
         wrote = False
-        for name, df, *formats in sheets:
+        for name, df, *rest in sheets:
+            formats, chart_specs = rest[:2], (rest[2] if len(rest) > 2 else None)
             sheet_name = _sheet_name(name, used)
             df.to_excel(w, sheet_name=sheet_name, index=False)
             if any(formats):
                 _apply_formats(w.sheets[sheet_name], df, *formats, grouping)
+            if chart_specs:
+                charts.draw(w.sheets[sheet_name], chart_specs, len(df), df.shape[1])
             wrote = True
         if not wrote:
             pd.DataFrame({"Note": ["No data"]}).to_excel(w, sheet_name="Data", index=False)
@@ -196,7 +204,7 @@ def post_workbook(req: WorkbookRequest, deal_id: Optional[uuid.UUID] = DealFrom,
     for sheet in req.sheets:
         rows = [row + [None] * (len(sheet.columns) - len(row)) for row in sheet.rows]
         frames.append((sheet.name, pd.DataFrame(rows, columns=sheet.columns),
-                       sheet.column_formats, sheet.row_formats))
+                       sheet.column_formats, sheet.row_formats, sheet.charts))
     source_items, source_values = source_rows()
     items, values = money_rows(req.money) if req.money is not None else ([], [])
     # The stamp of the result on screen; an older caller sends none, and then
@@ -254,6 +262,46 @@ def post_deal_model(req: DealModelRequest, deal_id: Optional[uuid.UUID] = DealFr
     return _xlsx_response(buf.getvalue(), "%s model.xlsx" % req.name)
 
 
+def _histogram_sheet(name: str, values, bins: int, fmt: str, title: str):
+    h = histogram(values, bins)
+    edges = h["edges"]
+    df = pd.DataFrame({"From": edges[:-1], "To": edges[1:], "Density": h["density"]})
+    chart = ChartSpec(kind="histogram", by="columns", title=title, categories=0,
+                      series=[ChartSeries(index=2, tone="answer")], y_title="Density", x_title="From")
+    return (name, df, [fmt, fmt, "number"], None, [chart])
+
+
+def simulation_sheets(sim, req: MonteCarloRequest, params, mc, deal) -> list:
+    """The Distribution, Drivers and Heatmap steps' charts over cells holding the same figures the screen
+    draws (PLAN.md 7.9): the run's own histograms, percentiles, rank correlations and IRR grid."""
+    sheets = [
+        _histogram_sheet("IRR distribution", sim.irr, req.histogram_bins, "percent", "IRR distribution"),
+        _histogram_sheet("MOIC distribution", sim.moic, req.histogram_bins, "multiple", "MOIC distribution"),
+    ]
+    cdf = percentile_curve(sim.irr)
+    sheets.append(("IRR by percentile", pd.DataFrame({"Percentile": cdf["percentiles"], "IRR": cdf["values"]}),
+                   ["integer", "percent"], None,
+                   [ChartSpec(kind="line", by="columns", title="IRR by percentile", categories=0,
+                              series=[ChartSeries(index=1, tone="answer")], x_title="Percentile",
+                              y_format="percent")]))
+    drivers = driver_sensitivity(analysis_sample(sim))
+    sheets.append(("Drivers", pd.DataFrame({"Driver": [d for d, _ in drivers],
+                                            "Rank correlation with IRR": [float(r) for _, r in drivers]}),
+                   ["text", "number"], None,
+                   [ChartSpec(kind="bar", by="columns", horizontal=True, title="What moves the IRR",
+                              categories=0, series=[ChartSeries(index=1)],
+                              note="Spearman rank correlation of each draw with IRR, as on the Drivers step.")]))
+    growth, multiples, grid = growth_exit_heatmap(params, mc, deal)
+    heat = pd.DataFrame([[float(m), *(float(v) for v in row)] for m, row in zip(multiples, grid)],
+                        columns=["Exit multiple", *("Growth %.1f%%" % (g * 100) for g in growth)])
+    sheets.append(("Heatmap", heat, ["multiple", *(["percent"] * len(growth))], None,
+                   [ChartSpec(kind="heatmap", title="IRR by growth and exit multiple",
+                              note="IRR by growth (across) and exit multiple (down): each cell a full deal-model "
+                                   "run at the simulation's mean assumptions. Excel draws no heatmap, so the "
+                                   "cells carry a colour scale, lowest red to highest green.")]))
+    return sheets
+
+
 @router.post("/montecarlo-sample", response_class=Response,
              responses={200: {"content": {XLSX: {}}, "description": "Excel workbook"}})
 @simulation_slot
@@ -283,6 +331,13 @@ def post_montecarlo_sample(req: MonteCarloRequest, deal_id: Optional[uuid.UUID] 
                   req.scenario or "none", round(elapsed, 3), *money_values, *model_values],
     })
     formats = [SAMPLE_FORMATS.get(c) for c in sample.columns]
-    data = workbook_bytes([("Paths", sample, formats, None), ("About", about)])
+    paths_charts = [ChartSpec(kind="scatter", by="columns", title="IRR against %s (sampled paths)" % driver,
+                              categories=list(sample.columns).index(driver),
+                              series=[ChartSeries(index=list(sample.columns).index("IRR"), tone="answer")],
+                              points=SCATTER_POINTS, x_title=driver, y_title="IRR", y_format="percent",
+                              note="A sample of %d simulated paths, as on the Drivers step." % SCATTER_POINTS)
+                    for driver in ("Exit Multiple", "Growth") if driver in sample.columns]
+    charted = simulation_sheets(sim, req, params, mc, deal)
+    data = workbook_bytes([("Paths", sample, formats, None, paths_charts), *charted, ("About", about)])
     _record_export(user, deal_id, "simulation_sample")
     return _xlsx_response(data, "mc_simulation.xlsx")

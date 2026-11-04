@@ -11,7 +11,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { debtShareOfEv } from "@/lib/deal/capital";
 import { dealFiscal, type DealRun } from "@/lib/deal/fields";
-import { downloadWorkbook, sheet } from "@/lib/export";
+import { chart, downloadWorkbook, sheet, withCharts } from "@/lib/export";
 import { fmtMoney, fmtMultiple, fmtPct, fmtRate, isNum } from "@/lib/format";
 import { statementTerm, trancheTerm, unitTerm } from "@/lib/glossary";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
@@ -252,18 +252,29 @@ function DebtResults() {
                 downloadWorkbook(
                   x("fileDebtSchedule"),
                   [
-                    sheet(
-                      trancheName(name),
-                      [x("colYear"), x("colOpening"), x("colMandatory"), x("colCashSweep"), x("colClosing"), x("colInterest")],
-                      rows.map((t2) => [
-                        years[t2.year - 1] ?? t2.year,
-                        t2.beginning_balance ?? null,
-                        t2.mandatory_repayment ?? null,
-                        t2.cash_sweep ?? null,
-                        t2.ending_balance ?? null,
-                        t2.interest_expense ?? null,
-                      ]),
-                      { columns: ["text", "money", "money", "money", "money", "money"] },
+                    withCharts(
+                      sheet(
+                        trancheName(name),
+                        [x("colYear"), x("colOpening"), x("colMandatory"), x("colCashSweep"), x("colClosing"), x("colInterest")],
+                        rows.map((t2) => [
+                          years[t2.year - 1] ?? t2.year,
+                          t2.beginning_balance ?? null,
+                          t2.mandatory_repayment ?? null,
+                          t2.cash_sweep ?? null,
+                          t2.ending_balance ?? null,
+                          t2.interest_expense ?? null,
+                        ]),
+                        { columns: ["text", "money", "money", "money", "money", "money"] },
+                      ),
+                      // The facility's part of the debt balance chart (PLAN.md 7.9)
+                      chart({
+                        kind: "bar",
+                        by: "columns",
+                        title: x("chartClosingBalance", { name: trancheName(name) }),
+                        series: [{ index: 4, tone: "answer" }],
+                        y_title: mu,
+                        y_format: "money",
+                      }),
                     ),
                   ],
                   money,
