@@ -192,7 +192,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 10.3 | Region-ready data model and recovery rehearsal | 1.8, 8.3 | ☐ |
 | **11** | **Running it day to day** | | |
 | 11.1 | Release routine and rollback | 1.1, 3.1 | ☐ |
-| 11.2 | Incident routine and runbooks | 1.2 | ☐ |
+| 11.2 | Incident routine and runbooks | 1.2 | ☑ |
 | 11.3 | Free-limit, data-freshness and dependency upkeep | 1.9, 4.3 | ☐ |
 | 11.4 | Owner's handbook: running it without Claude | 1.9 | ◐ |
 | **12** | **Paid tiers (only once the product is functional)** | | |
@@ -3292,6 +3292,9 @@ inputs.
 - **Claude does:** severity levels; runbook per alert (including free-limit
   alerts); status updates; post-incident review template.
 - **Done when:** a simulated incident on staging is handled with the runbook.
+- **Done (2026-11-04):** `docs/RUNBOOKS.md`, checked by `tests/test_runbooks.py`; staging drilled
+  2026-11-03 (section 7). Open for the user: the Better Stack incident and status
+  report, and resolving the Sentry issue (steps in section 7).
 
 ### 11.3 Free-limit, data-freshness and dependency upkeep
 - **Claude does:**
