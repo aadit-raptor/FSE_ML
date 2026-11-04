@@ -133,7 +133,7 @@ test.describe("Currency and money units", () => {
     await expect(content(page)).not.toContainText("$");
 
     await stepLink(page, "Statements").click();
-    await expect(kpi(page, "Balance sheet")).toHaveText("Balances");
+    await expect(kpi(page, "Balance check")).toHaveText("Balances");
     await expect(content(page)).toContainText("₹k");
     await expect(content(page)).not.toContainText("$");
   });

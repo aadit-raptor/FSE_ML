@@ -1,5 +1,6 @@
 {
   "entries": [
+    {"id": "phones", "date": "2026-11-04", "href": "/deal/returns"},
     {"id": "publicApi", "date": "2026-11-04", "href": "/account/developer"},
     {"id": "excelCharts", "date": "2026-11-04", "href": "/deal/summary"},
     {"id": "lender", "date": "2026-11-04", "href": "/deal/lender"},

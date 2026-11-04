@@ -1,19 +1,52 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useState, type ReactNode } from "react";
 
 import { TipLabel, TipText, useTip } from "./Tip";
 
-/** Input rail on the left, a status bar slot and results on the right. */
-export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNode; children: ReactNode }) {
+/** The view each address last showed on a phone, so a screen that draws itself again (loading, then loaded) keeps it. */
+const lastView = new Map<string, "rail" | "results">();
+
+/**
+ * Input rail on the left, a status bar slot and results on the right. On a phone (PLAN.md 7.6) the two
+ * don't fit side by side: a switch above them shows one at a time, results first, and the inputs keep
+ * their state while hidden, so an edit made there is in the results on switching back. `phoneBar` is
+ * drawn under the switch on a phone only, for what the rail says that must not be hidden with it.
+ */
+export function Screen({ rail, bar, phoneBar, children }: { rail: ReactNode; bar?: ReactNode; phoneBar?: ReactNode; children: ReactNode }) {
   const t = useTranslations("ui");
+  const path = usePathname();
+  const [view, setShown] = useState<"rail" | "results">(() => lastView.get(path) ?? "results");
+  const setView = (v: "rail" | "results") => {
+    lastView.set(path, v);
+    setShown(v);
+  };
   return (
-    <div className="grid h-full min-h-0 grid-cols-[270px_1fr]">
-      <aside className="flex min-h-0 flex-col overflow-y-auto border-e border-line bg-panel" aria-label={t("inputs")}>
+    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_minmax(0,1fr)] md:grid-cols-[270px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
+      <div role="group" aria-label={t("screenView")} className="grid grid-cols-2 border-b border-line bg-panel md:hidden" data-screen-view>
+        {(["rail", "results"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={view === v}
+            onClick={() => setView(v)}
+            className={`type-tab min-h-10 ${view === v ? "bg-raised text-bright shadow-[inset_0_-2px_0_var(--color-accent)]" : ""}`}
+          >
+            {v === "rail" ? t("inputs") : t("results")}
+          </button>
+        ))}
+      </div>
+      <div className="md:hidden">{phoneBar}</div>
+      <aside
+        className={`flex min-h-0 flex-col overflow-y-auto border-e border-line bg-panel max-md:border-e-0 ${view === "rail" ? "" : "max-md:hidden"}`}
+        aria-label={t("inputs")}
+      >
         {rail}
       </aside>
-      <div className="min-h-0 overflow-y-auto">
+      {/* Reachable by keyboard so it scrolls without a mouse, even when nothing in it takes focus */}
+      <div tabIndex={0} role="region" aria-label={t("results")} className={`min-h-0 overflow-y-auto ${view === "results" ? "" : "max-md:hidden"}`}>
         {bar}
         {children}
       </div>
@@ -23,7 +56,7 @@ export function Screen({ rail, bar, children }: { rail: ReactNode; bar?: ReactNo
 
 export function RailGroup({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <fieldset className="grid gap-0.5 border-b border-line px-3.5 pt-2.5 pb-3">
+    <fieldset className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-0.5 border-b border-line px-3.5 pt-2.5 pb-3">
       <legend className="type-input-group float-left mb-1.5 flex w-full items-center justify-between gap-2">
         {title}
         {aside}
@@ -58,8 +91,9 @@ export function Notice({
   const t = TONES[tone];
   return (
     <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-1 px-3 py-2 ${t.bg} ${t.rule} ${className}`} role={role}>
-      <span className={t.titleClass}>{title}</span>
-      {children && <span className="type-body min-w-0 flex-1">{children}</span>}
+      <span className={`${t.titleClass} min-w-0 [overflow-wrap:anywhere]`}>{title}</span>
+      {/* At least a short line wide, so on a phone it wraps under the title rather than into a sliver beside it */}
+      {children && <span className="type-body min-w-[min(100%,16rem)] flex-1">{children}</span>}
       {actions && <span className="ms-auto flex items-center gap-2">{actions}</span>}
     </div>
   );
@@ -165,15 +199,15 @@ export function EmptyGuide({ id, title, steps, children, actions }: {
 export function LoadingTiles() {
   const t = useTranslations("ui");
   return (
-    <div className="grid grid-cols-12 content-start gap-px bg-line" aria-busy="true" aria-label={t("loadingResults")}>
+    <div role="progressbar" className="grid grid-cols-12 content-start gap-px bg-line" aria-busy="true" aria-label={t("loadingResults")}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="col-span-2 grid h-[86px] content-start gap-2 bg-canvas px-3 py-2.5">
+        <div key={i} className="col-span-6 md:col-span-4 lg:col-span-2 grid h-[86px] content-start gap-2 bg-canvas px-3 py-2.5">
           <div className="h-2.5 w-16 bg-raised" />
           <div className="h-5 w-24 bg-raised" />
         </div>
       ))}
-      <div className="col-span-6 h-[270px] bg-canvas" />
-      <div className="col-span-6 h-[270px] bg-canvas" />
+      <div className="col-span-12 lg:col-span-6 h-[270px] bg-canvas" />
+      <div className="col-span-12 lg:col-span-6 h-[270px] bg-canvas" />
     </div>
   );
 }

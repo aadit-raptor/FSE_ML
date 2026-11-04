@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import { parsePath, stepHref } from "@/lib/nav";
 
@@ -10,12 +11,31 @@ export function StepBar() {
   const { mode, step: current } = parsePath(usePathname());
   const t = useTranslations("shell");
   const nav = useTranslations("nav");
+  const bar = useRef<HTMLElement>(null);
+  // On a phone the row scrolls sideways (PLAN.md 7.6): keep the current step in sight
+  // (scrolled by hand, not with scrollIntoView, which would also move where the Tab key starts from), and
+  // again whenever the row's width changes: a phone turned on its side, a window resized
+  useEffect(() => {
+    const row = bar.current;
+    if (!row) return;
+    const show = () => {
+      const step = row.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!step || row.scrollWidth <= row.clientWidth) return;
+      const start = step.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+      row.scrollLeft = Math.max(0, start - (row.clientWidth - step.offsetWidth) / 2);
+    };
+    show();
+    const resized = new ResizeObserver(show);
+    resized.observe(row);
+    return () => resized.disconnect();
+  }, [mode?.slug, current?.slug]);
   if (!mode) return <div className="min-h-[34px] flex-none border-b border-line bg-[#0f1417]" />;
 
   return (
     <nav
+      ref={bar}
       aria-label={t("stepsOf", { mode: nav(mode.labelKey) })}
-      className="flex min-h-[34px] flex-none items-stretch border-b border-line bg-[#0f1417]"
+      className="flex min-h-[34px] flex-none items-stretch overflow-x-auto border-b border-line bg-[#0f1417]"
     >
       {mode.steps.map((step) => (
         <Link
@@ -28,7 +48,7 @@ export function StepBar() {
         </Link>
       ))}
       <div className="flex-1" />
-      <span className="type-control flex items-center gap-2 pe-3" aria-hidden>
+      <span className="type-control flex items-center gap-2 pe-3 max-md:hidden" aria-hidden>
         <kbd>[</kbd>
         <kbd>]</kbd>
         {t("steps")}

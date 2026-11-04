@@ -50,7 +50,7 @@ test("a UK company found by ISIN fills the forecast and the deal from its filing
   // The forecast reads Tesco's own margin: 4,880 / 73,712
   await expect(rail(page).locator("dt", { hasText: /^EBITDA margin$/ }).locator("+ dd")).toHaveText("6.6%");
   await stepLink(page, "Statements").click();
-  await expect(kpi(page, "Balance sheet")).toHaveText("Balances");
+  await expect(kpi(page, "Balance check")).toHaveText("Balances");
 
   await stepLink(page, "Historicals").click();
   await rail(page).getByRole("button", { name: "Use in deal" }).click();

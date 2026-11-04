@@ -89,7 +89,7 @@ function RiskBody({ risk }: { risk: Risk }) {
   const source = risk.comparisons.find((c) => c.status === "ok");
   return (
     <div className="grid gap-3" data-risk-status="ok">
-      <div className="grid grid-cols-[200px_minmax(0,1fr)] gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[200px_minmax(0,1fr)]">
         <Score risk={risk} />
         <table className="w-full font-mono text-[10.5px]" aria-label={t("tableLabel")}>
           <thead>

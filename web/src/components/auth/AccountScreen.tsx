@@ -126,7 +126,7 @@ export function AccountScreen() {
         <dd className="font-mono text-[11px] text-muted">{mode === "clerk" ? t("signInClerk") : t("signInDev")}</dd>
       </dl>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="grid gap-1.5">
           <span className="type-input-group"><TipLabel tip={countryTip}>{t("country")}</TipLabel></span>
           <select aria-describedby={countryTip.id} aria-label={t("country")} value={draft.country} onChange={(e) => set("country")(e.target.value)} className={FIELD}>

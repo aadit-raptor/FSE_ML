@@ -6,7 +6,7 @@ test.describe("Forecast", () => {
   test("sample forecast matches the API and growth assumptions drive revenue", async ({ page }) => {
     await page.goto("/forecast/statements");
     await expect(kpi(page, "Revenue F+5")).toHaveText("354.6");
-    await expect(kpi(page, "Balance sheet")).toHaveText("Balances");
+    await expect(kpi(page, "Balance check")).toHaveText("Balances");
 
     await stepLink(page, "Assumptions").click();
     const cells = page.getByRole("textbox", { name: /^Revenue growth, F\+\d$/ });
@@ -18,7 +18,7 @@ test.describe("Forecast", () => {
     await stepLink(page, "Statements").click();
     // 265.0 x 1.1^5
     await expect(kpi(page, "Revenue F+5")).toHaveText("426.8");
-    await expect(kpi(page, "Balance sheet")).toHaveText("Balances");
+    await expect(kpi(page, "Balance check")).toHaveText("Balances");
   });
 
   test("historicals download holds the figures on screen, as edited", async ({ page }) => {

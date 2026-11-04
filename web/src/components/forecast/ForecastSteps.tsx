@@ -221,17 +221,17 @@ function EditableGrid({
   const t = useTranslations("forecast");
   const rowLabel = (key: string) => withMoney(t(key), mu);
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th />
+            <td aria-hidden />
             {columns.map((c) => (
               <th key={c} scope="col" className="px-1 py-1 text-end font-mono text-[10.5px] font-normal text-muted">
                 {c}
               </th>
             ))}
-            {extra && <th />}
+            {extra && <td aria-hidden />}
           </tr>
         </thead>
         <tbody>
