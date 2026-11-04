@@ -58,7 +58,7 @@ export function SummaryStep() {
                       <div key={i} className="contents">
                         <dt className="type-input-label truncate">{trancheName(tr.name)}</dt>
                         <dd className="text-end font-mono text-[11.5px] text-ink">
-                          {fmtMoney(tr.amount)} <span className="text-[10px] text-[#56636a]">{unitLabel(MONEY, money)}</span>
+                          {fmtMoney(tr.amount)} <span className="text-[10px] text-dim">{unitLabel(MONEY, money)}</span>
                         </dd>
                       </div>
                     ))
@@ -66,7 +66,7 @@ export function SummaryStep() {
                   <div key={k} className="contents">
                     <dt className="type-input-label">{fields(k)}</dt>
                     <dd className="text-end font-mono text-[11.5px] text-ink">
-                      {fmtInput(inputs[k], FIELDS[k].decimals)} <span className="text-[10px] text-[#56636a]">{unitLabel(FIELDS[k].unit, money)}</span>
+                      {fmtInput(inputs[k], FIELDS[k].decimals)} <span className="text-[10px] text-dim">{unitLabel(FIELDS[k].unit, money)}</span>
                     </dd>
                   </div>
                 ))}

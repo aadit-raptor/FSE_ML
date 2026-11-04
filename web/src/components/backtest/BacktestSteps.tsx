@@ -278,12 +278,12 @@ function ActualsEditor() {
             </span>
           }
         >
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto" tabIndex={0}>
             <table className="w-full border-collapse font-mono text-[11px]">
               <caption className="sr-only">{t("tileActuals", { plan: plan.name })}</caption>
               <thead>
                 <tr>
-                  <th scope="col" className="w-[22%]" />
+                  <td className="w-[22%]" aria-hidden />
                   {years.map((y) => (
                     <th key={y} scope="col" className="border-b border-grid px-1 py-1 text-end font-normal text-muted">
                       {y}
@@ -346,7 +346,7 @@ function ActualsEditor() {
         </Tile>
         <Tile span={6} title={t("tileCsv")}>
           <p className="type-body text-[9px]">{t("csvHelp")}</p>
-          <pre className="overflow-x-auto bg-panel px-2 py-1.5 font-mono text-[10px] text-soft">{actualsCsv({ ...actuals, years: actuals.years.slice(0, 2).map(() => ({ revenue: 100, ebitda: 20, net_income: 8, fcf: 9, total_debt: 60 })), exit: null }, years.slice(0, 2))}</pre>
+          <pre tabIndex={0} className="relative overflow-x-auto bg-panel px-2 py-1.5 font-mono text-[10px] text-soft">{actualsCsv({ ...actuals, years: actuals.years.slice(0, 2).map(() => ({ revenue: 100, ebitda: 20, net_income: 8, fcf: 9, total_debt: 60 })), exit: null }, years.slice(0, 2))}</pre>
         </Tile>
       </Tiles>
     </>
@@ -638,7 +638,7 @@ function Years() {
         <table className="w-full border-collapse font-mono text-[11px]">
           <thead>
             <tr className="text-muted">
-              <th />
+              <td aria-hidden />
               <th scope="col" className="border-b border-grid px-2 py-1 text-end font-normal">
                 {t("colPlan")}
               </th>

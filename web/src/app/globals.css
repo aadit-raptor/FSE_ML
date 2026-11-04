@@ -20,7 +20,9 @@
   --color-ink: #d5dde1;
   --color-soft: #b9c3c9;
   --color-muted: #7f8c94;
-  --color-dim: #65737b;
+  /* Raised from #65737b in PLAN.md 7.6 so the faintest text, the step row and the top menu (which use
+     it too) reach WCAG AA's 4.5:1 on every panel colour, the raised one included */
+  --color-dim: #77858d;
 
   --color-accent: #62b6cb;
   --color-gain: #58b28a;
@@ -66,7 +68,7 @@
   kbd {
     font-family: var(--mono);
     font-size: 10px;
-    color: #6a7880;
+    color: var(--color-dim);
     border: 1px solid #2a343a;
     background: #0e1316;
     padding: 0 4px;
@@ -96,7 +98,7 @@
     font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #6f7c84;
+    color: var(--color-dim);
   }
   .type-tab[aria-current="page"] {
     font-weight: 800;
@@ -123,7 +125,7 @@
   .type-step {
     font-family: var(--ext);
     font-size: 10px;
-    color: #6f7c84;
+    color: var(--color-dim);
   }
   .type-step[aria-current="page"] {
     color: var(--color-bright);

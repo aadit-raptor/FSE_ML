@@ -200,7 +200,7 @@ function QuarterEditor({ drafts, hold, fiscal, readOnly, onSave }: {
         </span>
       )}>
       {rows.length === 0 ? <p className="type-body text-[10.5px]">{t("noQuarters")}</p> : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-collapse text-[11px]" aria-label={t("quartersTitle")}>
             <thead>
               <tr>
@@ -208,7 +208,7 @@ function QuarterEditor({ drafts, hold, fiscal, readOnly, onSave }: {
                 {QUARTER_LINES.map((l) => (
                   <th key={l.key} className="type-chart-category border-b border-grid px-1 py-1 text-end">{t(l.labelKey)}</th>
                 ))}
-                <th className="border-b border-grid" />
+                <td className="border-b border-grid" aria-hidden />
               </tr>
             </thead>
             <tbody>

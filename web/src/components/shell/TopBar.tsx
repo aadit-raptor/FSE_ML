@@ -37,13 +37,16 @@ export function TopBar() {
   const runningModes = new Set(mc.run.status === "running" ? ["monte-carlo"] : []);
 
   return (
-    <header className="flex min-h-[42px] flex-none items-stretch border-b border-line bg-panel">
-      <Link href={LAUNCHER_HREF} title={t("launcherTitle")} className="flex items-center border-e border-line px-4">
+    // Phones and narrow tablets (PLAN.md 7.6): two rows. The brand and the icon links stay on the first; the
+    // workspaces and modes move to a second row of their own that scrolls sideways
+    <header className="flex min-h-[42px] flex-none flex-wrap items-stretch border-b border-line bg-panel lg:flex-nowrap">
+      <Link href={LAUNCHER_HREF} title={t("launcherTitle")} className="flex items-center border-e border-line px-4 max-md:px-3">
         <BrandLockup name={app("brand")} />
       </Link>
 
+      <div className="order-last flex w-full min-w-0 overflow-x-auto border-t border-line lg:order-none lg:w-auto lg:overflow-visible lg:border-t-0">
       {/* The workspace switcher: each workspace opens on its first mode's first step */}
-      <nav aria-label={t("workspaces")} className="flex flex-col justify-center border-e border-line px-3 py-1">
+      <nav aria-label={t("workspaces")} className="flex flex-none flex-col justify-center border-e border-line px-3 py-1">
         {WORKSPACES.map((w) => {
           const first = workspaceModes(w, shown)[0];
           if (!first) return null;
@@ -64,7 +67,7 @@ export function TopBar() {
         })}
       </nav>
 
-      <nav aria-label={t("modes")} className="flex">
+      <nav aria-label={t("modes")} className="flex flex-none">
         {modes.map((mode, i) => {
           const active = mode.slug === current?.slug;
           return (
@@ -89,17 +92,19 @@ export function TopBar() {
           );
         })}
       </nav>
+      </div>
 
       <div className="flex-1" />
 
+      {/* On a phone the search is its icon; its words stay its name */}
       <button
         type="button"
         onClick={() => setSearchOpen(true)}
-        className="my-[7px] mx-2.5 flex min-w-[300px] items-center gap-2 border border-[#2a343a] bg-field px-2.5 text-start hover:border-line-strong"
+        className="my-[7px] mx-2.5 flex min-w-[300px] items-center gap-2 border border-[#2a343a] bg-field px-2.5 text-start hover:border-line-strong max-xl:min-w-[200px] max-md:mx-1.5 max-md:min-w-0"
       >
         <MagnifyingGlassIcon size={13} weight="bold" className="text-dim" aria-hidden />
-        <span className="type-step flex-1">{t("searchPlaceholderShort")}</span>
-        <kbd>Ctrl K</kbd>
+        <span className="type-step flex-1 max-md:sr-only">{t("searchPlaceholderShort")}</span>
+        <kbd className="max-md:hidden">Ctrl K</kbd>
       </button>
 
       {/* Help (PLAN.md 7.1): the methodology as articles, and what's new, marked while something is unseen */}
@@ -107,10 +112,10 @@ export function TopBar() {
         href="/help"
         aria-current={inHelp ? "page" : undefined}
         title={unseen ? help("unseen") : undefined}
-        className={`type-tab relative flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap hover:text-ink ${inHelp ? "bg-raised" : ""}`}
+        className={`type-tab relative flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap max-md:px-2.5 hover:text-ink ${inHelp ? "bg-raised" : ""}`}
       >
         <QuestionIcon size={13} weight="bold" aria-hidden />
-        <span>{help("topBarLink")}</span>
+        <span className="max-md:sr-only">{help("topBarLink")}</span>
         {unseen && <span data-unseen aria-hidden className="absolute top-2 end-2 size-1.5 bg-accent" />}
       </Link>
 
@@ -118,20 +123,20 @@ export function TopBar() {
       <Link
         href="/teams"
         aria-current={pathname.startsWith("/teams") ? "page" : undefined}
-        className={`type-tab flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap hover:text-ink ${pathname.startsWith("/teams") ? "bg-raised" : ""}`}
+        className={`type-tab flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap max-md:px-2.5 hover:text-ink ${pathname.startsWith("/teams") ? "bg-raised" : ""}`}
       >
         <UsersThreeIcon size={13} weight="bold" aria-hidden />
-        <span>{t("teamsLink")}</span>
+        <span className="max-md:sr-only">{t("teamsLink")}</span>
       </Link>
 
       <Link
         href="/account"
         aria-current={pathname === "/account" ? "page" : undefined}
         title={t("accountTitle")}
-        className={`type-tab flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap hover:text-ink ${pathname === "/account" ? "bg-raised" : ""}`}
+        className={`type-tab flex items-center gap-2 border-s border-line px-3.5 whitespace-nowrap max-md:px-2.5 hover:text-ink ${pathname === "/account" ? "bg-raised" : ""}`}
       >
         <UserIcon size={13} weight="bold" aria-hidden />
-        <span className="max-w-[180px] truncate normal-case">{label ?? t("account")}</span>
+        <span className="max-w-[180px] truncate normal-case max-md:sr-only">{label ?? t("account")}</span>
       </Link>
     </header>
   );

@@ -5,14 +5,19 @@ import type { ReactNode } from "react";
 import { useExplanation } from "./Explain";
 import { Term } from "./Term";
 
+/**
+ * A tile's width in the 12-column grid. From 1024 pixels up it is the span asked for; below that
+ * (tablets, phones: PLAN.md 7.6) small tiles take a half or a third and the rest the whole row, so no
+ * figure is squeezed into a sliver.
+ */
 const SPAN: Record<number, string> = {
-  2: "col-span-2",
-  3: "col-span-3",
-  4: "col-span-4",
-  5: "col-span-5",
-  6: "col-span-6",
-  7: "col-span-7",
-  8: "col-span-8",
+  2: "col-span-6 md:col-span-4 lg:col-span-2",
+  3: "col-span-6 lg:col-span-3",
+  4: "col-span-12 md:col-span-6 lg:col-span-4",
+  5: "col-span-12 lg:col-span-5",
+  6: "col-span-12 lg:col-span-6",
+  7: "col-span-12 lg:col-span-7",
+  8: "col-span-12 lg:col-span-8",
   12: "col-span-12",
 };
 
@@ -52,11 +57,11 @@ export function Tile({
   const explanation = useExplanation(title, explain);
   return (
     <section className={`${SPAN[span]} grid min-w-0 content-start gap-2 bg-canvas px-3 py-2.5`} aria-label={title} {...data}>
-      <header className="flex min-h-4 items-center justify-between gap-2">
+      <header className="flex min-h-4 flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <h2 className="type-result-title">
           <Term id={term}>{title}</Term>
         </h2>
-        <span className="flex items-center gap-2.5">
+        <span className="flex flex-wrap items-center gap-2.5">
           {aside ??
             (unit && (
               <span className="font-mono text-[10px] text-dim">

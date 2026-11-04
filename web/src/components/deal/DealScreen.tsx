@@ -28,6 +28,7 @@ export function DealScreen({ rail, children }: { rail: ReactNode; children: Reac
           {rail}
         </>
       }
+      phoneBar={<PhoneDealState />}
       bar={
         <>
           <ModelChangeNotice />
@@ -40,10 +41,11 @@ export function DealScreen({ rail, children }: { rail: ReactNode; children: Reac
   );
 }
 
-function RailHeader() {
-  const { autoUpdate, setAutoUpdate, run, current, saveState } = useDeal();
+/** What the deal's run is doing, in words: updating, an error, up to date. */
+function useRunState() {
+  const { run } = useDeal();
   const t = useTranslations("deal");
-  const state =
+  const text =
     run.status === "running"
       ? t("stateUpdating")
       : run.status === "error"
@@ -51,13 +53,42 @@ function RailHeader() {
         : run.status === "ok"
           ? t("stateUpToDate", { ms: Math.round(run.ms ?? 0) })
           : t("stateLoading");
+  const tone = run.status === "error" ? "text-loss" : run.status === "running" ? "text-attention" : "text-dim";
+  return { text, tone };
+}
+
+/**
+ * On a phone the rail may be the hidden view (PLAN.md 7.6), so the run's state and the deal's save state
+ * stand above both views: a failed save or a view-only deal is seen, and heard, whichever is shown.
+ * From 768 pixels the rail's header says it, and this line is not drawn.
+ */
+function PhoneDealState() {
+  const { current, saveState } = useDeal();
+  const t = useTranslations("deal");
+  const state = useRunState();
+  const viewer = current?.access === "viewer";
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-line bg-panel px-3 py-1.5">
+      <span role="status" className={`font-mono text-[10px] whitespace-nowrap ${state.tone}`}>
+        {state.text}
+      </span>
+      <span className={`font-mono text-[10px] whitespace-nowrap ${viewer ? "text-attention" : SAVE_TONE[saveState]}`} aria-live="polite">
+        {viewer ? t("saveViewOnly") : t(SAVE_KEY[saveState])}
+      </span>
+    </div>
+  );
+}
+
+function RailHeader() {
+  const { autoUpdate, setAutoUpdate, current, saveState } = useDeal();
+  const t = useTranslations("deal");
+  const runState = useRunState();
+  const state = runState.text;
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-b border-line px-3.5 py-2">
       <Switch checked={autoUpdate} onChange={setAutoUpdate} label={t("autoUpdate")} tip="autoUpdate" />
-      <span
-        role="status"
-        className={`font-mono text-[10px] whitespace-nowrap ${run.status === "error" ? "text-loss" : run.status === "running" ? "text-attention" : "text-dim"}`}
-      >
+      {/* On a phone PhoneDealState says it, so there is one status to hear */}
+      <span role="status" className={`font-mono text-[10px] whitespace-nowrap max-md:hidden ${runState.tone}`}>
         {state}
       </span>
       <Link
@@ -67,7 +98,7 @@ function RailHeader() {
         data-deal-save={saveState}
       >
         <span className="type-input-label min-w-0 truncate">{current?.name ?? t("unsavedDeal")}</span>
-        <span className={`font-mono text-[10px] whitespace-nowrap ${current?.access === "viewer" ? "text-attention" : SAVE_TONE[saveState]}`}
+        <span className={`font-mono text-[10px] whitespace-nowrap max-md:hidden ${current?.access === "viewer" ? "text-attention" : SAVE_TONE[saveState]}`}
           aria-live="polite" data-view-only={current?.access === "viewer" ? "" : undefined}>
           {current?.access === "viewer" ? t("saveViewOnly") : t(SAVE_KEY[saveState])}
         </span>

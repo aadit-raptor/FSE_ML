@@ -44,7 +44,7 @@ export function JoinScreen() {
           {t("joined", { name: joined.name, role: t(`role_${joined.role}`) })}
         </Notice>
       )}
-      <p className="type-body"><Link href="/teams" className="text-accent hover:text-ink">{t("toTeams")}</Link></p>
+      <p className="type-body"><Link href="/teams" className="text-accent underline hover:text-ink">{t("toTeams")}</Link></p>
     </div>
   );
 }

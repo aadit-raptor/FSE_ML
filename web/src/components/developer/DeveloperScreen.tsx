@@ -64,9 +64,9 @@ export function DeveloperScreen() {
         <p className="type-body text-[10.5px]">
           {t("baseLabel")} <code className="font-mono text-ink" data-developer="base">{(API_ORIGIN || t("baseLocal")) + "/api/v1"}</code>
           {" · "}
-          <a href={DOCS_URL} target="_blank" rel="noreferrer" className="text-accent hover:text-ink">{t("docsLink")}</a>
+          <a href={DOCS_URL} target="_blank" rel="noreferrer" className="text-accent underline hover:text-ink">{t("docsLink")}</a>
           {" · "}
-          <a href={`${API_ORIGIN}/api/docs`} target="_blank" rel="noreferrer" className="text-accent hover:text-ink">{t("schemaLink")}</a>
+          <a href={`${API_ORIGIN}/api/docs`} target="_blank" rel="noreferrer" className="text-accent underline hover:text-ink">{t("schemaLink")}</a>
         </p>
       </div>
       {problem && <Notice tone="loss" title={t("title")} role="alert">{t(problemKey(problem))}</Notice>}

@@ -45,7 +45,7 @@ function Figures({ company }: { company: Company }) {
           {company.warnings.length ? <CompanyWarning code={company.warnings[0].code} field={company.warnings[0].field} /> : t("noYears")}
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-collapse font-mono text-[11px]" aria-label={title}>
             <thead>
               <tr>
