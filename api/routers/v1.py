@@ -43,7 +43,7 @@ from api.schemas import (
 )
 from benchmarks.catalogue import ALL_INDUSTRIES_ID
 from db.engine import is_configured as database_configured
-from jobs.queue import JobQueue
+from jobs.queue import ACTIVE, JobQueue
 
 API_VERSION = "1"
 
@@ -115,8 +115,13 @@ def post_job(job: JobSubmit, response: Response, request: Request, user: AuthUse
     record = jobs.submit(queue, user.subject, job)
     told = 0
     if database_configured():
+        from api import webhooks as sender
         from db import webhooks
         told = webhooks.expect(user.subject, record.id)
+        # A quick job may have ended before its messages were written: then its end is told here
+        ended = queue.get(user.subject, record.id)
+        if told and ended.status not in ACTIVE:
+            sender.job_finished(record.id, ended.kind, ended.status, ended.error_status)
     response.headers["Location"] = f"{request.url.path}/{record.id}"
     return {**jobs.job_out(record), "webhooks": told}
 
@@ -131,11 +136,7 @@ def get_job(job_id: uuid.UUID, user: AuthUser = Depends(require_user), queue: Jo
 def cancel_job(job_id: uuid.UUID, user: AuthUser = Depends(require_user),
                queue: JobQueue = Depends(jobs.job_queue)):
     """Cancel a job: at once if it is waiting (its webhooks are told), else when its run notices."""
-    answer = jobs.cancel_job(job_id, user=user, queue=queue)
-    if answer["status"] == "cancelled":
-        from api import webhooks as sender
-        sender.job_finished(job_id, answer["kind"], "cancelled")
-    return answer
+    return jobs.cancel_job(job_id, user=user, queue=queue)
 
 
 @router.get("/defaults/industries", response_model=BenchmarkIndustriesResponse)

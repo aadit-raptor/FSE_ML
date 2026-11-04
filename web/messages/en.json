@@ -4093,6 +4093,7 @@
     "problem_no_account": "Finish your account first.",
     "problem_no_database": "Keys and webhooks need the database, which isn't set up on this server.",
     "problem_site_only": "Keys and webhooks are managed here, signed in on the site.",
-    "problem_failed": "That didn't work. Try again."
+    "problem_failed": "That didn't work. Try again.",
+    "problem_bad_port": "A webhook's address must use https's own port (443): leave the port out."
   }
 }

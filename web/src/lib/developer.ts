@@ -18,8 +18,8 @@ export type WebhookMade = Schemas["WebhookMade"];
 export type WebhookList = Schemas["WebhookList"];
 
 /** Refusal codes with words of their own (`developer.problem_<code>`); anything else is `problem_failed`. */
-const PROBLEMS = ["invalid_name", "full_keys", "full_webhooks", "invalid_url", "not_https", "private_address",
-  "not_found", "no_account", "no_database", "site_only"];
+const PROBLEMS = ["invalid_name", "full_keys", "full_webhooks", "invalid_url", "not_https", "bad_port",
+  "private_address", "not_found", "no_account", "no_database", "site_only"];
 
 export function problemKey(code: string): string {
   return `problem_${PROBLEMS.includes(code) ? code : "failed"}`;

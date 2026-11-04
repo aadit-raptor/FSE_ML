@@ -81,7 +81,7 @@ def job_maintenance() -> dict:
     # Webhook messages still due after a restart, and old ones (PLAN.md 7.7)
     from api import webhooks as sender
     from db import webhooks
-    sent = sender.deliver_due()
+    sent = sender.deliver_due(budget_s=30.0)   # well inside the scheduler's two minutes
     summary.update({f"webhooks_{state}": n for state, n in sent.items()},
                    webhook_messages_deleted=webhooks.sweep())
     # Mentions left waiting by their batch window or a mail outage (PLAN.md 7.2)

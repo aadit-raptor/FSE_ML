@@ -6,14 +6,17 @@ message's id), ``webhook-timestamp`` (Unix seconds) and ``webhook-signature``
 (``v1,`` and the base64 HMAC-SHA256, keyed with the secret's bytes, of
 ``<id>.<timestamp>.<body>``). docs/public-api.md shows the check.
 
-**Only to the public internet.** An address is ``https`` with a host name or a
-public address, no user name or password, at most 500 characters
-(``check_url``). Each send resolves the host, refuses the lot if any address
+**Only to the public internet.** An address is ``https`` on its own port (443)
+with a host name or a public address, no user name or password, at most 500
+characters (``check_url``). Each send resolves the host, refuses the lot if any address
 is not public (private, loopback, link-local, reserved, multicast: so a
 webhook can't reach the API's own network), and then connects to the address
 it checked, sending the host name for TLS and in ``Host`` -- so a name that
 answers differently the second time (DNS rebinding) changes nothing. No
-redirect is followed and at most ``MAX_ANSWER_BYTES`` of the answer are read.
+redirect is followed, at most ``MAX_ANSWER_BYTES`` of the answer are read, and
+a send ends after ``SEND_DEADLINE_S`` whatever the receiver does; a round of
+sending starts nothing new after ``ROUND_BUDGET_S``, so a slow receiver can't
+hold up everyone else's messages for long.
 
 Local runs and the tests may send to ``http://127.0.0.1`` with
 ``FSE_WEBHOOK_ALLOW_LOCAL=1``, which production and staging ignore.
@@ -46,13 +49,20 @@ URL_MAX = 500
 CONNECT_TIMEOUT_S = 5.0
 READ_TIMEOUT_S = 10.0
 MAX_ANSWER_BYTES = 4096
+# A send ends after this long whatever the receiver does (a receiver that answers a byte at a time can't hold it)
+SEND_DEADLINE_S = 15.0
+# A round of sending stops starting new messages after this long, so one slow receiver can't hold up the rest
+ROUND_BUDGET_S = 60.0
+# NAT64 prefixes (RFC 6052, RFC 8215): an address in them stands for an IPv4 address, possibly a private one
+_NAT64 = (ipaddress.ip_network("64:ff9b::/96"), ipaddress.ip_network("64:ff9b:1::/48"))
 # The thread waits this long at most for a retry; anything later is left to the next kick or the nightly run
 MAX_WAIT_S = 330.0
 USER_AGENT = "Variater-Webhooks/1 (+https://variater.com)"
 
 
 class Refused(ValueError):
-    """An address a webhook may not use; ``code`` says why (``invalid_url``, ``not_https``, ``private_address``)."""
+    """An address a webhook may not use; ``code`` says why (``invalid_url``, ``not_https``, ``bad_port``,
+    ``private_address``)."""
 
     def __init__(self, code: str):
         super().__init__(code)
@@ -71,6 +81,8 @@ def _public(address: str) -> bool:
         ip = ip.ipv4_mapped
     if local_allowed() and ip.is_loopback:
         return True
+    if isinstance(ip, ipaddress.IPv6Address) and any(ip in net for net in _NAT64):
+        return False
     return ip.is_global and not ip.is_multicast
 
 
@@ -89,8 +101,9 @@ def check_url(url: str) -> str:
         raise Refused("invalid_url")
     if parts.scheme != "https" and not (parts.scheme == "http" and local_allowed()):
         raise Refused("not_https")
-    if port == 0:
-        raise Refused("invalid_url")
+    # https's own port only: an address can't be used to knock on another service of a public host
+    if port is not None and port != 443 and not local_allowed():
+        raise Refused("bad_port")
     try:
         literal = ipaddress.ip_address(host)
     except ValueError:
@@ -122,19 +135,29 @@ def resolve(host: str, port: int) -> list[str]:
 
 def post(url: str, body: bytes, headers: dict) -> int:
     """POST ``body`` to the checked address, pinned to the address that was checked. The HTTP status; 0 for none."""
-    import certifi
-    import urllib3
-
     try:
         url = check_url(url)
         parts = urlsplit(url)
         port = parts.port or (443 if parts.scheme == "https" else 80)
-        address = resolve(parts.hostname, port)[0]
+        addresses = resolve(parts.hostname, port)
     except Refused:
         return 0
+    deadline = time.monotonic() + SEND_DEADLINE_S
+    for address in addresses:      # each address that was checked, in turn, until one answers
+        status = _post_to(address, port, parts, body, headers, deadline)
+        if status or time.monotonic() >= deadline:
+            return status
+    return 0
+
+
+def _post_to(address: str, port: int, parts, body: bytes, headers: dict, deadline: float) -> int:
+    import certifi
+    import urllib3
+
     path = (parts.path or "/") + (f"?{parts.query}" if parts.query else "")
     host_header = parts.hostname if parts.port is None else f"{parts.hostname}:{parts.port}"
-    timeout = urllib3.Timeout(connect=CONNECT_TIMEOUT_S, read=READ_TIMEOUT_S)
+    left = max(0.1, deadline - time.monotonic())
+    timeout = urllib3.Timeout(connect=min(CONNECT_TIMEOUT_S, left), read=min(READ_TIMEOUT_S, left))
     if parts.scheme == "https":
         pool = urllib3.HTTPSConnectionPool(address, port, server_hostname=parts.hostname,
                                            assert_hostname=parts.hostname, cert_reqs="CERT_REQUIRED",
@@ -145,7 +168,12 @@ def post(url: str, body: bytes, headers: dict) -> int:
         answer = pool.urlopen("POST", path, body=body, headers={**headers, "Host": host_header},
                               redirect=False, retries=False, preload_content=False, assert_same_host=False)
         try:
-            answer.read(MAX_ANSWER_BYTES)
+            read = 0
+            while read < MAX_ANSWER_BYTES and time.monotonic() < deadline:
+                piece = answer.read(min(512, MAX_ANSWER_BYTES - read))
+                if not piece:
+                    break
+                read += len(piece)
         finally:
             answer.release_conn()
         return int(answer.status)
@@ -178,12 +206,16 @@ def deliver(message) -> str:
     return state
 
 
-def deliver_due(*, limit: int = 200) -> dict:
-    """Send every message due now (at most ``limit``). How many went, failed for good, or wait for a retry."""
+def deliver_due(*, limit: int = 200, budget_s: float = ROUND_BUDGET_S) -> dict:
+    """Send messages due now, at most ``limit`` and starting none after ``budget_s``. How many went, failed for
+    good, or wait for a retry."""
     from db import webhooks as store
 
     counts = {"delivered": 0, "failed": 0, "due": 0}
+    ends = time.monotonic() + budget_s
     for _ in range(limit):
+        if time.monotonic() >= ends:
+            break
         message = store.claim()
         if message is None:
             break
@@ -207,11 +239,15 @@ def _loop() -> None:
         except Exception as exc:  # noqa: BLE001 - the nightly run sends what this misses
             log_event("webhook_thread_error", logging.WARNING, error=type(exc).__name__)
             return
-        if upcoming is None:
-            return
-        wait = (upcoming - utc_now()).total_seconds()
-        if wait > MAX_WAIT_S:
-            return
+        wait = None if upcoming is None else (upcoming - utc_now()).total_seconds()
+        if wait is None or wait > MAX_WAIT_S:
+            # Decided under the lock ``kick`` takes: a kick that came after the last round sends again
+            with _thread_lock:
+                if not _wake.is_set():
+                    _thread[0] = None
+                    return
+                _wake.clear()
+            continue
         _wake.wait(max(0.0, wait))
         _wake.clear()
 
@@ -221,7 +257,8 @@ def _run() -> None:
         _loop()
     finally:
         with _thread_lock:
-            _thread[0] = None
+            if _thread[0] is threading.current_thread():
+                _thread[0] = None
 
 
 def kick() -> None:
@@ -230,10 +267,10 @@ def kick() -> None:
     if not is_configured():
         return
     with _thread_lock:
+        _wake.set()
         if _thread[0] is None:
             _thread[0] = threading.Thread(target=_run, name="fse-webhooks", daemon=True)
             _thread[0].start()
-    _wake.set()
 
 
 def job_finished(job_id, kind: str, status: str, error_status: Optional[int] = None) -> None:

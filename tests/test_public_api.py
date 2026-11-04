@@ -347,6 +347,9 @@ def test_a_person_holds_at_most_five_keys_and_three_webhooks(site):  # noqa: ARG
     ("https://hooks.example.com/v#x", "invalid_url"),
     ("ftp://hooks.example.com/v", "not_https"),
     ("https:///nohost", "invalid_url"),
+    ("https://hooks.example.com:22/v", "bad_port"),
+    ("https://hooks.example.com:8443/v", "bad_port"),
+    ("https://[64:ff9b::a00:1]/hook", "private_address"),
     ("https://hooks.example.com/a b", "invalid_url"),
 ])
 def test_a_webhook_must_be_https_on_the_public_internet(site, monkeypatch, url, code):  # noqa: ARG001
@@ -412,11 +415,55 @@ def test_a_send_connects_to_the_address_it_checked(monkeypatch):
 
     import urllib3
     monkeypatch.setattr(urllib3, "HTTPSConnectionPool", Pool)
-    assert sender.post("https://hooks.example.com:8443/in?x=1", b"{}", {"a": "b"}) == 204
-    assert seen["host"] == "93.184.215.14" and seen["port"] == 8443
+    assert sender.post("https://hooks.example.com/in?x=1", b"{}", {"a": "b"}) == 204
+    assert seen["host"] == "93.184.215.14" and seen["port"] == 443
     assert seen["server_hostname"] == "hooks.example.com" and seen["assert_hostname"] == "hooks.example.com"
     assert seen["cert_reqs"] == "CERT_REQUIRED" and seen["redirect"] is False
-    assert seen["headers"]["Host"] == "hooks.example.com:8443" and seen["path"] == "/in?x=1"
+    assert seen["headers"]["Host"] == "hooks.example.com" and seen["path"] == "/in?x=1"
+
+
+def test_a_send_tries_each_checked_address_until_one_answers(monkeypatch):
+    monkeypatch.setenv("FSE_ENV", "production")
+    monkeypatch.setattr(sender.socket, "getaddrinfo", lambda host, port, **kw: [
+        (None, None, None, "", ("2606:2800:220:1::1", port)), (None, None, None, "", ("93.184.215.14", port))])
+    tried: list[str] = []
+
+    def answer(address, port, parts, body, headers, deadline):
+        tried.append(address)
+        return 0 if ":" in address else 200     # no IPv6 route here
+    monkeypatch.setattr(sender, "_post_to", answer)
+    assert sender.post("https://hooks.example.com/in", b"{}", {}) == 200
+    assert tried == ["2606:2800:220:1::1", "93.184.215.14"]
+
+
+def test_a_round_of_sending_stops_starting_messages_once_its_time_is_up(site):  # noqa: ARG001
+    sender.use_sender(lambda url, body, headers: 200)
+    client.post("/api/account/webhooks", json={"url": "https://hooks.example.com/r"}, headers=bearer("dev:alice"))
+    hook = __import__("uuid").UUID(client.get("/api/account/webhooks", headers=bearer("dev:alice"))
+                                    .json()["webhooks"][0]["id"])
+    for _ in range(3):
+        webhooks.ping("dev:alice", hook)
+    assert sender.deliver_due(budget_s=0) == {"delivered": 0, "failed": 0, "due": 0}
+    assert sender.deliver_due() == {"delivered": 3, "failed": 0, "due": 0}
+
+
+def test_a_job_that_ends_before_its_messages_are_written_is_still_told(site, receiver, job_queue, monkeypatch):  # noqa: ARG001
+    """The runner may finish a quick job between its submit and the webhooks' waiting rows: told all the same."""
+    from api.routers import jobs as jobs_router
+    hook = client.post("/api/account/webhooks", json={"url": receiver.url}, headers=bearer("dev:alice")).json()
+    real_submit = jobs_router.submit
+
+    def submit_and_run(*args, **kwargs):
+        record = real_submit(*args, **kwargs)
+        assert Runner(lambda: job_queue).run_next() == "succeeded"   # ends before expect() writes anything
+        return record
+    monkeypatch.setattr(jobs_router, "submit", submit_and_run)
+    job = client.post("/api/v1/jobs", json={"kind": "montecarlo.run", "input": drill.DRILL_REQUEST},
+                      headers=bearer(new_key())).json()
+    receiver.wait()
+    message = example.verify(hook["secret"], *receiver.messages[0])
+    assert message["data"]["job_id"] == job["id"] and message["data"]["status"] == "succeeded"
+    assert len(receiver.messages) == 1
 
 
 def test_the_signature_is_standard_webhooks(monkeypatch):

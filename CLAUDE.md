@@ -1676,12 +1676,18 @@ sends what is due, waits for retries (10 s, 1 min, 5 min; then `failed`) up to
 `MAX_WAIT_S` and stops. **Signed as Standard Webhooks** (`webhook-id`,
 `webhook-timestamp`, `webhook-signature: v1,<base64 HMAC-SHA256 of
 id.timestamp.body>`, tested on the spec's own vector). **Addresses**
-(`api.webhooks.check_url`, `resolve`, `post`): https only, no user info or
-fragment, no literal private/loopback/link-local/reserved address or
+(`api.webhooks.check_url`, `resolve`, `post`): https on port 443 only
+(`bad_port`), no user info or fragment, no NAT64 prefix, no literal private/loopback/link-local/reserved address or
 `localhost`/`.local`/`.internal`; each send resolves the name, refuses if any
 address isn't public, and opens a urllib3 pool **on the checked address** with
 the name as SNI, `assert_hostname` and `Host` (DNS rebinding changes nothing),
-no redirects, 5 s to connect, 10 to answer, 4 KB read. `FSE_WEBHOOK_ALLOW_LOCAL=1`
+trying each checked address in turn, no redirects, 5 s to connect, 10 to
+answer, 4 KB read and `SEND_DEADLINE_S` 15 for the whole send; a round
+(`deliver_due`) starts nothing after `ROUND_BUDGET_S` 60 (30 in the nightly
+task), so one slow receiver can't hold up the rest. A quick job that ends
+before `expect` writes its rows is told by `post_job`'s re-read of the job; a
+job failed by `queue.recover()` (a silent runner, out of tries) tells nobody
+(known, left). `FSE_WEBHOOK_ALLOW_LOCAL=1`
 allows `http://127.0.0.1` for local runs and tests and is ignored on production
 and staging. The nightly `job-maintenance` sends what is still due and
 deletes messages older than `KEEP_DAYS` 7 (`webhooks_*`,
@@ -1694,7 +1700,8 @@ only. Screen: Account -> **Developer API** (`/account/developer`,
 script `docs/examples/variater_api.py` (standard library only) is what
 `tests/test_public_api.py` runs against a real local uvicorn with a key and a
 local receiver, so **a change to v1 that breaks a script fails that test**.
-Not done: other webhook events, narrower key scopes, keys that expire.
+Not done: other webhook events, narrower key scopes, keys that expire,
+telling webhooks of a job the nightly recovery fails.
 
 Workspaces (PLAN.md 7.10, the user's request, done out of turn after 4.6):
 `web/src/lib/nav.ts` `WORKSPACES` groups the modes into **LBO** (Deal,

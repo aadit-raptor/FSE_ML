@@ -73,8 +73,8 @@ that takes about a minute.
 ## Webhooks
 
 Add an address on **Account → Developer API → Add webhook**. It must be
-`https` on the public internet (no private, local or link-local address, no
-user name in it). You can have three. Its **signing secret** (`whsec_...`) is
+`https` on its own port (443, so leave the port out) on the public internet
+(no private, local or link-local address, no user name in it). You can have three. Its **signing secret** (`whsec_...`) is
 shown once.
 
 When a job you queued through `/api/v1/jobs` ends (succeeded, failed or

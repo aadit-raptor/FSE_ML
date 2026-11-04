@@ -3016,9 +3016,11 @@ enough for the free server.
   reaches a local receiver, which checks the signature with the script's own
   `verify`; the revoked key refused on the very next request; scopes, other
   accounts, address checks and DNS pinning, retries, limits, Standard
-  Webhooks' published signature; 14 mutations caught), `e2e/developer.spec.ts`.
+  Webhooks' published signature, a job that ends before its messages are
+  written, a send's deadline; 19 mutations caught), `e2e/developer.spec.ts`.
   Not done: webhook events other than a finished job, keys limited to fewer
-  endpoints than v1, a key that expires by itself.
+  endpoints than v1, a key that expires by itself, a message for a job the
+  nightly recovery fails (its runner went silent three times).
 
 ### 7.8 More languages
 - **Claude does:** full translations for a first set chosen when the task
