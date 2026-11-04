@@ -50,7 +50,7 @@ async function sideways(page: Page): Promise<string[]> {
 }
 
 /** The screens outside the modes. */
-const OTHER = ["/start", "/account", "/help", "/help/whats-new", "/teams"];
+const OTHER = ["/start", "/account", "/account/developer", "/help", "/help/whats-new", "/teams"];
 
 /**
  * One screen at the three sizes. It is opened once and the window resized, which reflows it as a

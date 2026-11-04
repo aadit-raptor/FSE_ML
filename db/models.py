@@ -314,7 +314,9 @@ AUDIT_ACTIONS = ("created", "edited", "renamed", "archived", "unarchived", "vers
                  # bought, its alert tolerance) or taken out of the portfolio; its quarterly results saved or
                  # cleared; a reforecast from them run
                  "portfolio_added", "portfolio_changed", "portfolio_removed", "quarters_saved", "quarters_cleared",
-                 "reforecast_run")
+                 "reforecast_run",
+                 # The public API (PLAN.md 7.7): an API key made or revoked; a webhook added or removed
+                 "api_key_created", "api_key_revoked", "webhook_added", "webhook_removed")
 
 
 class AuditEvent(Base):
@@ -867,6 +869,95 @@ class AddinSession(Base):
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+
+
+class ApiKey(Base):
+    """A key for the public API (PLAN.md 7.7).
+
+    A key is ``vk_`` and 43 random URL-safe characters, answered once when it
+    is made. Only its SHA-256 is kept, with the name the person gave it and
+    its last four characters, so the screen can tell keys apart and a copy of
+    the table signs nobody in. A key reaches ``/api/v1/*`` only
+    (``api.auth.KEY_PATH``) as the person who made it. Revoking deletes the
+    row, and every request looks the key up again, so a revoked key stops at
+    once.
+    """
+
+    __tablename__ = "api_keys"
+    __table_args__ = (
+        Index("ix_api_keys_owner_id_created_at", "owner_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(60), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    hint: Mapped[str] = mapped_column(String(4), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    # When it was last used, to the minute (written at most once a minute)
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+
+
+class Webhook(Base):
+    """An address the API tells when a job submitted through ``/api/v1`` ends (PLAN.md 7.7).
+
+    ``secret`` signs every delivery (Standard Webhooks: HMAC-SHA256 of the
+    message id, timestamp and body). Both ends must hold it to sign and check,
+    so it is stored as itself, like the address; it is answered once, when the
+    webhook is added. A delivery carries the job's id, kind and status, never
+    its result or its error text (either may hold a deal's figures).
+    """
+
+    __tablename__ = "webhooks"
+    __table_args__ = (
+        Index("ix_webhooks_owner_id_created_at", "owner_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    secret: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+
+
+WEBHOOK_EVENTS = ("job.finished", "ping")
+DELIVERY_STATES = ("waiting", "due", "delivered", "failed")
+
+
+class WebhookDelivery(Base):
+    """One message to one webhook (PLAN.md 7.7).
+
+    A job submitted through ``/api/v1`` writes one ``waiting`` row per webhook
+    of its owner; when the job ends the rows become ``due`` with their message
+    (``payload``: ids, kind and status only) and are sent, again after
+    ``api.webhooks.BACKOFF_S`` on a failure, then ``failed``. ``last_status``
+    is the HTTP status answered (0: no answer). Rows go after
+    ``api.webhooks.KEEP_DAYS``.
+    """
+
+    __tablename__ = "webhook_deliveries"
+    __table_args__ = (
+        CheckConstraint(_one_of("event", WEBHOOK_EVENTS), name="event"),
+        CheckConstraint(_one_of("state", DELIVERY_STATES), name="state"),
+        Index("ix_webhook_deliveries_job_id", "job_id"),
+        Index("ix_webhook_deliveries_state_next_at", "state", "next_at"),
+        Index("ix_webhook_deliveries_webhook_id_created_at", "webhook_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    webhook_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("webhooks.id", ondelete="CASCADE"), nullable=False)
+    job_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid, nullable=True)
+    event: Mapped[str] = mapped_column(String(20), nullable=False)
+    state: Mapped[str] = mapped_column(String(10), nullable=False)
+    payload: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    next_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
+    last_status: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, server_default=func.now())
+    finished_at: Mapped[Optional[datetime]] = mapped_column(UTCDateTime, nullable=True)
 
 
 RESEARCH_MODEL_VERSION_KINDS = ("created", "saved", "auto", "restored", "rolled")

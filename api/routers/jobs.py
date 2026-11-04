@@ -124,6 +124,11 @@ def cancel_job(job_id: uuid.UUID, user: AuthUser = Depends(require_user),
     """Cancel a job: at once if it is waiting; a running one ends as cancelled
     and its result is dropped."""
     try:
-        return job_out(queue.cancel(user.subject, job_id))
+        record = queue.cancel(user.subject, job_id)
     except JobNotFound:
         raise _not_found() from None
+    if record.status == "cancelled":
+        # A job queued through /api/v1 tells its webhooks (PLAN.md 7.7); one queued here has none waiting
+        from api import webhooks
+        webhooks.job_finished(job_id, record.kind, "cancelled")
+    return job_out(record)

@@ -91,6 +91,12 @@ LIVE_PATH = "/api/montecarlo/live"
 # from the health check and the real runs. Two at the caps are under 50 MB.
 LIVE_SLOTS = 2
 LIVE_WAIT_S = 2.0
+# The public API (PLAN.md 7.7): each key has limits of its own inside its person's, so a script left
+# running can't spend the day's runs the person needs on the site. Sixty requests a minute is one a
+# second, which a script polling a job needs at most; two hundred runs a day is a fifth of the person's
+# day, and a simulation through the API takes the one simulation slot like any other.
+KEY_REQUESTS = Rule("key_requests_per_minute", "requests with this API key", "key", 60, 60)
+KEY_RUNS_DAY = Rule("key_runs_per_day", "model runs with this API key", "key", 200, 86_400, shared=True)
 ADDRESS_REQUESTS = Rule("address_requests_per_minute", "requests", "address", 1_200, 60)
 ADDRESS_REFUSED_SIGN_INS = Rule("address_refused_sign_ins_per_minute", "refused sign-ins",
                                 "address", 60, 60)
@@ -103,18 +109,22 @@ RUN_PATHS = frozenset({
     "/api/companies/search", "/api/companies/load", "/api/research/reads", "/api/documents/reads",
     # The portfolio dashboard (PLAN.md 7.4) runs the deal model of every holding, up to a hundred
     "/api/portfolio",
+    # The public API's simulation (PLAN.md 7.7)
+    "/api/v1/montecarlo/run",
 })
 RUN_PATH_PREFIXES = ("/api/edgar/",)
 # The memory-heavy runs: one at a time, with a timeout
 SIMULATION_PATHS = frozenset({
     "/api/montecarlo/run", "/api/montecarlo/scenarios", "/api/export/montecarlo-sample",
     "/api/backtesting/run", "/api/backtesting/plan-vs-actual", "/api/forecasting/run",
+    "/api/v1/montecarlo/run",
 })
 UNLIMITED_PREFIX = "/api/health"
 
 
 # Submitting a background job (PLAN.md 1.9) is a run too; polling it is not
 JOBS_PATH = "/api/jobs"
+V1_JOBS_PATH = "/api/v1/jobs"
 
 
 # An uploaded file's bytes (PLAN.md 6.1): the one request that is not read
@@ -170,6 +180,12 @@ WRITES_ALL = Rule("writes_per_day", "note sentences written", "service", 10, 86_
 USER_FILE_VIEWS = Rule("user_file_views_per_day", "PDF views", "user", 100, 86_400, shared=True)
 
 
+# A webhook's test message (PLAN.md 7.7) goes to an address the person typed: few, so a webhook can't be
+# made into a way of sending requests to someone else's server
+_WEBHOOK_PING = re.compile(r"/api/account/webhooks/" + _UUID + r"/ping")
+USER_PINGS = Rule("user_webhook_pings_per_hour", "webhook test messages", "user", 20, 3600)
+
+
 def streams_body(method: str, path: str) -> bool:
     return method == "PUT" and _FILE_CONTENT.fullmatch(path) is not None
 
@@ -186,7 +202,7 @@ def is_run_path(path: str) -> bool:
 
 def is_run_request(method: str, path: str) -> bool:
     # fetching a file's bytes from the outside store is a run too (PLAN.md R2)
-    return is_run_path(path) or (method == "POST" and path == JOBS_PATH) or (
+    return is_run_path(path) or (method == "POST" and path in (JOBS_PATH, V1_JOBS_PATH)) or (
         method == "GET" and _FILE_CONTENT.fullmatch(path) is not None) or (
         method == "POST" and (_NOTE_SENTENCES.fullmatch(path) is not None or _MEMO_RUNS.fullmatch(path) is not None
                                   or _REFORECAST_RUNS.fullmatch(path) is not None))
@@ -249,7 +265,8 @@ def _wait(seconds: int) -> str:
 def refusal(rule: Rule, check: Check, now: float) -> tuple[dict, dict]:
     """JSON body and headers for a 429."""
     retry = max(1, math.ceil(check.window_end - now))
-    who = {"user": "your account", "address": "this network address"}.get(rule.per, "everyone together")
+    who = {"user": "your account", "address": "this network address", "key": "this API key"}.get(
+        rule.per, "everyone together")
     message = (f"Too many {rule.what}: {who} can make {check.limit:,} {_period(rule.window_s)}. "
                f"Try again in {_wait(retry)}.")
     body = {"detail": message, "limit": {"rule": rule.name, "limit": check.limit,
@@ -276,12 +293,18 @@ def enforce(rules: list[tuple[Rule, str]], *, now: Optional[float] = None) -> No
 def enforce_user_limits(request: Request, user: AuthUser = Depends(require_user)) -> None:
     """FastAPI dependency: the signed-in user's request and run limits."""
     rules = [(USER_REQUESTS, user.subject)]
+    if user.via_key is not None:
+        rules.append((KEY_REQUESTS, f"key:{user.via_key}"))
     if is_run_request(request.method, request.url.path):
         rules += [(USER_RUNS, user.subject), (USER_RUNS_DAY, user.subject)]
+        if user.via_key is not None:
+            rules.append((KEY_RUNS_DAY, f"key:{user.via_key}"))
     if request.url.path == LIVE_PATH:
         rules.append((USER_LIVE, user.subject))
     if request.method == "POST" and request.url.path == UPLOADS_PATH:
         rules.append((USER_UPLOADS, user.subject))
+    if request.method == "POST" and _WEBHOOK_PING.fullmatch(request.url.path):
+        rules.append((USER_PINGS, user.subject))
     enforce(rules)
 
 

@@ -173,7 +173,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☑ |
 | 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☑ |
 | 7.6 | Phones, tablets and accessibility | — | ☑ |
-| 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☐ |
+| 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☑ |
 | 7.8 | More languages | 2.3b | ☐ |
 | 7.9 | Charts in every Excel download | 2.3a | ☑ |
 | 7.10 | Workspaces: LBO and equity research, launcher after sign-in | 1.4 | ☑ |
@@ -3022,6 +3022,32 @@ enough for the free server.
   finished jobs; per-key limits sized for free hosting.
 - **Done when:** a script with a key runs a deal and receives a webhook (test);
   revoked keys stop immediately.
+- **Done (2026-11-04).** Account -> **Developer API** (`/account/developer`):
+  API keys (`vk_`, five a person, kept as their SHA-256 with a name and last
+  four characters) reach `/api/v1/*` and nothing else, as the person who made
+  them, and are looked up on every request, so a revoked key is refused by the
+  next one. Version 1 (`api/routers/v1.py`) calls the screens' own endpoint
+  functions: the deal model, the simulation, saved deals (list, open, run with
+  their Settings, by role as on the site), jobs, and the sourced market
+  defaults by country and industry (4.3, 4.4); every answer carries the model
+  stamp (3.1) and `Variater-API-Version: 1`. Webhooks (three a person): a job
+  queued through `/api/v1/jobs` sends each a `job.finished` message (the job's
+  id, kind and status, never its result) signed as Standard Webhooks sign
+  (HMAC-SHA256 with a `whsec_` secret shown once), sent only to an https
+  address that resolves to the public internet and pinned to the address
+  checked, retried after 10 s, 1 min and 5 min. Per-key limits inside the
+  person's: 60 requests a minute and 200 runs a day. Docs:
+  `docs/public-api.md` and the example script `docs/examples/variater_api.py`.
+  Migration 0029. Evidence: `tests/test_public_api.py` (the example script with
+  a key, against a real local server, runs a deal and its simulation's webhook
+  reaches a local receiver, which checks the signature with the script's own
+  `verify`; the revoked key refused on the very next request; scopes, other
+  accounts, address checks and DNS pinning, retries, limits, Standard
+  Webhooks' published signature, a job that ends before its messages are
+  written, a send's deadline; 19 mutations caught), `e2e/developer.spec.ts`.
+  Not done: webhook events other than a finished job, keys limited to fewer
+  endpoints than v1, a key that expires by itself, a message for a job the
+  nightly recovery fails (its runner went silent three times).
 
 ### 7.8 More languages
 - **Claude does:** full translations for a first set chosen when the task

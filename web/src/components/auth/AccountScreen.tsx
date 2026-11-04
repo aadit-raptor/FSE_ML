@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -234,6 +235,11 @@ export function AccountScreen() {
           </span>
         )}
         <div className="flex-1" />
+        {!first && (
+          <Link href="/account/developer" className="type-body text-[10.5px] text-accent hover:text-ink" data-account="developer">
+            {t("developerLink")}
+          </Link>
+        )}
         <SecondaryButton onClick={() => void signOut()}>{t("signOut")}</SecondaryButton>
       </div>
     </div>
