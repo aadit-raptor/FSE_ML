@@ -344,12 +344,13 @@ def test_monthly_redis_estimate_holds_at_target_traffic():
     assert report["estimated_monthly_commands"] < 0.5 * usage.REDIS_MONTHLY_COMMANDS
     # The daily budgets cap Redis use whatever the traffic
     assert report["budget_ceiling_monthly_commands"] < usage.REDIS_MONTHLY_COMMANDS
-    # And the estimate counts the way the guard does
+    # And the estimate counts the way the guard does: each sync also carries the
+    # result cache's two daily counters (PLAN.md 8.1)
     production = usage.TARGET_TRAFFIC[0]
     syncs = -(-production.active_minutes_per_user * 60 // usage.FLUSH_INTERVAL_S)
     assert usage.monthly_redis_commands(production) == 31 * (
         2 * production.daily_active_users * syncs
-        + 3 * -(-production.busy_hours_per_day * 3600 // usage.FLUSH_INTERVAL_S))
+        + (3 + 2 * 2) * -(-production.busy_hours_per_day * 3600 // usage.FLUSH_INTERVAL_S))
 
 
 def test_health_limits_is_public_and_reports_the_store(monkeypatch, signed_out):  # noqa: ARG001

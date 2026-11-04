@@ -178,6 +178,14 @@ class Runner:
                 queue.report(job.id, self.worker, progress=stage.done, stage=stage.after)
 
         request = kind.parse(job.payload or {})     # bad input fails before waiting
+        if kind.cached:
+            # A seeded run asked before by the same owner (PLAN.md 8.1): answered without the slot
+            from api.result_cache import cache
+            return cache().run(kind.name, job.owner, request, kind.response,
+                               lambda: self._execute(queue, job, kind, request, listener))
+        return self._execute(queue, job, kind, request, listener)
+
+    def _execute(self, queue: JobQueue, job: JobRecord, kind: JobKind, request, listener):
         token = model_run_listener.set(listener)
         try:
             if not kind.simulation:
