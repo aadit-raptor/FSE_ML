@@ -51,6 +51,18 @@ def usage_counters():
 
 
 @pytest.fixture(autouse=True)
+def result_cache():
+    """The result cache (PLAN.md 8.1) is off in tests, so a test that patches the
+    model and runs the same seeded request again sees the patch; the cache's own
+    tests turn on a fresh one (tests/test_result_cache.py)."""
+    from api import result_cache as rc
+    off = rc.ResultCache([], enabled=False)
+    rc.set_cache(off)
+    yield off
+    rc.set_cache(None)
+
+
+@pytest.fixture(autouse=True)
 def job_queue(monkeypatch):
     """A fresh in-memory job queue for each test, with the in-API runner
     switched off: tests run jobs themselves (``Runner.run_next``), so nothing

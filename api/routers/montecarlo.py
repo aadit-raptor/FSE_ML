@@ -7,6 +7,7 @@ from analytics.driver_attribution import explain_tails
 from api.deps import resolve_settings
 from api import limits
 from api.limits import live_slot, simulation_slot
+from api.result_cache import cached
 from api.observability import model_timer
 from api.schemas import (
     LiveRequest, LiveResponse, MonteCarloRequest, MonteCarloResponse, ScenariosRequest, ScenariosResponse,
@@ -32,6 +33,7 @@ SCATTER_COLUMNS = ["IRR", "MOIC", "Growth", "Exit Multiple", "Interest", "Gross 
 
 
 @router.post("/run", response_model=MonteCarloResponse)
+@cached("montecarlo.run", MonteCarloResponse)
 @simulation_slot
 def post_run(req: MonteCarloRequest):
     """Simulate the deal and return chart-ready distributions and analytics.
@@ -96,6 +98,7 @@ def post_run(req: MonteCarloRequest):
 
 
 @router.post("/scenarios", response_model=ScenariosResponse)
+@cached("montecarlo.scenarios", ScenariosResponse)
 @simulation_slot
 def post_scenarios(req: ScenariosRequest):
     """Run all four scenario presets from the same inputs."""
