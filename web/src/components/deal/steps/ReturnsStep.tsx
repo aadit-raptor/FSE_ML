@@ -13,7 +13,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { useMoney } from "@/components/ui/MoneyScope";
 import { dealFiscal } from "@/lib/deal/fields";
 import type { Schemas } from "@/lib/api/client";
-import { downloadWorkbook, fraction, sheet } from "@/lib/export";
+import { chart, downloadWorkbook, fraction, sheet, withCharts } from "@/lib/export";
 import { fmtMoney, fmtMultiple, fmtRate, isNum } from "@/lib/format";
 import { bridgeTerm, statementTerm, unitTerm } from "@/lib/glossary";
 import { useEngineLabel } from "@/lib/i18n/useEngineText";
@@ -153,11 +153,15 @@ function ReturnsResults() {
               downloadWorkbook(
                 x("fileIrrSensitivity"),
                 [
-                  sheet(
-                    x("sheetIrrSensitivity"),
-                    [x("colExitMultiple"), ...res.exit_sensitivity.holding_periods.map((h) => units("holdColumn", { years: h }))],
-                    res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => fraction(v))]),
-                    { columns: ["multiple", ...res.exit_sensitivity.holding_periods.map(() => "percent" as const)] },
+                  withCharts(
+                    sheet(
+                      x("sheetIrrSensitivity"),
+                      [x("colExitMultiple"), ...res.exit_sensitivity.holding_periods.map((h) => units("holdColumn", { years: h }))],
+                      res.exit_sensitivity.table.map((row, i) => [res.exit_sensitivity.exit_multiples[i], ...row.map((v) => fraction(v))]),
+                      { columns: ["multiple", ...res.exit_sensitivity.holding_periods.map(() => "percent" as const)] },
+                    ),
+                    // Excel has no heatmap: the table's cells carry a colour scale (PLAN.md 7.9)
+                    chart({ kind: "heatmap", title: x("chartIrrSensitivity") }),
                   ),
                 ],
                 money,

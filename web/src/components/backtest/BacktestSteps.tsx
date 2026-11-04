@@ -17,7 +17,7 @@ import {
   ACTUAL_LINES, type ActualsDraft, actualsCsv, blankExit, completeExit, EXIT_FIELDS, type ExitKey, type LineKey,
   parseActualsCsv, resizeYears,
 } from "@/lib/backtest/actuals";
-import { downloadText, downloadWorkbook, fraction, sheet } from "@/lib/export";
+import { chart, downloadText, downloadWorkbook, fraction, sheet, withCharts } from "@/lib/export";
 import { fmtCount, fmtDelta, fmtMoney, fmtMultiple, fmtNumber, fmtRate, isNum } from "@/lib/format";
 import { useFiscalLabels } from "@/lib/i18n/useFiscalLabels";
 import { useProvenance } from "@/lib/i18n/useProvenance";
@@ -524,6 +524,7 @@ function Years() {
   const years = useYears(r?.years.length);
   if (!r) return null;
   const rows = lineRows(r, t);
+  const ebitdaLine = ACTUAL_LINES.findIndex((l) => l.key === "ebitda");
   const a = r.actual;
   return (
     <Tiles>
@@ -538,11 +539,53 @@ function Years() {
               downloadWorkbook(
                 x("fileBacktest"),
                 [
-                  sheet(
-                    x("sheetYearByYear"),
-                    [x("colLine"), ...years],
-                    rows.map((row) => [row.label, ...row.values]),
-                    { columns: ["text", ...years.map(() => "money" as const)] },
+                  // The screen's charts go with the tables, drawn from the workbook's cells (PLAN.md 7.9)
+                  withCharts(
+                    sheet(
+                      x("sheetYearByYear"),
+                      [x("colLine"), ...years],
+                      rows.map((row) => [row.label, ...row.values]),
+                      { columns: ["text", ...years.map(() => "money" as const)] },
+                    ),
+                    chart({
+                      kind: "bar",
+                      title: t("tileEbitda"),
+                      series: [
+                        { index: ebitdaLine * 3, name: t("seriesPlan"), tone: "plan" },
+                        { index: ebitdaLine * 3 + 1, name: t("seriesActual"), tone: "answer" },
+                      ],
+                      y_title: mu,
+                      y_format: "money",
+                    }),
+                  ),
+                  withCharts(
+                    sheet(
+                      x("sheetEbitdaMargin"),
+                      ["", ...years],
+                      [
+                        [t("seriesPlan"), ...r.plan_ebitda_margin.map((v) => fraction(v))],
+                        [t("seriesActual"), ...r.actual_ebitda_margin.map((v) => fraction(v))],
+                      ],
+                      { columns: [null, ...years.map(() => "percent" as const)] },
+                    ),
+                    chart({
+                      kind: "line",
+                      title: t("tileEbitdaMargin"),
+                      series: [
+                        { index: 1, tone: "answer" },
+                        { index: 0, tone: "plan" },
+                      ],
+                      y_format: "percent",
+                    }),
+                  ),
+                  withCharts(
+                    sheet(
+                      x("sheetPlanDistribution"),
+                      [x("colFrom"), x("colTo"), x("colDensity")],
+                      r.irr_histogram.density.map((d, i) => [r.irr_histogram.edges[i], r.irr_histogram.edges[i + 1], d]),
+                      { columns: ["percent", "percent", "number"] },
+                    ),
+                    chart({ kind: "histogram", by: "columns", title: t("tileWhereLanded"), series: [{ index: 2, tone: "answer" }], y_title: x("colDensity") }),
                   ),
                   sheet(
                     x("sheetReturns"),
@@ -557,11 +600,14 @@ function Years() {
                   ),
                   ...(r.attribution
                     ? [
-                        sheet(
-                          x("sheetAttribution"),
-                          [x("colPart"), mu],
-                          Object.entries(r.attribution).map(([k, v]) => [ATTRIBUTION_KEY[k] ? t(ATTRIBUTION_KEY[k]) : k, v]),
-                          { columns: ["text", "money"] },
+                        withCharts(
+                          sheet(
+                            x("sheetAttribution"),
+                            [x("colPart"), mu],
+                            Object.entries(r.attribution).map(([k, v]) => [ATTRIBUTION_KEY[k] ? t(ATTRIBUTION_KEY[k]) : k, v]),
+                            { columns: ["text", "money"] },
+                          ),
+                          chart({ kind: "bar", by: "columns", horizontal: true, title: t("tileWhereMissed"), series: [{ index: 1 }], y_format: "money" }),
                         ),
                       ]
                     : []),
