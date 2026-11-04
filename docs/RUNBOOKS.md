@@ -134,7 +134,7 @@ the normal minute-long wake from sleep. Render (service `fse-api`) is down,
 crashing, out of memory, out of instance hours, or the domain is broken.
 
 **Confirm.** `curl -si -m 150 https://api.variater.com/api/health`; also the
-service's own address `https://fse-api.onrender.com/api/health` (if that works
+service's `onrender.com` address shown in the Render dashboard (if that works
 and `api.` does not, it is DNS or a certificate). Render → `fse-api` →
 **Events** (a deploy that failed or rolled back) and **Logs** (one JSON line a
 request; a crash loop shows tracebacks). If the log ends with "Killed" or the
