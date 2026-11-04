@@ -28,6 +28,7 @@ export const PRIVACY_TITLE = DEFAULT_MESSAGES.privacy.title;
 export const SUPPORT_TITLE = DEFAULT_MESSAGES.support.title;
 export const HELP_TITLE = DEFAULT_MESSAGES.help.title;
 export const TEAMS_TITLE = DEFAULT_MESSAGES.teams.title;
+export const DEVELOPER_TITLE = DEFAULT_MESSAGES.developer.title;
 export const JOIN_TITLE = DEFAULT_MESSAGES.teams.joinTitle;
 export const WHATS_NEW_TITLE = DEFAULT_MESSAGES.help.whatsNew;
 export const APP_DESCRIPTION = DEFAULT_MESSAGES.app.description;
