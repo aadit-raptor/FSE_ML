@@ -614,6 +614,136 @@
         "title": "AnnualByRating",
         "type": "object"
       },
+      "ApiKeyCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "What the key is for, so you can tell keys apart",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ApiKeyCreate",
+        "type": "object"
+      },
+      "ApiKeyList": {
+        "properties": {
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/ApiKeyOut"
+            },
+            "title": "Keys",
+            "type": "array"
+          },
+          "max": {
+            "description": "How many keys a person may hold",
+            "title": "Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "keys",
+          "max"
+        ],
+        "title": "ApiKeyList",
+        "type": "object"
+      },
+      "ApiKeyMade": {
+        "description": "A new key, answered once: send it as ``Authorization: Bearer <token>`` to ``/api/v1``.",
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "hint": {
+            "description": "The key's last four characters",
+            "title": "Hint",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UTC, ISO 8601, to the minute; null until used",
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "token": {
+            "description": "vk_ and 43 characters; only its hash is kept",
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hint",
+          "created_at",
+          "token"
+        ],
+        "title": "ApiKeyMade",
+        "type": "object"
+      },
+      "ApiKeyOut": {
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "hint": {
+            "description": "The key's last four characters",
+            "title": "Hint",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UTC, ISO 8601, to the minute; null until used",
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hint",
+          "created_at"
+        ],
+        "title": "ApiKeyOut",
+        "type": "object"
+      },
       "AuditEntry": {
         "description": "One thing done to a deal or the account's settings (PLAN.md 3.3). Holds\nwhat was touched, never a figure, a name or a label.",
         "properties": {
@@ -669,7 +799,11 @@
               "portfolio_removed",
               "quarters_saved",
               "quarters_cleared",
-              "reforecast_run"
+              "reforecast_run",
+              "api_key_created",
+              "api_key_revoked",
+              "webhook_added",
+              "webhook_removed"
             ],
             "title": "Action",
             "type": "string"
@@ -23290,6 +23424,237 @@
         "title": "UsualFigure",
         "type": "object"
       },
+      "V1Job": {
+        "properties": {
+          "ahead": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Queued jobs ahead of this one (queued only)",
+            "title": "Ahead"
+          },
+          "attempts": {
+            "description": "Runs so far; above 1 means it was resumed after a restart",
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "cancel_requested": {
+            "title": "Cancel Requested",
+            "type": "boolean"
+          },
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why it failed, for people",
+            "title": "Error"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The HTTP status the same request would have got (422: bad input)",
+            "title": "Error Status"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "montecarlo.run",
+              "montecarlo.scenarios",
+              "backtesting.run",
+              "forecasting.run",
+              "research.read",
+              "document.extract",
+              "memo.draft"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "progress": {
+            "description": "0 to 1; moves as the run passes its stages",
+            "title": "Progress",
+            "type": "number"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Once succeeded: exactly what the matching endpoint answers (MonteCarloResponse for montecarlo.run, and so on)",
+            "title": "Result"
+          },
+          "result_expired": {
+            "default": false,
+            "description": "It succeeded, but the result has been deleted; run it again",
+            "title": "Result Expired",
+            "type": "boolean"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the run is doing now, for people",
+            "title": "Stage"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "webhooks": {
+            "default": 0,
+            "description": "Messages that will be sent when it ends (one per webhook)",
+            "title": "Webhooks",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "progress",
+          "attempts",
+          "cancel_requested",
+          "created_at"
+        ],
+        "title": "V1Job",
+        "type": "object"
+      },
+      "V1Limits": {
+        "properties": {
+          "key_requests_per_minute": {
+            "title": "Key Requests Per Minute",
+            "type": "integer"
+          },
+          "key_runs_per_day": {
+            "title": "Key Runs Per Day",
+            "type": "integer"
+          },
+          "max_simulation_paths": {
+            "title": "Max Simulation Paths",
+            "type": "integer"
+          },
+          "user_runs_per_day": {
+            "title": "User Runs Per Day",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key_requests_per_minute",
+          "key_runs_per_day",
+          "user_runs_per_day",
+          "max_simulation_paths"
+        ],
+        "title": "V1Limits",
+        "type": "object"
+      },
+      "V1Me": {
+        "description": "Who the API sees: the version and the limits that apply.",
+        "properties": {
+          "api_version": {
+            "const": "1",
+            "title": "Api Version",
+            "type": "string"
+          },
+          "key_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Id"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/V1Limits"
+          },
+          "via": {
+            "description": "An API key, or the site's own sign-in",
+            "enum": [
+              "key",
+              "site"
+            ],
+            "title": "Via",
+            "type": "string"
+          },
+          "webhooks": {
+            "description": "How many webhooks are told when a job ends",
+            "title": "Webhooks",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "api_version",
+          "via",
+          "limits",
+          "webhooks"
+        ],
+        "title": "V1Me",
+        "type": "object"
+      },
       "ValidationBucket": {
         "properties": {
           "bucket": {
@@ -23827,6 +24192,192 @@
         "title": "VersionSummary",
         "type": "object"
       },
+      "WebhookCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "https address on the public internet",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "WebhookCreate",
+        "type": "object"
+      },
+      "WebhookList": {
+        "properties": {
+          "max": {
+            "title": "Max",
+            "type": "integer"
+          },
+          "webhooks": {
+            "items": {
+              "$ref": "#/components/schemas/WebhookOut"
+            },
+            "title": "Webhooks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "webhooks",
+          "max"
+        ],
+        "title": "WebhookList",
+        "type": "object"
+      },
+      "WebhookMade": {
+        "description": "A new webhook, with its signing secret, answered once.",
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last At"
+          },
+          "last_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "due",
+                  "delivered",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the newest message went; null before any",
+            "title": "Last State"
+          },
+          "last_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The HTTP status it got (0: no answer)",
+            "title": "Last Status"
+          },
+          "secret": {
+            "description": "whsec_ and base64: the key of every message's HMAC-SHA256 signature",
+            "title": "Secret",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "created_at",
+          "secret"
+        ],
+        "title": "WebhookMade",
+        "type": "object"
+      },
+      "WebhookOut": {
+        "properties": {
+          "created_at": {
+            "description": "UTC, ISO 8601",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last At"
+          },
+          "last_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "due",
+                  "delivered",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the newest message went; null before any",
+            "title": "Last State"
+          },
+          "last_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The HTTP status it got (0: no answer)",
+            "title": "Last Status"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "created_at"
+        ],
+        "title": "WebhookOut",
+        "type": "object"
+      },
+      "WebhookPing": {
+        "properties": {
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message_id"
+        ],
+        "title": "WebhookPing",
+        "type": "object"
+      },
       "WorkbookRequest": {
         "additionalProperties": false,
         "properties": {
@@ -24176,6 +24727,148 @@
         "summary": "Get Ai Usage",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/api/account/api-keys": {
+      "get": {
+        "operationId": "get_keys_api_account_api_keys_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Keys",
+        "tags": [
+          "api keys"
+        ]
+      },
+      "post": {
+        "description": "A new key, answered once: only its hash is kept, so it can't be shown again.",
+        "operationId": "post_key_api_account_api_keys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyMade"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Key",
+        "tags": [
+          "api keys"
+        ]
+      }
+    },
+    "/api/account/api-keys/{key_id}": {
+      "delete": {
+        "operationId": "delete_key_api_account_api_keys__key_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Key Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Key",
+        "tags": [
+          "api keys"
         ]
       }
     },
@@ -24570,6 +25263,207 @@
         "summary": "Put Suggestions",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/api/account/webhooks": {
+      "get": {
+        "operationId": "get_webhooks_api_account_webhooks_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Webhooks",
+        "tags": [
+          "api keys"
+        ]
+      },
+      "post": {
+        "description": "A new webhook and its signing secret, answered once.",
+        "operationId": "post_webhook_api_account_webhooks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookMade"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Webhook",
+        "tags": [
+          "api keys"
+        ]
+      }
+    },
+    "/api/account/webhooks/{webhook_id}": {
+      "delete": {
+        "operationId": "delete_webhook_api_account_webhooks__webhook_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Webhook Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Webhook",
+        "tags": [
+          "api keys"
+        ]
+      }
+    },
+    "/api/account/webhooks/{webhook_id}/ping": {
+      "post": {
+        "description": "Send a signed ``ping`` now (in the background); the list shows how it went.",
+        "operationId": "ping_webhook_api_account_webhooks__webhook_id__ping_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Webhook Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookPing"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ping Webhook",
+        "tags": [
+          "api keys"
         ]
       }
     },
@@ -33585,6 +34479,741 @@
         "summary": "Set Role",
         "tags": [
           "teams"
+        ]
+      }
+    },
+    "/api/v1/deal/run": {
+      "post": {
+        "description": "Run the LBO model on a deal: the same answer as the site's ``POST /api/deal/run``.",
+        "operationId": "post_deal_run_api_v1_deal_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Deal Run",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/deals": {
+      "get": {
+        "description": "Your saved deals and those shared with your teams, most recently edited first.",
+        "operationId": "get_deals_api_v1_deals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Deals",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/deals/{deal_id}": {
+      "get": {
+        "description": "A saved deal's working copy: its inputs and Settings, as last saved.",
+        "operationId": "get_deal_api_v1_deals__deal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Deal",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/deals/{deal_id}/run": {
+      "post": {
+        "description": "Run a saved deal's working copy with its own Settings: what its screen shows.",
+        "operationId": "post_saved_deal_run_api_v1_deals__deal_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Deal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Saved Deal Run",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/defaults/industries": {
+      "get": {
+        "description": "The industries the market defaults cover (Damodaran's published averages).",
+        "operationId": "get_industries_api_v1_defaults_industries_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkIndustriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Industries",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/defaults/risk": {
+      "get": {
+        "description": "The simulation's sourced ranges, correlations and scenarios for a country and industry.",
+        "operationId": "get_risk_api_v1_defaults_risk_get",
+        "parameters": [
+          {
+            "description": "ISO 3166-1 alpha-2",
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "description": "ISO 3166-1 alpha-2",
+              "pattern": "^[A-Z]{2}$",
+              "title": "Country",
+              "type": "string"
+            }
+          },
+          {
+            "description": "An id from /api/v1/defaults/industries",
+            "in": "query",
+            "name": "industry",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "An id from /api/v1/defaults/industries",
+              "pattern": "^[a-z0-9_]{1,60}$",
+              "title": "Industry",
+              "type": "string"
+            }
+          },
+          {
+            "description": "ISO 4217",
+            "in": "query",
+            "name": "currency",
+            "required": true,
+            "schema": {
+              "description": "ISO 4217",
+              "pattern": "^[A-Z]{3}$",
+              "title": "Currency",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskAssumptionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Risk",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/defaults/starting": {
+      "get": {
+        "description": "A deal's sourced starting figures for a country and industry, each with its source, sample and date.",
+        "operationId": "get_starting_api_v1_defaults_starting_get",
+        "parameters": [
+          {
+            "description": "ISO 3166-1 alpha-2",
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "description": "ISO 3166-1 alpha-2",
+              "pattern": "^[A-Z]{2}$",
+              "title": "Country",
+              "type": "string"
+            }
+          },
+          {
+            "description": "An id from /api/v1/defaults/industries",
+            "in": "query",
+            "name": "industry",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "An id from /api/v1/defaults/industries",
+              "pattern": "^[a-z0-9_]{1,60}$",
+              "title": "Industry",
+              "type": "string"
+            }
+          },
+          {
+            "description": "ISO 4217",
+            "in": "query",
+            "name": "currency",
+            "required": true,
+            "schema": {
+              "description": "ISO 4217",
+              "pattern": "^[A-Z]{3}$",
+              "title": "Currency",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartingAssumptionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Starting",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/jobs": {
+      "post": {
+        "description": "Queue a long run (``montecarlo.run``, ``montecarlo.scenarios``, ``backtesting.run``,\n``forecasting.run``). Each of your webhooks is sent a signed ``job.finished`` message when it ends.",
+        "operationId": "post_job_api_v1_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "backtesting.run": "#/components/schemas/BacktestJob",
+                    "forecasting.run": "#/components/schemas/ForecastJob",
+                    "montecarlo.run": "#/components/schemas/MonteCarloJob",
+                    "montecarlo.scenarios": "#/components/schemas/ScenariosJob"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MonteCarloJob"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScenariosJob"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BacktestJob"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ForecastJob"
+                  }
+                ],
+                "title": "Job"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Job",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "description": "A job's progress, and its result once it succeeded: what the matching endpoint answers.",
+        "operationId": "get_job_api_v1_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Job",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/jobs/{job_id}/cancel": {
+      "post": {
+        "description": "Cancel a job: at once if it is waiting (its webhooks are told), else when its run notices.",
+        "operationId": "cancel_job_api_v1_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Job",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "description": "The API version, how you are signed in and the limits that apply to you.",
+        "operationId": "get_me_api_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/V1Me"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Me",
+        "tags": [
+          "public api v1"
+        ]
+      }
+    },
+    "/api/v1/montecarlo/run": {
+      "post": {
+        "description": "Simulate a deal (one simulation at a time on the server): the site's ``POST /api/montecarlo/run``.\nFor a long run, queue it as a job instead and let a webhook say when it is done.",
+        "operationId": "post_montecarlo_run_api_v1_montecarlo_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonteCarloRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonteCarloResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitRefusal"
+                }
+              }
+            },
+            "description": "A usage limit was reached"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Montecarlo Run",
+        "tags": [
+          "public api v1"
         ]
       }
     },

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { monthYear } from "@/lib/locale";
 
 /** The policy's date, as an ISO month: change it with the words */
-const UPDATED = "2026-10";
+const UPDATED = "2026-11";
 const ISSUES = "https://github.com/aadit-raptor/FSE_ML/issues";
 
 /**
@@ -18,7 +18,7 @@ const ISSUES = "https://github.com/aadit-raptor/FSE_ML/issues";
 export function PrivacyScreen() {
   const t = useTranslations("privacy");
   const sections: [string, string[]][] = [
-    [t("storedTitle"), [t("storedSignIn"), t("storedProfile"), t("storedDeals"), t("storedFiles"), t("storedCoverage"), t("storedAddin"), t("storedAiUsage"), t("storedTeams"), t("storedActivity")]],
+    [t("storedTitle"), [t("storedSignIn"), t("storedProfile"), t("storedDeals"), t("storedFiles"), t("storedCoverage"), t("storedAddin"), t("storedAiUsage"), t("storedTeams"), t("storedApi"), t("storedActivity")]],
     [t("validationTitle"), [t("validation")]],
     [t("googleTitle"), [t("google")]],
     [t("companiesTitle"), [t("companies")]],

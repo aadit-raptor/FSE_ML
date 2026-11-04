@@ -14,3 +14,13 @@ condition = "AND"
 regexTarget = "secret"
 regexes = ['''^[a-z0-9]+(?:-[a-z0-9]+)*-(?:19|20)\d{2}$''']
 paths = ['''^(?:CLAUDE.md|library/reference_deals\.json|web/e2e/fixtures/references\.json|tests/test_references\.py)$''']
+
+# Standard Webhooks' own published test vector (PLAN.md 7.7): the spec's example
+# secret, which tests/test_public_api.py signs with to prove our signature is
+# theirs. Not a key to anything. Allowed only as that exact value in that file.
+[[allowlists]]
+description = "Standard Webhooks' published test-vector secret"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw$''']
+paths = ['''^tests/test_public_api\.py$''']
