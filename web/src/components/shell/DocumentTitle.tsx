@@ -22,6 +22,7 @@ export function DocumentTitle() {
   const app = useTranslations("app");
   const account = useTranslations("account");
   const help = useTranslations("help");
+  const developer = useTranslations("developer");
 
   useEffect(() => {
     // A help article names its own tab (components/help/Help.tsx), from the article it shows
@@ -33,6 +34,8 @@ export function DocumentTitle() {
         ? [nav(mode.labelKey), nav(step.labelKey)]
         : pathname === "/account"
           ? [account("title")]
+          : pathname === "/account/developer"
+            ? [developer("title"), account("title")]
           : pathname === LAUNCHER_HREF
             ? [nav("launcher")]
             : pathname === "/help/whats-new"
@@ -41,7 +44,7 @@ export function DocumentTitle() {
                 ? [help("title")]
                 : [];
     document.title = [...parts, brand].join(" · ");
-  }, [pathname, nav, app, account, help]);
+  }, [pathname, nav, app, account, help, developer]);
 
   return null;
 }

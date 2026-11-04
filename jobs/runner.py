@@ -165,6 +165,10 @@ class Runner:
             status = queue.finish(job.id, self.worker, result=result)
         log_event("job_finished", job=str(job.id), kind=job.kind, status=status,
                   attempt=job.attempts, duration_ms=round((time.perf_counter() - t0) * 1000, 2))
+        if status is not None:
+            # Its webhooks' messages (PLAN.md 7.7), for a job submitted through /api/v1; never raises
+            from api import webhooks
+            webhooks.job_finished(job.id, job.kind, status, status_code)
         return status
 
     def _run(self, queue: JobQueue, job: JobRecord, kind: JobKind):
