@@ -3605,6 +3605,87 @@ export interface components {
             /** Years */
             years?: number[];
         };
+        /** ChartSeries */
+        ChartSeries: {
+            /**
+             * Index
+             * @description The series' row of data (by 'rows', 0 = the first row under the header) or its column (by 'columns', 0 = the first)
+             */
+            index: number;
+            /**
+             * Name
+             * @description The legend's name; else the row's label or the column's header
+             */
+            name?: string | null;
+            /** Tone */
+            tone?: ("answer" | "gain" | "loss" | "attention" | "plan" | "context") | null;
+        };
+        /**
+         * ChartSpec
+         * @description A native Excel chart over the sheet's own cells (PLAN.md 7.9): edit a cell and the chart moves.
+         *
+         *     `by: rows` reads a table laid out as the screen's: labels in the first column, one row per series,
+         *     the header's other columns the categories (years). `by: columns` reads one column per series and
+         *     the categories from column `categories`.
+         */
+        ChartSpec: {
+            /**
+             * By
+             * @default rows
+             * @enum {string}
+             */
+            by: "rows" | "columns";
+            /**
+             * Categories
+             * @description By 'columns': the column holding the categories
+             * @default 0
+             */
+            categories: number;
+            /**
+             * Horizontal
+             * @description Bars drawn across, as the screen's diverging bars
+             * @default false
+             */
+            horizontal: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bar" | "stacked_bar" | "line" | "waterfall" | "fan" | "histogram" | "range" | "scatter" | "heatmap";
+            /**
+             * Lines
+             * @description A fan's lines drawn over its bands (the median, the plan)
+             */
+            lines?: components["schemas"]["ChartSeries"][];
+            /**
+             * Note
+             * @description Words written beside the chart: where Excel has no form of its own, what was drawn instead
+             */
+            note?: string | null;
+            /**
+             * Points
+             * @description Draw only the first rows (a sampled scatter of simulated paths)
+             */
+            points?: number | null;
+            /** Series */
+            series?: components["schemas"]["ChartSeries"][];
+            /** Title */
+            title: string;
+            /**
+             * Totals
+             * @description A waterfall's steps that are totals (drawn from zero); the rest move from the running total
+             */
+            totals?: boolean[] | null;
+            /** X Title */
+            x_title?: string | null;
+            /**
+             * Y Format
+             * @description The value axis's number format
+             */
+            y_format?: ("money" | "percent" | "multiple" | "integer" | "number" | "text") | null;
+            /** Y Title */
+            y_title?: string | null;
+        };
         /** CommentCreate */
         CommentCreate: {
             /** Body */
@@ -12046,6 +12127,11 @@ export interface components {
         };
         /** WorkbookSheet */
         WorkbookSheet: {
+            /**
+             * Charts
+             * @description Native Excel charts drawn from this sheet's cells (PLAN.md 7.9)
+             */
+            charts?: components["schemas"]["ChartSpec"][];
             /**
              * Column Formats
              * @description Number format per column; percent cells hold fractions
