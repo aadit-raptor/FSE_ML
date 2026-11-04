@@ -13,6 +13,7 @@ from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
+from api.charts import chart_problem
 from api.limits import MAX_FORECAST_PATHS, MAX_SIMULATION_PATHS
 
 from api.serialize import model_from_dataclass
@@ -1371,6 +1372,46 @@ Cell = Union[float, int, str, bool, None]
 CellFormat = Literal["money", "percent", "multiple", "integer", "number", "text"]
 
 
+ChartKind = Literal["bar", "stacked_bar", "line", "waterfall", "fan", "histogram", "range", "scatter",
+                    "heatmap"]
+# What a series is on screen: the answer (cyan), a gain or a loss, the plan, or context (grey)
+ChartTone = Literal["answer", "gain", "loss", "attention", "plan", "context"]
+
+
+class ChartSeries(Strict):
+    index: int = Field(ge=0, le=50_000, description="The series' row of data (by 'rows', 0 = the first row "
+                                                     "under the header) or its column (by 'columns', 0 = the first)")
+    name: Optional[str] = Field(None, max_length=100, description="The legend's name; else the row's label "
+                                                                   "or the column's header")
+    tone: Optional[ChartTone] = None
+
+
+class ChartSpec(Strict):
+    """A native Excel chart over the sheet's own cells (PLAN.md 7.9): edit a cell and the chart moves.
+
+    `by: rows` reads a table laid out as the screen's: labels in the first column, one row per series,
+    the header's other columns the categories (years). `by: columns` reads one column per series and
+    the categories from column `categories`.
+    """
+    kind: ChartKind
+    title: str = Field(min_length=1, max_length=200)
+    by: Literal["rows", "columns"] = "rows"
+    series: List[ChartSeries] = Field(default_factory=list, max_length=20)
+    lines: List[ChartSeries] = Field(default_factory=list, max_length=4, description=(
+        "A fan's lines drawn over its bands (the median, the plan)"))
+    categories: int = Field(0, ge=0, le=200, description="By 'columns': the column holding the categories")
+    totals: Optional[List[bool]] = Field(None, max_length=200, description=(
+        "A waterfall's steps that are totals (drawn from zero); the rest move from the running total"))
+    points: Optional[int] = Field(None, ge=1, le=50_000, description=(
+        "Draw only the first rows (a sampled scatter of simulated paths)"))
+    horizontal: bool = Field(False, description="Bars drawn across, as the screen's diverging bars")
+    y_title: Optional[str] = Field(None, max_length=100)
+    x_title: Optional[str] = Field(None, max_length=100)
+    y_format: Optional[CellFormat] = Field(None, description="The value axis's number format")
+    note: Optional[str] = Field(None, max_length=400, description=(
+        "Words written beside the chart: where Excel has no form of its own, what was drawn instead"))
+
+
 class WorkbookSheet(Strict):
     name: str = Field(min_length=1, max_length=100)
     columns: List[str] = Field(min_length=1, max_length=200)
@@ -1379,6 +1420,16 @@ class WorkbookSheet(Strict):
         None, max_length=200, description="Number format per column; percent cells hold fractions")
     row_formats: Optional[List[Optional[CellFormat]]] = Field(
         None, max_length=50_000, description="Number format per row; wins over the column's")
+    charts: List[ChartSpec] = Field(default_factory=list, max_length=6, description=(
+        "Native Excel charts drawn from this sheet's cells (PLAN.md 7.9)"))
+
+    @model_validator(mode="after")
+    def _charts_fit(self):
+        for chart in self.charts:
+            problem = chart_problem(chart, len(self.rows), len(self.columns))
+            if problem:
+                raise ValueError("chart %r: %s" % (chart.title, problem))
+        return self
 
 
 class WorkbookRequest(Strict):

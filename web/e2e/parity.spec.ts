@@ -57,7 +57,10 @@ test.describe("Streamlit parity", () => {
     await expect(page.getByRole("img", { name: /EBITDA to net income bridge/ })).toContainText(netIncome ?? "");
     const { filename, body } = await download(page, page.getByRole("button", { name: "↓ All schedules" }));
     expect(filename).toBe("supporting_schedules.xlsx");
-    expect(body.sheets!.map((s) => s.name)).toEqual(["PP&E", "Retained earnings", "Working capital", "Interest", "Revolver"]);
+    // The bridge tile's waterfall goes with its own sheet (PLAN.md 7.9); its last step is the net income above
+    expect(body.sheets!.map((s) => s.name)).toEqual(["PP&E", "Retained earnings", "Working capital", "Interest", "Revolver", "Net income bridge"]);
+    const bridge = body.sheets!.at(-1)!;
+    expect(bridge.rows.at(-1)?.[1] as number).toBeCloseTo(Number((netIncome ?? "").replace(/,/g, "")), 1);
   });
 
   test("monte carlo exports the paths behind the results", async ({ page }) => {

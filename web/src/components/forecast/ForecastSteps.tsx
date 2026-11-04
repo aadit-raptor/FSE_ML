@@ -13,7 +13,7 @@ import { Kpi, Tile, Tiles } from "@/components/ui/Tile";
 import { MoneyScope, useMoney } from "@/components/ui/MoneyScope";
 import { FiscalSelects } from "@/components/ui/FiscalSelects";
 import { MoneySelects, SELECT_CLASS } from "@/components/ui/MoneySelects";
-import { downloadWorkbook, sheet, tableSheet } from "@/lib/export";
+import { chart, downloadWorkbook, sheet, tableSheet, withCharts } from "@/lib/export";
 import { ASSUMPTION_GROUPS, HISTORY_GROUPS } from "@/lib/forecast";
 import { fmtCount, fmtInput, fmtMoney, fmtNumber, fmtRate, isNum } from "@/lib/format";
 import { useStandardLabel } from "@/lib/i18n/useStandardLabel";
@@ -443,8 +443,22 @@ function Statements() {
   const last = res.years.at(-1);
   const maxGap = Math.max(0, ...res.forecast_balance_gaps.map(Math.abs));
   const company = source.kind === "company" ? source.label : t("sampleCompany");
-  const everything = () => [
+  // Revenue and EBITDA as a native Excel chart over the income statement's cells (PLAN.md 7.9)
+  const incomeSheet = withCharts(
     tableSheet(x("sheetIncomeStatement"), cols, tables.income),
+    chart({
+      kind: "bar",
+      title: x("chartRevenueEbitda"),
+      series: [
+        { index: tables.income.findIndex((row) => row.label === t("rowRevenue")), tone: "context" },
+        { index: tables.income.findIndex((row) => row.label === t("rowEbitda")), tone: "answer" },
+      ],
+      y_title: mu,
+      y_format: "money",
+    }),
+  );
+  const everything = () => [
+    incomeSheet,
     tableSheet(x("sheetBalanceSheet"), cols, tables.balance),
     tableSheet(x("sheetCashFlow"), cols, tables.cash),
     tableSheet(x("sheetPpe"), fwd, schedules.ppe),
@@ -481,7 +495,7 @@ function Statements() {
         title={t("tileIncomeStatement")}
         unit={mu}
         action={
-          <DownloadButton onDownload={() => downloadWorkbook(x("fileIncomeStatement"), [tableSheet(x("sheetIncomeStatement"), cols, tables.income)], money, res?.model, null)} />
+          <DownloadButton onDownload={() => downloadWorkbook(x("fileIncomeStatement"), [incomeSheet], money, res?.model, null)} />
         }
       >
         <DataTable caption={t("chartIncomeStatement")} columns={cols} rows={tables.income} />
@@ -541,6 +555,25 @@ function Schedules() {
     tableSheet(x("sheetWorkingCapital"), fwd, s.workingCapital),
     tableSheet(x("sheetInterest"), fwd, s.interest),
     tableSheet(x("sheetRevolver"), fwd, s.revolver),
+    // The bridge tile's waterfall, from the sheet's own cells (PLAN.md 7.9)
+    ...(bridge.length
+      ? [
+          withCharts(
+            sheet(x("sheetNetIncomeBridge"), [x("colComponent"), x("colValue", { money: mu })], bridge.map((b) => [b.label, b.value]), {
+              columns: ["text", "money"],
+            }),
+            chart({
+              kind: "waterfall",
+              by: "columns",
+              title: t("chartBridge", { year: lastFwd }),
+              series: [{ index: 1 }],
+              totals: bridge.map((b) => b.isTotal),
+              y_title: mu,
+              y_format: "money",
+            }),
+          ),
+        ]
+      : []),
   ];
   const lastFwd = fwd.at(-1) ?? "";
   return (
@@ -605,6 +638,27 @@ function Simulation() {
       ]}
     />
   );
+  // A fan as stacked bands between the percentile rows, the median and the plan drawn over them (PLAN.md 7.9)
+  const bandsSheet = (name: string, b: typeof sim.revenue_bands, plan: (number | null)[], title: string) =>
+    withCharts(
+      sheet(
+        name,
+        [x("colPercentile"), ...cols],
+        [...(["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...b[q]]), [x("rowPlanCase"), ...plan]],
+        { columns: ["text", ...cols.map(() => "money" as const)] },
+      ),
+      chart({
+        kind: "fan",
+        title,
+        series: [0, 1, 2, 3, 4].map((index) => ({ index })),
+        lines: [
+          { index: 2, name: t("seriesP50"), tone: "answer" },
+          { index: 5, name: t("seriesPlan"), tone: "plan" },
+        ],
+        y_title: mu,
+        y_format: "money",
+      }),
+    );
   const lastCol = cols.at(-1) ?? "";
   // i18n-keys: forecast.case*
   const caseKey = (scenario: string) => (scenario === "Bull" ? "caseBull" : scenario === "Bear" ? "caseBear" : "caseBase");
@@ -632,23 +686,16 @@ function Simulation() {
             downloadWorkbook(
               x("fileSimulation"),
               [
-                sheet(
-                  x("sheetRevenueBands"),
-                  [x("colPercentile"), ...cols],
-                  (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.revenue_bands[q]]),
-                  { columns: ["text", ...cols.map(() => "money" as const)] },
-                ),
-                sheet(
-                  x("sheetEbitdaBands"),
-                  [x("colPercentile"), ...cols],
-                  (["p5", "p25", "p50", "p75", "p95"] as const).map((q) => [q.toUpperCase(), ...sim.ebitda_bands[q]]),
-                  { columns: ["text", ...cols.map(() => "money" as const)] },
-                ),
-                sheet(
-                  x("sheetTargets"),
-                  [x("colEbitdaTarget", { money: mu }), x("colProbability"), x("colCase")],
-                  sim.target_probabilities.map((p) => [p.target, p.probability, t(caseKey(p.scenario))]),
-                  { columns: ["money", "percent", "text"] },
+                bandsSheet(x("sheetRevenueBands"), sim.revenue_bands, res.years.map((y) => y.revenue ?? null), t("tileRevenueFan")),
+                bandsSheet(x("sheetEbitdaBands"), sim.ebitda_bands, res.years.map((y) => y.ebitda ?? null), t("tileEbitdaFan")),
+                withCharts(
+                  sheet(
+                    x("sheetTargets"),
+                    [x("colEbitdaTarget", { money: mu }), x("colProbability"), x("colCase")],
+                    sim.target_probabilities.map((p) => [p.target, p.probability, t(caseKey(p.scenario))]),
+                    { columns: ["money", "percent", "text"] },
+                  ),
+                  chart({ kind: "bar", by: "columns", horizontal: false, title: x("chartTargets"), series: [{ index: 1, tone: "answer" }], y_format: "percent" }),
                 ),
               ],
               money,

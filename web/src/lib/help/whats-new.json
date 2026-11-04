@@ -1,6 +1,7 @@
 {
   "entries": [
     {"id": "publicApi", "date": "2026-11-04", "href": "/account/developer"},
+    {"id": "excelCharts", "date": "2026-11-04", "href": "/deal/summary"},
     {"id": "lender", "date": "2026-11-04", "href": "/deal/lender"},
     {"id": "portfolio", "date": "2026-11-01", "href": "/portfolio/dashboard"},
     {"id": "liveWorkbook", "date": "2026-11-01", "href": "/deal/summary"},

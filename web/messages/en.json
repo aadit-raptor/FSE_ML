@@ -1472,7 +1472,20 @@
     "notTested": "Not tested",
     "yes": "Yes",
     "no": "No",
-    "colFacility": "Facility"
+    "colFacility": "Facility",
+    "chartRevenueEbitda": "Revenue and EBITDA",
+    "sheetDebtByFacility": "Debt by facility",
+    "chartClosingBalance": "{name}: closing balance",
+    "chartIrrSensitivity": "IRR by exit multiple and hold",
+    "chartScenarioRange": "IRR by scenario: P5, mean and P95",
+    "sheetPlanDistribution": "Plan IRR distribution",
+    "sheetEbitdaMargin": "EBITDA margin",
+    "colFrom": "From",
+    "colTo": "To",
+    "colDensity": "Density",
+    "rowPlanCase": "Plan",
+    "sheetNetIncomeBridge": "Net income bridge",
+    "chartTargets": "Chance of reaching each EBITDA target"
   },
   "format": {
     "missing": "n/a"
@@ -3724,6 +3737,8 @@
   "whatsNew": {
     "publicApiTitle": "A developer API with webhooks",
     "publicApiBody": "Make an API key under Account, run deals, simulations and your saved deals from your own scripts, read the sourced market defaults, and get a signed webhook message when a long run ends.",
+    "excelChartsTitle": "Charts in the Excel downloads",
+    "excelChartsBody": "Every download with a chart on screen now carries the same chart as a native Excel chart, drawn from the workbook's own cells: edit a figure and the chart follows. Where Excel has no chart of its own, such as a waterfall, a fan or a heatmap, the sheet says what was drawn instead.",
     "lenderTitle": "The lender view",
     "lenderBody": "Add covenants to each facility, defined the way US, LMA or Indian agreements write them, see every year tested, the simulation's odds of a breach, and each facility's expected loss; download it all to Excel.",
     "portfolioTitle": "Portfolio tracking in any currency",
