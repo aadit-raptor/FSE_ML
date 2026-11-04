@@ -252,6 +252,16 @@ class UsageCounters:
         if self._background and check.shared:
             self._ensure_thread()
 
+    def seed(self, check: Check, total: int) -> None:
+        """What the shared store already holds for ``check`` (read by the caller), so
+        this process starts from it rather than from zero (api/result_cache.py)."""
+        now = self._clock()
+        with self._lock:
+            entry = self._entries.get(check.key)
+            if entry is None or entry.expires <= now:
+                entry = self._entries[check.key] = _Entry(expires=check.window_end, shared=check.shared)
+            entry.synced = max(entry.synced, int(total))
+
     def _add_locked(self, check: Check, n: int, now: float) -> None:
         entry = self._entries.get(check.key)
         if entry is None or entry.expires <= now:
@@ -393,6 +403,8 @@ TARGET_TRAFFIC = (
 )
 # tests.yml's real round trip: a handful of commands per CI run, ~150 runs a month
 CI_MONTHLY_COMMANDS = 3_000
+# api/result_cache.py counts its own spend on two shared counters an environment
+CACHE_SHARED_COUNTERS = 2
 
 
 def monthly_redis_commands(profile: TrafficProfile, *, flush_interval_s: float = FLUSH_INTERVAL_S,
@@ -406,7 +418,8 @@ def monthly_redis_commands(profile: TrafficProfile, *, flush_interval_s: float =
     counters_per_day = profile.daily_active_users * profile.shared_counters_per_user * syncs_per_user
     syncs_per_day = min(math.ceil(profile.busy_hours_per_day * 3600 / flush_interval_s),
                         counters_per_day)
-    per_day = 2 * counters_per_day + 3 * syncs_per_day
+    # The result cache's two daily counters (commands and bytes) ride along on every sync
+    per_day = 2 * counters_per_day + 3 * syncs_per_day + 2 * CACHE_SHARED_COUNTERS * syncs_per_day
     return per_day * days
 
 
@@ -414,8 +427,12 @@ def budget_report() -> dict:
     rows = [{"environment": p.environment, "daily_active_users": p.daily_active_users,
              "monthly_commands": monthly_redis_commands(p)} for p in TARGET_TRAFFIC]
     total = sum(r["monthly_commands"] for r in rows) + CI_MONTHLY_COMMANDS
-    ceiling = 31 * (sum(DAILY_COMMAND_BUDGET.values()) + OTHER_DAILY_COMMAND_BUDGET)
+    from api import result_cache
+    cache_daily = sum(result_cache.DAILY_COMMAND_BUDGET.values()) + result_cache.OTHER_DAILY_COMMAND_BUDGET
+    # The result cache (PLAN.md 8.1) has its own daily budgets beside the counters'
+    ceiling = 31 * (sum(DAILY_COMMAND_BUDGET.values()) + OTHER_DAILY_COMMAND_BUDGET + cache_daily)
     return {"target": rows, "ci_monthly_commands": CI_MONTHLY_COMMANDS,
+            "cache_ceiling_monthly_commands": 31 * cache_daily,
             "estimated_monthly_commands": total, "free_monthly_commands": REDIS_MONTHLY_COMMANDS,
             "estimated_fraction": total / REDIS_MONTHLY_COMMANDS,
             "budget_ceiling_monthly_commands": ceiling}
