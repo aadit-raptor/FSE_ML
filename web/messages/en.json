@@ -109,6 +109,7 @@
     "dealTeamSummary": "Share the deal with a team, see who can read it, and comment, mentioning people."
   },
   "shell": {
+    "screenHeading": "{mode}: {step}",
     "modes": "Modes",
     "modeShortcut": "Alt {number}",
     "searchPlaceholderShort": "Search screens and actions",
@@ -151,7 +152,10 @@
     "downloadPreparing": "Preparing",
     "downloadPrefix": "↓ {label}",
     "explain": "Explain",
-    "explainHide": "Hide explanation"
+    "explainHide": "Hide explanation",
+    "results": "Results",
+    "screenView": "Show inputs or results",
+    "skipToContent": "Skip to content"
   },
   "units": {
     "yr": "yr",
@@ -1079,7 +1083,7 @@
     "kpiCash": "Cash {year}",
     "cagrSub": "CAGR {cagr}",
     "marginSub": "margin {margin}",
-    "kpiBalanceSheet": "Balance sheet",
+    "kpiBalanceSheet": "Balance check",
     "balances": "Balances",
     "doesntBalance": "Doesn't balance",
     "largestGap": "largest gap {gap} {money}",
@@ -3741,6 +3745,8 @@
     "excelChartsBody": "Every download with a chart on screen now carries the same chart as a native Excel chart, drawn from the workbook's own cells: edit a figure and the chart follows. Where Excel has no chart of its own, such as a waterfall, a fan or a heatmap, the sheet says what was drawn instead.",
     "lenderTitle": "The lender view",
     "lenderBody": "Add covenants to each facility, defined the way US, LMA or Indian agreements write them, see every year tested, the simulation's odds of a breach, and each facility's expected loss; download it all to Excel.",
+    "phonesTitle": "Phones, tablets and the keyboard",
+    "phonesBody": "Every screen now fits a phone or a tablet: the menus scroll on their own rows and a switch shows a screen's inputs or its results. The faintest text is easier to read, a skip link leads past the menus, and wide tables scroll from the keyboard.",
     "portfolioTitle": "Portfolio tracking in any currency",
     "portfolioBody": "Mark deals as owned, enter their quarterly results, get an alert when they fall behind the plan, reforecast from them, and total the portfolio in any currency at the ECB's rates.",
     "onboardingTitle": "Guided first deal, sample deals and help",

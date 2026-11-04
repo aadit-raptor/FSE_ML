@@ -33,7 +33,7 @@ export function ModelGrid({ run, onEdit }: { run: ModelRun; onEdit: (row: string
   const tips = useTips(["modelFigureCell", "modelAssumptionCell"]);
   const described = { figure: tips.modelFigureCell.id, assumption: tips.modelAssumptionCell.id };
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <TipText tip={tips.modelFigureCell} />
       <TipText tip={tips.modelAssumptionCell} />
       <table className="w-full border-collapse font-mono text-[10.5px]" data-model-grid={run.model}>

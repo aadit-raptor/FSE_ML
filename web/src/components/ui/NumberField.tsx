@@ -89,7 +89,7 @@ export function NumberField({ spec, label, tip, value, onCommit, disabled, chang
             error ? "border-loss text-loss" : changed ? "border-attention text-attention" : "border-line text-ink"
           }`}
         />
-        <span className={`font-mono text-[10px] text-[#56636a] ${disabled ? "opacity-45" : ""}`}>{unitLabel(spec.unit, money)}</span>
+        <span className={`font-mono text-[10px] text-dim ${disabled ? "opacity-45" : ""}`}>{unitLabel(spec.unit, money)}</span>
       </div>
       <TipText tip={tipHandle} />
       {error && (

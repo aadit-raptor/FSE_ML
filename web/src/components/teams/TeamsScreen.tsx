@@ -93,7 +93,7 @@ export function TeamsScreen() {
 
       {open && <Team key={open} id={open} onGone={() => { setOpen(null); void reload(); }} onChange={() => void reload()}
         onProblem={setProblem} />}
-      <p className="type-body text-[10.5px]">{t("shareHint")} <Link href="/deal/team" className="text-accent hover:text-ink">{t("toDealTeam")}</Link></p>
+      <p className="type-body text-[10.5px]">{t("shareHint")} <Link href="/deal/team" className="text-accent underline hover:text-ink">{t("toDealTeam")}</Link></p>
     </div>
   );
 }

@@ -193,7 +193,7 @@ function Cumulative({ rates, region }: { rates: BaseRates; region: CumulativeReg
   const title = t("cumulativeTitle", { region: regionText(region) });
   return (
     <Tile span={12} title={title} unit={t("unitPctIssuers")}>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={title} data-region={region}>
           <thead>
             <tr>
@@ -276,26 +276,28 @@ function Recovery({ rates }: { rates: BaseRates }) {
   const r = rates.recovery!;
   const table = (title: string, rows: { key: string; label: string; defaults: number; lgd_pct: number }[], cite: string) => (
     <Tile span={4} title={title} unit={t("unitPctExposure")}>
-      <table className="w-full border-collapse font-mono text-[11px]" aria-label={title}>
-        <thead>
-          <tr className="type-input-label">
-            <th scope="col" className="px-2 py-1 text-start font-normal">{t("colGroup")}</th>
-            <th scope="col" className="px-2 py-1 text-end font-normal">{t("colBorrowers")}</th>
-            <th scope="col" className="px-2 py-1 text-end font-normal">{t("colLgd")}</th>
-            <th scope="col" className="px-2 py-1 text-end font-normal">{t("colRecovered")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.key} data-row={row.key}>
-              <th scope="row" className="type-input-label border-b border-grid px-2 py-1 text-start text-[9px] font-normal text-soft">{row.label}</th>
-              <td className="border-b border-grid px-2 py-1 text-end text-muted">{fmtCount(row.defaults)}</td>
-              <td className="border-b border-grid px-2 py-1 text-end text-loss">{fmtPct(row.lgd_pct, 0)}</td>
-              <td className="border-b border-grid px-2 py-1 text-end text-ink">{fmtPct(100 - row.lgd_pct, 0)}</td>
+      <div className="relative overflow-x-auto" tabIndex={0}>
+        <table className="w-full border-collapse font-mono text-[11px]" aria-label={title}>
+          <thead>
+            <tr className="type-input-label">
+              <th scope="col" className="px-2 py-1 text-start font-normal">{t("colGroup")}</th>
+              <th scope="col" className="px-2 py-1 text-end font-normal">{t("colBorrowers")}</th>
+              <th scope="col" className="px-2 py-1 text-end font-normal">{t("colLgd")}</th>
+              <th scope="col" className="px-2 py-1 text-end font-normal">{t("colRecovered")}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.key} data-row={row.key}>
+                <th scope="row" className="type-input-label border-b border-grid px-2 py-1 text-start text-[9px] font-normal text-soft">{row.label}</th>
+                <td className="border-b border-grid px-2 py-1 text-end text-muted">{fmtCount(row.defaults)}</td>
+                <td className="border-b border-grid px-2 py-1 text-end text-loss">{fmtPct(row.lgd_pct, 0)}</td>
+                <td className="border-b border-grid px-2 py-1 text-end text-ink">{fmtPct(100 - row.lgd_pct, 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <Cite rates={rates} table={cite} />
     </Tile>
   );

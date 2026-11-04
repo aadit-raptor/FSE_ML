@@ -172,7 +172,7 @@ which moved into Foundations (1.9) because later phases need them.
 | 7.3 | Excel: live-formula workbooks, then add-in | 1.5, 2.3a | ☑ |
 | 7.4 | Portfolio tracking in any currency | 1.5, 1.9, 4.2, 2.7 | ☑ |
 | 7.5 | Lender view with regional conventions | 2.4b, 5.3 | ☑ |
-| 7.6 | Phones, tablets and accessibility | — | ☐ |
+| 7.6 | Phones, tablets and accessibility | — | ☑ |
 | 7.7 | Public API and webhooks | 1.4, 1.6, 3.1 | ☑ |
 | 7.8 | More languages | 2.3b | ☐ |
 | 7.9 | Charts in every Excel download | 2.3a | ☑ |
@@ -2988,6 +2988,33 @@ enough for the free server.
 - **Claude does:** smaller-screen layouts; accessibility audit and fixes;
   automated accessibility checks in e2e; right-to-left check.
 - **Done when:** key journeys pass at phone size; no serious accessibility issues.
+- **Done (2026-11-04).** **Below 768 pixels** the top bar keeps the brand and
+  the search, Help, Teams and account links as icons (their words stay their
+  names) on one row and moves the workspaces and modes to a second row that
+  scrolls sideways; the step row scrolls too and keeps the current step in
+  sight; a screen shows its inputs or its results, a switch above them
+  choosing (results first, the inputs keeping their state); help puts the
+  article before its list. **Below 1024** tiles take a half, a third or the
+  row (`Tile`'s spans), so desktop sizes are unchanged. A wide table scrolls
+  in its own box, reachable and scrolled by keyboard (`tabIndex`); nothing
+  else scrolls sideways. **Accessibility:** axe-core 4.14 (WCAG 2.1 A and AA
+  and best practice) found colour contrast under 4.5:1 on the faintest text,
+  the step row and the top menu (`--color-dim` raised from #65737b to
+  #77858d, which they now share), no heading on a mode's screens (a hidden
+  `h1` "Deal: Returns"), empty table header cells (now `td`), scroll areas a
+  keyboard couldn't reach, links in text told apart by colour alone, and two
+  regions named "Balance sheet" (the forecast's KPI is "Balance check"); all
+  fixed, plus a "Skip to content" link as the first tab stop.
+  **Right to left**: an Arabic account on a phone is mirrored and clean.
+  Evidence: `e2e/accessibility.spec.ts` (every step of every mode and the
+  launcher, account, help and teams at 1440, 820 and 390 pixels: no serious or
+  critical finding, no sideways scroll, both phone views; the skip link; a wide
+  table scrolled from the keyboard; on a phone with touch, an edit on the
+  inputs changing the IRR on the results, Monte Carlo run, the edit still there
+  after switching modes, search, help and the account by their icons, the
+  right-to-left layout). Not done: moderate and minor axe findings are advice,
+  not failures; testing with a real screen reader (VoiceOver, NVDA,
+  TalkBack) and on real phones is the user's.
 
 ### 7.7 Public API and webhooks
 - **Claude does:** API keys per user; versioned v1 endpoints (deal runs,

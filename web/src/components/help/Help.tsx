@@ -53,11 +53,12 @@ function HelpNav({ current }: { current?: string }) {
 
 function HelpFrame({ current, children }: { current?: string; children: ReactNode }) {
   return (
-    <div className="grid h-full min-h-0 grid-cols-[260px_minmax(0,1fr)] overflow-hidden">
-      <div className="overflow-y-auto p-5">
+    // On a phone (PLAN.md 7.6) the article comes first and the list of articles follows it, in one scroll
+    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] content-start overflow-y-auto md:grid-cols-[260px_minmax(0,1fr)] md:content-stretch md:overflow-hidden">
+      <div className="p-5 max-md:order-last max-md:border-t max-md:border-line md:overflow-y-auto">
         <HelpNav current={current} />
       </div>
-      <div className="overflow-y-auto p-6">{children}</div>
+      <div className="p-6 max-md:p-4 md:overflow-y-auto">{children}</div>
     </div>
   );
 }
@@ -147,10 +148,10 @@ function BlockView({ block }: { block: Block }) {
       return block.ordered ? <ol className="grid list-decimal gap-1 ps-5">{items}</ol> : <ul className="grid list-disc gap-1 ps-5">{items}</ul>;
     }
     case "code":
-      return <pre className="overflow-x-auto border border-line bg-canvas px-3 py-2 font-mono text-[11px] leading-relaxed text-ink">{block.text}</pre>;
+      return <pre tabIndex={0} className="relative overflow-x-auto border border-line bg-canvas px-3 py-2 font-mono text-[11px] leading-relaxed text-ink">{block.text}</pre>;
     case "table":
       return (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto" tabIndex={0}>
           <table className="w-full border-collapse font-mono text-[10.5px]">
             <thead>
               <tr>

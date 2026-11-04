@@ -290,7 +290,7 @@ function CovenantTable({ lender, years, name }: {
   const t = useTranslations("lender");
   const cols = years.slice(0, lender.covenants[0]?.years.length ?? 0);
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse font-mono text-[11px]">
         <caption className="sr-only">{t("tileTests")}</caption>
         <thead>
@@ -352,7 +352,7 @@ function BreachOdds({ simulated, hasCovenants, years, name }: {
   const rows = [...simulated.covenants.map((c) => ({ key: String(c.index), name: name(c), years: c.years })),
     { key: "any", name: t("anyCovenant"), years: simulated.any }];
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse font-mono text-[11px]">
         <caption className="sr-only">{t("tileBreachOdds")}</caption>
         <thead>
@@ -386,7 +386,7 @@ function ExpectedLoss({ lender, trancheName }: { lender: Lender; trancheName: (n
   const t = useTranslations("lender");
   const head = [t("colFacility"), t("colExposure"), t("colDefault"), t("colLgd"), t("colExpectedLoss"), t("colRecovery")];
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto" tabIndex={0}>
       <table className="w-full border-collapse font-mono text-[11px]">
         <caption className="sr-only">{t("tileExpectedLoss")}</caption>
         <thead>

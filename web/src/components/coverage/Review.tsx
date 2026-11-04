@@ -228,7 +228,7 @@ function ReviewTable({
   return (
     <div className="min-w-0">
       <p className="type-result-title mb-1">{title}</p>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto" tabIndex={0}>
         <table className="w-full border-collapse font-mono text-[11px]" aria-label={title} data-statement={table.statement}>
           <thead>
             <tr className="text-muted">
