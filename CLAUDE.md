@@ -3355,3 +3355,10 @@ Skills load when a session starts: install first, then open a new session.
   Hold one concept's years at a time: a parsed frame is several megabytes.
 - Vercel resolves Next rewrites at build time: changing `FSE_API_URL` needs a
   redeploy. `next.config.ts` fails the Vercel build if it's unset.
+- `web/package.json` `overrides` pins `minimatch` ^11.0.4 under
+  `@typescript-eslint/typescript-estree` (2026-11-05): every minimatch 10 has a
+  denial-of-service advisory (GHSA-g3hv-75wg-m249) and typescript-eslint still
+  asks for ^10. It is a lint tool only. Drop the override once typescript-eslint
+  asks for 11; `npm audit`'s own fix downgrades `eslint-config-next` to 15, so
+  never take it. The Mac's GitHub token can't read Dependabot alerts (403), so
+  find what an alert means locally with `npm audit` and `pip-audit`.
